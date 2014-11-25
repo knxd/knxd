@@ -1,0 +1,218 @@
+/*
+    EIBD client library
+    Copyright (C) 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    In addition to the permissions in the GNU General Public License, 
+    you may link the compiled version of this file into combinations
+    with other programs, and distribute those combinations without any 
+    restriction coming from the use of this file. (The General Public 
+    License restrictions do apply in other respects; for example, they 
+    cover modification of the file, and distribution when not linked into 
+    a combine executable.)
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
+#define EIBC_LICENSE(text)
+
+#define BYTE2INT(val) (EIBConnection::upack (substr (val,0, 1), "C"))
+#define SHORT2INT(val) (EIBConnection::upack (substr (val,0, 2), "n"))
+#define SHORT2LONG(val) (EIBConnection::upack (substr (val,0, 4), "N"))
+
+#define EIBTYPE (SHORT2INT($this->data))
+
+#define EIBC_GETREQUEST \
+	if ($this->_EIB_GetRequest() == -1) \
+	  return -1;
+
+#define EIBC_RETURNERROR(msg, error) \
+	if (EIBTYPE == msg) \
+	  { \
+	    $this->errno = self::error; \
+	    return -1; \
+	  }
+
+#define EIBC_RETURNERROR_UINT16(offset, error) \
+	if (SHORT2INT (substr ($this->data, offset)) == 0) \
+	  { \
+	    $this->errno = self::error; \
+	    return -1; \
+	  }
+
+#define EIBC_RETURNERROR_SIZE(Length, error) \
+	if (strlen ($this->data) <= Length) \
+	  { \
+	    $this->errno = self::error; \
+	    return -1; \
+	  }
+
+#define EIBC_CHECKRESULT(msg, msgsize) \
+	if (EIBTYPE != msg || strlen ($this->data) < msgsize) \
+	  { \
+	    $this->errno = self::ECONNRESET; \
+	    return -1; \
+	  }
+
+#define EIBC_RETURN_BUF(offset) \
+	$this->buf->buffer = substr ($this->data, offset); \
+	return strlen ($this->buf->buffer);
+
+#define EIBC_RETURN_OK \
+	return 0;
+
+#define EIBC_RETURN_LEN \
+	return $this->sendlen;
+
+#define EIBC_RETURN_UINT8(offset) \
+	return BYTE2INT (substr ($this->data, offset));
+
+#define EIBC_RETURN_UINT16(offset) \
+	return SHORT2INT (substr ($this->data, offset));
+
+#define EIBC_RETURN_PTR1(offset) \
+	if ($this->ptr1 != null) \
+	  $this->ptr1->data = SHORT2INT (substr ($this->data, offset));
+
+#define EIBC_RETURN_PTR2(offset) \
+	if ($this->ptr2 != null) \
+	  $this->ptr2->data = BYTE2INT (substr ($this->data, offset));
+
+#define EIBC_RETURN_PTR3(offset) \
+	if ($this->ptr3 != null) \
+	  $this->ptr3->data = BYTE2INT (substr ($this->data, offset));
+
+#define EIBC_RETURN_PTR4(offset) \
+	if ($this->ptr4 != null) \
+	  $this->ptr4->data = SHORT2INT (substr ($this->data, offset));
+
+#define EIBC_RETURN_PTR5(offset) \
+	if ($this->ptr5 != null) \
+	  $this->ptr5->addr = SHORT2INT (substr ($this->data, offset));
+
+#define EIBC_RETURN_PTR6(offset) \
+	if ($this->ptr6 != null) \
+	  $this->ptr6->addr = SHORT2INT (substr ($this->data, offset));
+
+#define EIBC_RETURN_PTR7(offset) \
+	if ($this->ptr7 != null) \
+	  $this->ptr7->data = SHORT2LONG (substr ($this->data, offset));
+
+#define EIBC_COMPLETE(name, body) \
+	private function name##_complete () { \
+	  body \
+	}
+
+#define EIBC_INIT_COMPLETE(name) \
+	$this->complete = #name . "_complete"; \
+	return 0;
+
+#define EIBC_INIT_SEND(length) \
+	$ibuf = array(); \
+	for ($i = 0; $i<length; $i++) \
+	  $ibuf[$i]=" ";
+
+#define EIBC_SEND_BUF(name) EIBC_SEND_BUF_LEN (name, 0)
+
+#define EIBC_SEND_BUF_LEN(name, Length) \
+	if (strlen (PAR(name)) < Length) \
+	  { \
+	    $this->errno = self::EINVAL; \
+	    return -1; \
+	  } \
+	$this->sendlen = strlen (PAR(name)); \
+	for ($i = 0; $i < strlen (PAR(name)); $i++) \
+	  $ibuf[] = substr(PAR(name), $i, 1);
+
+#define EIBC_SEND_LEN(name) (strlen(PAR(name)))
+
+#define EIBC_SEND(msg) \
+	$ibuf[0] = EIBConnection::packb ((msg>>8)&0xff); \
+	$ibuf[1] = EIBConnection::packb ((msg)&0xff); \
+	if ($this->_EIB_SendRequest (implode ("", $ibuf)) == -1) \
+	  return -1;
+
+#define EIBC_READ_BUF(buffer) \
+	$this->buf = PAR(buffer);
+
+#define EIBC_READ_LEN(name) (PAR(name ## _len))
+
+#define EIBC_PTR1(name) \
+	$this->ptr1 = PAR(name);
+
+#define EIBC_PTR2(name) \
+	$this->ptr2 = PAR(name);
+
+#define EIBC_PTR3(name) \
+	$this->ptr3 = PAR(name);
+
+#define EIBC_PTR4(name) \
+	$this->ptr4 = PAR(name);
+
+#define EIBC_PTR5(name) \
+	$this->ptr5 = PAR(name);
+
+#define EIBC_PTR6(name) \
+	$this->ptr6 = PAR(name);
+
+#define EIBC_PTR7(name) \
+	$this->ptr7 = PAR(name);
+
+#define EIBC_SETADDR(name, offset) \
+	$ibuf[offset] = EIBConnection::packb((PAR(name)>>8)&0xff); \
+	$ibuf[offset+1] = EIBConnection::packb((PAR(name))&0xff);
+
+#define EIBC_SETUINT8(name, offset) \
+	$ibuf[offset] = EIBConnection::packb((PAR(name))&0xff);
+
+#define EIBC_UINT8(name, offset) \
+	$ibuf[offset] = EIBConnection::packb(((name))&0xff);
+
+#define EIBC_SETUINT16(name, offset) \
+	$ibuf[offset] = EIBConnection::packb ((PAR(name)>>8)&0xff); \
+	$ibuf[offset+1] = EIBConnection::packb ((PAR(name))&0xff);
+
+#define EIBC_SETLEN(name, offset) \
+	$ibuf[offset] = EIBConnection::packb (((name)>>8)&0xff); \
+	$ibuf[offset+1] = EIBConnection::packb (((name))&0xff);
+
+#define EIBC_SETBOOL(value, offset) \
+	$ibuf[offset] = EIBConnection::packb((PAR(value)) ? 0xff : 0);
+
+#define EIBC_SETKEY(value, offset) \
+	if (strlen(PAR(value)) != 4) \
+          { \
+	    $this->errno = self::EINVAL; \
+	    return -1; \
+	  } \
+	for ($i = 0; $i < 4; $i++) \
+	  $ibuf [offset + $i] = substr(PAR(value), $i, 1);
+
+#define EIBC_ASYNC(name, args, body) \
+	public function name ## _async ( AG ## args ) { \
+	  body \
+	} \
+	 \
+	public function name ( AG ## args ) { \
+	  if ($this->name ##_async (AL##args) == -1) \
+	    return -1; \
+	  return $this->EIBComplete (); \
+	}
+
+#define EIBC_SYNC(name, args, body) \
+	public function name ( AG ## args ) { \
+	  body \
+	}
+
+

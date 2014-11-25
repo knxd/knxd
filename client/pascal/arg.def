@@ -1,0 +1,104 @@
+EIBC_LICENSE(
+/*
+    EIBD client library
+    Copyright (C) 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    In addition to the permissions in the GNU General Public License, 
+    you may link the compiled version of this file into combinations
+    with other programs, and distribute those combinations without any 
+    restriction coming from the use of this file. (The General Public 
+    License restrictions do apply in other respects; for example, they 
+    cover modification of the file, and distribution when not linked into 
+    a combine executable.)
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+)
+
+#define KAGARG_NONE AGARG_NONE
+#define KAGARG_BOOL(name, args) printf("; "); AGARG_BOOL(name, args)
+#define KAGARG_UINT8(name, args) printf("; "); AGARG_UINT8 (name, args)
+#define KAGARG_UINT8a(name, args) printf("; "); AGARG_UINT8a (name, args)
+#define KAGARG_UINT8b(name, args) printf("; "); AGARG_UINT8b (name, args)
+#define KAGARG_UINT16(name, args) printf("; "); AGARG_UINT16 (name, args)
+#define KAGARG_OUTUINT8(name, args) printf("; "); AGARG_OUTUINT8 (name, args)
+#define KAGARG_OUTUINT8a(name, args) printf("; "); AGARG_OUTUINT8a (name, args)
+#define KAGARG_OUTUINT16(name, args) printf("; "); AGARG_OUTUINT16 (name, args)
+#define KAGARG_OUTINT16(name, args) printf("; "); AGARG_OUTINT16 (name, args)
+#define KAGARG_OUTUINT32(name, args) printf("; "); AGARG_OUTUINT32 (name, args)
+#define KAGARG_ADDR(name, args) printf("; "); AGARG_ADDR (name, args)
+#define KAGARG_OUTADDR(name, args) printf("; "); AGARG_OUTADDR (name, args)
+#define KAGARG_OUTADDRa(name, args) printf("; "); AGARG_OUTADDRa (name, args) 
+#define KAGARG_INBUF(name, args) printf("; "); AGARG_INBUF (name, args)
+#define KAGARG_OUTBUF(name, args) printf("; "); AGARG_OUTBUF (name, args)
+#define KAGARG_OUTBUF_LEN(name, args) printf("; "); AGARG_OUTBUF_LEN (name, args)
+#define KAGARG_KEY(name, args) printf("; "); AGARG_KEY (name, args)
+
+#define KALARG_NONE ALARG_NONE
+#define KALARG_BOOL(name, args) printf(", "); ALARG_BOOL (name, args)
+#define KALARG_UINT8(name, args) printf(", "); ALARG_UINT8 (name, args)
+#define KALARG_UINT8a(name, args) printf(", "); ALARG_UINT8a (name, args)
+#define KALARG_UINT8b(name, args) printf(", "); ALARG_UINT8b (name, args)
+#define KALARG_UINT16(name, args) printf(", "); ALARG_UINT16 (name, args)
+#define KALARG_OUTUINT8(name, args) printf(", "); ALARG_OUTUINT8 (name, args)
+#define KALARG_OUTUINT8a(name, args) printf(", "); ALARG_OUTUINT8a (name, args)
+#define KALARG_OUTUINT16(name, args) printf(", "); ALARG_OUTUINT16 (name, args)
+#define KALARG_OUTINT16(name, args) printf(", "); ALARG_OUTINT16 (name, args)
+#define KALARG_OUTUINT32(name, args) printf(", "); ALARG_OUTUINT32 (name, args)
+#define KALARG_ADDR(name, args) printf(", "); ALARG_ADDR (name, args)
+#define KALARG_OUTADDR(name, args) printf(", "); ALARG_OUTADDR (name, args)
+#define KALARG_OUTADDRa(name, args) printf(", "); ALARG_OUTADDRa (name, args)
+#define KALARG_INBUF(name, args) printf(", "); ALARG_INBUF (name, args)
+#define KALARG_OUTBUF(name, args) printf(", "); ALARG_OUTBUF (name, args)
+#define KALARG_OUTBUF_LEN(name, args) printf(", "); ALARG_OUTBUF_LEN (name, args)
+#define KALARG_KEY(name, args) printf(", "); ALARG_KEY (name, args)
+
+#define AGARG_NONE 
+#define AGARG_BOOL(name, args) printf("%s: Boolean", #name);   KAG ## args
+#define AGARG_INBUF(name, args) printf("%s: TByteArray", #name);  KAG ## args
+#define AGARG_OUTBUF(name, args) printf("%s: PByteArray", #name);  KAG ## args
+#define AGARG_OUTBUF_LEN(name, args) printf("%s_len: Integer; %s: PByteArray", #name, #name); KAG ## args
+#define AGARG_OUTADDR(name, args) printf("%s: PEIBAddr", #name);  KAG ## args
+#define AGARG_OUTADDRa(name, args) printf("%s: PEIBAddr", #name);  KAG ## args
+#define AGARG_ADDR(name, args) printf("%s: TEIBAddr", #name);  KAG ## args
+#define AGARG_KEY(name, args) printf("%s: TEIBKey", #name);  KAG ## args
+#define AGARG_UINT8(name, args) printf("%s: TUINT8", #name);  KAG ## args
+#define AGARG_UINT8a(name, args) printf("%s: TUINT8", #name);  KAG ## args
+#define AGARG_UINT8b(name, args) printf("%s: TUINT8", #name);  KAG ## args
+#define AGARG_UINT16(name, args) printf("%s: TUINT16", #name);  KAG ## args
+#define AGARG_OUTUINT8(name, args) printf("%s: PUINT8", #name);  KAG ## args
+#define AGARG_OUTUINT8a(name, args) printf("%s: PUINT8", #name);  KAG ## args
+#define AGARG_OUTUINT16(name, args) printf("%s: PUINT16", #name);  KAG ## args
+#define AGARG_OUTINT16(name, args) printf("%s: PUINT16", #name);  KAG ## args
+#define AGARG_OUTUINT32(name, args) printf("%s: PUINT32", #name);  KAG ## args
+
+#define ALARG_NONE 
+#define ALARG_BOOL(name, args) printf("%s", #name);   KAL ## args
+#define ALARG_INBUF(name, args) printf("%s", #name);  KAL ## args
+#define ALARG_OUTBUF(name, args) printf("%s", #name);  KAL ## args
+#define ALARG_OUTBUF_LEN(name, args) printf("%s_len, %s", #name, #name);  KAL ## args
+#define ALARG_OUTADDR(name, args) printf("%s", #name);  KAL ## args
+#define ALARG_OUTADDRa(name, args) printf("%s", #name);  KAL ## args
+#define ALARG_ADDR(name, args) printf("%s", #name);  KAL ## args
+#define ALARG_KEY(name, args) printf("%s", #name);  KAL ## args
+#define ALARG_UINT8(name, args) printf("%s", #name);  KAL ## args
+#define ALARG_UINT8a(name, args) printf("%s", #name);  KAL ## args
+#define ALARG_UINT8b(name, args) printf("%s", #name);  KAL ## args
+#define ALARG_UINT16(name, args) printf("%s", #name);  KAL ## args
+#define ALARG_OUTUINT8(name, args) printf("%s", #name);  KAL ## args
+#define ALARG_OUTUINT8a(name, args) printf("%s", #name);  KAL ## args
+#define ALARG_OUTUINT16(name, args) printf("%s", #name);  KAL ## args
+#define ALARG_OUTINT16(name, args) printf("%s", #name);  KAL ## args
+#define ALARG_OUTUINT32(name, args) printf("%s", #name);  KAL ## args

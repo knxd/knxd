@@ -1,0 +1,253 @@
+/*
+    EIBD client library
+    Copyright (C) 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    In addition to the permissions in the GNU General Public License, 
+    you may link the compiled version of this file into combinations
+    with other programs, and distribute those combinations without any 
+    restriction coming from the use of this file. (The General Public 
+    License restrictions do apply in other respects; for example, they 
+    cover modification of the file, and distribution when not linked into 
+    a combine executable.)
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
+#define EIBC_LICENSE(text)
+
+#define STR(A) #A
+#define SHORT2INT(h) "((recvdata[" #h "] shl 8) Or (recvdata[" #h "+1]))"
+#define SHORT2LONG(h) "((recvdata[" #h "] shl 24) Or (recvdata[" #h "+1] shl 16) Or (recvdata[" #h "+2] shl 8) Or (recvdata[" #h "+3]))"
+
+#define EIBTYPE (SHORT2INT(0))
+
+#define EIBC_GETREQUEST \
+	printf("  If EIB_GetRequest() = -1 Then\n"); \
+	printf("    Begin\n"); \
+        printf("      Result := -1;\n"); \
+        printf("      exit;\n"); \
+	printf("    End;\n");
+
+#define EIBC_RETURNERROR(msg, error) \
+	printf("  If %s <> %d Then\n", EIBTYPE, msg); \
+	printf("    Begin\n"); \
+	printf("      fpseterrno (ESys%s);\n", #error); \
+        printf("      Result := -1;\n"); \
+        printf("      exit;\n"); \
+	printf("    End;\n");
+
+#define EIBC_RETURNERROR_UINT16(offset, error) \
+	printf("  If %s = 0 Then\n", SHORT2INT (offset)); \
+	printf("    Begin\n"); \
+	printf("      fpseterrno (ESys%s);\n", #error); \
+        printf("      Result := -1;\n"); \
+        printf("      exit;\n"); \
+	printf("    End;\n");
+
+#define EIBC_RETURNERROR_SIZE(Length, error) \
+	printf("  If length(recvdata) <= %d Then\n", Length); \
+	printf("    Begin\n"); \
+	printf("      fpseterrno (ESys%s);\n", #error); \
+        printf("      Result := -1;\n"); \
+        printf("      exit;\n"); \
+	printf("    End;\n");
+
+#define EIBC_CHECKRESULT(msg, msgsize) \
+	printf("  If (%s <> %d) Or (length(recvdata) < %d) Then\n", EIBTYPE, msg, msgsize); \
+	printf("    Begin\n"); \
+	printf("      fpseterrno (ESysECONNRESET);\n"); \
+        printf("      Result := -1;\n"); \
+        printf("      exit;\n"); \
+	printf("    End;\n");
+
+#define EIBC_RETURN_BUF(offset) \
+	printf("  setLength(buffer^, length(recvdata) - %d);\n", offset); \
+	printf("  For i:= 0 To length(buffer^) Do\n"); \
+	printf("    buffer^[i] := recvdata[%d + i];\n", offset); \
+	printf("  Result := length(buffer^);\n"); \
+	printf("  exit;\n");
+
+#define EIBC_RETURN_OK \
+	printf("  Result := 0;\n"); \
+	printf("  exit;\n");
+
+#define EIBC_RETURN_LEN \
+	printf("  Result := sendlen;\n"); \
+	printf("  exit;\n");
+
+#define EIBC_RETURN_UINT8(offset) \
+	printf("  Result := recvdata[%d];\n", offset); \
+	printf("  exit;\n");
+
+#define EIBC_RETURN_UINT16(offset) \
+	printf("  Result := %s;\n", SHORT2INT (offset)); \
+	printf("  exit;\n");
+
+#define EIBC_RETURN_PTR1(offset) \
+	printf("  If ptr1 <> Nil Then\n"); \
+	printf("    ptr1^ := %s;\n", SHORT2INT (offset));
+
+#define EIBC_RETURN_PTR2(offset) \
+	printf("  If ptr2 <> Nil Then\n"); \
+	printf("    ptr2^ := recvdata[%d];\n", offset);
+
+#define EIBC_RETURN_PTR3(offset) \
+	printf("  If ptr3 <> Nil Then\n"); \
+	printf("    ptr3^ := recvdata[%d];\n", offset);
+
+#define EIBC_RETURN_PTR4(offset) \
+	printf("  If ptr4 <> Nil Then\n"); \
+	printf("    ptr4^ := %s;\n", SHORT2INT (offset));
+
+#define EIBC_RETURN_PTR5(offset) \
+	printf("  If ptr5 <> Nil Then\n"); \
+	printf("    ptr5^ := %s;\n", SHORT2INT (offset));
+
+#define EIBC_RETURN_PTR6(offset) \
+	printf("  If ptr6 <> Nil Then\n"); \
+	printf("    ptr6^ := %s;\n", SHORT2INT (offset));
+
+#define EIBC_RETURN_PTR7(offset) \
+	printf("  If ptr7 <> Nil Then\n"); \
+	printf("    ptr7^ := %s;\n", SHORT2LONG (offset));
+
+#define EIBC_COMPLETE(name, body) \
+	printf("Function EIBConnection.%s_Complete: Integer;\n", #name); \
+        printf("Var i : Integer;\n"); \
+	printf("Begin\n"); \
+	printf("  complete := Nil;\n"); \
+	body \
+	printf("End;\n\n");
+
+#define EIBC_INIT_COMPLETE(name) \
+	printf("  complete := @%s_Complete;\n", #name); \
+	printf("  Result := 0;\n");
+
+#define EIBC_INIT_SEND(length) \
+	printf("  setLength(ibuf, %d);\n", length);
+
+#define EIBC_SEND_BUF(name) EIBC_SEND_BUF_LEN (name, 0)
+
+#define EIBC_SEND_BUF_LEN(name, Length) \
+	printf("  If length(%s) < %d Then\n", #name, Length); \
+	printf("    Begin\n"); \
+	printf("      fpseterrno (ESysEINVAL);\n"); \
+        printf("      Result := -1;\n"); \
+        printf("      exit;\n"); \
+	printf("    End;\n"); \
+	printf("  sendlen := length(%s);\n", #name); \
+	printf("  setLength(ibuf, length(ibuf) + sendlen);\n"); \
+	printf("  For i := 0 To sendlen Do\n"); \
+	printf("    ibuf[length(ibuf) - sendlen + i] := %s[i];\n", #name);
+
+#define EIBC_SEND_LEN(name) STR(length(name))
+
+#define EIBC_SEND(msg) \
+	printf("  ibuf[%d] := %d;\n", 0, ((msg>>8)&0xff)); \
+	printf("  ibuf[%d] := %d;\n", 1, ((msg)&0xff)); \
+	printf("  If EIB_SendRequest(ibuf) = -1 Then\n"); \
+	printf("    Begin\n"); \
+	printf("      Result := -1;\n"); \
+	printf("      exit;\n"); \
+	printf("    End;\n");
+
+#define EIBC_READ_BUF(buffer) \
+	printf("  buffer := %s;\n", #buffer);
+
+#define EIBC_READ_LEN(name) STR(name ## _len)
+
+#define EIBC_PTR1(name) \
+	printf("  ptr1 := %s;\n", #name);
+
+#define EIBC_PTR2(name) \
+	printf("  ptr2 := %s;\n", #name);
+
+#define EIBC_PTR3(name) \
+	printf("  ptr3 := %s;\n", #name);
+
+#define EIBC_PTR4(name) \
+	printf("  ptr4 := %s;\n", #name);
+
+#define EIBC_PTR5(name) \
+	printf("  ptr5 := %s;\n", #name);
+
+#define EIBC_PTR6(name) \
+	printf("  ptr6 := %s;\n", #name);
+
+#define EIBC_PTR7(name) \
+	printf("  ptr7 := %s;\n", #name);
+
+#define EIBC_SETADDR(name, offset) \
+	printf("  ibuf[%d] := ((%s shr 8) And $ff);\n", offset, #name); \
+	printf("  ibuf[%d] := ((%s) And $ff);\n", offset+1, #name);
+
+#define EIBC_SETUINT8(name, offset) \
+	printf("  ibuf[%d] := %s;\n", offset, #name);
+
+#define EIBC_UINT8(name, offset) \
+	printf("  ibuf[%d] := %s;\n", offset, #name);
+
+#define EIBC_SETUINT16(name, offset) \
+	printf("  ibuf[%d] := ((%s shr 8) And $ff);\n", offset, #name); \
+	printf("  ibuf[%d] := ((%s) And $ff);\n", offset+1, #name);
+
+#define EIBC_SETLEN(name, offset) \
+	printf("  ibuf[%d] := ((%s shr 8) And $ff);\n", offset, name); \
+	printf("  ibuf[%d] := ((%s) And $ff);\n", offset+1, name);
+
+#define EIBC_SETBOOL(value, offset) \
+        printf("  If %s Then\n", #value); \
+	printf("    ibuf[%d] := $ff\n", offset); \
+	printf("  Else\n"); \
+	printf("    ibuf[%d] := $00;\n", offset); \
+
+#define EIBC_SETKEY(value, offset) \
+        printf("  ibuf[%d] := %s[0];\n", offset, #value); \
+        printf("  ibuf[%d] := %s[1];\n", offset+1, #value); \
+        printf("  ibuf[%d] := %s[2];\n", offset+2, #value); \
+        printf("  ibuf[%d] := %s[3];\n", offset+3, #value);
+
+#define EIBC_ASYNC(name, args, body) \
+	printf("Function EIBConnection.%s_async (", #name); \
+	AG ## args \
+	printf("): Integer;\n"); \
+        printf("Var ibuf : TByteArray;\n"); \
+        printf("  i : Integer;\n"); \
+	printf("Begin\n"); \
+	body \
+	printf("End;\n\n"); \
+	printf("Function EIBConnection.%s (", #name); \
+	AG ## args \
+	printf("): Integer;\n"); \
+	printf("Begin\n"); \
+	printf("  If %s_async (", #name); \
+	AL ## args \
+	printf(") = -1 Then\n"); \
+	printf("    Begin\n");  \
+	printf("      Result := -1;\n");  \
+	printf("      exit;\n");  \
+	printf("    End;\n");  \
+	printf("  Result := EIBComplete();\n"); \
+	printf("End;\n\n"); \
+
+#define EIBC_SYNC(name, args, body) \
+	printf("Function EIBConnection.%s (", #name); \
+	AG ## args \
+	printf("): Integer;\n"); \
+        printf("Var ibuf : TByteArray;\n"); \
+        printf("  i : Integer;\n"); \
+	printf("Begin\n"); \
+	body \
+	printf("End;\n\n");

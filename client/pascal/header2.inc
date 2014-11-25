@@ -1,0 +1,4 @@
+
+Type 
+  EIBConnection = Class
+

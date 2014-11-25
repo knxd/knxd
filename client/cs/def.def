@@ -1,0 +1,218 @@
+/*
+    EIBD client library
+    Copyright (C) 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    In addition to the permissions in the GNU General Public License, 
+    you may link the compiled version of this file into combinations
+    with other programs, and distribute those combinations without any 
+    restriction coming from the use of this file. (The General Public 
+    License restrictions do apply in other respects; for example, they 
+    cover modification of the file, and distribution when not linked into 
+    a combine executable.)
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
+#define EIBC_LICENSE(text)
+
+#define BYTE2INT(val) (((int)(val))&0xff)
+#define SHORT2INT(h,l) ((BYTE2INT(h)<<8)|(BYTE2INT(l)))
+#define SHORT2INT(h,l) ((BYTE2INT(h)<<8)|(BYTE2INT(l)))
+#define SHORT2LONG(h1,h2,h3,h4) ((BYTE2INT(h1)<<24)|(BYTE2INT(h2)<<16)|(BYTE2INT(h3)<<8)|(BYTE2INT(h4)))
+
+#define EIBTYPE (SHORT2INT(data[0],data[1]))
+
+#define EIBC_GETREQUEST \
+	int i; \
+	if (_EIB_GetRequest()== -1) \
+	  return -1;
+
+#define EIBC_RETURNERROR(msg, error) \
+	if (EIBTYPE == msg) \
+	  { \
+	    errno = error; \
+	    return -1; \
+	  }
+
+#define EIBC_RETURNERROR_UINT16(offset, error) \
+	if (SHORT2INT (data[offset], data[offset+1]) == 0) \
+	  { \
+	    errno = error; \
+	    return -1; \
+	  }
+
+#define EIBC_RETURNERROR_SIZE(length, error) \
+	if (data.Length <= length) \
+	  { \
+	    errno = error; \
+	    return -1; \
+	  }
+
+#define EIBC_CHECKRESULT(msg, msgsize) \
+	if (EIBTYPE != msg || data.Length < msgsize) \
+	  { \
+	    errno = ECONNRESET; \
+	    return -1; \
+	  }
+
+#define EIBC_RETURN_BUF(offset) \
+	i = data.Length - offset; \
+	buf.data = new byte[i]; \
+        for (int j = 0; j < i; j++) \
+          buf.data[j] = data [j + offset]; \
+	return i;
+
+#define EIBC_RETURN_OK \
+	return 0;
+
+#define EIBC_RETURN_LEN \
+	return sendlen;
+
+#define EIBC_RETURN_UINT8(offset) \
+	return BYTE2INT (data[offset]);
+
+#define EIBC_RETURN_UINT16(offset) \
+	return SHORT2INT (data[offset], data[offset+1]);
+
+#define EIBC_RETURN_PTR1(offset) \
+	if (ptr1 != null) \
+	  ptr1.data = (short)SHORT2INT (data[offset],data[offset+1]);
+
+#define EIBC_RETURN_PTR2(offset) \
+	if (ptr2 != null) \
+	  ptr2.data = data[offset];
+
+#define EIBC_RETURN_PTR3(offset) \
+	if (ptr3 != null) \
+	  ptr3.data = data[offset];
+
+#define EIBC_RETURN_PTR4(offset) \
+	if (ptr4 != null) \
+	  ptr4.data = (ushort)SHORT2INT (data[offset],data[offset+1]);
+
+#define EIBC_RETURN_PTR5(offset) \
+	if (ptr5 != null) \
+	  ptr5.addr = (ushort)SHORT2INT (data[offset], data[offset+1]);
+
+#define EIBC_RETURN_PTR6(offset) \
+	if (ptr6 != null) \
+	  ptr6.addr = (ushort)SHORT2INT (data[offset], data[offset+1]);
+
+#define EIBC_RETURN_PTR7(offset) \
+	if (ptr7 != null) \
+	  ptr7.addr = (uint)SHORT2LONG (data[offset], data[offset+1], data[offset+2], data[offset+3]);
+
+#define EIBC_COMPLETE(name, body) \
+        private int name ## _complete () { \
+	  complete = null; \
+	  body \
+	}
+
+#define EIBC_INIT_COMPLETE(name) \
+	complete = new complete_t (name ## _complete); \
+	return 0;
+
+#define EIBC_INIT_SEND(length) \
+	byte[] head = new byte[length]; \
+	byte[] ibuf = head;
+
+#define EIBC_SEND_BUF(name) EIBC_SEND_BUF_LEN (name, 0)
+
+#define EIBC_SEND_BUF_LEN(name, length) \
+	if (name.Length < length) \
+	  throw new IndexOutOfRangeException ("data to short"); \
+	ibuf = new byte[head.Length + name.Length]; \
+	sendlen = name.Length; \
+	for (int i = 0; i < head.Length; i++) \
+	  ibuf [i] = head[i]; \
+	for (int i = 0; i < name.Length; i++) \
+	  ibuf [i + head.Length] = name[i];
+
+#define EIBC_SEND_LEN(name) (name.Length)
+
+#define EIBC_SEND(msg) \
+	ibuf[0] = (byte)((msg>>8)&0xff); \
+	ibuf[1] = (byte)((msg)&0xff); \
+	if (_EIB_SendRequest (ibuf) == -1) \
+	  return -1;
+
+#define EIBC_READ_BUF(buffer) \
+	this.buf = buffer;
+
+#define EIBC_READ_LEN(name) (name ## _len)
+
+#define EIBC_PTR1(name) \
+	this.ptr1 = name;
+
+#define EIBC_PTR2(name) \
+	this.ptr2 = name;
+
+#define EIBC_PTR3(name) \
+	this.ptr3 = name;
+
+#define EIBC_PTR4(name) \
+	this.ptr4 = name;
+
+#define EIBC_PTR5(name) \
+	this.ptr5 = name;
+
+#define EIBC_PTR6(name) \
+	this.ptr6 = name;
+
+#define EIBC_PTR7(name) \
+	this.ptr7 = name;
+
+#define EIBC_SETADDR(name, offset) \
+	ibuf[offset] = (byte)((name>>8)&0xff); \
+	ibuf[offset+1] = (byte)((name)&0xff);
+
+#define EIBC_SETUINT8(name, offset) \
+	ibuf[offset] = (byte)((name)&0xff);
+
+#define EIBC_UINT8(name, offset) \
+	ibuf[offset] = (byte)((name)&0xff);
+
+#define EIBC_SETUINT16(name, offset) \
+	ibuf[offset] = (byte)((name>>8)&0xff); \
+	ibuf[offset+1] = (byte)((name)&0xff);
+
+#define EIBC_SETLEN(name, offset) \
+	ibuf[offset] = (byte)((name>>8)&0xff); \
+	ibuf[offset+1] = (byte)((name)&0xff);
+
+#define EIBC_SETBOOL(value, offset) \
+	ibuf[offset] = (byte)((value) ? 0xff : 0);
+
+#define EIBC_SETKEY(value, offset) \
+	if (value.Length != 4) \
+	  throw new IndexOutOfRangeException ("key is not 4 bytes long"); \
+	for (int i = 0; i < 4; i++) \
+	  ibuf[offset + i] = value[i];
+
+#define EIBC_ASYNC(name, args, body) \
+	public int name ## _async ( AG ## args ) { \
+	  body \
+	} \
+	 \
+	public int name ( AG ## args ) { \
+	  if (name ##_async (AL##args) == -1) \
+	    return -1; \
+	  return EIBComplete (); \
+	}
+
+#define EIBC_SYNC(name, args, body) \
+	public int name ( AG ## args ) { \
+	  body \
+	}

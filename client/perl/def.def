@@ -1,0 +1,240 @@
+
+/*
+    EIBD client library
+    Copyright (C) 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    In addition to the permissions in the GNU General Public License, 
+    you may link the compiled version of this file into combinations
+    with other programs, and distribute those combinations without any 
+    restriction coming from the use of this file. (The General Public 
+    License restrictions do apply in other respects; for example, they 
+    cover modification of the file, and distribution when not linked into 
+    a combine executable.)
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
+#define EIBC_LICENSE(text)
+
+#define BYTE2INT(val) (val)
+#define SHORT2INT(array, offset) ((vec(array,offset,8) << 8) | (vec(array,offset+1,8)))
+#define SHORT2LONG(array, offset) ((vec(array,offset,8) << 24) | (vec(array,offset+1,8) << 16)| (vec(array,offset+2,8) << 8)| (vec(array,offset+3,8)))
+
+#define EIBTYPE (SHORT2INT($self->{data},0))
+
+#define EIBC_GETREQUEST \
+	$self->_EIB_Get_Request()==0 or return undef; \
+
+#define EIBC_RETURNERROR(msg, error) \
+	if (EIBTYPE == msg) \
+	  { \
+	    $! = &Errno::error; \
+	    return undef; \
+	  }
+
+#define EIBC_RETURNERROR_UINT16(offset, error) \
+	if (SHORT2INT ($self->{data}, offset) == 0) \
+	  { \
+	    $! = &Errno::error; \
+	    return undef; \
+	  }
+
+#define EIBC_RETURNERROR_SIZE(Length, error) \
+	if (bytes::length($self->{data}) <= Length) \
+	  { \
+	    $! = &Errno::error; \
+	    return undef; \
+	  }
+
+#define EIBC_CHECKRESULT(msg, msgsize) \
+	if (EIBTYPE != msg || bytes::length($self->{data}) < msgsize) \
+	  { \
+	    $! = &Errno::ECONNRESET; \
+	    return undef; \
+	  }
+
+#define EIBC_RETURN_BUF(offset) \
+	${$self->{buf}} = substr($self->{data}, offset); \
+	return bytes::length(${$self->{buf}});
+
+#define EIBC_RETURN_OK \
+	return 0;
+
+#define EIBC_RETURN_LEN \
+	return $self->{sendlen};
+
+#define EIBC_RETURN_UINT8(offset) \
+	return BYTE2INT ($self->{data}[offset]);
+
+#define EIBC_RETURN_UINT16(offset) \
+	return SHORT2INT ($self->{data}, offset);
+
+#define EIBC_RETURN_PTR1(offset) \
+	if (defined $self->{ptr1}) \
+	{ \
+	  ${$self->{ptr1}} = SHORT2INT ($self->{data}, offset); \
+	}
+
+#define EIBC_RETURN_PTR2(offset) \
+	if (defined $self->{ptr2}) \
+	{ \
+	  ${$self->{ptr2}} = BYTE2INT ($self->{data}[offset]); \
+	}
+
+#define EIBC_RETURN_PTR3(offset) \
+	if (defined $self->{ptr3}) \
+	{ \
+	  ${$self->{ptr3}} = BYTE2INT ($self->{data}[offset]); \
+	}
+
+#define EIBC_RETURN_PTR4(offset) \
+	if (defined $self->{ptr4}) \
+	{ \
+	  ${$self->{ptr4}} = SHORT2INT ($self->{data}, offset); \
+	}
+
+#define EIBC_RETURN_PTR5(offset) \
+	if (defined $self->{ptr5}) \
+	{ \
+	  ${$self->{ptr5}} = SHORT2INT ($self->{data}, offset); \
+	}
+
+#define EIBC_RETURN_PTR6(offset) \
+	if (defined $self->{ptr6}) \
+	{ \
+	  ${$self->{ptr6}} = SHORT2INT ($self->{data}, offset); \
+	}
+
+#define EIBC_RETURN_PTR7(offset) \
+	if (defined $self->{ptr7}) \
+	{ \
+	  ${$self->{ptr7}} = SHORT2LONG ($self->{data}, offset); \
+	}
+
+#define EIBC_COMPLETE(name, body) \
+        sub name##_complete { \
+	  my $self = shift; \
+	  $self->{complete} = undef; \
+	  my $i; \
+          body \
+        }
+
+#define EIBC_INIT_COMPLETE(name) \
+	$self->{complete} = #name . "_complete"; \
+	return 0;
+
+#define EIBC_INIT_SEND(length) \
+	for ($i = 0; $i<length; $i++) { \
+	  $ibuf[$i]=0x00; } \
+	my $headlen = length; 
+
+#define EIBC_SEND_BUF(name) EIBC_SEND_BUF_LEN (name, 0)
+
+#define EIBC_SEND_BUF_LEN(name, Length) \
+	if (bytes::length(SCALAR(name)) < Length) \
+	  { \
+	    $! = &Errno::EINVAL; \
+	    return undef; \
+	  } \
+	$self->{sendlen} = bytes::length(SCALAR(name)); \
+	for ($i = 0; $i < bytes::length(SCALAR(name)); $i++) { \
+	  $ibuf[$headlen + $i] = vec(SCALAR(name),$i,8); }
+
+#define EIBC_SEND_LEN(name) (SCALAR(name))
+
+#define EIBC_SEND(msg) \
+	$ibuf[0] = (msg>>8)&0xff; \
+	$ibuf[1] = (msg)&0xff; \
+	$self->_EIB_SendRequest (pack("C".@ibuf, @ibuf))==0 or return undef;
+
+#define EIBC_READ_BUF(buffer) \
+	$self->{buf} = SCALAR(buffer);
+
+#define EIBC_READ_LEN(name) (SCALAR(name ## _len))
+
+#define EIBC_PTR1(name) \
+	$self->{ptr1} = SCALAR(name);
+
+#define EIBC_PTR2(name) \
+	$self->{ptr2} = SCALAR(name);
+
+#define EIBC_PTR3(name) \
+	$self->{ptr3} = SCALAR(name);
+
+#define EIBC_PTR4(name) \
+	$self->{ptr4} = SCALAR(name);
+
+#define EIBC_PTR5(name) \
+	$self->{ptr5} = SCALAR(name);
+
+#define EIBC_PTR6(name) \
+	$self->{ptr6} = SCALAR(name);
+
+#define EIBC_PTR7(name) \
+	$self->{ptr7} = SCALAR(name);
+
+#define EIBC_SETADDR(name, offset) \
+	$ibuf[offset] = (SCALAR(name)>>8)&0xff; \
+	$ibuf[offset+1] = (SCALAR(name))&0xff;
+
+#define EIBC_SETUINT8(name, offset) \
+	$ibuf[offset] = (SCALAR(name))&0xff;
+
+#define EIBC_UINT8(name, offset) \
+	$ibuf[offset] = ((name))&0xff;
+
+#define EIBC_SETUINT16(name, offset) \
+	$ibuf[offset] = (SCALAR(name)>>8)&0xff; \
+	$ibuf[offset+1] = (SCALAR(name))&0xff;
+
+#define EIBC_SETLEN(name, offset) \
+	$ibuf[offset] = ((name)>>8)&0xff; \
+	$ibuf[offset+1] = ((name))&0xff;
+
+#define EIBC_SETBOOL(value, offset) \
+	$ibuf[offset] = (SCALAR(value)) ? 0xff : 0;
+
+#define EIBC_SETKEY(value, offset) \
+	if (ARRAY(value) != 4) \
+          { \
+	    $! = &Errno::EINVAL; \
+	    return undef; \
+	  } \
+	for ($i = 0; $i < 4; $i++) \
+	{ \
+	  $ibuf [offset + $i] = vec(SCALAR(value),$i,8); \
+	}
+
+#define EIBC_ASYNC(name, args, body) \
+	sub name ## _async { \
+	  my ($self KAG##args) = @_; \
+          my $i; \
+          my @ibuf = {}; \
+	  body \
+	} \
+	sub name { \
+	  my ($self KAG##args) = @_; \
+	  $self -> name ## _async ( AL##args )==0 or return undef; \
+	  return $self -> EIBComplete(); \
+	}
+
+#define EIBC_SYNC(name, args, body) \
+	sub name { \
+	  my ($self KAG##args) = @_; \
+          my $i; \
+          my @ibuf = {}; \
+	  body \
+	}
+

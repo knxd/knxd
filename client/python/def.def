@@ -1,0 +1,213 @@
+/*
+    EIBD client library
+    Copyright (C) 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    In addition to the permissions in the GNU General Public License, 
+    you may link the compiled version of this file into combinations
+    with other programs, and distribute those combinations without any 
+    restriction coming from the use of this file. (The General Public 
+    License restrictions do apply in other respects; for example, they 
+    cover modification of the file, and distribution when not linked into 
+    a combine executable.)
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
+#define EIBC_LICENSE(text)
+
+#define STR(A) #A
+#define SHORT2INT(h) "(((self.data[" #h "])<<8)|(self.data[" #h "+1]))"
+#define SHORT2LONG(h) "(((self.data[" #h "])<<24)|((self.data[" #h "+1])<<16)|((self.data[" #h "+2])<<8)|(self.data[" #h "+3]))"
+
+#define EIBTYPE (SHORT2INT(0))
+
+#define EIBC_GETREQUEST \
+	printf("    if self.__EIB_GetRequest() == -1:\n"); \
+	printf("      return -1;\n");
+
+#define EIBC_RETURNERROR(msg, error) \
+	printf("    if %s == %d:\n", EIBTYPE, msg); \
+	printf("      self.errno = errno.%s\n", #error); \
+	printf("      return -1\n");
+
+#define EIBC_RETURNERROR_UINT16(offset, error) \
+	printf("    if %s == 0:\n", SHORT2INT (offset)); \
+	printf("      self.errno = errno.%s\n", #error); \
+	printf("      return -1\n");
+
+#define EIBC_RETURNERROR_SIZE(Length, error) \
+	printf("    if len(self.data) <= %d:\n", Length); \
+	printf("      self.errno = errno.%s\n", #error); \
+	printf("      return -1\n");
+
+#define EIBC_CHECKRESULT(msg, msgsize) \
+	printf("    if %s != %d or len(self.data) < %d:\n", EIBTYPE, msg, msgsize); \
+	printf("      self.errno = errno.ECONNRESET\n"); \
+	printf("      return -1\n");
+
+#define EIBC_RETURN_BUF(offset) \
+	printf("    self.buf.buffer = self.data[%d:]\n", offset); \
+	printf("    return len(self.buf.buffer)\n");
+
+#define EIBC_RETURN_OK \
+	printf("    return 0\n");
+
+#define EIBC_RETURN_LEN \
+	printf("    return self.sendlen\n");
+
+#define EIBC_RETURN_UINT8(offset) \
+	printf("    return self.data[%d]\n", offset);
+
+#define EIBC_RETURN_UINT16(offset) \
+	printf("    return %s\n", SHORT2INT (offset));
+
+#define EIBC_RETURN_PTR1(offset) \
+	printf("    if self.ptr1 != None:\n"); \
+	printf("      self.ptr1.data = %s\n", SHORT2INT (offset));
+
+#define EIBC_RETURN_PTR2(offset) \
+	printf("    if self.ptr2 != None:\n"); \
+	printf("      self.ptr2.data = self.data[%d]\n", offset);
+
+#define EIBC_RETURN_PTR3(offset) \
+	printf("    if self.ptr3 != None:\n"); \
+	printf("      self.ptr3.data = self.data[%d]\n", offset);
+
+#define EIBC_RETURN_PTR4(offset) \
+	printf("    if self.ptr4 != None:\n"); \
+	printf("      self.ptr4.data = %s\n", SHORT2INT (offset));
+
+#define EIBC_RETURN_PTR5(offset) \
+	printf("    if self.ptr5 != None:\n"); \
+	printf("      self.ptr5.data = %s\n", SHORT2INT (offset));
+
+#define EIBC_RETURN_PTR6(offset) \
+	printf("    if self.ptr6 != None:\n"); \
+	printf("      self.ptr6.data = %s\n", SHORT2INT (offset));
+
+#define EIBC_RETURN_PTR7(offset) \
+	printf("    if self.ptr7 != None:\n"); \
+	printf("      self.ptr7.data = %s\n", SHORT2LONG (offset));
+
+#define EIBC_COMPLETE(name, body) \
+	printf("  def __%s_Complete(self):\n", #name); \
+	printf("    self.__complete = None;\n"); \
+	body \
+	printf("\n\n");
+
+#define EIBC_INIT_COMPLETE(name) \
+	printf("    self.__complete = self.__%s_Complete;\n", #name); \
+	printf("    return 0\n");
+
+#define EIBC_INIT_SEND(length) \
+	printf("    ibuf = [0] * %d;\n", length);
+
+#define EIBC_SEND_BUF(name) EIBC_SEND_BUF_LEN (name, 0)
+
+#define EIBC_SEND_BUF_LEN(name, Length) \
+	printf("    if len(%s) < %d:\n", #name, Length); \
+	printf("      self.errno = errno.EINVAL\n"); \
+	printf("      return -1\n"); \
+	printf("    self.sendlen = len(%s)\n", #name); \
+	printf("    ibuf += %s\n", #name);
+
+#define EIBC_SEND_LEN(name) STR((len(name)))
+
+#define EIBC_SEND(msg) \
+	printf("    ibuf[%d] = %d\n", 0, ((msg>>8)&0xff)); \
+	printf("    ibuf[%d] = %d\n", 1, ((msg)&0xff)); \
+	printf("    if self.__EIB_SendRequest(ibuf) == -1:\n"); \
+	printf("      return -1;\n");
+
+#define EIBC_READ_BUF(buffer) \
+	printf("    self.buf = %s\n", #buffer);
+
+
+#define EIBC_READ_LEN(name) STR(name ## _len)
+
+#define EIBC_PTR1(name) \
+	printf("    self.ptr1 = %s\n", #name);
+
+#define EIBC_PTR2(name) \
+	printf("    self.ptr2 = %s\n", #name);
+
+#define EIBC_PTR3(name) \
+	printf("    self.ptr3 = %s\n", #name);
+
+#define EIBC_PTR4(name) \
+	printf("    self.ptr4 = %s\n", #name);
+
+#define EIBC_PTR5(name) \
+	printf("    self.ptr5 = %s\n", #name);
+
+#define EIBC_PTR6(name) \
+	printf("    self.ptr6 = %s\n", #name);
+
+#define EIBC_PTR7(name) \
+	printf("    self.ptr7 = %s\n", #name);
+
+#define EIBC_SETADDR(name, offset) \
+	printf("    ibuf[%d] = ((%s>>8)&0xff)\n", offset, #name); \
+	printf("    ibuf[%d] = ((%s)&0xff)\n", offset+1, #name);
+
+#define EIBC_SETUINT8(name, offset) \
+	printf("    ibuf[%d] = ((%s)&0xff)\n", offset, #name);
+
+#define EIBC_UINT8(name, offset) \
+	printf("    ibuf[%d] = ((%s)&0xff)\n", offset, #name);
+
+#define EIBC_SETUINT16(name, offset) \
+	printf("    ibuf[%d] = ((%s>>8)&0xff)\n", offset, #name); \
+	printf("    ibuf[%d] = ((%s)&0xff)\n", offset+1, #name);
+
+#define EIBC_SETLEN(name, offset) \
+	printf("    ibuf[%d] = ((%s>>8)&0xff)\n", offset, name); \
+	printf("    ibuf[%d] = ((%s)&0xff)\n", offset+1, name);
+
+#define EIBC_SETBOOL(value, offset) \
+	printf("    if %s != 0:\n", #value); \
+	printf("      ibuf[%d] = 0xff\n", offset); \
+	printf("    else:\n"); \
+	printf("      ibuf[%d] = 0x00\n", offset);
+
+#define EIBC_SETKEY(value, offset) \
+	printf("    if len(%s) != 4:\n", #value); \
+	printf("      self.errno = errno.EINVAL\n"); \
+	printf("      return -1\n"); \
+	printf("    ibuf[%d:%d] = %s\n", offset, offset+4, #value);
+
+#define EIBC_ASYNC(name, args, body) \
+	printf("  def %s_async(self", #name); \
+	KAG ## args \
+	printf("):\n"); \
+	body \
+	printf("\n\n"); \
+	printf("  def %s(self", #name); \
+	KAG ## args \
+	printf("):\n"); \
+	printf ("    if self.%s_async (", #name); \
+	AL ## args \
+	printf (") == -1:\n"); \
+	printf ("      return -1\n"); \
+	printf ("    return self.EIBComplete ()"); \
+	printf("\n\n");
+
+#define EIBC_SYNC(name, args, body) \
+	printf("  def %s(self", #name); \
+	KAG ## args \
+	printf("):\n"); \
+	body \
+	printf("\n\n");
+

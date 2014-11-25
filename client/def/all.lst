@@ -1,0 +1,85 @@
+EIBC_LICENSE(
+/*
+    EIBD client library
+    Copyright (C) 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    In addition to the permissions in the GNU General Public License, 
+    you may link the compiled version of this file into combinations
+    with other programs, and distribute those combinations without any 
+    restriction coming from the use of this file. (The General Public 
+    License restrictions do apply in other respects; for example, they 
+    cover modification of the file, and distribution when not linked into 
+    a combine executable.)
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+)
+
+#include "getapdu.inc"
+#include "getapdusrc.inc"
+#include "getbusmonitorpacket.inc"
+#include "getbusmonitorpacketts.inc"
+#include "getgroupsrc.inc"
+#include "gettpdu.inc"
+#include "groupcacheclear.inc"
+#include "groupcachedisable.inc"
+#include "groupcacheenable.inc"
+#include "groupcacheread.inc"
+#include "groupcachereadsync.inc"
+#include "groupcacheremove.inc"
+#include "groupcachelastupdates.inc"
+#include "loadimage.inc"
+#include "mcauthorize.inc"
+#include "mcconnect.inc"
+#include "mcindividual.inc"
+#include "mcgetmaskversion.inc"
+#include "mcgetpeitype.inc"
+#include "mcprogmodeoff.inc"
+#include "mcprogmodeon.inc"
+#include "mcprogmodestatus.inc"
+#include "mcprogmodetoggle.inc"
+#include "mcpropertydesc.inc"
+#include "mcpropertyread.inc"
+#include "mcpropertyscan.inc"
+#include "mcpropertywrite.inc"
+#include "mcreadadc.inc"
+#include "mcread.inc"
+#include "mcrestart.inc"
+#include "mcsetkey.inc"
+#include "mcwrite.inc"
+#include "mcwriteplain.inc"
+#include "mgetmaskversion.inc"
+#include "mprogmodeoff.inc"
+#include "mprogmodeon.inc"
+#include "mprogmodestatus.inc"
+#include "mprogmodetoggle.inc"
+#include "mreadindividualaddresses.inc"
+#include "mwriteindividualaddress.inc"
+#include "openbusmonitor.inc"
+#include "openbusmonitortext.inc"
+#include "openbusmonitorts.inc"
+#include "opengroupsocket.inc"
+#include "opentbroadcast.inc"
+#include "opentconnection.inc"
+#include "opentgroup.inc"
+#include "opentindividual.inc"
+#include "openttpdu.inc"
+#include "openvbusmonitor.inc"
+#include "openvbusmonitortext.inc"
+#include "openvbusmonitorts.inc"
+#include "reset.inc"
+#include "sendapdu.inc"
+#include "sendgroup.inc"
+#include "sendtpdu.inc"
