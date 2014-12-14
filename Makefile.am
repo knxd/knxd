@@ -1,2 +1,14 @@
-SUBDIRS= include client examples usb libserver backend server eibnet bcu
+AUTOMAKE_OPTIONS=1.9
+ACLOCAL_AMFLAGS = -I m4
+EXTRA_DIST=SubmittingPatches .gitignore
 
+BUILDDIRS = 
+
+SUBDIRS=. src 
+
+BUILT_SOURCES=path.h
+CLEANFILES=path.h
+
+path.h : Makefile
+	echo "#define PKGDATADIR \"${pkgdatadir}\"" >$@
+	echo "#define PKGLIBDIR \"${pkglibdir}\"" >>$@
