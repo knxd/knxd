@@ -8,7 +8,7 @@ CACHE=groupcache.h groupcache.cpp groupcacheclient.h groupcacheclient.cpp
 MANAGEMENT=management.h management.cpp
 FRONTEND_C=client.h client.cpp busmonitor.h busmonitor.cpp connection.h connection.cpp managementclient.h managementclient.cpp 
 FRONTEND=server.h server.cpp localserver.h localserver.cpp inetserver.h inetserver.cpp $(FRONTEND_C)
-EMI=emi1.h emi1.cpp emi2.h emi2.cpp emi.h emi.cpp
+EMI=emi1.h emi1.cpp emi2.h emi2.cpp cemi.h cemi.cpp emi.h emi.cpp
 EIBNETIP=eibnetip.cpp eibnetip.h eibnetserver.cpp eibnetserver.h
 USB=eibusb.cpp eibusb.h
 

@@ -20,6 +20,7 @@
 #include "eibusb.h"
 #include "emi1.h"
 #include "emi2.h"
+#include "cemi.h"
 
 LowLevelDriverInterface *
 initUSBDriver (LowLevelDriverInterface * i, Trace * tr)
@@ -289,6 +290,9 @@ USBLayer2Interface::USBLayer2Interface (LowLevelDriverInterface * i,
       break;
     case LowLevelDriverInterface::vEMI2:
       emi = new EMI2Layer2Interface (iface, tr, flags);
+      break;
+    case LowLevelDriverInterface::vCEMI:
+      emi = new CEMILayer2Interface (iface, tr, flags);
       break;
     default:
       TRACEPRINTF (tr, 2, this, "Unsupported EMI");
