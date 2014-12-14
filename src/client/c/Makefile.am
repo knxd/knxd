@@ -25,6 +25,6 @@ gen/%.c : Makefile
 	echo '#include "def/'`basename $@|sed -e "s/\.c/.inc/g"`'"' >> $@
 
 lib_LTLIBRARIES=libeibclient.la
-AM_CPPFLAGS=-I$(top_srcdir)/eibd/include -I$(top_srcdir)/common -I$(top_srcdir)/eibd/client
+AM_CPPFLAGS=-I$(top_srcdir)/src/include -I$(top_srcdir)/src/common -I$(top_srcdir)/src/client
 libeibclient_la_SOURCES= $(NATIVE) $(FUNCS) $(HEADER)
 libeibclient_la_LDFLAGS=-version-info 0:0:0

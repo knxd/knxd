@@ -1,8 +1,8 @@
 pkgdata_DATA = EIBConnection.pm
 
-AM_CPPFLAGS=-I$(top_srcdir)/eibd/include -I$(top_srcdir)/eibd/client -I$(top_builddir)/eibd/client
+AM_CPPFLAGS=-I$(top_srcdir)/src/include -I$(top_srcdir)/src/client -I$(top_builddir)/src/client
 
-result.inc : $(top_srcdir)/common/eibloadresult.h
+result.inc : $(top_srcdir)/src/common/eibloadresult.h
 	cat $<  |grep IMG_ |sed -e 's/#define \(IMG_[A-Z_0-9]\+\)  \+\([0-9]\+\)/ use constant \1 => \2;/g' > $@
 
 CLEANFILES = result.inc EIBConnection.post  EIBConnection.p EIBConnection.p1 EIBConnection.pm

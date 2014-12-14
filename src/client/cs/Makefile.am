@@ -1,12 +1,12 @@
 pkgdata_DATA = EIBConnection.cs
 
-AM_CPPFLAGS=-I$(top_srcdir)/eibd/include -I$(top_srcdir)/eibd/client  -I$(top_builddir)/eibd/client
+AM_CPPFLAGS=-I$(top_srcdir)/src/include -I$(top_srcdir)/src/client  -I$(top_builddir)/src/client
 
 CLEANFILES = result.inc EIBConnection.post EIBConnection.cs
 BUILT_SOURCES = EIBConnection.cs
 EXTRA_DIST = arg.def complete.inc def.def errno.inc help.inc io.inc lic.inc EIBConnection.pre
 
-result.inc : $(top_srcdir)/common/eibloadresult.h
+result.inc : $(top_srcdir)/src/common/eibloadresult.h
 	cat $<  |grep IMG_ |sed -e 's/#define \(IMG_[A-Z_0-9]\+\)  \+\([0-9]\+\)/public const int \1 = \2;/g' > $@
 
 EIBConnection.post : result.inc
