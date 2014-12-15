@@ -167,11 +167,13 @@ AC_ARG_ENABLE(usb,
  esac],[usb=false])
 
 if test x$usb = xtrue ; then
-PKG_CHECK_MODULES(LIBUSB, "libusb-1.0", AM_CONDITIONAL(HAVE_USB, test x$usb = xtrue))
+ PKG_CHECK_MODULES(LIBUSB, "libusb-1.0", AM_CONDITIONAL(HAVE_USB, test x$usb = xtrue))
  if test x$have_usb != xyes ; then
   AC_MSG_ERROR(not all needed functions for USB backend available)
  fi
  AC_DEFINE(HAVE_USB, 1 , [USB backend enabled])
+else
+ AM_CONDITIONAL(HAVE_USB, test x$usb = xfalse)
 fi
 
 AC_ARG_ENABLE(eibnetipserver,
