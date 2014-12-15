@@ -165,8 +165,9 @@ AC_ARG_ENABLE(usb,
   no)  usb=false ;;
    *) AC_MSG_ERROR(bad value ${enableval} for --enable-usb) ;;
  esac],[usb=false])
-AM_CONDITIONAL(HAVE_USB, test x$usb = xtrue)
+
 if test x$usb = xtrue ; then
+PKG_CHECK_MODULES(LIBUSB, "libusb-1.0", AM_CONDITIONAL(HAVE_USB, test x$usb = xtrue))
  if test x$have_usb != xyes ; then
   AC_MSG_ERROR(not all needed functions for USB backend available)
  fi
