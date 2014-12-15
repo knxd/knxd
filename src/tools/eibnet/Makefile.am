@@ -8,8 +8,8 @@ else
 EIBNET=
 endif
 eibnetdescribe_SOURCES=eibnetdescribe.cpp
-eibnetdescribe_LDADD=../libserver/libeibstack.a $(PTHSEM_LIB)
+eibnetdescribe_LDADD=../../libserver/libeibstack.a $(PTHSEM_LIB)
 
 eibnetsearch_SOURCES=eibnetsearch.cpp
-eibnetsearch_LDADD=../libserver/libeibstack.a $(PTHSEM_LIB)
+eibnetsearch_LDADD=../../libserver/libeibstack.a $(PTHSEM_LIB)
 
