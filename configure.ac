@@ -77,7 +77,7 @@ AC_ARG_ENABLE(ft12,
  yes) ft12=true ;;
   no)  ft12=false ;;
    *) AC_MSG_ERROR(bad value ${enableval} for --enable-ft12) ;;
- esac],[ft12=false])
+ esac],[ft12=true])
 AM_CONDITIONAL(HAVE_FT12, test x$ft12 = xtrue)
 if test x$ft12 = xtrue ; then
  AC_DEFINE(HAVE_FT12, 1 , [FT1.2 enabled])
@@ -125,7 +125,7 @@ AC_ARG_ENABLE(tpuarts,
  yes) tpuarts=true ;;
   no)  tpuarts=false ;;
    *) AC_MSG_ERROR(bad value ${enableval} for --enable-tpuarts) ;;
- esac],[tpuarts=false])
+ esac],[tpuarts=true])
 AM_CONDITIONAL(HAVE_TPUARTs, test x$tpuarts = xtrue)
 if test x$tpuarts = xtrue ; then
  AC_DEFINE(HAVE_TPUARTs, 1 , [TPUARTs enabled])
@@ -137,7 +137,7 @@ AC_ARG_ENABLE(eibnetip,
  yes) eibnetip=true ;;
   no)  eibnetip=false ;;
    *) AC_MSG_ERROR(bad value ${enableval} for --enable-eibnetip) ;;
- esac],[eibnetip=false])
+ esac],[eibnetip=true])
 AM_CONDITIONAL(HAVE_EIBNETIP, test x$eibnetip = xtrue)
 if test x$eibnetip = xtrue ; then
  AC_DEFINE(HAVE_EIBNETIP, 1 , [EIBnet/IP enabled])
@@ -149,7 +149,7 @@ AC_ARG_ENABLE(eibnetiptunnel,
  yes) eibnetiptunnel=true ;;
   no)  eibnetiptunnel=false ;;
    *) AC_MSG_ERROR(bad value ${enableval} for --enable-eibnetiptunnel) ;;
- esac],[eibnetiptunnel=false])
+ esac],[eibnetiptunnel=true])
 AM_CONDITIONAL(HAVE_EIBNETIPTUNNEL, test x$eibnetiptunnel = xtrue)
 if test x$eibnetiptunnel = xtrue ; then
  if test x$have_source_info != xyes ; then
@@ -179,7 +179,7 @@ AC_ARG_ENABLE(eibnetipserver,
  yes) eibnetipserver=true ;;
   no)  eibnetipserver=false ;;
    *) AC_MSG_ERROR(bad value ${enableval} for --enable-eibnetipserver) ;;
- esac],[eibnetipserver=false])
+ esac],[eibnetipserver=true])
 if test x$eibnetipserver = xtrue ; then
  if test x$have_source_info != xyes ; then
   AC_MSG_ERROR(not all needed functions for EIBnet/IP server available)
