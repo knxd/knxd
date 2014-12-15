@@ -333,9 +333,11 @@ main (int ac, char *ag[])
   t.SetTraceLevel (arg.tracelevel);
   t.SetErrorLevel (arg.errorlevel);
 
+  /*
   if (getuid () == 0)
     ERRORPRINTF (&t, 0x37000001, 0, "EIBD should not run as root");
-
+  */
+  
   if (arg.daemon)
     {
       int fd = open (arg.daemon, O_WRONLY | O_APPEND | O_CREAT, FILE_MODE);
