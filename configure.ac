@@ -253,7 +253,7 @@ src/common/Makefile
 src/Makefile src/include/Makefile  src/client/Makefile src/examples/Makefile src/libserver/Makefile src/server/Makefile src/backend/Makefile
 src/client/def/Makefile src/client/c/Makefile src/client/java/Makefile src/client/php/Makefile src/client/cs/Makefile
 src/client/perl/Makefile src/client/python/Makefile src/client/pascal/Makefile
-src/eibnet/Makefile src/bcu/Makefile src/usb/Makefile
+src/eibnet/Makefile src/bcu/Makefile src/usb/Makefile src/tools/Makefile
 )
 
 AC_CONFIG_MACRO_DIR([m4])
