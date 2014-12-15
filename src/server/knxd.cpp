@@ -143,7 +143,7 @@ const char *argp_program_version = "knxd " VERSION;
 static char doc[] =
   "knxd -- a communication stack for EIB/KNX\n"
   "(C) 2014 ...\n\n"
-  "previously eibd:\n"
+  "previously eibd:
   " (C) 2005-2011 Martin Koegler\n"
   "supported URLs are:\n"
 #undef L2_NAME
