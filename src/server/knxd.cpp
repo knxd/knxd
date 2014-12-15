@@ -138,13 +138,11 @@ readaddr (const char *addr)
 }
 
 /** version */
-const char *argp_program_version = "knxd " VERSION;
+const char *argp_program_version = "eibd " VERSION;
 /** documentation */
 static char doc[] =
-  "knxd -- a communication stack for EIB/KNX\n"
-  "(C) 2014 ...\n\n"
-  "previously eibd:
-  " (C) 2005-2011 Martin Koegler\n"
+  "eibd -- a commonication stack for EIB/KNX\n"
+  "(C) 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>\n"
   "supported URLs are:\n"
 #undef L2_NAME
 #define L2_NAME(a) a##_URL
@@ -335,7 +333,7 @@ main (int ac, char *ag[])
   t.SetErrorLevel (arg.errorlevel);
 
   if (getuid () == 0)
-    ERRORPRINTF (&t, 0x37000001, 0, "knxd should not run as root");
+    ERRORPRINTF (&t, 0x37000001, 0, "EIBD should not run as root");
 
   if (arg.daemon)
     {
