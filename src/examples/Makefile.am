@@ -1,7 +1,8 @@
 AM_CPPFLAGS=-I$(top_srcdir)/src/include -I$(top_srcdir)/src/common
 
 LDADD=common.o ../client/c/libeibclient.la
-bin_PROGRAMS=busmonitor1 busmonitor2 readindividual progmodeon progmodeoff progmodetoggle progmodestatus maskver \
+examplesbindir=$(pkgdatadir)/examples/bin
+examplesbin_PROGRAMS=busmonitor1 busmonitor2 readindividual progmodeon progmodeoff progmodetoggle progmodestatus maskver \
 	writeaddress vbusmonitor1 vbusmonitor2 mprogmodeon mprogmodeoff mprogmodetoggle mprogmodestatus mmaskver \
 	mpeitype madcread mread mwrite mpropread mpropwrite mpropdesc mpropscan groupread groupswrite groupwrite \
 	msetkey grouplisten groupresponse groupsresponse groupsocketlisten groupsocketread mpropscanpoll \
