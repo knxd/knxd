@@ -173,7 +173,7 @@ if test x$usb = xtrue ; then
  fi
  AC_DEFINE(HAVE_USB, 1 , [USB backend enabled])
 else
- AM_CONDITIONAL(HAVE_USB, test x$usb = xfalse)
+ AM_CONDITIONAL(HAVE_USB, test x$usb = xtrue)
 fi
 
 AC_ARG_ENABLE(eibnetipserver,
