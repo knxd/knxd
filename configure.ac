@@ -66,7 +66,7 @@ if test x$have_bsd_source_info = xyes ; then
   have_source_info=yes
 fi
 
-AC_CHECK_FUNCS(gethostbyname_r,,[AC_MSG_WARN([eibd client library not thread safe])])
+AC_CHECK_FUNCS(gethostbyname_r,,[AC_MSG_WARN([knxd client library not thread safe])])
 
 AM_CONDITIONAL(LINUX_API, test x$have_linux_api = xyes)
 

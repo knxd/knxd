@@ -1,6 +1,7 @@
 /*
-    EIBD eib bus access and management daemon
+    knxd EIB/KNX bus access and management daemon
     Copyright (C) 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
+    Copyright (C) 2014 Michael Markstaller <michael@markstaller.de>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -138,10 +139,10 @@ readaddr (const char *addr)
 }
 
 /** version */
-const char *argp_program_version = "eibd " VERSION;
+const char *argp_program_version = "knxd " VERSION;
 /** documentation */
 static char doc[] =
-  "eibd -- a commonication stack for EIB/KNX\n"
+  "knxd -- a commonication stack for EIB/KNX\n"
   "(C) 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>\n"
   "supported URLs are:\n"
 #undef L2_NAME
@@ -371,14 +372,14 @@ main (int ac, char *ag[])
     {
       s = new InetServer (l3, &t, arg.port);
       if (!s->init ())
-	die ("initialisation of the eibd inet protocol failed");
+	die ("initialisation of the knxd inet protocol failed");
       server.put (s);
     }
   if (arg.name)
     {
       s = new LocalServer (l3, &t, arg.name);
       if (!s->init ())
-	die ("initialisation of the eibd unix protocol failed");
+	die ("initialisation of the knxd unix protocol failed");
       server.put (s);
     }
 #ifdef HAVE_EIBNETIPSERVER
