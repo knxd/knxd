@@ -21,7 +21,7 @@ endif
 bin_PROGRAMS= $(PROG)
 
 findknxusb_SOURCES= findknxusb.cpp
-findknxusb_LDADD= $(PTH_LIBS) $(LIBUSB_LIBS)
+findknxusb_LDADD= $(PTHSEM_LIB) $(LIBUSB_LIBS)
 
 noinst_LIBRARIES=libusb.a
 libusb_a_SOURCES=$(LIBUSB) dummy.cpp
