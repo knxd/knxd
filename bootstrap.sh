@@ -1,2 +1,2 @@
 #! /bin/sh
-libtoolize && aclocal && autoheader && automake --add-missing && autoconf
+libtoolize --copy --force --install && aclocal --force && autoheader && automake --add-missing --copy --force-missing && autoconf
