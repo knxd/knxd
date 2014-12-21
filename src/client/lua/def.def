@@ -1,0 +1,255 @@
+/*
+    EIBD client library
+    Copyright (C) 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    In addition to the permissions in the GNU General Public License, 
+    you may link the compiled version of this file into combinations
+    with other programs, and distribute those combinations without any 
+    restriction coming from the use of this file. (The General Public 
+    License restrictions do apply in other respects; for example, they 
+    cover modification of the file, and distribution when not linked into 
+    a combine executable.)
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
+#define EIBC_LICENSE(text)
+
+#define STR(A) #A
+
+/* #define SHORT2INT(h) "(((self.data[" #h "])<<8)|(self.data[" #h "+1]))"  */
+#define SHORT2INT(h) " bit.bor(  bit.lshift(self.data[" #h "+1], 8) , (self.data[" #h "+2]))" 
+
+/* #define SHORT2LONG(h) "(((self.data[" #h "])<<24)|((self.data[" #h "+1])<<16)|((self.data[" #h "+2])<<8)|(self.data[" #h "+3]))" */
+/*
+(
+	((self.data[" #h "])<<24)		bit.blshift(self.data[" #h "], 24)
+		|
+	((self.data[" #h "+1])<<16) 		bit.blshift(self.data[" #h "+1], 16)
+		| 
+	((self.data[" #h "+2])<<8)		bit.blshift(self.data[" #h "+2], 8)
+		|
+	(self.data[" #h "+3])
+)
+*/
+
+#define SHORT2LONG(h) " bit.bor( bit.lshift(self.data[" #h "+1], 24), bit.bor( bit.lshift(self.data[" #h "+2], 16), bit_bor( bit.lshift(self.data[" #h "+3], 8), bit_bor(self.data[" #h "+4])"
+
+#define EIBTYPE (SHORT2INT(0))
+
+#define EIBC_GETREQUEST \
+	printf("    if EIBConnection.__EIB_GetRequest(self) == -1 then \n"); \
+	printf("      return -1;\n"); \
+	printf("    end\n"); 
+
+#define EIBC_RETURNERROR(msg, error) \
+	printf("    if %s ~= %d then \n", EIBTYPE, msg); \
+	printf("      self.errno = \"%s\"\n", #error); \
+	printf("      return -1\n"); \
+	printf("    end\n");
+
+#define EIBC_RETURNERROR_UINT16(offset, error) \
+	printf("    if %s == 0 then \n", SHORT2INT (offset)); \
+	printf("      self.errno = \"%s\"\n", #error); \
+	printf("      return -1\n"); \
+	printf("    end\n"); \
+
+#define EIBC_RETURNERROR_SIZE(Length, error) \
+	printf("    if #(self.data) <= %d then \n", Length); \
+	printf("      self.errno = \"%s\"\n", #error); \
+	printf("      return -1\n"); \
+	printf("    end\n"); 
+	
+#define EIBC_CHECKRESULT(msg, msgsize) \
+	printf("    if (%s ~= %d) or (#(self.data) < %d) then \n", EIBTYPE, msg, msgsize); \
+	printf("      self.errno = \"ECONNRESET\"\n"); \
+	printf("      return -1\n"); \
+	printf("    end\n"); \
+
+#define EIBC_RETURN_BUF(offset) \
+	printf("    self.buf.buffer = self.data:sub(%d)\n", offset); \
+	printf("    return #(self.buf.buffer)\n");
+
+#define EIBC_RETURN_OK \
+	printf("    return 0\n");
+
+#define EIBC_RETURN_LEN \
+	printf("    return self.sendlen\n");
+
+#define EIBC_RETURN_UINT8(offset) \
+	printf("    return self.data[%d]\n", offset);
+
+#define EIBC_RETURN_UINT16(offset) \
+	printf("    return %s\n", SHORT2INT (offset));
+
+#define EIBC_RETURN_PTR1(offset) \
+	printf("    if self.ptr1 ~= nil then\n"); \
+	printf("      self.ptr1.data = %s\n", SHORT2INT (offset)); \
+	printf("    end\n");
+
+#define EIBC_RETURN_PTR2(offset) \
+	printf("    if self.ptr2 ~= nil then\n"); \
+	printf("      self.ptr2.data = self.data[%d]\n", offset); \
+	printf("    end\n");
+
+#define EIBC_RETURN_PTR3(offset) \
+	printf("    if self.ptr3 ~= nil then\n"); \
+	printf("      self.ptr3.data = self.data[%d]\n", offset); \
+	printf("    end\n");
+
+#define EIBC_RETURN_PTR4(offset) \
+	printf("    if self.ptr4 ~= nil then\n"); \
+	printf("      self.ptr4.data = %s\n", SHORT2INT (offset)); \
+	printf("    end\n");
+
+#define EIBC_RETURN_PTR5(offset) \
+	printf("    if self.ptr5 ~= nil then\n"); \
+	printf("      self.ptr5.data = %s\n", SHORT2INT (offset)); \
+	printf("    end\n"); \
+	
+#define EIBC_RETURN_PTR6(offset) \
+	printf("    if self.ptr6 ~= nil then\n"); \
+	printf("      self.ptr6.data = %s\n", SHORT2INT (offset)); \
+	printf("    end\n"); 
+	
+#define EIBC_RETURN_PTR7(offset) \
+	printf("    if self.ptr7 ~= nil then\n"); \
+	printf("      self.ptr7.data = %s\n", SHORT2LONG (offset)); \
+	printf("    end\n");
+
+#define EIBC_COMPLETE(name, body) \
+	printf("function EIBConnection.__%s_Complete(self)\n", #name); \
+	printf("    if DEBUG then print(\"Entering EIBConnection.__%s_Complete()\") end\n", #name); \
+	printf("    self.__complete = nil;\n"); \
+	body \
+	printf("\nend\n\n");
+
+#define EIBC_INIT_COMPLETE(name) \
+	printf("    self.__complete = self:__%s_Complete();\n", #name); \
+	printf("    return 0\n");
+
+#define EIBC_INIT_SEND(length) \
+	printf("    ibuf = {}\n"); \
+	printf("    for i=1,%d do ibuf[i]=\"\" end\n", length); 
+	
+#define EIBC_SEND_BUF(name) EIBC_SEND_BUF_LEN (name, 0)
+
+#define EIBC_SEND_BUF_LEN(name, Length) \
+	printf("    if (#%s < %d) then \n", #name, Length); \
+	printf("      self.errno = \"EINVAL\"\n"); \
+	printf("      return -1\n"); \
+	printf("    end\n"); \
+	printf("    self.sendlen = #%s\n", #name); \
+	printf("    for i=1,#%s do table.insert(ibuf, %s[i]) end\n", #name, #name); \
+	printf("    --ibuf = ibuf .. %s\n", #name);
+
+#define EIBC_SEND_LEN(name) STR(#name)
+
+#define EIBC_SEND(msg) \
+	printf("    ibuf[%d] = %d\n", 1, ((msg>>8)&0xff)); \
+	printf("    ibuf[%d] = %d\n", 2, ((msg)&0xff)); \
+	printf("    if self:__EIB_SendRequest(ibuf) == -1 then \n"); \
+	printf("      return -1;\n"); \
+	printf("    end\n");
+
+#define EIBC_READ_BUF(buffer) \
+	printf("    self.buf = %s\n", #buffer);
+
+
+#define EIBC_READ_LEN(name) STR(name ## _len)
+
+#define EIBC_PTR1(name) \
+	printf("    self.ptr1 = %s\n", #name);
+
+#define EIBC_PTR2(name) \
+	printf("    self.ptr2 = %s\n", #name);
+
+#define EIBC_PTR3(name) \
+	printf("    self.ptr3 = %s\n", #name);
+
+#define EIBC_PTR4(name) \
+	printf("    self.ptr4 = %s\n", #name);
+
+#define EIBC_PTR5(name) \
+	printf("    self.ptr5 = %s\n", #name);
+
+#define EIBC_PTR6(name) \
+	printf("    self.ptr6 = %s\n", #name);
+
+#define EIBC_PTR7(name) \
+	printf("    self.ptr7 = %s\n", #name);
+
+#define EIBC_SETADDR(name, offset) \
+	printf("    ibuf[%d] = (bit.band(bit.rshift(%s,8), 0xff))\n", offset+1, #name); \
+	printf("    ibuf[%d] = (bit.band(%s, 0xff))\n", offset+2, #name);
+
+#define EIBC_SETUINT8(name, offset) \
+	printf("    ibuf[%d] = (bit.band(%s, 0xff))\n", offset+1, #name);
+
+#define EIBC_UINT8(name, offset) \
+	printf("    ibuf[%d] = (bit.band(%s, 0xff))\n", offset+1, #name);
+
+#define EIBC_SETUINT16(name, offset) \
+	printf("    ibuf[%d] = (bit.band(bit.rshift(%s,8), 0xff))\n", offset+1, #name); \
+	printf("    ibuf[%d] = (bit.band(%s, 0xff))\n", offset+2, #name);
+
+#define EIBC_SETLEN(name, offset) \
+	printf("    ibuf[%d] = (bit.band(bit.rshift(%s,8), 0xff))\n", offset+1, name); \
+	printf("    ibuf[%d] = (bit.band(%s, 0xff))\n", offset+2, name);
+
+#define EIBC_SETBOOL(value, offset) \
+	printf("    if %s ~= 0  then \n", #value); \
+	printf("      ibuf[%d] = 0xff\n", offset+1); \
+	printf("    else\n", #value); \
+	printf("      ibuf[%d] = 0x00\n", offset+1); \
+	printf("    end\n"); 
+	
+#define EIBC_SETKEY(value, offset) \
+	printf("    if #%s ~= 4 then \n", #value); \
+	printf("      self.errno = \"EINVAL\"\n"); \
+	printf("      return -1\n"); \
+	printf("    end\n"); \
+	printf("    for i=1,4 do ibuf[%d+i] = %s[i] end\n", offset, #value); \
+	printf("    --UGLY HACK: was: ibuf[%d..%d] = %s\n", offset, offset+4, #value);
+
+#define EIBC_ASYNC(name, args, body) \
+	printf("function EIBConnection.%s_async(self", #name); \
+	KAG ## args \
+	printf(")\n"); \
+	printf("  if DEBUG then print(\"Entering EIBConnection.%s_async()\") end\n", #name); \
+	body \
+	printf("end\n\n"); \
+	printf("function EIBConnection.%s(self", #name); \
+	KAG ## args \
+	printf(")\n"); \
+        printf("  local ibuf\n"); \
+	printf ("    if DEBUG then print(\"Entering EIBConnection.%s()\") end\n", #name); \
+	printf ("    if self:%s_async (", #name); \
+	AL ## args \
+	printf (") == -1  then \n"); \
+	printf ("      return -1\n"); \
+	printf ("    end\n"); \
+	printf ("    return self:EIBComplete()\n"); \
+	printf("  end\n\n");
+
+#define EIBC_SYNC(name, args, body) \
+	printf("function EIBConnection.%s(self", #name); \
+	KAG ## args \
+	printf(")\n"); \
+        printf("  local ibuf\n"); \
+	printf("  if DEBUG then print(\"Entering EIBConnection.%s()\") end\n", #name); \
+	body \
+	printf("end\n\n");
+

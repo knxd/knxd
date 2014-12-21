@@ -1,0 +1,14 @@
+a Ruby client for eibd, the open-source EIB/KNX daemon.
+Sister project: the Lua client ( https://github.com/ekarak/eibd_lua )
+
+just following patch to bcusdk-0.0.5/eibd/client/Makefile.in 
+so as to add Ruby and Lua client language support:
+
+67c67
+< DIST_SUBDIRS = def c java php perl cs python pascal .
+---
+> DIST_SUBDIRS = def c java php perl cs python pascal eibd_ruby eibd_lua .
+244c244
+< SUBDIRS = def c $(BUILDJAVA) php perl cs python pascal .
+---
+> SUBDIRS = def c $(BUILDJAVA) php perl cs python pascal eibd_ruby eibd_lua .

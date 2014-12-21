@@ -4,5 +4,5 @@ else
 BUILDJAVA = 
 endif
 
-SUBDIRS=def c $(BUILDJAVA) php perl cs python pascal .
+SUBDIRS=def c $(BUILDJAVA) php perl cs python pascal ruby lua .
 
