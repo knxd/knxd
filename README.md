@@ -9,7 +9,7 @@ http://knx-user-forum.de/knx-eib-forum/38982-eibd-war-bcusdk-fork-knxd.html
 
 ## Building
 
-* bash bootstrap.sh
+* ./bootstrap.sh
 * ./configure
 * make && make install
 
