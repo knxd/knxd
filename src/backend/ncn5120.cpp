@@ -20,7 +20,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
-#include "teraserial.h"
+#include "ncn5120.h"
 
 /** get serial status lines */
 static int
@@ -163,7 +163,7 @@ NCN5120SerialLayer2Driver::addGroupAddress (eibaddr_t addr)
 }
 
 bool
-SerialLayer2Driver::removeAddress (eibaddr_t addr)
+NCN5120SerialLayer2Driver::removeAddress (eibaddr_t addr)
 {
   unsigned i;
   for (i = 0; i < indaddr (); i++)
@@ -213,7 +213,7 @@ NCN5120SerialLayer2Driver::Connection_Lost ()
 }
 
 bool
-NCN5120ASerialLayer2Driver::Send_Queue_Empty ()
+NCN5120SerialLayer2Driver::Send_Queue_Empty ()
 {
   return inqueue.isempty ();
 }

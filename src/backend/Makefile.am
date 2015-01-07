@@ -47,7 +47,7 @@ USB =
 endif
 
 if HAVE_NCN5120
-NCN5120 = teraserial.h teraserial.cpp
+NCN5120 = ncn5120.h ncn5120.cpp
 else
 NCN5120 = 
 endif

@@ -207,10 +207,10 @@ fi
 AC_ARG_ENABLE(ncn5120,
 [  --enable-tera                 enable NCN5120 backend],
 [case "${enableval}" in
- yes) tera=true ;;
-  no)  tera=false ;;
+ yes) ncn5120=true ;;
+  no)  ncn5120=false ;;
    *) AC_MSG_ERROR(bad value ${enableval} for --enable-tera) ;;
- esac],[tera=false])
+ esac],[ncn5120=false])
 AM_CONDITIONAL(HAVE_NCN5120, test x$ncn5120 = xtrue)
 if test x$ncn5120 = xtrue ; then
  AC_DEFINE(HAVE_NCN5120, 1 , [NCN5120 backend enabled])
