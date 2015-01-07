@@ -348,7 +348,7 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 	}
       while (in () > 0)
 	{
-	  if (in[0] == 0x8B)
+	  if (in[0] == 0x8B) // L_DataConfirm positive
 	    {
 	      if (!mode && vmode)
 		{
@@ -364,7 +364,7 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 		}
 	      in.deletepart (0, 1);
 	    }
-	  else if (in[0] == 0x0B)
+	  else if (in[0] == 0x0B) // L_DataConfirm negative
 	    {
 	      if (!mode && vmode)
 		{
@@ -386,7 +386,7 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 		}
 	      in.deletepart (0, 1);
 	    }
-	  else if ((in[0] & 0x07) == 0x07)
+	  else if ((in[0] & 0x07) == 0x07) // Reset-Indication
 	    {
 	      TRACEPRINTF (t, 0, this, "RecvWatchdog: %02X", in[0]);
 	      watch = 2;
@@ -394,12 +394,17 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 			 pth_time (10, 0));
 	      in.deletepart (0, 1);
 	    }
+          /*
+           * 0xCC acknowledge frame
+           * 0x0C NotAcknowledge frame
+           * 0xC0 Busy Frame
+           */
 	  else if (in[0] == 0xCC || in[0] == 0xC0 || in[0] == 0x0C)
 	    {
 	      RecvLPDU (in.array (), 1);
 	      in.deletepart (0, 1);
 	    }
-	  else if ((in[0] & 0xD0) == 0x90)
+	  else if ((in[0] & 0xD0) == 0x90) //L_DATA.ind 
 	    {
 	      if (in () < 6)
 		{
@@ -415,7 +420,7 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 		  in.deletepart (0, 1);
 		  continue;
 		}
-	      if (!acked)
+	      if (!acked && !waitconfirm)
 		{
 		  uchar c = 0x10;
 		  if ((in[5] & 0x80) == 0)
@@ -456,11 +461,14 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 		  in.deletepart (0, 1);
 		  continue;
 		}
-	      acked = 0;
-	      RecvLPDU (in.array (), len);
+              if (!waitconfirm)
+                {
+	          acked = 0;
+	          RecvLPDU (in.array (), len);
+                }
 	      in.deletepart (0, len);
 	    }
-	  else if ((in[0] & 0xD0) == 0x10)
+	  else if ((in[0] & 0xD0) == 0x10) //L_LONG_DATA.ind 
 	    {
 	      if (in () < 7)
 		{
@@ -476,7 +484,7 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 		  in.deletepart (0, 1);
 		  continue;
 		}
-	      if (!acked)
+	      if (!acked  && !waitconfirm)
 		{
 		  uchar c = 0x10;
 		  if ((in[1] & 0x80) == 0)
@@ -517,8 +525,11 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 		  in.deletepart (0, 1);
 		  continue;
 		}
-	      acked = 0;
-	      RecvLPDU (in.array (), len);
+              if (!waitconfirm)
+                {
+	          acked = 0;
+	          RecvLPDU (in.array (), len);
+                }
 	      in.deletepart (0, len);
 	    }
 	  else
