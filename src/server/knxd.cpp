@@ -62,6 +62,7 @@ struct arguments
   bool groupcache;
   int backendflags;
   const char *serverip;
+  const char *eibnetname;
 };
 /** storage for the arguments*/
 struct arguments arg;
@@ -178,6 +179,7 @@ static struct argp_option options[] = {
    "enable the EIBnet/IP server to answer discovery and description requests (SEARCH, DESCRIPTION)"},
   {"Server", 'S', "ip[:port]", OPTION_ARG_OPTIONAL,
    "starts the EIBnet/IP server part"},
+  {"Name", 'n', 0, OPTION_ARG_OPTIONAL, "The name of the EIBnet/IP server as shown in ETS (default is knxd)"},
 #endif
 #ifdef HAVE_GROUPCACHE
   {"GroupCache", 'c', 0, 0,
@@ -243,6 +245,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'c':
       arguments->groupcache = 1;
       break;
+    case 'n':
+      arguments->eibnetname = (arg ? arg : "knxd");
+      break;
     case OPT_BACK_TUNNEL_NOQUEUE:
       arguments->backendflags |= FLAG_B_TUNNEL_NOQUEUE;
       break;
@@ -269,7 +274,7 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
 
 #ifdef HAVE_EIBNETIPSERVER
 EIBnetServer *
-startServer (Layer3 * l3, Trace * t)
+startServer (Layer3 * l3, Trace * t, const char *name)
 {
   EIBnetServer *c;
   char *ip;
@@ -291,7 +296,7 @@ startServer (Layer3 * l3, Trace * t)
     }
   else
     port = 3671;
-  c = new EIBnetServer (a, port, arg.tunnel, arg.route, arg.discover, l3, t);
+  c = new EIBnetServer (a, port, arg.tunnel, arg.route, arg.discover, l3, t, name);
   if (!c->init ())
     die ("initilization of the EIBnet/IP server failed");
   free (a);
@@ -385,7 +390,7 @@ main (int ac, char *ag[])
       server.put (s);
     }
 #ifdef HAVE_EIBNETIPSERVER
-  serv = startServer (l3, &t);
+  serv = startServer (l3, &t, arg.eibnetname);
 #endif
 #ifdef HAVE_GROUPCACHE
   if (!CreateGroupCache (l3, &t, arg.groupcache))
