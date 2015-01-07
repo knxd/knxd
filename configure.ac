@@ -204,16 +204,16 @@ else
  AM_CONDITIONAL(HAVE_USB, test x$usb = xtrue)
 fi
 
-AC_ARG_ENABLE(tera,
-[  --enable-tera                 enable TERA backend],
+AC_ARG_ENABLE(ncn5120,
+[  --enable-tera                 enable NCN5120 backend],
 [case "${enableval}" in
  yes) tera=true ;;
   no)  tera=false ;;
    *) AC_MSG_ERROR(bad value ${enableval} for --enable-tera) ;;
  esac],[tera=false])
-AM_CONDITIONAL(HAVE_TERA, test x$tera = xtrue)
-if test x$tera = xtrue ; then
- AC_DEFINE(HAVE_TERA, 1 , [TERA backend enabled])
+AM_CONDITIONAL(HAVE_NCN5120, test x$ncn5120 = xtrue)
+if test x$ncn5120 = xtrue ; then
+ AC_DEFINE(HAVE_NCN5120, 1 , [NCN5120 backend enabled])
 fi
 
 AC_ARG_ENABLE(eibnetipserver,

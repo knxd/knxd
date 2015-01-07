@@ -46,14 +46,14 @@ else
 USB =
 endif
 
-if HAVE_TERA
-TERA = teraserial.h teraserial.cpp
+if HAVE_NCN5120
+NCN5120 = teraserial.h teraserial.cpp
 else
-TERA = 
+NCN5120 = 
 endif
 
 noinst_LIBRARIES = libbackend.a
 AM_CPPFLAGS=-I$(top_srcdir)/src/libserver -I$(top_srcdir)/src/common -I$(top_srcdir)/src/usb $(PTH_CFLAGS) $(LIBUSB_CFLAGS)
 
-libbackend_a_SOURCES= $(FT12) $(PEI16) $(TPUART) $(PEI16s) $(TPUARTs) $(EIBNETIP) $(EIBNETIPTUNNEL) $(USB) $(TERA) dummy.cpp
+libbackend_a_SOURCES= $(FT12) $(PEI16) $(TPUART) $(PEI16s) $(TPUARTs) $(EIBNETIP) $(EIBNETIPTUNNEL) $(USB) $(NCN5120) dummy.cpp
 

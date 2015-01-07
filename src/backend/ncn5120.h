@@ -17,14 +17,14 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifndef STERA_SERIAL_H
-#define STERA_SERIAL_H
+#ifndef SNCN5120_SERIAL_H
+#define SNCN5120_SERIAL_H
 #include <termios.h>
 #include "lowlatency.h"
 #include "layer2.h"
 
 /** TPUART user mode driver */
-class TERASerialLayer2Driver : public Layer2Interface, private Thread
+class NCN5120SerialLayer2Driver : public Layer2Interface, private Thread
 {
   /** old serial config */
   low_latency_save sold;
@@ -62,9 +62,9 @@ class TERASerialLayer2Driver : public Layer2Interface, private Thread
   void RecvLPDU (const uchar * data, int len);
   void Run (pth_sem_t * stop);
 public:
-    TERASerialLayer2Driver (const char *dev, eibaddr_t addr, int flags,
+    NCN5120SerialLayer2Driver (const char *dev, eibaddr_t addr, int flags,
 			      Trace * tr);
-   ~TERASerialLayer2Driver ();
+   ~NCN5120SerialLayer2Driver ();
   bool init ();
 
   void Send_L_Data (LPDU * l);

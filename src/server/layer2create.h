@@ -44,7 +44,7 @@ L2_NAME (FT12)
   L2_NAME (USB)
 #endif
 
-#ifdef HAVE_TERA
-  L2_NAME(TERA)
+#ifdef HAVE_NCN5120
+  L2_NAME(NCN5120)
 #endif
 

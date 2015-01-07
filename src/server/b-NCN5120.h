@@ -17,25 +17,25 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifndef C_TERA_H
-#define C_TERA_H
+#ifndef C_NCN5120_H
+#define C_NCN5120_H
 
-#include "teraserial.h"
+#include "ncn5120.h"
 
-#define TERA_URL "tera:/dev/ttySx\n"
+#define NCN5120_URL "ncn5120:/dev/ttySx\n"
 
-#define TERA_DOC "tera connects to the EIB bus over an the SystemTera TPUART\n\n"
+#define NCN5120_DOC "NCN5120 connects to the EIB bus over an the NCN5120 with 38400 baud and 8-bit mode\n\n"
 
-#define TERA_PREFIX "tera"
+#define NCN5120_PREFIX "ncn5120"
 
-#define TERA_CREATE tera_Create
+#define NCN5120_CREATE ncn5120_Create
 
-#define TERA_CLEANUP NULL
+#define NCN5120_CLEANUP NULL
 
 inline Layer2Interface *
-tera_Create (const char *dev, int flags, Trace * t)
+ncn5120_Create (const char *dev, int flags, Trace * t)
 {
-  return new TERASerialLayer2Driver(dev, arg.addr, flags, t);
+  return new NCN5120SerialLayer2Driver(dev, arg.addr, flags, t);
 }
 
 #endif

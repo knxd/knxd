@@ -39,7 +39,7 @@ setstat (int fd, int s)
 }
 
 
-TERASerialLayer2Driver::TERASerialLayer2Driver (const char *dev,
+NCN5120SerialLayer2Driver::NCN5120SerialLayer2Driver (const char *dev,
 						    eibaddr_t a, int flags,
 						    Trace * tr)
 {
@@ -112,7 +112,7 @@ TERASerialLayer2Driver::TERASerialLayer2Driver (const char *dev,
   TRACEPRINTF (t, 2, this, "Openend");
 }
 
-TERASerialLayer2Driver::~TERASerialLayer2Driver ()
+NCN5120SerialLayer2Driver::~NCN5120SerialLayer2Driver ()
 {
   TRACEPRINTF (t, 2, this, "Close");
   Stop ();
@@ -133,13 +133,13 @@ TERASerialLayer2Driver::~TERASerialLayer2Driver ()
 
 }
 
-bool TERASerialLayer2Driver::init ()
+bool NCN5120SerialLayer2Driver::init ()
 {
   return fd != -1;
 }
 
 bool
-TERASerialLayer2Driver::addAddress (eibaddr_t addr)
+NCN5120SerialLayer2Driver::addAddress (eibaddr_t addr)
 {
   unsigned i;
   for (i = 0; i < indaddr (); i++)
@@ -151,7 +151,7 @@ TERASerialLayer2Driver::addAddress (eibaddr_t addr)
 }
 
 bool
-TERASerialLayer2Driver::addGroupAddress (eibaddr_t addr)
+NCN5120SerialLayer2Driver::addGroupAddress (eibaddr_t addr)
 {
   unsigned i;
   for (i = 0; i < groupaddr (); i++)
@@ -163,7 +163,7 @@ TERASerialLayer2Driver::addGroupAddress (eibaddr_t addr)
 }
 
 bool
-TERASerialLayer2Driver::removeAddress (eibaddr_t addr)
+SerialLayer2Driver::removeAddress (eibaddr_t addr)
 {
   unsigned i;
   for (i = 0; i < indaddr (); i++)
@@ -176,7 +176,7 @@ TERASerialLayer2Driver::removeAddress (eibaddr_t addr)
 }
 
 bool
-TERASerialLayer2Driver::removeGroupAddress (eibaddr_t addr)
+NCN5120SerialLayer2Driver::removeGroupAddress (eibaddr_t addr)
 {
   unsigned i;
   for (i = 0; i < groupaddr (); i++)
@@ -188,38 +188,38 @@ TERASerialLayer2Driver::removeGroupAddress (eibaddr_t addr)
   return 0;
 }
 
-bool TERASerialLayer2Driver::openVBusmonitor ()
+bool NCN5120SerialLayer2Driver::openVBusmonitor ()
 {
   vmode = 1;
   return 1;
 }
 
-bool TERASerialLayer2Driver::closeVBusmonitor ()
+bool NCN5120SerialLayer2Driver::closeVBusmonitor ()
 {
   vmode = 0;
   return 1;
 }
 
 eibaddr_t
-TERASerialLayer2Driver::getDefaultAddr ()
+NCN5120SerialLayer2Driver::getDefaultAddr ()
 {
   return addr;
 }
 
 bool
-TERASerialLayer2Driver::Connection_Lost ()
+NCN5120SerialLayer2Driver::Connection_Lost ()
 {
   return 0;
 }
 
 bool
-TERASerialLayer2Driver::Send_Queue_Empty ()
+NCN5120ASerialLayer2Driver::Send_Queue_Empty ()
 {
   return inqueue.isempty ();
 }
 
 void
-TERASerialLayer2Driver::Send_L_Data (LPDU * l)
+NCN5120SerialLayer2Driver::Send_L_Data (LPDU * l)
 {
   TRACEPRINTF (t, 2, this, "Send %s", l->Decode ()());
   inqueue.put (l);
@@ -227,7 +227,7 @@ TERASerialLayer2Driver::Send_L_Data (LPDU * l)
 }
 
 LPDU *
-TERASerialLayer2Driver::Get_L_Data (pth_event_t stop)
+NCN5120SerialLayer2Driver::Get_L_Data (pth_event_t stop)
 {
   if (stop != NULL)
     pth_event_concat (getwait, stop, NULL);
@@ -252,7 +252,7 @@ TERASerialLayer2Driver::Get_L_Data (pth_event_t stop)
 //Open
 
 bool
-TERASerialLayer2Driver::enterBusmonitor ()
+NCN5120SerialLayer2Driver::enterBusmonitor ()
 {
   uchar c = 0x05;
   t->TracePacket (2, this, "openBusmonitor", 1, &c);
@@ -262,7 +262,7 @@ TERASerialLayer2Driver::enterBusmonitor ()
 }
 
 bool
-TERASerialLayer2Driver::leaveBusmonitor ()
+NCN5120SerialLayer2Driver::leaveBusmonitor ()
 {
   uchar c = 0x01;
   t->TracePacket (2, this, "leaveBusmonitor", 1, &c);
@@ -272,7 +272,7 @@ TERASerialLayer2Driver::leaveBusmonitor ()
 }
 
 bool
-TERASerialLayer2Driver::Open ()
+NCN5120SerialLayer2Driver::Open ()
 {
   uchar c = 0x01;
   t->TracePacket (2, this, "open-reset", 1, &c);
@@ -281,13 +281,13 @@ TERASerialLayer2Driver::Open ()
 }
 
 bool
-TERASerialLayer2Driver::Close ()
+NCN5120SerialLayer2Driver::Close ()
 {
   return 1;
 }
 
 void
-TERASerialLayer2Driver::RecvLPDU (const uchar * data, int len)
+NCN5120SerialLayer2Driver::RecvLPDU (const uchar * data, int len)
 {
   t->TracePacket (1, this, "Recv", len, data);
   if (mode || vmode)
@@ -311,7 +311,7 @@ TERASerialLayer2Driver::RecvLPDU (const uchar * data, int len)
 }
 
 void
-TERASerialLayer2Driver::Run (pth_sem_t * stop1)
+NCN5120SerialLayer2Driver::Run (pth_sem_t * stop1)
 {
   uchar buf[255];
   int i;
