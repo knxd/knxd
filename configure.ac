@@ -73,6 +73,31 @@ AC_CHECK_FUNCS(gethostbyname_r,,[AC_MSG_WARN([knxd client library not thread saf
 
 AM_CONDITIONAL(LINUX_API, test x$have_linux_api = xyes)
 
+AC_ARG_ENABLE(onlyeibd,
+[  --enable-onlyeibd		build only eibd (requires no libxml and m68hc05-gnu)],
+[case "${enableval}" in
+ yes) onlyeibd=true ;;
+  no)  onlyeibd=false ;;
+   *) AC_MSG_ERROR(bad value ${enableval} for --enable-onlyeibd) ;;
+ esac],[onlyeibd=false])
+AM_CONDITIONAL(HAVE_ONLYEIBD, test x$onlyeibd = xtrue)
+
+if test x$onlyeibd = xfalse ; then
+
+  AM_PATH_XML2(2.6.16,,[AC_MSG_ERROR([limxml2 not found])])
+  AC_PATH_PROG(TAS,[m68hc05-as],,[$PATH:$bindir:$prefix/bin])
+  AC_PATH_PROG(TLD,[m68hc05-ld],,[$PATH:$bindir:$prefix/bin])
+  AC_PATH_PROG(TAR,[m68hc05-ar],,[$PATH:$bindir:$prefix/bin])
+  AC_PATH_PROG(TRANLIB,[m68hc05-ranlib],,[$PATH:$bindir:$prefix/bin])
+  AC_PATH_PROG(TGCC,[m68hc05-gcc],,[$PATH:$bindir:$prefix/bin])
+
+  test -z "$TAS" && AC_MSG_ERROR([m68hc05-as not found])
+  test -z "$TAR" && AC_MSG_ERROR([m68hc05-ar not found])
+  test -z "$TLD" && AC_MSG_ERROR([m68hc05-ld not found])
+  test -z "$TRANLIB" && AC_MSG_ERROR([m68hc05 ranlib not found])
+  test -z "$TGCC" && AC_MSG_ERROR([m68hc05 gcc not found])
+
+fi
 
 AC_ARG_ENABLE(ft12,
 [  --enable-ft12		enable FT1.2 backend],
@@ -177,6 +202,18 @@ if test x$usb = xtrue ; then
  AC_DEFINE(HAVE_USB, 1 , [USB backend enabled])
 else
  AM_CONDITIONAL(HAVE_USB, test x$usb = xtrue)
+fi
+
+AC_ARG_ENABLE(tera,
+[  --enable-tera                 enable TERA backend],
+[case "${enableval}" in
+ yes) tera=true ;;
+  no)  tera=false ;;
+   *) AC_MSG_ERROR(bad value ${enableval} for --enable-tera) ;;
+ esac],[tera=false])
+AM_CONDITIONAL(HAVE_TERA, test x$tera = xtrue)
+if test x$tera = xtrue ; then
+ AC_DEFINE(HAVE_TERA, 1 , [TERA backend enabled])
 fi
 
 AC_ARG_ENABLE(eibnetipserver,

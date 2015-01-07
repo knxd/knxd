@@ -21,7 +21,7 @@
 #include "emi.h"
 #include "config.h"
 
-#define NAME "knxd"
+#define NAME "SystemTera.Server-V"
 
 EIBnetServer::EIBnetServer (const char *multicastaddr, int port, bool Tunnel,
 			    bool Route, bool Discover, Layer3 * layer3,
