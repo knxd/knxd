@@ -73,7 +73,6 @@ AC_CHECK_FUNCS(gethostbyname_r,,[AC_MSG_WARN([knxd client library not thread saf
 
 AM_CONDITIONAL(LINUX_API, test x$have_linux_api = xyes)
 
-
 AC_ARG_ENABLE(ft12,
 [  --enable-ft12		enable FT1.2 backend],
 [case "${enableval}" in
@@ -177,6 +176,18 @@ if test x$usb = xtrue ; then
  AC_DEFINE(HAVE_USB, 1 , [USB backend enabled])
 else
  AM_CONDITIONAL(HAVE_USB, test x$usb = xtrue)
+fi
+
+AC_ARG_ENABLE(ncn5120,
+[  --enable-ncn5120                 enable NCN5120 backend],
+[case "${enableval}" in
+ yes) ncn5120=true ;;
+  no)  ncn5120=false ;;
+   *) AC_MSG_ERROR(bad value ${enableval} for --enable-ncn5120) ;;
+ esac],[ncn5120=false])
+AM_CONDITIONAL(HAVE_NCN5120, test x$ncn5120 = xtrue)
+if test x$ncn5120 = xtrue ; then
+ AC_DEFINE(HAVE_NCN5120, 1 , [NCN5120 backend enabled])
 fi
 
 AC_ARG_ENABLE(eibnetipserver,

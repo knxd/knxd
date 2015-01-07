@@ -17,34 +17,25 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifdef HAVE_FT12
-L2_NAME (FT12)
-#endif
-#ifdef HAVE_PEI16
-  L2_NAME (PEI16)
-#endif
-#ifdef HAVE_TPUART
-  L2_NAME (TPUART24)
-  L2_NAME (TPUART26)
-#endif
-#ifdef HAVE_EIBNETIP
-  L2_NAME (EIBNETIP)
-#endif
-#ifdef HAVE_EIBNETIPTUNNEL
-  L2_NAME (EIBNETIPTUNNEL)
-  L2_NAME (EIBNETIPTUNNELNAT)
-#endif
-#ifdef HAVE_PEI16s
-  L2_NAME (PEI16s)
-#endif
-#ifdef HAVE_TPUARTs
-  L2_NAME (TPUARTs)
-#endif
-#ifdef HAVE_USB
-  L2_NAME (USB)
-#endif
+#ifndef C_NCN5120_H
+#define C_NCN5120_H
 
-#ifdef HAVE_NCN5120
-  L2_NAME(NCN5120)
-#endif
+#include "ncn5120.h"
 
+#define NCN5120_URL "ncn5120:/dev/ttySx\n"
+
+#define NCN5120_DOC "NCN5120 connects to the EIB bus over an the NCN5120 with 38400 baud and 8-bit mode\n\n"
+
+#define NCN5120_PREFIX "ncn5120"
+
+#define NCN5120_CREATE ncn5120_Create
+
+#define NCN5120_CLEANUP NULL
+
+inline Layer2Interface *
+ncn5120_Create (const char *dev, int flags, Trace * t)
+{
+  return new NCN5120SerialLayer2Driver(dev, arg.addr, flags, t);
+}
+
+#endif

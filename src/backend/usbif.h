@@ -63,15 +63,25 @@ class USBLowLevelDriver:public LowLevelDriverInterface, private Thread
   pth_event_t getwait;
   /** semaphore to signal empty sendqueue */
   pth_sem_t send_empty;
+  /** semaphore to signal that data has been received */
+  pth_sem_t recv_signal;
+  pth_event_t stop;
   int state;
   bool connection_state;
+  uchar sendbuf[64];
+  uchar recvbuf[64];
+  bool startUsbRecvTransferFailed;
 
   void Run (pth_sem_t * stop);
+  void StartUsbRecvTransfer(struct libusb_transfer *recvh);
+  void FinishUsbRecvTransfer(struct libusb_transfer *recvh);
+  void ReceiveUsb();
 
 public:
     USBLowLevelDriver (const char *device, Trace * tr);
    ~USBLowLevelDriver ();
   bool init ();
+  void CompleteReceive(struct libusb_transfer *recvh);
 
   void Send_Packet (CArray l);
   bool Send_Queue_Empty ();

@@ -1,0 +1,18 @@
+#!/sbin/runscript
+# Copyright 1999-2004 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+
+start() {
+	ebegin "Starting knxd"
+	start-stop-daemon --start --background --quiet --user nobody:usb --exec /usr/bin/knxd \
+		-- --pid-file=${PID_FILE} ${KNXD_OPTS}
+	eend $?
+}
+
+stop() {
+
+	ebegin "Stopping knxd"
+	start-stop-daemon --stop --quiet --exec /usr/bin/knxd --pidfile "${PID_FILE}"
+	eend $?
+
+}

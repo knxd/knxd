@@ -47,4 +47,8 @@
 #include "b-USB.h"
 #endif
 
+#ifdef HAVE_NCN5120
+#include "b-NCN5120.h"
+#endif
+
 #endif

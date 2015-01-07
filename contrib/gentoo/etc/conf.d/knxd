@@ -1,0 +1,2 @@
+KNXD_OPTS="-i usb:"
+PID_FILE="/var/tmp/knxd.pid"

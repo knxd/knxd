@@ -22,6 +22,7 @@
 
 #include "eibnetip.h"
 #include "layer3.h"
+#include <string>
 
 typedef struct
 {
@@ -62,6 +63,7 @@ class EIBnetServer:public L_Data_CallBack, public L_Busmonitor_CallBack,
   struct sockaddr_in maddr;
     Array < ConnState > state;
     Array < NATState > natstate;
+  std::string name;
 
   void Run (pth_sem_t * stop);
   void Get_L_Data (L_Data_PDU * l);
@@ -72,7 +74,7 @@ class EIBnetServer:public L_Data_CallBack, public L_Busmonitor_CallBack,
   void addNAT (const L_Data_PDU & l);
 public:
     EIBnetServer (const char *multicastaddr, int port, bool Tunnel,
-		  bool Route, bool Discover, Layer3 * layer3, Trace * tr);
+          bool Route, bool Discover, Layer3 * layer3, Trace * tr, const std::string serverName);
     virtual ~ EIBnetServer ();
   bool init ();
 
