@@ -17,4 +17,4 @@ http://knx-user-forum.de/knx-eib-forum/38982-eibd-war-bcusdk-fork-knxd.html
 
 * Any contribution is *very* welcome
 * Please use Github and create a pull request with your patches
-* Please see SubmittingPatches to correctly Sign-Off your code
+* Please see SubmittingPatches to correctly Sign-Off your code and add yourself to AUTHORS
