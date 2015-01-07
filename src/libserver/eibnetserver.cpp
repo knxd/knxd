@@ -24,15 +24,13 @@
 
 EIBnetServer::EIBnetServer (const char *multicastaddr, int port, bool Tunnel,
                 bool Route, bool Discover, Layer3 * layer3,
-                Trace * tr, const char *serverName)
+                Trace * tr, std::string serverName)
 {
   struct sockaddr_in baddr;
   struct ip_mreq mcfg;
   t = tr;
   l3 = layer3;
-  int nameLen = strlen(serverName);
-  name = (char*)malloc(nameLen);
-  strcpy(name, serverName);
+  name = serverName;
 
   TRACEPRINTF (t, 8, this, "Open");
   memset (&baddr, 0, sizeof (baddr));
@@ -121,8 +119,6 @@ EIBnetServer::~EIBnetServer ()
     pth_event_free (natstate[i].timeout, PTH_FREE_THIS);
   if (sock)
     delete sock;
-
-  free(name);
 }
 
 bool
@@ -325,7 +321,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      r2.installid = 0;
 	      r2.multicastaddr = maddr.sin_addr;
 	      //FIXME: Hostname, indiv. address, MAC-addr
-          strcpy ((char *) r2.name, name);
+          strcpy ((char *) r2.name, name.c_str());
 	      d.version = 1;
 	      d.family = 2;
 	      if (discover)
@@ -356,7 +352,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      r2.installid = 0;
 	      r2.multicastaddr = maddr.sin_addr;
 	      //FIXME: Hostname, indiv. address, MAC-addr
-          strcpy ((char *) r2.name, name);
+          strcpy ((char *) r2.name, name.c_str());
 	      d.version = 1;
 	      d.family = 2;
 	      if (discover)

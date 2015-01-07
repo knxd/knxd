@@ -246,7 +246,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
       arguments->groupcache = 1;
       break;
     case 'n':
-      arguments->eibnetname = (char *)(arg ? arg : "knxd\0");
+          if(!arg)
+              die("Name must be given, if you add -n to your arg list");
+      arguments->eibnetname = (char *)arg;
       break;
     case OPT_BACK_TUNNEL_NOQUEUE:
       arguments->backendflags |= FLAG_B_TUNNEL_NOQUEUE;
@@ -388,7 +390,7 @@ main (int ac, char *ag[])
     {
       s = new InetServer (l3, &t, arg.port);
       if (!s->init ())
-	die ("initialisation of the knxd inet protocol failed");
+    die ("initialisation of the knxd inet protocol failed");
       server.put (s);
     }
   if (arg.name)
