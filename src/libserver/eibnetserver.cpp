@@ -20,16 +20,19 @@
 #include "eibnetserver.h"
 #include "emi.h"
 #include "config.h"
+#include <malloc.h>
 
 EIBnetServer::EIBnetServer (const char *multicastaddr, int port, bool Tunnel,
                 bool Route, bool Discover, Layer3 * layer3,
-                Trace * tr, const char *name)
+                Trace * tr, const char *serverName)
 {
   struct sockaddr_in baddr;
   struct ip_mreq mcfg;
   t = tr;
   l3 = layer3;
-  name = name;
+  int nameLen = strlen(serverName);
+  name = (char*)malloc(nameLen);
+  strcpy(name, serverName);
 
   TRACEPRINTF (t, 8, this, "Open");
   memset (&baddr, 0, sizeof (baddr));
@@ -118,6 +121,8 @@ EIBnetServer::~EIBnetServer ()
     pth_event_free (natstate[i].timeout, PTH_FREE_THIS);
   if (sock)
     delete sock;
+
+  free(name);
 }
 
 bool

@@ -32,6 +32,8 @@
 #include "eibnetserver.h"
 #include "groupcacheclient.h"
 
+#define HAVE_EIBNETIPSERVER
+
 #define OPT_BACK_TUNNEL_NOQUEUE 1
 #define OPT_BACK_TPUARTS_ACKGROUP 2
 #define OPT_BACK_TPUARTS_ACKINDIVIDUAL 3
@@ -179,7 +181,7 @@ static struct argp_option options[] = {
    "enable the EIBnet/IP server to answer discovery and description requests (SEARCH, DESCRIPTION)"},
   {"Server", 'S', "ip[:port]", OPTION_ARG_OPTIONAL,
    "starts the EIBnet/IP server part"},
-  {"Name", 'n', 0, OPTION_ARG_OPTIONAL, "The name of the EIBnet/IP server as shown in ETS (default is knxd)"},
+  {"Name", 'n', "SERVERNAME", OPTION_ARG_OPTIONAL, "The name of the EIBnet/IP server as shown in ETS (default is knxd)"},
 #endif
 #ifdef HAVE_GROUPCACHE
   {"GroupCache", 'c', 0, 0,
@@ -246,7 +248,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       arguments->groupcache = 1;
       break;
     case 'n':
-      arguments->eibnetname = (arg ? arg : "knxd");
+      arguments->eibnetname = (char *)(arg ? arg : "knxd\0");
       break;
     case OPT_BACK_TUNNEL_NOQUEUE:
       arguments->backendflags |= FLAG_B_TUNNEL_NOQUEUE;
@@ -296,7 +298,8 @@ startServer (Layer3 * l3, Trace * t, const char *name)
     }
   else
     port = 3671;
-  c = new EIBnetServer (a, port, arg.tunnel, arg.route, arg.discover, l3, t, name);
+
+  c = new EIBnetServer (a, port, arg.tunnel, arg.route, arg.discover, l3, t, name == 0 ? "knxd\0" : name);
   if (!c->init ())
     die ("initilization of the EIBnet/IP server failed");
   free (a);
@@ -342,7 +345,14 @@ main (int ac, char *ag[])
   if (getuid () == 0)
     ERRORPRINTF (&t, 0x37000001, 0, "EIBD should not run as root");
   */
-  
+
+  if(arg.eibnetname)
+  {
+      if(arg.eibnetname[0] == '=') {
+          arg.eibnetname++;
+      }
+  }
+
   if (arg.daemon)
     {
       int fd = open (arg.daemon, O_WRONLY | O_APPEND | O_CREAT, FILE_MODE);
@@ -433,7 +443,6 @@ main (int ac, char *ag[])
 
   signal (SIGINT, SIG_DFL);
   signal (SIGTERM, SIG_DFL);
-
   while (!server.isempty ())
     delete server.get ();
 #ifdef HAVE_EIBNETIPSERVER

@@ -62,7 +62,7 @@ class EIBnetServer:public L_Data_CallBack, public L_Busmonitor_CallBack,
   struct sockaddr_in maddr;
     Array < ConnState > state;
     Array < NATState > natstate;
-  const char *name;
+  char *name;
 
   void Run (pth_sem_t * stop);
   void Get_L_Data (L_Data_PDU * l);
@@ -73,7 +73,7 @@ class EIBnetServer:public L_Data_CallBack, public L_Busmonitor_CallBack,
   void addNAT (const L_Data_PDU & l);
 public:
     EIBnetServer (const char *multicastaddr, int port, bool Tunnel,
-          bool Route, bool Discover, Layer3 * layer3, Trace * tr, const char *name);
+          bool Route, bool Discover, Layer3 * layer3, Trace * tr, const char *serverName);
     virtual ~ EIBnetServer ();
   bool init ();
 
