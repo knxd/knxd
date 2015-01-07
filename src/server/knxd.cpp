@@ -62,6 +62,7 @@ struct arguments
   bool groupcache;
   int backendflags;
   const char *serverip;
+  const char *eibnetname;
 };
 /** storage for the arguments*/
 struct arguments arg;
@@ -178,6 +179,7 @@ static struct argp_option options[] = {
    "enable the EIBnet/IP server to answer discovery and description requests (SEARCH, DESCRIPTION)"},
   {"Server", 'S', "ip[:port]", OPTION_ARG_OPTIONAL,
    "starts the EIBnet/IP server part"},
+  {"Name", 'n', "SERVERNAME", OPTION_ARG_OPTIONAL, "The name of the EIBnet/IP server as shown in ETS (default is knxd)"},
 #endif
 #ifdef HAVE_GROUPCACHE
   {"GroupCache", 'c', 0, 0,
@@ -243,6 +245,11 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'c':
       arguments->groupcache = 1;
       break;
+    case 'n':
+          if(!arg)
+              die("Name must be given, if you add -n to your arg list");
+      arguments->eibnetname = (char *)arg;
+      break;
     case OPT_BACK_TUNNEL_NOQUEUE:
       arguments->backendflags |= FLAG_B_TUNNEL_NOQUEUE;
       break;
@@ -269,7 +276,7 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
 
 #ifdef HAVE_EIBNETIPSERVER
 EIBnetServer *
-startServer (Layer3 * l3, Trace * t)
+startServer (Layer3 * l3, Trace * t, const char *name)
 {
   EIBnetServer *c;
   char *ip;
@@ -291,7 +298,8 @@ startServer (Layer3 * l3, Trace * t)
     }
   else
     port = 3671;
-  c = new EIBnetServer (a, port, arg.tunnel, arg.route, arg.discover, l3, t);
+
+  c = new EIBnetServer (a, port, arg.tunnel, arg.route, arg.discover, l3, t, name == 0 ? "knxd\0" : name);
   if (!c->init ())
     die ("initilization of the EIBnet/IP server failed");
   free (a);
@@ -337,7 +345,15 @@ main (int ac, char *ag[])
   if (getuid () == 0)
     ERRORPRINTF (&t, 0x37000001, 0, "EIBD should not run as root");
   */
-  
+
+  if(arg.eibnetname)
+  {
+      if(arg.eibnetname[0] == '=')
+          arg.eibnetname++;
+      if(strlen(arg.eibnetname) >= 30)
+          die("EIBnetServer/IP name can't be longer then 30 char");
+  }
+
   if (arg.daemon)
     {
       int fd = open (arg.daemon, O_WRONLY | O_APPEND | O_CREAT, FILE_MODE);
@@ -374,7 +390,7 @@ main (int ac, char *ag[])
     {
       s = new InetServer (l3, &t, arg.port);
       if (!s->init ())
-	die ("initialisation of the knxd inet protocol failed");
+    die ("initialisation of the knxd inet protocol failed");
       server.put (s);
     }
   if (arg.name)
@@ -385,7 +401,7 @@ main (int ac, char *ag[])
       server.put (s);
     }
 #ifdef HAVE_EIBNETIPSERVER
-  serv = startServer (l3, &t);
+  serv = startServer (l3, &t, arg.eibnetname);
 #endif
 #ifdef HAVE_GROUPCACHE
   if (!CreateGroupCache (l3, &t, arg.groupcache))
@@ -428,7 +444,6 @@ main (int ac, char *ag[])
 
   signal (SIGINT, SIG_DFL);
   signal (SIGTERM, SIG_DFL);
-
   while (!server.isempty ())
     delete server.get ();
 #ifdef HAVE_EIBNETIPSERVER
