@@ -21,16 +21,15 @@
 #include "emi.h"
 #include "config.h"
 
-#define NAME "SystemTera.Server-V"
-
 EIBnetServer::EIBnetServer (const char *multicastaddr, int port, bool Tunnel,
-			    bool Route, bool Discover, Layer3 * layer3,
-			    Trace * tr)
+                bool Route, bool Discover, Layer3 * layer3,
+                Trace * tr, const char *name)
 {
   struct sockaddr_in baddr;
   struct ip_mreq mcfg;
   t = tr;
   l3 = layer3;
+  name = name;
 
   TRACEPRINTF (t, 8, this, "Open");
   memset (&baddr, 0, sizeof (baddr));
@@ -321,7 +320,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      r2.installid = 0;
 	      r2.multicastaddr = maddr.sin_addr;
 	      //FIXME: Hostname, indiv. address, MAC-addr
-	      strcpy ((char *) r2.name, NAME);
+          strcpy ((char *) r2.name, name);
 	      d.version = 1;
 	      d.family = 2;
 	      if (discover)
@@ -352,7 +351,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      r2.installid = 0;
 	      r2.multicastaddr = maddr.sin_addr;
 	      //FIXME: Hostname, indiv. address, MAC-addr
-	      strcpy ((char *) r2.name, NAME);
+          strcpy ((char *) r2.name, name);
 	      d.version = 1;
 	      d.family = 2;
 	      if (discover)
