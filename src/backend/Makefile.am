@@ -1,3 +1,5 @@
+TPUARTBASE = 
+
 if HAVE_FT12
 FT12 = ft12.h ft12.cpp lowlatency.h lowlatency.cpp
 else
@@ -23,6 +25,7 @@ PEI16s =
 endif
 
 if HAVE_TPUARTs
+TPUARTBASE = tpuartserialbase.h tpuartserialbase.cpp
 TPUARTs = tpuartserial.h tpuartserial.cpp lowlatency.h lowlatency.cpp
 else
 TPUARTs =
@@ -47,12 +50,12 @@ USB =
 endif
 
 if HAVE_NCN5120
+TPUARTBASE = tpuartserialbase.h tpuartserialbase.cpp
 NCN5120 = ncn5120.h ncn5120.cpp
 else
 NCN5120 = 
 endif
 
-TPUARTBASE = tpuartserialbase.h tpuartserialbase.cpp
 noinst_LIBRARIES = libbackend.a
 AM_CPPFLAGS=-I$(top_srcdir)/src/libserver -I$(top_srcdir)/src/common -I$(top_srcdir)/src/usb $(PTH_CFLAGS) $(LIBUSB_CFLAGS)
 
