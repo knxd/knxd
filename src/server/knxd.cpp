@@ -32,8 +32,6 @@
 #include "eibnetserver.h"
 #include "groupcacheclient.h"
 
-#define HAVE_EIBNETIPSERVER
-
 #define OPT_BACK_TUNNEL_NOQUEUE 1
 #define OPT_BACK_TPUARTS_ACKGROUP 2
 #define OPT_BACK_TPUARTS_ACKINDIVIDUAL 3
