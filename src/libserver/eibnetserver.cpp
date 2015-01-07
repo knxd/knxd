@@ -21,7 +21,7 @@
 #include "emi.h"
 #include "config.h"
 
-#define NAME "eibd"
+#define NAME "knxd"
 
 EIBnetServer::EIBnetServer (const char *multicastaddr, int port, bool Tunnel,
 			    bool Route, bool Discover, Layer3 * layer3,
@@ -320,6 +320,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      r2.individual_addr = 0;
 	      r2.installid = 0;
 	      r2.multicastaddr = maddr.sin_addr;
+	      //FIXME: Hostname, indiv. address, MAC-addr
 	      strcpy ((char *) r2.name, NAME);
 	      d.version = 1;
 	      d.family = 2;
@@ -350,6 +351,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      r2.individual_addr = 0;
 	      r2.installid = 0;
 	      r2.multicastaddr = maddr.sin_addr;
+	      //FIXME: Hostname, indiv. address, MAC-addr
 	      strcpy ((char *) r2.name, NAME);
 	      d.version = 1;
 	      d.family = 2;
