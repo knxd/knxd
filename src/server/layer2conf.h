@@ -47,4 +47,8 @@
 #include "b-USB.h"
 #endif
 
+#ifdef HAVE_TERA
+#include "b-TERA.h"
+#endif
+
 #endif

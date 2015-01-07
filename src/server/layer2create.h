@@ -43,3 +43,8 @@ L2_NAME (FT12)
 #ifdef HAVE_USB
   L2_NAME (USB)
 #endif
+
+#ifdef HAVE_TERA
+  L2_NAME(TERA)
+#endif
+
