@@ -120,14 +120,15 @@ CArray
 Busmonitor_to_CEMI (uchar code, const L_Busmonitor_PDU & p, int no)
 {
   CArray pdu;
-  pdu.resize (p.pdu () + 6);
+  pdu.resize (p.pdu () + 2);
   pdu[0] = code;
-  pdu[1] = 4;
-  pdu[2] = 3;
+  pdu[1] = 0;
+  //I don't know why this additional data are sent in the package, but ETS can't handle it, so I removed them
+  /*pdu[2] = 3;
   pdu[3] = 1;
   pdu[4] = 1;
-  pdu[5] = no & 0x7;
-  pdu.setpart (p.pdu, 6);
+  pdu[5] = no & 0x7;*/
+  pdu.setpart (p.pdu, 2);
   return pdu;
 }
 
