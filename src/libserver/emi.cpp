@@ -22,187 +22,195 @@
 CArray
 L_Data_ToCEMI (uchar code, const L_Data_PDU & l1)
 {
-  uchar c;
-  CArray pdu;
-  assert (l1.data () >= 1);
-  assert (l1.data () < 0xff);
-  assert ((l1.hopcount & 0xf8) == 0);
+    uchar c;
+    CArray pdu;
+    assert (l1.data () >= 1);
+    assert (l1.data () < 0xff);
+    assert ((l1.hopcount & 0xf8) == 0);
 
-  switch (l1.prio)
+    switch (l1.prio)
     {
-    case PRIO_LOW:
-      c = 0x3;
-      break;
-    case PRIO_NORMAL:
-      c = 0x1;
-      break;
-    case PRIO_URGENT:
-      c = 0x02;
-      break;
-    case PRIO_SYSTEM:
-      c = 0x00;
-      break;
+        case PRIO_LOW:
+            c = 0x3;
+            break;
+        case PRIO_NORMAL:
+            c = 0x1;
+            break;
+        case PRIO_URGENT:
+            c = 0x02;
+            break;
+        case PRIO_SYSTEM:
+            c = 0x00;
+            break;
     }
-  pdu.resize (l1.data () + 9);
-  pdu[0] = code;
-  pdu[1] = 0x00;
-  pdu[2] = 0x10 | (c << 2) | (l1.data () - 1 <= 0x0f ? 0x80 : 0x00);
-  if (code == 0x29)
-    pdu[2] |= (l1.repeated ? 0 : 0x20);
-  else
-    pdu[2] |= 0x20;
-  pdu[3] =
-    (l1.AddrType ==
-     GroupAddress ? 0x80 : 0x00) | ((l1.hopcount & 0x7) << 4) | 0x0;
-  pdu[4] = (l1.source >> 8) & 0xff;
-  pdu[5] = (l1.source) & 0xff;
-  pdu[6] = (l1.dest >> 8) & 0xff;
-  pdu[7] = (l1.dest) & 0xff;
-  pdu[8] = l1.data () - 1;
-  pdu.setpart (l1.data.array (), 9, l1.data ());
-  return pdu;
+    pdu.resize (l1.data () + 9);
+    pdu[0] = code;
+    pdu[1] = 0x00;
+    pdu[2] = 0x10 | (c << 2) | (l1.data () - 1 <= 0x0f ? 0x80 : 0x00);
+    if (code == 0x29)
+        pdu[2] |= (l1.repeated ? 0 : 0x20);
+    else
+        pdu[2] |= 0x20;
+    pdu[3] =
+            (l1.AddrType ==
+             GroupAddress ? 0x80 : 0x00) | ((l1.hopcount & 0x7) << 4) | 0x0;
+    pdu[4] = (l1.source >> 8) & 0xff;
+    pdu[5] = (l1.source) & 0xff;
+    pdu[6] = (l1.dest >> 8) & 0xff;
+    pdu[7] = (l1.dest) & 0xff;
+    pdu[8] = l1.data () - 1;
+    pdu.setpart (l1.data.array (), 9, l1.data ());
+    return pdu;
 }
 
 L_Data_PDU *
 CEMI_to_L_Data (const CArray & data)
 {
-  L_Data_PDU c;
-  if (data () < 2)
-    return 0;
-  unsigned start = data[1] + 2;
-  if (data () < 7 + start)
-    return 0;
-  if (data () < 7 + start + data[6 + start] + 1)
-    return 0;
-  c.source = (data[start + 2] << 8) | (data[start + 3]);
-  c.dest = (data[start + 4] << 8) | (data[start + 5]);
-  c.data.set (data.array () + start + 7, data[6 + start] + 1);
-  if (data[0] == 0x29)
-    c.repeated = (data[start] & 0x20) ? 0 : 1;
-  else
-    c.repeated = 0;
-  switch ((data[start] >> 2) & 0x3)
+    L_Data_PDU c;
+    if (data () < 2)
+        return 0;
+    unsigned start = data[1] + 2;
+    if (data () < 7 + start)
+        return 0;
+    if (data () < 7 + start + data[6 + start] + 1)
+        return 0;
+    c.source = (data[start + 2] << 8) | (data[start + 3]);
+    c.dest = (data[start + 4] << 8) | (data[start + 5]);
+    c.data.set (data.array () + start + 7, data[6 + start] + 1);
+    if (data[0] == 0x29)
+        c.repeated = (data[start] & 0x20) ? 0 : 1;
+    else
+        c.repeated = 0;
+    switch ((data[start] >> 2) & 0x3)
     {
-    case 0:
-      c.prio = PRIO_SYSTEM;
-      break;
-    case 1:
-      c.prio = PRIO_URGENT;
-      break;
-    case 2:
-      c.prio = PRIO_NORMAL;
-      break;
-    case 3:
-      c.prio = PRIO_LOW;
-      break;
+        case 0:
+            c.prio = PRIO_SYSTEM;
+            break;
+        case 1:
+            c.prio = PRIO_URGENT;
+            break;
+        case 2:
+            c.prio = PRIO_NORMAL;
+            break;
+        case 3:
+            c.prio = PRIO_LOW;
+            break;
     }
-  c.hopcount = (data[start + 1] >> 4) & 0x07;
-  c.AddrType = (data[start + 1] & 0x80) ? GroupAddress : IndividualAddress;
-  if (!data[start] & 0x80 && data[start + 1] & 0x0f)
-    return 0;
-  return new L_Data_PDU (c);
+    c.hopcount = (data[start + 1] >> 4) & 0x07;
+    c.AddrType = (data[start + 1] & 0x80) ? GroupAddress : IndividualAddress;
+    if (!data[start] & 0x80 && data[start + 1] & 0x0f)
+        return 0;
+    return new L_Data_PDU (c);
 }
 
 L_Busmonitor_PDU *
 CEMI_to_Busmonitor (const CArray & data)
 {
-  L_Busmonitor_PDU c;
-  if (data () < 2)
-    return 0;
-  unsigned start = data[1] + 2;
-  if (data () < 1 + start)
-    return 0;
-  c.pdu.set (data.array () + start, data () - start);
-  return new L_Busmonitor_PDU (c);
+    L_Busmonitor_PDU c;
+    if (data () < 2)
+        return 0;
+    unsigned start = data[1] + 2;
+    if (data () < 1 + start)
+        return 0;
+    c.pdu.set (data.array () + start, data () - start);
+    return new L_Busmonitor_PDU (c);
 }
 
 CArray
 Busmonitor_to_CEMI (uchar code, const L_Busmonitor_PDU & p, int no)
 {
-  CArray pdu;
-  pdu.resize (p.pdu () + 9);
-  pdu[0] = code;
-     
-  pdu[1] = 7; //add. info header length
-  pdu[2] = 3; //status byte
-  pdu[3] = 1; //length of above
-  pdu[4] = 0; //status byte
-  pdu[5] = 0x04; //timestamp type
-  pdu[6] = 2; //timestamp length
-  pdu[7] = 0x00; //timestamp high
-  pdu[8] = 0x00; //timestamp low
-  //TODO: find out wich timestamp this is 
-  // pdu[5] = no & 0x7;
-  pdu.setpart (p.pdu, 9);
-  return pdu;
+    static const uint8_t CEMI_PACKET_TYPE_BUSMONITOR = 0x2B;
+    static const uint8_t CEMI_ADD_HEADER_TYPE_STATUS = 0x03;
+    static const uint8_t CEMI_ADD_HEADER_TYPE_TIMESTAMP = 0x04; // 16Bit timestamp
+    static const uint8_t CEMI_ADD_HEADER_TYPE_EXTTIMESTAMP = 0x06; // 32Bit timestamp
+
+    CArray pdu;
+    pdu.resize (p.pdu () + 11);
+
+    pdu[0] = CEMI_PACKET_TYPE_BUSMONITOR;
+    pdu[1] = 9; // Additional Header length
+
+    pdu[2] = CEMI_ADD_HEADER_TYPE_STATUS;
+    pdu[3] = 1;        // Length of data for STATUS
+    pdu[4] = no & 0x7; // Status Byte. Bit 2:0 is sequence number
+
+    pdu[5] = CEMI_ADD_HEADER_TYPE_EXTTIMESTAMP;
+    pdu[6] = 4;        // Length of data for EXTTIMESTAMP
+    pdu[7] =  (p.timestamp & 0xff000000) >> 24;
+    pdu[8] =  (p.timestamp & 0x00ff0000) >> 16;
+    pdu[9] =  (p.timestamp & 0x0000ff00) >> 8;
+    pdu[10] = (p.timestamp & 0x000000ff);
+
+    pdu.setpart (p.pdu, 11);
+    return pdu;
 } 
 
 CArray
 L_Data_ToEMI (uchar code, const L_Data_PDU & l1)
 {
-  CArray pdu;
-  uchar c;
-  switch (l1.prio)
+    CArray pdu;
+    uchar c;
+    switch (l1.prio)
     {
-    case PRIO_LOW:
-      c = 0x3;
-      break;
-    case PRIO_NORMAL:
-      c = 0x1;
-      break;
-    case PRIO_URGENT:
-      c = 0x02;
-      break;
-    case PRIO_SYSTEM:
-      c = 0x00;
-      break;
+        case PRIO_LOW:
+            c = 0x3;
+            break;
+        case PRIO_NORMAL:
+            c = 0x1;
+            break;
+        case PRIO_URGENT:
+            c = 0x02;
+            break;
+        case PRIO_SYSTEM:
+            c = 0x00;
+            break;
     }
-  pdu.resize (l1.data () + 7);
-  pdu[0] = code;
-  pdu[1] = c << 2;
-  pdu[2] = 0;
-  pdu[3] = 0;
-  pdu[4] = (l1.dest >> 8) & 0xff;
-  pdu[5] = (l1.dest) & 0xff;
-  pdu[6] =
-    (l1.hopcount & 0x07) << 4 | ((l1.data () - 1) & 0x0f) | (l1.AddrType ==
-							     GroupAddress ?
-							     0x80 : 0x00);
-  pdu.setpart (l1.data.array (), 7, l1.data ());
-  return pdu;
+    pdu.resize (l1.data () + 7);
+    pdu[0] = code;
+    pdu[1] = c << 2;
+    pdu[2] = 0;
+    pdu[3] = 0;
+    pdu[4] = (l1.dest >> 8) & 0xff;
+    pdu[5] = (l1.dest) & 0xff;
+    pdu[6] =
+            (l1.hopcount & 0x07) << 4 | ((l1.data () - 1) & 0x0f) | (l1.AddrType ==
+                                                                     GroupAddress ?
+                                                                         0x80 : 0x00);
+    pdu.setpart (l1.data.array (), 7, l1.data ());
+    return pdu;
 }
 
 L_Data_PDU *
 EMI_to_L_Data (const CArray & data)
 {
-  L_Data_PDU c;
-  unsigned len;
+    L_Data_PDU c;
+    unsigned len;
 
-  if (data () < 8)
-    return 0;
+    if (data () < 8)
+        return 0;
 
-  c.source = (data[2] << 8) | (data[3]);
-  c.dest = (data[4] << 8) | (data[5]);
-  switch ((data[1] >> 2) & 0x3)
+    c.source = (data[2] << 8) | (data[3]);
+    c.dest = (data[4] << 8) | (data[5]);
+    switch ((data[1] >> 2) & 0x3)
     {
-    case 0:
-      c.prio = PRIO_SYSTEM;
-      break;
-    case 1:
-      c.prio = PRIO_URGENT;
-      break;
-    case 2:
-      c.prio = PRIO_NORMAL;
-      break;
-    case 3:
-      c.prio = PRIO_LOW;
-      break;
+        case 0:
+            c.prio = PRIO_SYSTEM;
+            break;
+        case 1:
+            c.prio = PRIO_URGENT;
+            break;
+        case 2:
+            c.prio = PRIO_NORMAL;
+            break;
+        case 3:
+            c.prio = PRIO_LOW;
+            break;
     }
-  c.AddrType = (data[6] & 0x80) ? GroupAddress : IndividualAddress;
-  len = (data[6] & 0x0f) + 1;
-  if (len > data.len () - 7)
-    len = data.len () - 7;
-  c.data.set (data.array () + 7, len);
-  c.hopcount = (data[6] >> 4) & 0x07;
-  return new L_Data_PDU (c);
+    c.AddrType = (data[6] & 0x80) ? GroupAddress : IndividualAddress;
+    len = (data[6] & 0x0f) + 1;
+    if (len > data.len () - 7)
+        len = data.len () - 7;
+    c.data.set (data.array () + 7, len);
+    c.hopcount = (data[6] >> 4) & 0x07;
+    return new L_Data_PDU (c);
 }
