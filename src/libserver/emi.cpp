@@ -119,15 +119,29 @@ CEMI_to_Busmonitor (const CArray & data)
 CArray
 Busmonitor_to_CEMI (uchar code, const L_Busmonitor_PDU & p, int no)
 {
+  static const uint8_t CEMI_PACKET_TYPE_BUSMONITOR = 0x2B;
+  static const uint8_t CEMI_ADD_HEADER_TYPE_STATUS = 0x03;
+  static const uint8_t CEMI_ADD_HEADER_TYPE_TIMESTAMP = 0x04; // 16Bit timestamp
+  static const uint8_t CEMI_ADD_HEADER_TYPE_EXTTIMESTAMP = 0x06; // 32Bit timestamp
+
   CArray pdu;
-  pdu.resize (p.pdu () + 6);
-  pdu[0] = code;
-  pdu[1] = 4;
-  pdu[2] = 3;
-  pdu[3] = 1;
-  pdu[4] = 1;
-  pdu[5] = no & 0x7;
-  pdu.setpart (p.pdu, 6);
+  pdu.resize (p.pdu () + 11);
+
+  pdu[0] = CEMI_PACKET_TYPE_BUSMONITOR;
+  pdu[1] = 9; // Additional Header length
+
+  pdu[2] = CEMI_ADD_HEADER_TYPE_STATUS;
+  pdu[3] = 1;        // Length of data for STATUS
+  pdu[4] = no & 0x7; // Status Byte. Bit 2:0 is sequence number
+
+  pdu[5] = CEMI_ADD_HEADER_TYPE_EXTTIMESTAMP;
+  pdu[6] = 4;        // Length of data for EXTTIMESTAMP
+  pdu[7] =  (p.timestamp & 0xff000000) >> 24;
+  pdu[8] =  (p.timestamp & 0x00ff0000) >> 16;
+  pdu[9] =  (p.timestamp & 0x0000ff00) >> 8;
+  pdu[10] = (p.timestamp & 0x000000ff);
+
+  pdu.setpart (p.pdu, 11);
   return pdu;
 }
 
