@@ -120,17 +120,22 @@ CArray
 Busmonitor_to_CEMI (uchar code, const L_Busmonitor_PDU & p, int no)
 {
   CArray pdu;
-  pdu.resize (p.pdu () + 2);
+  pdu.resize (p.pdu () + 9);
   pdu[0] = code;
-  pdu[1] = 0;
-  //I don't know why this additional data are sent in the package, but ETS can't handle it, so I removed them
-  /*pdu[2] = 3;
-  pdu[3] = 1;
-  pdu[4] = 1;
-  pdu[5] = no & 0x7;*/
-  pdu.setpart (p.pdu, 2);
+     
+  pdu[1] = 7; //add. info header length
+  pdu[2] = 3; //status byte
+  pdu[3] = 1; //length of above
+  pdu[4] = 0; //status byte
+  pdu[5] = 0x04; //timestamp type
+  pdu[6] = 2; //timestamp length
+  pdu[7] = 0x00; //timestamp high
+  pdu[8] = 0x00; //timestamp low
+  //TODO: find out wich timestamp this is 
+  // pdu[5] = no & 0x7;
+  pdu.setpart (p.pdu, 9);
   return pdu;
-}
+} 
 
 CArray
 L_Data_ToEMI (uchar code, const L_Data_PDU & l1)
