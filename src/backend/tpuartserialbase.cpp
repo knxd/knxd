@@ -416,7 +416,7 @@ TPUARTBASESerialLayer2Driver::Run (pth_sem_t * stop1)
                     in.deletepart (0, 1);
                     continue;
                 }
-                if (!acked & !waitconfirm)
+                if (!acked)
                 {
                     uchar c = 0x10;
                     if ((in[5] & 0x80) == 0)
@@ -478,7 +478,7 @@ TPUARTBASESerialLayer2Driver::Run (pth_sem_t * stop1)
                     in.deletepart (0, 1);
                     continue;
                 }
-                if (!acked & !waitconfirm)
+                if (!acked)
                 {
                     uchar c = 0x10;
                     if ((in[1] & 0x80) == 0)
