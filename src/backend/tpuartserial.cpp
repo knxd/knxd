@@ -318,6 +318,7 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
   CArray in;
   int to = 0;
   int waitconfirm = 0;
+  CArray sendheader;
   int acked = 0;
   int retry = 0;
   int watch = 0;
@@ -404,8 +405,9 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 	      RecvLPDU (in.array (), 1);
 	      in.deletepart (0, 1);
 	    }
-	  else if ((in[0] & 0xD0) == 0x90) //L_DATA.ind 
+	  else if ((in[0] & 0xD0) == 0x90) // Matches KNX control byte L_Data_Standard Frame
 	    {
+              bool recvecho = false;
 	      if (in () < 6)
 		{
 		  if (!to)
@@ -420,7 +422,17 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 		  in.deletepart (0, 1);
 		  continue;
 		}
-	      if (!acked && !waitconfirm)
+              if (waitconfirm)
+                {
+                  CArray recvheader;
+                  recvheader.set(in.array(),6);
+                  if (recvheader == sendheader)
+                    {
+                      TRACEPRINTF (t, 0, this, "ignoring this telegram. we send it.");
+                      recvecho = true;
+                    }
+                }
+	      if (!acked && !recvecho)
 		{
 		  uchar c = 0x10;
 		  if ((in[5] & 0x80) == 0)
@@ -461,15 +473,16 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 		  in.deletepart (0, 1);
 		  continue;
 		}
-              if (!waitconfirm)
+              if (!recvecho)
                 {
 	          acked = 0;
 	          RecvLPDU (in.array (), len);
                 }
 	      in.deletepart (0, len);
 	    }
-	  else if ((in[0] & 0xD0) == 0x10) //L_LONG_DATA.ind 
+	  else if ((in[0] & 0xD0) == 0x10) //Matches KNX control byte L_Data_Extended Frame
 	    {
+              bool recvecho = false;
 	      if (in () < 7)
 		{
 		  if (!to)
@@ -484,7 +497,17 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 		  in.deletepart (0, 1);
 		  continue;
 		}
-	      if (!acked  && !waitconfirm)
+              if (waitconfirm)
+                {
+                  CArray recvheader;
+                  recvheader.set(in.array(),6);
+                  if (recvheader == sendheader)
+                    {
+                      TRACEPRINTF (t, 0, this, "ignoring this telegram. we send it.");
+                      recvecho = true;
+                    }
+                }
+	      if (!acked  && !recvecho)
 		{
 		  uchar c = 0x10;
 		  if ((in[1] & 0x80) == 0)
@@ -525,7 +548,7 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 		  in.deletepart (0, 1);
 		  continue;
 		}
-              if (!waitconfirm)
+              if (!recvecho)
                 {
 	          acked = 0;
 	          RecvLPDU (in.array (), len);
@@ -580,6 +603,7 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 	  CArray w;
 	  unsigned i;
 	  int j;
+          sendheader.set(d.array(), 6);
 	  w.resize (d () * 2);
 	  for (i = 0; i < d (); i++)
 	    {
