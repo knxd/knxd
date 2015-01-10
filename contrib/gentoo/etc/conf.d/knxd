@@ -1,4 +1,4 @@
-# Set desired backend, check docs for list of availaible backends,
+# Set desired backend, check docs for list of available backends,
 # some examples listed here
 # ip: usb: bcu1: ipt: tpuarts:
 KNXD_OPTS="-i usb:"
