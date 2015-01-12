@@ -1,4 +1,5 @@
 # Author: Michael Kefeder
+# Author: Patrik Pfaffenbauer (patrik.pfaffenbauer@p3.co.at)
 
 EAPI="2"
 
@@ -10,8 +11,7 @@ HOMEPAGE="https://github.com/Makki1/knxd"
 LICENSE="GPL-2"
 SLOT="0"
 KEYWORDS=""
-IUSE="eibd ft12 pei16 tpuart pei16s tpuarts eibnetip eibnetiptunnel eibnetipserver
-usb groupcache java ncn5120"
+IUSE="eibd ft12 pei16 tpuart pei16s tpuarts eibnetip eibnetiptunnel eibnetipserver usb groupcache java ncn5120"
 
 DEPEND="dev-libs/pthsem"
 
