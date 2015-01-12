@@ -1,2 +1,5 @@
+# Set desired backend, check docs for list of available backends,
+# some examples listed here
+# ip: usb: bcu1: ipt: tpuarts:
 KNXD_OPTS="-i usb:"
 PID_FILE="/var/tmp/knxd.pid"
