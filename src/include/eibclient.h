@@ -29,6 +29,7 @@
 
 #include <sys/cdefs.h>
 #include <stdint.h>
+#include <time.h>
 
 __BEGIN_DECLS;
 
@@ -39,6 +40,26 @@ typedef struct _EIBConnection EIBConnection;
 
 /** type for storing a EIB address */
 typedef uint16_t eibaddr_t;
+
+typedef struct {
+    unsigned short mainGroup;
+    unsigned short subGroup;
+    unsigned short index;
+} KNXDatatype;
+
+typedef struct {
+    uint8_t bValue;
+    uint8_t cValue;
+    uint16_t sValue;
+    uint32_t iValue;
+    uint64_t uiValue;
+    double dValue;
+    char *strValue;
+    struct tm tValue;
+} KNXValue;
+
+#define KNX_ASSUME_KNX_VALUE(x, y) x.bValue = y; x.iValue = y; x.cValue = y; x.sValue = y; x.uiValue = y; x.dValue = y;
+
 
 /** Opens a connection to eibd.
  *   url can either be <code>ip:host:[port]</code> or <code>local:/path/to/socket</code>
@@ -928,6 +949,27 @@ int EIB_Cache_LastUpdates_async (EIBConnection * con, uint16_t start,
 				 uint8_t timeout, int max_len, uint8_t * buf,
 				 uint16_t * end);
 
+
+/**
+ * Converts the APDU frame to the KNX payload
+ * \param apdu pointer to the apdu frame
+ * \param apdu_len length of the apdu frame
+ * \param payload pointer to the payload, allocated by the caller
+ * \param payload_max_len max length of the payload
+ * return -1 if error otherwise the payload length
+ */
+int KNX_APDU_To_Payload(uint8_t *apdu, int apdu_len, uint8_t *payload, int payload_max_len);
+
+/**
+ * Converts the KNX Payload given by the specific DPT and puts the value in the KNXValue struc
+ */
+int KNX_Decode_Value(uint8_t *payload, int payload_length, KNXDatatype datatype, KNXValue *value);
+
+
+/**
+ * Converts the KNXValue struct to the KNX Payload as the specific DPT
+ */
+int KNX_Encode_Value(KNXValue *value, uint8_t *payload, int payload_length, KNXDatatype datatype);
 
 __END_DECLS
 #endif

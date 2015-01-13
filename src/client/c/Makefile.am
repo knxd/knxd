@@ -1,6 +1,6 @@
 
-HEADER=eibclient-int.h
-NATIVE=close.c  closesync.c  complete.c  io.c  openlocal.c  openremote.c  openurl.c  pollcomplete.c  pollfd.c
+HEADER=eibclient-int.h dptconvert.h
+NATIVE=close.c  closesync.c  complete.c  io.c  openlocal.c  openremote.c  openurl.c  pollcomplete.c  pollfd.c dptconvert.c
 
 FUNCS= \
   gen/getapdu.c              gen/loadimage.c         gen/mcpropertyread.c   gen/mprogmodeoff.c              gen/opentconnection.c \
@@ -25,6 +25,6 @@ gen/%.c : Makefile
 	echo '#include "def/'`basename $@|sed -e "s/\.c/.inc/g"`'"' >> $@
 
 lib_LTLIBRARIES=libeibclient.la
-AM_CPPFLAGS=-I$(top_srcdir)/src/include -I$(top_srcdir)/src/common -I$(top_srcdir)/src/client
-libeibclient_la_SOURCES= $(NATIVE) $(FUNCS) $(HEADER)
-libeibclient_la_LDFLAGS=-version-info 0:0:0
+AM_CPPFLAGS=-I$(top_srcdir)/src/include -I$(top_srcdir)/src/common -I$(top_srcdir)/src/client -std=c99
+libeibclient_la_SOURCES= $(NATIVE) $(FUNCS) $(HEADER) 
+libeibclient_la_LDFLAGS=-version-info 0:0:0 -lm

@@ -1,2 +1,1 @@
-SUBDIRS= common include client usb libserver backend server tools examples
-
+SUBDIRS= common include client usb libserver backend server tools examples tests
