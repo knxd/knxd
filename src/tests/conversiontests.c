@@ -838,7 +838,7 @@ int DPT239() {
 
 int main (int ac, char *ag[])
 {
-    /*  RUN_TEST_GROUP(DPT1());
+    RUN_TEST_GROUP(DPT1());
     RUN_TEST_GROUP(DPT2());
     RUN_TEST_GROUP(DPT3());
     RUN_TEST_GROUP(DPT4());
@@ -863,7 +863,7 @@ int main (int ac, char *ag[])
     RUN_TEST_GROUP(DPT225());
     RUN_TEST_GROUP(DPT232());
     RUN_TEST_GROUP(DPT235());
-    RUN_TEST_GROUP(DPT238());*/
+    RUN_TEST_GROUP(DPT238());
     RUN_TEST_GROUP(DPT239());
 
 
