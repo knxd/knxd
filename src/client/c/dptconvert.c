@@ -1,20 +1,21 @@
 #include <dptconvert.h>
 #include <math.h>
 #include <stdlib.h>
+#include <strings.h>
 
 #define false 0
 #define true 1
 
 #define ASSERT_PAYLOAD(x) if (payload_length != (x))  return false
-#define ENSURE_PAYLOAD(x) bzero(payload, x)
+#define ENSURE_PAYLOAD(x) for (int pi = payload_length; pi < (x); ++pi) payload[pi] = 0
 
 #define KNX_ASSUME_VALUE(y) value->bValue = y; value->iValue = y; value->cValue = y; value->sValue = y; value->uiValue = y; value->dValue = y;
 #define KNX_ASSUME_CHAR_VALUE(y) KNX_ASSUME_VALUE(y)
-#define KNX_ASSUME_STR_VALUE(y) value->strValue = (char*)malloc(strlen(y)); strncpy(value->strValue, y, strlen(y));
 
 #define KNX_ASSUME_VALUE_RET(y) KNX_ASSUME_VALUE(y) return true
-#define KNX_ASSUME_STR_VALUE_RET(y) KNX_ASSUME_STR_VALUE(y) return true
+#define KNX_ASSUME_STR_VALUE_RET(value, y) value->strValue = (char*)malloc(strlen(y)); strncpy(value->strValue, y, strlen(y)); return true
 #define KNX_ASSUME_CHAR_VALUE_RET(y) KNX_ASSUME_CHAR_VALUE(y) return true
+
 
 int KNX_APDU_To_Payload(uint8_t *apdu, int apdu_len, uint8_t *payload, int payload_max_len) {
 
@@ -403,6 +404,9 @@ int busValueToCharacter(const uint8_t *payload, int payload_length, KNXDatatype 
     int8_t charValue = signed8FromPayload(payload, 0);
     if (datatype.subGroup == 1 && (charValue & 0x80))
         return false;
+    if(datatype.subGroup == 2) {
+        KNX_ASSUME_CHAR_VALUE_RET((uint8_t)charValue);
+    }
 
     KNX_ASSUME_CHAR_VALUE_RET(charValue);
 }
@@ -455,8 +459,9 @@ int busValueToTimePeriod(const uint8_t *payload, int payload_length, KNXDatatype
 
 int busValueToSigned16(const uint8_t *payload, int payload_length, KNXDatatype datatype, KNXValue *value) {
     ASSERT_PAYLOAD(2);
-    if (datatype.subGroup == 10)
+    if (datatype.subGroup == 10) {
         KNX_ASSUME_VALUE_RET(signed16FromPayload(payload, 0) / 100.0);
+    }
     KNX_ASSUME_VALUE_RET(signed16FromPayload(payload, 0));
 }
 
@@ -486,6 +491,7 @@ int busValueToTime(const uint8_t *payload, int payload_length, KNXDatatype datat
 
             if (hours > 23 || minutes > 59 || seconds > 59)
                 return false;
+            bzero(&value->tValue, sizeof(struct tm));
             value->tValue.tm_hour = hours;
             value->tValue.tm_min = minutes;
             value->tValue.tm_sec = seconds;
@@ -505,6 +511,7 @@ int busValueToDate(const uint8_t *payload, int payload_length, KNXDatatype datat
     if (year > 99 || month < 1 || month > 12 || day < 1)
         return false;
 
+    bzero(&value->tValue, sizeof(struct tm));
     year += year >= 90 ? 1900 : 2000;
     value->tValue.tm_mday = day;
     value->tValue.tm_year = year;
@@ -564,7 +571,7 @@ int busValueToString(const uint8_t *payload, int payload_length, KNXDatatype dat
         if (!datatype.subGroup && (strValue[n] & 0x80))
             return false;
     }
-    KNX_ASSUME_STR_VALUE_RET(strValue);
+    KNX_ASSUME_STR_VALUE_RET(value, strValue);
 }
 
 int busValueToScene(const uint8_t *payload, int payload_length, KNXDatatype datatype, KNXValue *value) {
@@ -626,6 +633,7 @@ int busValueToDateTime(const uint8_t *payload, int payload_length, KNXDatatype d
                 if ((hours > 24 || minutes > 59 || seconds > 59))
                     return false;
 
+                bzero(&value->tValue, sizeof(struct tm));
                 value->tValue.tm_sec = seconds;
                 value->tValue.tm_min = minutes;
                 value->tValue.tm_hour = hours;
@@ -738,7 +746,7 @@ int busValueToLocale(const uint8_t *payload, int payload_length, KNXDatatype dat
         char code[2];
         code[0] = unsigned8FromPayload(payload, datatype.index * 2);
         code[1] = unsigned8FromPayload(payload, datatype.index * 2 + 1);
-        KNX_ASSUME_STR_VALUE_RET(code);
+        KNX_ASSUME_STR_VALUE_RET(value, code);
     }
     return false;
 }
@@ -994,9 +1002,9 @@ int valueToBusValueDate(KNXValue *value, uint8_t *payload, int payload_length, K
     if (value->tValue.tm_year < 1990 || value->tValue.tm_year > 2089)
         return false;
 
-    unsigned8ToPayload(payload, payload_length,0, value->tValue.tm_mday , 0x1F);
-    unsigned8ToPayload(payload, payload_length,1, value->tValue.tm_mon , 0x0F);
-    unsigned8ToPayload(payload, payload_length,2, value->tValue.tm_year  % 100, 0x7F);
+    unsigned8ToPayload(payload, payload_length, 0, value->tValue.tm_mday , 0x1F);
+    unsigned8ToPayload(payload, payload_length, 1, value->tValue.tm_mon , 0x0F);
+    unsigned8ToPayload(payload, payload_length, 2, value->tValue.tm_year  % 100, 0x7F);
     return true;
 }
 
@@ -1348,7 +1356,7 @@ uint16_t unsigned16FromPayload(const uint8_t *payload, int index) {
     return ((((uint16_t)payload[index]) << 8) & 0xFF00) | (((uint16_t)payload[index + 1]) & 0x00FF);
 }
 int16_t signed16FromPayload(const uint8_t *payload, int index) {
-    return (int16_t)unsigned16FromPayload(payload, index);
+    return ((((uint16_t)payload[index]) << 8) & 0xFF00) | (((uint16_t)payload[index + 1]) & 0x00FF);
 }
 uint32_t unsigned32FromPayload(const uint8_t *payload, int index) {
     return ((((uint32_t)payload[index]) << 24) & 0xFF000000) |

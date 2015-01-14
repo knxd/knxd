@@ -59,6 +59,7 @@ typedef struct {
 } KNXValue;
 
 #define KNX_ASSUME_KNX_VALUE(x, y) x.bValue = y; x.iValue = y; x.cValue = y; x.sValue = y; x.uiValue = y; x.dValue = y;
+#define KNX_ASSUME_STR_VALUE(value, y) value.strValue = (char*)malloc(strlen(y)); strncpy(value.strValue, y, strlen(y));
 
 
 /** Opens a connection to eibd.
