@@ -58,7 +58,7 @@ typedef struct {
     struct tm tValue;
 } KNXValue;
 
-#define KNX_ASSUME_KNX_VALUE(x, y) x.bValue = y; x.iValue = y; x.cValue = y; x.sValue = y; x.uiValue = y; x.dValue = y;
+#define KNX_ASSUME_KNX_VALUE(x, y) x.bValue = (unsigned char)y; x.iValue = (uint32_t)y; x.cValue = (unsigned char)y; x.sValue = (unsigned short)y; x.uiValue = (uint64_t)y; x.dValue = (double)y;
 #define KNX_ASSUME_STR_VALUE(value, y) value.strValue = (char*)malloc(strlen(y)); strncpy(value.strValue, y, strlen(y));
 
 

@@ -74,7 +74,7 @@ int byteArrayToHex(const char *data, int len, char *out) {
 }
 
 TESTCASE_IN_DEF(testcaseInDouble, double) {
-    TESTCASE_IN(printf("Data=4.3f%\n", val.dValue));
+    TESTCASE_IN(printf("Data=4.3%f\n", val.dValue));
     ASSERT(roundf(val.dValue*1000)/1000, roundf(expectedValue*1000)/1000);
     return true;
 }
@@ -83,6 +83,13 @@ TESTCASE_IN_DEF(testcaseInS8, int8_t) {
     TESTCASE_IN(printf("Data=%lld\n", val.uiValue));
     int8_t signedValue = val.uiValue;
     ASSERT(signedValue, (int8_t)expectedValue);
+    return true;
+}
+
+TESTCASE_IN_DEF(testcaseInU8, uint8_t) {
+    TESTCASE_IN(printf("Data=%lld\n", val.uiValue));
+    uint8_t signedValue = val.uiValue;
+    ASSERT(signedValue, (uint8_t)expectedValue);
     return true;
 }
 
@@ -100,9 +107,38 @@ TESTCASE_IN_DEF(testcaseInU16, uint16_t) {
     return true;
 }
 
+TESTCASE_IN_DEF(testcaseInU32, uint32_t) {
+    TESTCASE_IN(printf("Data=%lld\n", val.uiValue));
+    uint32_t signedValue = val.uiValue;
+    ASSERT(signedValue, (uint32_t)expectedValue);
+    return true;
+}
+
+TESTCASE_IN_DEF(testcaseInS32, int32_t) {
+    TESTCASE_IN(printf("Data=%lld\n", val.uiValue));
+    int32_t signedValue = val.uiValue;
+    ASSERT(signedValue, (int32_t)expectedValue);
+    return true;
+}
+
+TESTCASE_IN_DEF(testcaseInS64, int64_t) {
+    TESTCASE_IN(printf("Data=%lld\n", val.uiValue));
+    int64_t signedValue = (int64_t)val.uiValue;
+    ASSERT(signedValue, (int64_t)expectedValue);
+    return true;
+}
+
 TESTCASE_IN_DEF(testcaseInU64, uint64_t) {
     TESTCASE_IN(printf("Data=%lld\n", val.uiValue));
     ASSERT(val.uiValue, expectedValue);
+    return true;
+}
+
+TESTCASE_IN_DEF(testcaseInStr, const char *) {
+    TESTCASE_IN(printf("Data=%s\n", val.strValue));
+    int res = strncmp(val.strValue, expectedValue, strlen(expectedValue));
+
+    ASSERT(res, 0);
     return true;
 }
 
@@ -116,7 +152,8 @@ TESTCASE_IN_DEF(testcaseInTime, struct tm) {
 
 int testcaseOut(KNXValue value, unsigned short mainGroup, unsigned short subGroup, unsigned short index, const char *expectedResult, int expectedLen, int encode_ret_val) {
     printf("OUTGOING: DPT=%d.%d-%d Value=%lld ", mainGroup, subGroup, index, value.uiValue);
-    char data[expectedLen];
+    unsigned char data[expectedLen];
+    bzero(data, expectedLen);
     char hexOut[expectedLen*2+1];
 
     char expectedResultData[expectedLen];
@@ -143,30 +180,35 @@ int testcaseOut(KNXValue value, unsigned short mainGroup, unsigned short subGrou
 
     ASSERT(memcmpResult, 0);
 
-
     return true;
 }
 
-int testcaseInOut(char const *payload, unsigned short mainGroup, unsigned short subGroup, unsigned short index, uint64_t attrValue, int endecode_ret_val) {
-    RUN_TEST_SILENT(testcaseInU64(payload, mainGroup, subGroup, index, attrValue, endecode_ret_val));
-    KNXValue t;
-    KNX_ASSUME_KNX_VALUE(t, attrValue);
-    RUN_TEST_SILENT(testcaseOut(t, mainGroup, subGroup, index, payload, strlen(payload)/2, endecode_ret_val));
-}
+#define TESTCASE_IN_OUT(x, y, z, a) int x(char const *payload, unsigned short mainGroup, unsigned short subGroup, unsigned short index, y attrValue, int endecode_ret_val) { \
+    RUN_TEST_SILENT(z(payload, mainGroup, subGroup, index, attrValue, endecode_ret_val)); \
+    KNXValue t; \
+    a(t, attrValue); \
+    RUN_TEST_SILENT(testcaseOut(t, mainGroup, subGroup, index, payload, strlen(payload)/2, endecode_ret_val)); \
+    } \
+
+TESTCASE_IN_OUT(testcaseInOutU8, uint8_t, testcaseInU8, KNX_ASSUME_KNX_VALUE)
+TESTCASE_IN_OUT(testcaseInOutU64, uint64_t, testcaseInU64, KNX_ASSUME_KNX_VALUE)
+TESTCASE_IN_OUT(testcaseInOutS64, int64_t, testcaseInS64, KNX_ASSUME_KNX_VALUE)
+TESTCASE_IN_OUT(testcaseInOutDouble, double, testcaseInDouble, KNX_ASSUME_KNX_VALUE)
+TESTCASE_IN_OUT(testcaseInOutString, const char *, testcaseInStr, KNX_ASSUME_STR_VALUE)
 
 int DPT1() {
     TEST_CASE_START;
 
-    RUN_TEST(testcaseInOut("00", 1, 2, 0, 0, true));
-    RUN_TEST(testcaseInOut("01", 1, 2, 0, 1, true));
-    RUN_TEST(testcaseInOut("00", 1, 10, 0,  0, true));
-    RUN_TEST(testcaseInOut("01", 1, 11, 0,  1, true));
-    RUN_TEST(testcaseInOut("01", 1, 5, 0,  1, true));
-    RUN_TEST(testcaseInOut("01", 1, 3, 0, 1, true));
-    RUN_TEST(testcaseInOut("00", 1, 3, 0, 0, true));
+    RUN_TEST(testcaseInOutU64("00", 1, 2, 0, 0, true));
+    RUN_TEST(testcaseInOutU64("01", 1, 2, 0, 1, true));
+    RUN_TEST(testcaseInOutU64("00", 1, 10, 0,  0, true));
+    RUN_TEST(testcaseInOutU64("01", 1, 11, 0,  1, true));
+    RUN_TEST(testcaseInOutU64("01", 1, 5, 0,  1, true));
+    RUN_TEST(testcaseInOutU64("01", 1, 3, 0, 1, true));
+    RUN_TEST(testcaseInOutU64("00", 1, 3, 0, 0, true));
     RUN_TEST(testcaseInU64("02", 1, 3, 0, 0, true));
-    RUN_TEST(testcaseInOut("01", 1, 6, 0, 1, true));
-    RUN_TEST(testcaseInOut("00", 1, 15, 0, 0, true));
+    RUN_TEST(testcaseInOutU64("01", 1, 6, 0, 1, true));
+    RUN_TEST(testcaseInOutU64("00", 1, 15, 0, 0, true));
     RUN_TEST(testcaseInU64("0100", 1, 1, 0, 0, false));
     RUN_TEST(testcaseInU64("", 1, 2, 0, 0, false));
     RUN_TEST(testcaseInU64("FF", 1, 1, 0,  1, true));
@@ -391,13 +433,412 @@ int DPT11() {
 
     RUN_TEST(testcaseInTime("010100", 11, 1, 0, exp, true));
 
+    RUN_TEST(testcaseInTime("", 11, 1, 0, exp, false));
+    RUN_TEST(testcaseInTime("A8", 11, 1, 0, exp, false));
+    RUN_TEST(testcaseInTime("A86666AF", 11, 1, 0, exp, false));
+    TEST_CASE_END;
+}
+
+int DPT12() {
+    TEST_CASE_START;
+
+    RUN_TEST(testcaseInOutU64("FFFFFFFF", 12, 1, 0, 4294967295, true));
+    RUN_TEST(testcaseInU32("FFFFFFFF", 12, 1, 0, (uint32_t)4.29497e+09, true));
+
+    KNXValue v;
+    KNX_ASSUME_KNX_VALUE(v, (uint32_t)4294967295);
+    RUN_TEST(testcaseOut(v, 12, 1, 0, "FFFFFFFF", 4, true));
+
+    RUN_TEST(testcaseInOutU64("00000000", 12, 1, 0, 0, true));
+    RUN_TEST(testcaseInU32("", 12, 1, 0, 0, 0));
+    RUN_TEST(testcaseInU32("00", 12, 1, 0, 0, 0));
+    RUN_TEST(testcaseInU32("00FF", 12, 1, 0, 0, 0));
+    RUN_TEST(testcaseInU32("00FF00", 12, 1, 0, 0, 0));
+    RUN_TEST(testcaseInU32("00FF00FF00", 12, 1, 0, 0, 0));
+
+    TEST_CASE_END;
+}
+
+int DPT13() {
+    TEST_CASE_START;
+
+    RUN_TEST(testcaseInOutS64("FFFFFFFF", 13, 1, 0, -1, true));
+    RUN_TEST(testcaseInOutS64("7FFFFFFF", 13, 1, 0, 2147483647, true));
+    RUN_TEST(testcaseInOutS64("80000000", 13, 1, 0, -2147483648, true));
+    RUN_TEST(testcaseInOutS64("00000000", 13, 1, 0, 0, true));
+    RUN_TEST(testcaseInS32("", 13, 1, 0, 0, 0));
+    RUN_TEST(testcaseInS32("00", 13, 1, 0, 0, 0));
+    RUN_TEST(testcaseInS32("00FF", 13, 1, 0, 0, 0));
+    RUN_TEST(testcaseInS32("00FF00", 13, 1, 0, 0, 0));
+    RUN_TEST(testcaseInS32("00FF00FF00", 13, 1, 0, 0, 0));
+
+
+    TEST_CASE_END;
+}
+
+int DPT14() {
+    TEST_CASE_START;
+
+    RUN_TEST(testcaseInS64("3F400000", 14, 1, 0, 0, true));
+    RUN_TEST(testcaseInOutDouble("3F400000", 14, 0, 0, 0.75f, true));
+    RUN_TEST(testcaseInOutDouble("BF400000", 14, 0, 0, -0.75f, true));
+    RUN_TEST(testcaseInOutDouble("00000000", 14, 0, 0, 0, true));
+    RUN_TEST(testcaseInDouble("43DB1000DEAD", 14, 0, 0, 0, false));
+    RUN_TEST(testcaseInDouble("", 14, 0, 0, 0, false));
+    RUN_TEST(testcaseInDouble("43", 14, 0, 0, 0, false));
+    RUN_TEST(testcaseInDouble("43DE", 14, 0, 0, 0, false));
+    RUN_TEST(testcaseInDouble("43DEAD", 14, 0, 0, 0, false));
+
+    TEST_CASE_END;
+}
+
+int DPT15() {
+    TEST_CASE_START;
+
+
+    RUN_TEST(testcaseInDouble("123456A5", 15, 1, 0, 0, false));
+    RUN_TEST(testcaseInU64("123456A5", 15, 0, 0, 123456, true));
+    KNXValue v;
+    KNX_ASSUME_KNX_VALUE(v, 123456);
+    RUN_TEST(testcaseOut(v, 15, 0, 0, "12345600", 4, true));
+
+
+    RUN_TEST(testcaseInDouble("123456A5", 15, 0, 0, 123456, true));
+
+    RUN_TEST(testcaseInS8("123456A5", 15, 0, 1, 1, true));
+    RUN_TEST(testcaseInS8("123456A5", 15, 0, 2, 0, true));
+    RUN_TEST(testcaseInS8("123456A5", 15, 0, 3, 1, true));
+    RUN_TEST(testcaseInS8("123456A5", 15, 0, 4, 0, true));
+    RUN_TEST(testcaseInS8("123456A5", 15, 0, 5, 5, true));
+    RUN_TEST(testcaseInS8("123456AF", 15, 0, 5, 15, true));
+    RUN_TEST(testcaseInS8("12345FA5", 15, 0, 0, 0, false));
+
+    TEST_CASE_END;
+}
+
+int DPT16() {
+    TEST_CASE_START;
+
+    //TODO String is not implemented currently
+    //RUN_TEST(testcaseInOutString("4B4E58206973204F4B0000000000", 16, 0, 0, "KNX is OK", true));
+    //RUN_TEST(testcaseInOutString("4B4E58206973204F4B0000000000", 16, 1, 0, "KNX is OK", true));
+
+    TEST_CASE_END;
+}
+
+int DPT17() {
+    TEST_CASE_START;
+
+    RUN_TEST(testcaseInOutU8("03", 17, 1, 0, 3, true));
+    RUN_TEST(testcaseInOutU8("35", 17, 1, 0, 53, true));
+    RUN_TEST(testcaseInU8("", 17, 1, 0, 0, false));
+    RUN_TEST(testcaseInU8("0103", 17, 1, 0, 0, false));
+
+    TEST_CASE_END;
+}
+
+int DPT18() {
+    TEST_CASE_START;
+
+    RUN_TEST(testcaseInU8("03", 18, 1, 0, 0, true));
+    RUN_TEST(testcaseInU8("03", 18, 1, 1, 3, true));
+    RUN_TEST(testcaseInU8("83", 17, 1, 0, 3, true));
+    RUN_TEST(testcaseInU8("03", 18, 1, 2, 0, false));
+    RUN_TEST(testcaseInU8("75", 18, 1, 0, 0, true));
+    RUN_TEST(testcaseInU8("75", 18, 1, 1, 53, true));
+
+    RUN_TEST(testcaseInU8("", 18, 1, 1, 53, false));
+    RUN_TEST(testcaseInU8("7503", 18, 1, 1, 53, false));
+
+    TEST_CASE_END;
+}
+
+int DPT19() {
+    TEST_CASE_START;
+
+    struct tm exp;
+    bzero(&exp, sizeof(struct tm));
+    exp.tm_hour = 10;
+    exp.tm_min = 26;
+    exp.tm_sec = 39;
+    exp.tm_mday = 23;
+    exp.tm_mon = 9;
+    exp.tm_year = 2014;
+
+    RUN_TEST(testcaseInTime("7209174A1A274180", 19, 0, 0, exp, false));
+    RUN_TEST(testcaseInTime("7209174A1A274180", 19, 1, 0, exp, true));
+    RUN_TEST(testcaseInU8("7209174A1A274180", 19, 1, 1, 2, true));
+    RUN_TEST(testcaseInU8("7209174A1A274180", 19, 1, 2, 1, true));
+    RUN_TEST(testcaseInU8("7209174A1A274180", 19, 1, 3, 0, true));
+    RUN_TEST(testcaseInU8("7209174A1A274180", 19, 1, 9, 1, true));
+    RUN_TEST(testcaseInU8("7209174A1A274180", 19, 1, 10, 1, true));
+
+    RUN_TEST(testcaseInU8("", 19, 1, 10, 1, false));
+    RUN_TEST(testcaseInU8("AA", 19, 1, 10, 1, false));
+    RUN_TEST(testcaseInU8("AAAA", 19, 1, 10, 1, false));
+    RUN_TEST(testcaseInU8("AAAAAA", 19, 1, 10, 1, false));
+    RUN_TEST(testcaseInU8("AAAAAAAA", 19, 1, 10, 1, false));
+    RUN_TEST(testcaseInU8("AAAAAAAAAA", 19, 1, 10, 1, false));
+    RUN_TEST(testcaseInU8("AAAAAAAAAAAA", 19, 1, 10, 1, false));
+    RUN_TEST(testcaseInU8("AAAAAAAAAAAAAA", 19, 1, 10, 1, false));
+    RUN_TEST(testcaseInU8("AAAAAAAAAAAAAAAAAA", 19, 1, 10, 1, false));
+
+    KNXValue v;
+    v.tValue = exp;
+    RUN_TEST(testcaseOut(v, 19, 0, 0, "", 0, 0));
+    RUN_TEST(testcaseOut(v, 19, 1, 0, "7209170A1A270000", 8, true));
+
+    KNX_ASSUME_KNX_VALUE(v, 2);
+    RUN_TEST(testcaseOut(v, 19, 1, 1, "0000004000000000", 8, true));
+
+    KNX_ASSUME_KNX_VALUE(v, 1);
+    RUN_TEST(testcaseOut(v, 19, 1, 2, "0000000000004000", 8, true));
+
+    KNX_ASSUME_KNX_VALUE(v, 1);
+    RUN_TEST(testcaseOut(v, 19, 1, 3, "0000000000008000", 8, true));
+
+    KNX_ASSUME_KNX_VALUE(v, 1);
+    RUN_TEST(testcaseOut(v, 19, 1, 9, "0000000000000100", 8, true));
+
+    KNX_ASSUME_KNX_VALUE(v, 1);
+    RUN_TEST(testcaseOut(v, 19, 1, 10, "0000000000000080", 8, true));
+
+    //TODO add test cases, when todatetimes impl is done
+    //7209170000000200 == 2014-09-23
+    //0000000A1A271800 == 10:24:39
+
+
+    TEST_CASE_END;
+}
+
+int DPT26() {
+    TEST_CASE_START;
+
+    RUN_TEST(testcaseInU8("03", 26, 1, 0, 0, true));
+    RUN_TEST(testcaseInU8("03", 26, 1, 1, 3, true));
+    RUN_TEST(testcaseInU8("83", 26, 1, 1, 3, true));
+    RUN_TEST(testcaseInU8("B5", 26, 1, 1, 53, true));
+
+    RUN_TEST(testcaseInU8("83", 26, 1, 2, 3, false));
+    RUN_TEST(testcaseInU8("", 26, 1, 2, 3, false));
+    RUN_TEST(testcaseInU8("8383", 26, 1, 2, 3, false));
+
+    TEST_CASE_END;
+}
+
+int DPT28() {
+    TEST_CASE_START;
+
+    //TODO
+
+    TEST_CASE_END;
+}
+
+int DPT29() {
+    TEST_CASE_START;
+
+    RUN_TEST(testcaseInS64("FFFFFFFFFFFFFFFF", 29, 1, 0, 0, false));
+    RUN_TEST(testcaseInOutS64("FFFFFFFFFFFFFFFF", 29, 10, 0, -1, true));
+    RUN_TEST(testcaseInOutS64("7FFFFFFFFFFFFFFF", 29, 10, 0, 9223372036854775807, true));
+    RUN_TEST(testcaseInOutS64("8000000000000000", 29, 10, 0, (int64_t)-9223372036854775808, true));
+    RUN_TEST(testcaseInOutS64("0000000000000000", 29, 10, 0, 0, true));
+
+    RUN_TEST(testcaseInS64("", 29, 10, 0, 0, false));
+    RUN_TEST(testcaseInS64("0000", 29, 10, 0, 0, false));
+    RUN_TEST(testcaseInS64("000000", 29, 10, 0, 0, false));
+    RUN_TEST(testcaseInS64("00000000", 29, 10, 0, 0, false));
+    RUN_TEST(testcaseInS64("0000000000", 29, 10, 0, 0, false));
+    RUN_TEST(testcaseInS64("000000000000", 29, 10, 0, 0, false));
+    RUN_TEST(testcaseInS64("00000000000000", 29, 10, 0, 0, false));
+    RUN_TEST(testcaseInS64("000000000000000000", 29, 10, 0, 0, false));
+
+    TEST_CASE_END;
+}
+
+int DPT217() {
+    TEST_CASE_START;
+
+    RUN_TEST(testcaseInU16("1EF0", 217, 1, 0, 3, true));
+    RUN_TEST(testcaseInU16("1EF0", 217, 1, 1, 27, true));
+    RUN_TEST(testcaseInU16("1EF0", 217, 1, 2, 48, true));
+
+    RUN_TEST(testcaseInU16("", 217, 1, 0, 3, false));
+    RUN_TEST(testcaseInU16("1E", 217, 1, 0, 3, false));
+    RUN_TEST(testcaseInU16("1E1E1E", 217, 1, 0, 3, false));
+
+    KNXValue v;
+    KNX_ASSUME_KNX_VALUE(v, 3);
+    RUN_TEST(testcaseOut(v, 217, 1, 0, "1800", 2, true));
+
+    KNX_ASSUME_KNX_VALUE(v, 27);
+    RUN_TEST(testcaseOut(v, 217, 1, 1, "06C0", 2, true));
+
+    KNX_ASSUME_KNX_VALUE(v, 48);
+    RUN_TEST(testcaseOut(v, 217, 1, 2, "0030", 2, true));
+
+    KNX_ASSUME_KNX_VALUE(v, 35);
+    RUN_TEST(testcaseOut(v, 217, 1, 0, "", 0, false));
+    KNX_ASSUME_KNX_VALUE(v, 36);
+    RUN_TEST(testcaseOut(v, 217, 1, 1, "", 0, false));
+    KNX_ASSUME_KNX_VALUE(v, 72);
+    RUN_TEST(testcaseOut(v, 217, 1, 2, "", 0, false));
+
+
+    TEST_CASE_END;
+}
+
+int DPT221() {
+    TEST_CASE_START;
+
+    RUN_TEST(testcaseInU32("D327017F4CC2", 221, 0, 1, 0, false));
+    RUN_TEST(testcaseInU32("D327017F4CC2", 221, 1, 0, 54055, true));
+    RUN_TEST(testcaseInU32("D327017F4CC2", 221, 1, 1, 25119938, true));
+
+    RUN_TEST(testcaseInU32("", 221, 1, 1, 25119938, false));
+    RUN_TEST(testcaseInU32("AB", 221, 1, 1, 25119938, false));
+    RUN_TEST(testcaseInU32("ABCD", 221, 1, 1, 25119938, false));
+    RUN_TEST(testcaseInU32("ABCDEF", 221, 1, 1, 25119938, false));
+    RUN_TEST(testcaseInU32("ABCDEFAB", 221, 1, 1, 25119938, false));
+    RUN_TEST(testcaseInU32("ABCDEFABCD", 221, 1, 1, 25119938, false));
+    RUN_TEST(testcaseInU32("ABCDEFABCDEFAB", 221, 1, 1, 25119938, false));
+
+    KNXValue v;
+    KNX_ASSUME_KNX_VALUE(v, 54055);
+    RUN_TEST(testcaseOut(v, 221, 1, 0, "D32700000000", 6, true));
+
+
+    TEST_CASE_END;
+}
+
+int DPT225() {
+    TEST_CASE_START;
+
+    RUN_TEST(testcaseInU32("014F0C", 225, 1, 0, 335, true));
+    RUN_TEST(testcaseInU32("014F0C", 225, 1, 1, 4, true));
+    RUN_TEST(testcaseInU32("82DC0C", 225, 2, 0, 33500, true));
+
+    RUN_TEST(testcaseInU32("01A44D", 225, 3, 0, 420, true));
+    RUN_TEST(testcaseInU32("01A44D", 225, 3, 1, 77, true));
+
+    KNXValue v;
+    KNX_ASSUME_KNX_VALUE(v, 335);
+    RUN_TEST(testcaseOut(v, 225, 1, 0, "014F00", 3, true));
+
+    KNX_ASSUME_KNX_VALUE(v, 33500);
+    RUN_TEST(testcaseOut(v, 225, 2, 0, "82DC00", 3, true));
+
+    KNX_ASSUME_KNX_VALUE(v, 420);
+    RUN_TEST(testcaseOut(v, 225, 3, 0, "01A400", 3, true));
+
+    KNX_ASSUME_KNX_VALUE(v, 77);
+    RUN_TEST(testcaseOut(v, 225, 3, 1, "00004D", 3, true));
+
+    TEST_CASE_END;
+}
+
+int DPT231() {
+    TEST_CASE_START;
+
+    //TODO ADD TEST CASES
+
+    TEST_CASE_END;
+}
+int DPT234() {
+    TEST_CASE_START;
+
+    //TODO ADD TEST CASES
+
+    TEST_CASE_END;
+}
+
+int DPT232() {
+    TEST_CASE_START;
+
+    RUN_TEST(testcaseInOutU64("FFFFFF", 232, 600, 0, 16777215, true));
+    RUN_TEST(testcaseInOutU64("000000", 232, 600, 0, 0, true));
+    RUN_TEST(testcaseInOutU64("906085", 232, 600, 0, 9461893, true));
+
+
+    RUN_TEST(testcaseInU64("", 232, 600, 0, 0, false));
+    RUN_TEST(testcaseInU64("00", 232, 600, 0, 0, false));
+    RUN_TEST(testcaseInU64("0000", 232, 600, 0, 0, false));
+    RUN_TEST(testcaseInU64("00000000", 232, 600, 0, 0, false));
+
+    TEST_CASE_END;
+}
+
+int DPT235() {
+    TEST_CASE_START;
+
+    RUN_TEST(testcaseInS64("3459F0252F03", 235, 1, 0, 878309413, true));
+    RUN_TEST(testcaseInS64("3459F0252F03", 235, 1, 1, 47, true));
+    RUN_TEST(testcaseInS64("3459F0252F03", 235, 1, 2, 1, true));
+    RUN_TEST(testcaseInS64("3459F0252F03", 235, 1, 3, 1, true));
+
+    RUN_TEST(testcaseInS64("3459F0252F03", 235, 0, 0, 0, false));
+    RUN_TEST(testcaseInS64("3459F0252F", 235, 0, 0, 0, false));
+    RUN_TEST(testcaseInS64("", 235, 0, 0, 0, false));
+    RUN_TEST(testcaseInS64("3459F0252F0382", 235, 0, 0, 0, false));
+
+    KNXValue v;
+    KNX_ASSUME_KNX_VALUE(v, 878309413);
+    RUN_TEST(testcaseOut(v, 235, 1, 0, "3459F0250000", 6, true));
+
+    KNX_ASSUME_KNX_VALUE(v, 47);
+    RUN_TEST(testcaseOut(v, 235, 1, 1, "000000002F00", 6, true));
+
+    KNX_ASSUME_KNX_VALUE(v, 1);
+    RUN_TEST(testcaseOut(v, 235, 1, 2, "000000000002", 6, true));
+    RUN_TEST(testcaseOut(v, 235, 1, 3, "000000000001", 6, true));
+
+    TEST_CASE_END;
+}
+
+int DPT238() {
+    TEST_CASE_START;
+
+    RUN_TEST(testcaseInU8("03", 238, 0, 0, 0, false));
+    RUN_TEST(testcaseInU8("03", 238, 1, 3, 0, false));
+
+    RUN_TEST(testcaseInU8("03", 238, 1, 0, 3, true));
+    RUN_TEST(testcaseInU8("03", 238, 1, 1, 0, true));
+
+    RUN_TEST(testcaseInU8("83", 238, 1, 0, 3, true));
+    RUN_TEST(testcaseInU8("83", 238, 1, 2, 1, true));
+
+    RUN_TEST(testcaseInU8("", 238, 1, 2, 1, false));
+    RUN_TEST(testcaseInU8("FFFF", 238, 1, 2, 1, false));
+
+    TEST_CASE_END;
+}
+
+int DPT239() {
+    TEST_CASE_START;
+
+    RUN_TEST(testcaseInU16("C401", 239, 1, 0, 76, true));
+    RUN_TEST(testcaseInU16("C4FF", 239, 1, 1, 1, true));
+
+    KNXValue v;
+    KNX_ASSUME_KNX_VALUE(v, 76);
+    RUN_TEST(testcaseOut(v, 239, 1, 0, "C200", 2, true));
+
+    KNX_ASSUME_KNX_VALUE(v, 1);
+    RUN_TEST(testcaseOut(v, 239, 1, 1, "0001", 2, true));
+
+    KNX_ASSUME_KNX_VALUE(v, 0);
+    RUN_TEST(testcaseOut(v, 239, 1, 0, "0000", 2, true));
+
+    RUN_TEST(testcaseInU16("C401", 239, 0, 0, 0, false));
+    RUN_TEST(testcaseInU16("", 239, 1, 0, 0, false));
+    RUN_TEST(testcaseInU16("01", 239, 1, 0, 0, false));
+    RUN_TEST(testcaseInU16("01C491", 239, 1, 0, 0, false));
 
     TEST_CASE_END;
 }
 
 int main (int ac, char *ag[])
 {
-    /*RUN_TEST_GROUP(DPT1());
+    /*  RUN_TEST_GROUP(DPT1());
     RUN_TEST_GROUP(DPT2());
     RUN_TEST_GROUP(DPT3());
     RUN_TEST_GROUP(DPT4());
@@ -406,9 +847,32 @@ int main (int ac, char *ag[])
     RUN_TEST_GROUP(DPT7());
     RUN_TEST_GROUP(DPT8());
     RUN_TEST_GROUP(DPT9());
-    RUN_TEST_GROUP(DPT10());*/
-
+    RUN_TEST_GROUP(DPT10());
     RUN_TEST_GROUP(DPT11());
+    RUN_TEST_GROUP(DPT12());
+    RUN_TEST_GROUP(DPT13());
+    RUN_TEST_GROUP(DPT14());
+    RUN_TEST_GROUP(DPT15());
+    RUN_TEST_GROUP(DPT17());
+    RUN_TEST_GROUP(DPT18());
+    RUN_TEST_GROUP(DPT19());
+    RUN_TEST_GROUP(DPT26());
+    RUN_TEST_GROUP(DPT29());
+    RUN_TEST_GROUP(DPT217());
+    RUN_TEST_GROUP(DPT221());
+    RUN_TEST_GROUP(DPT225());
+    RUN_TEST_GROUP(DPT232());
+    RUN_TEST_GROUP(DPT235());
+    RUN_TEST_GROUP(DPT238());*/
+    RUN_TEST_GROUP(DPT239());
 
+
+    //TODO
+    /*
+    RUN_TEST_GROUP(DPT16());
+    RUN_TEST_GROUP(DPT28());
+    RUN_TEST_GROUP(DPT231());
+    RUN_TEST_GROUP(DPT234());
+    */
     printf("\n>>>>>>>>>>All tests completed successfully<<<<<<<<<<<\n\n");
 }
