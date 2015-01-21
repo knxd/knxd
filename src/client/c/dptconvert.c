@@ -1,7 +1,6 @@
 #include <dptconvert.h>
 #include <math.h>
 #include <stdlib.h>
-#include <strings.h>
 
 #define false 0
 #define true 1
@@ -491,7 +490,7 @@ int busValueToTime(const uint8_t *payload, int payload_length, KNXDatatype datat
 
             if (hours > 23 || minutes > 59 || seconds > 59)
                 return false;
-            bzero(&value->tValue, sizeof(struct tm));
+            memset(&value->tValue, 0, sizeof(struct tm));
             value->tValue.tm_hour = hours;
             value->tValue.tm_min = minutes;
             value->tValue.tm_sec = seconds;
@@ -511,7 +510,7 @@ int busValueToDate(const uint8_t *payload, int payload_length, KNXDatatype datat
     if (year > 99 || month < 1 || month > 12 || day < 1)
         return false;
 
-    bzero(&value->tValue, sizeof(struct tm));
+    memset(&value->tValue, 0, sizeof(struct tm));
     year += year >= 90 ? 1900 : 2000;
     value->tValue.tm_mday = day;
     value->tValue.tm_year = year;
@@ -634,7 +633,7 @@ int busValueToDateTime(const uint8_t *payload, int payload_length, KNXDatatype d
                 if ((hours > 24 || minutes > 59 || seconds > 59))
                     return false;
 
-                bzero(&value->tValue, sizeof(struct tm));
+                memset(&value->tValue, 0, sizeof(struct tm));
                 value->tValue.tm_sec = seconds;
                 value->tValue.tm_min = minutes;
                 value->tValue.tm_hour = hours;

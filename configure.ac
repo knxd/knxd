@@ -215,8 +215,20 @@ if test x$groupcache = xtrue ; then
  AC_DEFINE(HAVE_GROUPCACHE, 1 , [Group Cache enabled])
 fi
 
-
 AM_CONDITIONAL(HAVE_SOURCE_INFO, test x$have_source_info = xyes )
+
+AC_ARG_ENABLE(tests,
+[  --enable-tests		build unit tests],
+[case "${enableval}" in
+ yes) enabletests=true ;;
+  no)  enabletests=false ;;
+   *) AC_MSG_ERROR(bad value ${enableval} for --enable-tests) ;;
+ esac],[enablejava=false])
+if test x$enabletests = xtrue ; then
+ AC_DEFINE(ENABLE_TESTS, 1 , [building tests])
+fi
+
+AM_CONDITIONAL(BUILD_TESTS, test x$enabletests = xtrue )
 
 AC_CHECK_PROGS(INDENT, indent, no)
 AC_CHECK_PROGS(JAR, fastjar jar, no)
