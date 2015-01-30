@@ -20,7 +20,7 @@
 #include "eibnetserver.h"
 #include "emi.h"
 #include "config.h"
-#include <malloc.h>
+#include <stdlib.h>
 
 EIBnetServer::EIBnetServer (const char *multicastaddr, int port, bool Tunnel,
                 bool Route, bool Discover, Layer3 * layer3,
