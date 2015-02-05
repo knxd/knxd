@@ -4,6 +4,10 @@
 
 # knxd-@SLOT@
 
+depend() {
+	provide knxd
+}
+
 start() {
 	ebegin "Starting knxd"
 	start-stop-daemon --start --background --quiet --user nobody:usb --exec /usr/bin/knxd \
