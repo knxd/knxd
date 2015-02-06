@@ -5,8 +5,17 @@
 # For details, see LICENSE. To submit patches, you have to agree to
 # license your code under the GNU GPL version 2 or later.
 
-
 echo 'Alphabetical list of surnames of everyone who ever committed to this repository.
 Auto-generated from tools/list_AUTHORS
 '
-git shortlog -se --all | cut -f1 --complement | sort -u -k2
+
+IFS=\n
+# Define duplicates here to prevent author/email filtering on commits
+_duplicates="Timo <github@timo-wingender.de>
+mjoe <jmattiello@gmail.com>"
+
+_log=`git shortlog -se --all|cut -f2|sort -u -k2`
+for d in "$_duplicates"; do
+    _log=`echo "$_log"|grep -v "$d"`
+done
+echo "$_log"
