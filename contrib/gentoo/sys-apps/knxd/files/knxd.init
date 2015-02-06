@@ -5,6 +5,7 @@
 # knxd-@SLOT@
 
 depend() {
+	need net
 	provide knxd
 }
 
