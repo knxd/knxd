@@ -20,7 +20,10 @@
 #ifndef MY_STRING_H
 #define MY_STRING_H
 
+/* This has to stay because other source files rely on it */
 #include <string.h>
+
+#ifdef USE_NOLIBSTDC /* Do not use the C++ Standard Library */
 
 /** implements a string */
 class String {
@@ -151,5 +154,57 @@ inline const String& operator +=(String& a, const String b) {
 	String c = a + b;
 	return (a = c);
 }
+
+#else /* Use the C++ Standard Library */
+
+#include <string>
+
+class String: public std::string {
+public:
+	/**
+	 * Construct an empty string.
+	 */
+	String() {}
+
+	/**
+	 * Copy constructor
+	 */
+	String(const String& lhs): std::string(lhs) {}
+
+	/**
+	 * Copy constructor
+	 */
+	String(const std::string& lhs): std::string(lhs) {}
+
+	/**
+	 * Copy constructor
+	 */
+	String(const char* lhs): std::string(lhs) {}
+
+	/**
+	 * Transform into a C-String
+	 */
+	const char* operator ()() const {
+		return c_str();
+	}
+
+	/**
+	 * Concatenation
+	 */
+	String operator +(const String& rhs) const {
+		return String(static_cast<const std::string&>(*this)
+		              + static_cast<const std::string&>(rhs));
+	}
+
+	/**
+	 * In-place concatenation
+	 */
+	const String& operator +=(const String& rhs) {
+		// Let's assume immutability
+		return (*this = *this + rhs);
+	}
+};
+
+#endif /* USE_NOLIBSTDC */
 
 #endif
