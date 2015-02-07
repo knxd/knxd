@@ -58,7 +58,7 @@ public:
 	}
 
 	/** assign a String */
-	const String& operator =(const String& a) {
+	String& operator =(const String& a) {
 		if (data)
 			delete[]data;
 
@@ -68,9 +68,9 @@ public:
 			data = new char[len];
 			memcpy(data, a.data, len);
 		} else
-			data = 0;
+			data = NULL;
 
-		return a;
+		return *this;
 	}
 
 	/** initialize with a character constant */
@@ -86,7 +86,7 @@ public:
 	}
 
 	/** assign a character constant */
-	const String& operator =(const char* msg) {
+	String& operator =(const char* msg) {
 		if (data)
 			delete[]data;
 
