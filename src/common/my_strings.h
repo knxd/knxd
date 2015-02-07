@@ -199,7 +199,7 @@ public:
 	/**
 	 * In-place concatenation
 	 */
-	const String& operator +=(const String& rhs) {
+	inline const String& operator +=(const String& rhs) {
 		// Let's assume immutability
 		return (*this = *this + rhs);
 	}
