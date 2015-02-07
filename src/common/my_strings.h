@@ -149,12 +149,6 @@ public:
 	}
 };
 
-/** adds a text to a string */
-inline const String& operator +=(String& a, const String b) {
-	String c = a + b;
-	return (a = c);
-}
-
 #else /* Use the C++ Standard Library */
 
 #include <string>
@@ -195,16 +189,15 @@ public:
 		return String(static_cast<const std::string&>(*this)
 		              + static_cast<const std::string&>(rhs));
 	}
-
-	/**
-	 * In-place concatenation
-	 */
-	inline String& operator +=(const String& rhs) {
-		// Let's assume immutability
-		return (*this = *this + rhs);
-	}
 };
 
 #endif /* USE_NOLIBSTDC */
+
+/**
+ * In-place string concatenation (sort of).
+ */
+inline String& operator +=(String& lhs, const String& rhs) {
+	return (lhs = lhs + rhs);
+}
 
 #endif
