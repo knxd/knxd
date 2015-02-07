@@ -103,7 +103,7 @@ public:
 	}
 
 	/** concats two strings*/
-	String operator +(const String& a) {
+	String operator +(const String& a) const {
 		String b;
 
 		if (!len)
@@ -199,7 +199,7 @@ public:
 	/**
 	 * In-place concatenation
 	 */
-	inline const String& operator +=(const String& rhs) {
+	inline String& operator +=(const String& rhs) {
 		// Let's assume immutability
 		return (*this = *this + rhs);
 	}
