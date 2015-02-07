@@ -17,8 +17,8 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifndef MY_STRING_H
-#define MY_STRING_H
+#ifndef KNXD_COMMON_MYSTRING_H
+#define KNXD_COMMON_MYSTRING_H
 
 /* This has to stay because other source files rely on it */
 #include <string.h>
