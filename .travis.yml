@@ -1,6 +1,5 @@
 language: cpp
 install:
-  - sudo apt-get install pkg-config
   - wget "https://www.auto.tuwien.ac.at/~mkoegler/pth/pthsem_2.0.8.tar.gz" && tar xvfz pthsem_2.0.8.tar.gz && cd "pthsem-2.0.8" && ./configure && make && sudo make install && cd ..
 script:
   - libtoolize --copy --force --install && aclocal -I m4 --force && autoheader && automake --add-missing --copy --force-missing && autoconf && ./configure --without-pth-test && make
