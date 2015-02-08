@@ -11,4 +11,4 @@
 echo 'Alphabetical list of surnames of everyone who ever committed to this repository.
 Auto-generated from tools/list_AUTHORS and .mailmap
 '
-git shortlog -se --all | cut -f1 --complement | sort -u -k2
+git shortlog -se --all|cut -f2|sort -u -k2
