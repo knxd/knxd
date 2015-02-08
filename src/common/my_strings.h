@@ -197,7 +197,24 @@ public:
  * In-place string concatenation (sort of).
  */
 inline String& operator +=(String& lhs, const String& rhs) {
-	return (lhs = lhs + rhs);
+	#ifdef USE_NOLIBSTDC /* Do not use the C++ Standard Library */
+		return (lhs = lhs + rhs);
+	#else /* Use the C++ Standard Library */
+		lhs.append(rhs);
+		return lhs;
+	#endif /* USE_NOLIBSTDC */
+}
+
+/**
+ * In-place string concatenation (sort of) with implicit conversion.
+ */
+inline String& operator +=(String& lhs, const char* rhs) {
+	#ifdef USE_NOLIBSTDC /* Do not use the C++ Standard Library */
+		return (lhs = lhs + rhs);
+	#else /* Use the C++ Standard Library */
+		lhs.append(rhs);
+		return lhs;
+	#endif /* USE_NOLIBSTDC */
 }
 
 #endif
