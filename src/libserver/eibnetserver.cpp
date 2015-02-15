@@ -27,7 +27,6 @@
 #include <netinet/in.h>
 #include <string.h>
 
-
 EIBnetServer::EIBnetServer (const char *multicastaddr, int port, bool Tunnel,
                 bool Route, bool Discover, Layer3 * layer3,
                 Trace * tr, String serverName)
@@ -319,36 +318,38 @@ EIBnetServer::Run (pth_sem_t * stop1)
           struct ifconf ifc;
           char buf[1024];
           int success = 0;
+          unsigned char mac_address[6]= {0,0,0,0,0,0};
 
           int sock_mac = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
-          if (sock_mac == -1) { }; // handle error
+          if (sock_mac != -1)
+	    {
+              ifc.ifc_len = sizeof(buf);
+              ifc.ifc_buf = buf;
+              if (ioctl(sock_mac, SIOCGIFCONF, &ifc) != -1)
+		{
+                  struct ifreq* it = ifc.ifc_req;
+                  const struct ifreq* const end = it + (ifc.ifc_len / sizeof(struct ifreq));
 
-          ifc.ifc_len = sizeof(buf);
-          ifc.ifc_buf = buf;
-          if (ioctl(sock_mac, SIOCGIFCONF, &ifc) == -1) { } // handle error
-
-          struct ifreq* it = ifc.ifc_req;
-          const struct ifreq* const end = it + (ifc.ifc_len / sizeof(struct ifreq));
-
-          for (; it != end; ++it)
-            {
-              strcpy(ifr.ifr_name, it->ifr_name);
-              if (ioctl(sock_mac, SIOCGIFFLAGS, &ifr) == 0)
-                {
-                  if (! (ifr.ifr_flags & IFF_LOOPBACK)) // don't count loopback
+                  for (; it != end; ++it)
                     {
-                      if (ioctl(sock_mac, SIOCGIFHWADDR, &ifr) == 0)
+                      strcpy(ifr.ifr_name, it->ifr_name);
+                      if (ioctl(sock_mac, SIOCGIFFLAGS, &ifr) == 0)
                         {
-                          success = 1;
-                          break;
+                          if (! (ifr.ifr_flags & IFF_LOOPBACK)) // don't count loopback
+                            {
+                              if (ioctl(sock_mac, SIOCGIFHWADDR, &ifr) == 0)
+                                {
+                                  success = 1;
+                                  break;
+                                }
+                            }
                         }
                     }
+                  if (success)
+		    memcpy(mac_address, ifr.ifr_hwaddr.sa_data, 6);
                 }
-              else { } // handle error
-            }
+	    }
 
-          unsigned char mac_address[6];
-          if (success) memcpy(mac_address, ifr.ifr_hwaddr.sa_data, 6);
 
           /* End MAC Address */
 
@@ -367,8 +368,8 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      r2.multicastaddr = maddr.sin_addr;
               memcpy(r2.MAC, mac_address, 6);
 	      //FIXME: Hostname, indiv. address
-          uint16_t namelen = strlen(name ());
-          strncpy ((char *) r2.name, name (), namelen>29?29:namelen);
+              uint16_t namelen = strlen(name ());
+              strncpy ((char *) r2.name, name (), namelen>29?29:namelen);
 	      d.version = 1;
 	      d.family = 2;
 	      if (discover)
@@ -400,8 +401,8 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      r2.multicastaddr = maddr.sin_addr;
               memcpy(r2.MAC, mac_address, 6);
 	      //FIXME: Hostname, indiv. address
-          uint16_t namelen = strlen(name ());
-          strncpy ((char *) r2.name, name(), namelen>29?29:namelen);
+              uint16_t namelen = strlen(name ());
+              strncpy ((char *) r2.name, name(), namelen>29?29:namelen);
 	      d.version = 1;
 	      d.family = 2;
 	      if (discover)
