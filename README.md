@@ -9,9 +9,23 @@ http://knx-user-forum.de/knx-eib-forum/38982-eibd-war-bcusdk-fork-knxd.html
 
 ## Building
 
-* ./bootstrap.sh
-* ./configure
-* make && make install
+### Dependencies
+
+On Debian:
+
+    apt-get install build-essential libtool automake
+    wget https://www.auto.tuwien.ac.at/~mkoegler/pth/pthsem_2.0.8.tar.gz
+    tar xzf pthsem_2.0.8.tar.gz
+    cd pthsem-2.0.8
+    ./configure
+    make
+    make install
+
+### knxd
+
+    ./bootstrap.sh
+    ./configure
+    make && make install
 
 ## Contributions
 
