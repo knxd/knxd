@@ -1,18 +1,18 @@
 #!/bin/sh
 
 NAME=knxd
-DAEMON=/usr/bin/$NAME
+PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin
+DAEMON=$(which $NAME)
 
 # Exit if the package is not installed
-[ -x "$DAEMON" ] || exit 0
+[ -x "$DAEMON" ] || exit 4
 
 # Read configuration variable file if it is present
 [ -r /etc/default/$NAME ] && . /etc/default/$NAME
 
-[ -z $GATEWAY ] && exit "'$GATEWAY' is empty. Please set it in /etc/default/$NAME"
+[ -z "$GATEWAY" ] && exit 5
 
 
-PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="Description of the service"
 DAEMON_ARGS="-D -T -S -d -i --pid-file=/var/cache/knxd/knxd.pid GATEWAY"
 PIDFILE=/var/cache/knxd/$NAME.pid
