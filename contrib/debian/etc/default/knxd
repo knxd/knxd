@@ -1,4 +1,0 @@
-# For USB, you need GATEWAY='ft12:/dev/ttyS0'
-# For network, you need GATEWAY='ipt:1.2.3.4'
-
-GATEWAY=''
