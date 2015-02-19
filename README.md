@@ -13,7 +13,7 @@ http://knx-user-forum.de/knx-eib-forum/38982-eibd-war-bcusdk-fork-knxd.html
 
 On Debian:
 
-    apt-get install build-essential libtool automake
+    apt-get install build-essential libtool automake pkg-config
     wget https://www.auto.tuwien.ac.at/~mkoegler/pth/pthsem_2.0.8.tar.gz
     tar xzf pthsem_2.0.8.tar.gz
     cd pthsem-2.0.8
@@ -24,7 +24,7 @@ On Debian:
 ### knxd
 
     ./bootstrap.sh
-    ./configure
+    LD_LIBRARY_PATH=/usr/local/lib ./configure
     make && make install
 
 ## Contributions
