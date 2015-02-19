@@ -13,9 +13,9 @@ DAEMON=$(which $NAME)
 [ -z "$GATEWAY" ] && exit 5
 
 
-DESC="Description of the service"
-DAEMON_ARGS="-D -T -S -d -i --pid-file=/var/cache/knxd/knxd.pid GATEWAY"
+DESC="knx home automation server"
 PIDFILE=/var/cache/knxd/$NAME.pid
+DAEMON_ARGS="-D -T -S -d -i --pid-file=$PIDFILE $GATEWAY"
 SCRIPTNAME=/etc/init.d/$NAME
 
 # Load the VERBOSE setting and other rcS variables
