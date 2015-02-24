@@ -1,4 +1,4 @@
-knxd [![Build Status](https://travis-ci.org/mjoe/knxd.svg)](https://travis-ci.org/mjoe/knxd)
+knxd [![Build Status](https://travis-ci.org/Makki1/knxd.svg)](https://travis-ci.org/Makki1/knxd)
 ====
 
 This is a fork of eibd 0.0.5 (from bcusdk)
