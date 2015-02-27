@@ -15,3 +15,8 @@ script:
   - autoconf
   - ./configure --without-pth-test
   - make
+notifications:
+  email:
+    on_success: change
+    on_failure: always
+
