@@ -1,12 +1,11 @@
 language: cpp
-install:
+before_install:
   - wget "https://www.auto.tuwien.ac.at/~mkoegler/pth/pthsem_2.0.8.tar.gz"
-  - tar xvfz pthsem_2.0.8.tar.gz
+  - tar xzf pthsem_2.0.8.tar.gz
   - cd "pthsem-2.0.8"
   - ./configure
   - make
   - sudo make install
-  - cd ..
 script:
   - libtoolize --copy --force --install
   - aclocal -I m4 --force
