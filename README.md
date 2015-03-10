@@ -4,8 +4,7 @@ knxd [![Build Status](https://travis-ci.org/knxd/knxd.svg)](https://travis-ci.or
 This is a fork of eibd 0.0.5 (from bcusdk)
 https://www.auto.tuwien.ac.at/~mkoegler/index.php/bcusdk
 
-For a history (in German) please also see:
-http://knx-user-forum.de/knx-eib-forum/38982-eibd-war-bcusdk-fork-knxd.html
+For a (german only) history and discussion why knxd emerged please also see: [eibd(war bcusdk) Fork -> knxd](http://knx-user-forum.de/forum/öffentlicher-bereich/knx-eib-forum/39972-eibd-war-bcusdk-fork-knxd)
 
 ## Building
 
