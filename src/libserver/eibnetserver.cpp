@@ -24,13 +24,14 @@
 
 EIBnetServer::EIBnetServer (const char *multicastaddr, int port, bool Tunnel,
                 bool Route, bool Discover, Layer3 * layer3,
-                Trace * tr, String serverName)
+                Trace * tr, String serverName, eibaddr_t eibAddr)
 {
   struct sockaddr_in baddr;
   struct ip_mreq mcfg;
   t = tr;
   l3 = layer3;
   name = serverName;
+  eibaddr = eibAddr;
 
   TRACEPRINTF (t, 8, this, "Open");
   memset (&baddr, 0, sizeof (baddr));
@@ -43,6 +44,7 @@ EIBnetServer::EIBnetServer (const char *multicastaddr, int port, bool Tunnel,
 
   if (GetHostIP (&maddr, multicastaddr) == 0)
     {
+      ERRORPRINTF (t, 8, this, "Addr '%s' not resolvable", multicastaddr);
       sock = 0;
       return;
     }
@@ -317,16 +319,23 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      TRACEPRINTF (t, 8, this, "SEARCH");
 	      r2.KNXmedium = 2;
 	      r2.devicestatus = 0;
-	      r2.individual_addr = 0;
+	      r2.individual_addr = eibaddr;
 	      r2.installid = 0;
 	      r2.multicastaddr = maddr.sin_addr;
-	      //FIXME: Hostname, indiv. address, MAC-addr
+	      r2.serial[0]=1;
+	      r2.serial[1]=2;
+	      r2.serial[2]=3;
+	      r2.serial[3]=4;
+	      r2.serial[4]=5;
+	      r2.serial[5]=6;
+	      //FIXME: Hostname, MAC-addr
           uint16_t namelen = strlen(name ());
           strncpy ((char *) r2.name, name (), namelen>29?29:namelen);
 	      d.version = 1;
-	      d.family = 2;
-	      if (discover)
-		r2.services.add (d);
+	      d.family = 2; // core
+	      r2.services.add (d);
+	      //d.family = 3; // device management
+	      //r2.services.add (d);
 	      d.family = 4;
 	      if (tunnel)
 		r2.services.add (d);
@@ -349,7 +358,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      TRACEPRINTF (t, 8, this, "DESCRIBE");
 	      r2.KNXmedium = 2;
 	      r2.devicestatus = 0;
-	      r2.individual_addr = 0;
+	      r2.individual_addr = eibaddr;
 	      r2.installid = 0;
 	      r2.multicastaddr = maddr.sin_addr;
 	      //FIXME: Hostname, indiv. address, MAC-addr

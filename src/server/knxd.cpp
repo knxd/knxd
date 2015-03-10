@@ -72,9 +72,11 @@ void
 die (const char *msg, ...)
 {
   va_list ap;
+  int err = errno;
+
   va_start (ap, msg);
   vprintf (msg, ap);
-  printf ("\n");
+  printf (": %s\n", strerror(err));
   va_end (ap);
 
   if (arg.pidfile)
@@ -276,7 +278,7 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
 
 #ifdef HAVE_EIBNETIPSERVER
 EIBnetServer *
-startServer (Layer3 * l3, Trace * t, const char *name)
+startServer (Layer3 * l3, Trace * t, const char *name, eibaddr_t addr)
 {
   EIBnetServer *c;
   char *ip;
@@ -299,9 +301,9 @@ startServer (Layer3 * l3, Trace * t, const char *name)
   else
     port = 3671;
 
-  c = new EIBnetServer (a, port, arg.tunnel, arg.route, arg.discover, l3, t, name == 0 ? "knxd" : name);
+  c = new EIBnetServer (a, port, arg.tunnel, arg.route, arg.discover, l3, t, name == 0 ? "knxd" : name, addr);
   if (!c->init ())
-    die ("initilization of the EIBnet/IP server failed");
+    die ("initialization of the EIBnet/IP server failed");
   free (a);
   return c;
 }
@@ -401,7 +403,7 @@ main (int ac, char *ag[])
       server.put (s);
     }
 #ifdef HAVE_EIBNETIPSERVER
-  serv = startServer (l3, &t, arg.eibnetname);
+  serv = startServer (l3, &t, arg.eibnetname, arg.addr);
 #endif
 #ifdef HAVE_GROUPCACHE
   if (!CreateGroupCache (l3, &t, arg.groupcache))
