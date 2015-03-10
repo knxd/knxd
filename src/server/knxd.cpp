@@ -278,7 +278,7 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
 
 #ifdef HAVE_EIBNETIPSERVER
 EIBnetServer *
-startServer (Layer3 * l3, Trace * t, const char *name)
+startServer (Layer3 * l3, Trace * t, const char *name, eibaddr_t addr)
 {
   EIBnetServer *c;
   char *ip;
@@ -301,7 +301,7 @@ startServer (Layer3 * l3, Trace * t, const char *name)
   else
     port = 3671;
 
-  c = new EIBnetServer (a, port, arg.tunnel, arg.route, arg.discover, l3, t, name == 0 ? "knxd" : name);
+  c = new EIBnetServer (a, port, arg.tunnel, arg.route, arg.discover, l3, t, name == 0 ? "knxd" : name, addr);
   if (!c->init ())
     die ("initialization of the EIBnet/IP server failed");
   free (a);
@@ -403,7 +403,7 @@ main (int ac, char *ag[])
       server.put (s);
     }
 #ifdef HAVE_EIBNETIPSERVER
-  serv = startServer (l3, &t, arg.eibnetname);
+  serv = startServer (l3, &t, arg.eibnetname, arg.addr);
 #endif
 #ifdef HAVE_GROUPCACHE
   if (!CreateGroupCache (l3, &t, arg.groupcache))
