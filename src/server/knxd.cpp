@@ -72,9 +72,11 @@ void
 die (const char *msg, ...)
 {
   va_list ap;
+  int err = errno;
+
   va_start (ap, msg);
   vprintf (msg, ap);
-  printf ("\n");
+  printf (": %s\n", strerror(err));
   va_end (ap);
 
   if (arg.pidfile)
