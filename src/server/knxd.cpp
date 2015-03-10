@@ -301,7 +301,7 @@ startServer (Layer3 * l3, Trace * t, const char *name)
 
   c = new EIBnetServer (a, port, arg.tunnel, arg.route, arg.discover, l3, t, name == 0 ? "knxd" : name);
   if (!c->init ())
-    die ("initilization of the EIBnet/IP server failed");
+    die ("initialization of the EIBnet/IP server failed");
   free (a);
   return c;
 }
