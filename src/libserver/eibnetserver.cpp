@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <sys/ioctl.h>
 #include <net/if.h>
+#include <net/if_arp.h>
 #include <unistd.h>
 #include <netinet/in.h>
 #include <string.h>
@@ -317,8 +318,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
           struct ifreq ifr;
           struct ifconf ifc;
           char buf[1024];
-          int success = 0;
-          unsigned char mac_address[6]= {0,0,0,0,0,0};
+          unsigned char mac_address[IFHWADDRLEN]= {0,0,0,0,0,0};
 
           int sock_mac = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
           if (sock_mac != -1)
@@ -333,20 +333,17 @@ EIBnetServer::Run (pth_sem_t * stop1)
                   for (; it != end; ++it)
                     {
                       strcpy(ifr.ifr_name, it->ifr_name);
-                      if (ioctl(sock_mac, SIOCGIFFLAGS, &ifr) == 0)
-                        {
-                          if (! (ifr.ifr_flags & IFF_LOOPBACK)) // don't count loopback
-                            {
-                              if (ioctl(sock_mac, SIOCGIFHWADDR, &ifr) == 0)
-                                {
-                                  success = 1;
-                                  break;
-                                }
-                            }
-                        }
-                    }
-                  if (success)
-		    memcpy(mac_address, ifr.ifr_hwaddr.sa_data, 6);
+                      if (ioctl(sock_mac, SIOCGIFFLAGS, &ifr))
+			continue;
+		      if (ifr.ifr_flags & IFF_LOOPBACK) // don't count loopback
+			continue;
+		      if (ioctl(sock_mac, SIOCGIFHWADDR, &ifr))
+			continue;
+		      if (ifr.ifr_hwaddr.sa_family != ARPHRD_ETHER)
+			continue;
+		      memcpy(mac_address, ifr.ifr_hwaddr.sa_data, sizeof(mac_address));
+		      break;
+		    }
                 }
 	    }
 
@@ -399,7 +396,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      r2.individual_addr = 0;
 	      r2.installid = 0;
 	      r2.multicastaddr = maddr.sin_addr;
-              memcpy(r2.MAC, mac_address, 6);
+              memcpy(r2.MAC, mac_address, sizeof(r2.MAC));
 	      //FIXME: Hostname, indiv. address
               uint16_t namelen = strlen(name ());
               strncpy ((char *) r2.name, name(), namelen>29?29:namelen);
