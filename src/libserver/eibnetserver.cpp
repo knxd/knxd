@@ -21,6 +21,12 @@
 #include "emi.h"
 #include "config.h"
 #include <stdlib.h>
+#include <sys/ioctl.h>
+#include <net/if.h>
+#include <net/if_arp.h>
+#include <unistd.h>
+#include <netinet/in.h>
+#include <string.h>
 
 EIBnetServer::EIBnetServer (const char *multicastaddr, int port, bool Tunnel,
                 bool Route, bool Discover, Layer3 * layer3,
@@ -309,6 +315,43 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	  }
       if (p1)
 	{
+          /* Get MAC Address */
+
+          struct ifreq ifr;
+          struct ifconf ifc;
+          char buf[1024];
+          unsigned char mac_address[IFHWADDRLEN]= {0,0,0,0,0,0};
+
+          int sock_mac = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
+          if (sock_mac != -1)
+	    {
+              ifc.ifc_len = sizeof(buf);
+              ifc.ifc_buf = buf;
+              if (ioctl(sock_mac, SIOCGIFCONF, &ifc) != -1)
+		{
+                  struct ifreq* it = ifc.ifc_req;
+                  const struct ifreq* const end = it + (ifc.ifc_len / sizeof(struct ifreq));
+
+                  for (; it != end; ++it)
+                    {
+                      strcpy(ifr.ifr_name, it->ifr_name);
+                      if (ioctl(sock_mac, SIOCGIFFLAGS, &ifr))
+			continue;
+		      if (ifr.ifr_flags & IFF_LOOPBACK) // don't count loopback
+			continue;
+		      if (ioctl(sock_mac, SIOCGIFHWADDR, &ifr))
+			continue;
+		      if (ifr.ifr_hwaddr.sa_family != ARPHRD_ETHER)
+			continue;
+		      memcpy(mac_address, ifr.ifr_hwaddr.sa_data, sizeof(mac_address));
+		      break;
+		    }
+                }
+	    }
+
+
+          /* End MAC Address */
+
 	  if (p1->service == SEARCH_REQUEST && discover)
 	    {
 	      EIBnet_SearchRequest r1;
@@ -329,8 +372,9 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      r2.serial[4]=5;
 	      r2.serial[5]=6;
 	      //FIXME: Hostname, MAC-addr
-          uint16_t namelen = strlen(name ());
-          strncpy ((char *) r2.name, name (), namelen>29?29:namelen);
+              memcpy(r2.MAC, mac_address, sizeof(r2.MAC));
+	      //FIXME: Hostname, indiv. address
+              strncpy ((char *) r2.name, name (), sizeof(r2.name));
 	      d.version = 1;
 	      d.family = 2; // core
 	      r2.services.add (d);
@@ -361,9 +405,9 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      r2.individual_addr = eibaddr;
 	      r2.installid = 0;
 	      r2.multicastaddr = maddr.sin_addr;
-	      //FIXME: Hostname, indiv. address, MAC-addr
-          uint16_t namelen = strlen(name ());
-          strncpy ((char *) r2.name, name(), namelen>29?29:namelen);
+              memcpy(r2.MAC, mac_address, sizeof(r2.MAC));
+	      //FIXME: Hostname, indiv. address
+              strncpy ((char *) r2.name, name(), sizeof(r2.name));
 	      d.version = 1;
 	      d.family = 2;
 	      if (discover)
