@@ -363,10 +363,9 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      r2.individual_addr = 0;
 	      r2.installid = 0;
 	      r2.multicastaddr = maddr.sin_addr;
-              memcpy(r2.MAC, mac_address, 6);
+              memcpy(r2.MAC, mac_address, sizeof(r2.MAC));
 	      //FIXME: Hostname, indiv. address
-              uint16_t namelen = strlen(name ());
-              strncpy ((char *) r2.name, name (), namelen>29?29:namelen);
+              strncpy ((char *) r2.name, name (), sizeof(r2.name));
 	      d.version = 1;
 	      d.family = 2;
 	      if (discover)
@@ -398,8 +397,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      r2.multicastaddr = maddr.sin_addr;
               memcpy(r2.MAC, mac_address, sizeof(r2.MAC));
 	      //FIXME: Hostname, indiv. address
-              uint16_t namelen = strlen(name ());
-              strncpy ((char *) r2.name, name(), namelen>29?29:namelen);
+              strncpy ((char *) r2.name, name(), sizeof(r2.name));
 	      d.version = 1;
 	      d.family = 2;
 	      if (discover)
