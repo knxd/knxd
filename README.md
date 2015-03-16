@@ -30,3 +30,4 @@ On Debian:
 * Any contribution is *very* welcome
 * Please use Github and create a pull request with your patches
 * Please see SubmittingPatches to correctly Sign-Off your code and add yourself to AUTHORS (`tools/list_AUTHORS > AUTHORS`)
+* Adhere to our [coding conventions](https://github.com/knxd/knxd/wiki/CodingConventions).
