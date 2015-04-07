@@ -12,7 +12,7 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 
 On Debian:
 
-    apt-get install build-essential libtool automake pkg-config cdbs
+    apt-get install build-essential libtool automake pkg-config cdbs debhelper
     wget https://www.auto.tuwien.ac.at/~mkoegler/pth/pthsem_2.0.8.tar.gz
     tar xzf pthsem_2.0.8.tar.gz
     cd pthsem-2.0.8
