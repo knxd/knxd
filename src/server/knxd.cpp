@@ -410,7 +410,7 @@ main (int ac, char *ag[])
   {
       s = new SystemdServer(l3, &t);
       if (!s->init ())
-          die ("initialisation of the knxd unix protocol failed");
+          die ("initialisation of the systemd socket failed");
       server.put (s);
   }
 #endif
