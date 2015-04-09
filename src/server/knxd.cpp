@@ -29,6 +29,7 @@
 #include "layer3.h"
 #include "localserver.h"
 #include "inetserver.h"
+#include "systemdserver.h"
 #include "eibnetserver.h"
 #include "groupcacheclient.h"
 
@@ -402,6 +403,18 @@ main (int ac, char *ag[])
 	die ("initialisation of the knxd unix protocol failed");
       server.put (s);
     }
+
+#ifdef HAVE_SYSTEMD
+  /* use sockets provided by systemd when nothing else is specified */
+  if (!arg.port && !arg.name)
+  {
+      s = new SystemdServer(l3, &t);
+      if (!s->init ())
+          die ("initialisation of the knxd unix protocol failed");
+      server.put (s);
+  }
+#endif
+
 #ifdef HAVE_EIBNETIPSERVER
   serv = startServer (l3, &t, arg.eibnetname, arg.addr);
 #endif
