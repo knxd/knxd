@@ -31,19 +31,19 @@ Server (la3, tr)
   TRACEPRINTF (tr, 8, this, "OpenSystemdSocket");
 
   if( num_fds < 0 ) {
-      fprintf(stderr, "Error: getting fds from systemd.");
+      fprintf(stderr, "Error: getting fds from systemd.\n");
       return;
   }
   else if( num_fds == 0 ) {
-      fprintf(stderr, "Error: no sockets specified");
+      fprintf(stderr, "Error: no sockets specified\n");
       return;
   }
   else if( num_fds > 1 )
-      fprintf(stderr, "Warning: too many sockets specified, only using first.");
+      fprintf(stderr, "Warning: too many sockets specified, only using first.\n");
 
   fd = SD_LISTEN_FDS_START;
   if( sd_is_socket(fd, AF_UNSPEC, SOCK_STREAM, 0) <= 0 ) {
-      fprintf(stderr, "Error: socket not of expected type.");
+      fprintf(stderr, "Error: socket not of expected type.\n");
       fd = -1;
       return;
   }
