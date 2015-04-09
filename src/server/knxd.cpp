@@ -334,9 +334,6 @@ main (int ac, char *ag[])
   if (index < ac - 1)
     die ("unexpected parameter");
 
-  if (arg.port == 0 && arg.name == 0 && arg.serverip == 0)
-    die ("No listen-address given");
-
   signal (SIGPIPE, SIG_IGN);
   pth_init ();
 
