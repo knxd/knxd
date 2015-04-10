@@ -1,6 +1,7 @@
 # systemd.m4 - Macros to check for and enable systemd          -*- Autoconf -*-
 #
 # Copyright (C) 2014 Luis R. Rodriguez <mcgrof@suse.com>
+# Copyright (C) 2015 Marc Joliet <marcec@gmx.de>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
