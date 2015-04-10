@@ -39,6 +39,7 @@ AC_DEFUN([AX_ALLOW_SYSTEMD_OPTS], [
 
 AC_DEFUN([AX_CHECK_SYSTEMD_LIBS], [
 	AC_CHECK_HEADER([systemd/sd-daemon.h], [
+	    AC_CHECK_LIB([systemd-daemon], [sd_listen_fds], [libsystemd="y"])
 	    AC_CHECK_LIB([systemd], [sd_listen_fds], [libsystemd="y"])
 	])
 	AS_IF([test "x$libsystemd" = x], [
