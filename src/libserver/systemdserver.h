@@ -22,7 +22,7 @@
 
 #include "server.h"
 
-/** implements a server listening on a unix domain socket */
+/** implements a server listening on a systemd provided file descriptor */
 class SystemdServer:public Server
 {
 public:
