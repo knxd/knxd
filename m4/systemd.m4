@@ -67,12 +67,17 @@ AC_DEFUN([AX_CHECK_SYSTEMD_LIBS], [
 	    dnl files. It would also be best to just extend the upstream
 	    dnl pkg-config  pkg.m4 with an AC_DEFUN() to do this neatly.
 	    dnl SYSTEMD_DIR="`$PKG_CONFIG --define-variable=prefix=$PREFIX --variable=systemdsystemunitdir systemd`"
-	    SYSTEMD_DIR="\$(prefix)/lib/systemd/system/"
-	], [])
 
-	AS_IF([test "x$SYSTEMD_DIR" = x], [
-	    AC_MSG_ERROR([SYSTEMD_DIR is unset])
-	], [])
+        systemdsystemunitdir=$($PKG_CONFIG --variable=systemdsystemunitdir systemd)
+
+        AS_IF([test -z "$systemdsystemunitdir"], [
+            AC_MSG_WARN([Failed to detect systemd unit file path with pkg-config])
+            SYSTEMD_DIR="\$(prefix)/lib/systemd/system/"
+            AC_SUBST([systemdsystemunitdir], [$SYSTEMD_DIR])
+        ], [])
+    ], [
+        AC_SUBST([systemdsystemunitdir], [$SYSTEMD_DIR])
+	])
 
 	dnl There is no variable for this yet for some reason
 	AS_IF([test "x$SYSTEMD_MODULES_LOAD" = x], [
