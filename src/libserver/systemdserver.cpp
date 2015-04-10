@@ -42,7 +42,7 @@ Server (la3, tr)
       fprintf(stderr, "Warning: too many sockets specified, only using first.\n");
 
   fd = SD_LISTEN_FDS_START;
-  if( sd_is_socket(fd, AF_UNSPEC, SOCK_STREAM, 0) <= 0 ) {
+  if( sd_is_socket(fd, AF_UNSPEC, SOCK_STREAM, 1) <= 0 ) {
       fprintf(stderr, "Error: socket not of expected type.\n");
       fd = -1;
       return;
