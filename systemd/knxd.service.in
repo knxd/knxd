@@ -1,0 +1,13 @@
+[Unit]
+Description=KNX Daemon
+After=network.target
+
+[Service]
+EnvironmentFile=@prefix@/etc/knxd.conf
+ExecStart=@exec_prefix@/bin/knxd $EIBD_OPTS $EIBD_URL
+User=knxd
+Group=knxd
+
+[Install]
+WantedBy=multi-user.target
+Also=knxd.socket
