@@ -17,37 +17,15 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include <sys/socket.h>
 #include <unistd.h>
-#include <stdio.h>
-#include <systemd/sd-daemon.h>
 #include "systemdserver.h"
 
-SystemdServer::SystemdServer (Layer3 * la3, Trace * tr):
+SystemdServer::SystemdServer (Layer3 * la3, Trace * tr, int systemd_fd):
 Server (la3, tr)
 {
-  const int num_fds = sd_listen_fds(0);
-
   TRACEPRINTF (tr, 8, this, "OpenSystemdSocket");
 
-  if( num_fds < 0 ) {
-      fprintf(stderr, "Error: getting fds from systemd.\n");
-      return;
-  }
-  else if( num_fds == 0 ) {
-      fprintf(stderr, "Error: no sockets specified\n");
-      return;
-  }
-  else if( num_fds > 1 )
-      fprintf(stderr, "Warning: too many sockets specified, only using first.\n");
-
-  fd = SD_LISTEN_FDS_START;
-  if( sd_is_socket(fd, AF_UNSPEC, SOCK_STREAM, 1) <= 0 ) {
-      fprintf(stderr, "Error: socket not of expected type.\n");
-      fd = -1;
-      return;
-  }
-
+  fd = systemd_fd;
   if (listen (fd, 10) == -1)
     {
       close (fd);

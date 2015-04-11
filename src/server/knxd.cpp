@@ -29,9 +29,13 @@
 #include "layer3.h"
 #include "localserver.h"
 #include "inetserver.h"
-#include "systemdserver.h"
 #include "eibnetserver.h"
 #include "groupcacheclient.h"
+
+#ifdef HAVE_SYSTEMD
+#include <systemd/sd-daemon.h>
+#include "systemdserver.h"
+#endif
 
 #define OPT_BACK_TUNNEL_NOQUEUE 1
 #define OPT_BACK_TPUARTS_ACKGROUP 2
@@ -410,10 +414,23 @@ main (int ac, char *ag[])
   /* use sockets provided by systemd when nothing else is specified */
   if (!arg.port && !arg.name)
   {
-      s = new SystemdServer(l3, &t);
+    const int num_fds = sd_listen_fds(0);
+
+    if( num_fds < 0 )
+      die("Error getting fds from systemd.");
+    else if( num_fds == 0 )
+      die("Received zero fds from systemd");
+
+    for( int fd = SD_LISTEN_FDS_START; fd < SD_LISTEN_FDS_START+num_fds; ++fd )
+    {
+      if( sd_is_socket(fd, AF_UNSPEC, SOCK_STREAM, 1) <= 0 )
+        die("Error: socket not of expected type.");
+
+      s = new SystemdServer(l3, &t, fd);
       if (!s->init ())
-          die ("initialisation of the systemd socket failed");
+        die ("initialisation of the systemd socket failed");
       server.put (s);
+    }
   }
 #endif
 
