@@ -26,6 +26,10 @@ AC_DEFUN([AX_SYSTEMD_OPTIONS], [
 	AC_ARG_WITH(systemd, [  --with-systemd-modules-load          set directory for systemd modules load files],
 		SYSTEMD_MODULES_LOAD="$withval", SYSTEMD_MODULES_LOAD="")
 	AC_SUBST(SYSTEMD_MODULES_LOAD)
+
+	AC_ARG_WITH(systemd, [  --with-systemd-sysusers          set directory for systemd sysusers.d load files],
+		SYSTEMD_SYSUSERS_DIR="$withval", SYSTEMD_SYSUSERS_DIR="")
+	AC_SUBST(SYSTEMD_SYSUSERS_DIR)
 ])
 
 AC_DEFUN([AX_ENABLE_SYSTEMD_OPTS], [
@@ -87,6 +91,18 @@ AC_DEFUN([AX_CHECK_SYSTEMD_LIBS], [
 	AS_IF([test "x$SYSTEMD_MODULES_LOAD" = x], [
 	    AC_MSG_ERROR([SYSTEMD_MODULES_LOAD is unset])
 	], [])
+
+	AS_IF([test "x$SYSTEMD_SYSUSERS_DIR" = x], [
+        systemdsysusersdir=$($PKG_CONFIG --variable=sysusersdir systemd)
+
+        AS_IF([test -z "$systemdsysusersdir"], [
+            AC_MSG_WARN([Failed to detect systemd sysusers.d path with pkg-config])
+            SYSTEMD_SYSUSERS_DIR="\$(prefix)/lib/sysusers.d/"
+            AC_SUBST([systemdsysusersdir], [$SYSTEMD_SYSUSERS_DIR])
+        ], [])
+    ], [
+        AC_SUBST([systemdsysusersdir], [$SYSTEMD_SYSUSERS_DIR])
+	])
 ])
 
 AC_DEFUN([AX_CHECK_SYSTEMD], [
