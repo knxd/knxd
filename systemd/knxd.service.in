@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 EnvironmentFile=@prefix@/etc/knxd.conf
-ExecStart=@exec_prefix@/bin/knxd $EIBD_OPTS $EIBD_URL
+ExecStart=@exec_prefix@/bin/knxd $KNXD_OPTS $KNXD_URL
 # uncomment the next two lines if you want to start knxd as a regular user
 # User=knxd
 # Group=knxd
