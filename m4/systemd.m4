@@ -98,7 +98,7 @@ AC_DEFUN([AX_CHECK_SYSTEMD], [
 			AX_CHECK_SYSTEMD_LIBS()
 	    ],[systemd=n])
 	],[systemd=n])
-	AM_CONDITIONAL(HAVE_SYSTEMD, [test "x$enable_systemd" != "xno"])
+	AM_CONDITIONAL(HAVE_SYSTEMD, [test "x$systemd" == "xy"])
 ])
 
 AC_DEFUN([AX_CHECK_SYSTEMD_ENABLE_AVAILABLE], [
