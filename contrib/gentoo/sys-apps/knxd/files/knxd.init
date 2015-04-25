@@ -11,6 +11,7 @@ start_stop_daemon_args="-u ${KNXD_USER}"
 description="Daemon for accessing the EIB/KNX bus"
 
 depend() {
+	need localmount
 	need net
 	provide knxd
 }
