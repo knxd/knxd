@@ -450,17 +450,21 @@ Layer3::Run (pth_sem_t * stop1)
 	  if (l1->AddrType == GroupAddress && l1->dest != 0)
 	    {
 	      for (i = 0; i < group (); i++)
-		if (group[i].dest == l1->dest || group[i].dest == 0)
-		  group[i].cb->Send_L_Data (new L_Data_PDU (*l1));
+                {
+                  Group_Info &grp = group[i];
+		  if (grp.dest == l1->dest || grp.dest == 0)
+		    grp.cb->Send_L_Data (new L_Data_PDU (*l1));
+                }
 	    }
 	  if (l1->AddrType == IndividualAddress)
 	    {
 	      for (i = 0; i < individual (); i++)
-		if (individual[i].dest == l1->dest
-		    || individual[i].dest == 0)
-		  if (individual[i].src == l1->source
-		      || individual[i].src == 0)
-		    individual[i].cb->Send_L_Data (new L_Data_PDU (*l1));
+                {
+                  Individual_Info &indiv = individual[i];
+		  if (indiv.dest == l1->dest || indiv.dest == 0)
+		    if (indiv.src == l1->source || indiv.src == 0)
+		      indiv.cb->Send_L_Data (new L_Data_PDU (*l1));
+	        }
 	    }
 
           // finally, send to all (other(?)) L2 interfaces
