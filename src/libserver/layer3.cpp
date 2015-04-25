@@ -341,7 +341,8 @@ Layer3::Run (pth_sem_t * stop1)
 	  if (l1->AddrType == IndividualAddress)
 	    {
 	      for (i = 0; i < individual (); i++)
-		if (individual[i].dest == l1->dest)
+		if (individual[i].dest == l1->dest
+		    || individual[i].dest == 0)
 		  if (individual[i].src == l1->source
 		      || individual[i].src == 0)
 		    individual[i].cb->Get_L_Data (new L_Data_PDU (*l1));
