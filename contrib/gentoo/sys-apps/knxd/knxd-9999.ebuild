@@ -3,6 +3,7 @@
 # $Header: $
 # Author: Michael Kefeder (m.kefeder@gmail.com)
 # Author: Patrik Pfaffenbauer (patrik.pfaffenbauer@p3.co.at)
+# Author: Marc Joliet (marcec@gmx.de)
 
 EAPI="5"
 
