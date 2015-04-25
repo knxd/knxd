@@ -64,7 +64,7 @@ L_Data_ToCEMI (uchar code, const L_Data_PDU & l1)
 }
 
 L_Data_PDU *
-CEMI_to_L_Data (const CArray & data)
+CEMI_to_L_Data (const CArray & data, Trace * tr)
 {
   L_Data_PDU c;
   if (data () < 2)

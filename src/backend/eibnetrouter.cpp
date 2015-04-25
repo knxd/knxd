@@ -165,7 +165,7 @@ EIBNetIPRouter::Run (pth_sem_t * stop1)
 	    }
 	  const CArray data = p->data;
 	  delete p;
-	  L_Data_PDU *c = CEMI_to_L_Data (data);
+	  L_Data_PDU *c = CEMI_to_L_Data (data, t);
 	  if (c)
 	    {
 	      TRACEPRINTF (t, 2, this, "Recv %s", c->Decode (t)());

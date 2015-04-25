@@ -405,7 +405,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 			       treq.CEMI[0]);
 		  break;
 		}
-	      c = CEMI_to_L_Data (treq.CEMI);
+	      c = CEMI_to_L_Data (treq.CEMI, t);
 	      if (c)
 		{
 

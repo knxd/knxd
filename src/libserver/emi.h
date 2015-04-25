@@ -25,7 +25,7 @@
 /** convert L_Data_PDU to CEMI frame */
 CArray L_Data_ToCEMI (uchar code, const L_Data_PDU & p);
 /** create L_Data_PDU out of a CEMI frame */
-L_Data_PDU *CEMI_to_L_Data (const CArray & data);
+L_Data_PDU *CEMI_to_L_Data (const CArray & data, Trace * tr);
 
 L_Busmonitor_PDU *CEMI_to_Busmonitor (const CArray & data);
 CArray Busmonitor_to_CEMI (uchar code, const L_Busmonitor_PDU & p, int no);

@@ -281,7 +281,7 @@ CEMILayer2Interface::Run (pth_sem_t * stop1)
       }
       if (c->len () && (*c)[0] == 0x29 && mode == 2) /* 29h = L_Data.ind */
 	{
-	  L_Data_PDU *p = CEMI_to_L_Data (*c);
+	  L_Data_PDU *p = CEMI_to_L_Data (*c, t);
 	  if (p)
 	    {
 	      delete c;

@@ -428,7 +428,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      if (p1->data () < 2 || p1->data[0] != 0x29)
 		goto out;
 	      const CArray data = p1->data;
-	      L_Data_PDU *c = CEMI_to_L_Data (data);
+	      L_Data_PDU *c = CEMI_to_L_Data (data, t);
 	      if (c)
 		{
 		  TRACEPRINTF (t, 8, this, "Recv_Route %s", c->Decode (t)());
@@ -578,7 +578,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      r2.seqno = r1.seqno;
 	      if (state[i].type == 0)
 		{
-		  L_Data_PDU *c = CEMI_to_L_Data (r1.CEMI);
+		  L_Data_PDU *c = CEMI_to_L_Data (r1.CEMI, t);
 		  if (c)
 		    {
 		      r2.status = 0;
