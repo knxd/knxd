@@ -5,3 +5,4 @@
 # ip: usb: bcu1: ipt: tpuarts:
 KNXD_OPTS="-i usb:"
 KNXD_USER="nobody:usb"
+KNXD_LOGFILE="/var/log/eibd.log"

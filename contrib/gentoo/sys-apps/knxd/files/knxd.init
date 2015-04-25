@@ -6,7 +6,7 @@
 
 pidfile="/run/knxd/knxd-@SLOT@.pid"
 command="/usr/bin/knxd"
-command_args="${KNXD_OPTS} --pid-file=${pidfile}"
+command_args="${KNXD_OPTS} --pid-file=${pidfile} -d${KNXD_LOGFILE}"
 start_stop_daemon_args="-u ${KNXD_USER}"
 description="Daemon for accessing the EIB/KNX bus"
 
@@ -17,4 +17,5 @@ depend() {
 
 start_pre() {
 	checkpath --directory --owner ${KNXD_USER} --mode 0774 ${pidfile%/*}
+	checkpath --file --owner ${KNXD_USER} --mode 0664 ${KNXD_LOGFILE}
 }
