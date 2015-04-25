@@ -119,7 +119,7 @@ bool EIBNetIPTunnel::init ()
 void
 EIBNetIPTunnel::Send_L_Data (LPDU * l)
 {
-  TRACEPRINTF (t, 2, this, "Send %s", l->Decode ()());
+  TRACEPRINTF (t, 2, this, "Send %s", l->Decode (t)());
   if (l->getType () != L_Data)
     {
       delete l;
@@ -155,7 +155,7 @@ EIBNetIPTunnel::Get_L_Data (pth_event_t stop)
       pth_sem_dec (&outsignal);
       LPDU *c = outqueue.get ();
       if (c)
-	TRACEPRINTF (t, 2, this, "Recv %s", c->Decode ()());
+	TRACEPRINTF (t, 2, this, "Recv %s", c->Decode (t)());
       return c;
     }
   else
@@ -409,7 +409,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 	      if (c)
 		{
 
-		  TRACEPRINTF (t, 1, this, "Recv %s", c->Decode ()());
+		  TRACEPRINTF (t, 1, this, "Recv %s", c->Decode (t)());
 		  if (mode == 0)
 		    {
 		      if (vmode)

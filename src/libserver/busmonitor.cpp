@@ -150,7 +150,7 @@ int
 A_Text_Busmonitor::sendResponse (L_Busmonitor_PDU * p, pth_event_t stop)
 {
   CArray buf;
-  String s = p->Decode ();
+  String s = p->Decode (t);
   buf.resize (2 + strlen (s ()) + 1);
   EIBSETTYPE (buf, EIB_BUSMONITOR_PACKET);
   buf.setpart ((const uchar *) s (), 2, strlen (s ()));

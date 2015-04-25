@@ -160,7 +160,7 @@ bool TPUARTLayer2Driver::Send_Queue_Empty ()
 void
 TPUARTLayer2Driver::Send_L_Data (LPDU * l)
 {
-  TRACEPRINTF (t, 2, this, "Send %s", l->Decode ()());
+  TRACEPRINTF (t, 2, this, "Send %s", l->Decode (t)());
   inqueue.put (l);
   pth_sem_inc (&in_signal, 1);
 }
@@ -180,7 +180,7 @@ TPUARTLayer2Driver::Get_L_Data (pth_event_t stop)
     {
       pth_sem_dec (&out_signal);
       LPDU *l = outqueue.get ();
-      TRACEPRINTF (t, 2, this, "Recv %s", l->Decode ()());
+      TRACEPRINTF (t, 2, this, "Recv %s", l->Decode (t)());
       return l;
     }
   else
@@ -212,7 +212,7 @@ TPUARTLayer2Driver::Run (pth_sem_t * stop1)
 	      pth_sem_inc (&out_signal, 1);
 	    }
 	  if (mode == 0)
-	    l1 = LPDU::fromPacket (CArray (m.data, m.length));
+	    l1 = LPDU::fromPacket (CArray (m.data, m.length), t);
 	  else
 	    {
 	      l1 = new L_Busmonitor_PDU;

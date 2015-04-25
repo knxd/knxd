@@ -22,7 +22,7 @@
 #include "tpdu.h"
 
 LPDU *
-LPDU::fromPacket (const CArray & c)
+LPDU::fromPacket (const CArray & c, Trace * t)
 {
   LPDU *l = 0;
   if (c () >= 1)
@@ -66,7 +66,7 @@ CArray L_NACK_PDU::ToPacket ()
   return CArray (&c, 1);
 }
 
-String L_NACK_PDU::Decode ()
+String L_NACK_PDU::Decode (Trace * t)
 {
   return "NACK";
 }
@@ -92,7 +92,7 @@ CArray L_ACK_PDU::ToPacket ()
   return CArray (&c, 1);
 }
 
-String L_ACK_PDU::Decode ()
+String L_ACK_PDU::Decode (Trace * t)
 {
   return "ACK";
 }
@@ -118,7 +118,7 @@ CArray L_BUSY_PDU::ToPacket ()
   return CArray (&c, 1);
 }
 
-String L_BUSY_PDU::Decode ()
+String L_BUSY_PDU::Decode (Trace * t)
 {
   return "BUSY";
 }
@@ -143,7 +143,7 @@ L_Unknown_PDU::ToPacket ()
 }
 
 String
-L_Unknown_PDU::Decode ()
+L_Unknown_PDU::Decode (Trace * t)
 {
   String s ("Unknown LPDU: ");
   unsigned i;
@@ -179,7 +179,7 @@ L_Busmonitor_PDU::ToPacket ()
 }
 
 String
-L_Busmonitor_PDU::Decode ()
+L_Busmonitor_PDU::Decode (Trace * t)
 {
   String s ("LPDU: ");
   unsigned i;
@@ -190,8 +190,8 @@ L_Busmonitor_PDU::Decode ()
   for (i = 0; i < pdu (); i++)
     addHex (s, pdu[i]);
   s += ":";
-  LPDU *l = LPDU::fromPacket (pdu);
-  s += l->Decode ();
+  LPDU *l = LPDU::fromPacket (pdu, t);
+  s += l->Decode (t);
   delete l;
   return s;
 }
@@ -349,7 +349,7 @@ CArray L_Data_PDU::ToPacket ()
   return pdu;
 }
 
-String L_Data_PDU::Decode ()
+String L_Data_PDU::Decode (Trace * t)
 {
   assert (data () >= 1);
   assert (data () <= 0xff);
@@ -386,8 +386,8 @@ String L_Data_PDU::Decode ()
   s += " hops: ";
   addHex (s, hopcount);
   TPDU *
-    d = TPDU::fromPacket (data);
-  s += d->Decode ();
+    d = TPDU::fromPacket (data, t);
+  s += d->Decode (t);
   delete
     d;
   return s;

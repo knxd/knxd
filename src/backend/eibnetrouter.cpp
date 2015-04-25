@@ -91,7 +91,7 @@ EIBNetIPRouter::init ()
 void
 EIBNetIPRouter::Send_L_Data (LPDU * l)
 {
-  TRACEPRINTF (t, 2, this, "Send %s", l->Decode ()());
+  TRACEPRINTF (t, 2, this, "Send %s", l->Decode (t)());
   if (l->getType () != L_Data)
     {
       delete l;
@@ -128,7 +128,7 @@ EIBNetIPRouter::Get_L_Data (pth_event_t stop)
     {
       pth_sem_dec (&out_signal);
       LPDU *l = outqueue.get ();
-      TRACEPRINTF (t, 2, this, "Recv %s", l->Decode ()());
+      TRACEPRINTF (t, 2, this, "Recv %s", l->Decode (t)());
       return l;
     }
   else
@@ -160,7 +160,7 @@ EIBNetIPRouter::Run (pth_sem_t * stop1)
 	  L_Data_PDU *c = CEMI_to_L_Data (data);
 	  if (c)
 	    {
-	      TRACEPRINTF (t, 2, this, "Recv %s", c->Decode ()());
+	      TRACEPRINTF (t, 2, this, "Recv %s", c->Decode (t)());
 	      if (mode == 0)
 		{
 		  if (vmode)

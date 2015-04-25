@@ -38,7 +38,7 @@ public:
     /** send IndividualAddress_Write */
   void A_IndividualAddress_Write (eibaddr_t addr);
   /** sends A_IndividualAddress_Read and collects responses */
-    Array < eibaddr_t > A_IndividualAddress_Read (unsigned timeout = 3);
+    Array < eibaddr_t > A_IndividualAddress_Read (Trace * t, unsigned timeout = 3);
 };
 
 /** Layer 7 Individual Connection */

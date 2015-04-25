@@ -103,7 +103,7 @@ GroupCache::Get_L_Data (L_Data_PDU * l)
   GroupCacheEntry *c;
   if (enable)
     {
-      TPDU *t = TPDU::fromPacket (l->data);
+      TPDU *t = TPDU::fromPacket (l->data, this->t);
       if (t->getType () == T_DATA_XXX_REQ)
 	{
 	  T_DATA_XXX_REQ_PDU *t1 = (T_DATA_XXX_REQ_PDU *) t;

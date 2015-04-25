@@ -50,7 +50,7 @@ Layer3::~Layer3 ()
 void
 Layer3::send_L_Data (L_Data_PDU * l)
 {
-  TRACEPRINTF (t, 3, this, "Send %s", l->Decode ()());
+  TRACEPRINTF (t, 3, this, "Send %s", l->Decode (t)());
   if (l->source == 0)
     l->source = layer2->getDefaultAddr ();
   layer2->Send_L_Data (l);
@@ -290,7 +290,7 @@ Layer3::Run (pth_sem_t * stop1)
 	  L_Busmonitor_PDU *l1, *l2;
 	  l1 = (L_Busmonitor_PDU *) l;
 
-	  TRACEPRINTF (t, 3, this, "Recv %s", l1->Decode ()());
+	  TRACEPRINTF (t, 3, this, "Recv %s", l1->Decode (t)());
 	  for (i = 0; i < busmonitor (); i++)
 	    {
 	      l2 = new L_Busmonitor_PDU (*l1);
@@ -325,7 +325,7 @@ Layer3::Run (pth_sem_t * stop1)
 	  if (l1->AddrType == IndividualAddress
 	      && l1->dest == layer2->getDefaultAddr ())
 	    l1->dest = 0;
-	  TRACEPRINTF (t, 3, this, "Recv %s", l1->Decode ()());
+	  TRACEPRINTF (t, 3, this, "Recv %s", l1->Decode (t)());
 
 	  if (l1->AddrType == GroupAddress && l1->dest == 0)
 	    {
