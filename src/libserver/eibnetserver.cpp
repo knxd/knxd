@@ -606,7 +606,10 @@ EIBnetServer::Run (pth_sem_t * stop1)
 		    r2.status = 0x29;
 		}
 	      else
-		r2.status = 0x29;
+		{
+	          TRACEPRINTF (t, 8, this, "Type not zero (%d)", state[i].type);
+		  r2.status = 0x29;
+		}
 	      state[i].rno++;
 	      if (state[i].rno > 0xff)
 		state[i].rno = 0;

@@ -408,7 +408,6 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 	      c = CEMI_to_L_Data (treq.CEMI, t);
 	      if (c)
 		{
-
 		  TRACEPRINTF (t, 1, this, "Recv %s", c->Decode (t)());
 		  if (mode == 0)
 		    {

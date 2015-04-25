@@ -68,12 +68,21 @@ CEMI_to_L_Data (const CArray & data, Trace * tr)
 {
   L_Data_PDU c;
   if (data () < 2)
-    return 0;
+    {
+      TRACEPRINTF (tr, 7, NULL, "packet too short (%d)", data ());
+      return 0;
+    }
   unsigned start = data[1] + 2;
   if (data () < 7 + start)
-    return 0;
+    {
+      TRACEPRINTF (tr, 7, NULL, "start too large (%d/%d)", data (),start);
+      return 0;
+    }
   if (data () < 7 + start + data[6 + start] + 1)
-    return 0;
+    {
+      TRACEPRINTF (tr, 7, NULL, "packet too short (%d/%d)", data (), 7 + start + data[6 + start] + 1);
+      return 0;
+    }
   c.source = (data[start + 2] << 8) | (data[start + 3]);
   c.dest = (data[start + 4] << 8) | (data[start + 5]);
   c.data.set (data.array () + start + 7, data[6 + start] + 1);
@@ -99,7 +108,10 @@ CEMI_to_L_Data (const CArray & data, Trace * tr)
   c.hopcount = (data[start + 1] >> 4) & 0x07;
   c.AddrType = (data[start + 1] & 0x80) ? GroupAddress : IndividualAddress;
   if (!data[start] & 0x80 && data[start + 1] & 0x0f)
-    return 0;
+    {
+      TRACEPRINTF (tr, 7, NULL, "Length? invalid (%02x%02x)", data[start],data[start+1]);
+      return 0;
+    }
   return new L_Data_PDU (c);
 }
 
