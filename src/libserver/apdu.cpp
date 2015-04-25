@@ -1269,7 +1269,10 @@ A_DeviceDescriptor_Response_PDU::A_DeviceDescriptor_Response_PDU ()
 bool A_DeviceDescriptor_Response_PDU::init (const CArray & c, Trace * tr)
 {
   if (c () != 4)
-    return false;
+    {
+      TRACEPRINTF (tr, 3, this, "BadLen %d",c ());
+      return false;
+    }
   type = c[1] & 0x3F;
   descriptor = (c[2] << 8) | c[3];
   return true;
