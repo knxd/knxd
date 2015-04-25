@@ -469,7 +469,10 @@ A_IndividualAddress_Response_PDU::A_IndividualAddress_Response_PDU ()
 bool A_IndividualAddress_Response_PDU::init (const CArray & c, Trace * tr)
 {
   if (c () != 2)
-    return false;
+    {
+      TRACEPRINTF (tr, 3, this, "BadLen %d",c ());
+      return false;
+    }
   return true;
 }
 

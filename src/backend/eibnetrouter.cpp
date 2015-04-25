@@ -152,6 +152,14 @@ EIBNetIPRouter::Run (pth_sem_t * stop1)
 	    }
 	  if (p->data () < 2 || p->data[0] != 0x29)
 	    {
+              if (p->data () < 2)
+                {
+	          TRACEPRINTF (t, 2, this, "No payload (%d)", p->data ());
+                }
+              else
+                {
+	          TRACEPRINTF (t, 2, this, "Payload not L_Data.ind (%02x)", p->data[0]);
+                }
 	      delete p;
 	      continue;
 	    }
