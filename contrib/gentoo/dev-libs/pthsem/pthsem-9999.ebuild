@@ -1,3 +1,7 @@
+# Copyright 1999-2015 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+# $Header: $
+
 EAPI=2
 
 inherit autotools git-2 eutils flag-o-matic
@@ -16,18 +20,16 @@ DEPEND=""
 RDEPEND=""
 
 src_configure() {
-    cd "${S}"
-    ( use arm || use sh ) && append-flags -U_FORTIFY_SOURCE
-    eautoreconf
-    econf || die "econf failed"
+	( use arm || use sh ) && append-flags -U_FORTIFY_SOURCE
+	eautoreconf
+	econf || die "econf failed"
 }
 
 src_compile() {
-    cd "${S}"
-    emake || die "make failed"
+	emake || die "make failed"
 }
 
 src_install() {
-    emake DESTDIR="${D}" install || die "install failed"
-    dodoc ANNOUNCE AUTHORS ChangeLog NEWS README THANKS USERS
+	emake DESTDIR="${D}" install || die "install failed"
+	dodoc ANNOUNCE AUTHORS ChangeLog NEWS README THANKS USERS
 }
