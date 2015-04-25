@@ -50,9 +50,6 @@ src_install() {
     einfo "Installing init-script and config"
 
     sed -e "s|@SLOT@|${SLOT}|g" \
-               "${FILESDIR}/${PN}.confd" | newconfd - ${PN}-${SLOT}
-
-    sed -e "s|@SLOT@|${SLOT}|g" \
                "${FILESDIR}/${PN}.init" | newinitd - ${PN}-${SLOT}
 
 }
