@@ -7,7 +7,7 @@ EGIT_REPO_URI="http://www.auto.tuwien.ac.at/~mkoegler/git/pthsem.git"
 DESCRIPTION="extended version of GNU pth (user mode multi threading library)"
 HOMEPAGE="http://www.auto.tuwien.ac.at/~mkoegler/index.php/pth"
 
-LICENSE="LGPL"
+LICENSE="LGPL-2.1"
 SLOT="0"
 KEYWORDS=""
 IUSE=""
