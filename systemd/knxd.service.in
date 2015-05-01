@@ -5,9 +5,8 @@ After=network.target
 [Service]
 EnvironmentFile=@prefix@/etc/knxd.conf
 ExecStart=@exec_prefix@/bin/knxd $KNXD_OPTS $KNXD_URL
-# uncomment the next two lines if you want to start knxd as a regular user
-# User=knxd
-# Group=knxd
+User=knxd
+Group=knxd
 
 [Install]
 WantedBy=multi-user.target
