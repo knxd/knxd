@@ -1,7 +1,10 @@
+*~
+*.swp
 *.la
 *.a
 *.o
 *.lo
+*.deps/
 Makefile.in
 Makefile
 .libs
@@ -20,6 +23,7 @@ Makefile
 /ltmain.sh
 /missing
 /path.h
+/autom4te.cache/
 /m4/libtool.m4
 /m4/ltoptions.m4
 /src/client/c/gen/getapdu.c
