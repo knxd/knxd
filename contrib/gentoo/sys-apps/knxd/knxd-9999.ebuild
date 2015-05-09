@@ -1,5 +1,9 @@
+# Copyright 1999-2015 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+# $Header: $
 # Author: Michael Kefeder (m.kefeder@gmail.com)
 # Author: Patrik Pfaffenbauer (patrik.pfaffenbauer@p3.co.at)
+# Author: Marc Joliet (marcec@gmx.de)
 
 EAPI="5"
 
@@ -18,7 +22,7 @@ DEPEND="dev-libs/pthsem"
 EGIT_REPO_URI="https://github.com/Makki1/knxd.git"
 
 src_prepare() {
-    eautoreconf || die "eautotooling failed"
+	eautoreconf || die "eautotooling failed"
 }
 
 src_configure() {
@@ -45,14 +49,11 @@ src_compile() {
 }
 
 src_install() {
-    emake DESTDIR="${D}" install
+	emake DESTDIR="${D}" install
 
-    einfo "Installing init-script and config"
+	einfo "Installing init-script and config"
 
-    sed -e "s|@SLOT@|${SLOT}|g" \
-               "${FILESDIR}/${PN}.confd" | newconfd - ${PN}-${SLOT}
-
-    sed -e "s|@SLOT@|${SLOT}|g" \
+	sed -e "s|@SLOT@|${SLOT}|g" \
                "${FILESDIR}/${PN}.init" | newinitd - ${PN}-${SLOT}
 
 }
