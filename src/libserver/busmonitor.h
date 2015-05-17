@@ -56,7 +56,7 @@ public:
   A_Busmonitor (ClientConnection * c, Layer3 * l3, Trace * tr, bool virt =
                 false, bool ts = false);
   virtual ~A_Busmonitor ();
-  void Get_L_Busmonitor (L_Busmonitor_PDU * l);
+  void Send_L_Busmonitor (L_Busmonitor_PDU * l);
 
   /** start processing */
   void Do (pth_event_t stop);

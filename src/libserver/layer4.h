@@ -78,7 +78,7 @@ public:
   virtual ~T_Broadcast ();
   bool init ();
 
-  void Get_L_Data (L_Data_PDU * l);
+  void Send_L_Data (L_Data_PDU * l);
 
   /** receives APDU of a broadcast; aborts with NULL if stop occurs */
   BroadcastComm *Get (pth_event_t stop);
@@ -104,7 +104,7 @@ public:
   virtual ~GroupSocket ();
   bool init ();
 
-  void Get_L_Data (L_Data_PDU * l);
+  void Send_L_Data (L_Data_PDU * l);
 
   /** receives APDU of a broadcast; aborts with NULL if stop occurs */
   GroupAPDU *Get (pth_event_t stop);
@@ -132,7 +132,7 @@ public:
   virtual ~T_Group ();
   bool init ();
 
-  void Get_L_Data (L_Data_PDU * l);
+  void Send_L_Data (L_Data_PDU * l);
 
   /** receives APDU of a group telegram; aborts with NULL if stop occurs */
   GroupComm *Get (pth_event_t stop);
@@ -160,7 +160,7 @@ public:
   virtual ~T_TPDU ();
   bool init ();
 
-  void Get_L_Data (L_Data_PDU * l);
+  void Send_L_Data (L_Data_PDU * l);
 
   /** receives TPDU of a telegram; aborts with NULL if stop occurs */
   TpduComm *Get (pth_event_t stop);
@@ -188,7 +188,7 @@ public:
   virtual ~T_Individual ();
   bool init ();
 
-  void Get_L_Data (L_Data_PDU * l);
+  void Send_L_Data (L_Data_PDU * l);
 
   /** receives APDU of a telegram; aborts with NULL if stop occurs */
   CArray *Get (pth_event_t stop);
@@ -240,7 +240,7 @@ public:
   ~T_Connection ();
   bool init ();
 
-  void Get_L_Data (L_Data_PDU * l);
+  void Send_L_Data (L_Data_PDU * l);
 
   /** receives APDU of a telegram; aborts with NULL if stop occurs */
   CArray *Get (pth_event_t stop);

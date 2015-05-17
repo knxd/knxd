@@ -45,7 +45,7 @@ bool T_Broadcast::init ()
 }
 
 void
-T_Broadcast::Get_L_Data (L_Data_PDU * l)
+T_Broadcast::Send_L_Data (L_Data_PDU * l)
 {
   BroadcastComm c;
   TPDU *t = TPDU::fromPacket (l->data, this->t);
@@ -122,7 +122,7 @@ bool T_Group::init ()
 }
 
 void
-T_Group::Get_L_Data (L_Data_PDU * l)
+T_Group::Send_L_Data (L_Data_PDU * l)
 {
   GroupComm c;
   TPDU *t = TPDU::fromPacket (l->data, this->t);
@@ -202,7 +202,7 @@ bool T_TPDU::init ()
 }
 
 void
-T_TPDU::Get_L_Data (L_Data_PDU * l)
+T_TPDU::Send_L_Data (L_Data_PDU * l)
 {
   TpduComm t;
   t.data = l->data;
@@ -275,7 +275,7 @@ bool T_Individual::init ()
 }
 
 void
-T_Individual::Get_L_Data (L_Data_PDU * l)
+T_Individual::Send_L_Data (L_Data_PDU * l)
 {
   CArray c;
   TPDU *t = TPDU::fromPacket (l->data, this->t);
@@ -369,7 +369,7 @@ bool T_Connection::init ()
 }
 
 void
-T_Connection::Get_L_Data (L_Data_PDU * l)
+T_Connection::Send_L_Data (L_Data_PDU * l)
 {
   buf.put (l);
   pth_sem_inc (&bufsem, 0);
@@ -638,7 +638,7 @@ bool GroupSocket::init ()
 }
 
 void
-GroupSocket::Get_L_Data (L_Data_PDU * l)
+GroupSocket::Send_L_Data (L_Data_PDU * l)
 {
   GroupAPDU c;
   TPDU *t = TPDU::fromPacket (l->data, this->t);

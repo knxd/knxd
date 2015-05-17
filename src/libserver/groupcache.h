@@ -57,7 +57,7 @@ public:
   GroupCache (Layer3 * l3, Trace * t);
   virtual ~GroupCache ();
 
-  void Get_L_Data (L_Data_PDU * l);
+  void Send_L_Data (L_Data_PDU * l);
 
   bool Start ();
   void Clear ();

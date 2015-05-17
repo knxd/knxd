@@ -136,7 +136,7 @@ EIBnetServer::init ()
 }
 
 void
-EIBnetServer::Get_L_Busmonitor (L_Busmonitor_PDU * l)
+EIBnetServer::Send_L_Busmonitor (L_Busmonitor_PDU * l)
 {
   for (int i = 0; i < state (); i++)
     {
@@ -150,7 +150,7 @@ EIBnetServer::Get_L_Busmonitor (L_Busmonitor_PDU * l)
 
 
 void
-EIBnetServer::Get_L_Data (L_Data_PDU * l)
+EIBnetServer::Send_L_Data (L_Data_PDU * l)
 {
   if (!l->hopcount)
     {

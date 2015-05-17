@@ -66,8 +66,8 @@ class EIBnetServer:public L_Data_CallBack, public L_Busmonitor_CallBack,
   String name;
 
   void Run (pth_sem_t * stop);
-  void Get_L_Data (L_Data_PDU * l);
-  void Get_L_Busmonitor (L_Busmonitor_PDU * l);
+  void Send_L_Data (L_Data_PDU * l);
+  void Send_L_Busmonitor (L_Busmonitor_PDU * l);
   void addBusmonitor ();
   void delBusmonitor ();
   int addClient (int type, const EIBnet_ConnectRequest & r1);

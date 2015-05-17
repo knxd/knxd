@@ -406,12 +406,12 @@ Layer3::Run (pth_sem_t * stop1)
 	  for (i = 0; i < busmonitor (); i++)
 	    {
 	      l2 = new L_Busmonitor_PDU (*l1);
-	      busmonitor[i].cb->Get_L_Busmonitor (l2);
+	      busmonitor[i].cb->Send_L_Busmonitor (l2);
 	    }
 	  for (i = 0; i < vbusmonitor (); i++)
 	    {
 	      l2 = new L_Busmonitor_PDU (*l1);
-	      vbusmonitor[i].cb->Get_L_Busmonitor (l2);
+	      vbusmonitor[i].cb->Send_L_Busmonitor (l2);
 	    }
 	}
       if (l->getType () == L_Data)
@@ -442,13 +442,13 @@ Layer3::Run (pth_sem_t * stop1)
 	  if (l1->AddrType == GroupAddress && l1->dest == 0)
 	    {
 	      for (i = 0; i < broadcast (); i++)
-		broadcast[i].cb->Get_L_Data (new L_Data_PDU (*l1));
+		broadcast[i].cb->Send_L_Data (new L_Data_PDU (*l1));
 	    }
 	  if (l1->AddrType == GroupAddress && l1->dest != 0)
 	    {
 	      for (i = 0; i < group (); i++)
 		if (group[i].dest == l1->dest || group[i].dest == 0)
-		  group[i].cb->Get_L_Data (new L_Data_PDU (*l1));
+		  group[i].cb->Send_L_Data (new L_Data_PDU (*l1));
 	    }
 	  if (l1->AddrType == IndividualAddress)
 	    {
@@ -457,7 +457,7 @@ Layer3::Run (pth_sem_t * stop1)
 		    || individual[i].dest == 0)
 		  if (individual[i].src == l1->source
 		      || individual[i].src == 0)
-		    individual[i].cb->Get_L_Data (new L_Data_PDU (*l1));
+		    individual[i].cb->Send_L_Data (new L_Data_PDU (*l1));
 	    }
 	}
       // ignore[] is ordered, any timed-out items are at the front
