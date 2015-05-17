@@ -390,7 +390,11 @@ Layer3::Run (pth_sem_t * stop1)
       pth_event_isolate (bufev);
 
       if (pth_event_status (bufev) != PTH_STATUS_OCCURRED)
-        continue;
+        {
+          pth_event_free (bufev, PTH_FREE_THIS);
+          continue;
+        }
+      pth_event_free (bufev, PTH_FREE_THIS);
 
       pth_sem_dec (&bufsem);
       LPDU *l = buf.get ();
