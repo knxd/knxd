@@ -167,7 +167,7 @@ CEMILayer2Interface::Send_Queue_Empty ()
 void
 CEMILayer2Interface::Send_L_Data (LPDU * l)
 {
-  TRACEPRINTF (t, 2, this, "Send (CEMILayer2Interface) Send_L_Data %s", l->Decode (t)());
+  TRACEPRINTF (t, 2, this, "Send (CEMILayer2Interface) Send_L_Data %s", l->Decode ()());
   if (l->getType () != L_Data)
     {
       delete l;
@@ -193,7 +193,7 @@ CEMILayer2Interface::Send_L_Data (LPDU * l)
 void
 CEMILayer2Interface::Send (LPDU * l)
 {
-  TRACEPRINTF (t, 1, this, "(CEMILayer2Interface) Send %s", l->Decode (t)());
+  TRACEPRINTF (t, 1, this, "(CEMILayer2Interface) Send %s", l->Decode ()());
   L_Data_PDU *l1 = (L_Data_PDU *) l;
 
   CArray pdu = L_Data_ToCEMI (0x11, *l1);
@@ -224,7 +224,7 @@ CEMILayer2Interface::Get_L_Data (pth_event_t stop)
     {
       pth_sem_dec (&out_signal);
       LPDU *l = outqueue.get ();
-      TRACEPRINTF (t, 2, this, "Recv (CEMILayer2Interface) Get_L_Data %s", l->Decode (t)());
+      TRACEPRINTF (t, 2, this, "Recv (CEMILayer2Interface) Get_L_Data %s", l->Decode ()());
       return l;
     }
   else
@@ -289,7 +289,7 @@ CEMILayer2Interface::Run (pth_sem_t * stop1)
 	      delete c;
 	      if (p->AddrType == IndividualAddress)
 		p->dest = 0;
-	      TRACEPRINTF (t, 2, this, "Recv %s", p->Decode (t)());
+	      TRACEPRINTF (t, 2, this, "Recv %s", p->Decode ()());
 	      if (vmode)
 		{
 		  L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU;
@@ -310,7 +310,7 @@ CEMILayer2Interface::Run (pth_sem_t * stop1)
 	  p->timestamp = ((*c)[2] << 24) | ((*c)[3] << 16);
 	  p->pdu.set (c->array () + 4, c->len () - 4);
 	  delete c;
-	  TRACEPRINTF (t, 2, this, "Recv %s", p->Decode (t)());
+	  TRACEPRINTF (t, 2, this, "Recv %s", p->Decode ()());
 	  outqueue.put (p);
 	  pth_sem_inc (&out_signal, 1);
 	  continue;

@@ -22,6 +22,7 @@
 #include <termios.h>
 #include "lowlatency.h"
 #include "layer2.h"
+#include "lpdu.h"
 
 /** TPUART user mode driver */
 class TPUARTSerialLayer2Driver:public Layer2Interface, private Thread
@@ -32,8 +33,6 @@ class TPUARTSerialLayer2Driver:public Layer2Interface, private Thread
   struct termios old;
   /** file descriptor */
   int fd;
-  /** debug output */
-  Trace *t;
   /** default EIB address */
   eibaddr_t addr;
   /** state */

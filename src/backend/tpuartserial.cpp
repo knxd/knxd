@@ -229,7 +229,7 @@ TPUARTSerialLayer2Driver::Send_Queue_Empty ()
 void
 TPUARTSerialLayer2Driver::Send_L_Data (LPDU * l)
 {
-  TRACEPRINTF (t, 2, this, "Send %s", l->Decode (t)());
+  TRACEPRINTF (t, 2, this, "Send %s", l->Decode ()());
   inqueue.put (l);
   pth_sem_inc (&in_signal, 1);
 }
@@ -249,7 +249,7 @@ TPUARTSerialLayer2Driver::Get_L_Data (pth_event_t stop)
     {
       pth_sem_dec (&out_signal);
       LPDU *l = outqueue.get ();
-      TRACEPRINTF (t, 2, this, "Recv %s", l->Decode (t)());
+      TRACEPRINTF (t, 2, this, "Recv %s", l->Decode ()());
       return l;
     }
   else
@@ -307,7 +307,7 @@ TPUARTSerialLayer2Driver::RecvLPDU (const uchar * data, int len)
     }
   if (!mode)
     {
-      LPDU *l = LPDU::fromPacket (CArray (data, len), t);
+      LPDU *l = LPDU::fromPacket (CArray (data, len), this);
       if (l->getType () == L_Data && ((L_Data_PDU *) l)->valid_checksum)
 	{
 	  outqueue.put (l);

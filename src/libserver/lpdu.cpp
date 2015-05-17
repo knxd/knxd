@@ -20,28 +20,33 @@
 #include <stdio.h>
 #include "lpdu.h"
 #include "tpdu.h"
+#include "layer2.h"
 
 LPDU *
-LPDU::fromPacket (const CArray & c, Trace * t)
+LPDU::fromPacket (const CArray & c, Layer2Interface *layer2)
 {
   LPDU *l = 0;
   if (c () >= 1)
     {
       if (c[0] == 0xCC)
 	l = new L_ACK_PDU ();
-      if (c[0] == 0xC0)
+      else if (c[0] == 0xC0)
 	l = new L_BUSY_PDU ();
-      if (c[0] == 0x0C)
+      else if (c[0] == 0x0C)
 	l = new L_NACK_PDU ();
-      if ((c[0] & 0x53) == 0x10)
+      else if ((c[0] & 0x53) == 0x10)
 	l = new L_Data_PDU ();
     }
   if (l && l->init (c))
-    return l;
+    {
+      l->l2 = layer2;
+      return l;
+    }
   if (l)
     delete l;
   l = new L_Unknown_PDU ();
   l->init (c);
+  l->l2 = layer2;
   return l;
 }
 
@@ -66,7 +71,7 @@ CArray L_NACK_PDU::ToPacket ()
   return CArray (&c, 1);
 }
 
-String L_NACK_PDU::Decode (Trace * t)
+String L_NACK_PDU::Decode ()
 {
   return "NACK";
 }
@@ -92,7 +97,7 @@ CArray L_ACK_PDU::ToPacket ()
   return CArray (&c, 1);
 }
 
-String L_ACK_PDU::Decode (Trace * t)
+String L_ACK_PDU::Decode ()
 {
   return "ACK";
 }
@@ -118,7 +123,7 @@ CArray L_BUSY_PDU::ToPacket ()
   return CArray (&c, 1);
 }
 
-String L_BUSY_PDU::Decode (Trace * t)
+String L_BUSY_PDU::Decode ()
 {
   return "BUSY";
 }
@@ -143,7 +148,7 @@ L_Unknown_PDU::ToPacket ()
 }
 
 String
-L_Unknown_PDU::Decode (Trace * t)
+L_Unknown_PDU::Decode ()
 {
   String s ("Unknown LPDU: ");
   unsigned i;
@@ -179,7 +184,7 @@ L_Busmonitor_PDU::ToPacket ()
 }
 
 String
-L_Busmonitor_PDU::Decode (Trace * t)
+L_Busmonitor_PDU::Decode ()
 {
   String s ("LPDU: ");
   unsigned i;
@@ -190,8 +195,8 @@ L_Busmonitor_PDU::Decode (Trace * t)
   for (i = 0; i < pdu (); i++)
     addHex (s, pdu[i]);
   s += ":";
-  LPDU *l = LPDU::fromPacket (pdu, t);
-  s += l->Decode (t);
+  LPDU *l = LPDU::fromPacket (pdu, l2);
+  s += l->Decode ();
   delete l;
   return s;
 }
@@ -349,7 +354,7 @@ CArray L_Data_PDU::ToPacket ()
   return pdu;
 }
 
-String L_Data_PDU::Decode (Trace * t)
+String L_Data_PDU::Decode ()
 {
   assert (data () >= 1);
   assert (data () <= 0xff);
@@ -386,8 +391,8 @@ String L_Data_PDU::Decode (Trace * t)
   s += " hops: ";
   addHex (s, hopcount);
   TPDU *
-    d = TPDU::fromPacket (data, t);
-  s += d->Decode (t);
+    d = TPDU::fromPacket (data, l2->t);
+  s += d->Decode (l2->t);
   delete
     d;
   return s;

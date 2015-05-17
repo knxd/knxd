@@ -166,7 +166,7 @@ EIBnetServer::Get_L_Data (L_Data_PDU * l)
   l->hopcount--;
   if (route)
     {
-      TRACEPRINTF (t, 8, this, "Send_Route %s", l->Decode (t)());
+      TRACEPRINTF (t, 8, this, "Send_Route %s", l->Decode ()());
       sock->sendaddr = maddr;
       EIBNetIPPacket p;
       p.service = ROUTING_INDICATION;
@@ -431,7 +431,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      L_Data_PDU *c = CEMI_to_L_Data (data, t);
 	      if (c)
 		{
-		  TRACEPRINTF (t, 8, this, "Recv_Route %s", c->Decode (t)());
+		  TRACEPRINTF (t, 8, this, "Recv_Route %s", c->Decode ()());
 		  if (c->hopcount)
 		    {
 		      c->hopcount--;

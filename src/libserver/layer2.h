@@ -28,6 +28,9 @@ class LPDU;
 class Layer2Interface
 {
 public:
+  /** debug output */
+  Trace *t;
+
   virtual ~ Layer2Interface ()
   {
   }

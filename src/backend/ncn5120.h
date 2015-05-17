@@ -32,8 +32,6 @@ class NCN5120SerialLayer2Driver : public Layer2Interface, private Thread
   struct termios old;
   /** file descriptor */
   int fd;
-  /** debug output */
-  Trace *t;
   /** default EIB address */
   eibaddr_t addr;
   /** state */

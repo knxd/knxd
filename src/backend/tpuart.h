@@ -27,8 +27,6 @@ class TPUARTLayer2Driver:public Layer2Interface, private Thread
 {
   /** file descriptor */
   int fd;
-  /** debug output */
-  Trace *t;
   /** default address */
   eibaddr_t addr;
   /** kernel API version 2.4/2.6*/
