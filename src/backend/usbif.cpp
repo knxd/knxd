@@ -289,9 +289,10 @@ USBLowLevelDriver::Get_Packet (pth_event_t stop)
   if (stop != NULL)
     pth_event_concat (getwait, stop, NULL);
 
+  pth_event (PTH_EVENT_SEM|PTH_MODE_REUSE, getwait, &out_signal);
   pth_wait (getwait);
 
-  if (stop)
+  if (stop != NULL)
     pth_event_isolate (getwait);
 
   if (pth_event_status (getwait) == PTH_STATUS_OCCURRED)
