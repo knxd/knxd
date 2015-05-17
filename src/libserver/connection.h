@@ -33,10 +33,10 @@ class A_Broadcast:private Thread
 
   void Run (pth_sem_t * stop);
 public:
-    A_Broadcast (Layer3 * l3, Trace * tr, ClientConnection * cc);
-   ~A_Broadcast ();
+  A_Broadcast (Layer3 * l3, Trace * tr, ClientConnection * cc);
+  ~A_Broadcast ();
 
-   /** start processing */
+  /** start processing */
   void Do (pth_event_t stop);
 };
 
@@ -50,10 +50,10 @@ class A_Group:private Thread
 
   void Run (pth_sem_t * stop);
 public:
-    A_Group (Layer3 * l3, Trace * tr, ClientConnection * cc);
-   ~A_Group ();
+  A_Group (Layer3 * l3, Trace * tr, ClientConnection * cc);
+  ~A_Group ();
 
-   /** start processing */
+  /** start processing */
   void Do (pth_event_t stop);
 };
 
@@ -67,10 +67,10 @@ class A_TPDU:private Thread
 
   void Run (pth_sem_t * stop);
 public:
-    A_TPDU (Layer3 * l3, Trace * tr, ClientConnection * cc);
-   ~A_TPDU ();
+  A_TPDU (Layer3 * l3, Trace * tr, ClientConnection * cc);
+  ~A_TPDU ();
 
-   /** start processing */
+  /** start processing */
   void Do (pth_event_t stop);
 };
 
@@ -84,10 +84,10 @@ class A_Individual:private Thread
 
   void Run (pth_sem_t * stop);
 public:
-    A_Individual (Layer3 * l3, Trace * tr, ClientConnection * cc);
-   ~A_Individual ();
+  A_Individual (Layer3 * l3, Trace * tr, ClientConnection * cc);
+  ~A_Individual ();
 
-   /** start processing */
+  /** start processing */
   void Do (pth_event_t stop);
 };
 
@@ -101,10 +101,10 @@ class A_Connection:private Thread
 
   void Run (pth_sem_t * stop);
 public:
-    A_Connection (Layer3 * l3, Trace * tr, ClientConnection * cc);
-   ~A_Connection ();
+  A_Connection (Layer3 * l3, Trace * tr, ClientConnection * cc);
+  ~A_Connection ();
 
-   /** start processing */
+  /** start processing */
   void Do (pth_event_t stop);
 };
 
@@ -118,10 +118,10 @@ class A_GroupSocket:private Thread
 
   void Run (pth_sem_t * stop);
 public:
-    A_GroupSocket (Layer3 * l3, Trace * tr, ClientConnection * cc);
-   ~A_GroupSocket ();
+  A_GroupSocket (Layer3 * l3, Trace * tr, ClientConnection * cc);
+  ~A_GroupSocket ();
 
-   /** start processing */
+  /** start processing */
   void Do (pth_event_t stop);
 };
 

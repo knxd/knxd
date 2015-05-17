@@ -29,7 +29,7 @@ public:
   typedef enum
   { vEMI1, vEMI2, vCEMI, vRaw } EMIVer;
 
-    virtual ~ LowLevelDriverInterface ()
+  virtual ~LowLevelDriverInterface ()
   {
   }
   virtual bool init () = 0;

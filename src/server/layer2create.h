@@ -18,7 +18,7 @@
 */
 
 #ifdef HAVE_FT12
-L2_NAME (FT12)
+  L2_NAME (FT12)
 #endif
 #ifdef HAVE_PEI16
   L2_NAME (PEI16)

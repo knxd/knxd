@@ -35,8 +35,8 @@ class EIBNetIPTunnel:public Layer2Interface, private Thread
   pth_sem_t insignal;
   pth_sem_t outsignal;
   pth_event_t getwait;
-    Queue < CArray > inqueue;
-    Queue < LPDU * >outqueue;
+  Queue < CArray > inqueue;
+  Queue < LPDU * >outqueue;
   int mode;
   int vmode;
   int dataport;
@@ -47,9 +47,9 @@ class EIBNetIPTunnel:public Layer2Interface, private Thread
 
   void Run (pth_sem_t * stop);
 public:
-    EIBNetIPTunnel (const char *dest, int port, int sport, const char *srcip,
-		    int dataport, int flags, Trace * tr);
-    virtual ~ EIBNetIPTunnel ();
+  EIBNetIPTunnel (const char *dest, int port, int sport, const char *srcip,
+                  int dataport, int flags, Trace * tr);
+  virtual ~EIBNetIPTunnel ();
   bool init ();
 
   void Send_L_Data (LPDU * l);

@@ -392,7 +392,7 @@ main (int ac, char *ag[])
     {
       s = new InetServer (l3, &t, arg.port);
       if (!s->init ())
-    die ("initialisation of the knxd inet protocol failed");
+        die ("initialisation of the knxd inet protocol failed");
       server.put (s);
     }
   if (arg.name)

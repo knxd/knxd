@@ -347,12 +347,13 @@ NCN5120SerialLayer2Driver::Run (pth_sem_t * stop1)
 	}
       while (in () > 0)
 	{
-	  if(rmn) {
-	  	TRACEPRINTF (t, 0, this, "Remove next");
-	  	in.deletepart(0, 1);
-		rmn = false;
-		continue;
-	  }
+	  if(rmn)
+	    {
+	      TRACEPRINTF (t, 0, this, "Remove next");
+	      in.deletepart(0, 1);
+	      rmn = false;
+	      continue;
+	    }
 	  rmn = false;
 	  if (in[0] == 0x8B)
 	    {

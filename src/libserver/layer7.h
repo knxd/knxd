@@ -31,14 +31,14 @@ class Layer7_Broadcast
   T_Broadcast *l4;
 
 public:
-    Layer7_Broadcast (Layer3 * l3, Trace * tr);
-    virtual ~ Layer7_Broadcast ();
+  Layer7_Broadcast (Layer3 * l3, Trace * tr);
+  virtual ~Layer7_Broadcast ();
   bool init ();
 
-    /** send IndividualAddress_Write */
+  /** send IndividualAddress_Write */
   void A_IndividualAddress_Write (eibaddr_t addr);
   /** sends A_IndividualAddress_Read and collects responses */
-    Array < eibaddr_t > A_IndividualAddress_Read (Trace * t, unsigned timeout = 3);
+  Array < eibaddr_t > A_IndividualAddress_Read (Trace * t, unsigned timeout = 3);
 };
 
 /** Layer 7 Individual Connection */
@@ -52,11 +52,11 @@ class Layer7_Connection
   /** sends APDU and waits for respone; return NULL, if it fails */
   APDU *Request_Response (APDU * r);
 public:
-    Layer7_Connection (Layer3 * l3, Trace * tr, eibaddr_t dest);
-    virtual ~ Layer7_Connection ();
+  Layer7_Connection (Layer3 * l3, Trace * tr, eibaddr_t dest);
+  virtual ~Layer7_Connection ();
   bool init ();
 
-    /** send A_Restart */
+  /** send A_Restart */
   void A_Restart ();
   /** read a property */
   int A_Property_Read (uchar obj, uchar propertyid, uint16_t start,
@@ -106,8 +106,8 @@ class Layer7_Individual
   /** sends APDU and waits for respone; return NULL, if it fails */
   APDU *Request_Response (APDU * r);
 public:
-    Layer7_Individual (Layer3 * l3, Trace * tr, eibaddr_t dest);
-    virtual ~ Layer7_Individual ();
+  Layer7_Individual (Layer3 * l3, Trace * tr, eibaddr_t dest);
+  virtual ~Layer7_Individual ();
   bool init ();
 
   /** read a property */

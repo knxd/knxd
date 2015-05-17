@@ -45,26 +45,26 @@ class NCN5120SerialLayer2Driver : public Layer2Interface, private Thread
   /** semaphore for outqueue */
   pth_sem_t out_signal;
   /** input queue */
-    Queue < LPDU * >inqueue;
-    /** output queue */
-    Queue < LPDU * >outqueue;
-    /** event to wait for outqueue */
+  Queue < LPDU * >inqueue;
+  /** output queue */
+  Queue < LPDU * >outqueue;
+  /** event to wait for outqueue */
   pth_event_t getwait;
   /** my individual addresses */
-    Array < eibaddr_t > indaddr;
-    /** my group addresses */
-    Array < eibaddr_t > groupaddr;
+  Array < eibaddr_t > indaddr;
+  /** my group addresses */
+  Array < eibaddr_t > groupaddr;
   bool ackallgroup;
   bool ackallindividual;
   bool dischreset;
 
-    /** process a recevied frame */
+  /** process a recevied frame */
   void RecvLPDU (const uchar * data, int len);
   void Run (pth_sem_t * stop);
 public:
-    NCN5120SerialLayer2Driver (const char *dev, eibaddr_t addr, int flags,
-			      Trace * tr);
-   ~NCN5120SerialLayer2Driver ();
+  NCN5120SerialLayer2Driver (const char *dev, eibaddr_t addr, int flags,
+                             Trace * tr);
+  ~NCN5120SerialLayer2Driver ();
   bool init ();
 
   void Send_L_Data (LPDU * l);

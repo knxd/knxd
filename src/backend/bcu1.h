@@ -34,10 +34,10 @@ class BCU1DriverLowLevelDriver:public LowLevelDriverInterface, private Thread
   /** semaphore for outqueue */
   pth_sem_t out_signal;
   /** input queue */
-    Queue < CArray > inqueue;
-    /** output queue */
-    Queue < CArray * >outqueue;
-    /** event to wait for outqueue */
+  Queue < CArray > inqueue;
+  /** output queue */
+  Queue < CArray * >outqueue;
+  /** event to wait for outqueue */
   pth_event_t getwait;
   /** semaphore to signal empty sendqueue */
   pth_sem_t send_empty;
@@ -46,8 +46,8 @@ class BCU1DriverLowLevelDriver:public LowLevelDriverInterface, private Thread
 
   void Run (pth_sem_t * stop);
 public:
-    BCU1DriverLowLevelDriver (const char *device, Trace * tr);
-   ~BCU1DriverLowLevelDriver ();
+  BCU1DriverLowLevelDriver (const char *device, Trace * tr);
+  ~BCU1DriverLowLevelDriver ();
   bool init ();
 
   void Send_Packet (CArray l);

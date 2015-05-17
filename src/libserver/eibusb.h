@@ -30,9 +30,9 @@ class USBConverterInterface:public LowLevelDriverInterface
   LowLevelDriverInterface *i;
   EMIVer v;
 public:
-    USBConverterInterface (LowLevelDriverInterface * iface, Trace * tr,
-			   EMIVer ver);
-    virtual ~ USBConverterInterface ();
+  USBConverterInterface (LowLevelDriverInterface * iface, Trace * tr,
+                          EMIVer ver);
+  virtual ~USBConverterInterface ();
   bool init ();
 
   void Send_Packet (CArray l);
@@ -57,7 +57,7 @@ class USBLayer2Interface:public Layer2Interface
 
 public:
   USBLayer2Interface (LowLevelDriverInterface * i, Trace * tr, int flags);
-   ~USBLayer2Interface ();
+  ~USBLayer2Interface ();
   bool init ();
 
   void Send_L_Data (LPDU * l);

@@ -51,7 +51,7 @@ public:
   {
     object = 0;
   }
-  virtual ~ LPDU ()
+  virtual ~LPDU ()
   {
   }
 
@@ -107,7 +107,7 @@ public:
   /** payload of Layer 4 */
   CArray data;
 
-    L_Data_PDU ();
+  L_Data_PDU ();
 
   bool init (const CArray & c);
   CArray ToPacket ();
@@ -128,7 +128,7 @@ public:
   uint8_t status;
   uint32_t timestamp;
 
-    L_Busmonitor_PDU ();
+  L_Busmonitor_PDU ();
 
   bool init (const CArray & c);
   CArray ToPacket ();

@@ -61,7 +61,7 @@ public:
   }
 
   /** destructor */
-  virtual ~ Queue ()
+  virtual ~Queue ()
   {
     while (akt)
       get ();

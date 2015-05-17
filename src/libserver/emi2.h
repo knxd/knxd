@@ -41,10 +41,10 @@ class EMI2Layer2Interface:public Layer2Interface, private Thread
   /** semaphore for inqueue */
   pth_sem_t in_signal;
   /** output queue */
-    Queue < LPDU * >outqueue;
+  Queue < LPDU * >outqueue;
   /** input queue */
-    Queue < LPDU * >inqueue;
-    /** event for outqueue*/
+  Queue < LPDU * >inqueue;
+  /** event for outqueue*/
   pth_event_t getwait;
   bool noqueue;
   int sendmode;
@@ -52,8 +52,8 @@ class EMI2Layer2Interface:public Layer2Interface, private Thread
   void Send (LPDU * l);
   void Run (pth_sem_t * stop);
 public:
-    EMI2Layer2Interface (LowLevelDriverInterface * i, Trace * tr, int flags);
-   ~EMI2Layer2Interface ();
+  EMI2Layer2Interface (LowLevelDriverInterface * i, Trace * tr, int flags);
+  ~EMI2Layer2Interface ();
   bool init ();
 
   void Send_L_Data (LPDU * l);

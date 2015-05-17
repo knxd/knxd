@@ -35,7 +35,7 @@ class USBLoop:public Thread
   void Run (pth_sem_t * stop);
 
 public:
-    USBLoop (libusb_context * context, Trace * tr);
+  USBLoop (libusb_context * context, Trace * tr);
 
 };
 

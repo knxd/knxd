@@ -46,10 +46,10 @@ class FT12LowLevelDriver:public LowLevelDriverInterface, private Thread
   /** semaphore for outqueue */
   pth_sem_t out_signal;
   /** input queue */
-    Queue < CArray > inqueue;
-    /** output queue */
-    Queue < CArray * >outqueue;
-    /** frame in receiving */
+  Queue < CArray > inqueue;
+  /** output queue */
+  Queue < CArray * >outqueue;
+  /** frame in receiving */
   CArray akt;
   /** repeatcount of the transmitting frame */
   int repeatcount;
@@ -62,8 +62,8 @@ class FT12LowLevelDriver:public LowLevelDriverInterface, private Thread
 
   void Run (pth_sem_t * stop);
 public:
-    FT12LowLevelDriver (const char *device, Trace * tr);
-   ~FT12LowLevelDriver ();
+  FT12LowLevelDriver (const char *device, Trace * tr);
+  ~FT12LowLevelDriver ();
   bool init ();
 
   void Send_Packet (CArray l);

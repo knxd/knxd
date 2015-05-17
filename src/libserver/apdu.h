@@ -72,7 +72,7 @@ APDU_type;
 class APDU
 {
 public:
-  virtual ~ APDU ()
+  virtual ~APDU ()
   {
   };
 
@@ -105,6 +105,7 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_GroupValue_Read_PDU:public APDU
 {
 public:
@@ -119,13 +120,14 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_GroupValue_Response_PDU:public APDU
 {
 public:
   bool issmall;
   CArray data;
 
-    A_GroupValue_Response_PDU ();
+  A_GroupValue_Response_PDU ();
   bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
   String Decode (Trace * t);
@@ -135,13 +137,14 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_GroupValue_Write_PDU:public APDU
 {
 public:
   bool issmall;
   CArray data;
 
-    A_GroupValue_Write_PDU ();
+  A_GroupValue_Write_PDU ();
   bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
   String Decode (Trace * t);
@@ -151,6 +154,7 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_IndividualAddress_Read_PDU:public APDU
 {
 public:
@@ -165,6 +169,7 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_IndividualAddress_Response_PDU:public APDU
 {
 public:
@@ -179,6 +184,7 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_IndividualAddress_Write_PDU:public APDU
 {
 public:
@@ -194,6 +200,7 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_IndividualAddressSerialNumber_Read_PDU:public APDU
 {
 public:
@@ -209,13 +216,14 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_IndividualAddressSerialNumber_Response_PDU:public APDU
 {
 public:
   serialnumber_t serno;
   domainaddr_t addr;
 
-    A_IndividualAddressSerialNumber_Response_PDU ();
+  A_IndividualAddressSerialNumber_Response_PDU ();
   bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
   String Decode (Trace * t);
@@ -225,13 +233,14 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_IndividualAddressSerialNumber_Write_PDU:public APDU
 {
 public:
   serialnumber_t serno;
   eibaddr_t addr;
 
-    A_IndividualAddressSerialNumber_Write_PDU ();
+  A_IndividualAddressSerialNumber_Write_PDU ();
   bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
   String Decode (Trace * t);
@@ -241,6 +250,7 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_ServiceInformation_Indication_Write_PDU:public APDU
 {
 public:
@@ -248,7 +258,7 @@ public:
   bool duplicate_address;
   bool appl_stopped;
 
-    A_ServiceInformation_Indication_Write_PDU ();
+  A_ServiceInformation_Indication_Write_PDU ();
   bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
   String Decode (Trace * t);
@@ -258,6 +268,7 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_DomainAddress_Write_PDU:public APDU
 {
 public:
@@ -273,6 +284,7 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_DomainAddress_Read_PDU:public APDU
 {
 public:
@@ -287,6 +299,7 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_DomainAddress_Response_PDU:public APDU
 {
 public:
@@ -302,6 +315,7 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_DomainAddressSelective_Read_PDU:public APDU
 {
 public:
@@ -319,6 +333,7 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_PropertyValue_Read_PDU:public APDU
 {
 public:
@@ -327,7 +342,7 @@ public:
   uchar count;
   uint16_t start;
 
-    A_PropertyValue_Read_PDU ();
+  A_PropertyValue_Read_PDU ();
   bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
   String Decode (Trace * t);
@@ -337,6 +352,7 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_PropertyValue_Response_PDU:public APDU
 {
 public:
@@ -346,7 +362,7 @@ public:
   uint16_t start;
   CArray data;
 
-    A_PropertyValue_Response_PDU ();
+  A_PropertyValue_Response_PDU ();
   bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
   String Decode (Trace * t);
@@ -356,6 +372,7 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_PropertyValue_Write_PDU:public APDU
 {
 public:
@@ -365,7 +382,7 @@ public:
   uint16_t start;
   CArray data;
 
-    A_PropertyValue_Write_PDU ();
+  A_PropertyValue_Write_PDU ();
   bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
   String Decode (Trace * t);
@@ -375,6 +392,7 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_PropertyDescription_Read_PDU:public APDU
 {
 public:
@@ -382,7 +400,7 @@ public:
   propertyid_t prop;
   uchar property_index;
 
-    A_PropertyDescription_Read_PDU ();
+  A_PropertyDescription_Read_PDU ();
   bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
   String Decode (Trace * t);
@@ -392,6 +410,7 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_PropertyDescription_Response_PDU:public APDU
 {
 public:
@@ -402,7 +421,7 @@ public:
   uint16_t count;
   uchar access;
 
-    A_PropertyDescription_Response_PDU ();
+  A_PropertyDescription_Response_PDU ();
   bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
   String Decode (Trace * t);
@@ -412,6 +431,7 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_DeviceDescriptor_Read_PDU:public APDU
 {
 public:
@@ -427,13 +447,14 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_DeviceDescriptor_Response_PDU:public APDU
 {
 public:
   uchar type;
   uint16_t descriptor;
 
-    A_DeviceDescriptor_Response_PDU ();
+  A_DeviceDescriptor_Response_PDU ();
   bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
   String Decode (Trace * t);
@@ -443,13 +464,14 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_ADC_Read_PDU:public APDU
 {
 public:
   uchar channel;
   uchar count;
 
-    A_ADC_Read_PDU ();
+  A_ADC_Read_PDU ();
   bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
   String Decode (Trace * t);
@@ -459,6 +481,7 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_ADC_Response_PDU:public APDU
 {
 public:
@@ -466,7 +489,7 @@ public:
   uchar count;
   int16_t val;
 
-    A_ADC_Response_PDU ();
+  A_ADC_Response_PDU ();
   bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
   String Decode (Trace * t);
@@ -476,13 +499,14 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_Memory_Read_PDU:public APDU
 {
 public:
   uchar count;
   memaddr_t addr;
 
-    A_Memory_Read_PDU ();
+  A_Memory_Read_PDU ();
   bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
   String Decode (Trace * t);
@@ -492,6 +516,7 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_Memory_Response_PDU:public APDU
 {
 public:
@@ -499,7 +524,7 @@ public:
   memaddr_t addr;
   CArray data;
 
-    A_Memory_Response_PDU ();
+  A_Memory_Response_PDU ();
   bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
   String Decode (Trace * t);
@@ -509,6 +534,7 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_Memory_Write_PDU:public APDU
 {
 public:
@@ -516,7 +542,7 @@ public:
   memaddr_t addr;
   CArray data;
 
-    A_Memory_Write_PDU ();
+  A_Memory_Write_PDU ();
   bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
   String Decode (Trace * t);
@@ -526,6 +552,7 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_MemoryBit_Write_PDU:public APDU
 {
 public:
@@ -534,7 +561,7 @@ public:
   CArray andmask;
   CArray xormask;
 
-    A_MemoryBit_Write_PDU ();
+  A_MemoryBit_Write_PDU ();
   bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
   String Decode (Trace * t);
@@ -544,6 +571,7 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_UserMemory_Read_PDU:public APDU
 {
 public:
@@ -551,7 +579,7 @@ public:
   uchar count;
   memaddr_t addr;
 
-    A_UserMemory_Read_PDU ();
+  A_UserMemory_Read_PDU ();
   bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
   String Decode (Trace * t);
@@ -561,6 +589,7 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_UserMemory_Response_PDU:public APDU
 {
 public:
@@ -569,7 +598,7 @@ public:
   memaddr_t addr;
   CArray data;
 
-    A_UserMemory_Response_PDU ();
+  A_UserMemory_Response_PDU ();
   bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
   String Decode (Trace * t);
@@ -579,6 +608,7 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_UserMemory_Write_PDU:public APDU
 {
 public:
@@ -587,7 +617,7 @@ public:
   memaddr_t addr;
   CArray data;
 
-    A_UserMemory_Write_PDU ();
+  A_UserMemory_Write_PDU ();
   bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
   String Decode (Trace * t);
@@ -597,6 +627,7 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_UserMemoryBit_Write_PDU:public APDU
 {
 public:
@@ -606,7 +637,7 @@ public:
   CArray andmask;
   CArray xormask;
 
-    A_UserMemoryBit_Write_PDU ();
+  A_UserMemoryBit_Write_PDU ();
   bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
   String Decode (Trace * t);
@@ -616,6 +647,7 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_UserManufacturerInfo_Read_PDU:public APDU
 {
 public:
@@ -630,13 +662,14 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_UserManufacturerInfo_Response_PDU:public APDU
 {
 public:
   uchar manufacturerid;
   uint16_t data;
 
-    A_UserManufacturerInfo_Response_PDU ();
+  A_UserManufacturerInfo_Response_PDU ();
   bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
   String Decode (Trace * t);
@@ -646,6 +679,7 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_Restart_PDU:public APDU
 {
 public:
@@ -660,6 +694,7 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_Authorize_Request_PDU:public APDU
 {
 public:
@@ -675,6 +710,7 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_Authorize_Response_PDU:public APDU
 {
 public:
@@ -690,13 +726,14 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_Key_Write_PDU:public APDU
 {
 public:
   uchar level;
   eibkey_type key;
 
-    A_Key_Write_PDU ();
+  A_Key_Write_PDU ();
   bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
   String Decode (Trace * t);
@@ -706,6 +743,7 @@ public:
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_Key_Response_PDU:public APDU
 {
 public:

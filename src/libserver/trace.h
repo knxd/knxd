@@ -47,7 +47,7 @@ class Trace
   /** error levels to print */
   int level;
 public:
-    Trace ()
+  Trace ()
   {
     layers = 0;
     level = 0;

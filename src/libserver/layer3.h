@@ -78,60 +78,60 @@ class Layer3:private Thread
   Trace *t;
   /** working mode (bus monitor/normal operation) */
   int mode;
-    Array < IgnoreInfo > ignore;
+  Array < IgnoreInfo > ignore;
 
-    /** busmonitor callbacks */
-    Array < Busmonitor_Info > busmonitor;
-    /** vbusmonitor callbacks */
-    Array < Busmonitor_Info > vbusmonitor;
-    /** broadcast callbacks */
-    Array < Broadcast_Info > broadcast;
-    /** group callbacks */
-    Array < Group_Info > group;
-    /** individual callbacks */
-    Array < Individual_Info > individual;
+  /** busmonitor callbacks */
+  Array < Busmonitor_Info > busmonitor;
+  /** vbusmonitor callbacks */
+  Array < Busmonitor_Info > vbusmonitor;
+  /** broadcast callbacks */
+  Array < Broadcast_Info > broadcast;
+  /** group callbacks */
+  Array < Group_Info > group;
+  /** individual callbacks */
+  Array < Individual_Info > individual;
 
   void Run (pth_sem_t * stop);
 public:
-    Layer3 (Layer2Interface * l2, Trace * tr);
-    virtual ~ Layer3 ();
+  Layer3 (Layer2Interface * l2, Trace * tr);
+  virtual ~Layer3 ();
 
-    /** register a busmonitor callback, return true, if successful*/
+  /** register a busmonitor callback, return true, if successful*/
   bool registerBusmonitor (L_Busmonitor_CallBack * c);
-    /** register a vbusmonitor callback, return true, if successful*/
+  /** register a vbusmonitor callback, return true, if successful*/
   bool registerVBusmonitor (L_Busmonitor_CallBack * c);
-    /** register a broadcast callback, return true, if successful*/
+  /** register a broadcast callback, return true, if successful*/
   bool registerBroadcastCallBack (L_Data_CallBack * c);
-    /** register a group callback, return true, if successful
-     * @param c callback
-     * @param addr group address (0 means all)
-     */
+  /** register a group callback, return true, if successful
+   * @param c callback
+   * @param addr group address (0 means all)
+   */
   bool registerGroupCallBack (L_Data_CallBack * c, eibaddr_t addr);
-    /** register a individual callback, return true, if successful
-     * @param c callback
-     * @param src source individual address (0 means all)
-     * @param dest destination individual address (0 means default address)
-     * @param lock Locktype of the connection
-     */
+  /** register a individual callback, return true, if successful
+   * @param c callback
+   * @param src source individual address (0 means all)
+   * @param dest destination individual address (0 means default address)
+   * @param lock Locktype of the connection
+   */
   bool registerIndividualCallBack (L_Data_CallBack * c, Individual_Lock lock,
 				   eibaddr_t src, eibaddr_t dest = 0);
 
-    /** deregister a busmonitor callback, return true, if successful*/
+  /** deregister a busmonitor callback, return true, if successful*/
   bool deregisterBusmonitor (L_Busmonitor_CallBack * c);
-    /** deregister a vbusmonitor callback, return true, if successful*/
+  /** deregister a vbusmonitor callback, return true, if successful*/
   bool deregisterVBusmonitor (L_Busmonitor_CallBack * c);
-    /** register a broadcast callback, return true, if successful*/
+  /** register a broadcast callback, return true, if successful*/
   bool deregisterBroadcastCallBack (L_Data_CallBack * c);
-    /** deregister a group callback, return true, if successful
-     * @param c callback
-     * @param addr group address (0 means all)
-     */
+  /** deregister a group callback, return true, if successful
+   * @param c callback
+   * @param addr group address (0 means all)
+   */
   bool deregisterGroupCallBack (L_Data_CallBack * c, eibaddr_t addr);
-    /** register a individual callback, return true, if successful
-     * @param c callback
-     * @param src source individual address (0 means all)
-     * @param dest destination individual address (0 means default address)
-     */
+  /** register a individual callback, return true, if successful
+   * @param c callback
+   * @param src source individual address (0 means all)
+   * @param dest destination individual address (0 means default address)
+   */
   bool deregisterIndividualCallBack (L_Data_CallBack * c, eibaddr_t src,
 				     eibaddr_t dest = 0);
   /** sends a L_Data frame asynchronouse */

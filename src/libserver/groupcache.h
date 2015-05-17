@@ -43,7 +43,7 @@ class GroupCache:public L_Data_CallBack
   /** debug output */
   Trace *t;
   /** output queue */
-    Array < GroupCacheEntry * >cache;
+  Array < GroupCacheEntry * >cache;
   bool enable;
   pth_mutex_t mutex;
   pth_cond_t cond;
@@ -54,8 +54,8 @@ class GroupCache:public L_Data_CallBack
   void add (GroupCacheEntry * entry);
 
 public:
-    GroupCache (Layer3 * l3, Trace * t);
-    virtual ~ GroupCache ();
+  GroupCache (Layer3 * l3, Trace * t);
+  virtual ~GroupCache ();
 
   void Get_L_Data (L_Data_PDU * l);
 
@@ -64,8 +64,8 @@ public:
   void Stop ();
 
   GroupCacheEntry Read (eibaddr_t addr, unsigned timeout, uint16_t age);
-    Array < eibaddr_t > LastUpdates (uint16_t start, uint8_t timeout,
-				     uint16_t & end, pth_event_t stop);
+  Array < eibaddr_t > LastUpdates (uint16_t start, uint8_t timeout,
+                                   uint16_t & end, pth_event_t stop);
   void remove (eibaddr_t addr);
 };
 

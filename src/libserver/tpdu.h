@@ -46,7 +46,7 @@ TPDU_Type;
 class TPDU
 {
 public:
-  virtual ~ TPDU ()
+  virtual ~TPDU ()
   {
   }
 
@@ -75,6 +75,7 @@ public:
     return T_UNKNOWN;
   }
 };
+
 class T_DATA_XXX_REQ_PDU:public TPDU
 {
 public:
@@ -89,13 +90,14 @@ public:
     return T_DATA_XXX_REQ;
   }
 };
+
 class T_DATA_CONNECTED_REQ_PDU:public TPDU
 {
 public:
   uchar serno;
   CArray data;
 
-    T_DATA_CONNECTED_REQ_PDU ();
+  T_DATA_CONNECTED_REQ_PDU ();
   bool init (const CArray & c, Trace * t);
   CArray ToPacket ();
   String Decode (Trace * t);
@@ -104,6 +106,7 @@ public:
     return T_DATA_CONNECTED_REQ;
   }
 };
+
 class T_CONNECT_REQ_PDU:public TPDU
 {
 public:
@@ -117,6 +120,7 @@ public:
     return T_CONNECT_REQ;
   }
 };
+
 class T_DISCONNECT_REQ_PDU:public TPDU
 {
 public:
@@ -130,6 +134,7 @@ public:
     return T_DISCONNECT_REQ;
   }
 };
+
 class T_ACK_PDU:public TPDU
 {
 public:
@@ -144,6 +149,7 @@ public:
     return T_ACK;
   }
 };
+
 class T_NACK_PDU:public TPDU
 {
 public:
