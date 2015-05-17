@@ -29,7 +29,7 @@ typedef enum
   L_Unknown,
   /** L_Data */
   L_Data,
-  /** L_Data incomplete */
+  /** L_Data incomplete. Note that nothing handles this. */
   L_Data_Part,
   /** ACK */
   L_ACK,
