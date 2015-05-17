@@ -32,13 +32,16 @@ void Layer2Runner::Run(pth_sem_t * stop1)
   pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
   unsigned i;
 
+  TRACEPRINTF (l2->t, 3, this, "L2r running: 08X", l2);
   while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
     {
       LPDU *l = l2->Get_L_Data (stop);
       if (!l)
 	continue;
+      TRACEPRINTF (l2->t, 3, this, "L2r got data from %08X: %s", l2, l->Decode ()());
       l3->recv_L_Data(l);
     }
+  TRACEPRINTF (l2->t, 3, this, "L2r stopped: 08X", l2);
 }
 
 Layer3::Layer3 (Layer2Interface * l2, eibaddr_t addr, Trace * tr)
@@ -379,6 +382,7 @@ Layer3::Run (pth_sem_t * stop1)
   for (i = 0; i < layer2 (); i++)
     layer2[i].Start ();
 
+  TRACEPRINTF (t, 3, this, "L3 started");
   while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
     {
       pth_event_t bufev = pth_event (PTH_EVENT_SEM, &bufsem);
@@ -466,6 +470,7 @@ Layer3::Run (pth_sem_t * stop1)
       delete l;
 
     }
+  TRACEPRINTF (t, 3, this, "L3 stopping");
 
   running = false;
   for (i = 0; i < layer2 (); i++)

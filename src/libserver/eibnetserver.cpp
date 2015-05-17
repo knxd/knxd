@@ -562,6 +562,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 		}
 	      if (state[i].rno == (r1.seqno + 1) & 0xff)
 		{
+		  TRACEPRINTF (t, 8, this, "Lost ACK for %d", state[i].rno);
 		  r2.channel = r1.channel;
 		  r2.seqno = r1.seqno;
 		  sock->sendaddr = state[i].daddr;
