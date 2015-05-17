@@ -54,7 +54,10 @@ TPUARTLayer2Driver::TPUARTLayer2Driver (int version, const char *device,
 
   fd = open (device, O_RDWR);
   if (fd == -1)
-    return;
+    {
+      TRACEPRINTF (t, 1, this, "Open of %s failed: %s", device, strerror(errno));
+      return;
+    }
 
   addAddress (a);
   Start ();

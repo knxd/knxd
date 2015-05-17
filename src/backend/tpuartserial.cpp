@@ -59,17 +59,24 @@ TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
 
   fd = open (dev, O_RDWR | O_NOCTTY | O_NDELAY | O_SYNC);
   if (fd == -1)
-    return;
+    {
+      TRACEPRINTF (t, 2, this, "Opening %s failed: %s", dev, strerror(errno));
+      return;
+    }
   set_low_latency (fd, &sold);
 
   close (fd);
 
   fd = open (dev, O_RDWR | O_NOCTTY | O_SYNC);
   if (fd == -1)
-    return;
+    {
+      TRACEPRINTF (t, 2, this, "Opening %s failed: %s", dev, strerror(errno));
+      return;
+    }
 
   if (tcgetattr (fd, &old))
     {
+      TRACEPRINTF (t, 2, this, "tcgetattr %s failed: %s", dev, strerror(errno));
       restore_low_latency (fd, &sold);
       close (fd);
       fd = -1;
@@ -78,6 +85,7 @@ TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
 
   if (tcgetattr (fd, &t1))
     {
+      TRACEPRINTF (t, 2, this, "tcgetattr %s failed: %s", dev, strerror(errno));
       restore_low_latency (fd, &sold);
       close (fd);
       fd = -1;
@@ -95,6 +103,7 @@ TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
 
   if (tcsetattr (fd, TCSAFLUSH, &t1))
     {
+      TRACEPRINTF (t, 2, this, "tcsetattr %s failed: %s", dev, strerror(errno));
       restore_low_latency (fd, &sold);
       close (fd);
       fd = -1;
