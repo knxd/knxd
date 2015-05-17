@@ -28,8 +28,6 @@ class EIBNetIPRouter:public Layer2Interface, private Thread
 {
   /** debug output */
   Trace *t;
-  /** default address */
-  eibaddr_t addr;
   /** EIBnet/IP socket */
   EIBNetIPSocket *sock;
   /** state */
@@ -65,7 +63,6 @@ public:
 
   bool Open ();
   bool Close ();
-  eibaddr_t getDefaultAddr ();
   bool Connection_Lost ();
   bool Send_Queue_Empty ();
 };

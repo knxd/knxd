@@ -67,8 +67,6 @@ public:
   virtual bool Open () = 0;
   /** try to leave the normal operation mode, return true if successful */
   virtual bool Close () = 0;
-  /** returns the default individual address of the device */
-  virtual eibaddr_t getDefaultAddr () = 0;
   /** return true, if the connection is broken */
   virtual bool Connection_Lost () = 0;
   /** return true, if all frames have been sent */

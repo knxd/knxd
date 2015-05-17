@@ -28,7 +28,6 @@ EIBNetIPRouter::EIBNetIPRouter (const char *multicastaddr, int port,
   struct ip_mreq mcfg;
   t = tr;
   TRACEPRINTF (t, 2, this, "Open");
-  addr = a;
   mode = 0;
   vmode = 0;
   memset (&baddr, 0, sizeof (baddr));
@@ -257,12 +256,6 @@ bool
 EIBNetIPRouter::Close ()
 {
   return 1;
-}
-
-eibaddr_t
-EIBNetIPRouter::getDefaultAddr ()
-{
-  return addr;
 }
 
 bool

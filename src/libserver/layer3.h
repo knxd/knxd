@@ -79,6 +79,8 @@ class Layer3:private Thread
   Trace *t;
   /** working mode (bus monitor/normal operation) */
   int mode;
+  /** our default address */
+  eibaddr_t defaultAddr;
   Array < IgnoreInfo > ignore;
 
   /** busmonitor callbacks */
@@ -94,7 +96,7 @@ class Layer3:private Thread
 
   void Run (pth_sem_t * stop);
 public:
-  Layer3 (Layer2Interface * l2, Trace * tr);
+  Layer3 (Layer2Interface * l2, eibaddr_t addr, Trace * tr);
   virtual ~Layer3 ();
 
   /** register a busmonitor callback, return true, if successful*/

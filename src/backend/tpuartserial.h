@@ -81,7 +81,6 @@ public:
 
   bool Open ();
   bool Close ();
-  eibaddr_t getDefaultAddr ();
   bool Connection_Lost ();
   bool Send_Queue_Empty ();
 };

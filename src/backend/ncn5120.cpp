@@ -198,12 +198,6 @@ bool NCN5120SerialLayer2Driver::closeVBusmonitor ()
   return 1;
 }
 
-eibaddr_t
-NCN5120SerialLayer2Driver::getDefaultAddr ()
-{
-  return addr;
-}
-
 bool
 NCN5120SerialLayer2Driver::Connection_Lost ()
 {

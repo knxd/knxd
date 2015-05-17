@@ -50,12 +50,6 @@ EMI2Layer2Interface::Connection_Lost ()
   return iface->Connection_Lost ();
 }
 
-eibaddr_t
-EMI2Layer2Interface::getDefaultAddr ()
-{
-  return 0;
-}
-
 bool
 EMI2Layer2Interface::openVBusmonitor ()
 {

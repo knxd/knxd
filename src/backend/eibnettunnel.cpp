@@ -44,12 +44,6 @@ EIBNetIPTunnel::removeGroupAddress (eibaddr_t addr)
   return 1;
 }
 
-eibaddr_t
-EIBNetIPTunnel::getDefaultAddr ()
-{
-  return 0;
-}
-
 EIBNetIPTunnel::EIBNetIPTunnel (const char *dest, int port, int sport,
 				const char *srcip, int Dataport, int flags,
 				Trace * tr)

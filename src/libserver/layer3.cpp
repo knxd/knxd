@@ -19,10 +19,11 @@
 
 #include "layer3.h"
 
-Layer3::Layer3 (Layer2Interface * l2, Trace * tr)
+Layer3::Layer3 (Layer2Interface * l2, eibaddr_t addr, Trace * tr)
 {
   layer2 = l2;
   t = tr;
+  defaultAddr = addr;
   TRACEPRINTF (t, 3, this, "Open");
   l2->Open ();
   mode = 0;
@@ -52,7 +53,7 @@ Layer3::send_L_Data (L_Data_PDU * l)
 {
   TRACEPRINTF (t, 3, this, "Send %s", l->Decode ()());
   if (l->source == 0)
-    l->source = layer2->getDefaultAddr ();
+    l->source = defaultAddr;
   layer2->Send_L_Data (l);
 }
 
@@ -323,7 +324,7 @@ Layer3::Run (pth_sem_t * stop1)
 	  l1->repeated = 0;
 
 	  if (l1->AddrType == IndividualAddress
-	      && l1->dest == layer2->getDefaultAddr ())
+	      && l1->dest == defaultAddr)
 	    l1->dest = 0;
 	  TRACEPRINTF (t, 3, this, "Recv %s", l1->Decode ()());
 

@@ -53,12 +53,6 @@ CEMILayer2Interface::Connection_Lost ()
   return iface->Connection_Lost ();
 }
 
-eibaddr_t
-CEMILayer2Interface::getDefaultAddr ()
-{
-  return 0;
-}
-
 bool
 CEMILayer2Interface::openVBusmonitor ()
 {

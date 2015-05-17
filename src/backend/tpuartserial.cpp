@@ -208,12 +208,6 @@ bool TPUARTSerialLayer2Driver::closeVBusmonitor ()
   return 1;
 }
 
-eibaddr_t
-TPUARTSerialLayer2Driver::getDefaultAddr ()
-{
-  return addr;
-}
-
 bool
 TPUARTSerialLayer2Driver::Connection_Lost ()
 {

@@ -146,11 +146,6 @@ bool TPUARTLayer2Driver::Close ()
   return ioctl (fd, TPUART_RESET) != -1;
 }
 
-eibaddr_t TPUARTLayer2Driver::getDefaultAddr ()
-{
-  return addr;
-}
-
 bool TPUARTLayer2Driver::Connection_Lost ()
 {
   return 0;

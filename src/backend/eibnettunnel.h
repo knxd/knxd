@@ -26,7 +26,6 @@
 class EIBNetIPTunnel:public Layer2Interface, private Thread
 {
   Trace *t;
-  eibaddr_t addr;
   EIBNetIPSocket *sock;
   struct sockaddr_in caddr;
   struct sockaddr_in daddr;
@@ -68,7 +67,6 @@ public:
 
   bool Open ();
   bool Close ();
-  eibaddr_t getDefaultAddr ();
   bool Connection_Lost ();
   bool Send_Queue_Empty ();
 };

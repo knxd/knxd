@@ -337,11 +337,6 @@ bool USBLayer2Interface::Connection_Lost ()
   return emi->Connection_Lost ();
 }
 
-eibaddr_t USBLayer2Interface::getDefaultAddr ()
-{
-  return emi->getDefaultAddr ();
-}
-
 bool USBLayer2Interface::openVBusmonitor ()
 {
   return emi->openVBusmonitor ();
