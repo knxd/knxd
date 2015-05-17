@@ -328,10 +328,6 @@ main (int ac, char *ag[])
   arg.errorlevel = LEVEL_WARNING;
 
   argp_parse (&argp, ac, ag, 0, &index, &arg);
-  if (index > ac - 1)
-    die ("url expected");
-  if (index < ac - 1)
-    die ("unexpected parameter");
 
   if (arg.port == 0 && arg.name == 0 && arg.serverip == 0)
     die ("No listen-address given");
@@ -384,11 +380,19 @@ main (int ac, char *ag[])
 	fclose (pidf);
       }
 
-  l2 = Create (ag[index], arg.backendflags, &t);
-  if (!l2 || !l2->init ())
-    die ("initialisation of the backend failed");
   l3 = new Layer3 (arg.addr, &t);
-  l3->registerLayer2 (l2);
+#ifdef HAVE_GROUPCACHE
+  if (!CreateGroupCache (l3, &t, arg.groupcache))
+    die ("initialisation of the group cache failed");
+#endif
+  while(index < ac)
+    {
+      l2 = Create (ag[index], arg.backendflags, &t);
+      if (!l2 || !l2->init ())
+        die ("initialisation of backend '%s' failed", ag[index]);
+      l3->registerLayer2 (l2);
+      index++;
+    }
   if (arg.port)
     {
       s = new InetServer (l3, &t, arg.port);
@@ -405,10 +409,6 @@ main (int ac, char *ag[])
     }
 #ifdef HAVE_EIBNETIPSERVER
   serv = startServer (l3, &t, arg.eibnetname, arg.addr);
-#endif
-#ifdef HAVE_GROUPCACHE
-  if (!CreateGroupCache (l3, &t, arg.groupcache))
-    die ("initialisation of the group cache failed");
 #endif
 
   signal (SIGINT, SIG_IGN);
