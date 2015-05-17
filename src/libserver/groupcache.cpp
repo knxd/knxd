@@ -291,10 +291,7 @@ Array < eibaddr_t > GroupCache::LastUpdates (uint16_t start, uint8_t Timeout,
 	  while (start != pos)
 	    {
 	      if (updates[start & 0xff])
-		{
-		  a.resize (a () + 1);
-		  a[a () - 1] = updates[start & 0xff];
-		}
+		a.add (updates[start & 0xff]);
 	      start++;
 	    }
 	  end = pos;

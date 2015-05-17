@@ -146,8 +146,7 @@ TPUARTSerialLayer2Driver::addAddress (eibaddr_t addr)
   for (i = 0; i < indaddr (); i++)
     if (indaddr[i] == addr)
       return 0;
-  indaddr.resize (indaddr () + 1);
-  indaddr[indaddr () - 1] = addr;
+  indaddr.add (addr);
   return 1;
 }
 
@@ -158,8 +157,7 @@ TPUARTSerialLayer2Driver::addGroupAddress (eibaddr_t addr)
   for (i = 0; i < groupaddr (); i++)
     if (groupaddr[i] == addr)
       return 0;
-  groupaddr.resize (groupaddr () + 1);
-  groupaddr[groupaddr () - 1] = addr;
+  groupaddr.add (addr);
   return 1;
 }
 

@@ -67,10 +67,7 @@ Array < eibaddr_t >
 	{
 	  a = APDU::fromPacket (c->data);
 	  if (a->isResponse (&r))
-	    {
-	      addrs.resize (addrs () + 1);
-	      addrs[addrs () - 1] = c->src;
-	    }
+	    addrs.add (c->src);
 	  delete a;
 	  delete c;
 	}
