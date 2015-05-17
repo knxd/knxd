@@ -348,13 +348,12 @@ Layer3::Run (pth_sem_t * stop1)
 		    individual[i].cb->Get_L_Data (new L_Data_PDU (*l1));
 	    }
 	}
-    redel:
+      // ignore[] is ordered, any timed-out items are at the front
       for (i = 0; i < ignore (); i++)
-	if (ignore[i].end < getTime ())
-	  {
-	    ignore.deletepart (i, 1);
-	    goto redel;
-	  }
+	if (ignore[i].end >= getTime ())
+          break;
+      if (i)
+        ignore.deletepart (0, i);
     wt:
       delete l;
 
