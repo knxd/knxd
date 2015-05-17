@@ -178,10 +178,12 @@ CEMILayer2Interface::Send_L_Data (LPDU * l)
   /* discard long frames */
   /* actually cEMI supports long frames and splits long payload into multiple frames */
   /* but this is not implemented!! */
-  if (l1->data () > 50) {
-    delete l;
-    return;
-  }
+  if (l1->data () > 50)
+    {
+      TRACEPRINTF (t, 2, this, "Send (CEMILayer2Interface) long_data! (%d)", l1->data ());
+      delete l;
+      return;
+    }
   assert ((l1->hopcount & 0xf8) == 0);
 
   inqueue.put (l);
