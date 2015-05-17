@@ -29,7 +29,6 @@ typedef enum
   L_Unknown,
   /** L_Data */
   L_Data,
-  L_Data_Ind,
   /** L_Data incomplete */
   L_Data_Part,
   /** ACK */
@@ -136,24 +135,6 @@ public:
   LPDU_Type getType () const
   {
     return L_Busmonitor;
-  }
-};
-
-/* L_Data_Ind */
-
-class L_Data_Ind_PDU:public L_Data_PDU
-{
-public:
-  L_Data_Ind_PDU ()
-  {
-  }
-  L_Data_Ind_PDU (const L_Data_PDU & c):L_Data_PDU (c)
-  {
-  }
-
-  LPDU_Type getType () const
-  {
-    return L_Data_Ind;
   }
 };
 
