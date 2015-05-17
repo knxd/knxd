@@ -116,25 +116,21 @@ Layer7_Connection::Request_Response (APDU * r)
   while (pth_event_status (t) != PTH_STATUS_OCCURRED)
     {
       c = l4->Get (t);
-      if (c)
-	{
-	  if (c->len () == 0)
-	    {
-	      delete c;
-	      pth_event_free (t, PTH_FREE_THIS);
-	      return 0;
-	    }
-	  a = APDU::fromPacket (*c, this->t);
-	  delete c;
-	  if (a->isResponse (r))
-	    {
-	      pth_event_free (t, PTH_FREE_THIS);
-	      return a;
-	    }
-	  delete a;
-	  pth_event_free (t, PTH_FREE_THIS);
-	  return 0;
-	}
+      if (!c)
+        continue;
+      if (c->len () == 0)
+        {
+          delete c;
+          continue;
+        }
+      a = APDU::fromPacket (*c, this->t);
+      delete c;
+      if (a->isResponse (r))
+        {
+          pth_event_free (t, PTH_FREE_THIS);
+          return a;
+        }
+      delete a;
     }
   pth_event_free (t, PTH_FREE_THIS);
   return 0;
