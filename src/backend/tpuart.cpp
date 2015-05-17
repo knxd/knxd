@@ -110,12 +110,12 @@ bool TPUARTLayer2Driver::addAddress (eibaddr_t addr)
 
 bool TPUARTLayer2Driver::addGroupAddress (eibaddr_t addr)
 {
-  return ioctl (fd, TPUART_UNSET_PH_ADDR, &addr) != -1;
+  return ioctl (fd, TPUART_SET_GR_ADDR, &addr) != -1;
 }
 
 bool TPUARTLayer2Driver::removeAddress (eibaddr_t addr)
 {
-  return ioctl (fd, TPUART_SET_GR_ADDR, &addr) != -1;
+  return ioctl (fd, TPUART_UNSET_PH_ADDR, &addr) != -1;
 }
 
 bool TPUARTLayer2Driver::removeGroupAddress (eibaddr_t addr)
