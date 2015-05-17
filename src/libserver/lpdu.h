@@ -183,4 +183,28 @@ public:
   }
 };
 
+/** interface for callback for Layer 2 frames */
+class LPDU_CallBack 
+{
+public:
+  /** callback: a Layer 2 frame has been received */
+  virtual void Get_LPDU (LPDU * l) = 0;
+};
+
+/** interface for callback for L_Data frames */
+class L_Data_CallBack
+{   
+public:
+  /** callback: a L_Data frame has been received */
+  virtual void Get_L_Data (L_Data_PDU * l) = 0; 
+};  
+    
+/** interface for callback for busmonitor frames */
+class L_Busmonitor_CallBack
+{
+public:
+  /** callback: a bus monitor frame has been received */
+  virtual void Get_L_Busmonitor (L_Busmonitor_PDU * l) = 0;
+};
+
 #endif

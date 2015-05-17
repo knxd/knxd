@@ -21,6 +21,7 @@
 #define LAYER3_H
 
 #include "layer2.h"
+#include "lpdu.h"
 
 /** stores a registered busmonitor callback */
 typedef struct

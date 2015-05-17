@@ -22,6 +22,7 @@
 #include <errno.h>
 #include <sys/ioctl.h>
 #include "tpuart.h"
+#include "lpdu.h"
 
 #define TPUART_MAGIC           'E'
 #define TPUART_SET_PH_ADDR  _IOW  (TPUART_MAGIC, 2, unsigned short)

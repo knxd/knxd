@@ -20,7 +20,9 @@
 #ifndef LAYER2_H
 #define LAYER2_H
 
-#include "lpdu.h"
+#include "common.h"
+
+class LPDU;
 
 /** interface for an Layer 2 driver */
 class Layer2Interface
@@ -68,30 +70,6 @@ public:
   virtual bool Connection_Lost () = 0;
   /** return true, if all frames have been sent */
   virtual bool Send_Queue_Empty () = 0;
-};
-
-/** interface for callback for Layer 2 frames */
-class LPDU_CallBack
-{
-public:
-  /** callback: a Layer 2 frame has been received */
-  virtual void Get_LPDU (LPDU * l) = 0;
-};
-
-/** interface for callback for L_Data frames */
-class L_Data_CallBack
-{
-public:
-  /** callback: a L_Data frame has been received */
-  virtual void Get_L_Data (L_Data_PDU * l) = 0;
-};
-
-/** interface for callback for busmonitor frames */
-class L_Busmonitor_CallBack
-{
-public:
-  /** callback: a bus monitor frame has been received */
-  virtual void Get_L_Busmonitor (L_Busmonitor_PDU * l) = 0;
 };
 
 /** pointer to a functions, which creates a Layer 2 interface
