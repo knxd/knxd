@@ -38,7 +38,6 @@ void Layer2Runner::Run(pth_sem_t * stop1)
       LPDU *l = l2->Get_L_Data (stop);
       if (!l)
 	continue;
-      TRACEPRINTF (l2->t, 3, this, "L2r got data from %08X: %s", l2, l->Decode ()());
       l3->recv_L_Data(l);
     }
   TRACEPRINTF (l2->t, 3, this, "L2r stopped: 08X", l2);
@@ -90,6 +89,7 @@ Layer3::send_L_Data (L_Data_PDU * l)
 void
 Layer3::recv_L_Data (LPDU * l)
 {
+  TRACEPRINTF (t, 3, this, "Recv %s", l->Decode ()());
   buf.put (l);
   pth_sem_inc (&bufsem, 0);
 }
