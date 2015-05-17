@@ -359,11 +359,24 @@ EIBNetIPSocket::EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr,
     }
   if (bind (fd, (struct sockaddr *) &bindaddr, sizeof (bindaddr)) == -1)
     {
+      TRACEPRINTF (t, 0, this, "cannot bind to address");
       close (fd);
       fd = -1;
       return;
     }
 
+  // Disable loopback so we do not receive our own datagrams.
+  {
+    char loopch=0;
+ 
+    if (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_LOOP,
+                   (char *)&loopch, sizeof(loopch)) < 0) {
+      TRACEPRINTF (t, 0, this, "cannot turn off multicast loopback");
+      close(fd);
+      fd = -1;
+      return;
+    }
+  }
   Start ();
   TRACEPRINTF (t, 0, this, "Openend");
 }
