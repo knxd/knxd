@@ -42,17 +42,17 @@ class TPUARTLayer2Driver:public Layer2Interface, private Thread
   /** semaphore for outqueue */
   pth_sem_t out_signal;
   /** input queue */
-    Queue < LPDU * >inqueue;
-    /** output queue */
-    Queue < LPDU * >outqueue;
-    /** event to wait for outqueue */
+  Queue < LPDU * >inqueue;
+  /** output queue */
+  Queue < LPDU * >outqueue;
+  /** event to wait for outqueue */
   pth_event_t getwait;
 
   void Run (pth_sem_t * stop);
 public:
-    TPUARTLayer2Driver (int version, const char *device, eibaddr_t addr,
-			Trace * t);
-   ~TPUARTLayer2Driver ();
+  TPUARTLayer2Driver (int version, const char *device, eibaddr_t addr,
+                      Trace * t);
+  ~TPUARTLayer2Driver ();
   bool init ();
 
   void Send_L_Data (LPDU * l);
