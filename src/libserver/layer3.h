@@ -70,11 +70,30 @@ typedef struct
 
 } IgnoreInfo;
 
+class Layer3;
+
+/** thread for receiving data */
+class Layer2Runner:public Thread
+{
+public:
+  Layer2Interface * l2;
+  Layer3 * l3;
+
+  Layer2Runner ();
+  virtual ~Layer2Runner ();
+
+  void Run (pth_sem_t * stop1);
+};
+
 /** Layer 3 frame dispatches */
 class Layer3:private Thread
 {
-  /** Layer 2 interface */
-  Layer2Interface *layer2;
+  /** Layer 2 interfaces */
+  Array < Layer2Runner > layer2;
+  /** buffer queue for receiving from L2 */
+  Queue < LPDU * >buf;
+  /** semaphre for buffer queue */
+  pth_sem_t bufsem;
   /** debug output */
   Trace *t;
   /** working mode (bus monitor/normal operation) */
@@ -94,10 +113,19 @@ class Layer3:private Thread
   /** individual callbacks */
   Array < Individual_Info > individual;
 
+  /** process incoming data from L2 */
   void Run (pth_sem_t * stop);
+  /** flag whether we're in .Run() */
+  bool running;
+
 public:
   Layer3 (Layer2Interface * l2, eibaddr_t addr, Trace * tr);
   virtual ~Layer3 ();
+
+  /** register a layer2 interface, return true if successful*/
+  bool registerLayer2 (Layer2Interface * l2);
+  /** deregister a layer2 interface, return true if successful*/
+  bool deregisterLayer2 (Layer2Interface * l2);
 
   /** register a busmonitor callback, return true, if successful*/
   bool registerBusmonitor (L_Busmonitor_CallBack * c);
@@ -137,6 +165,8 @@ public:
    */
   bool deregisterIndividualCallBack (L_Data_CallBack * c, eibaddr_t src,
 				     eibaddr_t dest = 0);
+  /** accept a L_Data frame from L2 */
+  void recv_L_Data (LPDU * l);
   /** sends a L_Data frame asynchronouse */
   void send_L_Data (L_Data_PDU * l);
 };
