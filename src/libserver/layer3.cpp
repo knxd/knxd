@@ -458,6 +458,10 @@ Layer3::Run (pth_sem_t * stop1)
 		      || individual[i].src == 0)
 		    individual[i].cb->Send_L_Data (new L_Data_PDU (*l1));
 	    }
+
+          // finally, send to all (other(?)) L2 interfaces
+          // TODO: filter by addresses
+          send_L_Data(l1);
 	}
       // ignore[] is ordered, any timed-out items are at the front
       for (i = 0; i < ignore (); i++)
