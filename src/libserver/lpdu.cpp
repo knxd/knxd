@@ -360,8 +360,7 @@ String L_Data_PDU::Decode ()
   assert (data () <= 0xff);
   assert ((hopcount & 0xf8) == 0);
 
-  String
-  s ("L_Data");
+  String s ("L_Data");
   if (!valid_length)
     s += " (incomplete)";
   if (repeated)
@@ -383,11 +382,12 @@ String L_Data_PDU::Decode ()
     }
   if (!valid_checksum)
     s += " INVALID CHECKSUM";
-  s =
-    s + " from " + FormatEIBAddr (source) + " to " + (AddrType ==
-						      GroupAddress ?
-						      FormatGroupAddr (dest) :
-						      FormatEIBAddr (dest));
+  s += " from ";
+  s += FormatEIBAddr (source);
+  s += " to ";
+  s += (AddrType == GroupAddress ?
+                    FormatGroupAddr (dest) :
+                    FormatEIBAddr (dest));
   s += " hops: ";
   addHex (s, hopcount);
   TPDU *
