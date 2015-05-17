@@ -119,7 +119,7 @@ class Layer3:private Thread
   bool running;
 
 public:
-  Layer3 (Layer2Interface * l2, eibaddr_t addr, Trace * tr);
+  Layer3 (eibaddr_t addr, Trace * tr);
   virtual ~Layer3 ();
 
   /** register a layer2 interface, return true if successful*/

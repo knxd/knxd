@@ -387,7 +387,8 @@ main (int ac, char *ag[])
   l2 = Create (ag[index], arg.backendflags, &t);
   if (!l2 || !l2->init ())
     die ("initialisation of the backend failed");
-  l3 = new Layer3 (l2, arg.addr, &t);
+  l3 = new Layer3 (arg.addr, &t);
+  l3->registerLayer2 (l2);
   if (arg.port)
     {
       s = new InetServer (l3, &t, arg.port);

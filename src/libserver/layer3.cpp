@@ -44,7 +44,7 @@ void Layer2Runner::Run(pth_sem_t * stop1)
   TRACEPRINTF (l2->t, 3, this, "L2r stopped: 08X", l2);
 }
 
-Layer3::Layer3 (Layer2Interface * l2, eibaddr_t addr, Trace * tr)
+Layer3::Layer3 (eibaddr_t addr, Trace * tr)
 {
   t = tr;
   defaultAddr = addr;
@@ -52,7 +52,6 @@ Layer3::Layer3 (Layer2Interface * l2, eibaddr_t addr, Trace * tr)
   pth_sem_init (&bufsem);
   mode = 0;
   running = false;
-  registerLayer2 (l2);
   Start ();
 }
 
