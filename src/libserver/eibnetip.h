@@ -299,7 +299,7 @@ class EIBNetIPSocket:private Thread
   /** input queue */
   Queue < struct _EIBNetIP_Send >inqueue;
   /** output queue */
-  Queue < EIBNetIPPacket > outqueue;
+  Queue < EIBNetIPPacket *> outqueue;
   /** semaphore for inqueue */
   pth_sem_t insignal;
   /** semaphore for outqueue */
