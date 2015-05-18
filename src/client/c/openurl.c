@@ -64,6 +64,7 @@ EIBSocketURL (const char *url)
       free (a);
       return c;
     }
+  fprintf(stderr, "Unknown URL prefix, need 'local:' or 'ip:'");
   errno = EINVAL;
   return 0;
 }
