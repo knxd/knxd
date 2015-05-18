@@ -83,7 +83,7 @@ Layer3::send_L_Data (L_Data_PDU * l)
     l->source = defaultAddr;
   for (int i = 0; i < layer2 (); i++)
     if (l->l2 != layer2[i].l2)
-      layer2[i].l2->Send_L_Data (l);
+      layer2[i].l2->Send_L_Data (new L_Data_PDU (*l));
 }
 
 void
