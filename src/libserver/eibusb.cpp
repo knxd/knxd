@@ -276,7 +276,7 @@ USBConverterInterface::Send_Queue_Empty ()
 
 
 USBLayer2Interface::USBLayer2Interface (LowLevelDriverInterface * i,
-					Trace * tr, int flags)
+					Trace * tr, int flags) : Layer2Interface (tr)
 {
   emi = 0;
   LowLevelDriverInterface *iface = initUSBDriver (i, tr);

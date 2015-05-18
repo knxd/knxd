@@ -64,23 +64,23 @@ L_Data_ToCEMI (uchar code, const L_Data_PDU & l1)
 }
 
 L_Data_PDU *
-CEMI_to_L_Data (const CArray & data, Trace * tr)
+CEMI_to_L_Data (const CArray & data, Layer2Interface * l2)
 {
-  L_Data_PDU c;
+  L_Data_PDU c = L_Data_PDU (l2);
   if (data () < 2)
     {
-      TRACEPRINTF (tr, 7, NULL, "packet too short (%d)", data ());
+      TRACEPRINTF (l2->t, 7, NULL, "packet too short (%d)", data ());
       return 0;
     }
   unsigned start = data[1] + 2;
   if (data () < 7 + start)
     {
-      TRACEPRINTF (tr, 7, NULL, "start too large (%d/%d)", data (),start);
+      TRACEPRINTF (l2->t, 7, NULL, "start too large (%d/%d)", data (),start);
       return 0;
     }
   if (data () < 7 + start + data[6 + start] + 1)
     {
-      TRACEPRINTF (tr, 7, NULL, "packet too short (%d/%d)", data (), 7 + start + data[6 + start] + 1);
+      TRACEPRINTF (l2->t, 7, NULL, "packet too short (%d/%d)", data (), 7 + start + data[6 + start] + 1);
       return 0;
     }
   c.source = (data[start + 2] << 8) | (data[start + 3]);
@@ -109,16 +109,16 @@ CEMI_to_L_Data (const CArray & data, Trace * tr)
   c.AddrType = (data[start + 1] & 0x80) ? GroupAddress : IndividualAddress;
   if (!data[start] & 0x80 && data[start + 1] & 0x0f)
     {
-      TRACEPRINTF (tr, 7, NULL, "Length? invalid (%02x%02x)", data[start],data[start+1]);
+      TRACEPRINTF (l2->t, 7, NULL, "Length? invalid (%02x%02x)", data[start],data[start+1]);
       return 0;
     }
   return new L_Data_PDU (c);
 }
 
 L_Busmonitor_PDU *
-CEMI_to_Busmonitor (const CArray & data)
+CEMI_to_Busmonitor (const CArray & data, Layer2Interface * l2)
 {
-  L_Busmonitor_PDU c;
+  L_Busmonitor_PDU c = L_Busmonitor_PDU (l2);
   if (data () < 2)
     return 0;
   unsigned start = data[1] + 2;
@@ -179,9 +179,9 @@ L_Data_ToEMI (uchar code, const L_Data_PDU & l1)
 }
 
 L_Data_PDU *
-EMI_to_L_Data (const CArray & data)
+EMI_to_L_Data (const CArray & data, Layer2Interface * l2)
 {
-  L_Data_PDU c;
+  L_Data_PDU c = L_Data_PDU (l2);
   unsigned len;
 
   if (data () < 8)

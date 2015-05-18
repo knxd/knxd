@@ -22,7 +22,7 @@
 #include "config.h"
 
 EIBNetIPRouter::EIBNetIPRouter (const char *multicastaddr, int port,
-				eibaddr_t a, Trace * tr)
+				eibaddr_t a, Trace * tr) : Layer2Interface (tr)
 {
   struct sockaddr_in baddr;
   struct ip_mreq mcfg;
@@ -103,7 +103,7 @@ EIBNetIPRouter::Send_L_Data (LPDU * l)
   sock->Send (p);
   if (vmode)
     {
-      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU;
+      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
       l2->pdu.set (l->ToPacket ());
       outqueue.put (l2);
       pth_sem_inc (&out_signal, 1);
@@ -164,7 +164,7 @@ EIBNetIPRouter::Run (pth_sem_t * stop1)
 	    }
 	  const CArray data = p->data;
 	  delete p;
-	  L_Data_PDU *c = CEMI_to_L_Data (data, t);
+	  L_Data_PDU *c = CEMI_to_L_Data (data, this);
 	  if (c)
 	    {
 	      TRACEPRINTF (t, 2, this, "Recv %s", c->Decode ()());
@@ -172,7 +172,7 @@ EIBNetIPRouter::Run (pth_sem_t * stop1)
 		{
 		  if (vmode)
 		    {
-		      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU;
+		      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
 		      l2->pdu.set (c->ToPacket ());
 		      outqueue.put (l2);
 		      pth_sem_inc (&out_signal, 1);
@@ -181,7 +181,7 @@ EIBNetIPRouter::Run (pth_sem_t * stop1)
 		  pth_sem_inc (&out_signal, 1);
 		  continue;
 		}
-	      L_Busmonitor_PDU *p1 = new L_Busmonitor_PDU;
+	      L_Busmonitor_PDU *p1 = new L_Busmonitor_PDU (this);
 	      p1->pdu = c->ToPacket ();
 	      delete c;
 	      outqueue.put (p1);

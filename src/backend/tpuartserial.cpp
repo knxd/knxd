@@ -42,7 +42,7 @@ setstat (int fd, int s)
 
 TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
 						    eibaddr_t a, int flags,
-						    Trace * tr)
+						    Trace * tr) : Layer2Interface (tr)
 {
   struct termios t1;
   t = tr;
@@ -294,7 +294,7 @@ TPUARTSerialLayer2Driver::RecvLPDU (const uchar * data, int len)
   t->TracePacket (1, this, "Recv", len, data);
   if (mode || vmode)
     {
-      L_Busmonitor_PDU *l = new L_Busmonitor_PDU;
+      L_Busmonitor_PDU *l = new L_Busmonitor_PDU (this);
       l->pdu.set (data, len);
       outqueue.put (l);
       pth_sem_inc (&out_signal, 1);

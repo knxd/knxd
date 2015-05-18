@@ -22,6 +22,7 @@
 
 #include "eibnetip.h"
 #include "layer3.h"
+#include "layer2.h"
 
 typedef struct
 {

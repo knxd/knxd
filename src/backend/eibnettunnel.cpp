@@ -46,7 +46,7 @@ EIBNetIPTunnel::removeGroupAddress (eibaddr_t addr)
 
 EIBNetIPTunnel::EIBNetIPTunnel (const char *dest, int port, int sport,
 				const char *srcip, int Dataport, int flags,
-				Trace * tr)
+				Trace * tr) : Layer2Interface (tr)
 {
   t = tr;
   TRACEPRINTF (t, 2, this, "Open");
@@ -124,7 +124,7 @@ EIBNetIPTunnel::Send_L_Data (LPDU * l)
   pth_sem_inc (&insignal, 1);
   if (vmode)
     {
-      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU;
+      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
       l2->pdu.set (l->ToPacket ());
       outqueue.put (l2);
       pth_sem_inc (&outsignal, 1);
@@ -388,7 +388,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 		}
 	      if (treq.CEMI[0] == 0x2B)
 		{
-		  L_Busmonitor_PDU *l2 = CEMI_to_Busmonitor (treq.CEMI);
+		  L_Busmonitor_PDU *l2 = CEMI_to_Busmonitor (treq.CEMI, this);
 		  outqueue.put (l2);
 		  pth_sem_inc (&outsignal, 1);
 		  break;
@@ -399,7 +399,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 			       treq.CEMI[0]);
 		  break;
 		}
-	      c = CEMI_to_L_Data (treq.CEMI, t);
+	      c = CEMI_to_L_Data (treq.CEMI, this);
 	      if (c)
 		{
 		  TRACEPRINTF (t, 1, this, "Recv %s", c->Decode ()());
@@ -407,7 +407,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 		    {
 		      if (vmode)
 			{
-			  L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU;
+			  L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
 			  l2->pdu.set (c->ToPacket ());
 			  outqueue.put (l2);
 			  pth_sem_inc (&outsignal, 1);
@@ -419,7 +419,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 		      pth_sem_inc (&outsignal, 1);
 		      break;
 		    }
-		  L_Busmonitor_PDU *p1 = new L_Busmonitor_PDU;
+		  L_Busmonitor_PDU *p1 = new L_Busmonitor_PDU (this);
 		  p1->pdu = c->ToPacket ();
 		  delete c;
 		  outqueue.put (p1);

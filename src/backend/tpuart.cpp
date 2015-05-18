@@ -42,7 +42,7 @@ struct message
 
 
 TPUARTLayer2Driver::TPUARTLayer2Driver (int version, const char *device,
-					eibaddr_t a, Trace * tr)
+					eibaddr_t a, Trace * tr) : Layer2Interface (tr)
 {
   t = tr;
   TRACEPRINTF (t, 2, this, "Open");
@@ -205,7 +205,7 @@ TPUARTLayer2Driver::Run (pth_sem_t * stop1)
 	  t->TracePacket (0, this, "Recv", m.length, m.data);
 	  if (vmode && mode == 0)
 	    {
-	      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU;
+	      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
 	      l2->pdu.set (m.data, m.length);
 	      outqueue.put (l2);
 	      pth_sem_inc (&out_signal, 1);
@@ -214,7 +214,7 @@ TPUARTLayer2Driver::Run (pth_sem_t * stop1)
 	    l1 = LPDU::fromPacket (CArray (m.data, m.length), this);
 	  else
 	    {
-	      l1 = new L_Busmonitor_PDU;
+	      l1 = new L_Busmonitor_PDU (this);
 	      ((L_Busmonitor_PDU *) l1)->pdu.set (m.data, m.length);
 	    }
 	  outqueue.put (l1);
@@ -238,7 +238,7 @@ TPUARTLayer2Driver::Run (pth_sem_t * stop1)
 	    {
 	      if (vmode)
 		{
-		  L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU;
+		  L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
 		  l2->pdu.set (c);
 		  outqueue.put (l2);
 		  pth_sem_inc (&out_signal, 1);

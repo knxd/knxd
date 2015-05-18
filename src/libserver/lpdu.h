@@ -44,12 +44,14 @@ typedef enum
 }
 LPDU_Type;
 
+class Layer2Interface;
+
 /** represents a Layer 2 frame */
 class LPDU
 {
 public:
   Layer2Interface *l2;
-  LPDU (Layer2Interface *layer2 = 0)
+  explicit LPDU (Layer2Interface *layer2)
   {
     object = 0;
     l2 = layer2;
@@ -79,7 +81,7 @@ public:
   /** real content*/
   CArray pdu;
 
-  L_Unknown_PDU ();
+  L_Unknown_PDU (Layer2Interface *layer2);
 
   bool init (const CArray & c);
   CArray ToPacket ();
@@ -110,7 +112,7 @@ public:
   /** payload of Layer 4 */
   CArray data;
 
-  L_Data_PDU ();
+  L_Data_PDU (Layer2Interface *layer2);
 
   bool init (const CArray & c);
   CArray ToPacket ();
@@ -131,7 +133,7 @@ public:
   uint8_t status;
   uint32_t timestamp;
 
-  L_Busmonitor_PDU ();
+  L_Busmonitor_PDU (Layer2Interface *layer2);
 
   bool init (const CArray & c);
   CArray ToPacket ();
@@ -146,7 +148,7 @@ class L_ACK_PDU:public LPDU
 {
 public:
 
-  L_ACK_PDU ();
+  L_ACK_PDU (Layer2Interface *layer2);
 
   bool init (const CArray & c);
   CArray ToPacket ();
@@ -161,7 +163,7 @@ class L_NACK_PDU:public LPDU
 {
 public:
 
-  L_NACK_PDU ();
+  explicit L_NACK_PDU (Layer2Interface *layer2);
 
   bool init (const CArray & c);
   CArray ToPacket ();
@@ -176,7 +178,7 @@ class L_BUSY_PDU:public LPDU
 {
 public:
 
-  L_BUSY_PDU ();
+  L_BUSY_PDU (Layer2Interface *layer2);
 
   bool init (const CArray & c);
   CArray ToPacket ();

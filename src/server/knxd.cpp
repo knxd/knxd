@@ -27,6 +27,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include "layer3.h"
+#include "layer2.h"
 #include "localserver.h"
 #include "inetserver.h"
 #include "eibnetserver.h"
@@ -37,6 +38,8 @@
 #define OPT_BACK_TPUARTS_ACKINDIVIDUAL 3
 #define OPT_BACK_TPUARTS_DISCH_RESET 4
 #define OPT_BACK_EMI_NOQUEUE 5
+
+Layer2Interface *FakeL2;
 
 /** structure to store the arguments */
 struct arguments
@@ -380,6 +383,7 @@ main (int ac, char *ag[])
 	fclose (pidf);
       }
 
+  FakeL2 = new DummyLayer2Interface(&t);
   l3 = new Layer3 (arg.addr, &t);
 #ifdef HAVE_GROUPCACHE
   if (!CreateGroupCache (l3, &t, arg.groupcache))

@@ -21,8 +21,7 @@
 #define LAYER2_H
 
 #include "common.h"
-
-class LPDU;
+#include "lpdu.h"
 
 /** interface for an Layer 2 driver */
 class Layer2Interface
@@ -31,7 +30,11 @@ public:
   /** debug output */
   Trace *t;
 
-  virtual ~ Layer2Interface ()
+  Layer2Interface (Trace *tr)
+  {
+    t = tr;
+  }
+  virtual ~Layer2Interface ()
   {
   }
   virtual bool init () = 0;
@@ -81,6 +84,31 @@ public:
  */
 typedef Layer2Interface *(*Layer2_Create_Func) (const char *conf, int flags,
 						Trace * t);
+
+class DummyLayer2Interface:public Layer2Interface
+{
+public:
+  DummyLayer2Interface (Trace *tr) : Layer2Interface (tr)
+  {
+  }
+  LPDU *Get_L_Data (pth_event_t stop) { return 0; }
+  bool init() { return 1; }
+  void Send_L_Data (LPDU * l) { delete l; }
+  bool enterBusmonitor () { return 0; }
+  bool leaveBusmonitor () { return 0; }
+  bool openVBusmonitor () { return 0; }
+  bool closeVBusmonitor () { return 0; }
+  bool addAddress (eibaddr_t addr) { return 1; }
+  bool addGroupAddress (eibaddr_t addr) { return 1; }
+  bool removeAddress (eibaddr_t addr) { return 1; }
+  bool removeGroupAddress (eibaddr_t addr) { return 1; }
+  bool Open () { return 1; }
+  bool Close () { return 1; }
+  bool Connection_Lost () { return 0; }
+  bool Send_Queue_Empty () { return 1; }
+};
+
+extern Layer2Interface *FakeL2;
 
 #define FLAG_B_TUNNEL_NOQUEUE (1<<0)
 #define FLAG_B_TPUARTS_ACKGROUP (1<<1)
