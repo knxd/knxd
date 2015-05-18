@@ -32,7 +32,7 @@ void Layer2Runner::Run(pth_sem_t * stop1)
   pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
   unsigned i;
 
-  TRACEPRINTF (l2->t, 3, this, "L2r running: 08X", l2);
+  TRACEPRINTF (l2->t, 3, this, "L2r running: %08X", l2);
   while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
     {
       LPDU *l = l2->Get_L_Data (stop);
@@ -40,7 +40,7 @@ void Layer2Runner::Run(pth_sem_t * stop1)
 	continue;
       l3->recv_L_Data(l);
     }
-  TRACEPRINTF (l2->t, 3, this, "L2r stopped: 08X", l2);
+  TRACEPRINTF (l2->t, 3, this, "L2r stopped: %08X", l2);
 }
 
 Layer3::Layer3 (eibaddr_t addr, Trace * tr)
