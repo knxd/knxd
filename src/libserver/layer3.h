@@ -98,8 +98,6 @@ class Layer3:private Thread
   Trace *t;
   /** working mode (bus monitor/normal operation) */
   int mode;
-  /** our default address */
-  eibaddr_t defaultAddr;
   Array < IgnoreInfo > ignore;
 
   /** busmonitor callbacks */
@@ -119,6 +117,9 @@ class Layer3:private Thread
   bool running;
 
 public:
+  /** our default address */
+  eibaddr_t defaultAddr;
+
   Layer3 (eibaddr_t addr, Trace * tr);
   virtual ~Layer3 ();
 
