@@ -14,4 +14,5 @@ export DH_OPTIONS
 	dh $@ 
 
 override_dh_auto_configure:
-	dh_auto_configure -- --enable-usb --enable-eibnetip --enable-eibnetiptunnel --enable-eibnetipserver --enable-groupcache --enable-tpuart --enable-ft12
+	dh_auto_configure -- --enable-usb --enable-eibnetip --enable-eibnetiptunnel --enable-eibnetipserver --enable-groupcache --enable-ft12 --enable-pei16 --enable-pei16s --enable-ncn5120 --enable-tpuart --enable-tpuarts
+
