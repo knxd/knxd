@@ -63,11 +63,6 @@ public:
   void Send_L_Data (LPDU * l);
   LPDU *Get_L_Data (pth_event_t stop);
 
-  bool addAddress (eibaddr_t addr);
-  bool addGroupAddress (eibaddr_t addr);
-  bool removeAddress (eibaddr_t addr);
-  bool removeGroupAddress (eibaddr_t addr);
-
   bool enterBusmonitor ();
   bool leaveBusmonitor ();
   bool openVBusmonitor ();
