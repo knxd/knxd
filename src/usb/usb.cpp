@@ -36,6 +36,7 @@ USBLoop::Run (pth_sem_t * stop1)
   struct timeval tv, tv1;
   const struct libusb_pollfd **usbfd, **usbfd_orig;
   pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
+  // The next two are dummy allocations which will be replaced later
   pth_event_t event = pth_event (PTH_EVENT_SEM, stop1);
   pth_event_t timeout = pth_event (PTH_EVENT_SEM, stop1);
 
