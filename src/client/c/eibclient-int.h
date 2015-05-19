@@ -28,10 +28,15 @@
 #ifndef EIBCLIENT_INT_H
 #define EIBCLIENT_INT_H
 
+#include "config.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 #include "eibclient.h"
 
