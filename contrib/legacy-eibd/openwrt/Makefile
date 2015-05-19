@@ -68,9 +68,7 @@ CONFIGURE_ARGS += \
 	--enable-eibnetipserver \
 	--enable-tpuarts \
 	--enable-ft12 \
-	--disable-tpuart \
 	--disable-usb \
-	--disable-pei16 \
 	--disable-pei16s \
 	--enable-groupcache \
 	--with-pth=yes \
