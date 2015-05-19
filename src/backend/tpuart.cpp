@@ -59,7 +59,6 @@ TPUARTLayer2Driver::TPUARTLayer2Driver (int version, const char *device,
       return;
     }
 
-  addAddress (a);
   Start ();
   mode = 0;
   vmode = 0;

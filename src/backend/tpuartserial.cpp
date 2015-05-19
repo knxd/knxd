@@ -115,7 +115,6 @@ TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
   mode = 0;
   vmode = 0;
   addr = a;
-  addAddress(a);
 
   Start ();
   TRACEPRINTF (t, 2, this, "Openend");
