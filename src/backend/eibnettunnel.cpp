@@ -20,30 +20,6 @@
 #include "eibnettunnel.h"
 #include "emi.h"
 
-bool
-EIBNetIPTunnel::addAddress (eibaddr_t addr)
-{
-  return 0;
-}
-
-bool
-EIBNetIPTunnel::removeAddress (eibaddr_t addr)
-{
-  return 0;
-}
-
-bool
-EIBNetIPTunnel::addGroupAddress (eibaddr_t addr)
-{
-  return 1;
-}
-
-bool
-EIBNetIPTunnel::removeGroupAddress (eibaddr_t addr)
-{
-  return 1;
-}
-
 EIBNetIPTunnel::EIBNetIPTunnel (const char *dest, int port, int sport,
 				const char *srcip, int Dataport, int flags,
 				Layer3 * l3) : Layer2Interface (l3)

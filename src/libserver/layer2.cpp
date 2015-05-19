@@ -26,3 +26,69 @@ Layer2Interface::Layer2Interface (Layer3 *layer3)
   t = layer3->t;
 }
 
+bool
+Layer2Interface::addAddress (eibaddr_t addr)
+{
+  unsigned i;
+  for (i = 0; i < indaddr (); i++)
+    if (indaddr[i] == addr)
+      return 0;
+  indaddr.add (addr);
+  return 1;
+}
+
+bool
+Layer2Interface::addGroupAddress (eibaddr_t addr)
+{
+  unsigned i;
+  for (i = 0; i < groupaddr (); i++)
+    if (groupaddr[i] == addr)
+      return 0;
+  groupaddr.add (addr);
+  return 1;
+}
+
+bool
+Layer2Interface::removeAddress (eibaddr_t addr)
+{
+  unsigned i;
+  for (i = 0; i < indaddr (); i++)
+    if (indaddr[i] == addr)
+      {
+        indaddr.deletepart (i, 1);
+        return 1;
+      }
+  return 0;
+}
+
+bool
+Layer2Interface::removeGroupAddress (eibaddr_t addr)
+{
+  unsigned i;
+  for (i = 0; i < groupaddr (); i++)
+    if (groupaddr[i] == addr)
+      {
+        groupaddr.deletepart (i, 1);
+        return 1;
+      }
+  return 0;
+}
+
+bool
+Layer2Interface::hasAddress (eibaddr_t addr)
+{
+  for (int i = 0; i < indaddr (); i++)
+    if (indaddr[i] == addr)
+      return true;
+  return false;
+}
+
+bool
+Layer2Interface::hasGroupAddress (eibaddr_t addr)
+{
+  for (int i = 0; i < groupaddr (); i++)
+    if (groupaddr[i] == addr)
+      return true;
+  return false;
+}
+

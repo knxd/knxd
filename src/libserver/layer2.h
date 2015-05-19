@@ -28,6 +28,11 @@ class Layer3;
 /** interface for an Layer 2 driver */
 class Layer2Interface
 {
+  /** my individual addresses */
+  Array < eibaddr_t > indaddr;
+  /** my group addresses */
+  Array < eibaddr_t > groupaddr;
+
 public:
   /** debug output */
   Trace *t;
@@ -48,13 +53,17 @@ public:
   virtual LPDU *Get_L_Data (pth_event_t stop) = 0;
 
   /** try to add the individual address addr to the device, return true if successful */
-  virtual bool addAddress (eibaddr_t addr) = 0;
+  virtual bool addAddress (eibaddr_t addr);
   /** try to add the group address addr to the device, return true if successful */
-  virtual bool addGroupAddress (eibaddr_t addr) = 0;
+  virtual bool addGroupAddress (eibaddr_t addr);
   /** try to remove the individual address addr to the device, return true if successful */
-  virtual bool removeAddress (eibaddr_t addr) = 0;
+  virtual bool removeAddress (eibaddr_t addr);
   /** try to remove the group address addr to the device, return true if successful */
-  virtual bool removeGroupAddress (eibaddr_t addr) = 0;
+  virtual bool removeGroupAddress (eibaddr_t addr);
+  /** individual address known? */
+  bool hasAddress (eibaddr_t addr);
+  /** group address known? */
+  bool hasGroupAddress (eibaddr_t addr);
 
   /** try to enter the busmonitor mode, return true if successful */
   virtual bool enterBusmonitor () = 0;

@@ -170,6 +170,13 @@ public:
   void recv_L_Data (LPDU * l);
   /** sends a L_Data frame asynchronouse */
   void send_L_Data (L_Data_PDU * l);
+
+  /** check if any interface accepts this address.
+      'l2' says which interface NOT to check. */
+  bool hasAddress (eibaddr_t addr, Layer2Interface *l2 = 0);
+  /** check if any interface accepts this group address.
+      'l2' says which interface NOT to check. */
+  bool hasGroupAddress (eibaddr_t addr, Layer2Interface *l2 = 0);
 };
 
 

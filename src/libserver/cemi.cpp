@@ -24,30 +24,6 @@
 #include "emi.h"
 
 bool
-CEMILayer2Interface::addAddress (eibaddr_t addr)
-{
-  return 0;
-}
-
-bool
-CEMILayer2Interface::addGroupAddress (eibaddr_t addr)
-{
-  return 1;
-}
-
-bool
-CEMILayer2Interface::removeAddress (eibaddr_t addr)
-{
-  return 0;
-}
-
-bool
-CEMILayer2Interface::removeGroupAddress (eibaddr_t addr)
-{
-  return 1;
-}
-
-bool
 CEMILayer2Interface::Connection_Lost ()
 {
   return iface->Connection_Lost ();

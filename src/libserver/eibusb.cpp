@@ -314,21 +314,35 @@ bool USBLayer2Interface::init ()
 
 bool USBLayer2Interface::addAddress (eibaddr_t addr)
 {
-  return emi->addAddress (addr);
+  if (!emi->addAddress (addr))
+    return false;
+  if (Layer2Interface::addAddress (addr))
+    return true;
+  emi->removeAddress (addr);
+  return false;
 }
 
 bool USBLayer2Interface::addGroupAddress (eibaddr_t addr)
 {
-  return emi->addGroupAddress (addr);
+  if (!emi->addGroupAddress (addr))
+    return false;
+  if (Layer2Interface::addGroupAddress (addr))
+    return true;
+  emi->removeGroupAddress (addr);
+  return false;
 }
 
 bool USBLayer2Interface::removeAddress (eibaddr_t addr)
 {
+  if (!Layer2Interface::removeAddress (addr))
+    return false;
   return emi->removeAddress (addr);
 }
 
 bool USBLayer2Interface::removeGroupAddress (eibaddr_t addr)
 {
+  if (!Layer2Interface::removeGroupAddress (addr))
+    return false;
   return emi->removeGroupAddress (addr);
 }
 

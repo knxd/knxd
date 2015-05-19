@@ -49,10 +49,6 @@ class TPUARTSerialLayer2Driver:public Layer2Interface, private Thread
   Queue < LPDU * >outqueue;
   /** event to wait for outqueue */
   pth_event_t getwait;
-  /** my individual addresses */
-  Array < eibaddr_t > indaddr;
-  /** my group addresses */
-  Array < eibaddr_t > groupaddr;
   bool ackallgroup;
   bool ackallindividual;
   bool dischreset;
@@ -68,11 +64,6 @@ public:
 
   void Send_L_Data (LPDU * l);
   LPDU *Get_L_Data (pth_event_t stop);
-
-  bool addAddress (eibaddr_t addr);
-  bool addGroupAddress (eibaddr_t addr);
-  bool removeAddress (eibaddr_t addr);
-  bool removeGroupAddress (eibaddr_t addr);
 
   bool enterBusmonitor ();
   bool leaveBusmonitor ();

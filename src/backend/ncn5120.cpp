@@ -138,54 +138,6 @@ bool NCN5120SerialLayer2Driver::init ()
   return fd != -1;
 }
 
-bool
-NCN5120SerialLayer2Driver::addAddress (eibaddr_t addr)
-{
-  unsigned i;
-  for (i = 0; i < indaddr (); i++)
-    if (indaddr[i] == addr)
-      return 0;
-  indaddr.add (addr);
-  return 1;
-}
-
-bool
-NCN5120SerialLayer2Driver::addGroupAddress (eibaddr_t addr)
-{
-  unsigned i;
-  for (i = 0; i < groupaddr (); i++)
-    if (groupaddr[i] == addr)
-      return 0;
-  groupaddr.add (addr);
-  return 1;
-}
-
-bool
-NCN5120SerialLayer2Driver::removeAddress (eibaddr_t addr)
-{
-  unsigned i;
-  for (i = 0; i < indaddr (); i++)
-    if (indaddr[i] == addr)
-      {
-	indaddr.deletepart (i, 1);
-	return 1;
-      }
-  return 0;
-}
-
-bool
-NCN5120SerialLayer2Driver::removeGroupAddress (eibaddr_t addr)
-{
-  unsigned i;
-  for (i = 0; i < groupaddr (); i++)
-    if (groupaddr[i] == addr)
-      {
-	groupaddr.deletepart (i, 1);
-	return 1;
-      }
-  return 0;
-}
-
 bool NCN5120SerialLayer2Driver::openVBusmonitor ()
 {
   vmode = 1;

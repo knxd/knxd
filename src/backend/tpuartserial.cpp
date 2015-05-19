@@ -22,6 +22,7 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include "tpuartserial.h"
+#include "layer3.h"
 
 /** get serial status lines */
 static int
@@ -114,8 +115,7 @@ TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
   mode = 0;
   vmode = 0;
   addr = a;
-  indaddr.resize (1);
-  indaddr[0] = a;
+  addAddress(a);
 
   Start ();
   TRACEPRINTF (t, 2, this, "Openend");
@@ -145,54 +145,6 @@ TPUARTSerialLayer2Driver::~TPUARTSerialLayer2Driver ()
 bool TPUARTSerialLayer2Driver::init ()
 {
   return fd != -1;
-}
-
-bool
-TPUARTSerialLayer2Driver::addAddress (eibaddr_t addr)
-{
-  unsigned i;
-  for (i = 0; i < indaddr (); i++)
-    if (indaddr[i] == addr)
-      return 0;
-  indaddr.add (addr);
-  return 1;
-}
-
-bool
-TPUARTSerialLayer2Driver::addGroupAddress (eibaddr_t addr)
-{
-  unsigned i;
-  for (i = 0; i < groupaddr (); i++)
-    if (groupaddr[i] == addr)
-      return 0;
-  groupaddr.add (addr);
-  return 1;
-}
-
-bool
-TPUARTSerialLayer2Driver::removeAddress (eibaddr_t addr)
-{
-  unsigned i;
-  for (i = 0; i < indaddr (); i++)
-    if (indaddr[i] == addr)
-      {
-	indaddr.deletepart (i, 1);
-	return 1;
-      }
-  return 0;
-}
-
-bool
-TPUARTSerialLayer2Driver::removeGroupAddress (eibaddr_t addr)
-{
-  unsigned i;
-  for (i = 0; i < groupaddr (); i++)
-    if (groupaddr[i] == addr)
-      {
-	groupaddr.deletepart (i, 1);
-	return 1;
-      }
-  return 0;
 }
 
 bool TPUARTSerialLayer2Driver::openVBusmonitor ()
@@ -421,21 +373,13 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 		  uchar c = 0x10;
 		  if ((in[5] & 0x80) == 0)
 		    {
-		      if (ackallindividual)
+		      if (ackallindividual || l3->hasAddress ((in[3] << 8) | in[4], this))
 			c |= 0x1;
-		      else
-			for (unsigned i = 0; i < indaddr (); i++)
-			  if (indaddr[i] == ((in[3] << 8) | in[4]))
-			    c |= 0x1;
 		    }
 		  else
 		    {
-		      if (ackallgroup)
-			c |= 0x1;
-		      else
-			for (unsigned i = 0; i < groupaddr (); i++)
-			  if (groupaddr[i] == ((in[3] << 8) | in[4]))
-			    c |= 0x1;
+		      if (ackallgroup || l3->hasGroupAddress ((in[3] << 8) | in[4], this))
+		        c |= 0x1;
 		    }
 		  TRACEPRINTF (t, 0, this, "SendAck %02X", c);
 		  pth_write_ev (fd, &c, 1, stop);
@@ -482,21 +426,13 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 		  uchar c = 0x10;
 		  if ((in[1] & 0x80) == 0)
 		    {
-		      if (ackallindividual)
+		      if (ackallindividual || l3->hasAddress ((in[4] << 8) | in[5], this))
 			c |= 0x1;
-		      else
-			for (unsigned i = 0; i < indaddr (); i++)
-			  if (indaddr[i] == ((in[4] << 8) | in[5]))
-			    c |= 0x1;
 		    }
 		  else
 		    {
-		      if (ackallgroup)
+		      if (ackallgroup || l3->hasGroupAddress ((in[4] << 8) | in[5], this))
 			c |= 0x1;
-		      else
-			for (unsigned i = 0; i < groupaddr (); i++)
-			  if (groupaddr[i] == ((in[4] << 8) | in[5]))
-			    c |= 0x1;
 		    }
 		  TRACEPRINTF (t, 0, this, "SendAck %02X", c);
 		  pth_write_ev (fd, &c, 1, stop);

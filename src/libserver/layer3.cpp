@@ -188,14 +188,6 @@ Layer3::deregisterGroupCallBack (L_Data_CallBack * c, eibaddr_t addr)
 	group[i] = group[group () - 1];
 	group.resize (group () - 1);
 	TRACEPRINTF (t, 3, this, "deregisterGroupCallBack %08X = 1", c);
-	for (i = 0; i < group (); i++)
-	  {
-	    if (group[i].dest == addr)
-	      return 1;
-	  }
-	if (addr)
-          for (i = 0; i < layer2 (); i++)
-	    layer2[i].l2->removeGroupAddress (addr);
 	return 1;
       }
   TRACEPRINTF (t, 3, this, "deregisterGroupCallBack %08X = 0", c);
@@ -215,15 +207,6 @@ bool
 	individual[i] = individual[individual () - 1];
 	individual.resize (individual () - 1);
 	TRACEPRINTF (t, 3, this, "deregisterIndividual %08X = 1", c);
-	for (i = 0; i < individual (); i++)
-	  {
-	    if (individual[i].dest == dest)
-	      return 1;
-	  }
-	if (dest)
-          for (i = 0; i < layer2 (); i++)
-	    layer2[i].l2->removeAddress (dest);
-	return 1;
       }
   TRACEPRINTF (t, 3, this, "deregisterIndividual %08X = 0", c);
   return 0;
@@ -324,10 +307,6 @@ Layer3::registerGroupCallBack (L_Data_CallBack * c, eibaddr_t addr)
       if (group[i].dest == addr)
 	break;
     }
-  if (i == group ())
-    if (addr)
-      for (int i = 0; i < layer2 (); i++)
-        layer2[i].l2->addGroupAddress (addr);
   group.resize (group () + 1);
   group[group () - 1].cb = c;
   group[group () - 1].dest = addr;
@@ -359,9 +338,6 @@ bool
       if (individual[i].dest == dest)
 	break;
     }
-  if (i == individual () && dest)
-    for (int i = 0; i < layer2 (); i++)
-      layer2[i].l2->addAddress (dest);
   individual.resize (individual () + 1);
   individual[individual () - 1].cb = c;
   individual[individual () - 1].dest = dest;
@@ -369,6 +345,40 @@ bool
   individual[individual () - 1].lock = lock;
   TRACEPRINTF (t, 3, this, "registerIndividual %08X = 1", c);
   return 1;
+}
+
+bool
+Layer3::hasAddress (eibaddr_t addr, Layer2Interface *l2)
+{
+  if (addr == defaultAddr)
+    return true;
+
+  for (unsigned i = 0; i < layer2 (); i++)
+    if (layer2[i].l2 != l2 && layer2[i].l2->hasAddress (addr))
+      return true;
+
+  for (unsigned i = 0; i < individual (); i++)
+    if (individual[i].dest == addr)
+      return true;
+
+  return false;
+}
+
+bool
+Layer3::hasGroupAddress (eibaddr_t addr, Layer2Interface *l2)
+{
+  if (broadcast ())
+    return true;
+
+  for (unsigned i = 0; i < layer2 (); i++)
+    if (layer2[i].l2->hasGroupAddress (addr))
+      return true;
+
+  for (unsigned i = 0; i < group (); i++)
+    if (group[i].dest == addr)
+      return true;
+
+  return false;
 }
 
 void

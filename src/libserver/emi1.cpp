@@ -21,33 +21,21 @@
 #include "emi.h"
 
 bool
+EMI1Layer2Interface::Connection_Lost ()
+{
+  return iface->Connection_Lost ();
+}
+
+bool
 EMI1Layer2Interface::addAddress (eibaddr_t addr)
 {
   return 0;
 }
 
 bool
-EMI1Layer2Interface::addGroupAddress (eibaddr_t addr)
-{
-  return 1;
-}
-
-bool
 EMI1Layer2Interface::removeAddress (eibaddr_t addr)
 {
   return 0;
-}
-
-bool
-EMI1Layer2Interface::removeGroupAddress (eibaddr_t addr)
-{
-  return 1;
-}
-
-bool
-EMI1Layer2Interface::Connection_Lost ()
-{
-  return iface->Connection_Lost ();
 }
 
 bool
