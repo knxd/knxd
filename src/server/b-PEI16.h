@@ -24,7 +24,7 @@
 #include "bcu1.h"
 
 #define PEI16_URL "bcu1:/dev/eib\n"
-#define PEI16_DOC "bcu1 connects using the PEI16 Protocoll over a BCU to the bus (using a kernel driver)\n\n"
+#define PEI16_DOC "bcu1 connects using the PEI16 Protocol over a BCU to the bus (using a kernel driver)\n\n"
 
 #define PEI16_PREFIX "bcu1"
 #define PEI16_CREATE PEI16_Create

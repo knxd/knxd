@@ -24,7 +24,7 @@
 #include "eibnetrouter.h"
 
 #define EIBNETIP_URL "ip:[multicast_addr[:port]]\n"
-#define EIBNETIP_DOC "ip connects with the EIBnet/IP Routing protocol over an EIBnet/IP gateway. The gateway must be so configured, that it routes the necessary addresses\n\n"
+#define EIBNETIP_DOC "ip connects with the EIBnet/IP Routing protocol over an EIBnet/IP gateway. The gateway must be configured to route the necessary addresses\n\n"
 
 #define EIBNETIP_PREFIX "ip"
 #define EIBNETIP_CREATE eibnetip_Create
