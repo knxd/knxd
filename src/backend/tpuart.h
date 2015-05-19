@@ -49,7 +49,7 @@ class TPUARTLayer2Driver:public Layer2Interface, private Thread
   void Run (pth_sem_t * stop);
 public:
   TPUARTLayer2Driver (int version, const char *device, eibaddr_t addr,
-                      Trace * t);
+                      Layer3 *l3);
   ~TPUARTLayer2Driver ();
   bool init ();
 

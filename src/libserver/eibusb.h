@@ -56,7 +56,7 @@ class USBLayer2Interface:public Layer2Interface
   Layer2Interface *emi;
 
 public:
-  USBLayer2Interface (LowLevelDriverInterface * i, Trace * tr, int flags);
+  USBLayer2Interface (LowLevelDriverInterface * i, Layer3 * l3, int flags);
   ~USBLayer2Interface ();
   bool init ();
 

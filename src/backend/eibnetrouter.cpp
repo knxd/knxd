@@ -22,11 +22,10 @@
 #include "config.h"
 
 EIBNetIPRouter::EIBNetIPRouter (const char *multicastaddr, int port,
-				eibaddr_t a, Trace * tr) : Layer2Interface (tr)
+				eibaddr_t a, Layer3 * l3) : Layer2Interface (l3)
 {
   struct sockaddr_in baddr;
   struct ip_mreq mcfg;
-  t = tr;
   TRACEPRINTF (t, 2, this, "Open");
   mode = 0;
   vmode = 0;

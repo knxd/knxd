@@ -23,17 +23,17 @@
 #include "common.h"
 #include "lpdu.h"
 
+class Layer3;
+
 /** interface for an Layer 2 driver */
 class Layer2Interface
 {
 public:
   /** debug output */
   Trace *t;
+  Layer3 *l3;
 
-  Layer2Interface (Trace *tr)
-  {
-    t = tr;
-  }
+  Layer2Interface (Layer3 *l3);
   virtual ~Layer2Interface ()
   {
   }
@@ -83,12 +83,12 @@ public:
  * @return new Layer 2 interface
  */
 typedef Layer2Interface *(*Layer2_Create_Func) (const char *conf, int flags,
-						Trace * t);
+						Layer3 * l3);
 
 class DummyLayer2Interface:public Layer2Interface
 {
 public:
-  DummyLayer2Interface (Trace *tr) : Layer2Interface (tr)
+  DummyLayer2Interface (Layer3 *l3) : Layer2Interface (l3)
   {
   }
   LPDU *Get_L_Data (pth_event_t stop) { return 0; }

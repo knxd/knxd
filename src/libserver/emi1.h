@@ -52,7 +52,7 @@ class EMI1Layer2Interface:public Layer2Interface, private Thread
   void Send (LPDU * l);
   void Run (pth_sem_t * stop);
 public:
-  EMI1Layer2Interface (LowLevelDriverInterface * i, Trace * tr, int flags);
+  EMI1Layer2Interface (LowLevelDriverInterface * i, Layer3 * l3, int flags);
   ~EMI1Layer2Interface ();
   bool init ();
 

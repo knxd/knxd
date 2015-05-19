@@ -31,10 +31,10 @@
 #define EIBNETIP_CLEANUP NULL
 
 inline Layer2Interface *
-eibnetip_Create (const char *dev, int flags, Trace * t)
+eibnetip_Create (const char *dev, int flags, Layer3 *l3)
 {
   if (!*dev)
-    return new EIBNetIPRouter ("224.0.23.12", 3671, arg.addr, t);
+    return new EIBNetIPRouter ("224.0.23.12", 3671, arg.addr, l3);
   char *a = strdup (dev);
   char *b;
   int port;
@@ -51,7 +51,7 @@ eibnetip_Create (const char *dev, int flags, Trace * t)
     }
   else
     port = 3671;
-  c = new EIBNetIPRouter (a, port, arg.addr, t);
+  c = new EIBNetIPRouter (a, port, arg.addr, l3);
   free (a);
   return c;
 }

@@ -65,11 +65,10 @@ EMI1Layer2Interface::closeVBusmonitor ()
 }
 
 EMI1Layer2Interface::EMI1Layer2Interface (LowLevelDriverInterface * i,
-					  Trace * tr, int flags) : Layer2Interface(tr)
+					  Layer3 * l3, int flags) : Layer2Interface(l3)
 {
-  TRACEPRINTF (tr, 2, this, "Open");
+  TRACEPRINTF (t, 2, this, "Open");
   iface = i;
-  t = tr;
   mode = 0;
   vmode = 0;
   noqueue = flags & FLAG_B_EMI_NOQUEUE;
@@ -83,7 +82,7 @@ EMI1Layer2Interface::EMI1Layer2Interface (LowLevelDriverInterface * i,
       return;
     }
   Start ();
-  TRACEPRINTF (tr, 2, this, "Opened");
+  TRACEPRINTF (t, 2, this, "Opened");
 }
 
 bool

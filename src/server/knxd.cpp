@@ -114,7 +114,7 @@ void (*Cleanup) ();
 
 /** determines the right backend for the url and creates it */
 Layer2Interface *
-Create (const char *url, int flags, Trace * t)
+Create (const char *url, int flags, Layer3 * l3)
 {
   unsigned int p = 0;
   struct urldef *u = URLs;
@@ -127,7 +127,7 @@ Create (const char *url, int flags, Trace * t)
       if (strlen (u->prefix) == p && !memcmp (u->prefix, url, p))
 	{
 	  Cleanup = u->Cleanup;
-	  return u->Create (url + p + 1, flags, t);
+	  return u->Create (url + p + 1, flags, l3);
 	}
       u++;
     }
@@ -383,15 +383,15 @@ main (int ac, char *ag[])
 	fclose (pidf);
       }
 
-  FakeL2 = new DummyLayer2Interface(&t);
   l3 = new Layer3 (arg.addr, &t);
+  FakeL2 = new DummyLayer2Interface(l3);
 #ifdef HAVE_GROUPCACHE
   if (!CreateGroupCache (l3, &t, arg.groupcache))
     die ("initialisation of the group cache failed");
 #endif
   while(index < ac)
     {
-      l2 = Create (ag[index], arg.backendflags, &t);
+      l2 = Create (ag[index], arg.backendflags, l3);
       if (!l2 || !l2->init ())
         die ("initialisation of backend '%s' failed", ag[index]);
       l3->registerLayer2 (l2);

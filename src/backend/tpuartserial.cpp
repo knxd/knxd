@@ -42,10 +42,9 @@ setstat (int fd, int s)
 
 TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
 						    eibaddr_t a, int flags,
-						    Trace * tr) : Layer2Interface (tr)
+						    Layer3 *l3) : Layer2Interface (l3)
 {
   struct termios t1;
-  t = tr;
   TRACEPRINTF (t, 2, this, "Open");
 
   pth_sem_init (&in_signal);

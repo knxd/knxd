@@ -61,6 +61,6 @@ public:
  * @return new LowLevel interface
  */
 typedef LowLevelDriverInterface *(*LowLevel_Create_Func) (const char *conf,
-							  Trace * t);
+							  Trace * tr);
 
 #endif

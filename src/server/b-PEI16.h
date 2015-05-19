@@ -22,6 +22,7 @@
 
 #include "emi1.h"
 #include "bcu1.h"
+#include "layer3.h"
 
 #define PEI16_URL "bcu1:/dev/eib\n"
 #define PEI16_DOC "bcu1 connects using the PEI16 Protocoll over a BCU to the bus (using a kernel driver)\n\n"
@@ -31,9 +32,9 @@
 #define PEI16_CLEANUP NULL
 
 inline Layer2Interface *
-PEI16_Create (const char *dev, int flags, Trace * t)
+PEI16_Create (const char *dev, int flags, Layer3 *l3)
 {
-  return new EMI1Layer2Interface (new BCU1DriverLowLevelDriver (dev, t), t, flags);
+  return new EMI1Layer2Interface (new BCU1DriverLowLevelDriver (dev, l3->t), l3, flags);
 }
 
 #endif

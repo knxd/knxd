@@ -1,6 +1,6 @@
 /*
     EIBD eib bus access and management daemon
-    Copyright (C) 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
+    Copyright (C) 2015 Matthias Urlichs <matthias@urlichs.de>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,25 +17,12 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifndef C_NCN5120_H
-#define C_NCN5120_H
+#include "layer2.h"
+#include "layer3.h"
 
-#include "ncn5120.h"
-
-#define NCN5120_URL "ncn5120:/dev/ttySx\n"
-
-#define NCN5120_DOC "NCN5120 connects to the EIB bus over an the NCN5120 with 38400 baud and 8-bit mode\n\n"
-
-#define NCN5120_PREFIX "ncn5120"
-
-#define NCN5120_CREATE ncn5120_Create
-
-#define NCN5120_CLEANUP NULL
-
-inline Layer2Interface *
-ncn5120_Create (const char *dev, int flags, Layer3 *l3)
+Layer2Interface::Layer2Interface (Layer3 *layer3)
 {
-  return new NCN5120SerialLayer2Driver(dev, arg.addr, flags, l3);
+  l3 = layer3;
+  t = layer3->t;
 }
 
-#endif

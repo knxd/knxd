@@ -44,7 +44,7 @@ class EIBNetIPRouter:public Layer2Interface, private Thread
   void Run (pth_sem_t * stop);
 public:
   EIBNetIPRouter (const char *multicastaddr, int port, eibaddr_t a,
-                  Trace * tr);
+                  Layer3 *l3);
   virtual ~EIBNetIPRouter ();
   bool init ();
 

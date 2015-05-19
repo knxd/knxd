@@ -46,9 +46,8 @@ EIBNetIPTunnel::removeGroupAddress (eibaddr_t addr)
 
 EIBNetIPTunnel::EIBNetIPTunnel (const char *dest, int port, int sport,
 				const char *srcip, int Dataport, int flags,
-				Trace * tr) : Layer2Interface (tr)
+				Layer3 * l3) : Layer2Interface (l3)
 {
-  t = tr;
   TRACEPRINTF (t, 2, this, "Open");
   pth_sem_init (&insignal);
   pth_sem_init (&outsignal);

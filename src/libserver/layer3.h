@@ -94,8 +94,6 @@ class Layer3:private Thread
   Queue < LPDU * >buf;
   /** semaphre for buffer queue */
   pth_sem_t bufsem;
-  /** debug output */
-  Trace *t;
   /** working mode (bus monitor/normal operation) */
   int mode;
   /** our default address */
@@ -119,6 +117,9 @@ class Layer3:private Thread
   bool running;
 
 public:
+  /** debug output */
+  Trace *t;
+
   Layer3 (eibaddr_t addr, Trace * tr);
   virtual ~Layer3 ();
 

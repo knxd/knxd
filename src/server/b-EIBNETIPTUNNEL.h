@@ -39,7 +39,7 @@
 
 
 inline Layer2Interface *
-eibnetiptunnel_Create (const char *dev, int flags, Trace * t)
+eibnetiptunnel_Create (const char *dev, int flags, Layer3 * l3)
 {
   char *a = strdup (dev);
   char *b;
@@ -88,13 +88,13 @@ eibnetiptunnel_Create (const char *dev, int flags, Trace * t)
   else
     dport = 3671;
 
-  iface = new EIBNetIPTunnel (a, dport, sport, d, dataport, flags, t);
+  iface = new EIBNetIPTunnel (a, dport, sport, d, dataport, flags, l3);
   free (a);
   return iface;
 }
 
 inline Layer2Interface *
-eibnetiptunnelnat_Create (const char *dev, int flags, Trace * t)
+eibnetiptunnelnat_Create (const char *dev, int flags, Layer3 * l3)
 {
   char *a = strdup (dev);
   char *b;
@@ -124,7 +124,7 @@ eibnetiptunnelnat_Create (const char *dev, int flags, Trace * t)
   else
     dport = 3671;
 
-  iface = new EIBNetIPTunnel (a, dport, sport, "0.0.0.0", -1, flags, t);
+  iface = new EIBNetIPTunnel (a, dport, sport, "0.0.0.0", -1, flags, l3);
   free (a);
   return iface;
 }

@@ -47,7 +47,7 @@ class EIBNetIPTunnel:public Layer2Interface, private Thread
   void Run (pth_sem_t * stop);
 public:
   EIBNetIPTunnel (const char *dest, int port, int sport, const char *srcip,
-                  int dataport, int flags, Trace * tr);
+                  int dataport, int flags, Layer3 *l3);
   virtual ~EIBNetIPTunnel ();
   bool init ();
 

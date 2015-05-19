@@ -42,9 +42,8 @@ struct message
 
 
 TPUARTLayer2Driver::TPUARTLayer2Driver (int version, const char *device,
-					eibaddr_t a, Trace * tr) : Layer2Interface (tr)
+					eibaddr_t a, Layer3 * l3) : Layer2Interface (l3)
 {
-  t = tr;
   TRACEPRINTF (t, 2, this, "Open");
   addr = a;
   ver = version;

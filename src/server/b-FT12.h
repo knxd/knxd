@@ -22,6 +22,7 @@
 
 #include "ft12.h"
 #include "emi2.h"
+#include "layer3.h"
 
 #define FT12_URL "ft12:/dev/ttySx\n"
 #define FT12_DOC "ft12 connects over a serial line without any driver with the FT1.2 Protocol to a BCU 2\n\n"
@@ -30,9 +31,9 @@
 #define FT12_CLEANUP NULL
 
 inline Layer2Interface *
-ft12_Create (const char *dev, int flags, Trace * t)
+ft12_Create (const char *dev, int flags, Layer3 * l3)
 {
-  return new EMI2Layer2Interface (new FT12LowLevelDriver (dev, t), t, flags);
+  return new EMI2Layer2Interface (new FT12LowLevelDriver (dev, l3->t), l3, flags);
 }
 
 #endif
