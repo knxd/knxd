@@ -21,6 +21,7 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include "ncn5120.h"
+#include "layer3.h"
 
 /** get serial status lines */
 static int
@@ -41,10 +42,10 @@ setstat (int fd, int s)
 
 NCN5120SerialLayer2Driver::NCN5120SerialLayer2Driver (const char *dev,
 						    eibaddr_t a, int flags,
-						    Trace * tr)
+						    Layer3 * l3)
+	: Layer2Interface::Layer2Interface(l3)
 {
   struct termios t1;
-  t = tr;
   TRACEPRINTF (t, 2, this, "Open");
 
   pth_sem_init (&in_signal);
@@ -105,8 +106,6 @@ NCN5120SerialLayer2Driver::NCN5120SerialLayer2Driver (const char *dev,
   mode = 0;
   vmode = 0;
   addr = a;
-  indaddr.resize (1);
-  indaddr[0] = a;
 
   Start ();
   TRACEPRINTF (t, 2, this, "Openend");
@@ -236,14 +235,14 @@ NCN5120SerialLayer2Driver::RecvLPDU (const uchar * data, int len)
   t->TracePacket (1, this, "Recv", len, data);
   if (mode || vmode)
     {
-      L_Busmonitor_PDU *l = new L_Busmonitor_PDU;
+      L_Busmonitor_PDU *l = new L_Busmonitor_PDU (this);
       l->pdu.set (data, len);
       outqueue.put (l);
       pth_sem_inc (&out_signal, 1);
     }
   if (!mode)
     {
-      LPDU *l = LPDU::fromPacket (CArray (data, len), self);
+      LPDU *l = LPDU::fromPacket (CArray (data, len), this);
       if (l->getType () == L_Data && ((L_Data_PDU *) l)->valid_checksum)
 	{
 	  outqueue.put (l);
@@ -374,21 +373,13 @@ NCN5120SerialLayer2Driver::Run (pth_sem_t * stop1)
 		  uchar c = 0x10;
 		  if ((in[5] & 0x80) == 0)
 		    {
-		      if (ackallindividual)
+		      if (ackallindividual || l3->hasAddress ((in[3] << 8) | in[4], this))
 			c |= 0x1;
-		      else
-			for (unsigned i = 0; i < indaddr (); i++)
-			  if (indaddr[i] == ((in[3] << 8) | in[4]))
-			    c |= 0x1;
 		    }
 		  else
 		    {
-		      if (ackallgroup)
+		      if (ackallgroup || l3->hasGroupAddress ((in[3] << 8) | in[4], this))
 			c |= 0x1;
-		      else
-			for (unsigned i = 0; i < groupaddr (); i++)
-			  if (groupaddr[i] == ((in[3] << 8) | in[4]))
-			    c |= 0x1;
 		    }
 		  TRACEPRINTF (t, 0, this, "SendAck %02X", c);
 		  pth_write_ev (fd, &c, 1, stop);
