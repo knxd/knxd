@@ -193,7 +193,8 @@ EIBnetServer::delBusmonitor ()
 }
 
 int
-EIBnetServer::addClient (int type, const EIBnet_ConnectRequest & r1)
+EIBnetServer::addClient (int type, const EIBnet_ConnectRequest & r1,
+                         eibadd_t addr = 0)
 {
   unsigned int i;
   int id = 1;
@@ -222,6 +223,9 @@ rt:
       state[pos].no = 1;
       state[pos].type = type;
       state[pos].nat = r1.nat;
+      state[pos].addr = addr;
+      if (addr)
+        addAddress (addr);
     }
   return id;
 }
@@ -450,6 +454,8 @@ EIBnetServer::Run (pth_sem_t * stop1)
 		    if (compareIPAddress (p1->src, state[i].caddr))
 		      {
 			res = 0;
+                        if (state[i].addr)
+                          removeAddress (state[i].addr);
 			pth_event_free (state[i].timeout, PTH_FREE_THIS);
 			pth_event_free (state[i].sendtimeout, PTH_FREE_THIS);
 			pth_event_free (state[i].outwait, PTH_FREE_THIS);
@@ -476,15 +482,15 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      r2.status = 0x22;
 	      if (r1.CRI () == 3 && r1.CRI[0] == 4 && tunnel)
 		{
+		  eibaddr_t a = l3->get_client_addr ();
 		  r2.CRD.resize (3);
 		  r2.CRD[0] = 0x04;
-		  // TODO allocate per-tunnel addresses!
-		  TRACEPRINTF (t, 8, this, "Tunnel CONNECTION_REQ with %04x",l3->defaultAddr);
-		  r2.CRD[1] = (l3->defaultAddr >> 8) & 0xFF;
-		  r2.CRD[2] = (l3->defaultAddr >> 0) & 0xFF;
+		  TRACEPRINTF (t, 8, this, "Tunnel CONNECTION_REQ with %s", FormatEIBAddr(a)());
+		  r2.CRD[1] = (a >> 8) & 0xFF;
+		  r2.CRD[2] = (a >> 0) & 0xFF;
 		  if (r1.CRI[1] == 0x02 || r1.CRI[1] == 0x80)
 		    {
-		      int id = addClient ((r1.CRI[1] == 0x80) ? 1 : 0, r1);
+		      int id = addClient ((r1.CRI[1] == 0x80) ? 1 : 0, r1, a);
 		      if (id <= 0xff)
 			{
 			  if (r1.CRI[1] == 0x80)

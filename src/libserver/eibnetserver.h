@@ -35,12 +35,13 @@ typedef struct
   int no;
   bool nat;
   pth_event_t timeout;
-    Queue < CArray > out;
+  Queue < CArray > out;
   struct sockaddr_in daddr;
   struct sockaddr_in caddr;
   pth_sem_t *outsignal;
   pth_event_t outwait;
   pth_event_t sendtimeout;
+  eibaddr_t addr;
 } ConnState;
 
 typedef struct
@@ -68,7 +69,8 @@ class EIBnetServer: protected Thread, public L_Busmonitor_CallBack, public Layer
   void Send_L_Busmonitor (L_Busmonitor_PDU * l);
   void addBusmonitor ();
   void delBusmonitor ();
-  int addClient (int type, const EIBnet_ConnectRequest & r1);
+  int addClient (int type, const EIBnet_ConnectRequest & r1,
+                 eibaddr_t addr = 0);
   void addNAT (const L_Data_PDU & l);
 public:
   EIBnetServer (const char *multicastaddr, int port, bool Tunnel,
