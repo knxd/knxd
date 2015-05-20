@@ -231,7 +231,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
   int retry = 0;
   int heartbeat = 0;
   int drop = 0;
-  eibaddr_t myaddr;
+  eibaddr_t myaddr = 0;
   pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
   pth_event_t input = pth_event (PTH_EVENT_SEM, &insignal);
   pth_event_t timeout = pth_event (PTH_EVENT_RTIME, pth_time (0, 0));
@@ -665,7 +665,6 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 		     pth_time (1, 0));
 	}
     }
-out:
   dreq.caddr = saddr;
   dreq.channel = channel;
   p = dreq.ToPacket ();

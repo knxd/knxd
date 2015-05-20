@@ -13,7 +13,7 @@ script:
   - autoheader
   - automake --add-missing --copy --force-missing
   - autoconf
-  - ./configure --without-pth-test
+  - env CFLAGS="-Wall" CPPFLAGS="-Wall" ./configure --without-pth-test
   - make
 notifications:
   email:

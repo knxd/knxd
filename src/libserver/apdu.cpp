@@ -916,7 +916,7 @@ A_PropertyValue_Read_PDU::ToPacket ()
   pdu[1] = 0xD5;
   pdu[2] = obj;
   pdu[3] = prop;
-  pdu[4] = (count & 0x0f) << 4 | (start >> 8) & 0x0f;
+  pdu[4] = ((count & 0x0f) << 4) | ((start >> 8) & 0x0f);
   pdu[5] = start & 0xff;
   return pdu;
 }
@@ -976,7 +976,7 @@ A_PropertyValue_Response_PDU::ToPacket ()
   pdu[1] = 0xD6;
   pdu[2] = obj;
   pdu[3] = prop;
-  pdu[4] = (count & 0x0f) << 4 | (start >> 8) & 0x0f;
+  pdu[4] = ((count & 0x0f) << 4) | ((start >> 8) & 0x0f);
   pdu[5] = start & 0xff;
   pdu.setpart (data.array (), 6, data ());
   return pdu;
@@ -1061,7 +1061,7 @@ A_PropertyValue_Write_PDU::ToPacket ()
   pdu[1] = 0xD7;
   pdu[2] = obj;
   pdu[3] = prop;
-  pdu[4] = (count & 0x0f) << 4 | (start >> 8) & 0x0f;
+  pdu[4] = ((count & 0x0f) << 4) | ((start >> 8) & 0x0f);
   pdu[5] = start & 0xff;
   pdu.setpart (data.array (), 6, data ());
   return pdu;

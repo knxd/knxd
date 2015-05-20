@@ -152,7 +152,7 @@ GroupCache::Start ()
 void
 GroupCache::Clear ()
 {
-  int i;
+  unsigned int i;
   TRACEPRINTF (t, 4, this, "GroupCacheClear");
   for (i = 0; i < cache (); i++)
     delete cache[i];

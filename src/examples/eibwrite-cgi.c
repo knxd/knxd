@@ -234,7 +234,7 @@ main ()
   if (EIBOpenT_Group (con, dest, 1) == -1)
     cgidie ("Connect failed");
 
-  if (!gadest || !strlen(data)>0)
+  if (!gadest || !(strlen(data)>0))
     cgidie ("Need ga(g),value(v)");
   switch (dpt)
   {

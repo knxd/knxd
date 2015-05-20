@@ -934,7 +934,7 @@ EIBNetIPPacket EIBnet_DescriptionResponse::ToPacket ()CONST
   p.data[53] = 0;
   p.data[54] = services () * 2 + 2;
   p.data[55] = 2;
-  for (int i = 0; i < services (); i++)
+  for (unsigned int i = 0; i < services (); i++)
     {
       p.data[56 + i * 2] = services[i].family;
       p.data[57 + i * 2] = services[i].version;
@@ -968,7 +968,7 @@ parseEIBnet_DescriptionResponse (const EIBNetIPPacket & p,
     return 1;
   if (p.data[54] % 2)
     return 1;
-  if (p.data[54] + 54 > p.data ())
+  if (p.data[54] + 54U > p.data ())
     return 1;
   r.services.resize ((p.data[54] / 2) - 1);
   for (int i = 0; i < (p.data[54] / 2) - 1; i++)
@@ -1047,7 +1047,7 @@ EIBNetIPPacket EIBnet_SearchResponse::ToPacket ()CONST
   p.data[61] = 0;
   p.data[62] = services () * 2 + 2;
   p.data[63] = 2;
-  for (int i = 0; i < services (); i++)
+  for (unsigned int i = 0; i < services (); i++)
     {
       p.data[64 + i * 2] = services[i].family;
       p.data[65 + i * 2] = services[i].version;
@@ -1082,7 +1082,7 @@ parseEIBnet_SearchResponse (const EIBNetIPPacket & p,
     return 1;
   if (p.data[62] % 2)
     return 1;
-  if (p.data[62] + 62 > p.data ())
+  if (p.data[62] + 62U > p.data ())
     return 1;
   r.services.resize ((p.data[62] / 2) - 1);
   for (int i = 0; i < (p.data[62] / 2) - 1; i++)

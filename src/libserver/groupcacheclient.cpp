@@ -126,7 +126,7 @@ GroupCacheRequest (Layer3 * l3, Trace * t, ClientConnection * c,
 	EIBSETTYPE (erg, EIBTYPE (c->buf));
 	erg[2] = (end >> 8) & 0xff;
 	erg[3] = (end >> 0) & 0xff;
-	for (int i = 0; i < addrs (); i++)
+	for (unsigned int i = 0; i < addrs (); i++)
 	  {
 	    erg[4 + i * 2] = (addrs[i] >> 8) & 0xff;
 	    erg[4 + i * 2 + 1] = (addrs[i]) & 0xff;

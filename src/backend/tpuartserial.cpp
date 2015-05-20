@@ -568,7 +568,6 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 	  CArray d = l->ToPacket ();
 	  CArray w;
 	  unsigned i;
-	  int j;
 	  w.resize (d () * 2);
 	  for (i = 0; i < d (); i++)
 	    {
@@ -577,7 +576,7 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 	    }
 	  w[(d () * 2) - 2] = (w[(d () * 2) - 2] & 0x3f) | 0x40;
 	  t->TracePacket (0, this, "Write", w);
-	  j = pth_write_ev (fd, w.array (), w (), stop);
+	  (void) pth_write_ev (fd, w.array (), w (), stop);
 	  waitconfirm = 1;
 	  pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE, sendtimeout,
 		     pth_time (0, 600000));

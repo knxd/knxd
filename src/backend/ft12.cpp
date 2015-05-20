@@ -199,7 +199,7 @@ void
 FT12LowLevelDriver::Run (pth_sem_t * stop1)
 {
   CArray last;
-  int i;
+  unsigned int i;
   uchar buf[255];
 
   pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
@@ -271,11 +271,11 @@ FT12LowLevelDriver::Run (pth_sem_t * stop1)
 		  akt.deletepart (0, 1);
 		  continue;
 		}
-	      if (akt () < akt[1] + 6)
+	      if (akt () < akt[1] + 6U)
 		break;
 
 	      c1 = 0;
-	      for (i = 4; i < akt[1] + 4; i++)
+	      for (i = 4; i < akt[1] + 4U; i++)
 		c1 += akt[i];
 	      if (akt[akt[1] + 4] != c1 || akt[akt[1] + 5] != 0x16)
 		{
@@ -312,6 +312,7 @@ FT12LowLevelDriver::Run (pth_sem_t * stop1)
 		  outqueue.put (c);
 		  pth_sem_inc (&out_signal, TRUE);
 		}
+              // XXX TODO otherwise set 'len' to what? Or continue?
 	      akt.deletepart (0, len);
 	    }
 	  else

@@ -43,9 +43,9 @@
 class Trace
 {
   /** message levels to print */
-  int layers;
+  unsigned int layers;
   /** error levels to print */
-  int level;
+  unsigned int level;
 public:
     Trace ()
   {

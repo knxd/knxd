@@ -78,6 +78,7 @@ public:
 	put (a->entry);
 	a = a->Next;
       }
+    return *this;
   }
 
   /** adds a element to the queue end */

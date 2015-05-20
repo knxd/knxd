@@ -29,6 +29,7 @@ printHex (int len, uchar * data)
     printf ("%02X ", data[i]);
 }
 
+void die (const char *msg, ...) __attribute__((noreturn));
 void
 die (const char *msg, ...)
 {
