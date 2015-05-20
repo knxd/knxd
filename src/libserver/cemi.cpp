@@ -24,25 +24,25 @@
 #include "emi.h"
 
 bool
-CEMILayer2Interface::addAddress (eibaddr_t addr)
+CEMILayer2Interface::addAddress (eibaddr_t addr UNUSED)
 {
   return 0;
 }
 
 bool
-CEMILayer2Interface::addGroupAddress (eibaddr_t addr)
+CEMILayer2Interface::addGroupAddress (eibaddr_t addr UNUSED)
 {
   return 1;
 }
 
 bool
-CEMILayer2Interface::removeAddress (eibaddr_t addr)
+CEMILayer2Interface::removeAddress (eibaddr_t addr UNUSED)
 {
   return 0;
 }
 
 bool
-CEMILayer2Interface::removeGroupAddress (eibaddr_t addr)
+CEMILayer2Interface::removeGroupAddress (eibaddr_t addr UNUSED)
 {
   return 1;
 }

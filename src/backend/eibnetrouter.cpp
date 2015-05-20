@@ -187,25 +187,25 @@ EIBNetIPRouter::Run (pth_sem_t * stop1)
 }
 
 bool
-EIBNetIPRouter::addAddress (eibaddr_t addr)
+EIBNetIPRouter::addAddress (eibaddr_t addr UNUSED)
 {
   return 1;
 }
 
 bool
-EIBNetIPRouter::addGroupAddress (eibaddr_t addr)
+EIBNetIPRouter::addGroupAddress (eibaddr_t addr UNUSED)
 {
   return 1;
 }
 
 bool
-EIBNetIPRouter::removeAddress (eibaddr_t addr)
+EIBNetIPRouter::removeAddress (eibaddr_t addr UNUSED)
 {
   return 1;
 }
 
 bool
-EIBNetIPRouter::removeGroupAddress (eibaddr_t addr)
+EIBNetIPRouter::removeGroupAddress (eibaddr_t addr UNUSED)
 {
   return 1;
 }

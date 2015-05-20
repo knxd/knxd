@@ -607,8 +607,6 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      else
 		r2.status = 0x29;
 	      state[i].rno++;
-	      if (state[i].rno > 0xff)
-		state[i].rno = 0;
 	      sock->sendaddr = state[i].daddr;
 	      sock->Send (r2.ToPacket ());
 	    }
@@ -650,8 +648,6 @@ EIBnetServer::Run (pth_sem_t * stop1)
 		  goto out;
 		}
 	      state[i].sno++;
-	      if (state[i].sno > 0xff)
-		state[i].sno = 0;
 	      state[i].state = 0;
 	      state[i].out.get ();
 	      pth_sem_dec (state[i].outsignal);
@@ -739,8 +735,6 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      else
 		r2.status = 0x29;
 	      state[i].rno++;
-	      if (state[i].rno > 0xff)
-		state[i].rno = 0;
 	      sock->sendaddr = state[i].daddr;
 	      sock->Send (r2.ToPacket ());
 	    }
@@ -782,8 +776,6 @@ EIBnetServer::Run (pth_sem_t * stop1)
 		  goto out;
 		}
 	      state[i].sno++;
-	      if (state[i].sno > 0xff)
-		state[i].sno = 0;
 	      state[i].state = 0;
 	      state[i].out.get ();
 	      pth_sem_dec (state[i].outsignal);

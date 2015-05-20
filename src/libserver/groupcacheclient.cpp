@@ -41,7 +41,7 @@ DeleteGroupCache ()
 }
 
 void
-GroupCacheRequest (Layer3 * l3, Trace * t, ClientConnection * c,
+GroupCacheRequest (Layer3 * l3 UNUSED, Trace * t UNUSED, ClientConnection * c,
 		   pth_event_t stop)
 {
   GroupCacheEntry gc;

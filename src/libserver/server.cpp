@@ -76,6 +76,6 @@ Server::Run (pth_sem_t * stop1)
 }
 
 void
-Server::setupConnection (int cfd)
+Server::setupConnection (int cfd UNUSED)
 {
 }

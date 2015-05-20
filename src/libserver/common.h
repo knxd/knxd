@@ -82,5 +82,10 @@ String FormatEIBKey (eibkey_type addr);
 #include "trace.h"
 
 #define CONST const
+#ifdef __GNUC__
+#define UNUSED __attribute__((unused))
+#else
+#define UNUSED 
+#endif
 
 #endif

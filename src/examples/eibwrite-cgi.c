@@ -214,7 +214,7 @@ main ()
 {
   int len=0;
   EIBConnection *con;
-  int i,j;
+  unsigned int i,j;
   double fval;
   int sign=0,exp=0,mant=0;
   eibaddr_t dest;

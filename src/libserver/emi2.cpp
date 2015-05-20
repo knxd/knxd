@@ -21,25 +21,25 @@
 #include "emi.h"
 
 bool
-EMI2Layer2Interface::addAddress (eibaddr_t addr)
+EMI2Layer2Interface::addAddress (eibaddr_t addr UNUSED)
 {
   return 0;
 }
 
 bool
-EMI2Layer2Interface::addGroupAddress (eibaddr_t addr)
+EMI2Layer2Interface::addGroupAddress (eibaddr_t addr UNUSED)
 {
   return 1;
 }
 
 bool
-EMI2Layer2Interface::removeAddress (eibaddr_t addr)
+EMI2Layer2Interface::removeAddress (eibaddr_t addr UNUSED)
 {
   return 0;
 }
 
 bool
-EMI2Layer2Interface::removeGroupAddress (eibaddr_t addr)
+EMI2Layer2Interface::removeGroupAddress (eibaddr_t addr UNUSED)
 {
   return 1;
 }

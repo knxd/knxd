@@ -31,7 +31,7 @@
 #define EIBNETIP_CLEANUP NULL
 
 inline Layer2Interface *
-eibnetip_Create (const char *dev, int flags, Trace * t)
+eibnetip_Create (const char *dev, int flags UNUSED, Trace * t)
 {
   if (!*dev)
     return new EIBNetIPRouter ("224.0.23.12", 3671, arg.addr, t);

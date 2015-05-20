@@ -21,25 +21,25 @@
 #include "emi.h"
 
 bool
-EIBNetIPTunnel::addAddress (eibaddr_t addr)
+EIBNetIPTunnel::addAddress (eibaddr_t addr UNUSED)
 {
   return 0;
 }
 
 bool
-EIBNetIPTunnel::removeAddress (eibaddr_t addr)
+EIBNetIPTunnel::removeAddress (eibaddr_t addr UNUSED)
 {
   return 0;
 }
 
 bool
-EIBNetIPTunnel::addGroupAddress (eibaddr_t addr)
+EIBNetIPTunnel::addGroupAddress (eibaddr_t addr UNUSED)
 {
   return 1;
 }
 
 bool
-EIBNetIPTunnel::removeGroupAddress (eibaddr_t addr)
+EIBNetIPTunnel::removeGroupAddress (eibaddr_t addr UNUSED)
 {
   return 1;
 }
