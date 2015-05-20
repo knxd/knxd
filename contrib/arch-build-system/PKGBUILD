@@ -1,0 +1,32 @@
+pkgname='knxd-git'
+pkgver='r100.06292d9'
+pkgrel='0'
+pkgdesc='A server which provides an interface to a KNX/EIB installation'
+license='GPL2'
+
+arch=('i686' 'x86_64' 'arm' 'armv6h' 'armv7h')
+conflicts=('knxd' 'eibd')
+provides=('knxd')
+replaces=('eibd')
+depends=('pthsem>=2.0.8' 'gcc-libs')
+makedepends=('git' 'libtool' 'autoconf' 'automake')
+
+source=("$pkgname::git+https://github.com/Makki1/knxd.git")
+sha512sums=('SKIP')
+
+pkgver() {
+	cd "$srcdir/$pkgname"
+	printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+build() {
+	cd "$srcdir/$pkgname"
+	./bootstrap.sh
+	./configure --prefix="$pkgdir/usr"
+	make
+}
+
+package() {
+	cd "$srcdir/$pkgname"
+	make install
+}

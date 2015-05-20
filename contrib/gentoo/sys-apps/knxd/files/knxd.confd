@@ -1,5 +1,8 @@
+# config file for knxd-@SLOT@
+
 # Set desired backend, check docs for list of available backends,
 # some examples listed here
 # ip: usb: bcu1: ipt: tpuarts:
 KNXD_OPTS="-i usb:"
-PID_FILE="/var/tmp/knxd.pid"
+KNXD_USER="nobody:usb"
+KNXD_LOGFILE="/var/log/knxd.log"

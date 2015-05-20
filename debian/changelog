@@ -1,0 +1,5 @@
+knxd (0.9.0-1) unstable; urgency=low
+
+  * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+
+ -- Timo <knxd@timo-wingender.de>  Tue, 16 Dec 2014 12:55:54 +0100

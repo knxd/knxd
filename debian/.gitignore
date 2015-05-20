@@ -1,0 +1,9 @@
+/tmp
+/knxd-examples
+/knxd-dev
+/knxd-tools
+/knxd
+/*.log
+/*.debhelper
+/*.substvars
+/files
