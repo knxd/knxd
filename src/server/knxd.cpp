@@ -32,6 +32,11 @@
 #include "eibnetserver.h"
 #include "groupcacheclient.h"
 
+#ifdef HAVE_SYSTEMD
+#include <systemd/sd-daemon.h>
+#include "systemdserver.h"
+#endif
+
 #define OPT_BACK_TUNNEL_NOQUEUE 1
 #define OPT_BACK_TPUARTS_ACKGROUP 2
 #define OPT_BACK_TPUARTS_ACKINDIVIDUAL 3
@@ -332,8 +337,10 @@ main (int ac, char *ag[])
   if (index < ac - 1)
     die ("unexpected parameter");
 
+#ifndef HAVE_SYSTEMD
   if (arg.port == 0 && arg.name == 0 && arg.serverip == 0)
     die ("No listen-address given");
+#endif
 
   signal (SIGPIPE, SIG_IGN);
   pth_init ();
@@ -401,6 +408,31 @@ main (int ac, char *ag[])
 	die ("initialisation of the knxd unix protocol failed");
       server.put (s);
     }
+
+#ifdef HAVE_SYSTEMD
+  /* use sockets provided by systemd when nothing else is specified */
+  if (!arg.port && !arg.name)
+  {
+    const int num_fds = sd_listen_fds(0);
+
+    if( num_fds < 0 )
+      die("Error getting fds from systemd.");
+    else if( num_fds == 0 )
+      die("Received zero fds from systemd");
+
+    for( int fd = SD_LISTEN_FDS_START; fd < SD_LISTEN_FDS_START+num_fds; ++fd )
+    {
+      if( sd_is_socket(fd, AF_UNSPEC, SOCK_STREAM, 1) <= 0 )
+        die("Error: socket not of expected type.");
+
+      s = new SystemdServer(l3, &t, fd);
+      if (!s->init ())
+        die ("initialisation of the systemd socket failed");
+      server.put (s);
+    }
+  }
+#endif
+
 #ifdef HAVE_EIBNETIPSERVER
   serv = startServer (l3, &t, arg.eibnetname, arg.addr);
 #endif

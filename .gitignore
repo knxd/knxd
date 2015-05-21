@@ -172,4 +172,6 @@ Makefile
 /src/tools/eibnet/eibnetdescribe
 /src/tools/eibnet/eibnetsearch
 /src/usb/findknxusb
+/systemd/*.service
+/systemd/*.socket
 /stamp-h1

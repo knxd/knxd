@@ -4,7 +4,7 @@ EXTRA_DIST=SubmittingPatches .gitignore
 
 BUILDDIRS = 
 
-SUBDIRS=. src 
+SUBDIRS=. src systemd
 
 BUILT_SOURCES=path.h
 CLEANFILES=path.h
