@@ -25,12 +25,6 @@
 #ifdef HAVE_FT12
 #include "b-FT12.h"
 #endif
-#ifdef HAVE_PEI16
-#include "b-PEI16.h"
-#endif
-#ifdef HAVE_TPUART
-#include "b-TPUART.h"
-#endif
 #ifdef HAVE_EIBNETIP
 #include "b-EIBNETIP.h"
 #endif

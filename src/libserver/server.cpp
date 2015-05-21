@@ -26,7 +26,7 @@ Server::~Server ()
 {
   TRACEPRINTF (t, 8, this, "StopServer");
   Stop ();
-  for (int i = 0; i < connections (); i++)
+  for (unsigned int i = 0; i < connections (); i++)
     connections[i]->StopDelete ();
   while (connections () != 0)
     pth_yield (0);
@@ -76,6 +76,6 @@ Server::Run (pth_sem_t * stop1)
 }
 
 void
-Server::setupConnection (int cfd)
+Server::setupConnection (int cfd UNUSED)
 {
 }

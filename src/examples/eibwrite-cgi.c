@@ -214,7 +214,7 @@ main ()
 {
   int len=0;
   EIBConnection *con;
-  int i,j;
+  unsigned int i,j;
   double fval;
   int sign=0,exp=0,mant=0;
   eibaddr_t dest;
@@ -234,7 +234,7 @@ main ()
   if (EIBOpenT_Group (con, dest, 1) == -1)
     cgidie ("Connect failed");
 
-  if (!gadest || !strlen(data)>0)
+  if (!gadest || !(strlen(data)>0))
     cgidie ("Need ga(g),value(v)");
   switch (dpt)
   {

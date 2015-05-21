@@ -284,7 +284,6 @@ EIBnetServer *
 startServer (Layer3 * l3, Trace * t, const char *name, eibaddr_t addr)
 {
   EIBnetServer *c;
-  char *ip;
   int port;
   if (!arg.serverip)
     return 0;

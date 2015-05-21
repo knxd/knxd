@@ -112,7 +112,7 @@ EIBnetServer::EIBnetServer (const char *multicastaddr, int port, bool Tunnel,
 
 EIBnetServer::~EIBnetServer ()
 {
-  int i;
+  unsigned int i;
   TRACEPRINTF (t, 8, this, "Close");
   if (route || tunnel)
     {
@@ -138,7 +138,7 @@ EIBnetServer::init ()
 void
 EIBnetServer::Send_L_Busmonitor (L_Busmonitor_PDU * l)
 {
-  for (int i = 0; i < state (); i++)
+  for (unsigned int i = 0; i < state (); i++)
     {
       if (state[i].type == 1)
 	{
@@ -172,7 +172,7 @@ EIBnetServer::Send_L_Data (L_Data_PDU * l)
       p.service = ROUTING_INDICATION;
       if (l->dest == 0 && l->AddrType == IndividualAddress)
 	{
-	  int i, cnt = 0;
+	  unsigned int i, cnt = 0;
 	  for (i = 0; i < natstate (); i++)
 	    if (natstate[i].dest == l->source)
 	      {
@@ -194,7 +194,7 @@ EIBnetServer::Send_L_Data (L_Data_PDU * l)
 	  sock->Send (p);
 	}
     }
-  for (int i = 0; i < state (); i++)
+  for (unsigned int i = 0; i < state (); i++)
     {
       if (state[i].type == 0)
 	{
@@ -227,7 +227,7 @@ EIBnetServer::delBusmonitor ()
 int
 EIBnetServer::addClient (int type, const EIBnet_ConnectRequest & r1)
 {
-  int i;
+  unsigned int i;
   int id = 1;
 rt:
   for (i = 0; i < state (); i++)
@@ -261,7 +261,7 @@ rt:
 void
 EIBnetServer::addNAT (const L_Data_PDU & l)
 {
-  int i;
+  unsigned int i;
   if (l.AddrType != IndividualAddress)
     return;
   for (i = 0; i < natstate (); i++)
@@ -283,7 +283,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 {
   EIBNetIPPacket *p1;
   EIBNetIPPacket p;
-  int i;
+  unsigned int i;
   pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
 
   while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
@@ -559,7 +559,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 		  TRACEPRINTF (t, 8, this, "Invalid data endpoint");
 		  goto out;
 		}
-	      if (state[i].rno == (r1.seqno + 1) & 0xff)
+	      if (state[i].rno == ((r1.seqno + 1) & 0xff))
 		{
 		  TRACEPRINTF (t, 8, this, "Lost ACK for %d", state[i].rno);
 		  r2.channel = r1.channel;
@@ -611,8 +611,6 @@ EIBnetServer::Run (pth_sem_t * stop1)
 		  r2.status = 0x29;
 		}
 	      state[i].rno++;
-	      if (state[i].rno > 0xff)
-		state[i].rno = 0;
 	      sock->sendaddr = state[i].daddr;
 	      sock->Send (r2.ToPacket ());
 	    }
@@ -654,8 +652,6 @@ EIBnetServer::Run (pth_sem_t * stop1)
 		  goto out;
 		}
 	      state[i].sno++;
-	      if (state[i].sno > 0xff)
-		state[i].sno = 0;
 	      state[i].state = 0;
 	      state[i].out.get ();
 	      pth_sem_dec (state[i].outsignal);
@@ -677,7 +673,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 		  TRACEPRINTF (t, 8, this, "Invalid data endpoint");
 		  goto out;
 		}
-	      if (state[i].rno == (r1.seqno + 1) & 0xff)
+	      if (state[i].rno == ((r1.seqno + 1) & 0xff))
 		{
 		  r2.channel = r1.channel;
 		  r2.seqno = r1.seqno;
@@ -743,8 +739,6 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      else
 		r2.status = 0x29;
 	      state[i].rno++;
-	      if (state[i].rno > 0xff)
-		state[i].rno = 0;
 	      sock->sendaddr = state[i].daddr;
 	      sock->Send (r2.ToPacket ());
 	    }
@@ -786,8 +780,6 @@ EIBnetServer::Run (pth_sem_t * stop1)
 		  goto out;
 		}
 	      state[i].sno++;
-	      if (state[i].sno > 0xff)
-		state[i].sno = 0;
 	      state[i].state = 0;
 	      state[i].out.get ();
 	      pth_sem_dec (state[i].outsignal);

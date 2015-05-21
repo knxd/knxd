@@ -161,7 +161,7 @@ USBConverterInterface::Send_Packet (CArray l)
 {
   t->TracePacket (0, this, "Send-EMI", l);
   CArray out;
-  int j, l1;
+  unsigned int j, l1;
   l1 = l ();
   out.resize (64);
   if (l1 + 11 > 64)
@@ -189,6 +189,8 @@ USBConverterInterface::Send_Packet (CArray l)
     case vCEMI:
       out[8] = 0x03;
       break;
+    default:
+      return; // should not happen
     }
   i->Send_Packet (out);
 }
@@ -202,7 +204,7 @@ USBConverterInterface::Get_Packet (pth_event_t stop)
       CArray res = *res1;
       if (res () != 64)
 	goto out;
-      if (res[0] = !0x01)
+      if (res[0] != 0x01)
 	goto out;
       if ((res[1] & 0x0f) != 3)
 	goto out;

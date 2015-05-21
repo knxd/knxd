@@ -85,30 +85,6 @@ if test x$ft12 = xtrue ; then
  AC_DEFINE(HAVE_FT12, 1 , [FT1.2 enabled])
 fi
 
-AC_ARG_ENABLE(pei16,
-[  --enable-pei16	enable BCU1 kernel driver backend],
-[case "${enableval}" in
- yes) pei16=true ;;
-  no)  pei16=false ;;
-   *) AC_MSG_ERROR(bad value ${enableval} for --enable-pei16) ;;
- esac],[pei16=false])
-AM_CONDITIONAL(HAVE_PEI16, test x$pei16 = xtrue)
-if test x$pei16 = xtrue; then
- AC_DEFINE(HAVE_PEI16, 1 , [PEI16 enabled])
-fi
-
-AC_ARG_ENABLE(tpuart,
-[  --enable-tpuart	enable TPUART kernel driver backend (deprecated)],
-[case "${enableval}" in
- yes) tpuart=true ;;
-  no)  tpuart=false ;;
-   *) AC_MSG_ERROR(bad value ${enableval} for --enable-tpuart) ;;
- esac],[tpuart=false])
-AM_CONDITIONAL(HAVE_TPUART, test x$tpuart = xtrue)
-if test x$tpuart = xtrue ; then
- AC_DEFINE(HAVE_TPUART, 1 , [TPUART enabled])
-fi
-
 AC_ARG_ENABLE(pei16s,
 [  --enable-pei16s	enable BCU1 user driver backend (very experimental)],
 [case "${enableval}" in

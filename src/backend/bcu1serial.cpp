@@ -221,7 +221,7 @@ BCU1SerialLowLevelDriver::endsync ()
 
 bool
   BCU1SerialLowLevelDriver::exchange (uchar c, uchar & result,
-				      pth_event_t stop)
+				      pth_event_t stop UNUSED)
 {
   uchar s;
   int i;

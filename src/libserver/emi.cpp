@@ -22,7 +22,7 @@
 CArray
 L_Data_ToCEMI (uchar code, const L_Data_PDU & l1)
 {
-  uchar c;
+  uchar c = 0; // stupid compiler
   CArray pdu;
   assert (l1.data () >= 1);
   assert (l1.data () < 0xff);
@@ -107,7 +107,7 @@ CEMI_to_L_Data (const CArray & data, Layer2Interface * l2)
     }
   c.hopcount = (data[start + 1] >> 4) & 0x07;
   c.AddrType = (data[start + 1] & 0x80) ? GroupAddress : IndividualAddress;
-  if (!data[start] & 0x80 && data[start + 1] & 0x0f)
+  if (!(data[start] & 0x80) && (data[start + 1] & 0x0f))
     {
       TRACEPRINTF (l2->t, 7, NULL, "Length? invalid (%02x%02x)", data[start],data[start+1]);
       return 0;
@@ -147,7 +147,7 @@ CArray
 L_Data_ToEMI (uchar code, const L_Data_PDU & l1)
 {
   CArray pdu;
-  uchar c;
+  uchar c = 0; // stupid compiler
   switch (l1.prio)
     {
     case PRIO_LOW:

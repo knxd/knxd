@@ -297,12 +297,9 @@ CArray L_Data_PDU::ToPacket ()
   assert (data () >= 1);
   assert (data () <= 0xff);
   assert ((hopcount & 0xf8) == 0);
-  CArray
-    pdu;
-  uchar
-    c;
-  unsigned
-    i;
+  CArray pdu;
+  uchar c = 0; // stupid compiler
+  unsigned i;
   switch (prio)
     {
     case PRIO_LOW:
@@ -385,9 +382,8 @@ String L_Data_PDU::Decode ()
   s += " from ";
   s += FormatEIBAddr (source);
   s += " to ";
-  s += (AddrType == GroupAddress ?
-                    FormatGroupAddr (dest) :
-                    FormatEIBAddr (dest));
+  s += ((AddrType == GroupAddress) ? FormatGroupAddr (dest)
+                                   : FormatEIBAddr (dest));
   s += " hops: ";
   addHex (s, hopcount);
   TPDU *

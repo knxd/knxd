@@ -77,7 +77,7 @@ Layer2Interface::removeGroupAddress (eibaddr_t addr)
 bool
 Layer2Interface::hasAddress (eibaddr_t addr)
 {
-  for (int i = 0; i < indaddr (); i++)
+  for (unsigned int i = 0; i < indaddr (); i++)
     if (indaddr[i] == addr)
       return true;
   return false;
@@ -86,7 +86,7 @@ Layer2Interface::hasAddress (eibaddr_t addr)
 bool
 Layer2Interface::hasGroupAddress (eibaddr_t addr)
 {
-  for (int i = 0; i < groupaddr (); i++)
+  for (unsigned int i = 0; i < groupaddr (); i++)
     if (groupaddr[i] == addr)
       return true;
   return false;

@@ -28,10 +28,15 @@
 #ifndef EIBCLIENT_INT_H
 #define EIBCLIENT_INT_H
 
+#include "config.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 #include "eibclient.h"
 
@@ -178,9 +183,9 @@ int _EIB_GetRequest (EIBConnection * con);
 #define EIBC_INIT_SEND(length) \
 	uchar head[length]; \
 	uchar *ibuf = head; \
-	unsigned int ilen = length; \
+	unsigned int ilen __attribute__((unused)) = length; \
 	int dyn = 0; \
-	int i; \
+	int i __attribute__((unused)); \
 	if (!con) \
 	  { \
 	    errno = EINVAL; \

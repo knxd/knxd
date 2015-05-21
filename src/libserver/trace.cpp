@@ -28,7 +28,7 @@ Trace::TracePacketUncond (int layer, void *inst, const char *msg, int Len,
 {
   int i;
   int t = time (0);
-  printf ("Layer %d(%08X,%08X) %s(%03d):", layer, (unsigned long) inst, t,
+  printf ("Layer %d(%08lX,%08X) %s(%03d):", layer, (unsigned long) inst, t,
 	  msg, Len);
   for (i = 0; i < Len; i++)
     printf (" %02X", data[i]);
@@ -40,7 +40,7 @@ Trace::TracePrintf (int layer, void *inst, const char *msg, ...)
 {
   va_list ap;
   int t = time (0);
-  printf ("Layer %d(%08X,%08X) ", layer, (unsigned long) inst, t);
+  printf ("Layer %d(%08lX,%08X) ", layer, (unsigned long) inst, t);
   va_start (ap, msg);
   vprintf (msg, ap);
   printf ("\n");
@@ -51,7 +51,6 @@ void
 Trace::ErrorPrintfUncond (unsigned int msgid, const char *msg, ...)
 {
   va_list ap;
-  int t = time (0);
   char c;
   switch ((msgid >> 28) & 0x0f)
     {

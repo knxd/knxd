@@ -30,7 +30,6 @@ Layer2Runner::~Layer2Runner()
 void Layer2Runner::Run(pth_sem_t * stop1)
 {
   pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
-  unsigned i;
 
   TRACEPRINTF (l2->t, 3, this, "L2r running: %08X", l2);
   while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
@@ -58,7 +57,7 @@ Layer3::~Layer3 ()
 {
   TRACEPRINTF (t, 3, this, "Close");
   Stop ();
-  for (int i = 0; i < layer2 (); i++)
+  for (unsigned int i = 0; i < layer2 (); i++)
     {
       layer2[i].Stop ();
       if (mode)
@@ -81,7 +80,7 @@ Layer3::send_L_Data (L_Data_PDU * l)
   TRACEPRINTF (t, 3, this, "Send %s", l->Decode ()());
   if (l->source == 0)
     l->source = defaultAddr;
-  for (int i = 0; i < layer2 (); i++)
+  for (unsigned int i = 0; i < layer2 (); i++)
     if (l->l2 != layer2[i].l2)
       layer2[i].l2->Send_L_Data (new L_Data_PDU (*l));
 }
@@ -106,7 +105,7 @@ Layer3::deregisterBusmonitor (L_Busmonitor_CallBack * c)
 	if (busmonitor () == 0)
 	  {
 	    mode = 0;
-            for (int i = 0; i < layer2 (); i++)
+            for (unsigned int i = 0; i < layer2 (); i++)
               {
 	        layer2[i].l2->leaveBusmonitor ();
 	        layer2[i].l2->Open ();
@@ -130,7 +129,7 @@ Layer3::deregisterVBusmonitor (L_Busmonitor_CallBack * c)
 	vbusmonitor.resize (vbusmonitor () - 1);
 	if (vbusmonitor () == 0)
 	  {
-            for (int i = 0; i < layer2 (); i++)
+            for (unsigned int i = 0; i < layer2 (); i++)
 	      layer2[i].l2->closeVBusmonitor ();
 	  }
 	TRACEPRINTF (t, 3, this, "deregisterVBusmonitor %08X = 1", c);
@@ -223,7 +222,7 @@ Layer3::registerBusmonitor (L_Busmonitor_CallBack * c)
   if (broadcast ())
     return 0;
   if (mode == 0)
-    for (int i = 0; i < layer2 (); i++)
+    for (unsigned int i = 0; i < layer2 (); i++)
       {
         layer2[i].l2->Close ();
         if (!layer2[i].l2->enterBusmonitor ())
@@ -248,7 +247,7 @@ Layer3::registerVBusmonitor (L_Busmonitor_CallBack * c)
 {
   TRACEPRINTF (t, 3, this, "registerVBusmonitor %08X", c);
   if (!vbusmonitor ())
-    for (int i = 0; i < layer2 (); i++)
+    for (unsigned int i = 0; i < layer2 (); i++)
       {
         if (!layer2[i].l2->openVBusmonitor ())
           {
@@ -365,7 +364,7 @@ Layer3::hasAddress (eibaddr_t addr, Layer2Interface *l2)
 }
 
 bool
-Layer3::hasGroupAddress (eibaddr_t addr, Layer2Interface *l2)
+Layer3::hasGroupAddress (eibaddr_t addr, Layer2Interface *l2 UNUSED)
 {
   if (broadcast ())
     return true;

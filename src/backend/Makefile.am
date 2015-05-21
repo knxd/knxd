@@ -4,18 +4,6 @@ else
 FT12 =
 endif
 
-if HAVE_PEI16
-PEI16 = bcu1.h bcu1.cpp
-else
-PEI16 =
-endif
-
-if HAVE_TPUART
-TPUART = tpuart.h tpuart.cpp
-else
-TPUART =
-endif
-
 if HAVE_PEI16s
 PEI16s = bcu1serial.h bcu1serial.cpp lowlatency.h lowlatency.cpp
 else
@@ -55,5 +43,5 @@ endif
 noinst_LIBRARIES = libbackend.a
 AM_CPPFLAGS=-I$(top_srcdir)/src/libserver -I$(top_srcdir)/src/common -I$(top_srcdir)/src/usb $(PTH_CFLAGS) $(LIBUSB_CFLAGS)
 
-libbackend_a_SOURCES= $(FT12) $(PEI16) $(TPUART) $(PEI16s) $(TPUARTs) $(EIBNETIP) $(EIBNETIPTUNNEL) $(USB) $(NCN5120) dummy.cpp
+libbackend_a_SOURCES= $(FT12) $(PEI16s) $(TPUARTs) $(EIBNETIP) $(EIBNETIPTUNNEL) $(USB) $(NCN5120) dummy.cpp
 

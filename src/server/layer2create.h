@@ -20,13 +20,6 @@
 #ifdef HAVE_FT12
   L2_NAME (FT12)
 #endif
-#ifdef HAVE_PEI16
-  L2_NAME (PEI16)
-#endif
-#ifdef HAVE_TPUART
-  L2_NAME (TPUART24)
-  L2_NAME (TPUART26)
-#endif
 #ifdef HAVE_EIBNETIP
   L2_NAME (EIBNETIP)
 #endif

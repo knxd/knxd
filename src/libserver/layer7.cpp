@@ -314,7 +314,8 @@ int
 Layer7_Connection::X_Memory_Write_Block (memaddr_t addr, const CArray & data)
 {
   CArray prev;
-  int i, j, k, res = 0;
+  unsigned int i, j;
+  int k, res = 0;
   const unsigned blocksize = 12;
   if (X_Memory_Read_Block (addr, data (), prev) == -1)
     return -1;
@@ -337,7 +338,7 @@ Layer7_Connection::X_Memory_Write_Block (memaddr_t addr, const CArray & data)
 }
 
 int
-Layer7_Connection::X_Memory_Read_Block (memaddr_t addr, int len, CArray & erg)
+Layer7_Connection::X_Memory_Read_Block (memaddr_t addr, unsigned int len, CArray & erg)
 {
   unsigned blocksize = 12;
   CArray e;
@@ -364,7 +365,8 @@ int
 Layer7_Connection::A_Memory_Write_Block (memaddr_t addr, const CArray & data)
 {
   CArray prev;
-  int i, j, k, res = 0;
+  unsigned int i, j;
+  int k, res = 0;
   const unsigned blocksize = 12;
 
   for (i = 0; i < data (); i += blocksize)

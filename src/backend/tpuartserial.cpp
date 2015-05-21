@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <errno.h>
 #include <sys/ioctl.h>
 #include "tpuartserial.h"
 #include "layer3.h"
@@ -208,7 +209,8 @@ TPUARTSerialLayer2Driver::enterBusmonitor ()
 {
   uchar c = 0x05;
   t->TracePacket (2, this, "openBusmonitor", 1, &c);
-  write (fd, &c, 1);
+  if (write (fd, &c, 1) != 1)
+	return 0;
   mode = 1;
   return 1;
 }
@@ -218,7 +220,8 @@ TPUARTSerialLayer2Driver::leaveBusmonitor ()
 {
   uchar c = 0x01;
   t->TracePacket (2, this, "leaveBusmonitor", 1, &c);
-  write (fd, &c, 1);
+  if (write (fd, &c, 1) != 1)
+	return 0;
   mode = 0;
   return 1;
 }
@@ -228,7 +231,8 @@ TPUARTSerialLayer2Driver::Open ()
 {
   uchar c = 0x01;
   t->TracePacket (2, this, "open-reset", 1, &c);
-  write (fd, &c, 1);
+  if (write (fd, &c, 1) != 1)
+    return 0;
   return 1;
 }
 
@@ -490,7 +494,8 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 
 	  uchar c = 0x01;
 	  t->TracePacket (2, this, "Watchdog Reset", 1, &c);
-	  write (fd, &c, 1);
+	  if (write (fd, &c, 1) != 1)
+	    break;
 	  watch = 0;
 	}
       if (watch == 1 && pth_event_status (watchdog) == PTH_STATUS_OCCURRED
@@ -504,7 +509,6 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 	  CArray d = l->ToPacket ();
 	  CArray w;
 	  unsigned i;
-	  int j;
 	  w.resize (d () * 2);
 	  for (i = 0; i < d (); i++)
 	    {
@@ -513,7 +517,7 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 	    }
 	  w[(d () * 2) - 2] = (w[(d () * 2) - 2] & 0x3f) | 0x40;
 	  t->TracePacket (0, this, "Write", w);
-	  j = pth_write_ev (fd, w.array (), w (), stop);
+	  (void) pth_write_ev (fd, w.array (), w (), stop);
 	  waitconfirm = 1;
 	  pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE, sendtimeout,
 		     pth_time (0, 600000));
@@ -525,9 +529,12 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 	  watch = 1;
 	  uchar c = 0x02;
 	  t->TracePacket (2, this, "Watchdog Status", 1, &c);
-	  write (fd, &c, 1);
+	  if (write (fd, &c, 1) != 1)
+	    break;
 	}
     }
+  if (pth_event_status (stop) != PTH_STATUS_OCCURRED)
+    TRACEPRINTF (t, 2, this, "exited due to error: %s", strerror(errno));
   pth_event_free (stop, PTH_FREE_THIS);
   pth_event_free (input, PTH_FREE_THIS);
   pth_event_free (timeout, PTH_FREE_THIS);
