@@ -130,7 +130,9 @@ EIBnetServer::~EIBnetServer ()
 bool
 EIBnetServer::init ()
 {
-  return sock != 0;
+  if (!sock)
+    return false;
+  return BaseServer::init();
 }
 
 void

@@ -53,8 +53,3 @@ Server (la3, tr)
   Start ();
 }
 
-bool
-LocalServer::init ()
-{
-  return fd != -1;
-}

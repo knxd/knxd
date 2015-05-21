@@ -60,12 +60,6 @@ Server (la3, tr)
   Start ();
 }
 
-bool
-InetServer::init ()
-{
-  return fd != -1;
-}
-
 void
 InetServer::setupConnection (int cfd)
 {

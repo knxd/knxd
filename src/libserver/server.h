@@ -31,7 +31,7 @@ class BaseServer:protected Thread
   virtual void Run (pth_sem_t * stop) = 0;
 protected:
   /** debug output */
-  Trace * t;
+  Trace *t;
   /** Layer 3 interface */
   Layer3 *l3;
 
@@ -39,7 +39,7 @@ protected:
 public:
   virtual ~BaseServer ();
 
-  virtual bool init () = 0;
+  virtual bool init ();
 };
 
 /** implements the frontend (but opens no connection) */
@@ -59,7 +59,8 @@ protected:
 public:
   virtual ~Server ();
 
-  virtual bool init () = 0;
+  virtual bool init ();
+
   /** deregister client connection */
   bool deregister (ClientConnection * con);
 };

@@ -23,6 +23,8 @@
 #include "layer2.h"
 #include "lpdu.h"
 
+class BaseServer;
+
 /** stores a registered busmonitor callback */
 typedef struct
 {
@@ -113,6 +115,10 @@ class Layer3:private Thread
   void Run (pth_sem_t * stop);
   /** flag whether we're in .Run() */
   bool running;
+  /** The trace objects used here */
+  Array < Trace * > tracers;
+  /** The servers using this L3 */
+  Array < BaseServer * > servers;
 
 public:
   /** debug output */
@@ -179,6 +185,10 @@ public:
   /** check if any interface accepts this group address.
       'l2' says which interface NOT to check. */
   bool hasGroupAddress (eibaddr_t addr, Layer2Interface *l2 = 0);
+  /** save a pointer to this tracer, for deallocation with the L3 */
+  void registerTracer (Trace *t) { tracers.add (t); }
+  /** remember this server, for deallocation with the L3 */
+  void registerServer (BaseServer *s) { servers.add (s); }
 };
 
 

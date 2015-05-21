@@ -29,7 +29,6 @@ protected:
   void setupConnection (int cfd);
 public:
   InetServer (Layer3 * l3, Trace * tr, int port);
-  bool init ();
 };
 
 #endif

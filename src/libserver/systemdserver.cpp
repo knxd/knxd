@@ -37,8 +37,3 @@ Server (la3, tr)
   Start ();
 }
 
-bool
-SystemdServer::init ()
-{
-  return fd != -1;
-}

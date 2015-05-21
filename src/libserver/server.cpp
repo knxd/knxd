@@ -34,6 +34,13 @@ BaseServer::~BaseServer ()
   Stop ();
 }
 
+bool
+BaseServer::init ()
+{
+  l3->registerServer (this);
+  return true;
+}
+
 Server::~Server ()
 {
   TRACEPRINTF (t, 8, this, "StopServer");
@@ -63,6 +70,14 @@ Server::Server (Layer3 * layer3, Trace * tr)
     : BaseServer (layer3, tr)
 {
   fd = -1;
+}
+
+bool
+Server::init ()
+{
+  if (fd == -1)
+    return false;
+  return BaseServer::init();
 }
 
 void

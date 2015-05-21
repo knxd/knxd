@@ -45,8 +45,9 @@
 #define OPT_BACK_EMI_NOQUEUE 5
 
 /** structure to store the arguments */
-struct arguments
+class arguments
 {
+public:
   /** port to listen */
   int port;
   /** path for unix domain socket */
@@ -61,17 +62,83 @@ struct arguments
   int errorlevel;
   /** EIB address (for some backends) */
   eibaddr_t addr;
-  /* EIBnet/IP server */
+
+  /** do I have enough to do? */
+  unsigned int has_work;
+
+  /* EIBnet/IP multicast server flags */
   bool tunnel;
   bool route;
   bool discover;
-  bool groupcache;
+
   int backendflags;
   const char *serverip;
   const char *eibnetname;
+
+private:
+  /** our L3 instance (singleton (so far!)) */
+  Layer3 *layer3;
+  /** The current tracer */
+  Trace *t;
+  bool trace_used;
+
+public:
+  arguments () {
+    addr = 0x0001;
+  }
+  ~arguments () {
+    delete layer3;
+  }
+
+  /** get the L3 instance */
+  Layer3 *l3()
+    {
+      if (layer3 == 0) 
+        {
+          layer3 = new Layer3 (addr, tracer());
+          addr = 0;
+        }
+      return layer3;
+    }
+  bool has_l3() 
+    {
+      return layer3 != NULL;
+    }
+    
+  /** get the current tracer.
+   * Call with 'true' when you modify the tracer
+   * and with 'false' when you want to use it.
+   */
+  Trace *tracer(bool fresh = false)
+    {
+      if (fresh && trace_used)
+        {
+          Trace *tr = new Trace(*t);
+          l3()->registerTracer(t);
+          t = tr;
+          trace_used = false;
+        }
+      else if (! t)
+        {
+          t= new Trace();
+          trace_used = !fresh;
+
+          t->SetErrorLevel (LEVEL_WARNING); // default
+        }
+      return t;
+    }
+  void finish_l3 ()
+    {
+      if (trace_used)
+        l3()->registerTracer(t);
+      else if (t)
+        delete t;
+      t = NULL;
+    }
 };
+
 /** storage for the arguments*/
-struct arguments arg;
+arguments arg;
 
 /** aborts program with a printf like message */
 void
@@ -101,7 +168,6 @@ struct urldef
   const char *prefix;
   /** factory function */
   Layer2_Create_Func Create;
-  /** cleanup function */
   void (*Cleanup) ();
 };
 
@@ -112,8 +178,6 @@ struct urldef URLs[] = {
 #include "layer2create.h"
   {0, 0, 0}
 };
-
-void (*Cleanup) ();
 
 /** determines the right backend for the url and creates it */
 Layer2Interface *
@@ -128,10 +192,7 @@ Create (const char *url, int flags, Layer3 * l3)
   while (u->prefix)
     {
       if (strlen (u->prefix) == p && !memcmp (u->prefix, url, p))
-	{
-	  Cleanup = u->Cleanup;
-	  return u->Create (url + p + 1, flags, l3);
-	}
+        return u->Create (url + p + 1, flags, l3);
       u++;
     }
   die ("url not supported");
@@ -152,8 +213,8 @@ const char *argp_program_version = "knxd " VERSION;
 /** documentation */
 static char doc[] =
   "knxd -- a commonication stack for EIB/KNX\n"
-  "(C) 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>\n"
-  "supported URLs are:\n"
+  "(C) 2005-2015 Martin Koegler <mkoegler@auto.tuwien.ac.at> et al.\n"
+  "Supported Layer-2 URLs are:\n"
 #undef L2_NAME
 #define L2_NAME(a) a##_URL
 #include "layer2create.h"
@@ -178,7 +239,7 @@ static struct argp_option options[] = {
    "set our own EIB-address to EIBADDR (default 0.0.1), for drivers, which need an address"},
   {"pid-file", 'p', "FILE", 0, "write the PID of the process to FILE"},
   {"daemon", 'd', "FILE", OPTION_ARG_OPTIONAL,
-   "start the programm as daemon, the output will be written to FILE, if the argument present"},
+   "start the programm as daemon. Output will be written to FILE if given"},
 #ifdef HAVE_EIBNETIPSERVER
   {"Tunnelling", 'T', 0, 0,
    "enable EIBnet/IP Tunneling in the EIBnet/IP server"},
@@ -188,6 +249,8 @@ static struct argp_option options[] = {
   {"Server", 'S', "ip[:port]", OPTION_ARG_OPTIONAL,
    "starts the EIBnet/IP server part"},
   {"Name", 'n', "SERVERNAME", 0, "The name of the EIBnet/IP server as shown in ETS (default is knxd)"},
+  {"layer2", 'b', "driver:[arg]", 0,
+   "the Layer-2 driver to use."},
 #endif
 #ifdef HAVE_GROUPCACHE
   {"GroupCache", 'c', 0, 0,
@@ -227,21 +290,78 @@ parse_opt (int key, char *arg, struct argp_state *state)
       arguments->discover = 1;
       break;
     case 'S':
-      arguments->serverip = (arg ? arg : "224.0.23.12");
+      {
+        const char *serverip = "";
+        if (arg)
+          serverip = arg;
+        if (!*serverip) 
+          serverip = "224.0.23.12";
+
+        const char *name = arguments->eibnetname;
+
+        BaseServer *c;
+        int port = 0;
+        char *a = strdup (serverip);
+        char *b;
+        if (!a)
+          die ("out of memory");
+        b = strchr (a, ':');
+        if (b)
+          {
+            *b = 0;
+            port = atoi (b + 1);
+          }
+        if (port <= 0)
+          port = 3671;
+
+        c = new EIBnetServer (a, port, arguments->tunnel, arguments->route, arguments->discover,
+                              arguments->l3(), arguments->tracer(),
+                              (name && *name) ? name : "knxd");
+        if (!c->init ())
+          die ("initialization of the EIBnet/IP server failed");
+        free (a);
+        arguments->tunnel = false;
+        arguments->route = false;
+        arguments->discover = false;
+        arguments->eibnetname = 0;
+        arguments->has_work |= 0x02;
+      }
       break;
     case 'u':
-      arguments->name = (char *) (arg ? arg : "/tmp/eib");
+      {
+        BaseServer *s;
+        const char *name = "";
+        if (arg)
+          name = arg;
+        if (!*name)
+          name = "/tmp/eib";
+        s = new LocalServer (arguments->l3(), arguments->tracer(), name);
+        if (!s->init ())
+          die ("initialisation of the knxd unix protocol failed");
+        arguments->has_work |= 0x02;
+      }
       break;
     case 'i':
-      arguments->port = (arg ? atoi (arg) : 6720);
+      {
+        BaseServer *s = NULL;
+        int port = arg ? atoi (arg) : 0;
+        if (port == 0)
+          port = 6720;
+        if (port > 0)
+          s = new InetServer (arguments->l3(), arguments->tracer(), port);
+        if (!s || !s->init ())
+          die ("initialisation of the knxd inet protocol failed");
+        arguments->has_work |= 0x02;
+      }
       break;
     case 't':
-      arguments->tracelevel = (arg ? atoi (arg) : 0);
+      arguments->tracer(true)->SetTraceLevel (arg ? atoi (arg) : 0);
       break;
     case 'f':
-      arguments->errorlevel = (arg ? atoi (arg) : 0);
+      arguments->tracer(true)->SetErrorLevel (arg ? atoi (arg) : 0);
       break;
     case 'e':
+      if (arguments->has_l3 ())
       arguments->addr = readaddr (arg);
       break;
     case 'p':
@@ -251,10 +371,15 @@ parse_opt (int key, char *arg, struct argp_state *state)
       arguments->daemon = (char *) (arg ? arg : "/dev/null");
       break;
     case 'c':
-      arguments->groupcache = 1;
+      if (!CreateGroupCache (arguments->l3(), arguments->tracer(), true))
+        die ("initialisation of the group cache failed");
       break;
     case 'n':
       arguments->eibnetname = (char *)arg;
+      if(arguments->eibnetname[0] == '=')
+          arguments->eibnetname++;
+      if(strlen(arguments->eibnetname) >= 30)
+          die("EIBnetServer/IP name must be shorter than 30 bytes");
       break;
     case OPT_BACK_TUNNEL_NOQUEUE:
       arguments->backendflags |= FLAG_B_TUNNEL_NOQUEUE;
@@ -271,6 +396,55 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case OPT_BACK_EMI_NOQUEUE:
       arguments->backendflags |= FLAG_B_EMI_NOQUEUE;
       break;
+    case ARGP_KEY_ARG:
+    case 'b':
+      {
+        Layer2Interface *l2 = Create (arg, arguments->backendflags, arguments->l3 ());
+        if (!l2 || !l2->init ())
+          die ("initialisation of backend '%s' failed", arg);
+        arguments->backendflags = 0;
+        arguments->has_work |= (arguments->has_work & 0x01) ? 0x02 : 0x01;
+        /* The idea is that having two or more L2 interfaces to route between,
+         * but no network-or-whatever front-end, is perfectly reasonable. 
+         */
+        break;
+      }
+    case ARGP_KEY_FINI:
+      if (arguments->backendflags)
+        die ("You need to use backend flags in front of the affected backend");
+
+#ifdef HAVE_SYSTEMD
+      {
+        const int num_fds = sd_listen_fds(0);
+
+        if( num_fds < 0 )
+          die("Error getting fds from systemd.");
+        // zero FDs from systemd is not a bug
+
+        for( int fd = SD_LISTEN_FDS_START; fd < SD_LISTEN_FDS_START+num_fds; ++fd )
+          {
+            if( sd_is_socket(fd, AF_UNSPEC, SOCK_STREAM, 1) <= 0 )
+              die("Error: socket not of expected type.");
+
+            s = new SystemdServer(arguments->l3(), arguments->tracer(), fd);
+            if (!s->init ())
+              die ("initialisation of the systemd socket failed");
+            arguments->has_work |= 0x02;
+          }
+      }
+#endif
+
+      if (arguments->tunnel || arguments->route || arguments->discover || 
+          arguments->eibnetname)
+        die ("Option '-S' starts the multicast server.\n"
+             "-T/-R/-D/-n after that are useless.");
+      if (!(arguments->has_work & 0x01))
+        die ("I know of no Layer-2 interface. Giving up.");
+      if (!(arguments->has_work & 0x02))
+        die ("I have one Layer-2 interface but no network. Giving up.");
+      arguments->finish_l3();
+      break;
+
     default:
       return ARGP_ERR_UNKNOWN;
     }
@@ -280,79 +454,22 @@ parse_opt (int key, char *arg, struct argp_state *state)
 /** information for the argument parser*/
 static struct argp argp = { options, parse_opt, args_doc, doc };
 
-#ifdef HAVE_EIBNETIPSERVER
-EIBnetServer *
-startServer (Layer3 * l3, Trace * t, const char *name)
-{
-  EIBnetServer *c;
-  int port;
-  if (!arg.serverip)
-    return 0;
-
-  char *a = strdup (arg.serverip);
-  char *b;
-  if (!a)
-    die ("out of memory");
-  for (b = a; *b; b++)
-    if (*b == ':')
-      break;
-  if (*b == ':')
-    {
-      *b = 0;
-      port = atoi (b + 1);
-    }
-  else
-    port = 3671;
-
-  c = new EIBnetServer (a, port, arg.tunnel, arg.route, arg.discover, l3, t, name == 0 ? "knxd" : name);
-  if (!c->init ())
-    die ("initialization of the EIBnet/IP server failed");
-  free (a);
-  return c;
-}
-#endif
-
 #define FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH)
 
 int
 main (int ac, char *ag[])
 {
   int index;
-  Queue < BaseServer * >server;
-  BaseServer *s;
-  Layer2Interface *l2;
-  Layer3 *l3;
 
-  memset (&arg, 0, sizeof (arg));
-  arg.addr = 0x0001;
-  arg.errorlevel = LEVEL_WARNING;
-
-  argp_parse (&argp, ac, ag, 0, &index, &arg);
-
-#ifndef HAVE_SYSTEMD
-  if (arg.port == 0 && arg.name == 0 && arg.serverip == 0)
-    die ("No listen-address given");
-#endif
+  argp_parse (&argp, ac, ag, ARGP_IN_ORDER, &index, &arg);
 
   signal (SIGPIPE, SIG_IGN);
   pth_init ();
-
-  Trace t;
-  t.SetTraceLevel (arg.tracelevel);
-  t.SetErrorLevel (arg.errorlevel);
 
   /*
   if (getuid () == 0)
     ERRORPRINTF (&t, 0x37000001, 0, "EIBD should not run as root");
   */
-
-  if(arg.eibnetname)
-  {
-      if(arg.eibnetname[0] == '=')
-          arg.eibnetname++;
-      if(strlen(arg.eibnetname) >= 30)
-          die("EIBnetServer/IP name can't be longer than 30 char");
-  }
 
   if (arg.daemon)
     {
@@ -382,66 +499,11 @@ main (int ac, char *ag[])
 	fclose (pidf);
       }
 
-  l3 = new Layer3 (arg.addr, &t);
-#ifdef HAVE_GROUPCACHE
-  if (!CreateGroupCache (l3, &t, arg.groupcache))
-    die ("initialisation of the group cache failed");
-#endif
-  while(index < ac)
-    {
-      l2 = Create (ag[index], arg.backendflags, l3);
-      if (!l2 || !l2->init ())
-        die ("initialisation of backend '%s' failed", ag[index]);
-      index++;
-    }
-  if (arg.port)
-    {
-      s = new InetServer (l3, &t, arg.port);
-      if (!s->init ())
-        die ("initialisation of the knxd inet protocol failed");
-      server.put (s);
-    }
-  if (arg.name)
-    {
-      s = new LocalServer (l3, &t, arg.name);
-      if (!s->init ())
-	die ("initialisation of the knxd unix protocol failed");
-      server.put (s);
-    }
-
-#ifdef HAVE_SYSTEMD
-  /* use sockets provided by systemd when nothing else is specified */
-  if (!arg.port && !arg.name)
-  {
-    const int num_fds = sd_listen_fds(0);
-
-    if( num_fds < 0 )
-      die("Error getting fds from systemd.");
-    else if( num_fds == 0 )
-      die("Received zero fds from systemd");
-
-    for( int fd = SD_LISTEN_FDS_START; fd < SD_LISTEN_FDS_START+num_fds; ++fd )
-    {
-      if( sd_is_socket(fd, AF_UNSPEC, SOCK_STREAM, 1) <= 0 )
-        die("Error: socket not of expected type.");
-
-      s = new SystemdServer(l3, &t, fd);
-      if (!s->init ())
-        die ("initialisation of the systemd socket failed");
-      server.put (s);
-    }
-  }
-#endif
-
-#ifdef HAVE_EIBNETIPSERVER
-  s = startServer (l3, &t, arg.eibnetname);
-  if (s && s->init ())
-    server.put (s);
-#endif
 
   signal (SIGINT, SIG_IGN);
   signal (SIGTERM, SIG_IGN);
 
+  // main loop
   int sig;
   do
     {
@@ -459,7 +521,7 @@ main (int ac, char *ag[])
 	    open (arg.daemon, O_WRONLY | O_APPEND | O_CREAT, FILE_MODE);
 	  if (fd == -1)
 	    {
-	      ERRORPRINTF (&t, 0x27000002, 0, "can't open log file %s",
+	      ERRORPRINTF (arg.tracer(), 0x27000002, 0, "can't open log file %s",
 			   arg.daemon);
 	      continue;
 	    }
@@ -475,15 +537,10 @@ main (int ac, char *ag[])
 
   signal (SIGINT, SIG_DFL);
   signal (SIGTERM, SIG_DFL);
-  while (!server.isempty ())
-    delete server.get ();
+
 #ifdef HAVE_GROUPCACHE
   DeleteGroupCache ();
 #endif
-
-  delete l3;
-  if (Cleanup)
-    Cleanup ();
 
   if (arg.pidfile)
     unlink (arg.pidfile);

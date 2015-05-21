@@ -19,6 +19,7 @@
 
 #include "layer3.h"
 #include "layer2.h"
+#include "server.h"
 
 Layer2Runner::Layer2Runner()
 {
@@ -59,6 +60,8 @@ Layer3::~Layer3 ()
 {
   TRACEPRINTF (t, 3, this, "Close");
   Stop ();
+  for (unsigned int i = 0; i < servers (); i++)
+    delete servers[i];
   for (unsigned int i = 0; i < layer2 (); i++)
     {
       layer2[i].Stop ();
@@ -67,6 +70,7 @@ Layer3::~Layer3 ()
       else
         layer2[i].l2->Close ();
     }
+  // the next loops should do exactly nothing
   while (vbusmonitor ())
     deregisterVBusmonitor (vbusmonitor[0].cb);
   while (group ())
@@ -74,6 +78,8 @@ Layer3::~Layer3 ()
   while (individual ())
     deregisterIndividualCallBack (individual[0].cb, individual[0].src,
 				  individual[0].dest);
+  for (unsigned int i = 0; i < tracers (); i++)
+    delete tracers[i];
 }
 
 void
