@@ -18,6 +18,7 @@
 */
 
 #include "layer3.h"
+#include "layer2.h"
 
 Layer2Runner::Layer2Runner()
 {
@@ -50,6 +51,7 @@ Layer3::Layer3 (eibaddr_t addr, Trace * tr)
   pth_sem_init (&bufsem);
   mode = 0;
   running = false;
+  FakeL2 = new DummyLayer2Interface(this);
   Start ();
 }
 

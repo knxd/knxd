@@ -115,8 +115,6 @@ public:
   bool Send_Queue_Empty () { return 1; }
 };
 
-extern Layer2Interface *FakeL2;
-
 #define FLAG_B_TUNNEL_NOQUEUE (1<<0)
 #define FLAG_B_TPUARTS_ACKGROUP (1<<1)
 #define FLAG_B_TPUARTS_ACKINDIVIDUAL (1<<2)

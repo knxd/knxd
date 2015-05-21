@@ -44,8 +44,6 @@
 #define OPT_BACK_TPUARTS_DISCH_RESET 4
 #define OPT_BACK_EMI_NOQUEUE 5
 
-Layer2Interface *FakeL2;
-
 /** structure to store the arguments */
 struct arguments
 {
@@ -385,7 +383,6 @@ main (int ac, char *ag[])
       }
 
   l3 = new Layer3 (arg.addr, &t);
-  FakeL2 = new DummyLayer2Interface(l3);
 #ifdef HAVE_GROUPCACHE
   if (!CreateGroupCache (l3, &t, arg.groupcache))
     die ("initialisation of the group cache failed");

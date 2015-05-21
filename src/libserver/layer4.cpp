@@ -68,7 +68,7 @@ T_Broadcast::Send (const CArray & c)
   t.data = c;
   String s = t.Decode (this->t);
   TRACEPRINTF (this->t, 4, this, "Send Broadcast %s", s ());
-  L_Data_PDU *l = new L_Data_PDU (FakeL2);
+  L_Data_PDU *l = new L_Data_PDU (layer3->FakeL2);
   l->source = 0;
   l->dest = 0;
   l->AddrType = GroupAddress;
@@ -145,7 +145,7 @@ T_Group::Send (const CArray & c)
   t.data = c;
   String s = t.Decode (this->t);
   TRACEPRINTF (this->t, 4, this, "Send Group %s", s ());
-  L_Data_PDU *l = new L_Data_PDU (FakeL2);
+  L_Data_PDU *l = new L_Data_PDU (layer3->FakeL2);
   l->source = 0;
   l->dest = groupaddr;
   l->AddrType = GroupAddress;
@@ -216,7 +216,7 @@ void
 T_TPDU::Send (const TpduComm & c)
 {
   t->TracePacket (4, this, "Send TPDU", c.data);
-  L_Data_PDU *l = new L_Data_PDU (FakeL2);
+  L_Data_PDU *l = new L_Data_PDU (layer3->FakeL2);
   l->source = src;
   l->dest = c.addr;
   l->AddrType = IndividualAddress;
@@ -297,7 +297,7 @@ T_Individual::Send (const CArray & c)
   t.data = c;
   String s = t.Decode (this->t);
   TRACEPRINTF (this->t, 4, this, "Send Individual %s", s ());
-  L_Data_PDU *l = new L_Data_PDU (FakeL2);
+  L_Data_PDU *l = new L_Data_PDU (layer3->FakeL2);
   l->source = 0;
   l->dest = dest;
   l->AddrType = IndividualAddress;
@@ -410,7 +410,7 @@ T_Connection::SendConnect ()
 {
   TRACEPRINTF (t, 4, this, "SendConnect");
   T_CONNECT_REQ_PDU p;
-  L_Data_PDU *l = new L_Data_PDU (FakeL2);
+  L_Data_PDU *l = new L_Data_PDU (layer3->FakeL2);
   l->source = 0;
   l->dest = dest;
   l->AddrType = IndividualAddress;
@@ -424,7 +424,7 @@ T_Connection::SendDisconnect ()
 {
   TRACEPRINTF (t, 4, this, "SendDisconnect");
   T_DISCONNECT_REQ_PDU p;
-  L_Data_PDU *l = new L_Data_PDU (FakeL2);
+  L_Data_PDU *l = new L_Data_PDU (layer3->FakeL2);
   l->source = 0;
   l->dest = dest;
   l->AddrType = IndividualAddress;
@@ -439,7 +439,7 @@ T_Connection::SendAck (int serno)
   TRACEPRINTF (t, 4, this, "SendACK %d", serno);
   T_ACK_PDU p;
   p.serno = serno;
-  L_Data_PDU *l = new L_Data_PDU (FakeL2);
+  L_Data_PDU *l = new L_Data_PDU (layer3->FakeL2);
   l->source = 0;
   l->dest = dest;
   l->AddrType = IndividualAddress;
@@ -454,7 +454,7 @@ T_Connection::SendData (int serno, const CArray & c)
   p.data = c;
   p.serno = serno;
   TRACEPRINTF (t, 4, this, "SendData %s", p.Decode (t)());
-  L_Data_PDU *l = new L_Data_PDU (FakeL2);
+  L_Data_PDU *l = new L_Data_PDU (layer3->FakeL2);
   l->source = 0;
   l->dest = dest;
   l->AddrType = IndividualAddress;
@@ -662,7 +662,7 @@ GroupSocket::Send (const GroupAPDU & c)
   t.data = c.data;
   String s = t.Decode (this->t);
   TRACEPRINTF (this->t, 4, this, "Send GroupSocket %s", s ());
-  L_Data_PDU *l = new L_Data_PDU (FakeL2);
+  L_Data_PDU *l = new L_Data_PDU (layer3->FakeL2);
   l->source = 0;
   l->dest = c.dst;
   l->AddrType = GroupAddress;

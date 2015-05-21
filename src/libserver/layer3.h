@@ -119,6 +119,8 @@ public:
   Trace *t;
   /** our default address */
   eibaddr_t defaultAddr;
+  /** temporary: fake L2 for interfaces which aren't yet */
+  Layer2Interface *FakeL2;
 
   Layer3 (eibaddr_t addr, Trace * tr);
   virtual ~Layer3 ();
