@@ -82,7 +82,9 @@ EIBNetIPTunnel::~EIBNetIPTunnel ()
 
 bool EIBNetIPTunnel::init ()
 {
-  return sock != 0;
+  if (sock == 0)
+    return false;
+  return Layer2Interface::init ();
 }
 
 void

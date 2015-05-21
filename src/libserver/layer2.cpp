@@ -27,6 +27,20 @@ Layer2Interface::Layer2Interface (Layer3 *layer3)
 }
 
 bool
+Layer2Interface::init ()
+{
+  if (l3)
+    l3->registerLayer2 (this);
+  return true;
+}
+
+Layer2Interface::~Layer2Interface ()
+{
+  if (l3)
+    l3->deregisterLayer2 (this);
+}
+
+bool
 Layer2Interface::addAddress (eibaddr_t addr)
 {
   unsigned i;

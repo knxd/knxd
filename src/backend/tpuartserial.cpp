@@ -144,7 +144,9 @@ TPUARTSerialLayer2Driver::~TPUARTSerialLayer2Driver ()
 
 bool TPUARTSerialLayer2Driver::init ()
 {
-  return fd != -1;
+  if (fd == -1)
+    return false;
+  return Layer2Interface::init ();
 }
 
 bool TPUARTSerialLayer2Driver::openVBusmonitor ()

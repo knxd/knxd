@@ -134,7 +134,9 @@ NCN5120SerialLayer2Driver::~NCN5120SerialLayer2Driver ()
 
 bool NCN5120SerialLayer2Driver::init ()
 {
-  return fd != -1;
+  if (fd == -1)
+    return false;
+  return Layer2Interface::init ();
 }
 
 bool NCN5120SerialLayer2Driver::openVBusmonitor ()

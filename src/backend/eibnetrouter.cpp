@@ -83,7 +83,9 @@ EIBNetIPRouter::~EIBNetIPRouter ()
 bool
 EIBNetIPRouter::init ()
 {
-  return sock != 0;
+  if (sock == 0)
+    return false;
+  return Layer2Interface::init ();
 }
 
 void

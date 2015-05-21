@@ -39,9 +39,7 @@ public:
   Layer3 *l3;
 
   Layer2Interface (Layer3 *l3);
-  virtual ~Layer2Interface ()
-  {
-  }
+  virtual ~Layer2Interface ();
   virtual bool init () = 0;
 
   /** sends a Layer 2 frame asynchronouse */
