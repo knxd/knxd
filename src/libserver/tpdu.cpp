@@ -57,7 +57,7 @@ T_UNKNOWN_PDU::T_UNKNOWN_PDU ()
 }
 
 bool
-T_UNKNOWN_PDU::init (const CArray & c, Trace * t)
+T_UNKNOWN_PDU::init (const CArray & c, Trace * t UNUSED)
 {
   pdu = c;
   return true;
@@ -68,7 +68,7 @@ CArray T_UNKNOWN_PDU::ToPacket ()
   return pdu;
 }
 
-String T_UNKNOWN_PDU::Decode (Trace * t)
+String T_UNKNOWN_PDU::Decode (Trace * t UNUSED)
 {
   String
   s ("Unknown TPDU: ");
@@ -91,7 +91,7 @@ T_DATA_XXX_REQ_PDU::T_DATA_XXX_REQ_PDU ()
 }
 
 bool
-T_DATA_XXX_REQ_PDU::init (const CArray & c, Trace * t)
+T_DATA_XXX_REQ_PDU::init (const CArray & c, Trace * t UNUSED)
 {
   if (c () < 1)
     return false;
@@ -128,7 +128,7 @@ T_DATA_CONNECTED_REQ_PDU::T_DATA_CONNECTED_REQ_PDU ()
 }
 
 bool
-T_DATA_CONNECTED_REQ_PDU::init (const CArray & c, Trace * t)
+T_DATA_CONNECTED_REQ_PDU::init (const CArray & c, Trace * t UNUSED)
 {
   if (c () < 1)
     return false;
@@ -168,7 +168,7 @@ T_CONNECT_REQ_PDU::T_CONNECT_REQ_PDU ()
 }
 
 bool
-T_CONNECT_REQ_PDU::init (const CArray & c, Trace * t)
+T_CONNECT_REQ_PDU::init (const CArray & c, Trace * t UNUSED)
 {
   if (c () != 1)
     return false;
@@ -182,7 +182,7 @@ CArray T_CONNECT_REQ_PDU::ToPacket ()
   return CArray (&c, 1);
 }
 
-String T_CONNECT_REQ_PDU::Decode (Trace * t)
+String T_CONNECT_REQ_PDU::Decode (Trace * t UNUSED)
 {
   return "T_CONNECT_REQ";
 }
@@ -194,7 +194,7 @@ T_DISCONNECT_REQ_PDU::T_DISCONNECT_REQ_PDU ()
 }
 
 bool
-T_DISCONNECT_REQ_PDU::init (const CArray & c, Trace * t)
+T_DISCONNECT_REQ_PDU::init (const CArray & c, Trace * t UNUSED)
 {
   if (c () != 1)
     return false;
@@ -208,7 +208,7 @@ CArray T_DISCONNECT_REQ_PDU::ToPacket ()
   return CArray (&c, 1);
 }
 
-String T_DISCONNECT_REQ_PDU::Decode (Trace * t)
+String T_DISCONNECT_REQ_PDU::Decode (Trace * t UNUSED)
 {
   return "T_DISCONNECT_REQ";
 }
@@ -221,7 +221,7 @@ T_ACK_PDU::T_ACK_PDU ()
 }
 
 bool
-T_ACK_PDU::init (const CArray & c, Trace * t)
+T_ACK_PDU::init (const CArray & c, Trace * t UNUSED)
 {
   if (c () != 1)
     return false;
@@ -237,7 +237,7 @@ CArray T_ACK_PDU::ToPacket ()
   return CArray (&c, 1);
 }
 
-String T_ACK_PDU::Decode (Trace * t)
+String T_ACK_PDU::Decode (Trace * t UNUSED)
 {
   assert ((serno & 0xf0) == 0);
   String
@@ -253,7 +253,7 @@ T_NACK_PDU::T_NACK_PDU ()
   serno = 0;
 }
 
-bool T_NACK_PDU::init (const CArray & c, Trace * t)
+bool T_NACK_PDU::init (const CArray & c, Trace * t UNUSED)
 {
   if (c () != 1)
     return false;
@@ -269,7 +269,7 @@ CArray T_NACK_PDU::ToPacket ()
   return CArray (&c, 1);
 }
 
-String T_NACK_PDU::Decode (Trace * t)
+String T_NACK_PDU::Decode (Trace * t UNUSED)
 {
   assert ((serno & 0xf0) == 0);
   String
