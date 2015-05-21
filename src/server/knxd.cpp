@@ -356,7 +356,7 @@ main (int ac, char *ag[])
       if(arg.eibnetname[0] == '=')
           arg.eibnetname++;
       if(strlen(arg.eibnetname) >= 30)
-          die("EIBnetServer/IP name can't be longer then 30 char");
+          die("EIBnetServer/IP name can't be longer than 30 char");
   }
 
   if (arg.daemon)
