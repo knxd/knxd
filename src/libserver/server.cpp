@@ -22,6 +22,18 @@
 #include "client.h"
 
 
+BaseServer::BaseServer (Layer3 * layer3, Trace * tr)
+{
+  t = tr;
+  l3 = layer3;
+}
+
+BaseServer::~BaseServer ()
+{
+  TRACEPRINTF (t, 8, this, "StopBaseServer");
+  Stop ();
+}
+
 Server::~Server ()
 {
   TRACEPRINTF (t, 8, this, "StopServer");
@@ -33,7 +45,6 @@ Server::~Server ()
 
   if (fd != -1)
     close (fd);
-  TRACEPRINTF (t, 8, this, "Server ended");
 }
 
 bool
@@ -49,9 +60,8 @@ Server::deregister (ClientConnection * con)
 }
 
 Server::Server (Layer3 * layer3, Trace * tr)
+    : BaseServer (layer3, tr)
 {
-  t = tr;
-  l3 = layer3;
   fd = -1;
 }
 

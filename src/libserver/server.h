@@ -24,18 +24,32 @@
 #include "layer3.h"
 
 class ClientConnection;
+
 /** implements the frontend (but opens no connection) */
-class Server:protected Thread
+class BaseServer:protected Thread
 {
+  virtual void Run (pth_sem_t * stop) = 0;
+protected:
+  /** debug output */
+  Trace * t;
   /** Layer 3 interface */
   Layer3 *l3;
+
+  BaseServer (Layer3 * l3, Trace * tr);
+public:
+  virtual ~BaseServer ();
+
+  virtual bool init () = 0;
+};
+
+/** implements the frontend (but opens no connection) */
+class Server:public BaseServer
+{
   /** open client connections*/
   Array < ClientConnection * >connections;
 
   void Run (pth_sem_t * stop);
 protected:
-  /** debug output */
-  Trace * t;
   /** server socket */
   int fd;
 

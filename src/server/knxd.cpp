@@ -284,7 +284,7 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
 
 #ifdef HAVE_EIBNETIPSERVER
 EIBnetServer *
-startServer (Layer3 * l3, Trace * t, const char *name, eibaddr_t addr)
+startServer (Layer3 * l3, Trace * t, const char *name)
 {
   EIBnetServer *c;
   int port;
@@ -306,7 +306,7 @@ startServer (Layer3 * l3, Trace * t, const char *name, eibaddr_t addr)
   else
     port = 3671;
 
-  c = new EIBnetServer (a, port, arg.tunnel, arg.route, arg.discover, l3, t, name == 0 ? "knxd" : name, addr);
+  c = new EIBnetServer (a, port, arg.tunnel, arg.route, arg.discover, l3, t, name == 0 ? "knxd" : name);
   if (!c->init ())
     die ("initialization of the EIBnet/IP server failed");
   free (a);
@@ -320,13 +320,10 @@ int
 main (int ac, char *ag[])
 {
   int index;
-  Queue < Server * >server;
-  Server *s;
+  Queue < BaseServer * >server;
+  BaseServer *s;
   Layer2Interface *l2;
   Layer3 *l3;
-#ifdef HAVE_EIBNETIPSERVER
-  EIBnetServer *serv = 0;
-#endif
 
   memset (&arg, 0, sizeof (arg));
   arg.addr = 0x0001;
@@ -440,7 +437,9 @@ main (int ac, char *ag[])
 #endif
 
 #ifdef HAVE_EIBNETIPSERVER
-  serv = startServer (l3, &t, arg.eibnetname, arg.addr);
+  s = startServer (l3, &t, arg.eibnetname);
+  if (s && s->init ())
+    server.put (s);
 #endif
 
   signal (SIGINT, SIG_IGN);
@@ -481,10 +480,6 @@ main (int ac, char *ag[])
   signal (SIGTERM, SIG_DFL);
   while (!server.isempty ())
     delete server.get ();
-#ifdef HAVE_EIBNETIPSERVER
-  if (serv)
-    delete serv;
-#endif
 #ifdef HAVE_GROUPCACHE
   DeleteGroupCache ();
 #endif

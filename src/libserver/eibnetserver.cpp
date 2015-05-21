@@ -30,14 +30,12 @@
 
 EIBnetServer::EIBnetServer (const char *multicastaddr, int port, bool Tunnel,
                 bool Route, bool Discover, Layer3 * layer3,
-                Trace * tr, String serverName, eibaddr_t eibAddr)
+                Trace * tr, String serverName)
+	: BaseServer::BaseServer (layer3, tr)
 {
   struct sockaddr_in baddr;
   struct ip_mreq mcfg;
-  t = tr;
-  l3 = layer3;
   name = serverName;
-  eibaddr = eibAddr;
 
   TRACEPRINTF (t, 8, this, "Open");
   memset (&baddr, 0, sizeof (baddr));
@@ -361,7 +359,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      TRACEPRINTF (t, 8, this, "SEARCH");
 	      r2.KNXmedium = 2;
 	      r2.devicestatus = 0;
-	      r2.individual_addr = eibaddr;
+	      r2.individual_addr = l3->defaultAddr;
 	      r2.installid = 0;
 	      r2.multicastaddr = maddr.sin_addr;
 	      r2.serial[0]=1;
@@ -401,7 +399,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      TRACEPRINTF (t, 8, this, "DESCRIBE");
 	      r2.KNXmedium = 2;
 	      r2.devicestatus = 0;
-	      r2.individual_addr = eibaddr;
+	      r2.individual_addr = l3->defaultAddr;
 	      r2.installid = 0;
 	      r2.multicastaddr = maddr.sin_addr;
               memcpy(r2.MAC, mac_address, sizeof(r2.MAC));
