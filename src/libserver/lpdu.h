@@ -189,14 +189,6 @@ public:
   }
 };
 
-/** interface for callback for Layer 2 frames */
-class LPDU_CallBack 
-{
-public:
-  /** callback: a Layer 2 frame has been received */
-  virtual void Get_LPDU (LPDU * l) = 0;
-};
-
 /** interface for callback for L_Data frames */
 class L_Data_CallBack
 {   
