@@ -184,7 +184,7 @@ static struct argp_option options[] = {
    "enable the EIBnet/IP server to answer discovery and description requests (SEARCH, DESCRIPTION)"},
   {"Server", 'S', "ip[:port]", OPTION_ARG_OPTIONAL,
    "starts the EIBnet/IP server part"},
-  {"Name", 'n', "SERVERNAME", OPTION_ARG_OPTIONAL, "The name of the EIBnet/IP server as shown in ETS (default is knxd)"},
+  {"Name", 'n', "SERVERNAME", 0, "The name of the EIBnet/IP server as shown in ETS (default is knxd)"},
 #endif
 #ifdef HAVE_GROUPCACHE
   {"GroupCache", 'c', 0, 0,
@@ -251,8 +251,6 @@ parse_opt (int key, char *arg, struct argp_state *state)
       arguments->groupcache = 1;
       break;
     case 'n':
-          if(!arg)
-              die("Name must be given, if you add -n to your arg list");
       arguments->eibnetname = (char *)arg;
       break;
     case OPT_BACK_TUNNEL_NOQUEUE:
