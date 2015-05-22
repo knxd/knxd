@@ -50,6 +50,9 @@ AC_CHECK_PTHSEM(2.0.8,yes,yes,no)
 PTHSEM_LIB="$PTH_LDFLAGS $PTH_LIBS"
 AC_SUBST(PTHSEM_LIB)
 
+AX_LOCAL_EXPAND_CONFIG
+AX_ALLOW_SYSTEMD
+
 AC_CHECK_HEADER(argp.h,,[AC_MSG_ERROR([argp_parse not found])])
 AC_SEARCH_LIBS(argp_parse,argp,,[AC_MSG_ERROR([argp_parse not found])])
 AC_CHECK_HEADER(linux/serial.h,[AC_DEFINE(HAVE_LINUX_LOWLATENCY, 1 , [Linux low latency mode enabled])],[AC_MSG_WARN([No supported low latency mode found])])
@@ -269,7 +272,7 @@ src/common/Makefile
 src/Makefile src/include/Makefile  src/client/Makefile src/examples/Makefile src/libserver/Makefile src/server/Makefile src/backend/Makefile
 src/client/def/Makefile src/client/c/Makefile src/client/java/Makefile src/client/php/Makefile src/client/cs/Makefile
 src/client/perl/Makefile src/client/python/Makefile src/client/pascal/Makefile src/client/ruby/Makefile src/client/lua/Makefile
-src/tools/eibnet/Makefile src/tools/bcu/Makefile src/usb/Makefile src/tools/Makefile
+src/tools/eibnet/Makefile src/tools/bcu/Makefile src/usb/Makefile src/tools/Makefile systemd/Makefile systemd/knxd.service systemd/knxd.socket
 )
 
 AC_CONFIG_MACRO_DIR([m4])
