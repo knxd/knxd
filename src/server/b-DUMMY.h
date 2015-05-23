@@ -17,31 +17,23 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifdef HAVE_FT12
-  L2_NAME (FT12)
-#endif
-#ifdef HAVE_EIBNETIP
-  L2_NAME (EIBNETIP)
-#endif
-#ifdef HAVE_EIBNETIPTUNNEL
-  L2_NAME (EIBNETIPTUNNEL)
-  L2_NAME (EIBNETIPTUNNELNAT)
-#endif
-#ifdef HAVE_PEI16s
-  L2_NAME (PEI16s)
-#endif
-#ifdef HAVE_TPUARTs
-  L2_NAME (TPUARTs)
-#endif
-#ifdef HAVE_USB
-  L2_NAME (USB)
-#endif
+#ifndef C_DUMMY_H
+#define C_DUMMY_H
 
-#ifdef HAVE_NCN5120
-  L2_NAME(NCN5120)
-#endif
+#include "dummy.h"
+#include "emi2.h"
+#include "layer3.h"
 
-#ifdef HAVE_DUMMY
-  L2_NAME(DUMMY)
-#endif
+#define DUMMY_URL "dummy:\n"
+#define DUMMY_DOC "dummy is a no-op driver, used for testing\n\n"
+#define DUMMY_PREFIX "dummy"
+#define DUMMY_CREATE dummy_Create
+#define DUMMY_CLEANUP NULL
 
+inline Layer2Interface *
+dummy_Create (const char *dev, int flags, Layer3 * l3)
+{
+  return new DummyL2Driver (l3);
+}
+
+#endif

@@ -45,4 +45,8 @@
 #include "b-NCN5120.h"
 #endif
 
+#ifdef HAVE_DUMMY
+#include "b-DUMMY.h"
+#endif
+
 #endif

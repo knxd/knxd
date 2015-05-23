@@ -88,6 +88,18 @@ if test x$ft12 = xtrue ; then
  AC_DEFINE(HAVE_FT12, 1 , [FT1.2 enabled])
 fi
 
+AC_ARG_ENABLE(dummy,
+[  --enable-dummy		enable do-nothing backend],
+[case "${enableval}" in
+ yes) dummy=true ;;
+  no)  dummy=false ;;
+   *) AC_MSG_ERROR(bad value ${enableval} for --enable-dummy) ;;
+ esac],[dummy=true])
+AM_CONDITIONAL(HAVE_DUMMY, test x$dummy = xtrue)
+if test x$dummy = xtrue ; then
+ AC_DEFINE(HAVE_DUMMY, 1 , [FT1.2 enabled])
+fi
+
 AC_ARG_ENABLE(pei16s,
 [  --enable-pei16s	enable BCU1 user driver backend (very experimental)],
 [case "${enableval}" in
