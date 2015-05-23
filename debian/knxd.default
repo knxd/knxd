@@ -9,4 +9,4 @@
 # Additional options that are passed to the Daemon.
 START_KNXD=NO
 
-DAEMON_OPTS=""
+DAEMON_ARGS=""
