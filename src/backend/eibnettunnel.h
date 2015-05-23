@@ -32,10 +32,7 @@ class EIBNetIPTunnel:public Layer2Interface, private Thread
   struct sockaddr_in saddr;
   struct sockaddr_in raddr;
   pth_sem_t insignal;
-  pth_sem_t outsignal;
-  pth_event_t getwait;
   Queue < CArray > inqueue;
-  Queue < LPDU * >outqueue;
   int mode;
   int vmode;
   int dataport;
@@ -53,7 +50,6 @@ public:
   bool init ();
 
   void Send_L_Data (LPDU * l);
-  LPDU *Get_L_Data (pth_event_t stop);
 
   bool enterBusmonitor ();
   bool leaveBusmonitor ();

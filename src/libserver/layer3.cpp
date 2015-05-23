@@ -21,29 +21,6 @@
 #include "layer2.h"
 #include "server.h"
 
-Layer2Runner::Layer2Runner()
-{
-}
-
-Layer2Runner::~Layer2Runner()
-{
-}
-
-void Layer2Runner::Run(pth_sem_t * stop1)
-{
-  pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
-
-  TRACEPRINTF (l2->t, 3, this, "L2r running: %08X", l2);
-  while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
-    {
-      LPDU *l = l2->Get_L_Data (stop);
-      if (!l)
-	continue;
-      l3->recv_L_Data(l);
-    }
-  TRACEPRINTF (l2->t, 3, this, "L2r stopped: %08X", l2);
-}
-
 Layer3::Layer3 (eibaddr_t addr, Trace * tr)
 {
   t = tr;
@@ -64,11 +41,11 @@ Layer3::~Layer3 ()
     delete servers[i];
   for (unsigned int i = 0; i < layer2 (); i++)
     {
-      layer2[i].Stop ();
       if (mode)
-        layer2[i].l2->leaveBusmonitor ();
+        layer2[i]->leaveBusmonitor ();
       else
-        layer2[i].l2->Close ();
+        layer2[i]->Close ();
+      delete layer2[i];
     }
   // the next loops should do exactly nothing
   while (vbusmonitor ())
@@ -89,16 +66,21 @@ Layer3::send_L_Data (L_Data_PDU * l)
   if (l->source == 0)
     l->source = defaultAddr;
   for (unsigned int i = 0; i < layer2 (); i++)
-    if (l->l2 != layer2[i].l2)
-      layer2[i].l2->Send_L_Data (new L_Data_PDU (*l));
+    if (l->l2 != layer2[i])
+      layer2[i]->Send_L_Data (new L_Data_PDU (*l));
 }
 
 void
 Layer3::recv_L_Data (LPDU * l)
 {
   TRACEPRINTF (t, 3, this, "Recv %s", l->Decode ()());
-  buf.put (l);
-  pth_sem_inc (&bufsem, 0);
+  if (running)
+    {
+      buf.put (l);
+      pth_sem_inc (&bufsem, 0);
+    }
+  else
+    delete l;
 }
 
 bool
@@ -115,8 +97,8 @@ Layer3::deregisterBusmonitor (L_Busmonitor_CallBack * c)
 	    mode = 0;
             for (unsigned int i = 0; i < layer2 (); i++)
               {
-	        layer2[i].l2->leaveBusmonitor ();
-	        layer2[i].l2->Open ();
+	        layer2[i]->leaveBusmonitor ();
+	        layer2[i]->Open ();
               }
 	  }
 	TRACEPRINTF (t, 3, this, "deregisterBusmonitor %08X = 1", c);
@@ -138,7 +120,7 @@ Layer3::deregisterVBusmonitor (L_Busmonitor_CallBack * c)
 	if (vbusmonitor () == 0)
 	  {
             for (unsigned int i = 0; i < layer2 (); i++)
-	      layer2[i].l2->closeVBusmonitor ();
+	      layer2[i]->closeVBusmonitor ();
 	  }
 	TRACEPRINTF (t, 3, this, "deregisterVBusmonitor %08X = 1", c);
 	return 1;
@@ -168,16 +150,10 @@ Layer3::deregisterLayer2 (Layer2Interface * l2)
 {
   unsigned i;
   for (i = 0; i < layer2 (); i++)
-    if (layer2[i].l2 == l2)
+    if (layer2[i] == l2)
       {
-        if (running)
-	  layer2[i].Stop ();
 	layer2[i] = layer2[layer2 () - 1];
 	layer2.resize (layer2 () - 1);
-        if (mode)
-          l2->leaveBusmonitor ();
-        else
-          l2->Close ();
 	TRACEPRINTF (t, 3, this, "deregisterLayer2 %08X = 1", l2);
 	return 1;
       }
@@ -232,13 +208,13 @@ Layer3::registerBusmonitor (L_Busmonitor_CallBack * c)
   if (mode == 0)
     for (unsigned int i = 0; i < layer2 (); i++)
       {
-        layer2[i].l2->Close ();
-        if (!layer2[i].l2->enterBusmonitor ())
+        layer2[i]->Close ();
+        if (!layer2[i]->enterBusmonitor ())
 	  {
             while(i--)
               {
-	        layer2[i].l2->leaveBusmonitor ();
-	        layer2[i].l2->Open ();
+	        layer2[i]->leaveBusmonitor ();
+	        layer2[i]->Open ();
               }
 	    return 0;
 	  }
@@ -257,10 +233,10 @@ Layer3::registerVBusmonitor (L_Busmonitor_CallBack * c)
   if (!vbusmonitor ())
     for (unsigned int i = 0; i < layer2 (); i++)
       {
-        if (!layer2[i].l2->openVBusmonitor ())
+        if (!layer2[i]->openVBusmonitor ())
           {
             while (i--)
-              layer2[i].l2->closeVBusmonitor ();
+              layer2[i]->closeVBusmonitor ();
             TRACEPRINTF (t, 3, this, "registerVBusmontior %08X = 1", c);
             return 0;
           }
@@ -294,10 +270,7 @@ Layer3::registerLayer2 (Layer2Interface * l2)
       return 0;
     }
   layer2.resize (layer2() + 1);
-  layer2[layer2 () - 1].l2 = l2;
-  layer2[layer2 () - 1].l3 = this;
-  if (running)
-    layer2[layer2 () - 1].Start ();
+  layer2[layer2 () - 1] = l2;
   TRACEPRINTF (t, 3, this, "registerLayer2 %08X = 1", l2);
   return 1;
 }
@@ -361,7 +334,7 @@ Layer3::hasAddress (eibaddr_t addr, Layer2Interface *l2)
     return true;
 
   for (unsigned i = 0; i < layer2 (); i++)
-    if (layer2[i].l2 != l2 && layer2[i].l2->hasAddress (addr))
+    if (layer2[i] != l2 && layer2[i]->hasAddress (addr))
       return true;
 
   for (unsigned i = 0; i < individual (); i++)
@@ -378,7 +351,7 @@ Layer3::hasGroupAddress (eibaddr_t addr, Layer2Interface *l2 UNUSED)
     return true;
 
   for (unsigned i = 0; i < layer2 (); i++)
-    if (layer2[i].l2->hasGroupAddress (addr))
+    if (layer2[i]->hasGroupAddress (addr))
       return true;
 
   for (unsigned i = 0; i < group (); i++)
@@ -395,8 +368,6 @@ Layer3::Run (pth_sem_t * stop1)
   unsigned i;
 
   running = true;
-  for (i = 0; i < layer2 (); i++)
-    layer2[i].Start ();
 
   TRACEPRINTF (t, 3, this, "L3 started");
   while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
@@ -501,8 +472,6 @@ Layer3::Run (pth_sem_t * stop1)
   TRACEPRINTF (t, 3, this, "L3 stopping");
 
   running = false;
-  for (i = 0; i < layer2 (); i++)
-    layer2[i].Stop ();
 
   pth_event_free (stop, PTH_FREE_THIS);
 }

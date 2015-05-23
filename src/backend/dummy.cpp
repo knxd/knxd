@@ -29,9 +29,6 @@ DummyL2Driver::DummyL2Driver (Layer3 *l3) : Layer2Interface (l3)
 {
   TRACEPRINTF (t, 2, this, "Open");
 
-  pth_sem_init (&outsignal);
-  getwait = pth_event (PTH_EVENT_SEM, &outsignal);
-
   mode = 0;
   vmode = 0;
 
@@ -43,10 +40,6 @@ DummyL2Driver::~DummyL2Driver ()
 {
   TRACEPRINTF (t, 2, this, "Close");
   Stop ();
-  pth_event_free (getwait, PTH_FREE_THIS);
-
-  while (!outqueue.isempty ())
-    delete outqueue.get ();
 }
 
 bool DummyL2Driver::openVBusmonitor ()
@@ -81,34 +74,10 @@ DummyL2Driver::Send_L_Data (LPDU * l)
     {
       L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
       l2->pdu.set (l->ToPacket ());
-      outqueue.put (l2);
-      pth_sem_inc (&outsignal, 1);
+      l3->recv_L_Data (l2);
     }
   delete l;
 }
-
-LPDU *
-DummyL2Driver::Get_L_Data (pth_event_t stop)
-{
-  if (stop != NULL)
-    pth_event_concat (getwait, stop, NULL);
-
-  pth_wait (getwait);
-
-  if (stop)
-    pth_event_isolate (getwait);
-
-  if (pth_event_status (getwait) == PTH_STATUS_OCCURRED)
-    {
-      pth_sem_dec (&outsignal);
-      LPDU *l = outqueue.get ();
-      TRACEPRINTF (t, 2, this, "Recv %s", l->Decode ()());
-      return l;
-    }
-  else
-    return 0;
-}
-
 
 //Open
 

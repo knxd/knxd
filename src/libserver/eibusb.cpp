@@ -361,8 +361,3 @@ USBLayer2Interface::Send_L_Data (LPDU * l)
   emi->Send_L_Data (l);
 }
 
-LPDU *
-USBLayer2Interface::Get_L_Data (pth_event_t stop)
-{
-  return emi->Get_L_Data (stop);
-}

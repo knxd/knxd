@@ -36,6 +36,7 @@ class Layer2Interface
 public:
   /** debug output */
   Trace *t;
+  /** our layer-3 (to send packets to) */
   Layer3 *l3;
 
   Layer2Interface (Layer3 *l3);
@@ -44,11 +45,6 @@ public:
 
   /** sends a Layer 2 frame asynchronouse */
   virtual void Send_L_Data (LPDU * l) = 0;
-  /** waits for the next frame
-   * @param stop return NULL, if stop occurs
-   * @return returns frame or NULL
-   */
-  virtual LPDU *Get_L_Data (pth_event_t stop) = 0;
 
   /** try to add the individual address addr to the device, return true if successful */
   virtual bool addAddress (eibaddr_t addr);

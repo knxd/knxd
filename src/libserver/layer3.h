@@ -74,25 +74,11 @@ typedef struct
 
 class Layer3;
 
-/** thread for receiving data */
-class Layer2Runner:public Thread
-{
-public:
-  Layer2Interface * l2;
-  Layer3 * l3;
-
-  Layer2Runner ();
-  virtual ~Layer2Runner ();
-
-  void Run (pth_sem_t * stop1);
-  const char *Name() { return "L2_runner"; }
-};
-
 /** Layer 3 frame dispatches */
 class Layer3:private Thread
 {
   /** Layer 2 interfaces */
-  Array < Layer2Runner > layer2;
+  Array < Layer2Interface * > layer2;
   /** buffer queue for receiving from L2 */
   Queue < LPDU * >buf;
   /** semaphre for buffer queue */

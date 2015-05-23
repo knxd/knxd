@@ -39,16 +39,10 @@ class CEMILayer2Interface:public Layer2Interface, private Thread
   eibaddr_t def;
   /** vbusmonitor */
   int vmode;
-  /** semaphore for outqueue */
-  pth_sem_t out_signal;
   /** semaphore for inqueue */
   pth_sem_t in_signal;
-  /** output queue */
-  Queue < LPDU * >outqueue;
   /** input queue */
   Queue < LPDU * >inqueue;
-  /** event to wait for outqueue*/
-  pth_event_t getwait;
   bool noqueue;
   int sendmode;
 
@@ -61,7 +55,6 @@ public:
   bool init ();
 
   void Send_L_Data (LPDU * l);
-  LPDU *Get_L_Data (pth_event_t stop);
 
   bool enterBusmonitor ();
   bool leaveBusmonitor ();

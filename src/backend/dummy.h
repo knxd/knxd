@@ -33,13 +33,6 @@ class DummyL2Driver:public Layer2Interface, private Thread
   int vmode;
   /** semaphore for inqueue */
 
-  /** output queue (for bus "monitoring") */
-  Queue < LPDU * >outqueue;
-  /** signal for the outqueue */
-  pth_sem_t outsignal;
-  /** event to wait for outqueue */
-  pth_event_t getwait;
-
   void Run (pth_sem_t * stop);
   const char *Name() { return "Dummy"; }
 public:
@@ -47,7 +40,6 @@ public:
   ~DummyL2Driver ();
 
   void Send_L_Data (LPDU * l);
-  LPDU *Get_L_Data (pth_event_t stop);
 
   bool enterBusmonitor ();
   bool leaveBusmonitor ();

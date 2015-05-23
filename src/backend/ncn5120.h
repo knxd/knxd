@@ -40,14 +40,8 @@ class NCN5120SerialLayer2Driver : public Layer2Interface, private Thread
   int vmode;
   /** semaphore for inqueue */
   pth_sem_t in_signal;
-  /** semaphore for outqueue */
-  pth_sem_t out_signal;
   /** input queue */
   Queue < LPDU * >inqueue;
-  /** output queue */
-  Queue < LPDU * >outqueue;
-  /** event to wait for outqueue */
-  pth_event_t getwait;
   bool ackallgroup;
   bool ackallindividual;
   bool dischreset;
@@ -63,7 +57,6 @@ public:
   bool init ();
 
   void Send_L_Data (LPDU * l);
-  LPDU *Get_L_Data (pth_event_t stop);
 
   bool enterBusmonitor ();
   bool leaveBusmonitor ();

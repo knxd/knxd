@@ -49,13 +49,10 @@ NCN5120SerialLayer2Driver::NCN5120SerialLayer2Driver (const char *dev,
   TRACEPRINTF (t, 2, this, "Open");
 
   pth_sem_init (&in_signal);
-  pth_sem_init (&out_signal);
 
   ackallgroup = flags & FLAG_B_TPUARTS_ACKGROUP;
   ackallindividual = flags & FLAG_B_TPUARTS_ACKINDIVIDUAL;
   dischreset = flags & FLAG_B_TPUARTS_DISCH_RESET;
-
-  getwait = pth_event (PTH_EVENT_SEM, &out_signal);
 
   fd = open (dev, O_RDWR | O_NOCTTY | O_NDELAY | O_SYNC);
   if (fd == -1)
@@ -115,10 +112,7 @@ NCN5120SerialLayer2Driver::~NCN5120SerialLayer2Driver ()
 {
   TRACEPRINTF (t, 2, this, "Close");
   Stop ();
-  pth_event_free (getwait, PTH_FREE_THIS);
 
-  while (!outqueue.isempty ())
-    delete outqueue.get ();
   while (!inqueue.isempty ())
     delete inqueue.get ();
 
@@ -171,29 +165,6 @@ NCN5120SerialLayer2Driver::Send_L_Data (LPDU * l)
   pth_sem_inc (&in_signal, 1);
 }
 
-LPDU *
-NCN5120SerialLayer2Driver::Get_L_Data (pth_event_t stop)
-{
-  if (stop != NULL)
-    pth_event_concat (getwait, stop, NULL);
-
-  pth_wait (getwait);
-
-  if (stop)
-    pth_event_isolate (getwait);
-
-  if (pth_event_status (getwait) == PTH_STATUS_OCCURRED)
-    {
-      pth_sem_dec (&out_signal);
-      LPDU *l = outqueue.get ();
-      TRACEPRINTF (t, 2, this, "Recv %s", l->Decode ()());
-      return l;
-    }
-  else
-    return 0;
-}
-
-
 //Open
 
 bool
@@ -239,16 +210,14 @@ NCN5120SerialLayer2Driver::RecvLPDU (const uchar * data, int len)
     {
       L_Busmonitor_PDU *l = new L_Busmonitor_PDU (this);
       l->pdu.set (data, len);
-      outqueue.put (l);
-      pth_sem_inc (&out_signal, 1);
+      l3->recv_L_Data (l);
     }
   if (!mode)
     {
       LPDU *l = LPDU::fromPacket (CArray (data, len), this);
       if (l->getType () == L_Data && ((L_Data_PDU *) l)->valid_checksum)
 	{
-	  outqueue.put (l);
-	  pth_sem_inc (&out_signal, 1);
+	  l3->recv_L_Data (l);
 	}
       else
 	delete l;

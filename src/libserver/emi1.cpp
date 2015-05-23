@@ -19,6 +19,7 @@
 
 #include "emi1.h"
 #include "emi.h"
+#include "layer3.h"
 
 bool
 EMI1Layer2Interface::addAddress (eibaddr_t addr UNUSED)
@@ -60,9 +61,7 @@ EMI1Layer2Interface::EMI1Layer2Interface (LowLevelDriverInterface * i,
   mode = 0;
   vmode = 0;
   noqueue = flags & FLAG_B_EMI_NOQUEUE;
-  pth_sem_init (&out_signal);
   pth_sem_init (&in_signal);
-  getwait = pth_event (PTH_EVENT_SEM, &out_signal);
   if (!iface->init ())
     {
       delete iface;
@@ -83,9 +82,6 @@ EMI1Layer2Interface::~EMI1Layer2Interface ()
 {
   TRACEPRINTF (t, 2, this, "Destroy");
   Stop ();
-  pth_event_free (getwait, PTH_FREE_THIS);
-  while (!outqueue.isempty ())
-    delete outqueue.get ();
   while (!inqueue.isempty ())
     delete inqueue.get ();
   if (iface)
@@ -217,33 +213,9 @@ EMI1Layer2Interface::Send (LPDU * l)
     {
       L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
       l2->pdu.set (l->ToPacket ());
-      outqueue.put (l2);
-      pth_sem_inc (&out_signal, 1);
+      l3->recv_L_Data (l2);
     }
-  outqueue.put (l);
-  pth_sem_inc (&out_signal, 1);
-}
-
-LPDU *
-EMI1Layer2Interface::Get_L_Data (pth_event_t stop)
-{
-  if (stop != NULL)
-    pth_event_concat (getwait, stop, NULL);
-
-  pth_wait (getwait);
-
-  if (stop)
-    pth_event_isolate (getwait);
-
-  if (pth_event_status (getwait) == PTH_STATUS_OCCURRED)
-    {
-      pth_sem_dec (&out_signal);
-      LPDU *l = outqueue.get ();
-      TRACEPRINTF (t, 2, this, "Recv %s", l->Decode ()());
-      return l;
-    }
-  else
-    return 0;
+  l3->recv_L_Data (l);
 }
 
 void
@@ -305,11 +277,9 @@ EMI1Layer2Interface::Run (pth_sem_t * stop1)
 		{
 		  L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
 		  l2->pdu.set (p->ToPacket ());
-		  outqueue.put (l2);
-		  pth_sem_inc (&out_signal, 1);
+		  l3->recv_L_Data (l2);
 		}
-	      outqueue.put (p);
-	      pth_sem_inc (&out_signal, 1);
+	      l3->recv_L_Data (p);
 	      continue;
 	    }
 	}
@@ -321,8 +291,7 @@ EMI1Layer2Interface::Run (pth_sem_t * stop1)
 	  p->pdu.set (c->array () + 4, c->len () - 4);
 	  delete c;
 	  TRACEPRINTF (t, 2, this, "Recv %s", p->Decode ()());
-	  outqueue.put (p);
-	  pth_sem_inc (&out_signal, 1);
+	  l3->recv_L_Data (p);
 	  continue;
 	}
       delete c;

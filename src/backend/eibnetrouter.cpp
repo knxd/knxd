@@ -20,6 +20,7 @@
 #include "eibnetrouter.h"
 #include "emi.h"
 #include "config.h"
+#include "layer3.h"
 
 EIBNetIPRouter::EIBNetIPRouter (const char *multicastaddr, int port,
 				eibaddr_t a UNUSED, Layer3 * l3) : Layer2Interface (l3)
@@ -36,8 +37,6 @@ EIBNetIPRouter::EIBNetIPRouter (const char *multicastaddr, int port,
   baddr.sin_family = AF_INET;
   baddr.sin_port = htons (port);
   baddr.sin_addr.s_addr = htonl (INADDR_ANY);
-  pth_sem_init (&out_signal);
-  getwait = pth_event (PTH_EVENT_SEM, &out_signal);
   sock = new EIBNetIPSocket (baddr, 1, t);
   if (!sock->init ())
     {
@@ -73,9 +72,6 @@ EIBNetIPRouter::~EIBNetIPRouter ()
 {
   TRACEPRINTF (t, 2, this, "Destroy");
   Stop ();
-  pth_event_free (getwait, PTH_FREE_THIS);
-  while (!outqueue.isempty ())
-    delete outqueue.get ();
   if (sock)
     delete sock;
 }
@@ -106,35 +102,10 @@ EIBNetIPRouter::Send_L_Data (LPDU * l)
     {
       L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
       l2->pdu.set (l->ToPacket ());
-      outqueue.put (l2);
-      pth_sem_inc (&out_signal, 1);
+      l3->recv_L_Data (l2);
     }
-  outqueue.put (l);
-  pth_sem_inc (&out_signal, 1);
+  l3->recv_L_Data (l);
 }
-
-LPDU *
-EIBNetIPRouter::Get_L_Data (pth_event_t stop)
-{
-  if (stop != NULL)
-    pth_event_concat (getwait, stop, NULL);
-
-  pth_wait (getwait);
-
-  if (stop)
-    pth_event_isolate (getwait);
-
-  if (pth_event_status (getwait) == PTH_STATUS_OCCURRED)
-    {
-      pth_sem_dec (&out_signal);
-      LPDU *l = outqueue.get ();
-      TRACEPRINTF (t, 2, this, "Recv %s", l->Decode ()());
-      return l;
-    }
-  else
-    return 0;
-}
-
 
 void
 EIBNetIPRouter::Run (pth_sem_t * stop1)
@@ -175,18 +146,15 @@ EIBNetIPRouter::Run (pth_sem_t * stop1)
 		    {
 		      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
 		      l2->pdu.set (c->ToPacket ());
-		      outqueue.put (l2);
-		      pth_sem_inc (&out_signal, 1);
+		      l3->recv_L_Data (l2);
 		    }
-		  outqueue.put (c);
-		  pth_sem_inc (&out_signal, 1);
+		  l3->recv_L_Data (c);
 		  continue;
 		}
 	      L_Busmonitor_PDU *p1 = new L_Busmonitor_PDU (this);
 	      p1->pdu = c->ToPacket ();
 	      delete c;
-	      outqueue.put (p1);
-	      pth_sem_inc (&out_signal, 1);
+	      l3->recv_L_Data (p1);
 	      continue;
 	    }
 	}

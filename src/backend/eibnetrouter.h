@@ -34,12 +34,6 @@ class EIBNetIPRouter:public Layer2Interface, private Thread
   int mode;
   /** vbusmonitor */
   int vmode;
-  /** semaphore for outqueue */
-  pth_sem_t out_signal;
-  /** output queue */
-  Queue < LPDU * >outqueue;
-  /** event to wait for outqueue */
-  pth_event_t getwait;
 
   void Run (pth_sem_t * stop);
   const char *Name() { return "eibnetrouter"; }
@@ -50,7 +44,6 @@ public:
   bool init ();
 
   void Send_L_Data (LPDU * l);
-  LPDU *Get_L_Data (pth_event_t stop);
 
   bool enterBusmonitor ();
   bool leaveBusmonitor ();

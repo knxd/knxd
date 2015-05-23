@@ -19,6 +19,7 @@
 
 #include "eibnettunnel.h"
 #include "emi.h"
+#include "layer3.h"
 
 EIBNetIPTunnel::EIBNetIPTunnel (const char *dest, int port, int sport,
 				const char *srcip, int Dataport, int flags,
@@ -26,8 +27,6 @@ EIBNetIPTunnel::EIBNetIPTunnel (const char *dest, int port, int sport,
 {
   TRACEPRINTF (t, 2, this, "Open");
   pth_sem_init (&insignal);
-  pth_sem_init (&outsignal);
-  getwait = pth_event (PTH_EVENT_SEM, &outsignal);
   noqueue = flags & FLAG_B_TUNNEL_NOQUEUE;
   sock = 0;
   if (!GetHostIP (&caddr, dest))
@@ -73,9 +72,6 @@ EIBNetIPTunnel::~EIBNetIPTunnel ()
 {
   TRACEPRINTF (t, 2, this, "Close");
   Stop ();
-  while (!outqueue.isempty ())
-    delete outqueue.get ();
-  pth_event_free (getwait, PTH_FREE_THIS);
   if (sock)
     delete sock;
 }
@@ -103,34 +99,9 @@ EIBNetIPTunnel::Send_L_Data (LPDU * l)
     {
       L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
       l2->pdu.set (l->ToPacket ());
-      outqueue.put (l2);
-      pth_sem_inc (&outsignal, 1);
+      l3->recv_L_Data (l2);
     }
-  outqueue.put (l);
-  pth_sem_inc (&outsignal, 1);
-}
-
-LPDU *
-EIBNetIPTunnel::Get_L_Data (pth_event_t stop)
-{
-  if (stop != NULL)
-    pth_event_concat (getwait, stop, NULL);
-
-  pth_wait (getwait);
-
-  if (stop)
-    pth_event_isolate (getwait);
-
-  if (pth_event_status (getwait) == PTH_STATUS_OCCURRED)
-    {
-      pth_sem_dec (&outsignal);
-      LPDU *c = outqueue.get ();
-      if (c)
-	TRACEPRINTF (t, 2, this, "Recv %s", c->Decode ()());
-      return c;
-    }
-  else
-    return 0;
+  l3->recv_L_Data (l);
 }
 
 bool
@@ -366,8 +337,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 	      if (treq.CEMI[0] == 0x2B)
 		{
 		  L_Busmonitor_PDU *l2 = CEMI_to_Busmonitor (treq.CEMI, this);
-		  outqueue.put (l2);
-		  pth_sem_inc (&outsignal, 1);
+		  l3->recv_L_Data (l2);
 		  break;
 		}
 	      if (treq.CEMI[0] != 0x29)
@@ -386,21 +356,18 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 			{
 			  L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
 			  l2->pdu.set (c->ToPacket ());
-			  outqueue.put (l2);
-			  pth_sem_inc (&outsignal, 1);
+			  l3->recv_L_Data (l2);
 			}
 		      if (c->AddrType == IndividualAddress
 			  && c->dest == myaddr)
 			c->dest = 0;
-		      outqueue.put (c);
-		      pth_sem_inc (&outsignal, 1);
+		      l3->recv_L_Data (c);
 		      break;
 		    }
 		  L_Busmonitor_PDU *p1 = new L_Busmonitor_PDU (this);
 		  p1->pdu = c->ToPacket ();
 		  delete c;
-		  outqueue.put (p1);
-		  pth_sem_inc (&outsignal, 1);
+		  l3->recv_L_Data (p1);
 		  break;
 		}
 	      TRACEPRINTF (t, 1, this, "Unknown CEMI");
