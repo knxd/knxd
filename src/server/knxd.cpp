@@ -87,7 +87,6 @@ public:
     addr = 0x0001;
   }
   ~arguments () {
-    delete layer3;
   }
 
   /** get the L3 instance */
@@ -103,6 +102,10 @@ public:
   bool has_l3() 
     {
       return layer3 != NULL;
+    }
+  void free_l3() 
+    {
+      delete layer3;
     }
     
   /** get the current tracer.
@@ -120,11 +123,13 @@ public:
         }
       else if (! t)
         {
-          t= new Trace();
+          t = new Trace();
           trace_used = !fresh;
 
           t->SetErrorLevel (LEVEL_WARNING); // default
         }
+      else if (!fresh)
+        trace_used = true;
       return t;
     }
   void finish_l3 ()
@@ -149,7 +154,10 @@ die (const char *msg, ...)
 
   va_start (ap, msg);
   vprintf (msg, ap);
-  printf (": %s\n", strerror(err));
+  if (err)
+    printf (": %s\n", strerror(err));
+  else
+    printf ("\n");
   va_end (ap);
 
   if (arg.pidfile)
@@ -460,11 +468,11 @@ int
 main (int ac, char *ag[])
 {
   int index;
+  pth_init ();
 
   argp_parse (&argp, ac, ag, ARGP_IN_ORDER, &index, &arg);
 
   signal (SIGPIPE, SIG_IGN);
-  pth_init ();
 
   /*
   if (getuid () == 0)
@@ -542,9 +550,15 @@ main (int ac, char *ag[])
   DeleteGroupCache ();
 #endif
 
+  arg.free_l3();
+
   if (arg.pidfile)
     unlink (arg.pidfile);
 
+  pth_yield (0);
+  pth_yield (0);
+  pth_yield (0);
+  pth_yield (0);
   pth_exit (0);
   return 0;
 }
