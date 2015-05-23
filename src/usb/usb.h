@@ -33,6 +33,7 @@ class USBLoop:public Thread
   libusb_context *context;
 
   void Run (pth_sem_t * stop);
+  const char *Name() { return "usbloop"; }
 
 public:
   USBLoop (libusb_context * context, Trace * tr);

@@ -45,6 +45,7 @@ class ClientConnection:public Thread
   unsigned buflen;
 
   void Run (pth_sem_t * stop);
+  const char *Name() { return "client"; }
 public:
   ClientConnection (Server * s, Layer3 * l3, Trace * tr, int fd);
   virtual ~ClientConnection ();

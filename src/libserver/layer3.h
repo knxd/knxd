@@ -85,6 +85,7 @@ public:
   virtual ~Layer2Runner ();
 
   void Run (pth_sem_t * stop1);
+  const char *Name() { return "L2_runner"; }
 };
 
 /** Layer 3 frame dispatches */
@@ -113,6 +114,8 @@ class Layer3:private Thread
 
   /** process incoming data from L2 */
   void Run (pth_sem_t * stop);
+  const char *Name() { return "Layer3"; }
+
   /** flag whether we're in .Run() */
   bool running;
   /** The trace objects used here */

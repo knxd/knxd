@@ -42,6 +42,7 @@ class EIBNetIPRouter:public Layer2Interface, private Thread
   pth_event_t getwait;
 
   void Run (pth_sem_t * stop);
+  const char *Name() { return "eibnetrouter"; }
 public:
   EIBNetIPRouter (const char *multicastaddr, int port, eibaddr_t a,
                   Layer3 *l3);

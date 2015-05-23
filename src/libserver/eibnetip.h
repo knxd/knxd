@@ -314,6 +314,7 @@ class EIBNetIPSocket:private Thread
   int multicast;
 
   void Run (pth_sem_t * stop);
+  const char *Name() { return "eibnetipsocket"; }
 public:
   EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr, Trace * tr);
   virtual ~EIBNetIPSocket ();

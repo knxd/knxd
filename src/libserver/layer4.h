@@ -235,6 +235,7 @@ class T_Connection:public L_Data_CallBack, private Thread
   /** Sends T_DataConnected */
   void SendData (int serno, const CArray & c);
   void Run (pth_sem_t * stop);
+  const char *Name() { return "Tconnection"; }
 public:
   T_Connection (Layer3 * l3, Trace * t, eibaddr_t dest);
   ~T_Connection ();

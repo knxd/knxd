@@ -29,6 +29,7 @@ class ClientConnection;
 class BaseServer:protected Thread
 {
   virtual void Run (pth_sem_t * stop) = 0;
+  const char *Name() { return "baseserver"; }
 protected:
   /** debug output */
   Trace *t;
@@ -49,6 +50,7 @@ class Server:public BaseServer
   Array < ClientConnection * >connections;
 
   void Run (pth_sem_t * stop);
+  const char *Name() { return "server"; }
 protected:
   /** server socket */
   int fd;

@@ -45,6 +45,7 @@ class EIBNetIPTunnel:public Layer2Interface, private Thread
   int connect_busmonitor;
 
   void Run (pth_sem_t * stop);
+  const char *Name() { return "eibnettunnel"; }
 public:
   EIBNetIPTunnel (const char *dest, int port, int sport, const char *srcip,
                   int dataport, int flags, Layer3 *l3);

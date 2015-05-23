@@ -59,6 +59,8 @@ pth_event_t getwait;
   /** exchange two bytes*/
   bool exchange (uchar c, uchar & result, pth_event_t stop);
   void Run (pth_sem_t * stop);
+
+  const char *Name() { return "BCU1Serial"; }
 public:
   BCU1SerialLowLevelDriver (const char *device, Trace * tr);
   ~BCU1SerialLowLevelDriver ();

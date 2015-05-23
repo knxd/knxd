@@ -73,6 +73,7 @@ class USBLowLevelDriver:public LowLevelDriverInterface, private Thread
   bool startUsbRecvTransferFailed;
 
   void Run (pth_sem_t * stop);
+  const char *Name() { return "usbif"; }
   void StartUsbRecvTransfer(struct libusb_transfer *recvh);
   void FinishUsbRecvTransfer(struct libusb_transfer *recvh);
   void ReceiveUsb();

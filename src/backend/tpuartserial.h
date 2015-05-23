@@ -56,6 +56,7 @@ class TPUARTSerialLayer2Driver:public Layer2Interface, private Thread
   /** process a recevied frame */
   void RecvLPDU (const uchar * data, int len);
   void Run (pth_sem_t * stop);
+  const char *Name() { return "tpuarts"; }
 public:
   TPUARTSerialLayer2Driver (const char *dev, eibaddr_t addr, int flags,
                             Layer3 *l3);

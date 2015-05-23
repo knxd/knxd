@@ -56,6 +56,7 @@ protected:
    * @param stop if stop can be decemented, the routine should exit
    */
   virtual void Run (pth_sem_t * stop);
+  virtual const char * Name () = 0;
 public:
   /** create a thread
    * if o and t are not present, Run is runned, which has to be replaced

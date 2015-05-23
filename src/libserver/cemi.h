@@ -54,6 +54,7 @@ class CEMILayer2Interface:public Layer2Interface, private Thread
 
   void Send (LPDU * l);
   void Run (pth_sem_t * stop);
+  const char *Name() { return "cemi"; }
 public:
   CEMILayer2Interface (LowLevelDriverInterface * i, Layer3 * l3, int flags);
   ~CEMILayer2Interface ();

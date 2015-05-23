@@ -61,6 +61,7 @@ class FT12LowLevelDriver:public LowLevelDriverInterface, private Thread
   pth_sem_t send_empty;
 
   void Run (pth_sem_t * stop);
+  const char *Name() { return "ft12"; }
 public:
   FT12LowLevelDriver (const char *device, Trace * tr);
   ~FT12LowLevelDriver ();

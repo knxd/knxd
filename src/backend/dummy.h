@@ -41,6 +41,7 @@ class DummyL2Driver:public Layer2Interface, private Thread
   pth_event_t getwait;
 
   void Run (pth_sem_t * stop);
+  const char *Name() { return "Dummy"; }
 public:
   DummyL2Driver (Layer3 *l3);
   ~DummyL2Driver ();
