@@ -51,7 +51,7 @@ struct urldef URLs[] = {
 #undef L2_NAME
 #define L2_NAME(a) { a##_PREFIX, a##_CREATE },
 #include "lowlevelcreate.h"
-  {0, 0, 0}
+  {0, 0}
 };
 
 /** determines the right backend for the url and creates it */
