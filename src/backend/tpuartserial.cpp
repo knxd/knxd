@@ -43,8 +43,8 @@ setstat (int fd, int s)
 
 
 TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
-						    eibaddr_t a, L2options *opt,
-						    Layer3 *l3) : Layer2 (l3, opt)
+						    L2options *opt, Layer3 *l3)
+	: Layer2 (l3, opt)
 {
   struct termios t1;
   TRACEPRINTF (t, 2, this, "Open");
@@ -109,8 +109,6 @@ TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
     }
 
   setstat (fd, (getstat (fd) & ~TIOCM_RTS) | TIOCM_DTR);
-
-  addr = a;
 
   Start ();
   TRACEPRINTF (t, 2, this, "Openend");

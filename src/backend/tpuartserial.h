@@ -33,8 +33,6 @@ class TPUARTSerialLayer2Driver:public Layer2, private Thread
   struct termios old;
   /** file descriptor */
   int fd;
-  /** default EIB address */
-  eibaddr_t addr;
   /** semaphore for inqueue */
   pth_sem_t in_signal;
   /** input queue */

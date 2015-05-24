@@ -41,8 +41,7 @@ setstat (int fd, int s)
 
 
 NCN5120SerialLayer2Driver::NCN5120SerialLayer2Driver (const char *dev,
-						    eibaddr_t a, L2options *opt,
-						    Layer3 * l3)
+						    L2options *opt, Layer3 * l3)
 	: Layer2::Layer2(l3, opt)
 {
   struct termios t1;
@@ -99,8 +98,6 @@ NCN5120SerialLayer2Driver::NCN5120SerialLayer2Driver (const char *dev,
     }
 
   setstat (fd, (getstat (fd) & ~TIOCM_RTS) | TIOCM_DTR);
-
-  addr = a;
 
   Start ();
   TRACEPRINTF (t, 2, this, "Openend");
