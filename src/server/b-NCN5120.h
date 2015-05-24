@@ -30,8 +30,6 @@
 
 #define NCN5120_CREATE ncn5120_Create
 
-#define NCN5120_CLEANUP NULL
-
 inline Layer2Interface *
 ncn5120_Create (const char *dev, int flags, Layer3 *l3)
 {

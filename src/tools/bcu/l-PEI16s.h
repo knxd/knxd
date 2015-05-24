@@ -27,7 +27,6 @@
 
 #define PEI16s_PREFIX "bcu1s"
 #define PEI16s_CREATE PEI16s_ll_Create
-#define PEI16s_CLEANUP NULL
 
 inline LowLevelDriverInterface *
 PEI16s_ll_Create (const char *dev, Trace * t)

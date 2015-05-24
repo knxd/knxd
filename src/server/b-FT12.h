@@ -28,7 +28,6 @@
 #define FT12_DOC "ft12 connects over a serial line without any driver with the FT1.2 Protocol to a BCU 2\n\n"
 #define FT12_PREFIX "ft12"
 #define FT12_CREATE ft12_Create
-#define FT12_CLEANUP NULL
 
 inline Layer2Interface *
 ft12_Create (const char *dev, int flags, Layer3 * l3)

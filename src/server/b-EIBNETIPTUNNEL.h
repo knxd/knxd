@@ -28,14 +28,12 @@
 
 #define EIBNETIPTUNNEL_PREFIX "ipt"
 #define EIBNETIPTUNNEL_CREATE eibnetiptunnel_Create
-#define EIBNETIPTUNNEL_CLEANUP NULL
 
 #define EIBNETIPTUNNELNAT_URL "iptn:router-ip[:dest-port[:src-port]]\n"
 #define EIBNETIPTUNNELNAT_DOC "iptn connects with the EIBnet/IP Tunneling protocol over an EIBnet/IP gateway using NAT mode\n\n"
 
 #define EIBNETIPTUNNELNAT_PREFIX "iptn"
 #define EIBNETIPTUNNELNAT_CREATE eibnetiptunnelnat_Create
-#define EIBNETIPTUNNELNAT_CLEANUP NULL
 
 
 inline Layer2Interface *

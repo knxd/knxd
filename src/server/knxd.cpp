@@ -176,13 +176,12 @@ struct urldef
   const char *prefix;
   /** factory function */
   Layer2_Create_Func Create;
-  void (*Cleanup) ();
 };
 
 /** list of URLs */
 struct urldef URLs[] = {
 #undef L2_NAME
-#define L2_NAME(a) { a##_PREFIX, a##_CREATE, a##_CLEANUP },
+#define L2_NAME(a) { a##_PREFIX, a##_CREATE },
 #include "layer2create.h"
   {0, 0, 0}
 };

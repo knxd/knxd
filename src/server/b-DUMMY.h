@@ -28,7 +28,6 @@
 #define DUMMY_DOC "dummy is a no-op driver, used for testing\n\n"
 #define DUMMY_PREFIX "dummy"
 #define DUMMY_CREATE dummy_Create
-#define DUMMY_CLEANUP NULL
 
 inline Layer2Interface *
 dummy_Create (const char *dev, int flags, Layer3 * l3)
