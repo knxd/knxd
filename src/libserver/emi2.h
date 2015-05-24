@@ -30,12 +30,8 @@ class EMI2Layer2Interface:public Layer2Interface, private Thread
   LowLevelDriverInterface *iface;
   /** debug output */
   Trace *t;
-  /** state */
-  int mode;
   /** default address */
   eibaddr_t def;
-  /** vbusmonitor */
-  int vmode;
   /** semaphore for inqueue */
   pth_sem_t in_signal;
   /** input queue */
@@ -58,8 +54,6 @@ public:
 
   bool enterBusmonitor ();
   bool leaveBusmonitor ();
-  bool openVBusmonitor ();
-  bool closeVBusmonitor ();
 
   bool Open ();
   bool Close ();

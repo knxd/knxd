@@ -100,8 +100,6 @@ NCN5120SerialLayer2Driver::NCN5120SerialLayer2Driver (const char *dev,
 
   setstat (fd, (getstat (fd) & ~TIOCM_RTS) | TIOCM_DTR);
 
-  mode = 0;
-  vmode = 0;
   addr = a;
 
   Start ();
@@ -133,18 +131,6 @@ bool NCN5120SerialLayer2Driver::init ()
   return Layer2Interface::init ();
 }
 
-bool NCN5120SerialLayer2Driver::openVBusmonitor ()
-{
-  vmode = 1;
-  return 1;
-}
-
-bool NCN5120SerialLayer2Driver::closeVBusmonitor ()
-{
-  vmode = 0;
-  return 1;
-}
-
 bool
 NCN5120SerialLayer2Driver::Connection_Lost ()
 {
@@ -170,35 +156,33 @@ NCN5120SerialLayer2Driver::Send_L_Data (LPDU * l)
 bool
 NCN5120SerialLayer2Driver::enterBusmonitor ()
 {
+  if (! Layer2Interface::enterBusmonitor ())
+	return false;
   uchar c = 0x05;
   t->TracePacket (2, this, "openBusmonitor", 1, &c);
   write (fd, &c, 1);
-  mode = 1;
-  return 1;
+  return true;
 }
 
 bool
 NCN5120SerialLayer2Driver::leaveBusmonitor ()
 {
+  if (! Layer2Interface::leaveBusmonitor ())
+	return false;
   uchar c = 0x01;
   t->TracePacket (2, this, "leaveBusmonitor", 1, &c);
   write (fd, &c, 1);
-  mode = 0;
-  return 1;
+  return true;
 }
 
 bool
 NCN5120SerialLayer2Driver::Open ()
 {
+  if (! Layer2Interface::Open ())
+	return false;
   uchar c = 0x01;
   t->TracePacket (2, this, "open-reset", 1, &c);
   write (fd, &c, 1);
-  return 1;
-}
-
-bool
-NCN5120SerialLayer2Driver::Close ()
-{
   return 1;
 }
 
@@ -206,13 +190,13 @@ void
 NCN5120SerialLayer2Driver::RecvLPDU (const uchar * data, int len)
 {
   t->TracePacket (1, this, "Recv", len, data);
-  if (mode || vmode)
+  if (mode & BUSMODE_MONITOR)
     {
       L_Busmonitor_PDU *l = new L_Busmonitor_PDU (this);
       l->pdu.set (data, len);
       l3->recv_L_Data (l);
     }
-  if (!mode)
+  if (mode != BUSMODE_MONITOR)
     {
       LPDU *l = LPDU::fromPacket (CArray (data, len), this);
       if (l->getType () == L_Data && ((L_Data_PDU *) l)->valid_checksum)
@@ -273,7 +257,7 @@ NCN5120SerialLayer2Driver::Run (pth_sem_t * stop1)
 	  rmn = false;
 	  if (in[0] == 0x8B)
 	    {
-	      if (!mode && vmode)
+	      if (mode == BUSMODE_VMONITOR)
 		{
 		  const uchar pkt[1] = { 0xCC };
 		  RecvLPDU (pkt, 1);
@@ -289,7 +273,7 @@ NCN5120SerialLayer2Driver::Run (pth_sem_t * stop1)
 	    }
 	  else if (in[0] == 0x0B)
 	    {
-	      if (!mode && vmode)
+	      if (mode == BUSMODE_VMONITOR)
 		{
 		  const uchar pkt[1] = { 0x0C };
 		  RecvLPDU (pkt, 1);
@@ -398,7 +382,7 @@ NCN5120SerialLayer2Driver::Run (pth_sem_t * stop1)
 	    }
 	}
       if (watch == 1 && pth_event_status (watchdog) == PTH_STATUS_OCCURRED
-	  && mode == 0)
+	  && mode != BUSMODE_MONITOR)
 	{
 	  if (dischreset)
 	    {
@@ -414,7 +398,7 @@ NCN5120SerialLayer2Driver::Run (pth_sem_t * stop1)
 	  watch = 0;
 	}
       if (watch == 1 && pth_event_status (watchdog) == PTH_STATUS_OCCURRED
-	  && mode)
+	  && mode == BUSMODE_MONITOR)
 	watch = 0;
       if (watch == 2 && pth_event_status (watchdog) == PTH_STATUS_OCCURRED)
 	watch = 0;
@@ -437,7 +421,7 @@ NCN5120SerialLayer2Driver::Run (pth_sem_t * stop1)
 	  pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE, sendtimeout,
 		     pth_time (0, 600000));
 	}
-      else if (in () == 0 && !waitconfirm && !watch && mode == 0 && !to)
+      else if (in () == 0 && !waitconfirm && !watch && mode != BUSMODE_MONITOR && !to)
 	{
 	  pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE, watchdog,
 		     pth_time (10, 0));

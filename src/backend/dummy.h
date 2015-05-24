@@ -27,12 +27,6 @@
 /** TPUART user mode driver */
 class DummyL2Driver:public Layer2Interface, private Thread
 {
-  /** state */
-  int mode;
-  /** vbusmonitor mode */
-  int vmode;
-  /** semaphore for inqueue */
-
   void Run (pth_sem_t * stop);
   const char *Name() { return "Dummy"; }
 public:
@@ -41,15 +35,6 @@ public:
 
   void Send_L_Data (LPDU * l);
 
-  bool enterBusmonitor ();
-  bool leaveBusmonitor ();
-  bool openVBusmonitor ();
-  bool closeVBusmonitor ();
-
-  bool Open ();
-  bool Close ();
-  bool Connection_Lost ();
-  bool Send_Queue_Empty ();
 };
 
 #endif

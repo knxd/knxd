@@ -30,10 +30,6 @@ class EIBNetIPRouter:public Layer2Interface, private Thread
   Trace *t;
   /** EIBnet/IP socket */
   EIBNetIPSocket *sock;
-  /** state */
-  int mode;
-  /** vbusmonitor */
-  int vmode;
 
   void Run (pth_sem_t * stop);
   const char *Name() { return "eibnetrouter"; }
@@ -45,15 +41,6 @@ public:
 
   void Send_L_Data (LPDU * l);
 
-  bool enterBusmonitor ();
-  bool leaveBusmonitor ();
-  bool openVBusmonitor ();
-  bool closeVBusmonitor ();
-
-  bool Open ();
-  bool Close ();
-  bool Connection_Lost ();
-  bool Send_Queue_Empty ();
 };
 
 #endif

@@ -60,8 +60,6 @@ EIBNetIPTunnel::EIBNetIPTunnel (const char *dest, int port, int sport,
   sock->sendaddr = caddr;
   sock->recvaddr = caddr;
   sock->recvall = 0;
-  mode = 0;
-  vmode = 0;
   support_busmonitor = 1;
   connect_busmonitor = 0;
   Start ();
@@ -95,7 +93,7 @@ EIBNetIPTunnel::Send_L_Data (LPDU * l)
   L_Data_PDU *l1 = (L_Data_PDU *) l;
   inqueue.put (L_Data_ToCEMI (0x11, *l1));
   pth_sem_inc (&insignal, 1);
-  if (vmode)
+  if (mode == BUSMODE_VMONITOR)
     {
       L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
       l2->pdu.set (l->ToPacket ());
@@ -111,23 +109,10 @@ EIBNetIPTunnel::Send_Queue_Empty ()
 }
 
 bool
-EIBNetIPTunnel::openVBusmonitor ()
-{
-  vmode = 1;
-  return 1;
-}
-
-bool
-EIBNetIPTunnel::closeVBusmonitor ()
-{
-  vmode = 0;
-  return 1;
-}
-
-bool
 EIBNetIPTunnel::enterBusmonitor ()
 {
-  mode = 1;
+  if (!Layer2Interface::enterBusmonitor ())
+    return false;
   if (support_busmonitor)
     connect_busmonitor = 1;
   inqueue.put (CArray ());
@@ -138,29 +123,12 @@ EIBNetIPTunnel::enterBusmonitor ()
 bool
 EIBNetIPTunnel::leaveBusmonitor ()
 {
-  mode = 0;
+  if (!Layer2Interface::leaveBusmonitor ())
+    return false;
   connect_busmonitor = 0;
   inqueue.put (CArray ());
   pth_sem_inc (&insignal, 1);
   return 1;
-}
-
-bool
-EIBNetIPTunnel::Open ()
-{
-  return 1;
-}
-
-bool
-EIBNetIPTunnel::Close ()
-{
-  return 1;
-}
-
-bool
-EIBNetIPTunnel::Connection_Lost ()
-{
-  return 0;
 }
 
 void
@@ -350,9 +318,9 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 	      if (c)
 		{
 		  TRACEPRINTF (t, 1, this, "Recv %s", c->Decode ()());
-		  if (mode == 0)
+		  if (mode != BUSMODE_MONITOR)
 		    {
-		      if (vmode)
+		      if (mode = BUSMODE_VMONITOR)
 			{
 			  L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
 			  l2->pdu.set (c->ToPacket ());

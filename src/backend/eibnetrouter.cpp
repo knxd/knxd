@@ -28,8 +28,6 @@ EIBNetIPRouter::EIBNetIPRouter (const char *multicastaddr, int port,
   struct sockaddr_in baddr;
   struct ip_mreq mcfg;
   TRACEPRINTF (t, 2, this, "Open");
-  mode = 0;
-  vmode = 0;
   memset (&baddr, 0, sizeof (baddr));
 #ifdef HAVE_SOCKADDR_IN_LEN
   baddr.sin_len = sizeof (baddr);
@@ -98,7 +96,7 @@ EIBNetIPRouter::Send_L_Data (LPDU * l)
   p.data = L_Data_ToCEMI (0x29, *l1);
   p.service = ROUTING_INDICATION;
   sock->Send (p);
-  if (vmode)
+  if (mode == BUSMODE_VMONITOR)
     {
       L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
       l2->pdu.set (l->ToPacket ());
@@ -140,9 +138,9 @@ EIBNetIPRouter::Run (pth_sem_t * stop1)
 	  if (c)
 	    {
 	      TRACEPRINTF (t, 2, this, "Recv %s", c->Decode ()());
-	      if (mode == 0)
+	      if (mode & BUSMODE_UP)
 		{
-		  if (vmode)
+		  if (mode == BUSMODE_VMONITOR)
 		    {
 		      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
 		      l2->pdu.set (c->ToPacket ());
@@ -162,55 +160,3 @@ EIBNetIPRouter::Run (pth_sem_t * stop1)
   pth_event_free (stop, PTH_FREE_THIS);
 }
 
-bool
-EIBNetIPRouter::openVBusmonitor ()
-{
-  vmode = 1;
-  return 1;
-}
-
-bool
-EIBNetIPRouter::closeVBusmonitor ()
-{
-  vmode = 0;
-  return 1;
-}
-
-bool
-EIBNetIPRouter::enterBusmonitor ()
-{
-  mode = 1;
-  return 1;
-}
-
-bool
-EIBNetIPRouter::leaveBusmonitor ()
-{
-  mode = 0;
-  return 1;
-}
-
-bool
-EIBNetIPRouter::Open ()
-{
-  mode = 0;
-  return 1;
-}
-
-bool
-EIBNetIPRouter::Close ()
-{
-  return 1;
-}
-
-bool
-EIBNetIPRouter::Connection_Lost ()
-{
-  return 0;
-}
-
-bool
-EIBNetIPRouter::Send_Queue_Empty ()
-{
-  return 1;
-}

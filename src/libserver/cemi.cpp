@@ -30,27 +30,11 @@ CEMILayer2Interface::Connection_Lost ()
   return iface->Connection_Lost ();
 }
 
-bool
-CEMILayer2Interface::openVBusmonitor ()
-{
-  vmode = 1;
-  return 1;
-}
-
-bool
-CEMILayer2Interface::closeVBusmonitor ()
-{
-  vmode = 0;
-  return 1;
-}
-
 CEMILayer2Interface::CEMILayer2Interface (LowLevelDriverInterface * i,
 					  Layer3 * l3, int flags) : Layer2Interface (l3)
 {
   TRACEPRINTF (t, 2, this, "Open");
   iface = i;
-  mode = 0;
-  vmode = 0;
   noqueue = flags & FLAG_B_EMI_NOQUEUE;
   pth_sem_init (&in_signal);
   if (!iface->init ())
@@ -80,47 +64,23 @@ CEMILayer2Interface::~CEMILayer2Interface ()
 bool
 CEMILayer2Interface::enterBusmonitor ()
 {
+  if (!Layer2Interface::enterBusmonitor ())
+    return false;
   TRACEPRINTF (t, 2, this, "(CEMILayer2Interface)  OpenBusmon not implemented");
-  if (mode != 0)
-    return 0;
   iface->SendReset ();
 
-  mode = 1;
-  return 1;
-}
-
-bool
-CEMILayer2Interface::leaveBusmonitor ()
-{
-  if (mode != 1)
-    return 0;
-  TRACEPRINTF (t, 2, this, "CloseBusmon");
-
-  mode = 0;
-  return 1;
+  return true;
 }
 
 bool
 CEMILayer2Interface::Open ()
 {
+  if (!Layer2Interface::Open ())
+    return false;
   TRACEPRINTF (t, 2, this, "(CEMILayer2Interface) Open");
-  if (mode != 0)
-    return 0;
   iface->SendReset ();
   
-  mode = 2;
-  return 1;
-}
-
-bool
-CEMILayer2Interface::Close ()
-{
-  if (mode != 2)
-    return 0;
-  TRACEPRINTF (t, 2, this, "(CEMILayer2Interface) Close");
- 
-  mode = 0;
-  return 1;
+  return true;
 }
 
 bool
@@ -163,7 +123,7 @@ CEMILayer2Interface::Send (LPDU * l)
 
   CArray pdu = L_Data_ToCEMI (0x11, *l1);
   iface->Send_Packet (pdu);
-  if (vmode)
+  if (mode == BUSMODE_VMONITOR)
     {
       L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
       l2->pdu.set (l->ToPacket ());
@@ -207,22 +167,20 @@ CEMILayer2Interface::Run (pth_sem_t * stop1)
 	if (!c) {
 	  continue;
 	}
-      if (c->len () == 1 && (*c)[0] == 0xA0 && mode == 2)
+      if (c->len () == 1 && (*c)[0] == 0xA0 && (mode & BUSMODE_UP))
 	{
-	  TRACEPRINTF (t, 2, this, "Reopen");
-	  mode = 0;
-	  Open ();
+	  TRACEPRINTF (t, 2, this, "ReInit");
+	  iface->SendReset ();
 	}
-      if (c->len () == 1 && (*c)[0] == 0xA0 && mode == 1)
+      if (c->len () == 1 && (*c)[0] == 0xA0 && mode == BUSMODE_MONITOR)
 	{
-	  TRACEPRINTF (t, 2, this, "Reopen Busmonitor");
-	  mode = 0;
-	  enterBusmonitor ();
+	  TRACEPRINTF (t, 2, this, "ReInit Busmonitor");
+	  iface->SendReset ();
 	}
       if (c->len () && (*c)[0] == 0x2E) {  /* 2Eh = L_Data.con */
 	sendmode = 0;
       }
-      if (c->len () && (*c)[0] == 0x29 && mode == 2) /* 29h = L_Data.ind */
+      if (c->len () && (*c)[0] == 0x29 && (mode & BUSMODE_UP)) /* 29h = L_Data.ind */
 	{
 	  L_Data_PDU *p = CEMI_to_L_Data (*c, this);
 	  if (p)
@@ -231,7 +189,7 @@ CEMILayer2Interface::Run (pth_sem_t * stop1)
 	      if (p->AddrType == IndividualAddress)
 		p->dest = 0;
 	      TRACEPRINTF (t, 2, this, "Recv %s", p->Decode ()());
-	      if (vmode)
+	      if (mode == BUSMODE_VMONITOR)
 		{
 		  L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
 		  l2->pdu.set (p->ToPacket ());
@@ -241,7 +199,7 @@ CEMILayer2Interface::Run (pth_sem_t * stop1)
 	      continue;
 	    }
 	}
-      if (c->len () > 4 && (*c)[0] == 0x2B && mode == 1) /* 2Bh = L_Busmon.ind */
+      if (c->len () > 4 && (*c)[0] == 0x2B && mode == BUSMODE_MONITOR) /* 2Bh = L_Busmon.ind */
 	{
 	  /* untested for cEMI !! */
 	  L_Busmonitor_PDU *p = new L_Busmonitor_PDU (this);

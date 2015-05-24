@@ -79,7 +79,6 @@ FT12LowLevelDriver::FT12LowLevelDriver (const char *dev, Trace * tr)
   sendflag = 0;
   recvflag = 0;
   repeatcount = 0;
-  mode = 0;
   Start ();
   TRACEPRINTF (t, 1, this, "Opened");
 }

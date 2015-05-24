@@ -27,7 +27,6 @@ Layer3::Layer3 (eibaddr_t addr, Trace * tr)
   defaultAddr = addr;
   TRACEPRINTF (t, 3, this, "Open");
   pth_sem_init (&bufsem);
-  mode = 0;
   running = false;
   FakeL2 = new DummyLayer2Interface(this);
   Start ();
@@ -41,10 +40,8 @@ Layer3::~Layer3 ()
     delete servers[i];
   for (unsigned int i = 0; i < layer2 (); i++)
     {
-      if (mode)
+      if (! layer2[i]->Close ())
         layer2[i]->leaveBusmonitor ();
-      else
-        layer2[i]->Close ();
       delete layer2[i];
     }
   // the next loops should do exactly nothing
@@ -93,14 +90,9 @@ Layer3::deregisterBusmonitor (L_Busmonitor_CallBack * c)
 	busmonitor[i] = busmonitor[busmonitor () - 1];
 	busmonitor.resize (busmonitor () - 1);
 	if (busmonitor () == 0)
-	  {
-	    mode = 0;
-            for (unsigned int i = 0; i < layer2 (); i++)
-              {
-	        layer2[i]->leaveBusmonitor ();
-	        layer2[i]->Open ();
-              }
-	  }
+          for (unsigned int i = 0; i < layer2 (); i++)
+            if (layer2[i]->leaveBusmonitor ())
+              layer2[i]->Open ();
 	TRACEPRINTF (t, 3, this, "deregisterBusmonitor %08X = 1", c);
 	return 1;
       }
@@ -205,43 +197,41 @@ Layer3::registerBusmonitor (L_Busmonitor_CallBack * c)
     return 0;
   if (broadcast ())
     return 0;
-  if (mode == 0)
-    for (unsigned int i = 0; i < layer2 (); i++)
-      {
-        layer2[i]->Close ();
-        if (!layer2[i]->enterBusmonitor ())
-	  {
-            while(i--)
-              {
-	        layer2[i]->leaveBusmonitor ();
-	        layer2[i]->Open ();
-              }
-	    return 0;
-	  }
+  if (!busmonitor()) 
+    {
+      bool have_monitor = false;
+      for (unsigned int i = 0; i < layer2 (); i++)
+        if (layer2[i]->Close ()) 
+          {
+            if (layer2[i]->enterBusmonitor ())
+              have_monitor = true;
+            else
+              layer2[i]->Open ();
+          }
+      if (! have_monitor)
+        return false;
     }
-  mode = 1;
   busmonitor.resize (busmonitor () + 1);
   busmonitor[busmonitor () - 1].cb = c;
   TRACEPRINTF (t, 3, this, "registerBusmontior %08X = 1", c);
-  return 1;
+  return true;
 }
 
 bool
 Layer3::registerVBusmonitor (L_Busmonitor_CallBack * c)
 {
   TRACEPRINTF (t, 3, this, "registerVBusmonitor %08X", c);
-  if (!vbusmonitor ())
-    for (unsigned int i = 0; i < layer2 (); i++)
-      {
-        if (!layer2[i]->openVBusmonitor ())
-          {
-            while (i--)
-              layer2[i]->closeVBusmonitor ();
-            TRACEPRINTF (t, 3, this, "registerVBusmontior %08X = 1", c);
-            return 0;
-          }
-      }
-
+  if (!vbusmonitor ()) 
+    {
+      bool have_monitor = false;
+      for (unsigned int i = 0; i < layer2 (); i++)
+        {
+          if (layer2[i]->openVBusmonitor ())
+            have_monitor = true;
+        }
+      if (! have_monitor)
+        return false;
+    }
   vbusmonitor.resize (vbusmonitor () + 1);
   vbusmonitor[vbusmonitor () - 1].cb = c;
   TRACEPRINTF (t, 3, this, "registerVBusmontior %08X = 1", c);
@@ -252,8 +242,6 @@ bool
 Layer3::registerBroadcastCallBack (L_Data_CallBack * c)
 {
   TRACEPRINTF (t, 3, this, "registerBroadcast %08X", c);
-  if (mode == 1)
-    return 0;
   broadcast.resize (broadcast () + 1);
   broadcast[broadcast () - 1].cb = c;
   TRACEPRINTF (t, 3, this, "registerBroadcast %08X = 1", c);
@@ -264,11 +252,12 @@ bool
 Layer3::registerLayer2 (Layer2Interface * l2)
 {
   TRACEPRINTF (t, 3, this, "registerLayer2 %08X", l2);
-  if (!(mode ? l2->enterBusmonitor () : l2->Open ()))
-    {
-      TRACEPRINTF (t, 3, this, "registerLayer2 %08X = 0", l2);
-      return 0;
-    }
+  if (! busmonitor () || ! l2->enterBusmonitor ())
+    if (! l2->Open ())
+      {
+        TRACEPRINTF (t, 3, this, "registerLayer2 %08X = 0", l2);
+        return 0;
+      }
   layer2.resize (layer2() + 1);
   layer2[layer2 () - 1] = l2;
   TRACEPRINTF (t, 3, this, "registerLayer2 %08X = 1", l2);
@@ -280,8 +269,6 @@ Layer3::registerGroupCallBack (L_Data_CallBack * c, eibaddr_t addr)
 {
   unsigned i;
   TRACEPRINTF (t, 3, this, "registerGroup %08X", c);
-  if (mode == 1)
-    return 0;
   for (i = 0; i < group (); i++)
     {
       if (group[i].dest == addr)
@@ -301,8 +288,6 @@ bool
 {
   unsigned i;
   TRACEPRINTF (t, 3, this, "registerIndividual %08X %d from %s to %s", c, lock, FormatEIBAddr(src).c_str(), FormatEIBAddr(dest).c_str());
-  if (mode == 1)
-    return 0;
   for (i = 0; i < individual (); i++)
     if (lock == Individual_Lock_Connection &&
 	individual[i].src == src &&

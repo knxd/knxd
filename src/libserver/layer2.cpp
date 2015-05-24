@@ -24,6 +24,7 @@ Layer2Interface::Layer2Interface (Layer3 *layer3)
 {
   l3 = layer3;
   t = layer3->t;
+  mode = BUSMODE_DOWN;
 }
 
 bool
@@ -104,5 +105,71 @@ Layer2Interface::hasGroupAddress (eibaddr_t addr)
     if (groupaddr[i] == addr)
       return true;
   return false;
+}
+
+bool
+Layer2Interface::enterBusmonitor ()
+{
+  if (mode != BUSMODE_DOWN)
+    return false;
+  mode = BUSMODE_MONITOR;
+  return true;
+}
+
+bool
+Layer2Interface::leaveBusmonitor ()
+{
+  if (mode != BUSMODE_MONITOR)
+    return false;
+  mode = BUSMODE_DOWN;
+  return true;
+}
+
+bool
+Layer2Interface::openVBusmonitor ()
+{
+  if (mode != BUSMODE_UP)
+    return false;
+  mode = BUSMODE_VMONITOR;
+  return true;
+}
+
+bool
+Layer2Interface::closeVBusmonitor ()
+{
+  if (mode != BUSMODE_VMONITOR)
+    return false;
+  mode = BUSMODE_UP;
+  return true;
+}
+
+bool
+Layer2Interface::Open ()
+{
+  if (mode != BUSMODE_DOWN)
+    return false;
+  mode = BUSMODE_UP;
+  return true;
+}
+
+bool
+Layer2Interface::Close ()
+{
+  if (mode != BUSMODE_UP)
+    return false;
+  mode = BUSMODE_UP;
+  return true;
+}
+
+bool
+Layer2Interface::Connection_Lost ()
+{
+  return false;
+}
+
+bool
+Layer2Interface::Send_Queue_Empty ()
+{
+  return true;
 }
 

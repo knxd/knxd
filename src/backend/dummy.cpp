@@ -29,10 +29,8 @@ DummyL2Driver::DummyL2Driver (Layer3 *l3) : Layer2Interface (l3)
 {
   TRACEPRINTF (t, 2, this, "Open");
 
-  mode = 0;
-  vmode = 0;
-
   Start ();
+
   TRACEPRINTF (t, 2, this, "Openend");
 }
 
@@ -42,35 +40,11 @@ DummyL2Driver::~DummyL2Driver ()
   Stop ();
 }
 
-bool DummyL2Driver::openVBusmonitor ()
-{
-  vmode = 1;
-  return 1;
-}
-
-bool DummyL2Driver::closeVBusmonitor ()
-{
-  vmode = 0;
-  return 1;
-}
-
-bool
-DummyL2Driver::Connection_Lost ()
-{
-  return false;
-}
-
-bool
-DummyL2Driver::Send_Queue_Empty ()
-{
-  return true;
-}
-
 void
 DummyL2Driver::Send_L_Data (LPDU * l)
 {
   TRACEPRINTF (t, 2, this, "Send %s", l->Decode ()());
-  if (vmode && l->getType () == L_Data)
+  if ((mode & BUSMODE_MONITOR) && l->getType () == L_Data)
     {
       L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
       l2->pdu.set (l->ToPacket ());
@@ -80,32 +54,6 @@ DummyL2Driver::Send_L_Data (LPDU * l)
 }
 
 //Open
-
-bool
-DummyL2Driver::enterBusmonitor ()
-{
-  mode = 1;
-  return 1;
-}
-
-bool
-DummyL2Driver::leaveBusmonitor ()
-{
-  mode = 0;
-  return 1;
-}
-
-bool
-DummyL2Driver::Open ()
-{
-  return 1;
-}
-
-bool
-DummyL2Driver::Close ()
-{
-  return 1;
-}
 
 void
 DummyL2Driver::Run (pth_sem_t * stop1)

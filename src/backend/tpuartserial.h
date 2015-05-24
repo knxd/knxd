@@ -35,10 +35,6 @@ class TPUARTSerialLayer2Driver:public Layer2Interface, private Thread
   int fd;
   /** default EIB address */
   eibaddr_t addr;
-  /** state */
-  int mode;
-  /** vbusmonitor mode */
-  int vmode;
   /** semaphore for inqueue */
   pth_sem_t in_signal;
   /** input queue */
@@ -62,11 +58,8 @@ public:
 
   bool enterBusmonitor ();
   bool leaveBusmonitor ();
-  bool openVBusmonitor ();
-  bool closeVBusmonitor ();
 
   bool Open ();
-  bool Close ();
   bool Connection_Lost ();
   bool Send_Queue_Empty ();
 };

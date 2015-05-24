@@ -33,8 +33,6 @@ class EIBNetIPTunnel:public Layer2Interface, private Thread
   struct sockaddr_in raddr;
   pth_sem_t insignal;
   Queue < CArray > inqueue;
-  int mode;
-  int vmode;
   int dataport;
   bool NAT;
   bool noqueue;
@@ -49,17 +47,11 @@ public:
   virtual ~EIBNetIPTunnel ();
   bool init ();
 
-  void Send_L_Data (LPDU * l);
-
   bool enterBusmonitor ();
   bool leaveBusmonitor ();
 
-  bool openVBusmonitor ();
-  bool closeVBusmonitor ();
+  void Send_L_Data (LPDU * l);
 
-  bool Open ();
-  bool Close ();
-  bool Connection_Lost ();
   bool Send_Queue_Empty ();
 };
 

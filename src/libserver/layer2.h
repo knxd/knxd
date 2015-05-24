@@ -25,9 +25,20 @@
 
 class Layer3;
 
+/** Bus modes. The enum is designed to allow bitwise tests
+ * (& BUSMODE_UP and * & BUSMODE_MONITOR) */
+typedef enum {
+  BUSMODE_DOWN = 0,
+  BUSMODE_UP,
+  BUSMODE_MONITOR,
+  BUSMODE_VMONITOR,
+} busmode_t;
+
 /** interface for an Layer 2 driver */
 class Layer2Interface
 {
+  friend class Layer3;
+
   /** my individual addresses */
   Array < eibaddr_t > indaddr;
   /** my group addresses */
@@ -60,23 +71,26 @@ public:
   bool hasGroupAddress (eibaddr_t addr);
 
   /** try to enter the busmonitor mode, return true if successful */
-  virtual bool enterBusmonitor () = 0;
+  virtual bool enterBusmonitor ();
   /** try to leave the busmonitor mode, return true if successful */
-  virtual bool leaveBusmonitor () = 0;
+  virtual bool leaveBusmonitor ();
 
   /** try to enter the vbusmonitor mode, return true if successful */
-  virtual bool openVBusmonitor () = 0;
+  virtual bool openVBusmonitor ();
   /** try to leave the vbusmonitor mode, return true if successful */
-  virtual bool closeVBusmonitor () = 0;
+  virtual bool closeVBusmonitor ();
 
   /** try to enter the normal operation mode, return true if successful */
-  virtual bool Open () = 0;
+  virtual bool Open ();
   /** try to leave the normal operation mode, return true if successful */
-  virtual bool Close () = 0;
+  virtual bool Close ();
   /** return true, if the connection is broken */
-  virtual bool Connection_Lost () = 0;
+  virtual bool Connection_Lost ();
   /** return true, if all frames have been sent */
-  virtual bool Send_Queue_Empty () = 0;
+  virtual bool Send_Queue_Empty ();
+
+protected:
+  busmode_t mode;
 };
 
 /** pointer to a functions, which creates a Layer 2 interface
