@@ -24,13 +24,13 @@
 bool
 EMI1Layer2Interface::addAddress (eibaddr_t addr UNUSED)
 {
-  return 0;
+  return false;
 }
 
 bool
 EMI1Layer2Interface::removeAddress (eibaddr_t addr UNUSED)
 {
-  return 0;
+  return false;
 }
 
 EMI1Layer2Interface::EMI1Layer2Interface (LowLevelDriverInterface * i,
@@ -84,7 +84,7 @@ EMI1Layer2Interface::enterBusmonitor ()
       pth_wait (e);
       pth_event_free (e, PTH_FREE_THIS);
     }
-  return 1;
+  return true;
 }
 
 bool
@@ -103,7 +103,7 @@ EMI1Layer2Interface::leaveBusmonitor ()
       pth_event_free (e, PTH_FREE_THIS);
     }
   pth_usleep (1000000);
-  return 1;
+  return true;
 }
 
 bool
@@ -123,7 +123,7 @@ EMI1Layer2Interface::Open ()
       pth_wait (e);
       pth_event_free (e, PTH_FREE_THIS);
     }
-  return 1;
+  return true;
 }
 
 bool
@@ -141,7 +141,7 @@ EMI1Layer2Interface::Close ()
       pth_wait (e);
       pth_event_free (e, PTH_FREE_THIS);
     }
-  return 1;
+  return true;
 }
 
 bool

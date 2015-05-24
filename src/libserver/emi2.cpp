@@ -24,13 +24,13 @@
 bool
 EMI2Layer2Interface::addAddress (eibaddr_t addr UNUSED)
 {
-  return 0;
+  return false;
 }
 
 bool
 EMI2Layer2Interface::removeAddress (eibaddr_t addr UNUSED)
 {
-  return 0;
+  return false;
 }
 
 EMI2Layer2Interface::EMI2Layer2Interface (LowLevelDriverInterface * i,
@@ -60,6 +60,8 @@ EMI2Layer2Interface::~EMI2Layer2Interface ()
 {
   TRACEPRINTF (t, 2, this, "Destroy");
   Stop ();
+  while (!inqueue.isempty ())
+    delete inqueue.get ();
   if (iface)
     delete iface;
 }
@@ -101,7 +103,7 @@ EMI2Layer2Interface::leaveBusmonitor ()
       pth_wait (e);
       pth_event_free (e, PTH_FREE_THIS);
     }
-  return 1;
+  return true;
 }
 
 bool
@@ -123,7 +125,7 @@ EMI2Layer2Interface::Open ()
       pth_wait (e);
       pth_event_free (e, PTH_FREE_THIS);
     }
-  return 1;
+  return true;
 }
 
 bool

@@ -51,6 +51,8 @@ CEMILayer2Interface::~CEMILayer2Interface ()
 {
   TRACEPRINTF (t, 2, this, "Destroy");
   Stop ();
+  while (!inqueue.isempty ())
+    delete inqueue.get ();
   if (iface)
     delete iface;
 }
