@@ -125,7 +125,6 @@ public:
   bool removeGroupAddress (eibaddr_t addr UNUSED) { return 1; }
   bool Open () { return 1; }
   bool Close () { return 1; }
-  bool Connection_Lost () { return 0; }
   bool Send_Queue_Empty () { return 1; }
 };
 
