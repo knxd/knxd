@@ -26,8 +26,6 @@
 #include "usbif.h"
 #include "usb.h"
 
-extern libusb_context *context;
-
 USBEndpoint
 parseUSBEndpoint (const char *addr)
 {
@@ -169,7 +167,7 @@ check_device (libusb_device * dev, USBEndpoint e, USBDevice & e2)
 }
 
 USBDevice
-detectUSBEndpoint (USBEndpoint e)
+detectUSBEndpoint (libusb_context *context, USBEndpoint e)
 {
   libusb_device **devs;
   int i, count;
@@ -189,6 +187,7 @@ detectUSBEndpoint (USBEndpoint e)
 USBLowLevelDriver::USBLowLevelDriver (const char *Dev, Trace * tr)
 {
   t = tr;
+  loop = new USBLoop (tr);
   pth_sem_init (&in_signal);
   pth_sem_init (&out_signal);
   pth_sem_init (&send_empty);
@@ -196,9 +195,11 @@ USBLowLevelDriver::USBLowLevelDriver (const char *Dev, Trace * tr)
   pth_sem_set_value (&send_empty, 1);
   getwait = pth_event (PTH_EVENT_SEM, &out_signal);
 
+  if (!loop->context)
+    return;
   TRACEPRINTF (t, 1, this, "Detect");
   USBEndpoint e = parseUSBEndpoint (Dev);
-  d = detectUSBEndpoint (e);
+  d = detectUSBEndpoint (loop->context, e);
   state = 0;
   if (d.dev == 0)
     return;
@@ -241,6 +242,7 @@ USBLowLevelDriver::~USBLowLevelDriver ()
   TRACEPRINTF (t, 1, this, "Close");
   if (state > 0)
     libusb_close (dev);
+  delete loop;
 }
 
 bool

@@ -29,13 +29,11 @@
 #define USB_DOC "usb connects over a KNX USB interface\n\n"
 #define USB_PREFIX "usb"
 #define USB_CREATE Usb_Create
-#define USB_CLEANUP USBEnd
+#define USB_CLEANUP NULL
 
 inline Layer2Interface *
 Usb_Create (const char *dev, int flags, Layer3 *l3)
 {
-  if (!USBInit (l3->t))
-    return 0;
   return new USBLayer2Interface (new USBLowLevelDriver (dev, l3->t), l3, flags);
 }
 

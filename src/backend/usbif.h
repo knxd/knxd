@@ -22,6 +22,7 @@
 
 #include "lowlevel.h"
 #include "libusb.h"
+#include "usb.h"
 
 typedef struct
 {
@@ -48,6 +49,8 @@ USBDevice detectUSBEndpoint (USBEndpoint e);
 class USBLowLevelDriver:public LowLevelDriverInterface, private Thread
 {
   libusb_device_handle *dev;
+  /* libusb event loop */
+  USBLoop *loop;
   USBDevice d;
   /** debug output */
   Trace *t;

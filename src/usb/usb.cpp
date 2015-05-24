@@ -20,12 +20,24 @@
 #include <stdlib.h>
 #include "usb.h"
 
-USBLoop::USBLoop (libusb_context * c, Trace * tr)
+USBLoop::USBLoop (Trace * tr)
 {
   t = tr;
-  context = c;
+  if (libusb_init (&context))
+    {
+      TRACEPRINTF (t, 10, this, "USBLoop-Create");
+      context = 0;
+      return;
+    }
   TRACEPRINTF (t, 10, this, "USBLoop-Create");
   Start ();
+}
+
+USBLoop::~USBLoop ()
+{
+  Stop();
+  if (context)
+    libusb_exit (context);
 }
 
 void
@@ -96,24 +108,3 @@ USBLoop::Run (pth_sem_t * stop1)
   pth_event_free (stop, PTH_FREE_THIS);
 }
 
-libusb_context *context = 0;
-static USBLoop *loop = 0;
-
-bool
-USBInit (Trace * tr)
-{
-  if (libusb_init (&context))
-    return false;
-  loop = new USBLoop (context, tr);
-
-  return true;
-}
-
-void
-USBEnd ()
-{
-  if (loop)
-    delete loop;
-  if (context)
-    libusb_exit (context);
-}
