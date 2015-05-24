@@ -33,12 +33,6 @@ EMI2Layer2Interface::removeAddress (eibaddr_t addr UNUSED)
   return 0;
 }
 
-bool
-EMI2Layer2Interface::Connection_Lost ()
-{
-  return iface->Connection_Lost ();
-}
-
 EMI2Layer2Interface::EMI2Layer2Interface (LowLevelDriverInterface * i,
 					  Layer3 * l3, int flags) : Layer2Interface (l3)
 {

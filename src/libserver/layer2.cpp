@@ -162,12 +162,6 @@ Layer2Interface::Close ()
 }
 
 bool
-Layer2Interface::Connection_Lost ()
-{
-  return false;
-}
-
-bool
 Layer2Interface::Send_Queue_Empty ()
 {
   return true;

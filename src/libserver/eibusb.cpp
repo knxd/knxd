@@ -253,12 +253,6 @@ USBConverterInterface::SendReset ()
   return i->SendReset ();
 }
 
-bool
-USBConverterInterface::Connection_Lost ()
-{
-  return i->Connection_Lost ();
-}
-
 LowLevelDriverInterface::EMIVer USBConverterInterface::getEMIVer ()
 {
   return v;
@@ -314,11 +308,6 @@ bool USBLayer2Interface::init ()
   if (emi == 0)
 	return false;
   return Layer2Interface::init();
-}
-
-bool USBLayer2Interface::Connection_Lost ()
-{
-  return emi->Connection_Lost ();
 }
 
 bool USBLayer2Interface::openVBusmonitor ()

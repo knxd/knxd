@@ -57,7 +57,6 @@ public:
 
   bool Open ();
   bool Close ();
-  bool Connection_Lost ();
   bool Send_Queue_Empty ();
 };
 

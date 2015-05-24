@@ -84,8 +84,6 @@ public:
   virtual bool Open ();
   /** try to leave the normal operation mode, return true if successful */
   virtual bool Close ();
-  /** return true, if the connection is broken */
-  virtual bool Connection_Lost ();
   /** return true, if all frames have been sent */
   virtual bool Send_Queue_Empty ();
 

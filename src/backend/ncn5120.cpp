@@ -132,12 +132,6 @@ bool NCN5120SerialLayer2Driver::init ()
 }
 
 bool
-NCN5120SerialLayer2Driver::Connection_Lost ()
-{
-  return 0;
-}
-
-bool
 NCN5120SerialLayer2Driver::Send_Queue_Empty ()
 {
   return inqueue.isempty ();

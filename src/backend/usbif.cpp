@@ -251,12 +251,6 @@ USBLowLevelDriver::init ()
   return state == 2;
 }
 
-bool
-USBLowLevelDriver::Connection_Lost ()
-{
-  return 0;
-}
-
 void
 USBLowLevelDriver::Send_Packet (CArray l)
 {

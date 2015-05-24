@@ -48,8 +48,6 @@ public:
 
   /** resets the connection */
   virtual void SendReset () = 0;
-  /** indicate, if connections works */
-  virtual bool Connection_Lost () = 0;
 
   virtual EMIVer getEMIVer () = 0;
 };

@@ -24,12 +24,6 @@
 #include "emi.h"
 #include "layer3.h"
 
-bool
-CEMILayer2Interface::Connection_Lost ()
-{
-  return iface->Connection_Lost ();
-}
-
 CEMILayer2Interface::CEMILayer2Interface (LowLevelDriverInterface * i,
 					  Layer3 * l3, int flags) : Layer2Interface (l3)
 {

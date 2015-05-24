@@ -29,12 +29,6 @@ BCU1SerialLowLevelDriver::SendReset ()
 {
 }
 
-bool
-BCU1SerialLowLevelDriver::Connection_Lost ()
-{
-  return 0;
-}
-
 void
 BCU1SerialLowLevelDriver::Send_Packet (CArray l)
 {

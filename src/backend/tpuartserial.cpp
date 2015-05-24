@@ -142,12 +142,6 @@ bool TPUARTSerialLayer2Driver::init ()
 }
 
 bool
-TPUARTSerialLayer2Driver::Connection_Lost ()
-{
-  return 0;
-}
-
-bool
 TPUARTSerialLayer2Driver::Send_Queue_Empty ()
 {
   return inqueue.isempty ();

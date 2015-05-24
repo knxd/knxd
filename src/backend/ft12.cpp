@@ -188,12 +188,6 @@ FT12LowLevelDriver::Get_Packet (pth_event_t stop)
     return 0;
 }
 
-bool
-FT12LowLevelDriver::Connection_Lost ()
-{
-  return repeatcount > 10;
-}
-
 void
 FT12LowLevelDriver::Run (pth_sem_t * stop1)
 {

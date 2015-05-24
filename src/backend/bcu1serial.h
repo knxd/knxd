@@ -71,7 +71,6 @@ public:
   pth_sem_t *Send_Queue_Empty_Cond ();
   CArray *Get_Packet (pth_event_t stop);
   void SendReset ();
-  bool Connection_Lost ();
   EMIVer getEMIVer ();
 };
 

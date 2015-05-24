@@ -60,7 +60,6 @@ public:
   bool leaveBusmonitor ();
 
   bool Open ();
-  bool Connection_Lost ();
   bool Send_Queue_Empty ();
 };
 
