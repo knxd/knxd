@@ -311,7 +311,9 @@ USBLayer2Interface::~USBLayer2Interface ()
 
 bool USBLayer2Interface::init ()
 {
-  return emi != 0;
+  if (emi == 0)
+	return false;
+  return Layer2Interface::init();
 }
 
 bool USBLayer2Interface::Connection_Lost ()
@@ -321,31 +323,43 @@ bool USBLayer2Interface::Connection_Lost ()
 
 bool USBLayer2Interface::openVBusmonitor ()
 {
+  if (! Layer2Interface::openVBusmonitor ())
+    return false;
   return emi->openVBusmonitor ();
 }
 
 bool USBLayer2Interface::closeVBusmonitor ()
 {
+  if (! Layer2Interface::closeVBusmonitor ())
+    return false;
   return emi->closeVBusmonitor ();
 }
 
 bool USBLayer2Interface::enterBusmonitor ()
 {
+  if (! Layer2Interface::enterBusmonitor ())
+    return false;
   return emi->enterBusmonitor ();
 }
 
 bool USBLayer2Interface::leaveBusmonitor ()
 {
+  if (! Layer2Interface::leaveBusmonitor ())
+    return false;
   return emi->leaveBusmonitor ();
 }
 
 bool USBLayer2Interface::Open ()
 {
+  if (! Layer2Interface::Open ())
+    return false;
   return emi->Open ();
 }
 
 bool USBLayer2Interface::Close ()
 {
+  if (! Layer2Interface::Close ())
+    return false;
   return emi->Close ();
 }
 
