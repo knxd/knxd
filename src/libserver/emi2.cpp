@@ -34,11 +34,11 @@ EMI2Layer2::removeAddress (eibaddr_t addr UNUSED)
 }
 
 EMI2Layer2::EMI2Layer2 (LowLevelDriver * i, Layer3 * l3,
-                        int flags) : Layer2 (l3)
+                        L2options *opt) : Layer2 (l3, opt)
 {
   TRACEPRINTF (t, 2, this, "Open");
   iface = i;
-  noqueue = flags & FLAG_B_EMI_NOQUEUE;
+  noqueue = opt ? (opt->flags & FLAG_B_EMI_NOQUEUE) : false;
   pth_sem_init (&in_signal);
   if (!iface->init ())
     {

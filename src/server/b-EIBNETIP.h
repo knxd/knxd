@@ -30,10 +30,10 @@
 #define EIBNETIP_CREATE eibnetip_Create
 
 inline Layer2 *
-eibnetip_Create (const char *dev, int flags UNUSED, Layer3 *l3)
+eibnetip_Create (const char *dev, L2options *opt, Layer3 *l3)
 {
   if (!*dev)
-    return new EIBNetIPRouter ("224.0.23.12", 3671, arg.addr, l3);
+    return new EIBNetIPRouter ("224.0.23.12", 3671, arg.addr, l3, opt);
   char *a = strdup (dev);
   char *b;
   int port;
@@ -50,7 +50,7 @@ eibnetip_Create (const char *dev, int flags UNUSED, Layer3 *l3)
     }
   else
     port = 3671;
-  c = new EIBNetIPRouter (a, port, arg.addr, l3);
+  c = new EIBNetIPRouter (a, port, arg.addr, l3, opt);
   free (a);
   return c;
 }

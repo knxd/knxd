@@ -271,8 +271,8 @@ USBConverterInterface::Send_Queue_Empty ()
 }
 
 
-USBLayer2::USBLayer2 (LowLevelDriver * i,
-		      Layer3 * l3, int flags) : Layer2 (l3)
+USBLayer2::USBLayer2 (LowLevelDriver * i, Layer3 * l3,
+                      L2options *opt) : Layer2 (l3, opt)
 {
   emi = 0;
   LowLevelDriver *iface = initUSBDriver (i, t);
@@ -282,13 +282,13 @@ USBLayer2::USBLayer2 (LowLevelDriver * i,
   switch (iface->getEMIVer ())
     {
     case LowLevelDriver::vEMI1:
-      emi = new EMI1Layer2 (iface, l3, flags);
+      emi = new EMI1Layer2 (iface, l3, opt);
       break;
     case LowLevelDriver::vEMI2:
-      emi = new EMI2Layer2 (iface, l3, flags);
+      emi = new EMI2Layer2 (iface, l3, opt);
       break;
     case LowLevelDriver::vCEMI:
-      emi = new CEMILayer2 (iface, l3, flags);
+      emi = new CEMILayer2 (iface, l3, opt);
       break;
     default:
       TRACEPRINTF (t, 2, this, "Unsupported EMI");

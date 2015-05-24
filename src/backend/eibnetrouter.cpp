@@ -23,7 +23,7 @@
 #include "layer3.h"
 
 EIBNetIPRouter::EIBNetIPRouter (const char *multicastaddr, int port,
-				eibaddr_t a UNUSED, Layer3 * l3) : Layer2 (l3)
+				eibaddr_t a UNUSED, Layer3 * l3, L2options *opt) : Layer2 (l3, opt)
 {
   struct sockaddr_in baddr;
   struct ip_mreq mcfg;

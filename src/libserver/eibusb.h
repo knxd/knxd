@@ -55,7 +55,7 @@ class USBLayer2:public Layer2
   Layer2 *emi;
 
 public:
-  USBLayer2 (LowLevelDriver * i, Layer3 * l3, int flags);
+  USBLayer2 (LowLevelDriver * i, Layer3 * l3, L2options *opt);
   ~USBLayer2 ();
   bool init ();
 

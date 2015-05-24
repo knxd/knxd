@@ -22,12 +22,12 @@
 #include "layer3.h"
 
 EIBNetIPTunnel::EIBNetIPTunnel (const char *dest, int port, int sport,
-				const char *srcip, int Dataport, int flags,
-				Layer3 * l3) : Layer2 (l3)
+				const char *srcip, int Dataport, L2options *opt,
+				Layer3 * l3) : Layer2 (l3, opt)
 {
   TRACEPRINTF (t, 2, this, "Open");
   pth_sem_init (&insignal);
-  noqueue = flags & FLAG_B_TUNNEL_NOQUEUE;
+  noqueue = opt ? (opt->flags & FLAG_B_TUNNEL_NOQUEUE) : 0;
   sock = 0;
   if (!GetHostIP (&caddr, dest))
     return;

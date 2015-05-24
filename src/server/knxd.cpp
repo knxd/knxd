@@ -71,7 +71,7 @@ public:
   bool route;
   bool discover;
 
-  int backendflags;
+  L2options l2opts;
   const char *serverip;
   const char *eibnetname;
 
@@ -188,7 +188,7 @@ struct urldef URLs[] = {
 
 /** determines the right backend for the url and creates it */
 Layer2 *
-Create (const char *url, int flags, Layer3 * l3)
+Create (const char *url, L2options *opt, Layer3 * l3)
 {
   unsigned int p = 0;
   struct urldef *u = URLs;
@@ -199,7 +199,7 @@ Create (const char *url, int flags, Layer3 * l3)
   while (u->prefix)
     {
       if (strlen (u->prefix) == p && !memcmp (u->prefix, url, p))
-        return u->Create (url + p + 1, flags, l3);
+        return u->Create (url + p + 1, opt, l3);
       u++;
     }
   die ("url not supported");
@@ -277,6 +277,8 @@ static struct argp_option options[] = {
 #endif
   {"no-emi-send-queuing", OPT_BACK_EMI_NOQUEUE, 0, 0,
    "wait for L_Data_ind while sending (for all EMI based backends)"},
+  {"no-monitor", 'N', 0, 0,
+   "forbid the next Layer2 interface to enter monitor mode"},
   {0}
 };
 
@@ -389,27 +391,30 @@ parse_opt (int key, char *arg, struct argp_state *state)
           die("EIBnetServer/IP name must be shorter than 30 bytes");
       break;
     case OPT_BACK_TUNNEL_NOQUEUE:
-      arguments->backendflags |= FLAG_B_TUNNEL_NOQUEUE;
+      arguments->l2opts.flags |= FLAG_B_TUNNEL_NOQUEUE;
       break;
     case OPT_BACK_TPUARTS_ACKGROUP:
-      arguments->backendflags |= FLAG_B_TPUARTS_ACKGROUP;
+      arguments->l2opts.flags |= FLAG_B_TPUARTS_ACKGROUP;
       break;
     case OPT_BACK_TPUARTS_ACKINDIVIDUAL:
-      arguments->backendflags |= FLAG_B_TPUARTS_ACKINDIVIDUAL;
+      arguments->l2opts.flags |= FLAG_B_TPUARTS_ACKINDIVIDUAL;
       break;
     case OPT_BACK_TPUARTS_DISCH_RESET:
-      arguments->backendflags |= FLAG_B_TPUARTS_DISCH_RESET;
+      arguments->l2opts.flags |= FLAG_B_TPUARTS_DISCH_RESET;
       break;
     case OPT_BACK_EMI_NOQUEUE:
-      arguments->backendflags |= FLAG_B_EMI_NOQUEUE;
+      arguments->l2opts.flags |= FLAG_B_EMI_NOQUEUE;
+      break;
+    case 'N':
+      arguments->l2opts.flags |= FLAG_B_NO_MONITOR;
       break;
     case ARGP_KEY_ARG:
     case 'b':
       {
-        Layer2 *l2 = Create (arg, arguments->backendflags, arguments->l3 ());
+        Layer2 *l2 = Create (arg, &arguments->l2opts, arguments->l3 ());
         if (!l2 || !l2->init ())
           die ("initialisation of backend '%s' failed", arg);
-        arguments->backendflags = 0;
+        memset(&arguments->l2opts, 0, sizeof(arguments->l2opts));
         arguments->has_work |= (arguments->has_work & 0x01) ? 0x02 : 0x01;
         /* The idea is that having two or more L2 interfaces to route between,
          * but no network-or-whatever front-end, is perfectly reasonable. 
@@ -417,7 +422,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
         break;
       }
     case ARGP_KEY_FINI:
-      if (arguments->backendflags)
+      if (arguments->l2opts.flags)
         die ("You need to use backend flags in front of the affected backend");
 
 #ifdef HAVE_SYSTEMD

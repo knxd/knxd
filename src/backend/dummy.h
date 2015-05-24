@@ -30,7 +30,7 @@ class DummyL2Driver:public Layer2, private Thread
   void Run (pth_sem_t * stop);
   const char *Name() { return "Dummy"; }
 public:
-  DummyL2Driver (Layer3 *l3);
+  DummyL2Driver (Layer3 *l3, L2options *opt);
   ~DummyL2Driver ();
 
   void Send_L_Data (LPDU * l);

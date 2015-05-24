@@ -30,9 +30,9 @@
 #define FT12_CREATE ft12_Create
 
 inline Layer2 *
-ft12_Create (const char *dev, int flags, Layer3 * l3)
+ft12_Create (const char *dev, L2options *opt, Layer3 * l3)
 {
-  return new EMI2Layer2 (new FT12LowLevelDriver (dev, l3->t), l3, flags);
+  return new EMI2Layer2 (new FT12LowLevelDriver (dev, l3->t), l3, opt);
 }
 
 #endif

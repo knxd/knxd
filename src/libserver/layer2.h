@@ -34,6 +34,10 @@ typedef enum {
   BUSMODE_VMONITOR,
 } busmode_t;
 
+typedef struct {
+  unsigned int flags;
+} L2options;
+
 /** interface for an Layer 2 driver */
 class Layer2
 {
@@ -44,13 +48,15 @@ class Layer2
   /** my group addresses */
   Array < eibaddr_t > groupaddr;
 
+  bool allow_monitor;
+
 public:
   /** debug output */
   Trace *t;
   /** our layer-3 (to send packets to) */
   Layer3 *l3;
 
-  Layer2 (Layer3 *l3);
+  Layer2 (Layer3 *l3, L2options *opt);
   virtual ~Layer2 ();
   virtual bool init ();
 
@@ -97,13 +103,13 @@ protected:
  * @param t trace output
  * @return new Layer 2 interface
  */
-typedef Layer2 *(*Layer2_Create_Func) (const char *conf, int flags,
-						Layer3 * l3);
+typedef Layer2 *(*Layer2_Create_Func) (const char *conf, 
+				       L2options *opt, Layer3 * l3);
 
 class DummyLayer2:public Layer2
 {
 public:
-  DummyLayer2 (Layer3 *l3) : Layer2 (l3)
+  DummyLayer2 (Layer3 *l3) : Layer2 (l3, NULL)
   {
   }
   LPDU *Get_L_Data (pth_event_t stop UNUSED) { return 0; }
@@ -128,5 +134,6 @@ public:
 #define FLAG_B_TPUARTS_ACKINDIVIDUAL (1<<2)
 #define FLAG_B_TPUARTS_DISCH_RESET (1<<3)
 #define FLAG_B_EMI_NOQUEUE (1<<4)
+#define FLAG_B_NO_MONITOR (1<<5)
 
 #endif

@@ -47,7 +47,7 @@ class NCN5120SerialLayer2Driver : public Layer2, private Thread
   void Run (pth_sem_t * stop);
   const char *Name() { return "ncn5120"; }
 public:
-  NCN5120SerialLayer2Driver (const char *dev, eibaddr_t addr, int flags,
+  NCN5120SerialLayer2Driver (const char *dev, eibaddr_t addr, L2options *opt,
                              Layer3 *l3);
   ~NCN5120SerialLayer2Driver ();
   bool init ();

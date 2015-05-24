@@ -30,9 +30,9 @@
 #define DUMMY_CREATE dummy_Create
 
 inline Layer2 *
-dummy_Create (const char *dev, int flags, Layer3 * l3)
+dummy_Create (const char *dev UNUSED, L2options *opt, Layer3 * l3)
 {
-  return new DummyL2Driver (l3);
+  return new DummyL2Driver (l3, opt);
 }
 
 #endif

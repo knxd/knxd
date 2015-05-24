@@ -41,18 +41,18 @@ setstat (int fd, int s)
 
 
 NCN5120SerialLayer2Driver::NCN5120SerialLayer2Driver (const char *dev,
-						    eibaddr_t a, int flags,
+						    eibaddr_t a, L2options *opt,
 						    Layer3 * l3)
-	: Layer2::Layer2(l3)
+	: Layer2::Layer2(l3, opt)
 {
   struct termios t1;
   TRACEPRINTF (t, 2, this, "Open");
 
   pth_sem_init (&in_signal);
 
-  ackallgroup = flags & FLAG_B_TPUARTS_ACKGROUP;
-  ackallindividual = flags & FLAG_B_TPUARTS_ACKINDIVIDUAL;
-  dischreset = flags & FLAG_B_TPUARTS_DISCH_RESET;
+  ackallgroup = opt ? (opt->flags & FLAG_B_TPUARTS_ACKGROUP) : 0;
+  ackallindividual = opt ? (opt->flags & FLAG_B_TPUARTS_ACKINDIVIDUAL) : 0;
+  dischreset = opt ? (opt->flags & FLAG_B_TPUARTS_DISCH_RESET) : 0;
 
   fd = open (dev, O_RDWR | O_NOCTTY | O_NDELAY | O_SYNC);
   if (fd == -1)

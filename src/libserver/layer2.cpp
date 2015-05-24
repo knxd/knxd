@@ -20,11 +20,12 @@
 #include "layer2.h"
 #include "layer3.h"
 
-Layer2::Layer2 (Layer3 *layer3)
+Layer2::Layer2 (Layer3 *layer3, L2options *opt)
 {
   l3 = layer3;
   t = layer3->t;
   mode = BUSMODE_DOWN;
+  allow_monitor = !(opt && (opt->flags & FLAG_B_NO_MONITOR));
 }
 
 bool
@@ -110,6 +111,8 @@ Layer2::hasGroupAddress (eibaddr_t addr)
 bool
 Layer2::enterBusmonitor ()
 {
+  if (!allow_monitor)
+    return false;
   if (mode != BUSMODE_DOWN)
     return false;
   mode = BUSMODE_MONITOR;
