@@ -134,17 +134,17 @@ CEMILayer2Interface::Run (pth_sem_t * stop1)
   pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
   pth_event_t input = pth_event (PTH_EVENT_SEM, &in_signal);
   pth_event_t timeout = pth_event (PTH_EVENT_RTIME, pth_time (0, 0));
-  sendmode = 0;
+  bool wait_confirm = false;
   while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
     {
-      if (sendmode == 0)
+      if (!wait_confirm)
 	pth_event_concat (stop, input, NULL);
-      if (sendmode == 1)
+      if (wait_confirm)
 	pth_event_concat (stop, timeout, NULL);
       CArray *c = iface->Get_Packet (stop);
       pth_event_isolate(input);
       pth_event_isolate(timeout);
-      if (!inqueue.isempty() && sendmode == 0)
+      if (!wait_confirm && !inqueue.isempty())
 	{
 	  pth_sem_dec (&in_signal);
 	  Send(inqueue.get());
@@ -152,30 +152,20 @@ CEMILayer2Interface::Run (pth_sem_t * stop1)
 	    {
 	      pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE, timeout,
 			 pth_time (1, 0));
-	      sendmode = 1;
+	      wait_confirm = true;
 	    }
-	  else
-	    sendmode = 0;
 	}
-	if (sendmode == 1 && pth_event_status(timeout) == PTH_STATUS_OCCURRED) {
-	sendmode = 0;
-	}
-	if (!c) {
-	  continue;
-	}
-      if (c->len () == 1 && (*c)[0] == 0xA0 && (mode & BUSMODE_UP))
+      if (wait_confirm && pth_event_status(timeout) == PTH_STATUS_OCCURRED)
+	wait_confirm = false;
+      if (!c)
+	continue;
+      if (c->len () == 1 && (*c)[0] == 0xA0 && mode != BUSMODE_DOWN)
 	{
 	  TRACEPRINTF (t, 2, this, "ReInit");
 	  iface->SendReset ();
 	}
-      if (c->len () == 1 && (*c)[0] == 0xA0 && mode == BUSMODE_MONITOR)
-	{
-	  TRACEPRINTF (t, 2, this, "ReInit Busmonitor");
-	  iface->SendReset ();
-	}
-      if (c->len () && (*c)[0] == 0x2E) {  /* 2Eh = L_Data.con */
-	sendmode = 0;
-      }
+      if (c->len () && (*c)[0] == 0x2E)  /* 2Eh = L_Data.con */
+	wait_confirm = false;
       if (c->len () && (*c)[0] == 0x29 && (mode & BUSMODE_UP)) /* 29h = L_Data.ind */
 	{
 	  L_Data_PDU *p = CEMI_to_L_Data (*c, this);

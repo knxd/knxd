@@ -197,30 +197,28 @@ EMI2Layer2Interface::Run (pth_sem_t * stop1)
   pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
   pth_event_t input = pth_event (PTH_EVENT_SEM, &in_signal);
   pth_event_t timeout = pth_event (PTH_EVENT_RTIME, pth_time (0, 0));
-  sendmode = 0;
+  bool wait_confirm = false;
   while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
     {
-      if (sendmode == 0)
+      if (!wait_confirm)
 	pth_event_concat (stop, input, NULL);
-      if (sendmode == 1)
+      if (wait_confirm)
 	pth_event_concat (stop, timeout, NULL);
       CArray *c = iface->Get_Packet (stop);
       pth_event_isolate(input);
       pth_event_isolate(timeout);
-      if (!inqueue.isempty() && sendmode == 0)
+      if (!wait_confirm && !inqueue.isempty())
 	{
 	  Send(inqueue.get());
 	  if (noqueue)
 	    {
 	      pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE, timeout,
 			 pth_time (1, 0));
-	      sendmode = 1;
+	      wait_confirm = true;
 	    }
-	  else
-	    sendmode = 0;
 	}
-      if (sendmode == 1 && pth_event_status(timeout) == PTH_STATUS_OCCURRED)
-	sendmode = 0;
+      if (wait_confirm && pth_event_status(timeout) == PTH_STATUS_OCCURRED)
+	wait_confirm = false;
       if (!c)
 	continue;
       if (c->len () == 1 && (*c)[0] == 0xA0 && (mode & BUSMODE_UP))
@@ -238,7 +236,7 @@ EMI2Layer2Interface::Run (pth_sem_t * stop1)
 	  enterBusmonitor ();
 	}
       if (c->len () && (*c)[0] == 0x2E)
-	sendmode = 0;
+	wait_confirm = false;
       if (c->len () && (*c)[0] == 0x29 && (mode & BUSMODE_UP))
 	{
 	  L_Data_PDU *p = EMI_to_L_Data (*c, this);

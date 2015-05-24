@@ -40,7 +40,6 @@ class CEMILayer2Interface:public Layer2Interface, private Thread
   /** input queue */
   Queue < LPDU * >inqueue;
   bool noqueue;
-  int sendmode;
 
   void Send (LPDU * l);
   void Run (pth_sem_t * stop);
