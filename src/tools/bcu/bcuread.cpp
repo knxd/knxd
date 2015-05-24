@@ -55,7 +55,7 @@ struct urldef URLs[] = {
 };
 
 /** determines the right backend for the url and creates it */
-LowLevelDriverInterface *
+LowLevelDriver *
 Create (const char *url, Trace * t)
 {
   unsigned int p = 0;
@@ -145,7 +145,7 @@ main (int ac, char *ag[])
   int len;
   int index;
   CArray result;
-  LowLevelDriverInterface *iface = 0;
+  LowLevelDriver *iface = 0;
   memset (&arg, 0, sizeof (arg));
 
   argp_parse (&argp, ac, ag, 0, &index, &arg);

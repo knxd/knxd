@@ -302,7 +302,7 @@ USBLowLevelDriver::Get_Packet (pth_event_t stop)
     return 0;
 }
 
-LowLevelDriverInterface::EMIVer USBLowLevelDriver::getEMIVer ()
+LowLevelDriver::EMIVer USBLowLevelDriver::getEMIVer ()
 {
   return vRaw;
 }

@@ -28,7 +28,7 @@ Layer3::Layer3 (eibaddr_t addr, Trace * tr)
   TRACEPRINTF (t, 3, this, "Open");
   pth_sem_init (&bufsem);
   running = false;
-  FakeL2 = new DummyLayer2Interface(this);
+  FakeL2 = new DummyLayer2(this);
   Start ();
 }
 
@@ -138,7 +138,7 @@ Layer3::deregisterBroadcastCallBack (L_Data_CallBack * c)
 }
 
 bool
-Layer3::deregisterLayer2 (Layer2Interface * l2)
+Layer3::deregisterLayer2 (Layer2 * l2)
 {
   unsigned i;
   for (i = 0; i < layer2 (); i++)
@@ -249,7 +249,7 @@ Layer3::registerBroadcastCallBack (L_Data_CallBack * c)
 }
 
 bool
-Layer3::registerLayer2 (Layer2Interface * l2)
+Layer3::registerLayer2 (Layer2 * l2)
 {
   TRACEPRINTF (t, 3, this, "registerLayer2 %08X", l2);
   if (! busmonitor () || ! l2->enterBusmonitor ())
@@ -313,7 +313,7 @@ bool
 }
 
 bool
-Layer3::hasAddress (eibaddr_t addr, Layer2Interface *l2)
+Layer3::hasAddress (eibaddr_t addr, Layer2 *l2)
 {
   if (addr == defaultAddr)
     return true;
@@ -330,7 +330,7 @@ Layer3::hasAddress (eibaddr_t addr, Layer2Interface *l2)
 }
 
 bool
-Layer3::hasGroupAddress (eibaddr_t addr, Layer2Interface *l2 UNUSED)
+Layer3::hasGroupAddress (eibaddr_t addr, Layer2 *l2 UNUSED)
 {
   if (broadcast ())
     return true;

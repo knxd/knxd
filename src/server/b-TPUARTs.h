@@ -30,7 +30,7 @@
 
 #define TPUARTs_CREATE tpuarts_Create
 
-inline Layer2Interface *
+inline Layer2 *
 tpuarts_Create (const char *dev, int flags, Layer3 *l3)
 {
   return new TPUARTSerialLayer2Driver (dev, arg.addr, flags, l3);

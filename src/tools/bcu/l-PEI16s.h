@@ -28,7 +28,7 @@
 #define PEI16s_PREFIX "bcu1s"
 #define PEI16s_CREATE PEI16s_ll_Create
 
-inline LowLevelDriverInterface *
+inline LowLevelDriver *
 PEI16s_ll_Create (const char *dev, Trace * t)
 {
   return new BCU1SerialLowLevelDriver (dev, t);

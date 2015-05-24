@@ -35,7 +35,7 @@ typedef enum {
 } busmode_t;
 
 /** interface for an Layer 2 driver */
-class Layer2Interface
+class Layer2
 {
   friend class Layer3;
 
@@ -50,8 +50,8 @@ public:
   /** our layer-3 (to send packets to) */
   Layer3 *l3;
 
-  Layer2Interface (Layer3 *l3);
-  virtual ~Layer2Interface ();
+  Layer2 (Layer3 *l3);
+  virtual ~Layer2 ();
   virtual bool init ();
 
   /** sends a Layer 2 frame asynchronouse */
@@ -97,13 +97,13 @@ protected:
  * @param t trace output
  * @return new Layer 2 interface
  */
-typedef Layer2Interface *(*Layer2_Create_Func) (const char *conf, int flags,
+typedef Layer2 *(*Layer2_Create_Func) (const char *conf, int flags,
 						Layer3 * l3);
 
-class DummyLayer2Interface:public Layer2Interface
+class DummyLayer2:public Layer2
 {
 public:
-  DummyLayer2Interface (Layer3 *l3) : Layer2Interface (l3)
+  DummyLayer2 (Layer3 *l3) : Layer2 (l3)
   {
   }
   LPDU *Get_L_Data (pth_event_t stop UNUSED) { return 0; }

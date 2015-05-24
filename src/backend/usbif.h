@@ -46,7 +46,7 @@ typedef struct
 USBEndpoint parseUSBEndpoint (const char *addr);
 USBDevice detectUSBEndpoint (USBEndpoint e);
 
-class USBLowLevelDriver:public LowLevelDriverInterface, private Thread
+class USBLowLevelDriver:public LowLevelDriver, private Thread
 {
   libusb_device_handle *dev;
   /* libusb event loop */

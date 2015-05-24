@@ -30,7 +30,7 @@
 
 #define NCN5120_CREATE ncn5120_Create
 
-inline Layer2Interface *
+inline Layer2 *
 ncn5120_Create (const char *dev, int flags, Layer3 *l3)
 {
   return new NCN5120SerialLayer2Driver(dev, arg.addr, flags, l3);

@@ -24,8 +24,8 @@
 #include "emi.h"
 #include "layer3.h"
 
-CEMILayer2Interface::CEMILayer2Interface (LowLevelDriverInterface * i,
-					  Layer3 * l3, int flags) : Layer2Interface (l3)
+CEMILayer2::CEMILayer2 (LowLevelDriver * i, Layer3 * l3,
+                        int flags) : Layer2 (l3)
 {
   TRACEPRINTF (t, 2, this, "Open");
   iface = i;
@@ -42,12 +42,12 @@ CEMILayer2Interface::CEMILayer2Interface (LowLevelDriverInterface * i,
 }
 
 bool
-CEMILayer2Interface::init ()
+CEMILayer2::init ()
 {
   return iface != 0;
 }
 
-CEMILayer2Interface::~CEMILayer2Interface ()
+CEMILayer2::~CEMILayer2 ()
 {
   TRACEPRINTF (t, 2, this, "Destroy");
   Stop ();
@@ -58,37 +58,37 @@ CEMILayer2Interface::~CEMILayer2Interface ()
 }
 
 bool
-CEMILayer2Interface::enterBusmonitor ()
+CEMILayer2::enterBusmonitor ()
 {
-  if (!Layer2Interface::enterBusmonitor ())
+  if (!Layer2::enterBusmonitor ())
     return false;
-  TRACEPRINTF (t, 2, this, "(CEMILayer2Interface)  OpenBusmon not implemented");
+  TRACEPRINTF (t, 2, this, "(CEMILayer2)  OpenBusmon not implemented");
   iface->SendReset ();
 
   return true;
 }
 
 bool
-CEMILayer2Interface::Open ()
+CEMILayer2::Open ()
 {
-  if (!Layer2Interface::Open ())
+  if (!Layer2::Open ())
     return false;
-  TRACEPRINTF (t, 2, this, "(CEMILayer2Interface) Open");
+  TRACEPRINTF (t, 2, this, "(CEMILayer2) Open");
   iface->SendReset ();
   
   return true;
 }
 
 bool
-CEMILayer2Interface::Send_Queue_Empty ()
+CEMILayer2::Send_Queue_Empty ()
 {
   return iface->Send_Queue_Empty () && inqueue.isempty();
 }
 
 void
-CEMILayer2Interface::Send_L_Data (LPDU * l)
+CEMILayer2::Send_L_Data (LPDU * l)
 {
-  TRACEPRINTF (t, 2, this, "Send (CEMILayer2Interface) Send_L_Data %s", l->Decode ()());
+  TRACEPRINTF (t, 2, this, "Send (CEMILayer2) Send_L_Data %s", l->Decode ()());
   if (l->getType () != L_Data)
     {
       delete l;
@@ -101,7 +101,7 @@ CEMILayer2Interface::Send_L_Data (LPDU * l)
   /* but this is not implemented!! */
   if (l1->data () > 50)
     {
-      TRACEPRINTF (t, 2, this, "Send (CEMILayer2Interface) long_data! (%d)", l1->data ());
+      TRACEPRINTF (t, 2, this, "Send (CEMILayer2) long_data! (%d)", l1->data ());
       delete l;
       return;
     }
@@ -112,9 +112,9 @@ CEMILayer2Interface::Send_L_Data (LPDU * l)
 }
 
 void
-CEMILayer2Interface::Send (LPDU * l)
+CEMILayer2::Send (LPDU * l)
 {
-  TRACEPRINTF (t, 1, this, "(CEMILayer2Interface) Send %s", l->Decode ()());
+  TRACEPRINTF (t, 1, this, "(CEMILayer2) Send %s", l->Decode ()());
   L_Data_PDU *l1 = (L_Data_PDU *) l;
 
   CArray pdu = L_Data_ToCEMI (0x11, *l1);
@@ -129,7 +129,7 @@ CEMILayer2Interface::Send (LPDU * l)
 }
 
 void
-CEMILayer2Interface::Run (pth_sem_t * stop1)
+CEMILayer2::Run (pth_sem_t * stop1)
 {
   pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
   pth_event_t input = pth_event (PTH_EVENT_SEM, &in_signal);

@@ -43,7 +43,7 @@ setstat (int fd, int s)
 NCN5120SerialLayer2Driver::NCN5120SerialLayer2Driver (const char *dev,
 						    eibaddr_t a, int flags,
 						    Layer3 * l3)
-	: Layer2Interface::Layer2Interface(l3)
+	: Layer2::Layer2(l3)
 {
   struct termios t1;
   TRACEPRINTF (t, 2, this, "Open");
@@ -128,7 +128,7 @@ bool NCN5120SerialLayer2Driver::init ()
 {
   if (fd == -1)
     return false;
-  return Layer2Interface::init ();
+  return Layer2::init ();
 }
 
 bool
@@ -150,7 +150,7 @@ NCN5120SerialLayer2Driver::Send_L_Data (LPDU * l)
 bool
 NCN5120SerialLayer2Driver::enterBusmonitor ()
 {
-  if (! Layer2Interface::enterBusmonitor ())
+  if (! Layer2::enterBusmonitor ())
 	return false;
   uchar c = 0x05;
   t->TracePacket (2, this, "openBusmonitor", 1, &c);
@@ -161,7 +161,7 @@ NCN5120SerialLayer2Driver::enterBusmonitor ()
 bool
 NCN5120SerialLayer2Driver::leaveBusmonitor ()
 {
-  if (! Layer2Interface::leaveBusmonitor ())
+  if (! Layer2::leaveBusmonitor ())
 	return false;
   uchar c = 0x01;
   t->TracePacket (2, this, "leaveBusmonitor", 1, &c);
@@ -172,7 +172,7 @@ NCN5120SerialLayer2Driver::leaveBusmonitor ()
 bool
 NCN5120SerialLayer2Driver::Open ()
 {
-  if (! Layer2Interface::Open ())
+  if (! Layer2::Open ())
 	return false;
   uchar c = 0x01;
   t->TracePacket (2, this, "open-reset", 1, &c);

@@ -27,7 +27,7 @@
 #include "lowlatency.h"
 
 /** FT1.2 lowlevel driver*/
-class FT12LowLevelDriver:public LowLevelDriverInterface, private Thread
+class FT12LowLevelDriver:public LowLevelDriver, private Thread
 {
   /** old serial config */
   low_latency_save sold;

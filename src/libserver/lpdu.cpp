@@ -23,7 +23,7 @@
 #include "layer2.h"
 
 LPDU *
-LPDU::fromPacket (const CArray & c, Layer2Interface *layer2)
+LPDU::fromPacket (const CArray & c, Layer2 *layer2)
 {
   LPDU *l = 0;
   if (c () >= 1)
@@ -52,7 +52,7 @@ LPDU::fromPacket (const CArray & c, Layer2Interface *layer2)
 
 /* L_NACK */
 
-L_NACK_PDU::L_NACK_PDU (Layer2Interface *layer2) : LPDU(layer2)
+L_NACK_PDU::L_NACK_PDU (Layer2 *layer2) : LPDU(layer2)
 {
 }
 
@@ -78,7 +78,7 @@ String L_NACK_PDU::Decode ()
 
 /* L_ACK */
 
-L_ACK_PDU::L_ACK_PDU (Layer2Interface *layer2) : LPDU(layer2)
+L_ACK_PDU::L_ACK_PDU (Layer2 *layer2) : LPDU(layer2)
 {
 }
 
@@ -104,7 +104,7 @@ String L_ACK_PDU::Decode ()
 
 /* L_BUSY */
 
-L_BUSY_PDU::L_BUSY_PDU (Layer2Interface *layer2) : LPDU(layer2)
+L_BUSY_PDU::L_BUSY_PDU (Layer2 *layer2) : LPDU(layer2)
 {
 }
 
@@ -130,7 +130,7 @@ String L_BUSY_PDU::Decode ()
 
 /* L_Unknown  */
 
-L_Unknown_PDU::L_Unknown_PDU (Layer2Interface *layer2) : LPDU(layer2)
+L_Unknown_PDU::L_Unknown_PDU (Layer2 *layer2) : LPDU(layer2)
 {
 }
 
@@ -164,7 +164,7 @@ L_Unknown_PDU::Decode ()
 
 /* L_Busmonitor  */
 
-L_Busmonitor_PDU::L_Busmonitor_PDU (Layer2Interface *layer2) : LPDU(layer2)
+L_Busmonitor_PDU::L_Busmonitor_PDU (Layer2 *layer2) : LPDU(layer2)
 {
   timestamp = 0;
   status = 0;
@@ -203,7 +203,7 @@ L_Busmonitor_PDU::Decode ()
 
 /* L_Data */
 
-L_Data_PDU::L_Data_PDU (Layer2Interface *layer2) : LPDU(layer2)
+L_Data_PDU::L_Data_PDU (Layer2 *layer2) : LPDU(layer2)
 {
   prio = PRIO_LOW;
   repeated = 0;

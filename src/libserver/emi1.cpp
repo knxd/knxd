@@ -22,19 +22,19 @@
 #include "layer3.h"
 
 bool
-EMI1Layer2Interface::addAddress (eibaddr_t addr UNUSED)
+EMI1Layer2::addAddress (eibaddr_t addr UNUSED)
 {
   return false;
 }
 
 bool
-EMI1Layer2Interface::removeAddress (eibaddr_t addr UNUSED)
+EMI1Layer2::removeAddress (eibaddr_t addr UNUSED)
 {
   return false;
 }
 
-EMI1Layer2Interface::EMI1Layer2Interface (LowLevelDriverInterface * i,
-					  Layer3 * l3, int flags) : Layer2Interface(l3)
+EMI1Layer2::EMI1Layer2 (LowLevelDriver * i, Layer3 * l3,
+                        int flags) : Layer2(l3)
 {
   TRACEPRINTF (t, 2, this, "Open");
   iface = i;
@@ -51,12 +51,12 @@ EMI1Layer2Interface::EMI1Layer2Interface (LowLevelDriverInterface * i,
 }
 
 bool
-EMI1Layer2Interface::init ()
+EMI1Layer2::init ()
 {
   return iface != 0;
 }
 
-EMI1Layer2Interface::~EMI1Layer2Interface ()
+EMI1Layer2::~EMI1Layer2 ()
 {
   TRACEPRINTF (t, 2, this, "Destroy");
   Stop ();
@@ -67,9 +67,9 @@ EMI1Layer2Interface::~EMI1Layer2Interface ()
 }
 
 bool
-EMI1Layer2Interface::enterBusmonitor ()
+EMI1Layer2::enterBusmonitor ()
 {
-  if (!Layer2Interface::enterBusmonitor ())
+  if (!Layer2::enterBusmonitor ())
     return false;
   const uchar t1[] = { 0x46, 0x01, 0x00, 0x60, 0x90 };
   TRACEPRINTF (t, 2, this, "OpenBusmon");
@@ -88,9 +88,9 @@ EMI1Layer2Interface::enterBusmonitor ()
 }
 
 bool
-EMI1Layer2Interface::leaveBusmonitor ()
+EMI1Layer2::leaveBusmonitor ()
 {
-  if (!Layer2Interface::leaveBusmonitor ())
+  if (!Layer2::leaveBusmonitor ())
     return false;
   TRACEPRINTF (t, 2, this, "CloseBusmon");
   uchar t[] = { 0x46, 0x01, 0x00, 0x60, 0xc0 };
@@ -107,9 +107,9 @@ EMI1Layer2Interface::leaveBusmonitor ()
 }
 
 bool
-EMI1Layer2Interface::Open ()
+EMI1Layer2::Open ()
 {
-  if (!Layer2Interface::Open ())
+  if (!Layer2::Open ())
     return false;
   const uchar t1[] = { 0x46, 0x01, 0x00, 0x60, 0x12 };
   TRACEPRINTF (t, 2, this, "OpenL2");
@@ -127,9 +127,9 @@ EMI1Layer2Interface::Open ()
 }
 
 bool
-EMI1Layer2Interface::Close ()
+EMI1Layer2::Close ()
 {
-  if (!Layer2Interface::Close ())
+  if (!Layer2::Close ())
     return false;
   TRACEPRINTF (t, 2, this, "CloseL2");
   uchar t[] = { 0x46, 0x01, 0x00, 0x60, 0xc0 };
@@ -145,13 +145,13 @@ EMI1Layer2Interface::Close ()
 }
 
 bool
-EMI1Layer2Interface::Send_Queue_Empty ()
+EMI1Layer2::Send_Queue_Empty ()
 {
   return iface->Send_Queue_Empty () && inqueue.isempty();
 }
 
 void
-EMI1Layer2Interface::Send_L_Data (LPDU * l)
+EMI1Layer2::Send_L_Data (LPDU * l)
 {
   TRACEPRINTF (t, 2, this, "Send %s", l->Decode ()());
   if (l->getType () != L_Data)
@@ -172,7 +172,7 @@ EMI1Layer2Interface::Send_L_Data (LPDU * l)
 }
 
 void
-EMI1Layer2Interface::Send (LPDU * l)
+EMI1Layer2::Send (LPDU * l)
 {
   TRACEPRINTF (t, 1, this, "Send %s", l->Decode ()());
   L_Data_PDU *l1 = (L_Data_PDU *) l;
@@ -189,7 +189,7 @@ EMI1Layer2Interface::Send (LPDU * l)
 }
 
 void
-EMI1Layer2Interface::Run (pth_sem_t * stop1)
+EMI1Layer2::Run (pth_sem_t * stop1)
 {
   pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
   pth_event_t input = pth_event (PTH_EVENT_SEM, &in_signal);

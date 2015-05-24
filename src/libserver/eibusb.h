@@ -24,13 +24,13 @@
 #include "lowlevel.h"
 
 /** USBConverterInterface */
-class USBConverterInterface:public LowLevelDriverInterface
+class USBConverterInterface:public LowLevelDriver
 {
   Trace *t;
-  LowLevelDriverInterface *i;
+  LowLevelDriver *i;
   EMIVer v;
 public:
-  USBConverterInterface (LowLevelDriverInterface * iface, Trace * tr,
+  USBConverterInterface (LowLevelDriver * iface, Trace * tr,
                           EMIVer ver);
   virtual ~USBConverterInterface ();
   bool init ();
@@ -45,18 +45,18 @@ public:
   EMIVer getEMIVer ();
 };
 
-LowLevelDriverInterface *initUSBDriver (LowLevelDriverInterface * i,
+LowLevelDriver *initUSBDriver (LowLevelDriver * i,
 					Trace * tr);
 
 /** USB backend */
-class USBLayer2Interface:public Layer2Interface
+class USBLayer2:public Layer2
 {
   /** EMI */
-  Layer2Interface *emi;
+  Layer2 *emi;
 
 public:
-  USBLayer2Interface (LowLevelDriverInterface * i, Layer3 * l3, int flags);
-  ~USBLayer2Interface ();
+  USBLayer2 (LowLevelDriver * i, Layer3 * l3, int flags);
+  ~USBLayer2 ();
   bool init ();
 
   void Send_L_Data (LPDU * l);

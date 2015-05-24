@@ -23,7 +23,7 @@
 
 EIBNetIPTunnel::EIBNetIPTunnel (const char *dest, int port, int sport,
 				const char *srcip, int Dataport, int flags,
-				Layer3 * l3) : Layer2Interface (l3)
+				Layer3 * l3) : Layer2 (l3)
 {
   TRACEPRINTF (t, 2, this, "Open");
   pth_sem_init (&insignal);
@@ -78,7 +78,7 @@ bool EIBNetIPTunnel::init ()
 {
   if (sock == 0)
     return false;
-  return Layer2Interface::init ();
+  return Layer2::init ();
 }
 
 void
@@ -111,7 +111,7 @@ EIBNetIPTunnel::Send_Queue_Empty ()
 bool
 EIBNetIPTunnel::enterBusmonitor ()
 {
-  if (!Layer2Interface::enterBusmonitor ())
+  if (!Layer2::enterBusmonitor ())
     return false;
   if (support_busmonitor)
     connect_busmonitor = 1;
@@ -123,7 +123,7 @@ EIBNetIPTunnel::enterBusmonitor ()
 bool
 EIBNetIPTunnel::leaveBusmonitor ()
 {
-  if (!Layer2Interface::leaveBusmonitor ())
+  if (!Layer2::leaveBusmonitor ())
     return false;
   connect_busmonitor = 0;
   inqueue.put (CArray ());

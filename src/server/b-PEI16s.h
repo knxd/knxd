@@ -30,10 +30,10 @@
 #define PEI16s_PREFIX "bcu1s"
 #define PEI16s_CREATE PEI16s_Create
 
-inline Layer2Interface *
+inline Layer2 *
 PEI16s_Create (const char *dev, int flags, Layer3 * l3)
 {
-  return new EMI1Layer2Interface (new BCU1SerialLowLevelDriver (dev, l3->t), l3, flags);
+  return new EMI1Layer2 (new BCU1SerialLowLevelDriver (dev, l3->t), l3, flags);
 }
 
 #endif

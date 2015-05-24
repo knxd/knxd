@@ -64,7 +64,7 @@ L_Data_ToCEMI (uchar code, const L_Data_PDU & l1)
 }
 
 L_Data_PDU *
-CEMI_to_L_Data (const CArray & data, Layer2Interface * l2)
+CEMI_to_L_Data (const CArray & data, Layer2 * l2)
 {
   L_Data_PDU c = L_Data_PDU (l2);
   if (data () < 2)
@@ -116,7 +116,7 @@ CEMI_to_L_Data (const CArray & data, Layer2Interface * l2)
 }
 
 L_Busmonitor_PDU *
-CEMI_to_Busmonitor (const CArray & data, Layer2Interface * l2)
+CEMI_to_Busmonitor (const CArray & data, Layer2 * l2)
 {
   L_Busmonitor_PDU c = L_Busmonitor_PDU (l2);
   if (data () < 2)
@@ -179,7 +179,7 @@ L_Data_ToEMI (uchar code, const L_Data_PDU & l1)
 }
 
 L_Data_PDU *
-EMI_to_L_Data (const CArray & data, Layer2Interface * l2)
+EMI_to_L_Data (const CArray & data, Layer2 * l2)
 {
   L_Data_PDU c = L_Data_PDU (l2);
   unsigned len;

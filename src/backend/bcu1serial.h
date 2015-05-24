@@ -25,7 +25,7 @@
 #include "lowlevel.h"
 
 /** PEI16 / BCU1 user mode driver */
-class BCU1SerialLowLevelDriver:public LowLevelDriverInterface, private Thread
+class BCU1SerialLowLevelDriver:public LowLevelDriver, private Thread
 {
   /** file descriptor */
   int fd;

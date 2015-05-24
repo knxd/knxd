@@ -36,7 +36,7 @@
 #define EIBNETIPTUNNELNAT_CREATE eibnetiptunnelnat_Create
 
 
-inline Layer2Interface *
+inline Layer2 *
 eibnetiptunnel_Create (const char *dev, int flags, Layer3 * l3)
 {
   char *a = strdup (dev);
@@ -47,7 +47,7 @@ eibnetiptunnel_Create (const char *dev, int flags, Layer3 * l3)
   int dport;
   int dataport = -1;
   int sport;
-  Layer2Interface *iface;
+  Layer2 *iface;
   if (!a)
     die ("out of memory");
   for (b = a; *b; b++)
@@ -91,7 +91,7 @@ eibnetiptunnel_Create (const char *dev, int flags, Layer3 * l3)
   return iface;
 }
 
-inline Layer2Interface *
+inline Layer2 *
 eibnetiptunnelnat_Create (const char *dev, int flags, Layer3 * l3)
 {
   char *a = strdup (dev);
@@ -99,7 +99,7 @@ eibnetiptunnelnat_Create (const char *dev, int flags, Layer3 * l3)
   char *c;
   int dport;
   int sport;
-  Layer2Interface *iface;
+  Layer2 *iface;
   if (!a)
     die ("out of memory");
   for (b = a; *b; b++)

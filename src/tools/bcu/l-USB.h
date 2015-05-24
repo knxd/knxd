@@ -29,7 +29,7 @@
 #define USB_PREFIX "usb"
 #define USB_CREATE usb_ll_Create
 
-inline LowLevelDriverInterface *
+inline LowLevelDriver *
 usb_ll_Create (const char *dev, Trace * t)
 {
   return initUSBDriver (new USBLowLevelDriver (dev, t), t);

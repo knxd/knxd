@@ -29,7 +29,7 @@
 #define EIBNETIP_PREFIX "ip"
 #define EIBNETIP_CREATE eibnetip_Create
 
-inline Layer2Interface *
+inline Layer2 *
 eibnetip_Create (const char *dev, int flags UNUSED, Layer3 *l3)
 {
   if (!*dev)
@@ -37,7 +37,7 @@ eibnetip_Create (const char *dev, int flags UNUSED, Layer3 *l3)
   char *a = strdup (dev);
   char *b;
   int port;
-  Layer2Interface *c;
+  Layer2 *c;
   if (!a)
     die ("out of memory");
   for (b = a; *b; b++)

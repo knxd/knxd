@@ -336,7 +336,7 @@ FT12LowLevelDriver::Run (pth_sem_t * stop1)
   pth_event_free (input, PTH_FREE_THIS);
 }
 
-LowLevelDriverInterface::EMIVer FT12LowLevelDriver::getEMIVer ()
+LowLevelDriver::EMIVer FT12LowLevelDriver::getEMIVer ()
 {
   return vEMI2;
 }

@@ -30,10 +30,10 @@
 #define USB_PREFIX "usb"
 #define USB_CREATE Usb_Create
 
-inline Layer2Interface *
+inline Layer2 *
 Usb_Create (const char *dev, int flags, Layer3 *l3)
 {
-  return new USBLayer2Interface (new USBLowLevelDriver (dev, l3->t), l3, flags);
+  return new USBLayer2 (new USBLowLevelDriver (dev, l3->t), l3, flags);
 }
 
 #endif

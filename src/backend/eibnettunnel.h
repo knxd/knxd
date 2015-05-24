@@ -23,7 +23,7 @@
 #include "layer2.h"
 #include "eibnetip.h"
 
-class EIBNetIPTunnel:public Layer2Interface, private Thread
+class EIBNetIPTunnel:public Layer2, private Thread
 {
   Trace *t;
   EIBNetIPSocket *sock;

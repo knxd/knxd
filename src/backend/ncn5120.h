@@ -24,7 +24,7 @@
 #include "layer2.h"
 
 /** TPUART user mode driver */
-class NCN5120SerialLayer2Driver : public Layer2Interface, private Thread
+class NCN5120SerialLayer2Driver : public Layer2, private Thread
 {
   /** old serial config */
   low_latency_save sold;

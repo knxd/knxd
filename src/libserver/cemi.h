@@ -27,10 +27,10 @@
 #include "lowlevel.h"
 
 /** CEMI backend */
-class CEMILayer2Interface:public Layer2Interface, private Thread
+class CEMILayer2:public Layer2, private Thread
 {
   /** driver to send/receive */
-  LowLevelDriverInterface *iface;
+  LowLevelDriver *iface;
   /** debug output */
   Trace *t;
   /** default address */
@@ -45,8 +45,8 @@ class CEMILayer2Interface:public Layer2Interface, private Thread
   void Run (pth_sem_t * stop);
   const char *Name() { return "cemi"; }
 public:
-  CEMILayer2Interface (LowLevelDriverInterface * i, Layer3 * l3, int flags);
-  ~CEMILayer2Interface ();
+  CEMILayer2 (LowLevelDriver * i, Layer3 * l3, int flags);
+  ~CEMILayer2 ();
   bool init ();
 
   void Send_L_Data (LPDU * l);

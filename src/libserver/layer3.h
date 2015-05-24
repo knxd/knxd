@@ -78,7 +78,7 @@ class Layer3;
 class Layer3:private Thread
 {
   /** Layer 2 interfaces */
-  Array < Layer2Interface * > layer2;
+  Array < Layer2 * > layer2;
   /** buffer queue for receiving from L2 */
   Queue < LPDU * >buf;
   /** semaphre for buffer queue */
@@ -114,15 +114,15 @@ public:
   /** our default address */
   eibaddr_t defaultAddr;
   /** temporary: fake L2 for interfaces which aren't yet */
-  Layer2Interface *FakeL2;
+  Layer2 *FakeL2;
 
   Layer3 (eibaddr_t addr, Trace * tr);
   virtual ~Layer3 ();
 
   /** register a layer2 interface, return true if successful*/
-  bool registerLayer2 (Layer2Interface * l2);
+  bool registerLayer2 (Layer2 * l2);
   /** deregister a layer2 interface, return true if successful*/
-  bool deregisterLayer2 (Layer2Interface * l2);
+  bool deregisterLayer2 (Layer2 * l2);
 
   /** register a busmonitor callback, return true, if successful*/
   bool registerBusmonitor (L_Busmonitor_CallBack * c);
@@ -169,10 +169,10 @@ public:
 
   /** check if any interface accepts this address.
       'l2' says which interface NOT to check. */
-  bool hasAddress (eibaddr_t addr, Layer2Interface *l2 = 0);
+  bool hasAddress (eibaddr_t addr, Layer2 *l2 = 0);
   /** check if any interface accepts this group address.
       'l2' says which interface NOT to check. */
-  bool hasGroupAddress (eibaddr_t addr, Layer2Interface *l2 = 0);
+  bool hasGroupAddress (eibaddr_t addr, Layer2 *l2 = 0);
   /** save a pointer to this tracer, for deallocation with the L3 */
   void registerTracer (Trace *t) { tracers.add (t); }
   /** remember this server, for deallocation with the L3 */

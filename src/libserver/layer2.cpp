@@ -20,7 +20,7 @@
 #include "layer2.h"
 #include "layer3.h"
 
-Layer2Interface::Layer2Interface (Layer3 *layer3)
+Layer2::Layer2 (Layer3 *layer3)
 {
   l3 = layer3;
   t = layer3->t;
@@ -28,21 +28,21 @@ Layer2Interface::Layer2Interface (Layer3 *layer3)
 }
 
 bool
-Layer2Interface::init ()
+Layer2::init ()
 {
   if (l3)
     l3->registerLayer2 (this);
   return true;
 }
 
-Layer2Interface::~Layer2Interface ()
+Layer2::~Layer2 ()
 {
   if (l3)
     l3->deregisterLayer2 (this);
 }
 
 bool
-Layer2Interface::addAddress (eibaddr_t addr)
+Layer2::addAddress (eibaddr_t addr)
 {
   unsigned i;
   for (i = 0; i < indaddr (); i++)
@@ -53,7 +53,7 @@ Layer2Interface::addAddress (eibaddr_t addr)
 }
 
 bool
-Layer2Interface::addGroupAddress (eibaddr_t addr)
+Layer2::addGroupAddress (eibaddr_t addr)
 {
   unsigned i;
   for (i = 0; i < groupaddr (); i++)
@@ -64,7 +64,7 @@ Layer2Interface::addGroupAddress (eibaddr_t addr)
 }
 
 bool
-Layer2Interface::removeAddress (eibaddr_t addr)
+Layer2::removeAddress (eibaddr_t addr)
 {
   unsigned i;
   for (i = 0; i < indaddr (); i++)
@@ -77,7 +77,7 @@ Layer2Interface::removeAddress (eibaddr_t addr)
 }
 
 bool
-Layer2Interface::removeGroupAddress (eibaddr_t addr)
+Layer2::removeGroupAddress (eibaddr_t addr)
 {
   unsigned i;
   for (i = 0; i < groupaddr (); i++)
@@ -90,7 +90,7 @@ Layer2Interface::removeGroupAddress (eibaddr_t addr)
 }
 
 bool
-Layer2Interface::hasAddress (eibaddr_t addr)
+Layer2::hasAddress (eibaddr_t addr)
 {
   for (unsigned int i = 0; i < indaddr (); i++)
     if (indaddr[i] == addr)
@@ -99,7 +99,7 @@ Layer2Interface::hasAddress (eibaddr_t addr)
 }
 
 bool
-Layer2Interface::hasGroupAddress (eibaddr_t addr)
+Layer2::hasGroupAddress (eibaddr_t addr)
 {
   for (unsigned int i = 0; i < groupaddr (); i++)
     if (groupaddr[i] == addr)
@@ -108,7 +108,7 @@ Layer2Interface::hasGroupAddress (eibaddr_t addr)
 }
 
 bool
-Layer2Interface::enterBusmonitor ()
+Layer2::enterBusmonitor ()
 {
   if (mode != BUSMODE_DOWN)
     return false;
@@ -117,7 +117,7 @@ Layer2Interface::enterBusmonitor ()
 }
 
 bool
-Layer2Interface::leaveBusmonitor ()
+Layer2::leaveBusmonitor ()
 {
   if (mode != BUSMODE_MONITOR)
     return false;
@@ -126,7 +126,7 @@ Layer2Interface::leaveBusmonitor ()
 }
 
 bool
-Layer2Interface::openVBusmonitor ()
+Layer2::openVBusmonitor ()
 {
   if (mode != BUSMODE_UP)
     return false;
@@ -135,7 +135,7 @@ Layer2Interface::openVBusmonitor ()
 }
 
 bool
-Layer2Interface::closeVBusmonitor ()
+Layer2::closeVBusmonitor ()
 {
   if (mode != BUSMODE_VMONITOR)
     return false;
@@ -144,7 +144,7 @@ Layer2Interface::closeVBusmonitor ()
 }
 
 bool
-Layer2Interface::Open ()
+Layer2::Open ()
 {
   if (mode != BUSMODE_DOWN)
     return false;
@@ -153,7 +153,7 @@ Layer2Interface::Open ()
 }
 
 bool
-Layer2Interface::Close ()
+Layer2::Close ()
 {
   if (mode != BUSMODE_UP)
     return false;
@@ -162,7 +162,7 @@ Layer2Interface::Close ()
 }
 
 bool
-Layer2Interface::Send_Queue_Empty ()
+Layer2::Send_Queue_Empty ()
 {
   return true;
 }

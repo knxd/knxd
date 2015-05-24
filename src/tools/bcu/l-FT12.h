@@ -27,7 +27,7 @@
 #define FT12_PREFIX "ft12"
 #define FT12_CREATE ft12_ll_Create
 
-inline LowLevelDriverInterface *
+inline LowLevelDriver *
 ft12_ll_Create (const char *dev, Trace * t)
 {
   return new FT12LowLevelDriver (dev, t);

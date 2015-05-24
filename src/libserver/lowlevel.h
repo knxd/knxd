@@ -23,13 +23,13 @@
 #include "common.h"
 
 /** implements interface for a Driver to send packets for the EMI1/2 driver */
-class LowLevelDriverInterface
+class LowLevelDriver
 {
 public:
   typedef enum
   { vEMI1, vEMI2, vCEMI, vRaw } EMIVer;
 
-  virtual ~LowLevelDriverInterface ()
+  virtual ~LowLevelDriver ()
   {
   }
   virtual bool init () = 0;
@@ -58,7 +58,7 @@ public:
  * @param t trace output
  * @return new LowLevel interface
  */
-typedef LowLevelDriverInterface *(*LowLevel_Create_Func) (const char *conf,
+typedef LowLevelDriver *(*LowLevel_Create_Func) (const char *conf,
 							  Trace * tr);
 
 #endif

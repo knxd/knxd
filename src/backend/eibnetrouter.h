@@ -24,7 +24,7 @@
 #include "eibnetip.h"
 
 /** EIBnet/IP routing backend */
-class EIBNetIPRouter:public Layer2Interface, private Thread
+class EIBNetIPRouter:public Layer2, private Thread
 {
   /** debug output */
   Trace *t;

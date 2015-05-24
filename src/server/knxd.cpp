@@ -187,7 +187,7 @@ struct urldef URLs[] = {
 };
 
 /** determines the right backend for the url and creates it */
-Layer2Interface *
+Layer2 *
 Create (const char *url, int flags, Layer3 * l3)
 {
   unsigned int p = 0;
@@ -406,7 +406,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case ARGP_KEY_ARG:
     case 'b':
       {
-        Layer2Interface *l2 = Create (arg, arguments->backendflags, arguments->l3 ());
+        Layer2 *l2 = Create (arg, arguments->backendflags, arguments->l3 ());
         if (!l2 || !l2->init ())
           die ("initialisation of backend '%s' failed", arg);
         arguments->backendflags = 0;

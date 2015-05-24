@@ -371,7 +371,7 @@ BCU1SerialLowLevelDriver::Run (pth_sem_t * stop1)
   pth_event_free (input, PTH_FREE_THIS);
 }
 
-LowLevelDriverInterface::EMIVer BCU1SerialLowLevelDriver::getEMIVer ()
+LowLevelDriver::EMIVer BCU1SerialLowLevelDriver::getEMIVer ()
 {
   return vEMI1;
 }
