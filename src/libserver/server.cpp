@@ -23,9 +23,8 @@
 
 
 BaseServer::BaseServer (Layer3 * layer3, Trace * tr)
+	: Layer2mixin (layer3, tr)
 {
-  t = tr;
-  l3 = layer3;
 }
 
 BaseServer::~BaseServer ()

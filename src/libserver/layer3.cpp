@@ -28,7 +28,6 @@ Layer3::Layer3 (eibaddr_t addr, Trace * tr)
   TRACEPRINTF (t, 3, this, "Open");
   pth_sem_init (&bufsem);
   running = false;
-  FakeL2 = new DummyLayer2(this);
   Start ();
 }
 
@@ -47,24 +46,8 @@ Layer3::~Layer3 ()
   // the next loops should do exactly nothing
   while (vbusmonitor ())
     deregisterVBusmonitor (vbusmonitor[0].cb);
-  while (group ())
-    deregisterGroupCallBack (group[0].cb, group[0].dest);
-  while (individual ())
-    deregisterIndividualCallBack (individual[0].cb, individual[0].src,
-				  individual[0].dest);
   for (unsigned int i = 0; i < tracers (); i++)
     delete tracers[i];
-}
-
-void
-Layer3::send_L_Data (L_Data_PDU * l)
-{
-  TRACEPRINTF (t, 3, this, "Send %s", l->Decode ()());
-  if (l->source == 0)
-    l->source = defaultAddr;
-  for (unsigned int i = 0; i < layer2 (); i++)
-    if (l->l2 != layer2[i])
-      layer2[i]->Send_L_Data (new L_Data_PDU (*l));
 }
 
 void
@@ -122,22 +105,6 @@ Layer3::deregisterVBusmonitor (L_Busmonitor_CallBack * c)
 }
 
 bool
-Layer3::deregisterBroadcastCallBack (L_Data_CallBack * c)
-{
-  unsigned i;
-  for (i = 0; i < broadcast (); i++)
-    if (broadcast[i].cb == c)
-      {
-	broadcast[i] = broadcast[broadcast () - 1];
-	broadcast.resize (broadcast () - 1);
-	TRACEPRINTF (t, 3, this, "deregisterBroadcast %08X = 1", c);
-	return 1;
-      }
-  TRACEPRINTF (t, 3, this, "deregisterBroadcast %08X = 0", c);
-  return 0;
-}
-
-bool
 Layer3::deregisterLayer2 (Layer2 * l2)
 {
   unsigned i;
@@ -154,49 +121,9 @@ Layer3::deregisterLayer2 (Layer2 * l2)
 }
 
 bool
-Layer3::deregisterGroupCallBack (L_Data_CallBack * c, eibaddr_t addr)
-{
-  unsigned i;
-  for (i = 0; i < group (); i++)
-    if (group[i].cb == c && group[i].dest == addr)
-      {
-	group[i] = group[group () - 1];
-	group.resize (group () - 1);
-	TRACEPRINTF (t, 3, this, "deregisterGroupCallBack %08X = 1", c);
-	return 1;
-      }
-  TRACEPRINTF (t, 3, this, "deregisterGroupCallBack %08X = 0", c);
-  return 0;
-
-}
-
-bool
-  Layer3::deregisterIndividualCallBack (L_Data_CallBack * c, eibaddr_t src,
-					eibaddr_t dest)
-{
-  unsigned i;
-  for (i = 0; i < individual (); i++)
-    if (individual[i].cb == c && individual[i].src == src
-	&& individual[i].dest == dest)
-      {
-	individual[i] = individual[individual () - 1];
-	individual.resize (individual () - 1);
-	TRACEPRINTF (t, 3, this, "deregisterIndividual %08X = 1", c);
-      }
-  TRACEPRINTF (t, 3, this, "deregisterIndividual %08X = 0", c);
-  return 0;
-}
-
-bool
 Layer3::registerBusmonitor (L_Busmonitor_CallBack * c)
 {
   TRACEPRINTF (t, 3, this, "registerBusmontior %08X", c);
-  if (individual ())
-    return 0;
-  if (group ())
-    return 0;
-  if (broadcast ())
-    return 0;
   if (!busmonitor()) 
     {
       bool have_monitor = false;
@@ -239,16 +166,6 @@ Layer3::registerVBusmonitor (L_Busmonitor_CallBack * c)
 }
 
 bool
-Layer3::registerBroadcastCallBack (L_Data_CallBack * c)
-{
-  TRACEPRINTF (t, 3, this, "registerBroadcast %08X", c);
-  broadcast.resize (broadcast () + 1);
-  broadcast[broadcast () - 1].cb = c;
-  TRACEPRINTF (t, 3, this, "registerBroadcast %08X = 1", c);
-  return 1;
-}
-
-bool
 Layer3::registerLayer2 (Layer2 * l2)
 {
   TRACEPRINTF (t, 3, this, "registerLayer2 %08X", l2);
@@ -265,54 +182,6 @@ Layer3::registerLayer2 (Layer2 * l2)
 }
 
 bool
-Layer3::registerGroupCallBack (L_Data_CallBack * c, eibaddr_t addr)
-{
-  unsigned i;
-  TRACEPRINTF (t, 3, this, "registerGroup %08X", c);
-  for (i = 0; i < group (); i++)
-    {
-      if (group[i].dest == addr)
-	break;
-    }
-  group.resize (group () + 1);
-  group[group () - 1].cb = c;
-  group[group () - 1].dest = addr;
-  TRACEPRINTF (t, 3, this, "registerGroup %08X = 1", c);
-  return 1;
-}
-
-bool
-  Layer3::registerIndividualCallBack (L_Data_CallBack * c,
-				      Individual_Lock lock, eibaddr_t src,
-				      eibaddr_t dest)
-{
-  unsigned i;
-  TRACEPRINTF (t, 3, this, "registerIndividual %08X %d from %s to %s", c, lock, FormatEIBAddr(src).c_str(), FormatEIBAddr(dest).c_str());
-  for (i = 0; i < individual (); i++)
-    if (lock == Individual_Lock_Connection &&
-	individual[i].src == src &&
-	individual[i].lock == Individual_Lock_Connection)
-      {
-	TRACEPRINTF (t, 3, this, "registerIndividual locked %04X %04X",
-		     individual[i].src, individual[i].dest);
-	return 0;
-      }
-
-  for (i = 0; i < individual (); i++)
-    {
-      if (individual[i].dest == dest)
-	break;
-    }
-  individual.resize (individual () + 1);
-  individual[individual () - 1].cb = c;
-  individual[individual () - 1].dest = dest;
-  individual[individual () - 1].src = src;
-  individual[individual () - 1].lock = lock;
-  TRACEPRINTF (t, 3, this, "registerIndividual %08X = 1", c);
-  return 1;
-}
-
-bool
 Layer3::hasAddress (eibaddr_t addr, Layer2 *l2)
 {
   if (addr == defaultAddr)
@@ -322,25 +191,17 @@ Layer3::hasAddress (eibaddr_t addr, Layer2 *l2)
     if (layer2[i] != l2 && layer2[i]->hasAddress (addr))
       return true;
 
-  for (unsigned i = 0; i < individual (); i++)
-    if (individual[i].dest == addr)
-      return true;
-
   return false;
 }
 
 bool
 Layer3::hasGroupAddress (eibaddr_t addr, Layer2 *l2 UNUSED)
 {
-  if (broadcast ())
+  if (addr == 0) // always accept broadcast
     return true;
 
   for (unsigned i = 0; i < layer2 (); i++)
     if (layer2[i]->hasGroupAddress (addr))
-      return true;
-
-  for (unsigned i = 0; i < group (); i++)
-    if (group[i].dest == addr)
       return true;
 
   return false;
@@ -410,39 +271,55 @@ Layer3::Run (pth_sem_t * stop1)
 	  ignore[ignore () - 1].end = getTime () + 1000000;
 	  l1->repeated = 0;
 
+	  if (l1->source != defaultAddr)
+	    l1->l2->addAddress (l1->source);
+	  else if (l1->AddrType == IndividualAddress && l1->dest != defaultAddr)
+	    l1->l2->addReverseAddress (l1->dest);
+
 	  if (l1->AddrType == IndividualAddress
 	      && l1->dest == defaultAddr)
 	    l1->dest = 0;
 	  TRACEPRINTF (t, 3, this, "Recv %s", l1->Decode ()());
 
-	  if (l1->AddrType == GroupAddress && l1->dest == 0)
+	  if (l1->source == 0)
+	    l1->source = defaultAddr;
+
+	  if (l1->AddrType == GroupAddress)
 	    {
-	      for (i = 0; i < broadcast (); i++)
-		broadcast[i].cb->Send_L_Data (new L_Data_PDU (*l1));
-	    }
-	  if (l1->AddrType == GroupAddress && l1->dest != 0)
-	    {
-	      for (i = 0; i < group (); i++)
+	      // This is easy: send to all other L2 which subscribe to the
+	      // group.
+	      for (i = 0; i < layer2 (); i++)
                 {
-                  Group_Info &grp = group[i];
-		  if (grp.dest == l1->dest || grp.dest == 0)
-		    grp.cb->Send_L_Data (new L_Data_PDU (*l1));
+		  if (layer2[i] != l1->l2 && layer2[i]->hasGroupAddress(l1->dest))
+		    layer2[i]->Send_L_Data (new L_Data_PDU (*l1));
                 }
 	    }
 	  if (l1->AddrType == IndividualAddress)
 	    {
-	      for (i = 0; i < individual (); i++)
+	      // This is not so easy: we want to send to whichever
+	      // interface on which the address has appeared. If it hasn't
+	      // been seen yet, we send to all interfaces which are buses.
+	      // which get marked by accepting the otherwise-illegal physical
+	      // address 0.
+	      bool found = false;
+	      for (i = 0; i < layer2 (); i++)
                 {
-                  Individual_Info &indiv = individual[i];
-		  if (indiv.dest == l1->dest || indiv.dest == 0)
-		    if (indiv.src == l1->source || indiv.src == 0)
-		      indiv.cb->Send_L_Data (new L_Data_PDU (*l1));
-	        }
+                  if (layer2[i] == l1->l2)
+		    continue;
+                  if (l1->dest ? layer2[i]->hasAddress (l1->dest)
+		               : layer2[i]->hasReverseAddress (l1->source))
+		    {
+		      found = true;
+		      break;
+		    }
+		}
+	      for (i = 0; i < layer2 (); i++)
+		if (layer2[i] != l1->l2
+		    && l1->dest ? layer2[i]->hasAddress (found ? l1->dest : 0)
+		                : layer2[i]->hasReverseAddress (l1->source))
+		  layer2[i]->Send_L_Data (new L_Data_PDU (*l1));
 	    }
 
-          // finally, send to all (other(?)) L2 interfaces
-          // TODO: filter by addresses
-          send_L_Data(l1);
 	}
       // ignore[] is ordered, any timed-out items are at the front
       for (i = 0; i < ignore (); i++)

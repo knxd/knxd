@@ -136,6 +136,8 @@ bool TPUARTSerialLayer2Driver::init ()
 {
   if (fd == -1)
     return false;
+  if (! layer2_is_bus())
+    return false;
   return Layer2::init ();
 }
 

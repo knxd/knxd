@@ -22,11 +22,10 @@
 #include "apdu.h"
 
 GroupCache::GroupCache (Layer3 * l3, Trace * t)
+	: Layer2mixin(l3, t)
 {
   TRACEPRINTF (t, 4, this, "GroupCacheInit");
-  this->t = t;
-  this->layer3 = l3;
-  this->enable = 0;
+  enable = 0;
   pos = 0;
   memset (updates, 0, sizeof (updates));
   pth_mutex_init (&mutex);
@@ -36,8 +35,6 @@ GroupCache::GroupCache (Layer3 * l3, Trace * t)
 GroupCache::~GroupCache ()
 {
   TRACEPRINTF (t, 4, this, "GroupCacheDestroy");
-  if (enable)
-    layer3->deregisterGroupCallBack (this, 0);
   Clear ();
 }
 
@@ -143,7 +140,7 @@ GroupCache::Start ()
 {
   TRACEPRINTF (t, 4, this, "GroupCacheEnable");
   if (!enable)
-    if (!layer3->registerGroupCallBack (this, 0))
+    if (!addGroupAddress (0))
       return false;
   enable = 1;
   return true;
@@ -165,7 +162,7 @@ GroupCache::Stop ()
   Clear ();
   TRACEPRINTF (t, 4, this, "GroupCacheStop");
   if (enable)
-    layer3->deregisterGroupCallBack (this, 0);
+    removeGroupAddress (0);
   enable = 0;
 }
 
@@ -213,12 +210,12 @@ GroupCacheEntry
   pth_event_t timeout = pth_event (PTH_EVENT_RTIME, pth_time (Timeout, 0));
 
   tpdu.data = apdu.ToPacket ();
-  l = new L_Data_PDU (layer3->FakeL2);
+  l = new L_Data_PDU (this);
   l->data = tpdu.ToPacket ();
   l->source = 0;
   l->dest = addr;
   l->AddrType = GroupAddress;
-  layer3->send_L_Data (l);
+  l3->recv_L_Data (l);
 
   do
     {

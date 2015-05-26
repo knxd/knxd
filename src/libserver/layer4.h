@@ -61,12 +61,8 @@ typedef struct
 } GroupAPDU;
 
 /** Broadcast Layer 4 connection */
-class T_Broadcast:public L_Data_CallBack
+class T_Broadcast:public Layer2mixin
 {
-  /** Layer 3 interface */
-  Layer3 *layer3;
-  /** debug output */
-  Trace *t;
   /** output queue */
   Queue < BroadcastComm > outqueue;
   /** semaphore for output queue */
@@ -78,16 +74,16 @@ public:
   virtual ~T_Broadcast ();
   bool init ();
 
+  /** enqueues a packet */
   void Send_L_Data (L_Data_PDU * l);
-
-  /** receives APDU of a broadcast; aborts with NULL if stop occurs */
+  /** dequeues APDU of a broadcast; aborts with NULL if stop occurs */
   BroadcastComm *Get (pth_event_t stop);
   /** send APDU c */
   void Send (const CArray & c);
 };
 
 /** Group Communication socket */
-class GroupSocket:public L_Data_CallBack
+class GroupSocket:public Layer2mixin
 {
   /** Layer 3 interface */
   Layer3 *layer3;
@@ -104,16 +100,16 @@ public:
   virtual ~GroupSocket ();
   bool init ();
 
+  /** enqueues a packet from L3 */
   void Send_L_Data (L_Data_PDU * l);
-
-  /** receives APDU of a broadcast; aborts with NULL if stop occurs */
+  /** dequeues APDU of a broadcast; aborts with NULL if stop occurs */
   GroupAPDU *Get (pth_event_t stop);
-  /** send APDU c */
+  /** send APDU to L3 */
   void Send (const GroupAPDU & c);
 };
 
 /** Group Layer 4 connection */
-class T_Group:public L_Data_CallBack
+class T_Group:public Layer2mixin
 {
   /** Layer 3 interface */
   Layer3 *layer3;
@@ -132,21 +128,17 @@ public:
   virtual ~T_Group ();
   bool init ();
 
+  /** enqueues a packet from L3 */
   void Send_L_Data (L_Data_PDU * l);
-
-  /** receives APDU of a group telegram; aborts with NULL if stop occurs */
+  /** dequeues APDU of a group telegram; aborts with NULL if stop occurs */
   GroupComm *Get (pth_event_t stop);
-  /** send APDU c */
+  /** send APDU to L3 */
   void Send (const CArray & c);
 };
 
 /** Layer 4 raw individual connection */
-class T_TPDU:public L_Data_CallBack
+class T_TPDU:public Layer2mixin
 {
-  /** Layer 3 interface */
-  Layer3 *layer3;
-  /** debug output */
-  Trace *t;
   /** output queue */
   Queue < TpduComm > outqueue;
   /** semaphore for output queue */
@@ -160,21 +152,17 @@ public:
   virtual ~T_TPDU ();
   bool init ();
 
+  /** enqueues a packet from L3 */
   void Send_L_Data (L_Data_PDU * l);
-
-  /** receives TPDU of a telegram; aborts with NULL if stop occurs */
+  /** dequeues TPDU of a telegram; aborts with NULL if stop occurs */
   TpduComm *Get (pth_event_t stop);
-  /** send APDU c */
+  /** send APDU to L3 */
   void Send (const TpduComm & c);
 };
 
 /** Layer 4 T_Individual connection */
-class T_Individual:public L_Data_CallBack
+class T_Individual:public Layer2mixin
 {
-  /** Layer 3 interface */
-  Layer3 *layer3;
-  /** debug output */
-  Trace *t;
   /** output queue */
   Queue < CArray > outqueue;
   /** semaphore for output queue */
@@ -188,16 +176,16 @@ public:
   virtual ~T_Individual ();
   bool init ();
 
+  /** enqueues a packet from L3 */
   void Send_L_Data (L_Data_PDU * l);
-
-  /** receives APDU of a telegram; aborts with NULL if stop occurs */
+  /** dequeues APDU of a telegram; aborts with NULL if stop occurs */
   CArray *Get (pth_event_t stop);
-  /** send APDU c */
+  /** send APDU to L3 */
   void Send (const CArray & c);
 };
 
 /** implement a client T_Connection */
-class T_Connection:public L_Data_CallBack, private Thread
+class T_Connection:public Layer2mixin, private Thread
 {
   /** Layer 3 interface */
   Layer3 *layer3;
@@ -241,11 +229,11 @@ public:
   ~T_Connection ();
   bool init ();
 
+  /** enqueues a packet from L3 */
   void Send_L_Data (L_Data_PDU * l);
-
-  /** receives APDU of a telegram; aborts with NULL if stop occurs */
+  /** dequeues APDU of a telegram; aborts with NULL if stop occurs */
   CArray *Get (pth_event_t stop);
-  /** send APDU c */
+  /** send APDU to L3 */
   void Send (const CArray & c);
 };
 

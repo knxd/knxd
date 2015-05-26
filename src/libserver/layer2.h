@@ -45,6 +45,8 @@ class Layer2
 
   /** my individual addresses */
   Array < eibaddr_t > indaddr;
+  /** source addresses when the destination is my own */
+  Array < eibaddr_t > revaddr;
   /** my group addresses */
   Array < eibaddr_t > groupaddr;
 
@@ -59,20 +61,28 @@ public:
   Layer2 (Layer3 *l3, L2options *opt);
   virtual ~Layer2 ();
   virtual bool init ();
+  /** basic setup to behave like a bus: accept broadcasts, et al. */
+  bool layer2_is_bus ();
 
   /** sends a Layer 2 frame asynchronouse */
   virtual void Send_L_Data (LPDU * l) = 0;
 
-  /** try to add the individual address addr to the device, return true if successful */
+  /** try to add the individual addr to the device, return true if successful */
   virtual bool addAddress (eibaddr_t addr);
+  /** add the reverse addr to the device, return true if successful */
+  virtual bool addReverseAddress (eibaddr_t addr);
   /** try to add the group address addr to the device, return true if successful */
   virtual bool addGroupAddress (eibaddr_t addr);
   /** try to remove the individual address addr to the device, return true if successful */
   virtual bool removeAddress (eibaddr_t addr);
+  /** try to remove the individual address addr to the device, return true if successful */
+  virtual bool removeReverseAddress (eibaddr_t addr);
   /** try to remove the group address addr to the device, return true if successful */
   virtual bool removeGroupAddress (eibaddr_t addr);
   /** individual address known? */
   bool hasAddress (eibaddr_t addr);
+  /** reverse address known? */
+  bool hasReverseAddress (eibaddr_t addr);
   /** group address known? */
   bool hasGroupAddress (eibaddr_t addr);
 
@@ -106,12 +116,13 @@ protected:
 typedef Layer2 *(*Layer2_Create_Func) (const char *conf, 
 				       L2options *opt, Layer3 * l3);
 
-class DummyLayer2:public Layer2
+class Layer2mixin:public Layer2
 {
 public:
-  DummyLayer2 (Layer3 *l3) : Layer2 (l3, NULL)
-  {
-  }
+  Layer2mixin (Layer3 *l3, Trace *tr) : Layer2 (l3, NULL)
+    {
+      t = tr;
+    }
   LPDU *Get_L_Data (pth_event_t stop UNUSED) { return 0; }
   bool init() { return 1; }
   void Send_L_Data (LPDU * l) { delete l; }

@@ -306,7 +306,9 @@ USBLayer2::~USBLayer2 ()
 bool USBLayer2::init ()
 {
   if (emi == 0)
-	return false;
+    return false;
+  if (! layer2_is_bus())
+    return false;
   return Layer2::init();
 }
 

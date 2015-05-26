@@ -82,26 +82,7 @@ EIBnetServer::EIBnetServer (const char *multicastaddr, int port, bool Tunnel,
   discover = Discover;
   Port = htons (port);
   if (route || tunnel)
-    {
-      if (!l3->registerBroadcastCallBack (this))
-	{
-	  delete sock;
-	  sock = 0;
-	  return;
-	}
-      if (!l3->registerGroupCallBack (this, 0))
-	{
-	  delete sock;
-	  sock = 0;
-	  return;
-	}
-      if (!l3->registerIndividualCallBack (this, Individual_Lock_None, 0, 0))
-	{
-	  delete sock;
-	  sock = 0;
-	  return;
-	}
-    }
+    layer2_is_bus ();
   busmoncount = 0;
   Start ();
   TRACEPRINTF (t, 8, this, "Opened");
@@ -112,12 +93,6 @@ EIBnetServer::~EIBnetServer ()
 {
   unsigned int i;
   TRACEPRINTF (t, 8, this, "Close");
-  if (route || tunnel)
-    {
-      l3->deregisterBroadcastCallBack (this);
-      l3->deregisterGroupCallBack (this, 0);
-      l3->deregisterIndividualCallBack (this, 0, 0);
-    }
   if (busmoncount)
     l3->deregisterVBusmonitor (this);
   Stop ();
@@ -427,7 +402,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      if (p1->data () < 2 || p1->data[0] != 0x29)
 		goto out;
 	      const CArray data = p1->data;
-	      L_Data_PDU *c = CEMI_to_L_Data (data, l3->FakeL2);
+	      L_Data_PDU *c = CEMI_to_L_Data (data, this);
 	      if (c)
 		{
 		  TRACEPRINTF (t, 8, this, "Recv_Route %s", c->Decode ()());
@@ -436,7 +411,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 		      c->hopcount--;
 		      addNAT (*c);
 		      c->object = this;
-		      l3->send_L_Data (c);
+		      l3->recv_L_Data (c);
 		    }
 		  else
 		    {
@@ -578,7 +553,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      r2.seqno = r1.seqno;
 	      if (state[i].type == 0)
 		{
-		  L_Data_PDU *c = CEMI_to_L_Data (r1.CEMI, l3->FakeL2);
+		  L_Data_PDU *c = CEMI_to_L_Data (r1.CEMI, this);
 		  if (c)
 		    {
 		      r2.status = 0;
@@ -592,7 +567,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 			    }
 			  c->object = this;
 			  if (r1.CEMI[0] == 0x11 || r1.CEMI[0] == 0x29)
-			    l3->send_L_Data (c);
+			    l3->recv_L_Data (c);
 			  else
 			    delete c;
 			}

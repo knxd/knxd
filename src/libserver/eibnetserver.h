@@ -50,8 +50,7 @@ typedef struct
   pth_event_t timeout;
 } NATState;
 
-class EIBnetServer:public L_Data_CallBack, public L_Busmonitor_CallBack,
-  public BaseServer
+class EIBnetServer: public L_Busmonitor_CallBack, public BaseServer
 {
   EIBNetIPSocket *sock;
   int Port;

@@ -189,14 +189,6 @@ public:
   }
 };
 
-/** interface for callback for L_Data frames */
-class L_Data_CallBack
-{   
-public:
-  /** callback: a L_Data frame has been received */
-  virtual void Send_L_Data (L_Data_PDU * l) = 0; 
-};  
-    
 /** interface for callback for busmonitor frames */
 class L_Busmonitor_CallBack
 {

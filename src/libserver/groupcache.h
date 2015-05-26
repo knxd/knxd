@@ -23,6 +23,7 @@
 #include <time.h>
 
 #include "layer3.h"
+#include "layer2.h"
 
 typedef struct
 {
@@ -36,14 +37,10 @@ typedef struct
   time_t recvtime;
 } GroupCacheEntry;
 
-class GroupCache:public L_Data_CallBack
+class GroupCache:public Layer2mixin
 {
-  /** Layer 3 interface */
-  Layer3 *layer3;
-  /** debug output */
-  Trace *t;
   /** output queue */
-  Array < GroupCacheEntry * >cache;
+  Array < GroupCacheEntry * > cache;
   /** controlled by .Start/Stop; if false, the whole code does nothing */
   bool enable;
   /** signal for .Read and .LastUpdates that the cache has been updated */
