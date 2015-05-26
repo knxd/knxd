@@ -85,10 +85,6 @@ public:
 /** Group Communication socket */
 class GroupSocket:public Layer2mixin
 {
-  /** Layer 3 interface */
-  Layer3 *layer3;
-  /** debug output */
-  Trace *t;
   /** output queue */
   Queue < GroupAPDU > outqueue;
   /** semaphore for output queue */
@@ -111,10 +107,6 @@ public:
 /** Group Layer 4 connection */
 class T_Group:public Layer2mixin
 {
-  /** Layer 3 interface */
-  Layer3 *layer3;
-  /** debug output */
-  Trace *t;
   /** output queue */
   Queue < GroupComm > outqueue;
   /** semaphore for output queue */
@@ -187,10 +179,6 @@ public:
 /** implement a client T_Connection */
 class T_Connection:public Layer2mixin, private Thread
 {
-  /** Layer 3 interface */
-  Layer3 *layer3;
-  /** debug output */
-  Trace *t;
   /** input queue */
   Queue < CArray > in;
   /** buffer queue for layer 3 */
