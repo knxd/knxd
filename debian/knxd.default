@@ -6,7 +6,14 @@
 # This is a POSIX shell fragment
 #
 
-# Additional options that are passed to the Daemon.
+# start knxd when /etc/init.d/knxd start is run
+# by default knxd does NOT start. set to YES to enable
 START_KNXD=NO
 
-DAEMON_OPTS=""
+# Additional options that are passed to the Daemon.
+#
+# for IP interface at 192.168.178.123; 
+# local Unix Domain Socket /tmp/eib _not_ enabled (-u)
+# DAEMON_ARGS="-c -S -D -R -T --no-tunnel-client-queuing -i ipt:192.168.178.123"
+DAEMON_ARGS=""
+

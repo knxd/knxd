@@ -50,7 +50,7 @@ do_start()
 	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON --test > /dev/null \
 		|| return 1
 	start-stop-daemon --start --quiet --pidfile $PIDFILE --exec $DAEMON -- \
-		$DAEMON_ARGS \
+		-d -p $PIDFILE $DAEMON_ARGS \
 		|| return 2
 	# The above code will not work for interpreted scripts, use the next
 	# six lines below instead (Ref: #643337, start-stop-daemon(8) )
