@@ -16,11 +16,11 @@ EIBConnection.cs : lic.inc EIBConnection.post
 	$(INDENT) $@ || /bin/true
 
 .pre.post:
-@am__fastdepCXX_TRUE@	if $(CPP) -D__cplusplus -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -P -x c -O0 -o $@ $<; \
+@am__fastdepCXX_TRUE@	if $(CPP) $(AM_CPPFLAGS) -D__cplusplus -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -P -x c -O0 -o $@ $<; \
 @am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Po"; else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CPP) -D__cplusplus -P -x c -O0 -o $@ $<
+@am__fastdepCXX_FALSE@	$(CPP) $(AM_CPPFLAGS) -D__cplusplus -P -x c -O0 -o $@ $<
 
 noinst_LIBRARIES=libdummy.a
 libdummy_a_SOURCES=dummy.cpp
