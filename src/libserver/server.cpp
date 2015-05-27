@@ -23,7 +23,7 @@
 
 
 BaseServer::BaseServer (Layer3 * layer3, Trace * tr)
-	: Layer2mixin (layer3, tr)
+	: Layer2virtual (layer3, tr)
 {
 }
 

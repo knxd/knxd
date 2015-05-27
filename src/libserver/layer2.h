@@ -38,7 +38,7 @@ typedef struct {
   unsigned int flags;
 } L2options;
 
-/** interface for an Layer 2 driver */
+/** generic interface for an Layer 2 driver */
 class Layer2
 {
   friend class Layer3;
@@ -116,6 +116,9 @@ protected:
 typedef Layer2 *(*Layer2_Create_Func) (const char *conf, 
 				       L2options *opt, Layer3 * l3);
 
+/** Layer2 mix-in class for network interfaces
+ * without "real" hardware behind them
+ */
 class Layer2mixin:public Layer2
 {
 public:
@@ -123,20 +126,34 @@ public:
     {
       t = tr;
     }
-  LPDU *Get_L_Data (pth_event_t stop UNUSED) { return 0; }
-  bool init() { return 1; }
   void Send_L_Data (LPDU * l) { delete l; }
+  virtual void Send_L_Data (L_Data_PDU * l) = 0;
   bool enterBusmonitor () { return 0; }
   bool leaveBusmonitor () { return 0; }
   bool openVBusmonitor () { return 0; }
   bool closeVBusmonitor () { return 0; }
+  bool Open () { return 1; }
+  bool Close () { return 1; }
+  bool Send_Queue_Empty () { return 1; }
+};
+
+/** Layer2 mix-in class for interfaces
+ * which don't ever do anything,
+ * e.g. server sockets used to accept() connections
+ */
+class Layer2virtual:public Layer2mixin
+{
+public:
+  Layer2virtual (Layer3 *l3, Trace *tr) : Layer2mixin (l3, tr)
+    {
+    }
+  bool init() { return 1; }
+  void Send_L_Data (LPDU * l) { delete l; }
+  void Send_L_Data (L_Data_PDU * l) { delete l; }
   bool addAddress (eibaddr_t addr UNUSED) { return 1; }
   bool addGroupAddress (eibaddr_t addr UNUSED) { return 1; }
   bool removeAddress (eibaddr_t addr UNUSED) { return 1; }
   bool removeGroupAddress (eibaddr_t addr UNUSED) { return 1; }
-  bool Open () { return 1; }
-  bool Close () { return 1; }
-  bool Send_Queue_Empty () { return 1; }
 };
 
 #define FLAG_B_TUNNEL_NOQUEUE (1<<0)

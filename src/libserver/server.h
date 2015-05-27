@@ -26,7 +26,7 @@
 class ClientConnection;
 
 /** implements the frontend (but opens no connection) */
-class BaseServer:protected Thread, public Layer2mixin
+class BaseServer:protected Thread, public Layer2virtual
 {
   virtual void Run (pth_sem_t * stop) = 0;
   const char *Name() { return "baseserver"; }
