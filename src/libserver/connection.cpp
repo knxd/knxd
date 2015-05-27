@@ -27,15 +27,20 @@ A_Broadcast::A_Broadcast (Layer3 * l3, Trace * tr, ClientConnection * cc)
   con = cc;
   c = 0;
   if (con->size != 5)
-    return;
+    {
+      TRACEPRINTF (t, 7, this, "OpenBroadcast size bad %d", con->size);
+      return;
+    }
   c = new T_Broadcast (layer3, t, con->buf[4] != 0 ? 1 : 0);
   if (!c->init ())
     {
+      TRACEPRINTF (t, 7, this, "OpenBroadcast init bad");
       delete c;
       c = 0;
       return;
     }
   Start ();
+  TRACEPRINTF (t, 7, this, "OpenBroadcast complete");
 }
 
 A_Group::A_Group (Layer3 * l3, Trace * tr, ClientConnection * cc)
@@ -46,17 +51,22 @@ A_Group::A_Group (Layer3 * l3, Trace * tr, ClientConnection * cc)
   con = cc;
   c = 0;
   if (con->size != 5)
-    return;
+    {
+      TRACEPRINTF (t, 7, this, "OpenGroup size bad %d", con->size);
+      return;
+    }
   c =
     new T_Group (layer3, t, (con->buf[2] << 8) | (con->buf[3]),
 		 con->buf[4] != 0 ? 1 : 0);
   if (!c->init ())
     {
+      TRACEPRINTF (t, 7, this, "OpenGroup init bad");
       delete c;
       c = 0;
       return;
     }
   Start ();
+  TRACEPRINTF (t, 7, this, "OpenGroup complete");
 }
 
 A_TPDU::A_TPDU (Layer3 * l3, Trace * tr, ClientConnection * cc)
@@ -67,15 +77,20 @@ A_TPDU::A_TPDU (Layer3 * l3, Trace * tr, ClientConnection * cc)
   con = cc;
   c = 0;
   if (con->size != 5)
-    return;
+    {
+      TRACEPRINTF (t, 7, this, "OpenTPDU size bad %d", con->size);
+      return;
+    }
   c = new T_TPDU (layer3, t, (con->buf[2] << 8) | (con->buf[3]));
   if (!c->init ())
     {
+      TRACEPRINTF (t, 7, this, "OpenTPDU init bad");
       delete c;
       c = 0;
       return;
     }
   Start ();
+  TRACEPRINTF (t, 7, this, "OpenTPDU complete");
 }
 
 A_Individual::A_Individual (Layer3 * l3, Trace * tr, ClientConnection * cc)
@@ -86,36 +101,46 @@ A_Individual::A_Individual (Layer3 * l3, Trace * tr, ClientConnection * cc)
   con = cc;
   c = 0;
   if (con->size != 5)
-    return;
+    {
+      TRACEPRINTF (t, 7, this, "OpenIndividual size bad %d", con->size);
+      return;
+    }
   c =
     new T_Individual (layer3, t, (con->buf[2] << 8) | (con->buf[3]),
 		      con->buf[4] != 0 ? 1 : 0);
   if (!c->init ())
     {
+      TRACEPRINTF (t, 7, this, "OpenIndividual init bad");
       delete c;
       c = 0;
       return;
     }
   Start ();
+  TRACEPRINTF (t, 7, this, "OpenIndividual complete");
 }
 
 A_Connection::A_Connection (Layer3 * l3, Trace * tr, ClientConnection * cc)
 {
   t = tr;
-  TRACEPRINTF (t, 7, this, "OpenGroup");
+  TRACEPRINTF (t, 7, this, "OpenConnection");
   layer3 = l3;
   con = cc;
   c = 0;
   if (con->size != 5)
-    return;
+    {
+      TRACEPRINTF (t, 7, this, "OpenConnection size bad %d", con->size);
+      return;
+    }
   c = new T_Connection (layer3, t, (con->buf[2] << 8) | (con->buf[3]));
   if (!c->init ())
     {
+      TRACEPRINTF (t, 7, this, "OpenConnection init bad");
       delete c;
       c = 0;
       return;
     }
   Start ();
+  TRACEPRINTF (t, 7, this, "OpenConnection complete");
 }
 
 A_GroupSocket::A_GroupSocket (Layer3 * l3, Trace * tr, ClientConnection * cc)
@@ -126,15 +151,20 @@ A_GroupSocket::A_GroupSocket (Layer3 * l3, Trace * tr, ClientConnection * cc)
   con = cc;
   c = 0;
   if (con->size != 5)
-    return;
+    {
+      TRACEPRINTF (t, 7, this, "OpenGroupSocket size bad %d", con->size);
+      return;
+    }
   c = new GroupSocket (layer3, t, con->buf[4] != 0 ? 1 : 0);
   if (!c->init ())
     {
+      TRACEPRINTF (t, 7, this, "OpenGroupSocket init bad");
       delete c;
       c = 0;
       return;
     }
   Start ();
+  TRACEPRINTF (t, 7, this, "OpenGroupSocket complete");
 }
 
 A_Broadcast::~A_Broadcast ()
