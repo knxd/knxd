@@ -115,6 +115,8 @@ public:
   void registerTracer (Trace *t) { tracers.add (t); }
   /** remember this server, for deallocation with the L3 */
   void registerServer (BaseServer *s) { servers.add (s); }
+  /** remember this server, for deallocation with the L3 */
+  void deregisterServer (BaseServer *s);
 };
 
 

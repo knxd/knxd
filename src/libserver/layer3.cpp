@@ -35,17 +35,14 @@ Layer3::~Layer3 ()
 {
   TRACEPRINTF (t, 3, this, "Close");
   Stop ();
-  for (unsigned int i = 0; i < servers (); i++)
-    delete servers[i];
-  for (unsigned int i = 0; i < layer2 (); i++)
-    {
-      if (! layer2[i]->Close ())
-        layer2[i]->leaveBusmonitor ();
-      delete layer2[i];
-    }
+  while (servers ())
+    delete servers[0];
+  while (layer2 ())
+    delete layer2[0];
   // the next loops should do exactly nothing
   while (vbusmonitor ())
     deregisterVBusmonitor (vbusmonitor[0].cb);
+
   for (unsigned int i = 0; i < tracers (); i++)
     delete tracers[i];
 }
@@ -81,6 +78,21 @@ Layer3::deregisterBusmonitor (L_Busmonitor_CallBack * c)
       }
   TRACEPRINTF (t, 3, this, "deregisterBusmonitor %08X = 0", c);
   return 0;
+}
+
+void
+Layer3::deregisterServer (BaseServer * s)
+{
+  unsigned i;
+  for (i = 0; i < servers (); i++)
+    if (servers[i] == s)
+      {
+	servers[i] = servers[servers () - 1];
+	servers.resize (servers () - 1);
+	TRACEPRINTF (t, 3, this, "deregisterServer %08X = 1", s);
+	return;
+      }
+  TRACEPRINTF (t, 3, this, "deregisterServer %08X = 0", s);
 }
 
 bool

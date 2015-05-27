@@ -31,6 +31,8 @@ BaseServer::~BaseServer ()
 {
   TRACEPRINTF (t, 8, this, "StopBaseServer");
   Stop ();
+  if (l3)
+    l3->deregisterServer (this);
 }
 
 bool
