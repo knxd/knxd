@@ -66,6 +66,7 @@ public:
 
   /** sends a Layer 2 frame asynchronouse */
   virtual void Send_L_Data (LPDU * l) = 0;
+  virtual void Send_L_Data (L_Data_PDU * l) { Send_L_Data((LPDU *)l); }
 
   /** try to add the individual addr to the device, return true if successful */
   virtual bool addAddress (eibaddr_t addr);
