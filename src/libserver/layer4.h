@@ -60,19 +60,26 @@ typedef struct
   eibaddr_t dst;
 } GroupAPDU;
 
+class Layer4common:public Layer2mixin
+{
+protected:
+  Layer4common(Layer3 *l3, Trace * tr);
+  bool init_ok;
+public:
+  bool init ();
+};
+
 /** Broadcast Layer 4 connection */
-class T_Broadcast:public Layer2mixin
+class T_Broadcast:public Layer4common
 {
   /** output queue */
   Queue < BroadcastComm > outqueue;
   /** semaphore for output queue */
   pth_sem_t sem;
-  bool init_ok;
 
 public:
   T_Broadcast (Layer3 * l3, Trace * t, int write_only);
   virtual ~T_Broadcast ();
-  bool init ();
 
   /** enqueues a packet */
   void Send_L_Data (L_Data_PDU * l);
@@ -83,18 +90,16 @@ public:
 };
 
 /** Group Communication socket */
-class GroupSocket:public Layer2mixin
+class GroupSocket:public Layer4common
 {
   /** output queue */
   Queue < GroupAPDU > outqueue;
   /** semaphore for output queue */
   pth_sem_t sem;
-  bool init_ok;
 
 public:
   GroupSocket (Layer3 * l3, Trace * t, int write_only);
   virtual ~GroupSocket ();
-  bool init ();
 
   /** enqueues a packet from L3 */
   void Send_L_Data (L_Data_PDU * l);
@@ -105,7 +110,7 @@ public:
 };
 
 /** Group Layer 4 connection */
-class T_Group:public Layer2mixin
+class T_Group:public Layer4common
 {
   /** output queue */
   Queue < GroupComm > outqueue;
@@ -113,12 +118,10 @@ class T_Group:public Layer2mixin
   pth_sem_t sem;
   /** group address */
   eibaddr_t groupaddr;
-  bool init_ok;
 
 public:
   T_Group (Layer3 * l3, Trace * t, eibaddr_t dest, int write_only);
   virtual ~T_Group ();
-  bool init ();
 
   /** enqueues a packet from L3 */
   void Send_L_Data (L_Data_PDU * l);
@@ -129,7 +132,7 @@ public:
 };
 
 /** Layer 4 raw individual connection */
-class T_TPDU:public Layer2mixin
+class T_TPDU:public Layer4common
 {
   /** output queue */
   Queue < TpduComm > outqueue;
@@ -137,12 +140,10 @@ class T_TPDU:public Layer2mixin
   pth_sem_t sem;
   /** source address to use */
   eibaddr_t src;
-  bool init_ok;
 
 public:
   T_TPDU (Layer3 * l3, Trace * t, eibaddr_t src);
   virtual ~T_TPDU ();
-  bool init ();
 
   /** enqueues a packet from L3 */
   void Send_L_Data (L_Data_PDU * l);
@@ -153,7 +154,7 @@ public:
 };
 
 /** Layer 4 T_Individual connection */
-class T_Individual:public Layer2mixin
+class T_Individual:public Layer4common
 {
   /** output queue */
   Queue < CArray > outqueue;
@@ -161,12 +162,10 @@ class T_Individual:public Layer2mixin
   pth_sem_t sem;
   /** destination address */
   eibaddr_t dest;
-  bool init_ok;
 
 public:
   T_Individual (Layer3 * l3, Trace * t, eibaddr_t dest, int write_only);
   virtual ~T_Individual ();
-  bool init ();
 
   /** enqueues a packet from L3 */
   void Send_L_Data (L_Data_PDU * l);
@@ -177,7 +176,7 @@ public:
 };
 
 /** implement a client T_Connection */
-class T_Connection:public Layer2mixin, private Thread
+class T_Connection:public Layer4common, private Thread
 {
   /** input queue */
   Queue < CArray > in;
@@ -200,7 +199,6 @@ class T_Connection:public Layer2mixin, private Thread
   pth_sem_t bufsem;
   /** semaphore for output queue */
   pth_sem_t outsem;
-  bool init_ok;
 
   /** sends T_Connect */
   void SendConnect ();
@@ -215,7 +213,6 @@ class T_Connection:public Layer2mixin, private Thread
 public:
   T_Connection (Layer3 * l3, Trace * t, eibaddr_t dest);
   ~T_Connection ();
-  bool init ();
 
   /** enqueues a packet from L3 */
   void Send_L_Data (L_Data_PDU * l);

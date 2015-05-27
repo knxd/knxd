@@ -20,10 +20,25 @@
 #include "layer4.h"
 #include "tpdu.h"
 
+/***************** Layer4Common *****************/
+
+Layer4common::Layer4common(Layer3 *l3, Trace * tr)
+	: Layer2mixin (l3,tr)
+{
+  init_ok = false;
+}
+
+bool Layer4common::init ()
+{
+  if (!init_ok)
+    return false;
+  return Layer2mixin::init();
+}
+
 /***************** T_Brodcast *****************/
 
 T_Broadcast::T_Broadcast (Layer3 * l3, Trace * tr, int write_only)
-	: Layer2mixin(l3, tr)
+	: Layer4common (l3, tr)
 {
   TRACEPRINTF (tr, 4, this, "OpenBroadcast %s", write_only ? "WO" : "RW");
   pth_sem_init (&sem);
@@ -37,11 +52,6 @@ T_Broadcast::T_Broadcast (Layer3 * l3, Trace * tr, int write_only)
 T_Broadcast::~T_Broadcast ()
 {
   TRACEPRINTF (t, 4, this, "CloseBroadcast");
-}
-
-bool T_Broadcast::init ()
-{
-  return init_ok;
 }
 
 void
@@ -101,7 +111,7 @@ T_Broadcast::Get (pth_event_t stop)
 /***************** T_Group *****************/
 
 T_Group::T_Group (Layer3 * l3, Trace * tr, eibaddr_t group, int write_only)
-	: Layer2mixin (l3, tr)
+	: Layer4common (l3, tr)
 {
   TRACEPRINTF (tr, 4, this, "OpenGroup %d/%d/%d %s", (group >> 11) & 0x1f,
 	       (group >> 8) & 0x07, (group) & 0xff, write_only ? "WO" : "RW");
@@ -115,11 +125,6 @@ T_Group::T_Group (Layer3 * l3, Trace * tr, eibaddr_t group, int write_only)
     if (!addGroupAddress (group))
       return;
   init_ok = true;
-}
-
-bool T_Group::init ()
-{
-  return init_ok;
 }
 
 void
@@ -184,7 +189,7 @@ T_Group::Get (pth_event_t stop)
 /***************** T_TPDU *****************/
 
 T_TPDU::T_TPDU (Layer3 * l3, Trace * tr, eibaddr_t d)
-	: Layer2mixin (l3, tr)
+	: Layer4common (l3, tr)
 {
   TRACEPRINTF (tr, 4, this, "OpenTPDU %d.%d.%d", (d >> 12) & 0x0f,
 	       (d >> 8) & 0x0f, (d) & 0xff);
@@ -194,11 +199,6 @@ T_TPDU::T_TPDU (Layer3 * l3, Trace * tr, eibaddr_t d)
   if (!addReverseAddress (src))
     return;
   init_ok = true;
-}
-
-bool T_TPDU::init ()
-{
-  return init_ok;
 }
 
 void
@@ -255,7 +255,7 @@ T_TPDU::Get (pth_event_t stop)
 
 T_Individual::T_Individual (Layer3 * l3, Trace * tr, eibaddr_t d,
 			    int write_only)
-	: Layer2mixin (l3, tr)
+	: Layer4common (l3, tr)
 {
   TRACEPRINTF (tr, 4, this, "OpenIndividual %d.%d.%d %s", (d >> 12) & 0x0f,
 	       (d >> 8) & 0x0f, (d) & 0xff, write_only ? "WO" : "RW");
@@ -266,11 +266,6 @@ T_Individual::T_Individual (Layer3 * l3, Trace * tr, eibaddr_t d,
     if (!addAddress(dest))
       return;
   init_ok = true;
-}
-
-bool T_Individual::init ()
-{
-  return init_ok;
 }
 
 void
@@ -334,7 +329,7 @@ T_Individual::Get (pth_event_t stop)
 /***************** T_COnnection *****************/
 
 T_Connection::T_Connection (Layer3 * l3, Trace * tr, eibaddr_t d)
-	: Layer2mixin (l3, tr)
+	: Layer4common (l3, tr)
 {
   TRACEPRINTF (tr, 4, this, "OpenConnection %d.%d.%d", (d >> 12) & 0x0f,
 	       (d >> 8) & 0x0f, (d) & 0xff);
@@ -358,11 +353,6 @@ T_Connection::~T_Connection ()
   Stop ();
   while (!buf.isempty ())
     delete buf.get ();
-}
-
-bool T_Connection::init ()
-{
-  return init_ok;
 }
 
 void
@@ -612,7 +602,7 @@ T_Connection::Run (pth_sem_t * stop1)
 /***************** GroupSocket *****************/
 
 GroupSocket::GroupSocket (Layer3 * l3, Trace * tr, int write_only)
-	: Layer2mixin(l3, tr)
+	: Layer4common(l3, tr)
 {
   TRACEPRINTF (tr, 4, this, "OpenGroupSocket %s", write_only ? "WO" : "RW");
   pth_sem_init (&sem);
@@ -626,11 +616,6 @@ GroupSocket::GroupSocket (Layer3 * l3, Trace * tr, int write_only)
 GroupSocket::~GroupSocket ()
 {
   TRACEPRINTF (t, 4, this, "CloseGroupSocket");
-}
-
-bool GroupSocket::init ()
-{
-  return init_ok;
 }
 
 void
