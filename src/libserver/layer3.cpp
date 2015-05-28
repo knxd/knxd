@@ -50,14 +50,17 @@ Layer3::~Layer3 ()
 void
 Layer3::recv_L_Data (LPDU * l)
 {
-  TRACEPRINTF (t, 3, this, "Recv %s", l->Decode ()());
   if (running)
     {
+      TRACEPRINTF (t, 3, this, "Enqueue %s", l->Decode ()());
       buf.put (l);
       pth_sem_inc (&bufsem, 0);
     }
   else
-    delete l;
+    {
+      TRACEPRINTF (t, 3, this, "Discard(not running) %s", l->Decode ()());
+      delete l;
+    }
 }
 
 bool
@@ -251,7 +254,7 @@ Layer3::Run (pth_sem_t * stop1)
 	  L_Busmonitor_PDU *l1, *l2;
 	  l1 = (L_Busmonitor_PDU *) l;
 
-	  TRACEPRINTF (t, 3, this, "Recv %s", l1->Decode ()());
+	  TRACEPRINTF (t, 3, this, "RecvMon %s", l1->Decode ()());
 	  for (i = 0; i < busmonitor (); i++)
 	    {
 	      l2 = new L_Busmonitor_PDU (*l1);
@@ -291,7 +294,7 @@ Layer3::Run (pth_sem_t * stop1)
 	  if (l1->AddrType == IndividualAddress
 	      && l1->dest == defaultAddr)
 	    l1->dest = 0;
-	  TRACEPRINTF (t, 3, this, "Recv %s", l1->Decode ()());
+	  TRACEPRINTF (t, 3, this, "RecvData %s", l1->Decode ()());
 
 	  if (l1->source == 0)
 	    l1->source = defaultAddr;
