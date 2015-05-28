@@ -203,7 +203,7 @@ Layer2::Close ()
 {
   if (mode != BUSMODE_UP)
     return false;
-  mode = BUSMODE_UP;
+  mode = BUSMODE_DOWN;
   return true;
 }
 
