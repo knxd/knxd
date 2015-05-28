@@ -135,7 +135,7 @@ Layer3::deregisterLayer2 (Layer2 * l2)
 bool
 Layer3::registerBusmonitor (L_Busmonitor_CallBack * c)
 {
-  TRACEPRINTF (t, 3, this, "registerBusmontior %08X", c);
+  TRACEPRINTF (t, 3, this, "registerBusmonitor %08X", c);
   if (!busmonitor()) 
     {
       bool have_monitor = false;
@@ -152,7 +152,7 @@ Layer3::registerBusmonitor (L_Busmonitor_CallBack * c)
     }
   busmonitor.resize (busmonitor () + 1);
   busmonitor[busmonitor () - 1].cb = c;
-  TRACEPRINTF (t, 3, this, "registerBusmontior %08X = 1", c);
+  TRACEPRINTF (t, 3, this, "registerBusmontitr %08X = 1", c);
   return true;
 }
 
