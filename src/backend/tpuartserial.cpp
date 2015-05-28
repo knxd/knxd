@@ -330,6 +330,7 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
                 {
                   CArray recvheader;
                   recvheader.set(in.array(),6);
+                  recvheader[0] &=~ 0x20;
                   if (recvheader == sendheader)
                     {
                       TRACEPRINTF (t, 0, this, "Ignoring this telegram. We sent it.");
@@ -397,6 +398,7 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
                 {
                   CArray recvheader;
                   recvheader.set(in.array(),6);
+                  recvheader[0] &=~ 0x20;
                   if (recvheader == sendheader)
                     {
                       TRACEPRINTF (t, 0, this, "ignoring this telegram. we sent it.");
@@ -493,6 +495,7 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 	  unsigned i;
 
 	  sendheader.set(d.array(), 6);
+          sendheader[0] &=~ 0x20;
 	  w.resize (d () * 2);
 	  for (i = 0; i < d (); i++)
 	    {
