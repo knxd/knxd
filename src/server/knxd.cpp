@@ -244,7 +244,7 @@ static struct argp_option options[] = {
    "listen at TCP port PORT (default 6720)"},
   {"listen-local", 'u', "FILE", OPTION_ARG_OPTIONAL,
    "listen at Unix domain socket FILE (default /tmp/eib)"},
-  {"trace", 't', "LEVEL", 0, "set trace level"},
+  {"trace", 't', "MASK", 0, "set trace flags (bitmask)"},
   {"error", 'f', "LEVEL", 0, "set error level"},
   {"eibaddr", 'e', "EIBADDR", 0,
    "set our own EIB-address to EIBADDR (default 0.0.1), for drivers, which need an address"},
@@ -368,14 +368,23 @@ parse_opt (int key, char *arg, struct argp_state *state)
       }
       break;
     case 't':
-      arguments->tracer(true)->SetTraceLevel (arg ? atoi (arg) : 0);
+      if (arg)
+	{
+	  char *x;
+	  unsigned long level = strtoul(arg, &x, 0);
+	  if (*x)
+	    die ("Trace level: '%s' is not a number", arg);
+          arguments->tracer(true)->SetTraceLevel (level);
+	}
+      else
+        arguments->tracer(true)->SetTraceLevel (0);
       break;
     case 'f':
       arguments->tracer(true)->SetErrorLevel (arg ? atoi (arg) : 0);
       break;
     case 'e':
       if (arguments->has_l3 ())
-      arguments->addr = readaddr (arg);
+        arguments->addr = readaddr (arg);
       break;
     case 'p':
       arguments->pidfile = arg;
@@ -390,9 +399,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'n':
       arguments->eibnetname = (char *)arg;
       if(arguments->eibnetname[0] == '=')
-          arguments->eibnetname++;
+	arguments->eibnetname++;
       if(strlen(arguments->eibnetname) >= 30)
-          die("EIBnetServer/IP name must be shorter than 30 bytes");
+	die("EIBnetServer/IP name must be shorter than 30 bytes");
       break;
     case OPT_BACK_TUNNEL_NOQUEUE:
       arguments->l2opts.flags |= FLAG_B_TUNNEL_NOQUEUE;
