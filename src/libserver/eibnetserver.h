@@ -50,7 +50,7 @@ typedef struct
   pth_event_t timeout;
 } NATState;
 
-class EIBnetServer: public L_Busmonitor_CallBack, public BaseServer
+class EIBnetServer: protected Thread, public L_Busmonitor_CallBack, public Layer2mixin
 {
   EIBNetIPSocket *sock;
   int Port;
@@ -76,6 +76,7 @@ public:
                 const String serverName);
   virtual ~EIBnetServer ();
   bool init ();
+  const char * Name () { return "EIBnet"; }
 
 };
 

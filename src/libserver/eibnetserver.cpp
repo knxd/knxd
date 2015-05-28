@@ -31,7 +31,7 @@
 EIBnetServer::EIBnetServer (const char *multicastaddr, int port, bool Tunnel,
                 bool Route, bool Discover, Layer3 * layer3,
                 Trace * tr, String serverName)
-	: BaseServer::BaseServer (layer3, tr)
+	: Layer2mixin::Layer2mixin (layer3, tr)
 {
   struct sockaddr_in baddr;
   struct ip_mreq mcfg;
@@ -107,7 +107,7 @@ EIBnetServer::init ()
 {
   if (!sock)
     return false;
-  return BaseServer::init();
+  return Layer2mixin::init();
 }
 
 void

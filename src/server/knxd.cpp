@@ -308,7 +308,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
         const char *name = arguments->eibnetname;
 
-        BaseServer *c;
+        EIBnetServer *c;
         int port = 0;
         char *a = strdup (serverip);
         char *b;
