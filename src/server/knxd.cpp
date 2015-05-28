@@ -109,12 +109,16 @@ public:
     }
     
   /** get the current tracer.
-   * Call with 'true' when you modify the tracer
+   * Call with 'true' when you want to change the tracer
    * and with 'false' when you want to use it.
+   *
+   * If the current tracer has been used, it's not modified; instead, it is
+   * passed to Layer3 (which will deallocate it when it ends) and copied to
+   * a new instance.
    */
-  Trace *tracer(bool fresh = false)
+  Trace *tracer(bool modify = false)
     {
-      if (fresh && trace_used)
+      if (modify && trace_used)
         {
           Trace *tr = new Trace(*t);
           l3()->registerTracer(t);
@@ -124,11 +128,11 @@ public:
       else if (! t)
         {
           t = new Trace();
-          trace_used = !fresh;
+          trace_used = !modify;
 
           t->SetErrorLevel (LEVEL_WARNING); // default
         }
-      else if (!fresh)
+      else if (!modify)
         trace_used = true;
       return t;
     }
