@@ -196,7 +196,7 @@ TPUARTSerialLayer2Driver::Open ()
 void
 TPUARTSerialLayer2Driver::RecvLPDU (const uchar * data, int len)
 {
-  t->TracePacket (1, this, "Recv", len, data);
+  t->TracePacket (1, this, "RecvLP", len, data);
   if (mode & BUSMODE_MONITOR)
     {
       L_Busmonitor_PDU *l = new L_Busmonitor_PDU (this);
@@ -247,7 +247,7 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
       pth_event_isolate (watchdog);
       if (i > 0)
 	{
-	  t->TracePacket (0, this, "Recv", i, buf);
+	  t->TracePacket (0, this, "RecvB", i, buf);
 	  in.setpart (buf, in (), i);
 	}
       while (in () > 0)
@@ -279,14 +279,15 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 		{
 		  retry++;
 		  waitconfirm = 0;
-		  TRACEPRINTF (t, 0, this, "NACK");
 		  if (retry > 3)
 		    {
-		      TRACEPRINTF (t, 0, this, "Drop NACK");
+		      TRACEPRINTF (t, 0, this, "NACK: dropping packet");
 		      delete inqueue.get ();
 		      pth_sem_dec (&in_signal);
 		      retry = 0;
 		    }
+                  else
+		    TRACEPRINTF (t, 0, this, "NACK");
 		}
 	      in.deletepart (0, 1);
 	    }
@@ -398,7 +399,7 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
                   recvheader.set(in.array(),6);
                   if (recvheader == sendheader)
                     {
-                      TRACEPRINTF (t, 0, this, "ignoring this telegram. we send it.");
+                      TRACEPRINTF (t, 0, this, "ignoring this telegram. we sent it.");
                       recvecho = true;
                     }
                 }
