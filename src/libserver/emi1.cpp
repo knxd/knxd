@@ -187,7 +187,7 @@ EMI1Layer2::Send (LPDU * l)
       l2->pdu.set (l->ToPacket ());
       l3->recv_L_Data (l2);
     }
-  l3->recv_L_Data (l);
+  delete l;
 }
 
 void
