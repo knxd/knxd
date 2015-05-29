@@ -20,7 +20,7 @@ dnl these helpers expands generic autotools variables early so we can use
 dnl these for substitutions with AC_CONFIG_FILES().
 AC_DEFUN([AX_LOCAL_EXPAND_CONFIG], [
 test "x$prefix" = "xNONE" && prefix=$ac_default_prefix
-test "x$exec_prefix" = "xNONE" && exec_prefix=$ac_default_prefix
+test "x$exec_prefix" = "xNONE" && exec_prefix=$prefix
 
 dnl BINDIR=$prefix/bin
 BINDIR=`eval echo $bindir`
