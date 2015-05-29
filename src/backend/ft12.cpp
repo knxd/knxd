@@ -234,7 +234,12 @@ FT12LowLevelDriver::Run (pth_sem_t * stop1)
 		{
 		  uchar c1 = 0xE5;
 		  t->TracePacket (0, this, "Send Ack", 1, &c1);
-		  write (fd, &c1, 1);
+		  if(write (fd, &c1, 1) != 1)
+		    {
+		      ERRORPRINTF (t, 8, this, "write error (%s)",
+		                   strerror(errno));
+		      break;
+		    }
 		  if ((akt[1] == 0xF3 && !recvflag) ||
 		      (akt[1] == 0xD3 && recvflag))
 		    {
