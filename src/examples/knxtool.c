@@ -378,10 +378,10 @@ main (int ac, char *ag[])
 		  fprintf (log_fd, "Logfile opened\n");
 		}
 	    }
-	  fprintf (log_fd, "%d/%d/%d %d:%d:%d : %s\n",
-		   loctim->tm_mday,
-		   loctim->tm_mon + 1,
+	  fprintf (log_fd, "%d-%02d-%02d %d:%d:%d : %s\n",
 		   loctim->tm_year + 1900,
+		   loctim->tm_mon + 1,
+		   loctim->tm_mday,
 		   loctim->tm_hour, loctim->tm_min, loctim->tm_sec, buf);
 	  fflush (log_fd);
 	}
