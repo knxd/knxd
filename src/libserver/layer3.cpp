@@ -341,7 +341,7 @@ bool
 				      eibaddr_t dest)
 {
   unsigned i;
-  TRACEPRINTF (t, 3, this, "registerIndividual %08X %d from %s to %s", c, lock, FormatEIBAddr(src).c_str(), FormatEIBAddr(dest).c_str());
+  TRACEPRINTF (t, 3, this, "registerIndividual %08X %d from %s to %s", c, lock, FormatEIBAddr(src)(), FormatEIBAddr(dest)());
   if (mode == 1)
     return 0;
   for (i = 0; i < individual (); i++)
