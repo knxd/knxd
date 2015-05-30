@@ -485,8 +485,10 @@ EIBnetServer::Run (pth_sem_t * stop1)
 		{
 		  r2.CRD.resize (3);
 		  r2.CRD[0] = 0x04;
-		  r2.CRD[1] = 0x00;
-		  r2.CRD[2] = 0x00;
+		  // TODO allocate per-tunnel addresses!
+		  TRACEPRINTF (t, 8, this, "Tunnel CONNECTION_REQ with %04x",l3->defaultAddr);
+		  r2.CRD[1] = (l3->defaultAddr >> 8) & 0xFF;
+		  r2.CRD[2] = (l3->defaultAddr >> 0) & 0xFF;
 		  if (r1.CRI[1] == 0x02 || r1.CRI[1] == 0x80)
 		    {
 		      int id = addClient ((r1.CRI[1] == 0x80) ? 1 : 0, r1);
@@ -499,7 +501,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 			}
 		    }
 		}
-	      if (r1.CRI () == 1 && r1.CRI[0] == 3)
+	      else if (r1.CRI () == 1 && r1.CRI[0] == 3)
 		{
 		  r2.CRD.resize (1);
 		  r2.CRD[0] = 0x03;

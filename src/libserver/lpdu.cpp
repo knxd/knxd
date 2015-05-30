@@ -382,8 +382,9 @@ String L_Data_PDU::Decode ()
   s += " from ";
   s += FormatEIBAddr (source);
   s += " to ";
-  s += ((AddrType == GroupAddress) ? FormatGroupAddr (dest)
-                                   : FormatEIBAddr (dest));
+  s += (AddrType == GroupAddress ?
+                    FormatGroupAddr (dest) :
+                    FormatEIBAddr (dest));
   s += " hops: ";
   addHex (s, hopcount);
   TPDU *
