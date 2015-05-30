@@ -100,8 +100,8 @@ T_Broadcast::Get (pth_event_t stop)
 
 T_Group::T_Group (Layer3 * l3, Trace * tr, eibaddr_t group, int write_only)
 {
-  TRACEPRINTF (tr, 4, this, "OpenGroup %d/%d/%d %s", (group >> 11) & 0x1f,
-	       (group >> 8) & 0x07, (group) & 0xff, write_only ? "WO" : "RW");
+  TRACEPRINTF (tr, 4, this, "OpenGroup %s %s", FormatGroupAddr (group)(),
+	       write_only ? "WO" : "RW");
   layer3 = l3;
   t = tr;
   groupaddr = group;
@@ -183,8 +183,7 @@ T_Group::Get (pth_event_t stop)
 
 T_TPDU::T_TPDU (Layer3 * l3, Trace * tr, eibaddr_t d)
 {
-  TRACEPRINTF (tr, 4, this, "OpenTPDU %d.%d.%d", (d >> 12) & 0x0f,
-	       (d >> 8) & 0x0f, (d) & 0xff);
+  TRACEPRINTF (tr, 4, this, "OpenTPDU %s", FormatEIBAddr (d)());
   layer3 = l3;
   t = tr;
   src = d;
@@ -255,8 +254,8 @@ T_TPDU::Get (pth_event_t stop)
 T_Individual::T_Individual (Layer3 * l3, Trace * tr, eibaddr_t d,
 			    int write_only)
 {
-  TRACEPRINTF (tr, 4, this, "OpenIndividual %d.%d.%d %s", (d >> 12) & 0x0f,
-	       (d >> 8) & 0x0f, (d) & 0xff, write_only ? "WO" : "RW");
+  TRACEPRINTF (tr, 4, this, "OpenIndividual %s %s",
+               FormatEIBAddr (d)(), write_only ? "WO" : "RW");
   layer3 = l3;
   t = tr;
   dest = d;
@@ -335,8 +334,7 @@ T_Individual::Get (pth_event_t stop)
 
 T_Connection::T_Connection (Layer3 * l3, Trace * tr, eibaddr_t d)
 {
-  TRACEPRINTF (tr, 4, this, "OpenConnection %d.%d.%d", (d >> 12) & 0x0f,
-	       (d >> 8) & 0x0f, (d) & 0xff);
+  TRACEPRINTF (tr, 4, this, "OpenConnection %s", FormatEIBAddr (d)());
   layer3 = l3;
   t = tr;
   dest = d;
