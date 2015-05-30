@@ -44,9 +44,9 @@ class CEMILayer2Interface:public Layer2Interface, private Thread
   /** semaphore for inqueue */
   pth_sem_t in_signal;
   /** output queue */
-    Queue < LPDU * >outqueue;
+  Queue < LPDU * >outqueue;
   /** input queue */
-    Queue < LPDU * >inqueue;
+  Queue < LPDU * >inqueue;
   /** event to wait for outqueue*/
   pth_event_t getwait;
   bool noqueue;
@@ -55,8 +55,8 @@ class CEMILayer2Interface:public Layer2Interface, private Thread
   void Send (LPDU * l);
   void Run (pth_sem_t * stop);
 public:
-    CEMILayer2Interface (LowLevelDriverInterface * i, Trace * tr, int flags);
-   ~CEMILayer2Interface ();
+  CEMILayer2Interface (LowLevelDriverInterface * i, Trace * tr, int flags);
+  ~CEMILayer2Interface ();
   bool init ();
 
   void Send_L_Data (LPDU * l);
@@ -74,7 +74,6 @@ public:
 
   bool Open ();
   bool Close ();
-  eibaddr_t getDefaultAddr ();
   bool Connection_Lost ();
   bool Send_Queue_Empty ();
 };

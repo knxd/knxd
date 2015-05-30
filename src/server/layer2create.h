@@ -18,7 +18,7 @@
 */
 
 #ifdef HAVE_FT12
-L2_NAME (FT12)
+  L2_NAME (FT12)
 #endif
 #ifdef HAVE_EIBNETIP
   L2_NAME (EIBNETIP)

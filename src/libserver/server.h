@@ -30,23 +30,23 @@ class Server:protected Thread
   /** Layer 3 interface */
   Layer3 *l3;
   /** open client connections*/
-    Array < ClientConnection * >connections;
+  Array < ClientConnection * >connections;
 
   void Run (pth_sem_t * stop);
 protected:
   /** debug output */
-    Trace * t;
-    /** server socket */
+  Trace * t;
+  /** server socket */
   int fd;
 
   virtual void setupConnection (int cfd);
 
-    Server (Layer3 * l3, Trace * tr);
+  Server (Layer3 * l3, Trace * tr);
 public:
-    virtual ~ Server ();
+  virtual ~Server ();
 
   virtual bool init () = 0;
-    /** deregister client connection */
+  /** deregister client connection */
   bool deregister (ClientConnection * con);
 };
 

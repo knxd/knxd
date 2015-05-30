@@ -28,8 +28,6 @@ class EIBNetIPRouter:public Layer2Interface, private Thread
 {
   /** debug output */
   Trace *t;
-  /** default address */
-  eibaddr_t addr;
   /** EIBnet/IP socket */
   EIBNetIPSocket *sock;
   /** state */
@@ -39,15 +37,15 @@ class EIBNetIPRouter:public Layer2Interface, private Thread
   /** semaphore for outqueue */
   pth_sem_t out_signal;
   /** output queue */
-    Queue < LPDU * >outqueue;
-    /** event to wait for outqueue */
+  Queue < LPDU * >outqueue;
+  /** event to wait for outqueue */
   pth_event_t getwait;
 
   void Run (pth_sem_t * stop);
 public:
-    EIBNetIPRouter (const char *multicastaddr, int port, eibaddr_t a,
-		    Trace * tr);
-    virtual ~ EIBNetIPRouter ();
+  EIBNetIPRouter (const char *multicastaddr, int port, eibaddr_t a,
+                  Trace * tr);
+  virtual ~EIBNetIPRouter ();
   bool init ();
 
   void Send_L_Data (LPDU * l);
@@ -65,7 +63,6 @@ public:
 
   bool Open ();
   bool Close ();
-  eibaddr_t getDefaultAddr ();
   bool Connection_Lost ();
   bool Send_Queue_Empty ();
 };

@@ -53,12 +53,6 @@ CEMILayer2Interface::Connection_Lost ()
   return iface->Connection_Lost ();
 }
 
-eibaddr_t
-CEMILayer2Interface::getDefaultAddr ()
-{
-  return 0;
-}
-
 bool
 CEMILayer2Interface::openVBusmonitor ()
 {
@@ -74,7 +68,7 @@ CEMILayer2Interface::closeVBusmonitor ()
 }
 
 CEMILayer2Interface::CEMILayer2Interface (LowLevelDriverInterface * i,
-					  Trace * tr, int flags)
+					  Trace * tr, int flags) : Layer2Interface (tr)
 {
   TRACEPRINTF (tr, 2, this, "Open");
   iface = i;
@@ -178,10 +172,12 @@ CEMILayer2Interface::Send_L_Data (LPDU * l)
   /* discard long frames */
   /* actually cEMI supports long frames and splits long payload into multiple frames */
   /* but this is not implemented!! */
-  if (l1->data () > 50) {
-    delete l;
-    return;
-  }
+  if (l1->data () > 50)
+    {
+      TRACEPRINTF (t, 2, this, "Send (CEMILayer2Interface) long_data! (%d)", l1->data ());
+      delete l;
+      return;
+    }
   assert ((l1->hopcount & 0xf8) == 0);
 
   inqueue.put (l);
@@ -198,7 +194,7 @@ CEMILayer2Interface::Send (LPDU * l)
   iface->Send_Packet (pdu);
   if (vmode)
     {
-      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU;
+      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
       l2->pdu.set (l->ToPacket ());
       outqueue.put (l2);
       pth_sem_inc (&out_signal, 1);
@@ -281,7 +277,7 @@ CEMILayer2Interface::Run (pth_sem_t * stop1)
       }
       if (c->len () && (*c)[0] == 0x29 && mode == 2) /* 29h = L_Data.ind */
 	{
-	  L_Data_PDU *p = CEMI_to_L_Data (*c);
+	  L_Data_PDU *p = CEMI_to_L_Data (*c, this);
 	  if (p)
 	    {
 	      delete c;
@@ -290,7 +286,7 @@ CEMILayer2Interface::Run (pth_sem_t * stop1)
 	      TRACEPRINTF (t, 2, this, "Recv %s", p->Decode ()());
 	      if (vmode)
 		{
-		  L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU;
+		  L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
 		  l2->pdu.set (p->ToPacket ());
 		  outqueue.put (l2);
 		  pth_sem_inc (&out_signal, 1);
@@ -303,7 +299,7 @@ CEMILayer2Interface::Run (pth_sem_t * stop1)
       if (c->len () > 4 && (*c)[0] == 0x2B && mode == 1) /* 2Bh = L_Busmon.ind */
 	{
 	  /* untested for cEMI !! */
-	  L_Busmonitor_PDU *p = new L_Busmonitor_PDU;
+	  L_Busmonitor_PDU *p = new L_Busmonitor_PDU (this);
 	  p->status = (*c)[1];
 	  p->timestamp = ((*c)[2] << 24) | ((*c)[3] << 16);
 	  p->pdu.set (c->array () + 4, c->len () - 4);

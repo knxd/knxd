@@ -22,6 +22,7 @@
 
 #include "eibnetip.h"
 #include "layer3.h"
+#include "layer2.h"
 
 typedef struct
 {
@@ -61,21 +62,22 @@ class EIBnetServer:public L_Data_CallBack, public L_Busmonitor_CallBack,
   int busmoncount;
   eibaddr_t eibaddr;
   struct sockaddr_in maddr;
-    Array < ConnState > state;
-    Array < NATState > natstate;
+  Array < ConnState > state;
+  Array < NATState > natstate;
   String name;
 
   void Run (pth_sem_t * stop);
-  void Get_L_Data (L_Data_PDU * l);
-  void Get_L_Busmonitor (L_Busmonitor_PDU * l);
+  void Send_L_Data (L_Data_PDU * l);
+  void Send_L_Busmonitor (L_Busmonitor_PDU * l);
   void addBusmonitor ();
   void delBusmonitor ();
   int addClient (int type, const EIBnet_ConnectRequest & r1);
   void addNAT (const L_Data_PDU & l);
 public:
-    EIBnetServer (const char *multicastaddr, int port, bool Tunnel,
-          bool Route, bool Discover, Layer3 * layer3, Trace * tr, const String serverName, eibaddr_t eibAddr);
-    virtual ~ EIBnetServer ();
+  EIBnetServer (const char *multicastaddr, int port, bool Tunnel,
+                bool Route, bool Discover, Layer3 * layer3, Trace * tr,
+                const String serverName, eibaddr_t eibAddr);
+  virtual ~EIBnetServer ();
   bool init ();
 
 };

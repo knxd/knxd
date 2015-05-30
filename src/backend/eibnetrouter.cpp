@@ -22,13 +22,12 @@
 #include "config.h"
 
 EIBNetIPRouter::EIBNetIPRouter (const char *multicastaddr, int port,
-				eibaddr_t a, Trace * tr)
+				eibaddr_t a, Trace * tr) : Layer2Interface (tr)
 {
   struct sockaddr_in baddr;
   struct ip_mreq mcfg;
   t = tr;
   TRACEPRINTF (t, 2, this, "Open");
-  addr = a;
   mode = 0;
   vmode = 0;
   memset (&baddr, 0, sizeof (baddr));
@@ -104,7 +103,7 @@ EIBNetIPRouter::Send_L_Data (LPDU * l)
   sock->Send (p);
   if (vmode)
     {
-      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU;
+      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
       l2->pdu.set (l->ToPacket ());
       outqueue.put (l2);
       pth_sem_inc (&out_signal, 1);
@@ -152,12 +151,20 @@ EIBNetIPRouter::Run (pth_sem_t * stop1)
 	    }
 	  if (p->data () < 2 || p->data[0] != 0x29)
 	    {
+              if (p->data () < 2)
+                {
+	          TRACEPRINTF (t, 2, this, "No payload (%d)", p->data ());
+                }
+              else
+                {
+	          TRACEPRINTF (t, 2, this, "Payload not L_Data.ind (%02x)", p->data[0]);
+                }
 	      delete p;
 	      continue;
 	    }
 	  const CArray data = p->data;
 	  delete p;
-	  L_Data_PDU *c = CEMI_to_L_Data (data);
+	  L_Data_PDU *c = CEMI_to_L_Data (data, this);
 	  if (c)
 	    {
 	      TRACEPRINTF (t, 2, this, "Recv %s", c->Decode ()());
@@ -165,7 +172,7 @@ EIBNetIPRouter::Run (pth_sem_t * stop1)
 		{
 		  if (vmode)
 		    {
-		      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU;
+		      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
 		      l2->pdu.set (c->ToPacket ());
 		      outqueue.put (l2);
 		      pth_sem_inc (&out_signal, 1);
@@ -174,7 +181,7 @@ EIBNetIPRouter::Run (pth_sem_t * stop1)
 		  pth_sem_inc (&out_signal, 1);
 		  continue;
 		}
-	      L_Busmonitor_PDU *p1 = new L_Busmonitor_PDU;
+	      L_Busmonitor_PDU *p1 = new L_Busmonitor_PDU (this);
 	      p1->pdu = c->ToPacket ();
 	      delete c;
 	      outqueue.put (p1);
@@ -249,12 +256,6 @@ bool
 EIBNetIPRouter::Close ()
 {
   return 1;
-}
-
-eibaddr_t
-EIBNetIPRouter::getDefaultAddr ()
-{
-  return addr;
 }
 
 bool

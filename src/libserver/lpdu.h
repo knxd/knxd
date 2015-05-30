@@ -22,6 +22,8 @@
 
 #include "common.h"
 
+class Layer2Interface;
+
 /** enumartion of Layer 2 frame types*/
 typedef enum
 {
@@ -29,8 +31,7 @@ typedef enum
   L_Unknown,
   /** L_Data */
   L_Data,
-  L_Data_Ind,
-  /** L_Data incomplete */
+  /** L_Data incomplete. Note that nothing handles this. */
   L_Data_Part,
   /** ACK */
   L_ACK,
@@ -43,15 +44,19 @@ typedef enum
 }
 LPDU_Type;
 
+class Layer2Interface;
+
 /** represents a Layer 2 frame */
 class LPDU
 {
 public:
-  LPDU ()
+  Layer2Interface *l2;
+  explicit LPDU (Layer2Interface *layer2)
   {
     object = 0;
+    l2 = layer2;
   }
-  virtual ~ LPDU ()
+  virtual ~LPDU ()
   {
   }
 
@@ -63,7 +68,7 @@ public:
   /** get frame type */
   virtual LPDU_Type getType () const = 0;
   /** converts a character array to a Layer 2 frame */
-  static LPDU *fromPacket (const CArray & c);
+  static LPDU *fromPacket (const CArray & c, Layer2Interface * layer2);
 
   void *object;
 };
@@ -76,7 +81,7 @@ public:
   /** real content*/
   CArray pdu;
 
-  L_Unknown_PDU ();
+  L_Unknown_PDU (Layer2Interface *layer2);
 
   bool init (const CArray & c);
   CArray ToPacket ();
@@ -107,7 +112,7 @@ public:
   /** payload of Layer 4 */
   CArray data;
 
-    L_Data_PDU ();
+  L_Data_PDU (Layer2Interface *layer2);
 
   bool init (const CArray & c);
   CArray ToPacket ();
@@ -128,7 +133,7 @@ public:
   uint8_t status;
   uint32_t timestamp;
 
-    L_Busmonitor_PDU ();
+  L_Busmonitor_PDU (Layer2Interface *layer2);
 
   bool init (const CArray & c);
   CArray ToPacket ();
@@ -139,29 +144,11 @@ public:
   }
 };
 
-/* L_Data_Ind */
-
-class L_Data_Ind_PDU:public L_Data_PDU
-{
-public:
-  L_Data_Ind_PDU ()
-  {
-  }
-  L_Data_Ind_PDU (const L_Data_PDU & c):L_Data_PDU (c)
-  {
-  }
-
-  LPDU_Type getType () const
-  {
-    return L_Data_Ind;
-  }
-};
-
 class L_ACK_PDU:public LPDU
 {
 public:
 
-  L_ACK_PDU ();
+  L_ACK_PDU (Layer2Interface *layer2);
 
   bool init (const CArray & c);
   CArray ToPacket ();
@@ -176,7 +163,7 @@ class L_NACK_PDU:public LPDU
 {
 public:
 
-  L_NACK_PDU ();
+  explicit L_NACK_PDU (Layer2Interface *layer2);
 
   bool init (const CArray & c);
   CArray ToPacket ();
@@ -191,7 +178,7 @@ class L_BUSY_PDU:public LPDU
 {
 public:
 
-  L_BUSY_PDU ();
+  L_BUSY_PDU (Layer2Interface *layer2);
 
   bool init (const CArray & c);
   CArray ToPacket ();
@@ -200,6 +187,30 @@ public:
   {
     return L_BUSY;
   }
+};
+
+/** interface for callback for Layer 2 frames */
+class LPDU_CallBack 
+{
+public:
+  /** callback: a Layer 2 frame has been received */
+  virtual void Get_LPDU (LPDU * l) = 0;
+};
+
+/** interface for callback for L_Data frames */
+class L_Data_CallBack
+{   
+public:
+  /** callback: a L_Data frame has been received */
+  virtual void Send_L_Data (L_Data_PDU * l) = 0; 
+};  
+    
+/** interface for callback for busmonitor frames */
+class L_Busmonitor_CallBack
+{
+public:
+  /** callback: a bus monitor frame has been received */
+  virtual void Send_L_Busmonitor (L_Busmonitor_PDU * l) = 0;
 };
 
 #endif

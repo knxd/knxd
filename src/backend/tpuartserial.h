@@ -22,6 +22,7 @@
 #include <termios.h>
 #include "lowlatency.h"
 #include "layer2.h"
+#include "lpdu.h"
 
 /** TPUART user mode driver */
 class TPUARTSerialLayer2Driver:public Layer2Interface, private Thread
@@ -32,8 +33,6 @@ class TPUARTSerialLayer2Driver:public Layer2Interface, private Thread
   struct termios old;
   /** file descriptor */
   int fd;
-  /** debug output */
-  Trace *t;
   /** default EIB address */
   eibaddr_t addr;
   /** state */
@@ -45,26 +44,26 @@ class TPUARTSerialLayer2Driver:public Layer2Interface, private Thread
   /** semaphore for outqueue */
   pth_sem_t out_signal;
   /** input queue */
-    Queue < LPDU * >inqueue;
-    /** output queue */
-    Queue < LPDU * >outqueue;
-    /** event to wait for outqueue */
+  Queue < LPDU * >inqueue;
+  /** output queue */
+  Queue < LPDU * >outqueue;
+  /** event to wait for outqueue */
   pth_event_t getwait;
   /** my individual addresses */
-    Array < eibaddr_t > indaddr;
-    /** my group addresses */
-    Array < eibaddr_t > groupaddr;
+  Array < eibaddr_t > indaddr;
+  /** my group addresses */
+  Array < eibaddr_t > groupaddr;
   bool ackallgroup;
   bool ackallindividual;
   bool dischreset;
 
-    /** process a recevied frame */
+  /** process a recevied frame */
   void RecvLPDU (const uchar * data, int len);
   void Run (pth_sem_t * stop);
 public:
-    TPUARTSerialLayer2Driver (const char *dev, eibaddr_t addr, int flags,
-			      Trace * tr);
-   ~TPUARTSerialLayer2Driver ();
+  TPUARTSerialLayer2Driver (const char *dev, eibaddr_t addr, int flags,
+                            Trace * tr);
+  ~TPUARTSerialLayer2Driver ();
   bool init ();
 
   void Send_L_Data (LPDU * l);
@@ -82,7 +81,6 @@ public:
 
   bool Open ();
   bool Close ();
-  eibaddr_t getDefaultAddr ();
   bool Connection_Lost ();
   bool Send_Queue_Empty ();
 };

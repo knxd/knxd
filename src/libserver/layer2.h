@@ -20,13 +20,21 @@
 #ifndef LAYER2_H
 #define LAYER2_H
 
+#include "common.h"
 #include "lpdu.h"
 
 /** interface for an Layer 2 driver */
 class Layer2Interface
 {
 public:
-  virtual ~ Layer2Interface ()
+  /** debug output */
+  Trace *t;
+
+  Layer2Interface (Trace *tr)
+  {
+    t = tr;
+  }
+  virtual ~Layer2Interface ()
   {
   }
   virtual bool init () = 0;
@@ -62,36 +70,10 @@ public:
   virtual bool Open () = 0;
   /** try to leave the normal operation mode, return true if successful */
   virtual bool Close () = 0;
-  /** returns the default individual address of the device */
-  virtual eibaddr_t getDefaultAddr () = 0;
   /** return true, if the connection is broken */
   virtual bool Connection_Lost () = 0;
   /** return true, if all frames have been sent */
   virtual bool Send_Queue_Empty () = 0;
-};
-
-/** interface for callback for Layer 2 frames */
-class LPDU_CallBack
-{
-public:
-  /** callback: a Layer 2 frame has been received */
-  virtual void Get_LPDU (LPDU * l) = 0;
-};
-
-/** interface for callback for L_Data frames */
-class L_Data_CallBack
-{
-public:
-  /** callback: a L_Data frame has been received */
-  virtual void Get_L_Data (L_Data_PDU * l) = 0;
-};
-
-/** interface for callback for busmonitor frames */
-class L_Busmonitor_CallBack
-{
-public:
-  /** callback: a bus monitor frame has been received */
-  virtual void Get_L_Busmonitor (L_Busmonitor_PDU * l) = 0;
 };
 
 /** pointer to a functions, which creates a Layer 2 interface
@@ -102,6 +84,31 @@ public:
  */
 typedef Layer2Interface *(*Layer2_Create_Func) (const char *conf, int flags,
 						Trace * t);
+
+class DummyLayer2Interface:public Layer2Interface
+{
+public:
+  DummyLayer2Interface (Trace *tr) : Layer2Interface (tr)
+  {
+  }
+  LPDU *Get_L_Data (pth_event_t stop) { return 0; }
+  bool init() { return 1; }
+  void Send_L_Data (LPDU * l) { delete l; }
+  bool enterBusmonitor () { return 0; }
+  bool leaveBusmonitor () { return 0; }
+  bool openVBusmonitor () { return 0; }
+  bool closeVBusmonitor () { return 0; }
+  bool addAddress (eibaddr_t addr) { return 1; }
+  bool addGroupAddress (eibaddr_t addr) { return 1; }
+  bool removeAddress (eibaddr_t addr) { return 1; }
+  bool removeGroupAddress (eibaddr_t addr) { return 1; }
+  bool Open () { return 1; }
+  bool Close () { return 1; }
+  bool Connection_Lost () { return 0; }
+  bool Send_Queue_Empty () { return 1; }
+};
+
+extern Layer2Interface *FakeL2;
 
 #define FLAG_B_TUNNEL_NOQUEUE (1<<0)
 #define FLAG_B_TPUARTS_ACKGROUP (1<<1)

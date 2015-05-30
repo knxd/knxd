@@ -25,7 +25,7 @@ dnl ##    SUCH DAMAGE.
 
 AC_PREREQ(2.59)
 
-AC_INIT(knxd, 0.1.0)
+AC_INIT(knxd, 0.10.0)
 AM_INIT_AUTOMAKE([foreign])
 
 AC_CANONICAL_HOST

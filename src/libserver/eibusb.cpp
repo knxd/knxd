@@ -278,7 +278,7 @@ USBConverterInterface::Send_Queue_Empty ()
 
 
 USBLayer2Interface::USBLayer2Interface (LowLevelDriverInterface * i,
-					Trace * tr, int flags)
+					Trace * tr, int flags) : Layer2Interface (tr)
 {
   emi = 0;
   LowLevelDriverInterface *iface = initUSBDriver (i, tr);
@@ -337,11 +337,6 @@ bool USBLayer2Interface::removeGroupAddress (eibaddr_t addr)
 bool USBLayer2Interface::Connection_Lost ()
 {
   return emi->Connection_Lost ();
-}
-
-eibaddr_t USBLayer2Interface::getDefaultAddr ()
-{
-  return emi->getDefaultAddr ();
 }
 
 bool USBLayer2Interface::openVBusmonitor ()

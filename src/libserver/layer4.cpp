@@ -45,10 +45,10 @@ bool T_Broadcast::init ()
 }
 
 void
-T_Broadcast::Get_L_Data (L_Data_PDU * l)
+T_Broadcast::Send_L_Data (L_Data_PDU * l)
 {
   BroadcastComm c;
-  TPDU *t = TPDU::fromPacket (l->data);
+  TPDU *t = TPDU::fromPacket (l->data, this->t);
   if (t->getType () == T_DATA_XXX_REQ)
     {
       T_DATA_XXX_REQ_PDU *t1 = (T_DATA_XXX_REQ_PDU *) t;
@@ -66,9 +66,9 @@ T_Broadcast::Send (const CArray & c)
 {
   T_DATA_XXX_REQ_PDU t;
   t.data = c;
-  String s = t.Decode ();
+  String s = t.Decode (this->t);
   TRACEPRINTF (this->t, 4, this, "Send Broadcast %s", s ());
-  L_Data_PDU *l = new L_Data_PDU;
+  L_Data_PDU *l = new L_Data_PDU (FakeL2);
   l->source = 0;
   l->dest = 0;
   l->AddrType = GroupAddress;
@@ -122,10 +122,10 @@ bool T_Group::init ()
 }
 
 void
-T_Group::Get_L_Data (L_Data_PDU * l)
+T_Group::Send_L_Data (L_Data_PDU * l)
 {
   GroupComm c;
-  TPDU *t = TPDU::fromPacket (l->data);
+  TPDU *t = TPDU::fromPacket (l->data, this->t);
   if (t->getType () == T_DATA_XXX_REQ)
     {
       T_DATA_XXX_REQ_PDU *t1 = (T_DATA_XXX_REQ_PDU *) t;
@@ -143,9 +143,9 @@ T_Group::Send (const CArray & c)
 {
   T_DATA_XXX_REQ_PDU t;
   t.data = c;
-  String s = t.Decode ();
+  String s = t.Decode (this->t);
   TRACEPRINTF (this->t, 4, this, "Send Group %s", s ());
-  L_Data_PDU *l = new L_Data_PDU;
+  L_Data_PDU *l = new L_Data_PDU (FakeL2);
   l->source = 0;
   l->dest = groupaddr;
   l->AddrType = GroupAddress;
@@ -202,7 +202,7 @@ bool T_TPDU::init ()
 }
 
 void
-T_TPDU::Get_L_Data (L_Data_PDU * l)
+T_TPDU::Send_L_Data (L_Data_PDU * l)
 {
   TpduComm t;
   t.data = l->data;
@@ -216,7 +216,7 @@ void
 T_TPDU::Send (const TpduComm & c)
 {
   t->TracePacket (4, this, "Send TPDU", c.data);
-  L_Data_PDU *l = new L_Data_PDU;
+  L_Data_PDU *l = new L_Data_PDU (FakeL2);
   l->source = src;
   l->dest = c.addr;
   l->AddrType = IndividualAddress;
@@ -275,10 +275,10 @@ bool T_Individual::init ()
 }
 
 void
-T_Individual::Get_L_Data (L_Data_PDU * l)
+T_Individual::Send_L_Data (L_Data_PDU * l)
 {
   CArray c;
-  TPDU *t = TPDU::fromPacket (l->data);
+  TPDU *t = TPDU::fromPacket (l->data, this->t);
   if (t->getType () == T_DATA_XXX_REQ)
     {
       T_DATA_XXX_REQ_PDU *t1 = (T_DATA_XXX_REQ_PDU *) t;
@@ -295,9 +295,9 @@ T_Individual::Send (const CArray & c)
 {
   T_DATA_XXX_REQ_PDU t;
   t.data = c;
-  String s = t.Decode ();
+  String s = t.Decode (this->t);
   TRACEPRINTF (this->t, 4, this, "Send Individual %s", s ());
-  L_Data_PDU *l = new L_Data_PDU;
+  L_Data_PDU *l = new L_Data_PDU (FakeL2);
   l->source = 0;
   l->dest = dest;
   l->AddrType = IndividualAddress;
@@ -369,7 +369,7 @@ bool T_Connection::init ()
 }
 
 void
-T_Connection::Get_L_Data (L_Data_PDU * l)
+T_Connection::Send_L_Data (L_Data_PDU * l)
 {
   buf.put (l);
   pth_sem_inc (&bufsem, 0);
@@ -410,7 +410,7 @@ T_Connection::SendConnect ()
 {
   TRACEPRINTF (t, 4, this, "SendConnect");
   T_CONNECT_REQ_PDU p;
-  L_Data_PDU *l = new L_Data_PDU;
+  L_Data_PDU *l = new L_Data_PDU (FakeL2);
   l->source = 0;
   l->dest = dest;
   l->AddrType = IndividualAddress;
@@ -424,7 +424,7 @@ T_Connection::SendDisconnect ()
 {
   TRACEPRINTF (t, 4, this, "SendDisconnect");
   T_DISCONNECT_REQ_PDU p;
-  L_Data_PDU *l = new L_Data_PDU;
+  L_Data_PDU *l = new L_Data_PDU (FakeL2);
   l->source = 0;
   l->dest = dest;
   l->AddrType = IndividualAddress;
@@ -439,7 +439,7 @@ T_Connection::SendAck (int serno)
   TRACEPRINTF (t, 4, this, "SendACK %d", serno);
   T_ACK_PDU p;
   p.serno = serno;
-  L_Data_PDU *l = new L_Data_PDU;
+  L_Data_PDU *l = new L_Data_PDU (FakeL2);
   l->source = 0;
   l->dest = dest;
   l->AddrType = IndividualAddress;
@@ -453,8 +453,8 @@ T_Connection::SendData (int serno, const CArray & c)
   T_DATA_CONNECTED_REQ_PDU p;
   p.data = c;
   p.serno = serno;
-  TRACEPRINTF (t, 4, this, "SendData %s", p.Decode ()());
-  L_Data_PDU *l = new L_Data_PDU;
+  TRACEPRINTF (t, 4, this, "SendData %s", p.Decode (t)());
+  L_Data_PDU *l = new L_Data_PDU (FakeL2);
   l->source = 0;
   l->dest = dest;
   l->AddrType = IndividualAddress;
@@ -504,7 +504,7 @@ T_Connection::Run (pth_sem_t * stop1)
 	{
 	  pth_sem_dec (&bufsem);
 	  L_Data_PDU *l = buf.get ();
-	  TPDU *t = TPDU::fromPacket (l->data);
+	  TPDU *t = TPDU::fromPacket (l->data, this->t);
 	  switch (t->getType ())
 	    {
 	    case T_DISCONNECT_REQ:
@@ -638,10 +638,10 @@ bool GroupSocket::init ()
 }
 
 void
-GroupSocket::Get_L_Data (L_Data_PDU * l)
+GroupSocket::Send_L_Data (L_Data_PDU * l)
 {
   GroupAPDU c;
-  TPDU *t = TPDU::fromPacket (l->data);
+  TPDU *t = TPDU::fromPacket (l->data, this->t);
   if (t->getType () == T_DATA_XXX_REQ)
     {
       T_DATA_XXX_REQ_PDU *t1 = (T_DATA_XXX_REQ_PDU *) t;
@@ -660,9 +660,9 @@ GroupSocket::Send (const GroupAPDU & c)
 {
   T_DATA_XXX_REQ_PDU t;
   t.data = c.data;
-  String s = t.Decode ();
+  String s = t.Decode (this->t);
   TRACEPRINTF (this->t, 4, this, "Send GroupSocket %s", s ());
-  L_Data_PDU *l = new L_Data_PDU;
+  L_Data_PDU *l = new L_Data_PDU (FakeL2);
   l->source = 0;
   l->dest = c.dst;
   l->AddrType = GroupAddress;

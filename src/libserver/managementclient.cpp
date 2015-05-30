@@ -32,7 +32,7 @@ ReadIndividualAddresses (Layer3 * l3, Trace * t, ClientConnection * c,
       return;
     }
   CArray erg;
-  Array < eibaddr_t > e = b.A_IndividualAddress_Read ();
+  Array < eibaddr_t > e = b.A_IndividualAddress_Read (t);
   erg.resize (2 + 2 * e ());
   EIBSETTYPE (erg, EIB_M_INDIVIDUAL_ADDRESS_READ);
   for (unsigned i = 0; i < e (); i++)
@@ -162,7 +162,7 @@ WriteIndividualAddress (Layer3 * l3, Trace * t, ClientConnection * c,
 	return;
       }
   }
-  Array < eibaddr_t > addr = b.A_IndividualAddress_Read ();
+  Array < eibaddr_t > addr = b.A_IndividualAddress_Read (t);
   if (addr () > 1)
     {
       c->sendreject (stop, EIB_ERROR_MORE_DEVICE);

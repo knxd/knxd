@@ -18,6 +18,7 @@
 */
 
 #include <unistd.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/ioctl.h>
@@ -42,7 +43,7 @@ setstat (int fd, int s)
 
 TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
 						    eibaddr_t a, int flags,
-						    Trace * tr)
+						    Trace * tr) : Layer2Interface (tr)
 {
   struct termios t1;
   t = tr;
@@ -59,17 +60,24 @@ TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
 
   fd = open (dev, O_RDWR | O_NOCTTY | O_NDELAY | O_SYNC);
   if (fd == -1)
-    return;
+    {
+      TRACEPRINTF (t, 2, this, "Opening %s failed: %s", dev, strerror(errno));
+      return;
+    }
   set_low_latency (fd, &sold);
 
   close (fd);
 
   fd = open (dev, O_RDWR | O_NOCTTY | O_SYNC);
   if (fd == -1)
-    return;
+    {
+      TRACEPRINTF (t, 2, this, "Opening %s failed: %s", dev, strerror(errno));
+      return;
+    }
 
   if (tcgetattr (fd, &old))
     {
+      TRACEPRINTF (t, 2, this, "tcgetattr %s failed: %s", dev, strerror(errno));
       restore_low_latency (fd, &sold);
       close (fd);
       fd = -1;
@@ -78,6 +86,7 @@ TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
 
   if (tcgetattr (fd, &t1))
     {
+      TRACEPRINTF (t, 2, this, "tcgetattr %s failed: %s", dev, strerror(errno));
       restore_low_latency (fd, &sold);
       close (fd);
       fd = -1;
@@ -95,6 +104,7 @@ TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
 
   if (tcsetattr (fd, TCSAFLUSH, &t1))
     {
+      TRACEPRINTF (t, 2, this, "tcsetattr %s failed: %s", dev, strerror(errno));
       restore_low_latency (fd, &sold);
       close (fd);
       fd = -1;
@@ -146,8 +156,7 @@ TPUARTSerialLayer2Driver::addAddress (eibaddr_t addr)
   for (i = 0; i < indaddr (); i++)
     if (indaddr[i] == addr)
       return 0;
-  indaddr.resize (indaddr () + 1);
-  indaddr[indaddr () - 1] = addr;
+  indaddr.add (addr);
   return 1;
 }
 
@@ -158,8 +167,7 @@ TPUARTSerialLayer2Driver::addGroupAddress (eibaddr_t addr)
   for (i = 0; i < groupaddr (); i++)
     if (groupaddr[i] == addr)
       return 0;
-  groupaddr.resize (groupaddr () + 1);
-  groupaddr[groupaddr () - 1] = addr;
+  groupaddr.add (addr);
   return 1;
 }
 
@@ -199,12 +207,6 @@ bool TPUARTSerialLayer2Driver::closeVBusmonitor ()
 {
   vmode = 0;
   return 1;
-}
-
-eibaddr_t
-TPUARTSerialLayer2Driver::getDefaultAddr ()
-{
-  return addr;
 }
 
 bool
@@ -296,14 +298,14 @@ TPUARTSerialLayer2Driver::RecvLPDU (const uchar * data, int len)
   t->TracePacket (1, this, "Recv", len, data);
   if (mode || vmode)
     {
-      L_Busmonitor_PDU *l = new L_Busmonitor_PDU;
+      L_Busmonitor_PDU *l = new L_Busmonitor_PDU (this);
       l->pdu.set (data, len);
       outqueue.put (l);
       pth_sem_inc (&out_signal, 1);
     }
   if (!mode)
     {
-      LPDU *l = LPDU::fromPacket (CArray (data, len));
+      LPDU *l = LPDU::fromPacket (CArray (data, len), this);
       if (l->getType () == L_Data && ((L_Data_PDU *) l)->valid_checksum)
 	{
 	  outqueue.put (l);

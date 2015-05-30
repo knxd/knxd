@@ -50,12 +50,6 @@ EMI1Layer2Interface::Connection_Lost ()
   return iface->Connection_Lost ();
 }
 
-eibaddr_t
-EMI1Layer2Interface::getDefaultAddr ()
-{
-  return 0;
-}
-
 bool
 EMI1Layer2Interface::openVBusmonitor ()
 {
@@ -71,7 +65,7 @@ EMI1Layer2Interface::closeVBusmonitor ()
 }
 
 EMI1Layer2Interface::EMI1Layer2Interface (LowLevelDriverInterface * i,
-					  Trace * tr, int flags)
+					  Trace * tr, int flags) : Layer2Interface(tr)
 {
   TRACEPRINTF (tr, 2, this, "Open");
   iface = i;
@@ -234,7 +228,7 @@ EMI1Layer2Interface::Send (LPDU * l)
   iface->Send_Packet (pdu);
   if (vmode)
     {
-      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU;
+      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
       l2->pdu.set (l->ToPacket ());
       outqueue.put (l2);
       pth_sem_inc (&out_signal, 1);
@@ -313,7 +307,7 @@ EMI1Layer2Interface::Run (pth_sem_t * stop1)
 	sendmode = 0;
       if (c->len () && (*c)[0] == 0x49 && mode == 2)
 	{
-	  L_Data_PDU *p = EMI_to_L_Data (*c);
+	  L_Data_PDU *p = EMI_to_L_Data (*c, this);
 	  if (p)
 	    {
 	      delete c;
@@ -322,7 +316,7 @@ EMI1Layer2Interface::Run (pth_sem_t * stop1)
 	      TRACEPRINTF (t, 2, this, "Recv %s", p->Decode ()());
 	      if (vmode)
 		{
-		  L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU;
+		  L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
 		  l2->pdu.set (p->ToPacket ());
 		  outqueue.put (l2);
 		  pth_sem_inc (&out_signal, 1);
@@ -334,7 +328,7 @@ EMI1Layer2Interface::Run (pth_sem_t * stop1)
 	}
       if (c->len () > 4 && (*c)[0] == 0x49 && mode == 1)
 	{
-	  L_Busmonitor_PDU *p = new L_Busmonitor_PDU;
+	  L_Busmonitor_PDU *p = new L_Busmonitor_PDU (this);
 	  p->status = (*c)[1];
 	  p->timestamp = ((*c)[2] << 24) | ((*c)[3] << 16);
 	  p->pdu.set (c->array () + 4, c->len () - 4);

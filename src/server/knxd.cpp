@@ -27,6 +27,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include "layer3.h"
+#include "layer2.h"
 #include "localserver.h"
 #include "inetserver.h"
 #include "eibnetserver.h"
@@ -42,6 +43,8 @@
 #define OPT_BACK_TPUARTS_ACKINDIVIDUAL 3
 #define OPT_BACK_TPUARTS_DISCH_RESET 4
 #define OPT_BACK_EMI_NOQUEUE 5
+
+Layer2Interface *FakeL2;
 
 /** structure to store the arguments */
 struct arguments
@@ -332,10 +335,6 @@ main (int ac, char *ag[])
   arg.errorlevel = LEVEL_WARNING;
 
   argp_parse (&argp, ac, ag, 0, &index, &arg);
-  if (index > ac - 1)
-    die ("url expected");
-  if (index < ac - 1)
-    die ("unexpected parameter");
 
 #ifndef HAVE_SYSTEMD
   if (arg.port == 0 && arg.name == 0 && arg.serverip == 0)
@@ -390,15 +389,25 @@ main (int ac, char *ag[])
 	fclose (pidf);
       }
 
-  l2 = Create (ag[index], arg.backendflags, &t);
-  if (!l2 || !l2->init ())
-    die ("initialisation of the backend failed");
-  l3 = new Layer3 (l2, &t);
+  FakeL2 = new DummyLayer2Interface(&t);
+  l3 = new Layer3 (arg.addr, &t);
+#ifdef HAVE_GROUPCACHE
+  if (!CreateGroupCache (l3, &t, arg.groupcache))
+    die ("initialisation of the group cache failed");
+#endif
+  while(index < ac)
+    {
+      l2 = Create (ag[index], arg.backendflags, &t);
+      if (!l2 || !l2->init ())
+        die ("initialisation of backend '%s' failed", ag[index]);
+      l3->registerLayer2 (l2);
+      index++;
+    }
   if (arg.port)
     {
       s = new InetServer (l3, &t, arg.port);
       if (!s->init ())
-    die ("initialisation of the knxd inet protocol failed");
+        die ("initialisation of the knxd inet protocol failed");
       server.put (s);
     }
   if (arg.name)
@@ -435,10 +444,6 @@ main (int ac, char *ag[])
 
 #ifdef HAVE_EIBNETIPSERVER
   serv = startServer (l3, &t, arg.eibnetname, arg.addr);
-#endif
-#ifdef HAVE_GROUPCACHE
-  if (!CreateGroupCache (l3, &t, arg.groupcache))
-    die ("initialisation of the group cache failed");
 #endif
 
   signal (SIGINT, SIG_IGN);

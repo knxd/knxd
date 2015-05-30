@@ -359,11 +359,24 @@ EIBNetIPSocket::EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr,
     }
   if (bind (fd, (struct sockaddr *) &bindaddr, sizeof (bindaddr)) == -1)
     {
+      TRACEPRINTF (t, 0, this, "cannot bind to address");
       close (fd);
       fd = -1;
       return;
     }
 
+  // Disable loopback so we do not receive our own datagrams.
+  {
+    char loopch=0;
+ 
+    if (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_LOOP,
+                   (char *)&loopch, sizeof(loopch)) < 0) {
+      TRACEPRINTF (t, 0, this, "cannot turn off multicast loopback");
+      close(fd);
+      fd = -1;
+      return;
+    }
+  }
   Start ();
   TRACEPRINTF (t, 0, this, "Openend");
 }
@@ -425,9 +438,11 @@ EIBNetIPSocket::Get (pth_event_t stop)
 
   if (pth_event_status (getwait) == PTH_STATUS_OCCURRED)
     {
+      EIBNetIPPacket *p;
       pth_sem_dec (&outsignal);
-      t->TracePacket (1, this, "Recv", outqueue.top ().data);
-      return new EIBNetIPPacket (outqueue.get ());
+      p = outqueue.get ();
+      t->TracePacket (1, this, "Recv", p->data);
+      return p;
     }
   else
     return 0;
@@ -462,8 +477,7 @@ EIBNetIPSocket::Run (pth_sem_t * stop1)
 		EIBNetIPPacket::fromPacket (CArray (buf, i), r);
 	      if (p)
 		{
-		  outqueue.put (*p);
-		  delete p;
+		  outqueue.put (p);
 		  pth_sem_inc (&outsignal, 1);
 		}
 	    }

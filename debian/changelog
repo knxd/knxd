@@ -1,3 +1,9 @@
+knxd (0.10.0-1) unstable; urgency=medium
+
+  * Allow more than one Layer 2 device.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 18 May 2015 07:24:02 +0200
+
 knxd (0.9.0-1) unstable; urgency=low
 
   * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>

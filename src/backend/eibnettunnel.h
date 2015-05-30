@@ -26,7 +26,6 @@
 class EIBNetIPTunnel:public Layer2Interface, private Thread
 {
   Trace *t;
-  eibaddr_t addr;
   EIBNetIPSocket *sock;
   struct sockaddr_in caddr;
   struct sockaddr_in daddr;
@@ -35,8 +34,8 @@ class EIBNetIPTunnel:public Layer2Interface, private Thread
   pth_sem_t insignal;
   pth_sem_t outsignal;
   pth_event_t getwait;
-    Queue < CArray > inqueue;
-    Queue < LPDU * >outqueue;
+  Queue < CArray > inqueue;
+  Queue < LPDU * >outqueue;
   int mode;
   int vmode;
   int dataport;
@@ -47,9 +46,9 @@ class EIBNetIPTunnel:public Layer2Interface, private Thread
 
   void Run (pth_sem_t * stop);
 public:
-    EIBNetIPTunnel (const char *dest, int port, int sport, const char *srcip,
-		    int dataport, int flags, Trace * tr);
-    virtual ~ EIBNetIPTunnel ();
+  EIBNetIPTunnel (const char *dest, int port, int sport, const char *srcip,
+                  int dataport, int flags, Trace * tr);
+  virtual ~EIBNetIPTunnel ();
   bool init ();
 
   void Send_L_Data (LPDU * l);
@@ -68,7 +67,6 @@ public:
 
   bool Open ();
   bool Close ();
-  eibaddr_t getDefaultAddr ();
   bool Connection_Lost ();
   bool Send_Queue_Empty ();
 };

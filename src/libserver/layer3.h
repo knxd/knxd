@@ -21,6 +21,7 @@
 #define LAYER3_H
 
 #include "layer2.h"
+#include "lpdu.h"
 
 /** stores a registered busmonitor callback */
 typedef struct
@@ -69,71 +70,104 @@ typedef struct
 
 } IgnoreInfo;
 
+class Layer3;
+
+/** thread for receiving data */
+class Layer2Runner:public Thread
+{
+public:
+  Layer2Interface * l2;
+  Layer3 * l3;
+
+  Layer2Runner ();
+  virtual ~Layer2Runner ();
+
+  void Run (pth_sem_t * stop1);
+};
+
 /** Layer 3 frame dispatches */
 class Layer3:private Thread
 {
-  /** Layer 2 interface */
-  Layer2Interface *layer2;
+  /** Layer 2 interfaces */
+  Array < Layer2Runner > layer2;
+  /** buffer queue for receiving from L2 */
+  Queue < LPDU * >buf;
+  /** semaphre for buffer queue */
+  pth_sem_t bufsem;
   /** debug output */
   Trace *t;
   /** working mode (bus monitor/normal operation) */
   int mode;
-    Array < IgnoreInfo > ignore;
+  Array < IgnoreInfo > ignore;
 
-    /** busmonitor callbacks */
-    Array < Busmonitor_Info > busmonitor;
-    /** vbusmonitor callbacks */
-    Array < Busmonitor_Info > vbusmonitor;
-    /** broadcast callbacks */
-    Array < Broadcast_Info > broadcast;
-    /** group callbacks */
-    Array < Group_Info > group;
-    /** individual callbacks */
-    Array < Individual_Info > individual;
+  /** busmonitor callbacks */
+  Array < Busmonitor_Info > busmonitor;
+  /** vbusmonitor callbacks */
+  Array < Busmonitor_Info > vbusmonitor;
+  /** broadcast callbacks */
+  Array < Broadcast_Info > broadcast;
+  /** group callbacks */
+  Array < Group_Info > group;
+  /** individual callbacks */
+  Array < Individual_Info > individual;
 
+  /** process incoming data from L2 */
   void Run (pth_sem_t * stop);
-public:
-    Layer3 (Layer2Interface * l2, Trace * tr);
-    virtual ~ Layer3 ();
+  /** flag whether we're in .Run() */
+  bool running;
 
-    /** register a busmonitor callback, return true, if successful*/
+public:
+  /** our default address */
+  eibaddr_t defaultAddr;
+
+  Layer3 (eibaddr_t addr, Trace * tr);
+  virtual ~Layer3 ();
+
+  /** register a layer2 interface, return true if successful*/
+  bool registerLayer2 (Layer2Interface * l2);
+  /** deregister a layer2 interface, return true if successful*/
+  bool deregisterLayer2 (Layer2Interface * l2);
+
+  /** register a busmonitor callback, return true, if successful*/
   bool registerBusmonitor (L_Busmonitor_CallBack * c);
-    /** register a vbusmonitor callback, return true, if successful*/
+  /** register a vbusmonitor callback, return true, if successful*/
   bool registerVBusmonitor (L_Busmonitor_CallBack * c);
-    /** register a broadcast callback, return true, if successful*/
+  /** register a broadcast callback, return true, if successful*/
   bool registerBroadcastCallBack (L_Data_CallBack * c);
-    /** register a group callback, return true, if successful
-     * @param c callback
-     * @param addr group address (0 means all)
-     */
+  /** register a group callback, return true, if successful
+   * @param c callback
+   * @param addr group address (0 means all)
+   */
   bool registerGroupCallBack (L_Data_CallBack * c, eibaddr_t addr);
-    /** register a individual callback, return true, if successful
-     * @param c callback
-     * @param src source individual address (0 means all)
-     * @param dest destination individual address (0 means default address)
-     * @param lock Locktype of the connection
-     */
+  /** register a individual callback, return true, if successful
+   * @param c callback
+   * @param src source individual address (0 means all)
+   * @param dest destination individual address (0 means default address)
+   * @param lock Locktype of the connection
+   */
   bool registerIndividualCallBack (L_Data_CallBack * c, Individual_Lock lock,
 				   eibaddr_t src, eibaddr_t dest = 0);
 
-    /** deregister a busmonitor callback, return true, if successful*/
+  /** deregister a busmonitor callback, return true, if successful*/
   bool deregisterBusmonitor (L_Busmonitor_CallBack * c);
-    /** deregister a vbusmonitor callback, return true, if successful*/
+  /** deregister a vbusmonitor callback, return true, if successful*/
   bool deregisterVBusmonitor (L_Busmonitor_CallBack * c);
-    /** register a broadcast callback, return true, if successful*/
+  /** register a broadcast callback, return true, if successful*/
   bool deregisterBroadcastCallBack (L_Data_CallBack * c);
-    /** deregister a group callback, return true, if successful
-     * @param c callback
-     * @param addr group address (0 means all)
-     */
+  /** deregister a group callback, return true, if successful
+   * @param c callback
+   * @param addr group address (0 means all)
+   */
   bool deregisterGroupCallBack (L_Data_CallBack * c, eibaddr_t addr);
-    /** register a individual callback, return true, if successful
-     * @param c callback
-     * @param src source individual address (0 means all)
-     * @param dest destination individual address (0 means default address)
-     */
+  /** register a individual callback, return true, if successful
+   * @param c callback
+   * @param src source individual address (0 means all)
+   * @param dest destination individual address (0 means default address)
+   */
   bool deregisterIndividualCallBack (L_Data_CallBack * c, eibaddr_t src,
 				     eibaddr_t dest = 0);
+  /** accept a L_Data frame from L2 */
+  void recv_L_Data (LPDU * l);
   /** sends a L_Data frame asynchronouse */
   void send_L_Data (L_Data_PDU * l);
 };

@@ -136,7 +136,7 @@ EIBnetServer::init ()
 }
 
 void
-EIBnetServer::Get_L_Busmonitor (L_Busmonitor_PDU * l)
+EIBnetServer::Send_L_Busmonitor (L_Busmonitor_PDU * l)
 {
   for (unsigned int i = 0; i < state (); i++)
     {
@@ -150,7 +150,7 @@ EIBnetServer::Get_L_Busmonitor (L_Busmonitor_PDU * l)
 
 
 void
-EIBnetServer::Get_L_Data (L_Data_PDU * l)
+EIBnetServer::Send_L_Data (L_Data_PDU * l)
 {
   if (!l->hopcount)
     {
@@ -427,7 +427,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      if (p1->data () < 2 || p1->data[0] != 0x29)
 		goto out;
 	      const CArray data = p1->data;
-	      L_Data_PDU *c = CEMI_to_L_Data (data);
+	      L_Data_PDU *c = CEMI_to_L_Data (data, FakeL2);
 	      if (c)
 		{
 		  TRACEPRINTF (t, 8, this, "Recv_Route %s", c->Decode ()());
@@ -510,8 +510,10 @@ EIBnetServer::Run (pth_sem_t * stop1)
 		{
 		  r2.CRD.resize (3);
 		  r2.CRD[0] = 0x04;
-		  r2.CRD[1] = 0x00;
-		  r2.CRD[2] = 0x00;
+		  // TODO allocate per-tunnel addresses!
+		  TRACEPRINTF (t, 8, this, "Tunnel CONNECTION_REQ with %04x",l3->defaultAddr);
+		  r2.CRD[1] = (l3->defaultAddr >> 8) & 0xFF;
+		  r2.CRD[2] = (l3->defaultAddr >> 0) & 0xFF;
 		  if (r1.CRI[1] == 0x02 || r1.CRI[1] == 0x80)
 		    {
 		      int id = addClient ((r1.CRI[1] == 0x80) ? 1 : 0, r1);
@@ -524,7 +526,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 			}
 		    }
 		}
-	      if (r1.CRI () == 1 && r1.CRI[0] == 3)
+	      else if (r1.CRI () == 1 && r1.CRI[0] == 3)
 		{
 		  r2.CRD.resize (1);
 		  r2.CRD[0] = 0x03;
@@ -561,6 +563,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 		}
 	      if (state[i].rno == ((r1.seqno + 1) & 0xff))
 		{
+		  TRACEPRINTF (t, 8, this, "Lost ACK for %d", state[i].rno);
 		  r2.channel = r1.channel;
 		  r2.seqno = r1.seqno;
 		  sock->sendaddr = state[i].daddr;
@@ -577,7 +580,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      r2.seqno = r1.seqno;
 	      if (state[i].type == 0)
 		{
-		  L_Data_PDU *c = CEMI_to_L_Data (r1.CEMI);
+		  L_Data_PDU *c = CEMI_to_L_Data (r1.CEMI, FakeL2);
 		  if (c)
 		    {
 		      r2.status = 0;
@@ -605,7 +608,10 @@ EIBnetServer::Run (pth_sem_t * stop1)
 		    r2.status = 0x29;
 		}
 	      else
-		r2.status = 0x29;
+		{
+	          TRACEPRINTF (t, 8, this, "Type not zero (%d)", state[i].type);
+		  r2.status = 0x29;
+		}
 	      state[i].rno++;
 	      sock->sendaddr = state[i].daddr;
 	      sock->Send (r2.ToPacket ());

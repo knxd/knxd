@@ -145,8 +145,7 @@ NCN5120SerialLayer2Driver::addAddress (eibaddr_t addr)
   for (i = 0; i < indaddr (); i++)
     if (indaddr[i] == addr)
       return 0;
-  indaddr.resize (indaddr () + 1);
-  indaddr[indaddr () - 1] = addr;
+  indaddr.add (addr);
   return 1;
 }
 
@@ -157,8 +156,7 @@ NCN5120SerialLayer2Driver::addGroupAddress (eibaddr_t addr)
   for (i = 0; i < groupaddr (); i++)
     if (groupaddr[i] == addr)
       return 0;
-  groupaddr.resize (groupaddr () + 1);
-  groupaddr[groupaddr () - 1] = addr;
+  groupaddr.add (addr);
   return 1;
 }
 
@@ -198,12 +196,6 @@ bool NCN5120SerialLayer2Driver::closeVBusmonitor ()
 {
   vmode = 0;
   return 1;
-}
-
-eibaddr_t
-NCN5120SerialLayer2Driver::getDefaultAddr ()
-{
-  return addr;
 }
 
 bool
@@ -299,7 +291,7 @@ NCN5120SerialLayer2Driver::RecvLPDU (const uchar * data, int len)
     }
   if (!mode)
     {
-      LPDU *l = LPDU::fromPacket (CArray (data, len));
+      LPDU *l = LPDU::fromPacket (CArray (data, len), self);
       if (l->getType () == L_Data && ((L_Data_PDU *) l)->valid_checksum)
 	{
 	  outqueue.put (l);
@@ -349,12 +341,13 @@ NCN5120SerialLayer2Driver::Run (pth_sem_t * stop1)
 	}
       while (in () > 0)
 	{
-	  if(rmn) {
-	  	TRACEPRINTF (t, 0, this, "Remove next");
-	  	in.deletepart(0, 1);
-		rmn = false;
-		continue;
-	  }
+	  if(rmn)
+	    {
+	      TRACEPRINTF (t, 0, this, "Remove next");
+	      in.deletepart(0, 1);
+	      rmn = false;
+	      continue;
+	    }
 	  rmn = false;
 	  if (in[0] == 0x8B)
 	    {

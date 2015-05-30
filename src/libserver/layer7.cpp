@@ -53,7 +53,7 @@ Layer7_Broadcast::A_IndividualAddress_Write (eibaddr_t addr)
 }
 
 Array < eibaddr_t >
-  Layer7_Broadcast::A_IndividualAddress_Read (unsigned timeout)
+  Layer7_Broadcast::A_IndividualAddress_Read (Trace * tr, unsigned timeout)
 {
   Array < eibaddr_t > addrs;
   A_IndividualAddress_Read_PDU r;
@@ -65,12 +65,9 @@ Array < eibaddr_t >
       BroadcastComm *c = l4->Get (t);
       if (c)
 	{
-	  a = APDU::fromPacket (c->data);
+	  a = APDU::fromPacket (c->data, tr);
 	  if (a->isResponse (&r))
-	    {
-	      addrs.resize (addrs () + 1);
-	      addrs[addrs () - 1] = c->src;
-	    }
+	    addrs.add (c->src);
 	  delete a;
 	  delete c;
 	}
@@ -119,25 +116,21 @@ Layer7_Connection::Request_Response (APDU * r)
   while (pth_event_status (t) != PTH_STATUS_OCCURRED)
     {
       c = l4->Get (t);
-      if (c)
-	{
-	  if (c->len () == 0)
-	    {
-	      delete c;
-	      pth_event_free (t, PTH_FREE_THIS);
-	      return 0;
-	    }
-	  a = APDU::fromPacket (*c);
-	  delete c;
-	  if (a->isResponse (r))
-	    {
-	      pth_event_free (t, PTH_FREE_THIS);
-	      return a;
-	    }
-	  delete a;
-	  pth_event_free (t, PTH_FREE_THIS);
-	  return 0;
-	}
+      if (!c)
+        continue;
+      if (c->len () == 0)
+        {
+          delete c;
+          continue;
+        }
+      a = APDU::fromPacket (*c, this->t);
+      delete c;
+      if (a->isResponse (r))
+        {
+          pth_event_free (t, PTH_FREE_THIS);
+          return a;
+        }
+      delete a;
     }
   pth_event_free (t, PTH_FREE_THIS);
   return 0;
@@ -430,7 +423,7 @@ Layer7_Individual::Request_Response (APDU * r)
 	      pth_event_free (t, PTH_FREE_THIS);
 	      return 0;
 	    }
-	  a = APDU::fromPacket (*c);
+	  a = APDU::fromPacket (*c, this->t);
 	  delete c;
 	  if (a->isResponse (r))
 	    {

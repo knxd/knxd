@@ -56,10 +56,10 @@ class USBLowLevelDriver:public LowLevelDriverInterface, private Thread
   /** semaphore for outqueue */
   pth_sem_t out_signal;
   /** input queue */
-    Queue < CArray > inqueue;
-    /** output queue */
-    Queue < CArray * >outqueue;
-    /** event to wait for outqueue */
+  Queue < CArray > inqueue;
+  /** output queue */
+  Queue < CArray * >outqueue;
+  /** event to wait for outqueue */
   pth_event_t getwait;
   /** semaphore to signal empty sendqueue */
   pth_sem_t send_empty;
@@ -78,8 +78,8 @@ class USBLowLevelDriver:public LowLevelDriverInterface, private Thread
   void ReceiveUsb();
 
 public:
-    USBLowLevelDriver (const char *device, Trace * tr);
-   ~USBLowLevelDriver ();
+  USBLowLevelDriver (const char *device, Trace * tr);
+  ~USBLowLevelDriver ();
   bool init ();
   void CompleteReceive(struct libusb_transfer *recvh);
 

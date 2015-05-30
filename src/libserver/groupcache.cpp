@@ -98,12 +98,12 @@ GroupCache::add (GroupCacheEntry * entry)
 
 
 void
-GroupCache::Get_L_Data (L_Data_PDU * l)
+GroupCache::Send_L_Data (L_Data_PDU * l)
 {
   GroupCacheEntry *c;
   if (enable)
     {
-      TPDU *t = TPDU::fromPacket (l->data);
+      TPDU *t = TPDU::fromPacket (l->data, this->t);
       if (t->getType () == T_DATA_XXX_REQ)
 	{
 	  T_DATA_XXX_REQ_PDU *t1 = (T_DATA_XXX_REQ_PDU *) t;
@@ -213,7 +213,7 @@ GroupCacheEntry
   pth_event_t timeout = pth_event (PTH_EVENT_RTIME, pth_time (Timeout, 0));
 
   tpdu.data = apdu.ToPacket ();
-  l = new L_Data_PDU;
+  l = new L_Data_PDU (FakeL2);
   l->data = tpdu.ToPacket ();
   l->source = 0;
   l->dest = addr;
@@ -291,10 +291,7 @@ Array < eibaddr_t > GroupCache::LastUpdates (uint16_t start, uint8_t Timeout,
 	  while (start != pos)
 	    {
 	      if (updates[start & 0xff])
-		{
-		  a.resize (a () + 1);
-		  a[a () - 1] = updates[start & 0xff];
-		}
+		a.add (updates[start & 0xff]);
 	      start++;
 	    }
 	  end = pos;

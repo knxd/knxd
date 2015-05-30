@@ -44,7 +44,7 @@ typedef enum
 class STR_Stream
 {
 public:
-  virtual ~ STR_Stream ()
+  virtual ~STR_Stream ()
   {
   }
   static STR_Stream *fromArray (const CArray & c);
@@ -99,6 +99,7 @@ public:
   }
   String decode ();
 };
+
 class STR_Code:public STR_Stream
 {
 public:
@@ -113,6 +114,7 @@ public:
   }
   String decode ();
 };
+
 class STR_StringParameter:public STR_Stream
 {
 public:
@@ -129,6 +131,7 @@ public:
   }
   String decode ();
 };
+
 class STR_ListParameter:public STR_Stream
 {
 public:
@@ -145,6 +148,7 @@ public:
   }
   String decode ();
 };
+
 class STR_IntParameter:public STR_Stream
 {
 public:
@@ -161,6 +165,7 @@ public:
   }
   String decode ();
 };
+
 class STR_FloatParameter:public STR_Stream
 {
 public:
@@ -176,6 +181,7 @@ public:
   }
   String decode ();
 };
+
 class STR_GroupObject:public STR_Stream
 {
 public:
@@ -191,6 +197,7 @@ public:
   }
   String decode ();
 };
+
 class STR_BCU1Size:public STR_Stream
 {
 public:
@@ -208,6 +215,7 @@ public:
   }
   String decode ();
 };
+
 class STR_BCU2Size:public STR_Stream
 {
 public:
@@ -227,6 +235,7 @@ public:
   }
   String decode ();
 };
+
 class STR_BCU2Start:public STR_Stream
 {
 public:
@@ -286,7 +295,7 @@ public:
   Array < STR_Stream * >str;
 
   Image ();
-  virtual ~ Image ();
+  virtual ~Image ();
 
   static Image *fromArray (CArray c);
   CArray toArray ();
