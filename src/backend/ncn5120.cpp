@@ -42,9 +42,9 @@ setstat (int fd, int s)
 NCN5120SerialLayer2Driver::NCN5120SerialLayer2Driver (const char *dev,
 						    eibaddr_t a, int flags,
 						    Trace * tr)
+	: Layer2Interface(tr)
 {
   struct termios t1;
-  t = tr;
   TRACEPRINTF (t, 2, this, "Open");
 
   pth_sem_init (&in_signal);
@@ -284,14 +284,14 @@ NCN5120SerialLayer2Driver::RecvLPDU (const uchar * data, int len)
   t->TracePacket (1, this, "Recv", len, data);
   if (mode || vmode)
     {
-      L_Busmonitor_PDU *l = new L_Busmonitor_PDU;
+      L_Busmonitor_PDU *l = new L_Busmonitor_PDU (this);
       l->pdu.set (data, len);
       outqueue.put (l);
       pth_sem_inc (&out_signal, 1);
     }
   if (!mode)
     {
-      LPDU *l = LPDU::fromPacket (CArray (data, len), self);
+      LPDU *l = LPDU::fromPacket (CArray (data, len), this);
       if (l->getType () == L_Data && ((L_Data_PDU *) l)->valid_checksum)
 	{
 	  outqueue.put (l);
