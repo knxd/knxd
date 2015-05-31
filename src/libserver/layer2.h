@@ -36,6 +36,7 @@ typedef enum {
 
 typedef struct {
   unsigned int flags;
+  Trace *t;
 } L2options;
 
 /** generic interface for an Layer 2 driver */

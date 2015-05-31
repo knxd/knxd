@@ -424,6 +424,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case ARGP_KEY_ARG:
     case 'b':
       {
+		arguments->l2opts.t = arguments->tracer ();
         Layer2 *l2 = Create (arg, &arguments->l2opts, arguments->l3 ());
         if (!l2 || !l2->init ())
           die ("initialisation of backend '%s' failed", arg);

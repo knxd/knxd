@@ -26,8 +26,6 @@
 /** EIBnet/IP routing backend */
 class EIBNetIPRouter:public Layer2, private Thread
 {
-  /** debug output */
-  Trace *t;
   /** EIBnet/IP socket */
   EIBNetIPSocket *sock;
 

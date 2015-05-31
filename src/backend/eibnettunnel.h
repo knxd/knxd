@@ -25,7 +25,6 @@
 
 class EIBNetIPTunnel:public Layer2, private Thread
 {
-  Trace *t;
   EIBNetIPSocket *sock;
   struct sockaddr_in caddr;
   struct sockaddr_in daddr;
