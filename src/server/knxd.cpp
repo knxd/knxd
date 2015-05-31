@@ -233,7 +233,9 @@ static char doc[] =
 #undef L2_NAME
 #define L2_NAME(a) a##_DOC
 #include "layer2create.h"
-  "\n";
+  "Arguments are processed in order.\n"
+  "Modifiers affect the device mentioned afterwards.\n"
+  ;
 
 /** documentation for arguments*/
 static char args_doc[] = "URL";
@@ -244,25 +246,30 @@ static struct argp_option options[] = {
    "listen at TCP port PORT (default 6720)"},
   {"listen-local", 'u', "FILE", OPTION_ARG_OPTIONAL,
    "listen at Unix domain socket FILE (default /tmp/eib)"},
-  {"trace", 't', "MASK", 0, "set trace flags (bitmask)"},
-  {"error", 'f', "LEVEL", 0, "set error level"},
+  {"trace", 't', "MASK", 0,
+   "set trace flags (bitmask)"},
+  {"error", 'f', "LEVEL", 0,
+   "set error level"},
   {"eibaddr", 'e', "EIBADDR", 0,
-   "set our own EIB-address to EIBADDR (default 0.0.1), for drivers, which need an address"},
-  {"pid-file", 'p', "FILE", 0, "write the PID of the process to FILE"},
+   "set our EIB address to EIBADDR (default 0.0.1)"},
+  {"pid-file", 'p', "FILE", 0,
+   "write the PID of the process to FILE"},
   {"daemon", 'd', "FILE", OPTION_ARG_OPTIONAL,
    "start the programm as daemon. Output will be written to FILE if given"},
 #ifdef HAVE_EIBNETIPSERVER
   {"Tunnelling", 'T', 0, 0,
    "enable EIBnet/IP Tunneling in the EIBnet/IP server"},
-  {"Routing", 'R', 0, 0, "enable EIBnet/IP Routing in the EIBnet/IP server"},
+  {"Routing", 'R', 0, 0,
+   "enable EIBnet/IP Routing in the EIBnet/IP server"},
   {"Discovery", 'D', 0, 0,
    "enable the EIBnet/IP server to answer discovery and description requests (SEARCH, DESCRIPTION)"},
   {"Server", 'S', "ip[:port]", OPTION_ARG_OPTIONAL,
-   "starts the EIBnet/IP server part"},
-  {"Name", 'n', "SERVERNAME", 0, "The name of the EIBnet/IP server as shown in ETS (default is knxd)"},
-  {"layer2", 'b', "driver:[arg]", 0,
-   "the Layer-2 driver to use."},
+   "starts an EIBnet/IP multicast server"},
+  {"Name", 'n', "SERVERNAME", 0,
+   "name of the EIBnet/IP server (default is 'knxd')"},
 #endif
+  {"layer2", 'b', "driver:[arg]", 0,
+   "a Layer-2 driver to use (knxd supports more than one)"},
 #ifdef HAVE_GROUPCACHE
   {"GroupCache", 'c', 0, 0,
    "enable caching of group communication network state"},
@@ -282,7 +289,7 @@ static struct argp_option options[] = {
   {"no-emi-send-queuing", OPT_BACK_EMI_NOQUEUE, 0, 0,
    "wait for L_Data_ind while sending (for all EMI based backends)"},
   {"no-monitor", 'N', 0, 0,
-   "forbid the next Layer2 interface to enter monitor mode"},
+   "the next Layer2 interface may not enter monitor mode"},
   {0}
 };
 
