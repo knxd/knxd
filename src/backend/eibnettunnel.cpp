@@ -341,7 +341,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 		}
 	      if (treq.channel != channel)
 		{
-		  TRACEPRINTF (t, 1, this, "Not for us");
+		  TRACEPRINTF (t, 1, this, "Not for us (treq.chan %d != %d)", treq.channel,channel);
 		  break;
 		}
 	      if (((treq.seqno + 1) & 0xff) == rno)
@@ -444,7 +444,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 		}
 	      if (tresp.channel != channel)
 		{
-		  TRACEPRINTF (t, 1, this, "Not for us");
+		  TRACEPRINTF (t, 1, this, "Not for us (tresp.chan %d != %d)", treq.channel,channel);
 		  break;
 		}
 	      if (tresp.seqno != sno)
@@ -487,7 +487,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 		}
 	      if (csresp.channel != channel)
 		{
-		  TRACEPRINTF (t, 1, this, "Not for us");
+		  TRACEPRINTF (t, 1, this, "Not for us (csresp.chan %d != %d)", csresp.channel,channel);
 		  break;
 		}
 	      if (csresp.status == 0)
@@ -528,7 +528,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 		}
 	      if (dreq.channel != channel)
 		{
-		  TRACEPRINTF (t, 1, this, "Not for us");
+		  TRACEPRINTF (t, 1, this, "Not for us (dreq.chan %d != %d)", dreq.channel,channel);
 		  break;
 		}
 	      dresp.channel = channel;
@@ -553,7 +553,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 		}
 	      if (dresp.channel != channel)
 		{
-		  TRACEPRINTF (t, 1, this, "Not for us");
+		  TRACEPRINTF (t, 1, this, "Not for us (dresp.chan %d != %d)", dresp.channel,channel);
 		  break;
 		}
 	      mod = 0;
