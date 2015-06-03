@@ -247,8 +247,10 @@ Layer3::Run (pth_sem_t * stop1)
 
       pth_sem_dec (&bufsem);
       LPDU *l = buf.get ();
+
       if (!l)
 	continue;
+
       if (l->getType () == L_Busmonitor)
 	{
 	  L_Busmonitor_PDU *l1, *l2;
@@ -270,6 +272,15 @@ Layer3::Run (pth_sem_t * stop1)
 	{
 	  L_Data_PDU *l1;
 	  l1 = (L_Data_PDU *) l;
+
+          if (!l1->hopcount)
+            {
+              TRACEPRINTF (t, 3, this, "Hopcount zero: %s", l1->Decode ()());
+              delete l;
+              continue;
+            }
+          l1->hopcount--;
+
 	  if (l1->repeated)
 	    {
 	      CArray d1 = l1->ToPacket ();

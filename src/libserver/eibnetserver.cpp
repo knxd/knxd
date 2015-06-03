@@ -127,18 +127,11 @@ EIBnetServer::Send_L_Busmonitor (L_Busmonitor_PDU * l)
 void
 EIBnetServer::Send_L_Data (L_Data_PDU * l)
 {
-  if (!l->hopcount)
-    {
-      TRACEPRINTF (t, 8, this, "SendDrop");
-      delete l;
-      return;
-    }
   if (l->object == this)
     {
       delete l;
       return;
     }
-  l->hopcount--;
   if (route)
     {
       TRACEPRINTF (t, 8, this, "Send_Route %s", l->Decode ()());
