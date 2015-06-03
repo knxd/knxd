@@ -107,11 +107,7 @@ EIBNetIPTunnel::~EIBNetIPTunnel ()
 
 bool EIBNetIPTunnel::init ()
 {
-  if (sock == 0)
-    return false;
-  if (! layer2_is_bus())
-    return false;
-  return Layer2::init ();
+  return sock > 0;
 }
 
 void
