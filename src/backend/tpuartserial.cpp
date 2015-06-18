@@ -120,7 +120,7 @@ TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
   t1.c_lflag = 0;
   t1.c_cc[VTIME] = 1;
   t1.c_cc[VMIN] = 0;
-  TRACEPRINTF(t, 0, this, "Opened %s witch baud %d", dev, baudrate);
+  TRACEPRINTF(t, 0, this, "Opened %s with baud %d", dev, baudrate);
   cfsetospeed (&t1, getbaud(baudrate));
   cfsetispeed (&t1, 0);
 
