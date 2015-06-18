@@ -23,6 +23,7 @@
 #include <errno.h>
 #include <sys/ioctl.h>
 #include "tpuartserial.h"
+#include <stdlib.h>
 
 /** get serial status lines */
 static int
@@ -40,6 +41,16 @@ setstat (int fd, int s)
   ioctl (fd, TIOCMSET, &s);
 }
 
+static speed_t getbaud(int baud) {
+    switch(baud) {
+        case 9600:
+            return B9600;
+        case 19200:
+            return B19200;
+        case 115200:
+            return B115200;
+    }
+}
 
 TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
 						    eibaddr_t a, int flags,
@@ -48,6 +59,26 @@ TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
   struct termios t1;
   t = tr;
   TRACEPRINTF (t, 2, this, "Open");
+
+  char *pch;
+  int baudrate = 19200;
+  pch = strtok((char*)dev, ":");
+  int i = 0;
+
+  while(pch != NULL) {
+
+      switch(i) {
+      case 0:
+        break;
+      case 1:
+          baudrate = atoi(pch);
+          break;
+      }
+
+      pch = strtok(NULL, ":");
+      i++;
+  }
+
 
   pth_sem_init (&in_signal);
   pth_sem_init (&out_signal);
@@ -99,7 +130,8 @@ TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
   t1.c_lflag = 0;
   t1.c_cc[VTIME] = 1;
   t1.c_cc[VMIN] = 0;
-  cfsetospeed (&t1, B19200);
+  TRACEPRINTF(t, 0, this, "Opened %s witch baud %d", dev, baudrate);
+  cfsetospeed (&t1, getbaud(baudrate));
   cfsetispeed (&t1, 0);
 
   if (tcsetattr (fd, TCSAFLUSH, &t1))
