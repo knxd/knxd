@@ -22,7 +22,7 @@
 
 #include "tpuartserial.h"
 
-#define TPUARTs_URL "tpuarts:/dev/ttySx\n"
+#define TPUARTs_URL "tpuarts:/dev/ttySx[:baudrate(optional)]\n"
 
 #define TPUARTs_DOC "tpuarts connects to the EIB bus over an TPUART (using a user mode driver, experimental)\n\n"
 
