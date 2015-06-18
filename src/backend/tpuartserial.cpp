@@ -24,6 +24,7 @@
 #include <sys/ioctl.h>
 #include "tpuartserial.h"
 #include "layer3.h"
+#include <stdlib.h>
 
 /** get serial status lines */
 static int
@@ -41,6 +42,18 @@ setstat (int fd, int s)
   ioctl (fd, TIOCMSET, &s);
 }
 
+static speed_t getbaud(int baud) {
+    switch(baud) {
+        case 9600:
+            return B9600;
+        case 19200:
+            return B19200;
+        case 115200:
+            return B115200;
+        default:
+            return -1;
+    }
+}
 
 TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
 						    L2options *opt)
@@ -48,6 +61,27 @@ TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
 {
   struct termios t1;
   TRACEPRINTF (t, 2, this, "Open");
+
+  char *pch;
+  int baudrate = 19200;
+  int term_baudrate;
+  pch = strtok((char*)dev, ":");
+  int i = 0;
+
+  while(pch != NULL) {
+
+      switch(i) {
+      case 0:
+        break;
+      case 1:
+          baudrate = atoi(pch);
+          break;
+      }
+
+      pch = strtok(NULL, ":");
+      i++;
+  }
+
 
   pth_sem_init (&in_signal);
 
@@ -101,7 +135,18 @@ TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
   t1.c_lflag = 0;
   t1.c_cc[VTIME] = 1;
   t1.c_cc[VMIN] = 0;
-  cfsetospeed (&t1, B19200);
+
+  term_baudrate = getbaud(baudrate);
+  if (term_baudrate == -1)
+    {
+      ERRORPRINTF (t, E_ERROR | 56, this, "baudrate %d not recognized", baudrate);
+      restore_low_latency (fd, &sold);
+      close (fd);
+      fd = -1
+      return;
+    }
+  TRACEPRINTF(t, 0, this, "Opened %s with baud %d", dev, baudrate);
+  cfsetospeed (&t1, term_baudrate);
   cfsetispeed (&t1, 0);
 
   if (tcsetattr (fd, TCSAFLUSH, &t1))
