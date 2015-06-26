@@ -1,3 +1,9 @@
+knxd (0.10.0-2) unstable; urgency=medium
+
+  * Bug fixes
+
+ -- root <root@smurf.noris.de>  Fri, 26 Jun 2015 08:23:17 +0000
+
 knxd (0.10.0-1) unstable; urgency=medium
 
   * Allow more than one Layer 2 device.
