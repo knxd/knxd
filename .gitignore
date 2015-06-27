@@ -175,3 +175,4 @@ Makefile
 /systemd/*.service
 /systemd/*.socket
 /stamp-h1
+/autom4te.cache
