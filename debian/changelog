@@ -1,3 +1,9 @@
+knxd (0.10.1-2) unstable; urgency=medium
+
+  * Merge build fixes
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sat, 27 Jun 2015 20:26:00 +0200
+
 knxd (0.10.1-1) unstable; urgency=medium
 
   * Depend on systemd library
@@ -16,6 +22,12 @@ knxd (0.10.0-1) unstable; urgency=medium
   * Initial multi-L2 version
 
  -- Matthias Urlichs <matthias@urlichs.de>  Fri, 26 Jun 2015 08:23:17 +0000
+
+knxd (0.9.1-2) unstable; urgency=medium
+
+  * Build fixes
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sat, 27 Jun 2015 20:24:46 +0200
 
 knxd (0.9.1-1) unstable; urgency=medium
 
