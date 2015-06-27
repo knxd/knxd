@@ -1,0 +1,11 @@
+#!/bin/sh
+
+case "$1" in
+        configure)
+		addgroup --system knxd || true
+		adduser --system --disabled-login --home /var/lib/knxd --no-create-home --ingroup knxd knxd || true
+		;;
+esac
+
+#DEBHELPER#
+
