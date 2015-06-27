@@ -1,3 +1,10 @@
+knxd (0.10.1-1) unstable; urgency=medium
+
+  * Depend on systemd library
+  * Fix systemd support
+
+ -- root <root@smurf.noris.de>  Sat, 27 Jun 2015 16:00:51 +0000
+
 knxd (0.10.0-2) unstable; urgency=medium
 
   * Bug fixes

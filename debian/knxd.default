@@ -1,6 +1,7 @@
 # Defaults for knxd initscript
 # sourced by /etc/init.d/knxd
 # installed at /etc/default/knxd by the maintainer scripts
+# This file is ignored when using systemd: edit /etc/knxd.conf instead
 
 #
 # This is a POSIX shell fragment

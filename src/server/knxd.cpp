@@ -448,6 +448,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
 #ifdef HAVE_SYSTEMD
       {
+        BaseServer *s = NULL;
         const int num_fds = sd_listen_fds(0);
 
         if( num_fds < 0 )
@@ -537,6 +538,9 @@ main (int ac, char *ag[])
   signal (SIGTERM, SIG_IGN);
 
   // main loop
+#ifdef HAVE_SYSTEMD
+  sd_notify(0,"READY=1");
+#endif
   int sig;
   do
     {
@@ -567,6 +571,9 @@ main (int ac, char *ag[])
 
     }
   while (sig == SIGHUP);
+#ifdef HAVE_SYSTEMD
+  sd_notify(0,"STOPPING=1");
+#endif
 
   signal (SIGINT, SIG_DFL);
   signal (SIGTERM, SIG_DFL);
