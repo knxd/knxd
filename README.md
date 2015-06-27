@@ -13,6 +13,13 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 
 ## Building
 
+### Getting the source code
+
+On Debian:
+
+    apt-get install git-core
+    git clone https://github.com/knxd/knxd.git
+
 ### Dependencies
 
 On Debian:
@@ -21,14 +28,16 @@ On Debian:
     wget https://www.auto.tuwien.ac.at/~mkoegler/pth/pthsem_2.0.8.tar.gz
     tar xzf pthsem_2.0.8.tar.gz
     cd pthsem-2.0.8
-    dpkg-buildpackage
-    sudo dpkg -i ../libpthsem*.deb
+    dpkg-buildpackage -b
+    cd ..
+    sudo dpkg -i libpthsem*.deb
 
 ### knxd
 
-    ./bootstrap.sh
-    dpkg-buildpackage
-    sudo dpkg -i ../knxd*.deb
+    cd knxd
+    dpkg-buildpackage -b
+    cd ..
+    sudo dpkg -i knxd_*.deb knxd-tools_*.deb
 
 ## Contributions
 
