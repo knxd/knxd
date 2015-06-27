@@ -1,3 +1,9 @@
+knxd (0.9.1-2) unstable; urgency=medium
+
+  * Build fixes
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sat, 27 Jun 2015 20:24:46 +0200
+
 knxd (0.9.1-1) unstable; urgency=medium
 
   * Release. (Sort of.)
