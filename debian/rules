@@ -16,6 +16,6 @@ export DH_OPTIONS
 override_dh_auto_configure: configure
 	dh_auto_configure -- --enable-usb --enable-eibnetip --enable-eibnetiptunnel --enable-eibnetipserver --enable-groupcache --enable-ft12 --enable-pei16s --enable-ncn5120 --enable-tpuarts
 
-configure: configure.in
+configure: configure.ac
 	sh bootstrap.sh
 
