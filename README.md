@@ -24,7 +24,9 @@ On Debian:
 
 On Debian:
 
-    apt-get install build-essential libtool automake pkg-config cdbs
+    apt-get install build-essential libtool automake pkg-config cdbs libsystemd-daemon-dev
+    # If you're using Wheezy, remove the "libsystemd-daemon-dev" part
+    # (here and in debian/control)
     wget https://www.auto.tuwien.ac.at/~mkoegler/pth/pthsem_2.0.8.tar.gz
     tar xzf pthsem_2.0.8.tar.gz
     cd pthsem-2.0.8
@@ -35,6 +37,7 @@ On Debian:
 ### knxd
 
     cd knxd
+    # If the next command complains about missing packages: install it and try again
     dpkg-buildpackage -b
     cd ..
     sudo dpkg -i knxd_*.deb knxd-tools_*.deb
