@@ -19,6 +19,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#ifdef HAVE_SYS_SELECT_H
+#include <sys/select.h>
+#endif
 #include <unistd.h>
 #include "eibclient.h"
 
