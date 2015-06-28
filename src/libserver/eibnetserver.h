@@ -25,8 +25,13 @@
 #include "layer2.h"
 #include "server.h"
 
-typedef struct
+class ConnState(protected Thread, public Layer2mixin)
 {
+public:
+  ConnState(EIBnetServer p);
+  virtual ~ConnState();
+
+  EIBnetServer parent;
   uchar channel;
   uchar sno;
   uchar rno;
@@ -35,13 +40,21 @@ typedef struct
   int no;
   bool nat;
   pth_event_t timeout;
-    Queue < CArray > out;
+  Queue < CArray > out;
   struct sockaddr_in daddr;
   struct sockaddr_in caddr;
   pth_sem_t *outsignal;
   pth_event_t outwait;
   pth_event_t sendtimeout;
-} ConnState;
+
+  // handle various packets from the connection
+  void tunnel_request(EIBnet_TunnelRequest &r1);
+  void tunnel_response(EIBnet_TunnelACK &r1);
+  void config_request(EIBnet_ConfigRequest &r1);
+  void ConnState::config_response (EIBnet_ConfigACK &r1);
+
+  void shutdown(void);
+};
 
 typedef struct
 {
@@ -77,7 +90,8 @@ public:
   virtual ~EIBnetServer ();
   bool init ();
   const char * Name () { return "EIBnet"; }
-
+  void drop_state (ConnState s);
+  void drop_state (uint8_t index);
 };
 
 #endif
