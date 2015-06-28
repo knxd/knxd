@@ -1,9 +1,10 @@
-knxd (0.10.2-2) UNRELEASED; urgency=medium
+knxd (0.10.2-3) UNRELEASED; urgency=medium
 
   * Fix sock->sendaddr churn.
   * Include sys/select.h if available.
+  * Delete Unix socket after closing it.
 
- -- Matthias Urlichs <matthias@urlichs.de>  Sun, 28 Jun 2015 17:10:32 +0200
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 28 Jun 2015 21:16:45 +0200
 
 knxd (0.10.1-2) unstable; urgency=medium
 
