@@ -4,6 +4,8 @@
 *.a
 *.o
 *.lo
+*.pyc
+*.pyo
 *.deps/
 Makefile.in
 Makefile
