@@ -26,6 +26,7 @@ Makefile
 /autom4te.cache/
 /m4/libtool.m4
 /m4/ltoptions.m4
+/src/client/c/gen/.dirstamp
 /src/client/c/gen/getapdu.c
 /src/client/c/gen/getapdusrc.c
 /src/client/c/gen/getbusmonitorpacket.c
