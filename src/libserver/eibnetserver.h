@@ -28,10 +28,11 @@
 class ConnState(protected Thread, public Layer2mixin)
 {
 public:
-  ConnState(EIBnetServer p);
+  ConnState(EIBnetServer p, eibadd_t addr);
   virtual ~ConnState();
 
   EIBnetServer parent;
+
   uchar channel;
   uchar sno;
   uchar rno;
@@ -81,7 +82,8 @@ class EIBnetServer: protected Thread, public L_Busmonitor_CallBack, public Layer
   void Send_L_Busmonitor (L_Busmonitor_PDU * l);
   void addBusmonitor ();
   void delBusmonitor ();
-  int addClient (int type, const EIBnet_ConnectRequest & r1);
+  int addClient (int type, const EIBnet_ConnectRequest & r1,
+                 eibaddr_t addr = 0);
   void addNAT (const L_Data_PDU & l);
 public:
   EIBnetServer (const char *multicastaddr, int port, bool Tunnel,

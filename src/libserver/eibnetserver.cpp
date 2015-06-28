@@ -193,7 +193,8 @@ EIBnetServer::delBusmonitor ()
 }
 
 int
-EIBnetServer::addClient (int type, const EIBnet_ConnectRequest & r1)
+EIBnetServer::addClient (int type, const EIBnet_ConnectRequest & r1,
+                         eibadd_t addr = 0)
 {
   unsigned int i;
   int id = 1;
@@ -206,7 +207,7 @@ rt:
       }
   if (id <= 0xff)
     {
-      ConnState *state = new ConnState (this);
+      ConnState *state = new ConnState (this, addr);
       state->channel = id;
       state->daddr = r1.daddr;
       state->caddr = r1.caddr;
@@ -215,6 +216,7 @@ rt:
       state->rno = 0;
       state->no = 1;
       state->type = type;
+      state->addr = addr;
       state->nat = r1.nat;
 
       int pos = state ();
@@ -246,7 +248,7 @@ EIBnetServer::addNAT (const L_Data_PDU & l)
   natstate[i].timeout = pth_event (PTH_EVENT_RTIME, pth_time (180, 0));
 }
 
-ConnState::ConnState (EIBnetServer p)
+ConnState::ConnState (EIBnetServer p, eibadd_t addr)
 {
   parent = p;
   timeout = pth_event (PTH_EVENT_RTIME, pth_time (120, 0));
@@ -254,6 +256,8 @@ ConnState::ConnState (EIBnetServer p)
   pth_sem_init (outsignal);
   outwait = pth_event (PTH_EVENT_SEM, outsignal);
   sendtimeout = pth_event (PTH_EVENT_RTIME, pth_time (1, 0));
+  if (addr)
+    addAddress(addr);
 }
 
 void
@@ -545,7 +549,20 @@ EIBnetServer::Run (pth_sem_t * stop1)
 		  {
 		    if (compareIPAddress (p1->src, state[i].caddr))
 		      {
+<<<<<<< HEAD
 			drop_state(i);
+=======
+			res = 0;
+                        if (state[i].addr)
+                          removeAddress (state[i].addr);
+			pth_event_free (state[i].timeout, PTH_FREE_THIS);
+			pth_event_free (state[i].sendtimeout, PTH_FREE_THIS);
+			pth_event_free (state[i].outwait, PTH_FREE_THIS);
+			delete state[i].outsignal;
+			if (state[i].type == 1)
+			  delBusmonitor ();
+			state.deletepart (i, 1);
+>>>>>>> a2/alloc_addr
 			break;
 		      }
 		    else
@@ -564,15 +581,15 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      r2.status = 0x22;
 	      if (r1.CRI () == 3 && r1.CRI[0] == 4 && tunnel)
 		{
+		  eibaddr_t a = l3->get_client_addr ();
 		  r2.CRD.resize (3);
 		  r2.CRD[0] = 0x04;
-		  // TODO allocate per-tunnel addresses!
-		  TRACEPRINTF (t, 8, this, "Tunnel CONNECTION_REQ with %04x",l3->defaultAddr);
-		  r2.CRD[1] = (l3->defaultAddr >> 8) & 0xFF;
-		  r2.CRD[2] = (l3->defaultAddr >> 0) & 0xFF;
+		  TRACEPRINTF (t, 8, this, "Tunnel CONNECTION_REQ with %s", FormatEIBAddr(a)());
+		  r2.CRD[1] = (a >> 8) & 0xFF;
+		  r2.CRD[2] = (a >> 0) & 0xFF;
 		  if (r1.CRI[1] == 0x02 || r1.CRI[1] == 0x80)
 		    {
-		      int id = addClient ((r1.CRI[1] == 0x80) ? 1 : 0, r1);
+		      int id = addClient ((r1.CRI[1] == 0x80) ? 1 : 0, r1, a);
 		      if (id <= 0xff)
 			{
 			  if (r1.CRI[1] == 0x80)

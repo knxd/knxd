@@ -66,6 +66,10 @@ public:
   /** do I have enough to do? */
   unsigned int has_work;
 
+  /** Start of address block to be assigned dynamically to clients */
+  eibaddr_t alloc_addrs;
+  /** Length of address block to be assigned dynamically to clients */
+  int alloc_addrs_len;
   /* EIBnet/IP multicast server flags */
   bool tunnel;
   bool route;
@@ -96,6 +100,11 @@ public:
         {
           layer3 = new Layer3 (addr, tracer());
           addr = 0;
+          if (arg.alloc_addrs_len)
+            {
+              l3->set_client_block (arg.alloc_addrs, arg.alloc_addrs_len);
+              arg.alloc_addrs_len = 0;
+            }
         }
       return layer3;
     }
@@ -219,6 +228,15 @@ readaddr (const char *addr)
   return ((a & 0x0f) << 12) | ((b & 0x0f) << 8) | ((c & 0xff));
 }
 
+bool
+readaddrblock (struct arguments *args, const char *addr)
+{
+  int a, b, c;
+  if (sscanf (addr, "%d.%d.%d", &a, &b, &c, &args->alloc_addrs_len) != 4)
+    die ("Address block needs to look like X.X.X:X");
+  args->alloc_addrs = ((a & 0x0f) << 12) | ((b & 0x0f) << 8) | ((c & 0xff));
+}
+
 /** version */
 const char *argp_program_version = "knxd " VERSION;
 /** documentation */
@@ -252,8 +270,9 @@ static struct argp_option options[] = {
    "set error level"},
   {"eibaddr", 'e', "EIBADDR", 0,
    "set our EIB address to EIBADDR (default 0.0.1)"},
-  {"pid-file", 'p', "FILE", 0,
-   "write the PID of the process to FILE"},
+  {"client-addrs", 'E', "ADDRSTART", 0,
+   "assign addresses ADDRSTART through ADDRSTART+n to clients"},
+  {"pid-file", 'p', "FILE", 0, "write the PID of the process to FILE"},
   {"daemon", 'd', "FILE", OPTION_ARG_OPTIONAL,
    "start the programm as daemon. Output will be written to FILE if given"},
 #ifdef HAVE_EIBNETIPSERVER
@@ -376,13 +395,13 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
     case 't':
       if (arg)
-	{
-	  char *x;
-	  unsigned long level = strtoul(arg, &x, 0);
-	  if (*x)
-	    die ("Trace level: '%s' is not a number", arg);
+        {
+          char *x;
+          unsigned long level = strtoul(arg, &x, 0);
+          if (*x)
+            die ("Trace level: '%s' is not a number", arg);
           arguments->tracer(true)->SetTraceLevel (level);
-	}
+        }
       else
         arguments->tracer(true)->SetTraceLevel (0);
       break;
@@ -392,6 +411,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'e':
       if (arguments->has_l3 ())
         arguments->addr = readaddr (arg);
+      break;
+    case 'E':
+      readaddrblock (arguments, arg);
       break;
     case 'p':
       arguments->pidfile = arg;
@@ -406,9 +428,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'n':
       arguments->eibnetname = (char *)arg;
       if(arguments->eibnetname[0] == '=')
-	arguments->eibnetname++;
+        arguments->eibnetname++;
       if(strlen(arguments->eibnetname) >= 30)
-	die("EIBnetServer/IP name must be shorter than 30 bytes");
+        die("EIBnetServer/IP name must be shorter than 30 bytes");
       break;
     case OPT_BACK_TUNNEL_NOQUEUE:
       arguments->l2opts.flags |= FLAG_B_TUNNEL_NOQUEUE;
@@ -431,7 +453,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case ARGP_KEY_ARG:
     case 'b':
       {
-		arguments->l2opts.t = arguments->tracer ();
+                arguments->l2opts.t = arguments->tracer ();
         Layer2 *l2 = Create (arg, &arguments->l2opts, arguments->l3 ());
         if (!l2 || !l2->init ())
           die ("initialisation of backend '%s' failed", arg);
@@ -496,6 +518,9 @@ main (int ac, char *ag[])
   int index;
   pth_init ();
 
+  memset (&arg, 0, sizeof (arg));
+  arg.errorlevel = LEVEL_WARNING;
+
   argp_parse (&argp, ac, ag, ARGP_IN_ORDER, &index, &arg);
 
   signal (SIGPIPE, SIG_IGN);
@@ -509,12 +534,12 @@ main (int ac, char *ag[])
     {
       int fd = open (arg.daemon, O_WRONLY | O_APPEND | O_CREAT, FILE_MODE);
       if (fd == -1)
-	die ("Can not open file %s", arg.daemon);
+        die ("Can not open file %s", arg.daemon);
       int i = fork ();
       if (i < 0)
-	die ("fork failed");
+        die ("fork failed");
       if (i > 0)
-	exit (0);
+        exit (0);
       close (1);
       close (2);
       close (0);
@@ -529,10 +554,9 @@ main (int ac, char *ag[])
   if (arg.pidfile)
     if ((pidf = fopen (arg.pidfile, "w")) != NULL)
       {
-	fprintf (pidf, "%d", getpid ());
-	fclose (pidf);
+        fprintf (pidf, "%d", getpid ());
+        fclose (pidf);
       }
-
 
   signal (SIGINT, SIG_IGN);
   signal (SIGTERM, SIG_IGN);
@@ -553,21 +577,21 @@ main (int ac, char *ag[])
       pth_sigwait (&t1, &sig);
 
       if (sig == SIGHUP && arg.daemon)
-	{
-	  int fd =
-	    open (arg.daemon, O_WRONLY | O_APPEND | O_CREAT, FILE_MODE);
-	  if (fd == -1)
-	    {
-	      ERRORPRINTF (arg.tracer(), 0x27000002, 0, "can't open log file %s",
-			   arg.daemon);
-	      continue;
-	    }
-	  close (1);
-	  close (2);
-	  dup2 (fd, 1);
-	  dup2 (fd, 2);
-	  close (fd);
-	}
+        {
+          int fd =
+            open (arg.daemon, O_WRONLY | O_APPEND | O_CREAT, FILE_MODE);
+          if (fd == -1)
+            {
+              ERRORPRINTF (arg.tracer(), 0x27000002, 0, "can't open log file %s",
+                           arg.daemon);
+              continue;
+            }
+          close (1);
+          close (2);
+          dup2 (fd, 1);
+          dup2 (fd, 2);
+          close (fd);
+        }
 
     }
   while (sig == SIGHUP);

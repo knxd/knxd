@@ -223,6 +223,39 @@ Layer3::hasGroupAddress (eibaddr_t addr, Layer2 *l2 UNUSED)
 }
 
 void
+Layer3::set_client_block (eibaddr_t r_start, int r_len)
+{
+  client_addrs_start = r_start;
+  client_addrs_len = r_len;
+}
+
+eibaddr_t
+Layer3::get_client_addr ()
+{
+  /*
+   * Start allocating after the last request.
+   * Otherwise we'd need locking to protect concurrent requests
+   * This is less bug-prone
+   */
+  if (client_addrs_len)
+    for (int i = 1; i <= client_addrs_len; i++)
+      {
+        eibaddr_t a = client_addrs_start + (client_addrs_pos + i) % client_addrs_len;
+        if (! hasAddress (a))
+          {
+            TRACEPRINTF (t, 3, this, "Allocate %s", FormatEIBAddr (a)());
+            /* remember for next pass */
+            client_addrs_pos = a - client_addrs_start;
+            return a;
+          }
+      }
+
+  /* Fall back to our own address */
+  TRACEPRINTF (t, 3, this, "Allocate: falling back to %s", FormatEIBAddr (defaultAddr)());
+  return 0;
+}
+
+void
 Layer3::Run (pth_sem_t * stop1)
 {
   pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
