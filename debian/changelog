@@ -1,3 +1,9 @@
+knxd (0.10.2-1) UNRELEASED; urgency=medium
+
+  * Fix sock->sendaddr churn.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 28 Jun 2015 07:40:17 +0000
+
 knxd (0.10.1-2) unstable; urgency=medium
 
   * Merge build fixes

@@ -415,12 +415,12 @@ EIBNetIPSocket::SetMulticast (struct ip_mreq multicastaddr)
 }
 
 void
-EIBNetIPSocket::Send (EIBNetIPPacket p)
+EIBNetIPSocket::Send (EIBNetIPPacket p, struct sockaddr_in addr)
 {
   struct _EIBNetIP_Send s;
   t->TracePacket (1, this, "Send", p.data);
   s.data = p;
-  s.addr = sendaddr;
+  s.addr = addr;
   inqueue.put (s);
   pth_sem_inc (&insignal, 1);
 }

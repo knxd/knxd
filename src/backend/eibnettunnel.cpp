@@ -213,8 +213,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 				 pth_time (10, 0));
 		      p = creq.ToPacket ();
 		      TRACEPRINTF (t, 1, this, "Connectretry");
-		      sock->sendaddr = caddr;
-		      sock->Send (p);
+		      sock->Send (p, caddr);
 		    }
 		  break;
 		}
@@ -265,8 +264,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 		  tresp.channel = channel;
 		  tresp.seqno = treq.seqno;
 		  p = tresp.ToPacket ();
-		  sock->sendaddr = daddr;
-		  sock->Send (p);
+		  sock->Send (p, daddr);
 		  sock->recvall = 0;
 		  break;
 		}
@@ -281,8 +279,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 		      dreq.caddr = saddr;
 		      dreq.channel = channel;
 		      p = dreq.ToPacket ();
-		      sock->sendaddr = caddr;
-		      sock->Send (p);
+		      sock->Send (p, caddr);
 		      sock->recvall = 0;
 		      mod = 0;
 		    }
@@ -295,8 +292,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 	      tresp.channel = channel;
 	      tresp.seqno = treq.seqno;
 	      p = tresp.ToPacket ();
-	      sock->sendaddr = daddr;
-	      sock->Send (p);
+	      sock->Send (p, daddr);
 	      //Confirmation
 	      if (treq.CEMI[0] == 0x2E)
 		{
@@ -416,8 +412,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 		  dreq.caddr = saddr;
 		  dreq.channel = channel;
 		  p = dreq.ToPacket ();
-		  sock->sendaddr = caddr;
-		  sock->Send (p);
+		  sock->Send (p, caddr);
 		  sock->recvall = 0;
 		  mod = 0;
 		}
@@ -446,8 +441,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 	      dresp.status = 0;
 	      p = dresp.ToPacket ();
 	      t->TracePacket (1, this, "SendDis", p.data);
-	      sock->sendaddr = caddr;
-	      sock->Send (p);
+	      sock->Send (p, caddr);
 	      sock->recvall = 0;
 	      mod = 0;
 	      break;
@@ -496,8 +490,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 		  dreq.caddr = saddr;
 		  dreq.channel = channel;
 		  p = dreq.ToPacket ();
-		  sock->sendaddr = caddr;
-		  sock->Send (p);
+		  sock->Send (p, caddr);
 		  sock->recvall = 0;
 		  mod = 0;
 		}
@@ -515,8 +508,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 	      csreq.channel = channel;
 	      p = csreq.ToPacket ();
 	      TRACEPRINTF (t, 1, this, "Heartbeat");
-	      sock->sendaddr = caddr;
-	      sock->Send (p);
+	      sock->Send (p, caddr);
 	      heartbeat++;
 	    }
 	  else
@@ -525,9 +517,8 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 	      dreq.caddr = saddr;
 	      dreq.channel = channel;
 	      p = dreq.ToPacket ();
-	      sock->sendaddr = caddr;
 	      if (channel != -1)
-		sock->Send (p);
+		sock->Send (p, caddr);
 	      sock->recvall = 0;
 	      mod = 0;
 	    }
@@ -540,8 +531,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 	    ((connect_busmonitor && support_busmonitor) ? 0x80 : 0x02);
 	  p = creq.ToPacket ();
 	  TRACEPRINTF (t, 1, this, "Connectretry");
-	  sock->sendaddr = caddr;
-	  sock->Send (p);
+	  sock->Send (p, caddr);
 	}
 
       if (!inqueue.isempty () && inqueue.top ()() == 0)
@@ -553,8 +543,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 	      dreq.caddr = saddr;
 	      dreq.channel = channel;
 	      p = dreq.ToPacket ();
-	      sock->sendaddr = caddr;
-	      sock->Send (p);
+	      sock->Send (p, caddr);
 	    }
 	}
 
@@ -565,8 +554,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 	  treq.CEMI = inqueue.top ();
 	  p = treq.ToPacket ();
 	  t->TracePacket (1, this, "SendTunnel", p.data);
-	  sock->sendaddr = daddr;
-	  sock->Send (p);
+	  sock->Send (p, daddr);
 	  mod = 2;
 	  pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE, timeout,
 		     pth_time (1, 0));
@@ -575,9 +563,8 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
   dreq.caddr = saddr;
   dreq.channel = channel;
   p = dreq.ToPacket ();
-  sock->sendaddr = caddr;
   if (channel != -1)
-    sock->Send (p);
+    sock->Send (p, caddr);
 
   pth_event_free (stop, PTH_FREE_THIS);
   pth_event_free (input, PTH_FREE_THIS);

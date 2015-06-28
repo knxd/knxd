@@ -323,8 +323,10 @@ public:
     /** enables multicast */
   bool SetMulticast (struct ip_mreq multicastaddr);
   /** sends a packet */
-  void Send (EIBNetIPPacket p);
-  /** waits for an packet; aborts if stop occurs */
+  void Send (EIBNetIPPacket p, struct sockaddr_in addr);
+  void Send (EIBNetIPPacket p) {
+    Send (p, sendaddr);
+  }
   EIBNetIPPacket *Get (pth_event_t stop);
 
   /** default send address */

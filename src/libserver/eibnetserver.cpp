@@ -356,8 +356,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      if (!GetSourceAddress (&r1.caddr, &r2.caddr))
 		goto out;
 	      r2.caddr.sin_port = Port;
-	      sock->sendaddr = r1.caddr;
-	      sock->Send (r2.ToPacket ());
+	      sock->Send (r2.ToPacket (), r1.caddr);
 	    }
 	  if (p1->service == DESCRIPTION_REQUEST && discover)
 	    {
@@ -387,8 +386,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      d.family = 5;
 	      if (route)
 		r2.services.add (d);
-	      sock->sendaddr = r1.caddr;
-	      sock->Send (r2.ToPacket ());
+	      sock->Send (r2.ToPacket (), r1.caddr);
 	    }
 	  if (p1->service == ROUTING_INDICATION && route)
 	    {
@@ -434,8 +432,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 		  }
 	      r2.channel = r1.channel;
 	      r2.status = res;
-	      sock->sendaddr = r1.caddr;
-	      sock->Send (r2.ToPacket ());
+	      sock->Send (r2.ToPacket (), r1.caddr);
 	    }
 	  if (p1->service == DISCONNECT_REQUEST)
 	    {
@@ -464,8 +461,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 		  }
 	      r2.channel = r1.channel;
 	      r2.status = res;
-	      sock->sendaddr = r1.caddr;
-	      sock->Send (r2.ToPacket ());
+	      sock->Send (r2.ToPacket (), r1.caddr);
 	    }
 	  if (p1->service == CONNECTION_REQUEST)
 	    {
@@ -509,8 +505,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 		goto out;
 	      r2.daddr.sin_port = Port;
 	      r2.nat = r1.nat;
-	      sock->sendaddr = r1.caddr;
-	      sock->Send (r2.ToPacket ());
+	      sock->Send (r2.ToPacket (), r1.caddr);
 	    }
 	  if (p1->service == TUNNEL_REQUEST && tunnel)
 	    {
@@ -534,8 +529,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 		  TRACEPRINTF (t, 8, this, "Lost ACK for %d", state[i].rno);
 		  r2.channel = r1.channel;
 		  r2.seqno = r1.seqno;
-		  sock->sendaddr = state[i].daddr;
-		  sock->Send (r2.ToPacket ());
+		  sock->Send (r2.ToPacket (), state[i].daddr);
 		  goto out;
 		}
 	      if (state[i].rno != r1.seqno)
@@ -581,8 +575,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 		  r2.status = 0x29;
 		}
 	      state[i].rno++;
-	      sock->sendaddr = state[i].daddr;
-	      sock->Send (r2.ToPacket ());
+	      sock->Send (r2.ToPacket (), state[i].daddr);
 	    }
 	  if (p1->service == TUNNEL_RESPONSE && tunnel)
 	    {
@@ -647,8 +640,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 		{
 		  r2.channel = r1.channel;
 		  r2.seqno = r1.seqno;
-		  sock->sendaddr = state[i].daddr;
-		  sock->Send (r2.ToPacket ());
+		  sock->Send (r2.ToPacket (), state[i].daddr);
 		  goto out;
 		}
 	      if (state[i].rno != r1.seqno)
@@ -709,8 +701,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      else
 		r2.status = 0x29;
 	      state[i].rno++;
-	      sock->sendaddr = state[i].daddr;
-	      sock->Send (r2.ToPacket ());
+	      sock->Send (r2.ToPacket (), state[i].daddr);
 	    }
 	  if (p1->service == DEVICE_CONFIGURATION_ACK)
 	    {
@@ -804,8 +795,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 		}
 	      pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE,
 			 state[i].sendtimeout, pth_time (1, 0));
-	      sock->sendaddr = state[i].daddr;
-	      sock->Send (p);
+	      sock->Send (p, state[i].daddr);
 	    }
 
 	}
@@ -818,8 +808,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	continue;
       r.caddr.sin_port = Port;
       r.nat = state[i].nat;
-      sock->sendaddr = state[i].caddr;
-      sock->Send (r.ToPacket ());
+      sock->Send (r.ToPacket (), state[i].caddr);
       pth_event_free (state[i].timeout, PTH_FREE_THIS);
       pth_event_free (state[i].sendtimeout, PTH_FREE_THIS);
       pth_event_free (state[i].outwait, PTH_FREE_THIS);
