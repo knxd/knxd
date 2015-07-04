@@ -25,19 +25,27 @@
 #include "layer2.h"
 #include "server.h"
 
-class ConnState(protected Thread, public Layer2mixin)
+class EIBnetServer;
+
+typedef enum {
+	CT_STANDARD = 0,
+	CT_BUSMONITOR,
+	CT_CONFIG,
+} ConnType;
+
+class ConnState: protected Thread, public Layer2mixin
 {
 public:
-  ConnState(EIBnetServer p, eibadd_t addr);
-  virtual ~ConnState();
+  ConnState(EIBnetServer *p, eibaddr_t addr);
+  ~ConnState();
 
-  EIBnetServer parent;
+  EIBnetServer *parent;
 
   uchar channel;
   uchar sno;
   uchar rno;
   int state;
-  int type;
+  ConnType type;
   int no;
   bool nat;
   pth_event_t timeout;
@@ -52,9 +60,11 @@ public:
   void tunnel_request(EIBnet_TunnelRequest &r1);
   void tunnel_response(EIBnet_TunnelACK &r1);
   void config_request(EIBnet_ConfigRequest &r1);
-  void ConnState::config_response (EIBnet_ConfigACK &r1);
+  void config_response (EIBnet_ConfigACK &r1);
 
   void shutdown(void);
+  void Send_L_Data (L_Data_PDU * l);
+  const char * Name () { return "EIBnetConn"; } // TODO add a sequence number
 };
 
 typedef struct
@@ -73,7 +83,7 @@ class EIBnetServer: protected Thread, public L_Busmonitor_CallBack, public Layer
   bool discover;
   int busmoncount;
   struct sockaddr_in maddr;
-  Array < ConnState > state;
+  Array < ConnState *> state;
   Array < NATState > natstate;
   String name;
 
@@ -82,7 +92,7 @@ class EIBnetServer: protected Thread, public L_Busmonitor_CallBack, public Layer
   void Send_L_Busmonitor (L_Busmonitor_PDU * l);
   void addBusmonitor ();
   void delBusmonitor ();
-  int addClient (int type, const EIBnet_ConnectRequest & r1,
+  int addClient (ConnType type, const EIBnet_ConnectRequest & r1,
                  eibaddr_t addr = 0);
   void addNAT (const L_Data_PDU & l);
 public:
@@ -92,7 +102,7 @@ public:
   virtual ~EIBnetServer ();
   bool init ();
   const char * Name () { return "EIBnet"; }
-  void drop_state (ConnState s);
+  void drop_state (ConnState *s);
   void drop_state (uint8_t index);
 };
 

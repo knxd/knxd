@@ -115,10 +115,10 @@ EIBnetServer::Send_L_Busmonitor (L_Busmonitor_PDU * l)
 {
   for (unsigned int i = 0; i < state (); i++)
     {
-      if (state[i].type == 1)
+      if (state[i]->type == CT_BUSMONITOR)
 	{
-	  state[i].out.put (Busmonitor_to_CEMI (0x2B, *l, state[i].no++));
-	  pth_sem_inc (state[i].outsignal, 0);
+	  state[i]->out.put (Busmonitor_to_CEMI (0x2B, *l, state[i]->no++));
+	  pth_sem_inc (state[i]->outsignal, 0);
 	}
     }
 }
@@ -162,13 +162,15 @@ EIBnetServer::Send_L_Data (L_Data_PDU * l)
 	  sock->Send (p);
 	}
     }
-  for (unsigned int i = 0; i < state (); i++)
+  delete l;
+}
+
+void ConnState::Send_L_Data (L_Data_PDU * l)
+{
+  if (type == CT_STANDARD)
     {
-      if (state[i].type == 0)
-	{
-	  state[i].out.put (L_Data_ToCEMI (0x29, *l));
-	  pth_sem_inc (state[i].outsignal, 0);
-	}
+      out.put (L_Data_ToCEMI (0x29, *l));
+      pth_sem_inc (outsignal, 0);
     }
   delete l;
 }
@@ -193,37 +195,36 @@ EIBnetServer::delBusmonitor ()
 }
 
 int
-EIBnetServer::addClient (int type, const EIBnet_ConnectRequest & r1,
-                         eibadd_t addr = 0)
+EIBnetServer::addClient (ConnType type, const EIBnet_ConnectRequest & r1,
+                         eibaddr_t addr)
 {
   unsigned int i;
   int id = 1;
 rt:
   for (i = 0; i < state (); i++)
-    if (state[i].channel == id)
+    if (state[i]->channel == id)
       {
 	id++;
 	goto rt;
       }
   if (id <= 0xff)
     {
-      ConnState *state = new ConnState (this, addr);
-      state->channel = id;
-      state->daddr = r1.daddr;
-      state->caddr = r1.caddr;
-      state->state = 0;
-      state->sno = 0;
-      state->rno = 0;
-      state->no = 1;
-      state->type = type;
-      state->addr = addr;
-      state->nat = r1.nat;
+      ConnState *s = new ConnState (this, addr);
+      s->channel = id;
+      s->daddr = r1.daddr;
+      s->caddr = r1.caddr;
+      s->state = 0;
+      s->sno = 0;
+      s->rno = 0;
+      s->no = 1;
+      s->type = type;
+      s->nat = r1.nat;
 
       int pos = state ();
       state.resize (state () + 1);
       state[pos] = s;
 
-      s->start();
+      s->Start();
     }
   return id;
 }
@@ -248,7 +249,7 @@ EIBnetServer::addNAT (const L_Data_PDU & l)
   natstate[i].timeout = pth_event (PTH_EVENT_RTIME, pth_time (180, 0));
 }
 
-ConnState::ConnState (EIBnetServer p, eibadd_t addr)
+ConnState::ConnState (EIBnetServer *p, eibaddr_t addr) : Layer2mixin (p->l3, p->tr)
 {
   parent = p;
   timeout = pth_event (PTH_EVENT_RTIME, pth_time (120, 0));
@@ -297,7 +298,7 @@ ConnState::Run (pth_sem_t * stop1)
 	    }
 
 	  EIBNetIPPacket p;
-	  if (type == 2)
+	  if (type == CT_CONFIG)
 	    {
 	      EIBnet_ConfigRequest r;
 	      r.channel = channel;
@@ -359,7 +360,7 @@ ConnState::~ConnState()
   pth_event_free (sendtimeout, PTH_FREE_THIS);
   pth_event_free (outwait, PTH_FREE_THIS);
   delete outsignal;
-  if (type == 1)
+  if (type == CT_BUSMONITOR)
     delBusmonitor ();
 }
 
@@ -522,13 +523,13 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      if (parseEIBnet_ConnectionStateRequest (*p1, r1))
 		goto out;
 	      for (i = 0; i < state (); i++)
-		if (state[i].channel == r1.channel)
+		if (state[i]->channel == r1.channel)
 		  {
-		    if (compareIPAddress (p1->src, state[i].caddr))
+		    if (compareIPAddress (p1->src, state[i]->caddr))
 		      {
 			res = 0;
 			pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE,
-				   state[i].timeout, pth_time (120, 0));
+				   state[i]->timeout, pth_time (120, 0));
 		      }
 		    else
 		      TRACEPRINTF (t, 8, this, "Invalid control address");
@@ -545,24 +546,11 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      if (parseEIBnet_DisconnectRequest (*p1, r1))
 		goto out;
 	      for (i = 0; i < state (); i++)
-		if (state[i].channel == r1.channel)
+		if (state[i]->channel == r1.channel)
 		  {
-		    if (compareIPAddress (p1->src, state[i].caddr))
+		    if (compareIPAddress (p1->src, state[i]->caddr))
 		      {
-<<<<<<< HEAD
 			drop_state(i);
-=======
-			res = 0;
-                        if (state[i].addr)
-                          removeAddress (state[i].addr);
-			pth_event_free (state[i].timeout, PTH_FREE_THIS);
-			pth_event_free (state[i].sendtimeout, PTH_FREE_THIS);
-			pth_event_free (state[i].outwait, PTH_FREE_THIS);
-			delete state[i].outsignal;
-			if (state[i].type == 1)
-			  delBusmonitor ();
-			state.deletepart (i, 1);
->>>>>>> a2/alloc_addr
 			break;
 		      }
 		    else
@@ -589,7 +577,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 		  r2.CRD[2] = (a >> 0) & 0xFF;
 		  if (r1.CRI[1] == 0x02 || r1.CRI[1] == 0x80)
 		    {
-		      int id = addClient ((r1.CRI[1] == 0x80) ? 1 : 0, r1, a);
+		      int id = addClient ((r1.CRI[1] == 0x80) ? CT_BUSMONITOR : CT_STANDARD, r1, a);
 		      if (id <= 0xff)
 			{
 			  if (r1.CRI[1] == 0x80)
@@ -603,7 +591,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 		{
 		  r2.CRD.resize (1);
 		  r2.CRD[0] = 0x03;
-		  int id = addClient (2, r1);
+		  int id = addClient (CT_CONFIG, r1, 0);
 		  if (id <= 0xff)
 		    {
 		      r2.channel = id;
@@ -626,7 +614,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	      for (i = 0; i < state (); i++)
 		if (state[i]->channel == r1.channel)
 		  {
-		    if (!compareIPAddress (p1->src, state[i].daddr))
+		    if (!compareIPAddress (p1->src, state[i]->daddr))
 		      {
 			TRACEPRINTF (t, 8, this, "Invalid data endpoint");
 			break;
@@ -643,9 +631,9 @@ EIBnetServer::Run (pth_sem_t * stop1)
 		goto out;
 	      TRACEPRINTF (t, 8, this, "TUNNEL_ACK");
 	      for (i = 0; i < state (); i++)
-		if (state[i].channel == r1.channel)
+		if (state[i]->channel == r1.channel)
 		  {
-		    if (!compareIPAddress (p1->src, state[i].daddr))
+		    if (!compareIPAddress (p1->src, state[i]->daddr))
 		      {
 			TRACEPRINTF (t, 8, this, "Invalid data endpoint");
 			break;
@@ -663,9 +651,9 @@ EIBnetServer::Run (pth_sem_t * stop1)
 		goto out;
 	      TRACEPRINTF (t, 8, this, "CONFIG_REQ");
 	      for (i = 0; i < state (); i++)
-		if (state[i].channel == r1.channel)
+		if (state[i]->channel == r1.channel)
 		  {
-		    if (!compareIPAddress (p1->src, state[i].daddr))
+		    if (!compareIPAddress (p1->src, state[i]->daddr))
 		      {
 			TRACEPRINTF (t, 8, this, "Invalid data endpoint");
 			  break;
@@ -682,9 +670,9 @@ EIBnetServer::Run (pth_sem_t * stop1)
 		goto out;
 	      TRACEPRINTF (t, 8, this, "CONFIG_ACK");
 	      for (i = 0; i < state (); i++)
-		if (state[i].channel == r1.channel)
+		if (state[i]->channel == r1.channel)
 		  {
-		    if (!compareIPAddress (p1->src, state[i].daddr))
+		    if (!compareIPAddress (p1->src, state[i]->daddr))
 		      {
 			TRACEPRINTF (t, 8, this, "Invalid data endpoint");
 			break;
@@ -722,7 +710,7 @@ void ConnState::tunnel_request(EIBnet_TunnelRequest &r1)
 		   r1.seqno, rno);
       return;
     }
-  if (type == 0)
+  if (type == CT_STANDARD)
     {
       L_Data_PDU *c = CEMI_to_L_Data (r1.CEMI, this);
       if (c)
@@ -753,7 +741,7 @@ void ConnState::tunnel_request(EIBnet_TunnelRequest &r1)
     }
   else
     {
-      TRACEPRINTF (t, 8, this, "Type not zero (%d)", type);
+      TRACEPRINTF (t, 8, this, "Type not CT_STANDARD (%d)", type);
       r2.status = 0x29;
     }
   rno++;
@@ -765,7 +753,7 @@ void ConnState::tunnel_response (EIBnet_TunnelACK &r1)
   if (sno != r1.seqno)
     {
       TRACEPRINTF (t, 8, this, "Wrong sequence %d<->%d",
-		   r1.seqno, state[i].sno);
+		   r1.seqno, state[i]->sno);
       return;
     }
   if (r1.status != 0)
@@ -778,7 +766,7 @@ void ConnState::tunnel_response (EIBnet_TunnelACK &r1)
       TRACEPRINTF (t, 8, this, "Unexpected ACK");
       goto out;
     }
-  if (type != 0 && type != 1)
+  if (type != CT_STANDARD && type != CT_BUSMONITOR)
     {
       TRACEPRINTF (t, 8, this, "Unexpected Connection Type");
       goto out;
@@ -807,7 +795,7 @@ void ConnState::config_request(EIBnet_ConfigRequest &r1)
     }
   r2.channel = r1.channel;
   r2.seqno = r1.seqno;
-  if (type == 2 && r1.CEMI () > 1)
+  if (type == CT_CONFIG && r1.CEMI () > 1)
     {
       if (r1.CEMI[0] == 0xFC)
 	{
@@ -879,7 +867,7 @@ void ConnState::config_response (EIBnet_ConfigACK &r1)
       TRACEPRINTF (t, 8, this, "Unexpected ACK");
       goto out;
     }
-  if (type != 2)
+  if (type != CT_CONFIG)
     {
       TRACEPRINTF (t, 8, this, "Unexpected Connection Type");
       goto out;
@@ -887,5 +875,5 @@ void ConnState::config_response (EIBnet_ConfigACK &r1)
   sno++;
   state = 0;
   out.get ();
-  pth_sem_dec (state[i].outsignal);
+  pth_sem_dec (state[i]->outsignal);
 }
