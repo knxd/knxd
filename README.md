@@ -39,6 +39,7 @@ On Debian:
     cd knxd
     # If the next command complains about missing packages: install it and try again
     # If you can't install libsystemd-daemon-dev, remove it from the file 'debian/control'
+    # (and remove the '/lib/*' line from debian/knxd.install)
     dpkg-buildpackage -b
     cd ..
     sudo dpkg -i knxd_*.deb knxd-tools_*.deb
