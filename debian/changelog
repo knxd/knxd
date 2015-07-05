@@ -1,10 +1,11 @@
-knxd (0.10.2-3) UNRELEASED; urgency=medium
+knxd (0.10.2-4) UNRELEASED; urgency=medium
 
   * Fix sock->sendaddr churn.
   * Include sys/select.h if available.
   * Delete Unix socket after closing it.
+  * Debian packaging: do create /var/lib/knxd
 
- -- Matthias Urlichs <matthias@urlichs.de>  Sun, 28 Jun 2015 21:16:45 +0200
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 05 Jul 2015 19:47:26 +0200
 
 knxd (0.10.1-2) unstable; urgency=medium
 
