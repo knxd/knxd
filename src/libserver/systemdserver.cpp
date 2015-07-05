@@ -18,6 +18,7 @@
 */
 
 #include <unistd.h>
+#include <errno.h>
 #include "systemdserver.h"
 
 SystemdServer::SystemdServer (Layer3 * la3, Trace * tr, int systemd_fd):
@@ -28,6 +29,7 @@ Server (la3, tr)
   fd = systemd_fd;
   if (listen (fd, 10) == -1)
     {
+      ERRORPRINTF (tr, E_ERROR | 18, this, "OpenSystemdSocket: listen: %s", strerror(errno));
       close (fd);
       fd = -1;
       return;

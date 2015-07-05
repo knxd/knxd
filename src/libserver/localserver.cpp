@@ -34,14 +34,14 @@ Server (la3, tr)
   fd = socket (AF_LOCAL, SOCK_STREAM, 0);
   if (fd == -1)
     {
-      TRACEPRINTF (tr, 8, this, "OpenLocalSocket %s: socket: %s", path, strerror(errno));
+      ERRORPRINTF (tr, E_ERROR | 15, this, "OpenLocalSocket %s: socket: %s", path, strerror(errno));
       return;
     }
 
   unlink (path);
   if (bind (fd, (struct sockaddr *) &addr, sizeof (addr)) == -1)
     {
-      TRACEPRINTF (tr, 8, this, "OpenLocalSocket %s: bind: %s", path, strerror(errno));
+      ERRORPRINTF (tr, E_ERROR | 16, this, "OpenLocalSocket %s: bind: %s", path, strerror(errno));
       close (fd);
       fd = -1;
       return;
@@ -49,7 +49,7 @@ Server (la3, tr)
 
   if (listen (fd, 10) == -1)
     {
-      TRACEPRINTF (tr, 8, this, "OpenLocalSocket %s: listen: %s", path, strerror(errno));
+      ERRORPRINTF (tr, E_ERROR | 17, this, "OpenLocalSocket %s: listen: %s", path, strerror(errno));
       close (fd);
       fd = -1;
       return;

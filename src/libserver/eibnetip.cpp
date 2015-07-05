@@ -21,6 +21,7 @@
 #include <netdb.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <errno.h>
 #include "eibnetip.h"
 #include "config.h"
 #ifdef HAVE_LINUX_NETLINK
@@ -359,7 +360,7 @@ EIBNetIPSocket::EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr,
     }
   if (bind (fd, (struct sockaddr *) &bindaddr, sizeof (bindaddr)) == -1)
     {
-      TRACEPRINTF (t, 0, this, "cannot bind to address");
+      ERRORPRINTF (t, E_ERROR | 38, this, "cannot bind to address: %s", strerror(errno));
       close (fd);
       fd = -1;
       return;
@@ -371,7 +372,7 @@ EIBNetIPSocket::EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr,
  
     if (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_LOOP,
                    (char *)&loopch, sizeof(loopch)) < 0) {
-      TRACEPRINTF (t, 0, this, "cannot turn off multicast loopback");
+      ERRORPRINTF (t, E_ERROR | 39, this, "cannot turn off multicast loopback: %s", strerror(errno));
       close(fd);
       fd = -1;
       return;

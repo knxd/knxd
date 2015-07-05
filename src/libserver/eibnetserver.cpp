@@ -48,7 +48,7 @@ EIBnetServer::EIBnetServer (const char *multicastaddr, int port, bool Tunnel,
 
   if (GetHostIP (&maddr, multicastaddr) == 0)
     {
-      ERRORPRINTF (t, 8, this, "Addr '%s' not resolvable", multicastaddr);
+      ERRORPRINTF (t, E_ERROR | 11, this, "Addr '%s' not resolvable", multicastaddr);
       sock = 0;
       return;
     }

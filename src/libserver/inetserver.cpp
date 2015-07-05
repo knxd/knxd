@@ -40,7 +40,7 @@ Server (la3, tr)
   fd = socket (AF_INET, SOCK_STREAM, 0);
   if (fd == -1)
     {
-      TRACEPRINTF (tr, 8, this, "OpenInetSocket %d: socket: %s", port, strerror(errno));
+      ERRORPRINTF (tr, E_ERROR | 12, this, "OpenInetSocket %d: socket: %s", port, strerror(errno));
       return;
     }
 
@@ -48,7 +48,7 @@ Server (la3, tr)
 
   if (bind (fd, (struct sockaddr *) &addr, sizeof (addr)) == -1)
     {
-      TRACEPRINTF (tr, 8, this, "OpenInetSocket %d: bind: %s", port, strerror(errno));
+      ERRORPRINTF (tr, E_ERROR | 13, this, "OpenInetSocket %d: bind: %s", port, strerror(errno));
       close (fd);
       fd = -1;
       return;
@@ -56,7 +56,7 @@ Server (la3, tr)
 
   if (listen (fd, 10) == -1)
     {
-      TRACEPRINTF (tr, 8, this, "OpenInetSocket %d: listen: %s", port, strerror(errno));
+      ERRORPRINTF (tr, E_ERROR | 14, this, "OpenInetSocket %d: listen: %s", port, strerror(errno));
       close (fd);
       fd = -1;
       return;

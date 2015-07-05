@@ -498,12 +498,11 @@ main (int ac, char *ag[])
 
   argp_parse (&argp, ac, ag, ARGP_IN_ORDER, &index, &arg);
 
-  signal (SIGPIPE, SIG_IGN);
-
-  /*
+  // if you ever want this to be fatal, doing it here would be too late
   if (getuid () == 0)
-    ERRORPRINTF (&t, 0x37000001, 0, "EIBD should not run as root");
-  */
+    ERRORPRINTF (arg.tracer(), E_WARNING | 20, 0, "EIBD should not run as root");
+
+  signal (SIGPIPE, SIG_IGN);
 
   if (arg.daemon)
     {
@@ -523,7 +522,6 @@ main (int ac, char *ag[])
       close (fd);
       setsid ();
     }
-
 
   FILE *pidf;
   if (arg.pidfile)
@@ -558,7 +556,7 @@ main (int ac, char *ag[])
 	    open (arg.daemon, O_WRONLY | O_APPEND | O_CREAT, FILE_MODE);
 	  if (fd == -1)
 	    {
-	      ERRORPRINTF (arg.tracer(), 0x27000002, 0, "can't open log file %s",
+	      ERRORPRINTF (arg.tracer(), E_ERROR | 21, 0, "can't open log file %s",
 			   arg.daemon);
 	      continue;
 	    }
