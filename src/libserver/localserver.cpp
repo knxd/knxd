@@ -55,7 +55,13 @@ Server (la3, tr)
       return;
     }
 
+  this->path = path;
   TRACEPRINTF (tr, 8, this, "LocalSocket opened");
   Start ();
 }
 
+LocalServer::~LocalServer ()
+{
+  if (path)
+    unlink (path);
+}
