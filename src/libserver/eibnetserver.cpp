@@ -249,7 +249,7 @@ EIBnetServer::addNAT (const L_Data_PDU & l)
   natstate[i].timeout = pth_event (PTH_EVENT_RTIME, pth_time (180, 0));
 }
 
-ConnState::ConnState (EIBnetServer *p, eibaddr_t addr) : Layer2mixin (p->l3, p->tr)
+ConnState::ConnState (EIBnetServer *p, eibaddr_t addr) : Layer2mixin (p->l3, p->t)
 {
   parent = p;
   timeout = pth_event (PTH_EVENT_RTIME, pth_time (120, 0));
@@ -316,7 +316,7 @@ ConnState::Run (pth_sem_t * stop1)
 	    }
 	  pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE,
 		     sendtimeout, pth_time (1, 0));
-	  sock->Send (p, daddr);
+	  parent->Send (p, daddr);
 	}
     }
 
@@ -324,19 +324,19 @@ ConnState::Run (pth_sem_t * stop1)
   r.channel = channel;
   if (GetSourceAddress (&caddr, &r.caddr))
     {
-      r.caddr.sin_port = Port;
+      r.caddr.sin_port = parent->Port;
       r.nat = nat;
-      sock->Send (r.ToPacket (), caddr);
+      parent->Send (r.ToPacket (), caddr);
     }
   shutdown();
 }
 
-ConnState::shutdown()
+void ConnState::shutdown(void)
 {
   parent->drop_state (this);
 }
 
-void EIBnetServer::drop_state (ConnState s)
+void EIBnetServer::drop_state (ConnState *s)
 {
   for (int i=0; i < state (); i++)
     {
@@ -351,7 +351,7 @@ void EIBnetServer::drop_state (ConnState s)
 void EIBnetServer::drop_state (uint8_t index)
 {
   delete state[index];
-  state->deletepart (index);
+  state.deletepart (index);
 }
 
 ConnState::~ConnState()
@@ -361,7 +361,7 @@ ConnState::~ConnState()
   pth_event_free (outwait, PTH_FREE_THIS);
   delete outsignal;
   if (type == CT_BUSMONITOR)
-    delBusmonitor ();
+    parent->delBusmonitor ();
 }
 
 void
@@ -701,7 +701,7 @@ void ConnState::tunnel_request(EIBnet_TunnelRequest &r1)
   if (rno == ((r1.seqno + 1) & 0xff))
     {
       TRACEPRINTF (t, 8, this, "Lost ACK for %d", rno);
-      sock->Send (r2.ToPacket (), daddr);
+      parent->Send (r2.ToPacket (), daddr);
       return;
     }
   if (rno != r1.seqno)
@@ -745,7 +745,7 @@ void ConnState::tunnel_request(EIBnet_TunnelRequest &r1)
       r2.status = 0x29;
     }
   rno++;
-  sock->Send (r2.ToPacket (), daddr);
+  parent->Send (r2.ToPacket (), daddr);
 }
 
 void ConnState::tunnel_response (EIBnet_TunnelACK &r1)
@@ -753,7 +753,7 @@ void ConnState::tunnel_response (EIBnet_TunnelACK &r1)
   if (sno != r1.seqno)
     {
       TRACEPRINTF (t, 8, this, "Wrong sequence %d<->%d",
-		   r1.seqno, state[i]->sno);
+		   r1.seqno, sno);
       return;
     }
   if (r1.status != 0)
@@ -764,12 +764,12 @@ void ConnState::tunnel_response (EIBnet_TunnelACK &r1)
   if (!state)
     {
       TRACEPRINTF (t, 8, this, "Unexpected ACK");
-      goto out;
+      return;
     }
   if (type != CT_STANDARD && type != CT_BUSMONITOR)
     {
       TRACEPRINTF (t, 8, this, "Unexpected Connection Type");
-      goto out;
+      return;
     }
   sno++;
   state = 0;
@@ -784,14 +784,14 @@ void ConnState::config_request(EIBnet_ConfigRequest &r1)
     {
       r2.channel = r1.channel;
       r2.seqno = r1.seqno;
-      sock->Send (r2.ToPacket (), daddr);
-      goto out;
+      parent->Send (r2.ToPacket (), daddr);
+      return;
     }
   if (rno != r1.seqno)
     {
       TRACEPRINTF (t, 8, this, "Wrong sequence %d<->%d",
 		   r1.seqno, rno);
-      goto out;
+      return;
     }
   r2.channel = r1.channel;
   r2.seqno = r1.seqno;
@@ -845,7 +845,7 @@ void ConnState::config_request(EIBnet_ConfigRequest &r1)
   else
     r2.status = 0x29;
   rno++;
-  sock->Send (r2.ToPacket (), daddr);
+  parent->Send (r2.ToPacket (), daddr);
 }
 
 void ConnState::config_response (EIBnet_ConfigACK &r1)
@@ -855,25 +855,25 @@ void ConnState::config_response (EIBnet_ConfigACK &r1)
     {
       TRACEPRINTF (t, 8, this, "Wrong sequence %d<->%d",
 		   r1.seqno, sno);
-      goto out;
+      return;
     }
   if (r1.status != 0)
     {
       TRACEPRINTF (t, 8, this, "Wrong status %d", r1.status);
-      goto out;
+      return;
     }
   if (!state)
     {
       TRACEPRINTF (t, 8, this, "Unexpected ACK");
-      goto out;
+      return;
     }
   if (type != CT_CONFIG)
     {
       TRACEPRINTF (t, 8, this, "Unexpected Connection Type");
-      goto out;
+      return;
     }
   sno++;
   state = 0;
   out.get ();
-  pth_sem_dec (state[i]->outsignal);
+  pth_sem_dec (outsignal);
 }

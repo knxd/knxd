@@ -36,8 +36,10 @@ typedef enum {
 class ConnState: protected Thread, public Layer2mixin
 {
 public:
-  ConnState(EIBnetServer *p, eibaddr_t addr);
-  ~ConnState();
+  ConnState (EIBnetServer *p, eibaddr_t addr);
+  ~ConnState ();
+  void Start () { Thread::Start(); }
+  void Run (pth_sem_t * stop1);
 
   EIBnetServer *parent;
 
@@ -76,6 +78,7 @@ typedef struct
 
 class EIBnetServer: protected Thread, public L_Busmonitor_CallBack, public Layer2mixin
 {
+  friend class ConnState;
   EIBNetIPSocket *sock;
   int Port;
   bool tunnel;
@@ -104,6 +107,11 @@ public:
   const char * Name () { return "EIBnet"; }
   void drop_state (ConnState *s);
   void drop_state (uint8_t index);
+  inline void Send (EIBNetIPPacket p, struct sockaddr_in addr) {
+    if (sock)
+      sock->Send (p, addr);
+  }
+
 };
 
 #endif

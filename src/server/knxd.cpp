@@ -102,10 +102,10 @@ public:
         {
           layer3 = new Layer3 (addr, tracer());
           addr = 0;
-          if (arg.alloc_addrs_len)
+          if (alloc_addrs_len)
             {
-              l3->set_client_block (arg.alloc_addrs, arg.alloc_addrs_len);
-              arg.alloc_addrs_len = 0;
+              layer3->set_client_block (alloc_addrs, alloc_addrs_len);
+              alloc_addrs_len = 0;
             }
         }
       return layer3;
@@ -226,7 +226,8 @@ eibaddr_t
 readaddr (const char *addr)
 {
   int a, b, c;
-  sscanf (addr, "%d.%d.%d", &a, &b, &c);
+  if (sscanf (addr, "%d.%d.%d", &a, &b, &c) != 3)
+    die ("Address needs to look like X.X.X");
   return ((a & 0x0f) << 12) | ((b & 0x0f) << 8) | ((c & 0xff));
 }
 
@@ -234,7 +235,7 @@ bool
 readaddrblock (struct arguments *args, const char *addr)
 {
   int a, b, c;
-  if (sscanf (addr, "%d.%d.%d", &a, &b, &c, &args->alloc_addrs_len) != 4)
+  if (sscanf (addr, "%d.%d.%d:%d", &a, &b, &c, &args->alloc_addrs_len) != 4)
     die ("Address block needs to look like X.X.X:X");
   args->alloc_addrs = ((a & 0x0f) << 12) | ((b & 0x0f) << 8) | ((c & 0xff));
 }
