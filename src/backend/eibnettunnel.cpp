@@ -28,6 +28,9 @@ EIBNetIPTunnel::EIBNetIPTunnel (const char *dest, int port, int sport,
   TRACEPRINTF (t, 2, this, "Open");
   pth_sem_init (&insignal);
   noqueue = opt ? (opt->flags & FLAG_B_TUNNEL_NOQUEUE) : 0;
+  if (opt)
+    opt->flags &=~ FLAG_B_TUNNEL_NOQUEUE;
+
   sock = 0;
   if (!GetHostIP (&caddr, dest))
     return;

@@ -53,6 +53,10 @@ NCN5120SerialLayer2Driver::NCN5120SerialLayer2Driver (const char *dev,
   ackallindividual = opt ? (opt->flags & FLAG_B_TPUARTS_ACKINDIVIDUAL) : 0;
   dischreset = opt ? (opt->flags & FLAG_B_TPUARTS_DISCH_RESET) : 0;
 
+  if (opt)
+    opt->flags &=~ (FLAG_B_TPUARTS_ACKGROUP |
+                    FLAG_B_TPUARTS_ACKINDIVIDUAL |
+		            FLAG_B_TPUARTS_DISCH_RESET);
   fd = open (dev, O_RDWR | O_NOCTTY | O_NDELAY | O_SYNC);
   if (fd == -1)
     return;

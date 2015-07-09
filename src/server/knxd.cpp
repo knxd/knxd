@@ -391,7 +391,10 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
     case 'e':
       if (arguments->has_l3 ())
-        arguments->addr = readaddr (arg);
+	{
+	  die ("You need to specify '-e' earlier");
+	}
+      arguments->addr = readaddr (arg);
       break;
     case 'p':
       arguments->pidfile = arg;
@@ -431,10 +434,12 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case ARGP_KEY_ARG:
     case 'b':
       {
-		arguments->l2opts.t = arguments->tracer ();
+	arguments->l2opts.t = arguments->tracer ();
         Layer2 *l2 = Create (arg, &arguments->l2opts, arguments->l3 ());
         if (!l2 || !l2->init ())
           die ("initialisation of backend '%s' failed", arg);
+	if (arguments->l2opts.flags)
+          die ("You provided options which '%s' does not recognize", arg);
         memset(&arguments->l2opts, 0, sizeof(arguments->l2opts));
         arguments->has_work |= (arguments->has_work & 0x01) ? 0x02 : 0x01;
         /* The idea is that having two or more L2 interfaces to route between,
@@ -468,10 +473,13 @@ parse_opt (int key, char *arg, struct argp_state *state)
       }
 #endif
 
+	  errno = 0;
       if (arguments->tunnel || arguments->route || arguments->discover || 
           arguments->eibnetname)
         die ("Option '-S' starts the multicast server.\n"
-             "-T/-R/-D/-n after that are useless.");
+             "-T/-R/-D/-n after or without that option are useless.");
+      if (arguments->l2opts.flags)
+	die ("You provided L2 flags after specifying an L2 interface.");
       if (!(arguments->has_work & 0x01))
         die ("I know of no Layer-2 interface. Giving up.");
       if (!(arguments->has_work & 0x02))
