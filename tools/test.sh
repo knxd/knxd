@@ -5,7 +5,7 @@
 set -ex
 export PATH="$(pwd)/src/examples:$(pwd)/src/server:$PATH"
 
-EF=$(tempfile)
+EF=$(tempfile); F="$EF"
 
 # first test argument handling
 if knxd --stop-right-now >$EF 2>&1; then
@@ -44,14 +44,15 @@ if knxd --stop-right-now -T -b dummy: -b dummy: >$EF 2>&1; then
 	exit 1
 fi
 
-S1=$(tempfile); rm $S1
-S2=$(tempfile); rm $S2
-S3=$(tempfile); rm $S3
-L1=$(tempfile)
+S1=$(tempfile); rm $S1; F="$F $S1"
+S2=$(tempfile); rm $S2; F="$F $S2"
+S3=$(tempfile); rm $S3; F="$F $S3"
+L1=$(tempfile); F="$F $L1"
 
-knxd -t 0xfffc -f 9 -e 3.2.1 -u$S1 -u$S2 -u$S3 -bdummy: &
-KNXD=$!
-trap 'rm -f $L1 $EF; kill $KNXD' 0 1 2
+knxd -t 0xfffc -f 9 -e 3.2.1 -T -R -S -u$S1 -u$S2 -bdummy: &
+K1=$!; P="$P $K1"
+trap 'rm -f $F; kill $P' 0 1 2
+sleep 1
 
 grouplisten local:$S2 1/2/3 >$L1 &
 # will die by itself when the server terminates
@@ -59,12 +60,14 @@ PL1=$!
 
 sleep 1
 groupswrite local:$S1 1/2/3 4
-sleep 1
 groupwrite local:$S2 1/2/3 4 5
-
+knxd -t 0xfffc -f 9 -e 3.2.2 -T -R -S -u$S3 -bdummy: &
+K2=$!; P="$P $K2"
 sleep 1
-kill $KNXD $PL1
-trap 'rm -f $L1 $EF' 0 1 2
+groupwrite local:$S3 1/2/3 4 5 6
+sleep 1
+
+kill $P; trap 'rm -f $F' 0 1 2
 
 diff -u "$(dirname "$0")"/logs/listen $L1
 

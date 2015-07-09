@@ -34,8 +34,9 @@ EIBnetServer::EIBnetServer (const char *multicastaddr, int port, bool Tunnel,
 	: Layer2mixin::Layer2mixin (layer3, tr)
 {
   struct sockaddr_in baddr;
-  struct ip_mreq mcfg;
   name = serverName;
+  sock = 0;
+  sock_mac = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
 
   TRACEPRINTF (t, 8, this, "Open");
   memset (&baddr, 0, sizeof (baddr));
@@ -43,51 +44,105 @@ EIBnetServer::EIBnetServer (const char *multicastaddr, int port, bool Tunnel,
   baddr.sin_len = sizeof (baddr);
 #endif
   baddr.sin_family = AF_INET;
-  baddr.sin_port = htons (port);
   baddr.sin_addr.s_addr = htonl (INADDR_ANY);
-
-  if (GetHostIP (&maddr, multicastaddr) == 0)
-    {
-      ERRORPRINTF (t, E_ERROR | 11, this, "Addr '%s' not resolvable", multicastaddr);
-      sock = 0;
-      return;
-    }
-  maddr.sin_port = htons (port);
+  baddr.sin_port = 0;
 
   sock = new EIBNetIPSocket (baddr, 1, t);
   if (!sock->init ())
-    {
-      delete sock;
-      sock = 0;
-      return;
-    }
-  mcfg.imr_multiaddr = maddr.sin_addr;
-  mcfg.imr_interface.s_addr = htonl (INADDR_ANY);
-  if (!sock->SetMulticast (mcfg))
-    {
-      delete sock;
-      sock = 0;
-      return;
-    }
-  sock->recvall = 2;
-  if (!GetSourceAddress (&maddr, &sock->localaddr))
-    {
-      delete sock;
-      sock = 0;
-      return;
-    }
-  sock->localaddr.sin_port = htons (port);
+    goto err_out;
+  sock->recvall = 1;
+  Port = sock->port ();
+
+  mcast = new EIBnetDiscover (this, multicastaddr, port);
+  if (! mcast->init ())
+    goto err_out;
+
   tunnel = Tunnel;
   route = Route;
   discover = Discover;
-  Port = htons (port);
   if (route || tunnel)
     layer2_is_bus ();
+
   busmoncount = 0;
   Start ();
   TRACEPRINTF (t, 8, this, "Opened");
+  return;
+
+err_out:
+  if (sock)
+    {
+      delete (sock);
+      sock = 0;
+    }
+  if (mcast)
+    {
+      delete (mcast);
+      mcast = 0;
+    }
+  if (sock_mac >= 0)
+    {
+      close (sock_mac);
+      sock_mac = -1;
+    }
+  return;
 }
 
+EIBnetDiscover::EIBnetDiscover (EIBnetServer *parent, const char *multicastaddr, int port)
+{
+  struct sockaddr_in baddr;
+  struct ip_mreq mcfg;
+  sock = 0;
+
+  this->parent = parent;
+  TRACEPRINTF (parent->t, 8, this, "OpenD");
+  memset (&baddr, 0, sizeof (baddr));
+#ifdef HAVE_SOCKADDR_IN_LEN
+  baddr.sin_len = sizeof (baddr);
+#endif
+  baddr.sin_family = AF_INET;
+  baddr.sin_addr.s_addr = htonl (INADDR_ANY);
+  baddr.sin_port = htons (port);
+
+  if (GetHostIP (&maddr, multicastaddr) == 0)
+    {
+      ERRORPRINTF (parent->t, E_ERROR | 11, this, "Addr '%s' not resolvable", multicastaddr);
+      goto err_out;
+    }
+  maddr.sin_port = htons (port);
+
+  sock = new EIBNetIPSocket (baddr, 1, parent->t, S_RD);
+  if (!sock->init ())
+    goto err_out;
+
+  mcfg.imr_multiaddr = maddr.sin_addr;
+  mcfg.imr_interface.s_addr = htonl (INADDR_ANY);
+  if (!sock->SetMulticast (mcfg))
+    goto err_out;
+
+  /** This causes us to ignore multicast packets sent by ourselves */
+  if (!GetSourceAddress (&maddr, &sock->localaddr))
+    goto err_out;
+  sock->localaddr.sin_port = parent->Port;
+  sock->recvall = 2;
+
+  Start ();
+  TRACEPRINTF (parent->t, 8, this, "OpenedD");
+  return;
+
+err_out:
+  if (sock)
+    {
+      delete (sock);
+      sock = 0;
+    }
+  return;
+}
+
+bool
+EIBnetDiscover::init ()
+{
+  return sock != 0;
+}
 
 EIBnetServer::~EIBnetServer ()
 {
@@ -100,6 +155,18 @@ EIBnetServer::~EIBnetServer ()
     pth_event_free (natstate[i].timeout, PTH_FREE_THIS);
   if (sock)
     delete sock;
+  if (mcast)
+    delete mcast;
+  if (sock_mac >= 0)
+    close (sock_mac);
+}
+
+EIBnetDiscover::~EIBnetDiscover ()
+{
+  TRACEPRINTF (parent->t, 8, this, "CloseD");
+  Stop ();
+  if (sock)
+    delete sock;
 }
 
 bool
@@ -108,6 +175,12 @@ EIBnetServer::init ()
   if (!sock)
     return false;
   return Layer2mixin::init();
+}
+
+void EIBnetDiscover::Send (EIBNetIPPacket p)
+{
+  if (sock)
+    parent->Send (p, maddr);
 }
 
 void
@@ -135,7 +208,6 @@ EIBnetServer::Send_L_Data (L_Data_PDU * l)
   if (route)
     {
       TRACEPRINTF (t, 8, this, "Send_Route %s", l->Decode ()());
-      sock->sendaddr = maddr;
       EIBNetIPPacket p;
       p.service = ROUTING_INDICATION;
       if (l->dest == 0 && l->AddrType == IndividualAddress)
@@ -146,20 +218,20 @@ EIBnetServer::Send_L_Data (L_Data_PDU * l)
 	      {
 		l->dest = natstate[i].src;
 		p.data = L_Data_ToCEMI (0x29, *l);
-		sock->Send (p);
+		mcast->Send (p);
 		l->dest = 0;
 		cnt++;
 	      }
 	  if (!cnt)
 	    {
 	      p.data = L_Data_ToCEMI (0x29, *l);
-	      sock->Send (p);
+	      mcast->Send (p);
 	    }
 	}
       else
 	{
 	  p.data = L_Data_ToCEMI (0x29, *l);
-	  sock->Send (p);
+	  mcast->Send (p);
 	}
     }
   delete l;
@@ -364,6 +436,315 @@ ConnState::~ConnState()
     parent->delBusmonitor ();
 }
 
+bool
+EIBnetServer::handle_packet (EIBNetIPPacket *p1)
+{
+  /* Get MAC Address */
+  /* TODO: cache all of this, and ask at most once per seoncd */
+
+  struct ifreq ifr;
+  struct ifconf ifc;
+  char buf[1024];
+  unsigned char mac_address[IFHWADDRLEN]= {0,0,0,0,0,0};
+
+  if (sock_mac != -1 && discover &&
+      (p1->service == DESCRIPTION_REQUEST || p1->service == SEARCH_REQUEST))
+    {
+      ifc.ifc_len = sizeof(buf);
+      ifc.ifc_buf = buf;
+      if (ioctl(sock_mac, SIOCGIFCONF, &ifc) != -1)
+	{
+	  struct ifreq* it = ifc.ifc_req;
+	  const struct ifreq* const end = it + (ifc.ifc_len / sizeof(struct ifreq));
+
+	  for (; it != end; ++it)
+	    {
+	      strcpy(ifr.ifr_name, it->ifr_name);
+	      if (ioctl(sock_mac, SIOCGIFFLAGS, &ifr))
+		continue;
+	      if (ifr.ifr_flags & IFF_LOOPBACK) // don't count loopback
+		continue;
+	      if (ioctl(sock_mac, SIOCGIFHWADDR, &ifr))
+		continue;
+	      if (ifr.ifr_hwaddr.sa_family != ARPHRD_ETHER)
+		continue;
+	      memcpy(mac_address, ifr.ifr_hwaddr.sa_data, sizeof(mac_address));
+	      break;
+	    }
+	}
+    }
+  /* End MAC Address */
+
+  if (p1->service == SEARCH_REQUEST && discover)
+    {
+      EIBnet_SearchRequest r1;
+      EIBnet_SearchResponse r2;
+      DIB_service_Entry d;
+      if (parseEIBnet_SearchRequest (*p1, r1))
+	goto out;
+      TRACEPRINTF (t, 8, this, "SEARCH");
+      r2.KNXmedium = 2;
+      r2.devicestatus = 0;
+      r2.individual_addr = l3->defaultAddr;
+      r2.installid = 0;
+      r2.multicastaddr = mcast->maddr.sin_addr;
+      r2.serial[0]=1;
+      r2.serial[1]=2;
+      r2.serial[2]=3;
+      r2.serial[3]=4;
+      r2.serial[4]=5;
+      r2.serial[5]=6;
+      //FIXME: Hostname, MAC-addr
+      memcpy(r2.MAC, mac_address, sizeof(r2.MAC));
+      //FIXME: Hostname, indiv. address
+      strncpy ((char *) r2.name, name (), sizeof(r2.name));
+      d.version = 1;
+      d.family = 2; // core
+      r2.services.add (d);
+      //d.family = 3; // device management
+      //r2.services.add (d);
+      d.family = 4;
+      if (tunnel)
+	r2.services.add (d);
+      d.family = 5;
+      if (route)
+	r2.services.add (d);
+      if (!GetSourceAddress (&r1.caddr, &r2.caddr))
+	goto out;
+      r2.caddr.sin_port = Port;
+      sock->Send (r2.ToPacket (), r1.caddr);
+      goto out;
+    }
+  if (p1->service == DESCRIPTION_REQUEST && discover)
+    {
+      EIBnet_DescriptionRequest r1;
+      EIBnet_DescriptionResponse r2;
+      DIB_service_Entry d;
+      if (parseEIBnet_DescriptionRequest (*p1, r1))
+	goto out;
+      TRACEPRINTF (t, 8, this, "DESCRIBE");
+      r2.KNXmedium = 2;
+      r2.devicestatus = 0;
+      r2.individual_addr = l3->defaultAddr;
+      r2.installid = 0;
+      r2.multicastaddr = mcast->maddr.sin_addr;
+      memcpy(r2.MAC, mac_address, sizeof(r2.MAC));
+      //FIXME: Hostname, indiv. address
+      strncpy ((char *) r2.name, name(), sizeof(r2.name));
+      d.version = 1;
+      d.family = 2;
+      if (discover)
+	r2.services.add (d);
+      d.family = 3;
+      r2.services.add (d);
+      d.family = 4;
+      if (tunnel)
+	r2.services.add (d);
+      d.family = 5;
+      if (route)
+	r2.services.add (d);
+      sock->Send (r2.ToPacket (), r1.caddr);
+      goto out;
+    }
+  if (p1->service == ROUTING_INDICATION && route)
+    {
+      if (p1->data () < 2 || p1->data[0] != 0x29)
+	goto out;
+      const CArray data = p1->data;
+      L_Data_PDU *c = CEMI_to_L_Data (data, this);
+      if (c)
+	{
+	  TRACEPRINTF (t, 8, this, "Recv_Route %s", c->Decode ()());
+	  if (c->hopcount)
+	    {
+	      c->hopcount--;
+	      addNAT (*c);
+	      c->object = this;
+	      l3->recv_L_Data (c);
+	    }
+	  else
+	    {
+	      TRACEPRINTF (t, 8, this, "RecvDrop");
+	      delete c;
+	    }
+	}
+      goto out;
+    }
+  if (p1->service == CONNECTIONSTATE_REQUEST)
+    {
+      uchar res = 21;
+      EIBnet_ConnectionStateRequest r1;
+      EIBnet_ConnectionStateResponse r2;
+      if (parseEIBnet_ConnectionStateRequest (*p1, r1))
+	goto out;
+      for (unsigned int i = 0; i < state (); i++)
+	if (state[i]->channel == r1.channel)
+	  {
+	    if (compareIPAddress (p1->src, state[i]->caddr))
+	      {
+		res = 0;
+		pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE,
+			    state[i]->timeout, pth_time (120, 0));
+	      }
+	    else
+	      TRACEPRINTF (t, 8, this, "Invalid control address");
+	  }
+      r2.channel = r1.channel;
+      r2.status = res;
+      sock->Send (r2.ToPacket (), r1.caddr);
+      goto out;
+    }
+  if (p1->service == DISCONNECT_REQUEST)
+    {
+      uchar res = 0x21;
+      EIBnet_DisconnectRequest r1;
+      EIBnet_DisconnectResponse r2;
+      if (parseEIBnet_DisconnectRequest (*p1, r1))
+	goto out;
+      for (unsigned int i = 0; i < state (); i++)
+	if (state[i]->channel == r1.channel)
+	  {
+	    if (compareIPAddress (p1->src, state[i]->caddr))
+	      {
+		drop_state(i);
+		break;
+	      }
+	    else
+	      TRACEPRINTF (t, 8, this, "Invalid control address");
+	  }
+      r2.channel = r1.channel;
+      r2.status = res;
+      sock->Send (r2.ToPacket (), r1.caddr);
+      goto out;
+    }
+  if (p1->service == CONNECTION_REQUEST)
+    {
+      EIBnet_ConnectRequest r1;
+      EIBnet_ConnectResponse r2;
+      if (parseEIBnet_ConnectRequest (*p1, r1))
+	goto out;
+      r2.status = 0x22;
+      if (r1.CRI () == 3 && r1.CRI[0] == 4 && tunnel)
+	{
+	  eibaddr_t a = l3->get_client_addr ();
+	  r2.CRD.resize (3);
+	  r2.CRD[0] = 0x04;
+	  TRACEPRINTF (t, 8, this, "Tunnel CONNECTION_REQ with %s", FormatEIBAddr(a)());
+	  r2.CRD[1] = (a >> 8) & 0xFF;
+	  r2.CRD[2] = (a >> 0) & 0xFF;
+	  if (r1.CRI[1] == 0x02 || r1.CRI[1] == 0x80)
+	    {
+	      int id = addClient ((r1.CRI[1] == 0x80) ? CT_BUSMONITOR : CT_STANDARD, r1, a);
+	      if (id <= 0xff)
+		{
+		  if (r1.CRI[1] == 0x80)
+		    addBusmonitor ();
+		  r2.channel = id;
+		  r2.status = 0;
+		}
+	    }
+	}
+      else if (r1.CRI () == 1 && r1.CRI[0] == 3)
+	{
+	  r2.CRD.resize (1);
+	  r2.CRD[0] = 0x03;
+	  int id = addClient (CT_CONFIG, r1, 0);
+	  if (id <= 0xff)
+	    {
+	      r2.channel = id;
+	      r2.status = 0;
+	    }
+	}
+      if (!GetSourceAddress (&r1.caddr, &r2.daddr))
+	goto out;
+      r2.daddr.sin_port = Port;
+      r2.nat = r1.nat;
+      sock->Send (r2.ToPacket (), r1.caddr);
+      goto out;
+    }
+  if (p1->service == TUNNEL_REQUEST && tunnel)
+    {
+      EIBnet_TunnelRequest r1;
+      EIBnet_TunnelACK r2;
+      if (parseEIBnet_TunnelRequest (*p1, r1))
+	goto out;
+      TRACEPRINTF (t, 8, this, "TUNNEL_REQ");
+      for (unsigned int i = 0; i < state (); i++)
+	if (state[i]->channel == r1.channel)
+	  {
+	    if (!compareIPAddress (p1->src, state[i]->daddr))
+	      {
+		TRACEPRINTF (t, 8, this, "Invalid data endpoint");
+		break;
+	      }
+	    state[i]->tunnel_request(r1);
+	    break;
+	  }
+      goto out;
+    }
+  if (p1->service == TUNNEL_RESPONSE && tunnel)
+    {
+      EIBnet_TunnelACK r1;
+      if (parseEIBnet_TunnelACK (*p1, r1))
+	goto out;
+      TRACEPRINTF (t, 8, this, "TUNNEL_ACK");
+      for (unsigned int i = 0; i < state (); i++)
+	if (state[i]->channel == r1.channel)
+	  {
+	    if (!compareIPAddress (p1->src, state[i]->daddr))
+	      {
+		TRACEPRINTF (t, 8, this, "Invalid data endpoint");
+		break;
+	      }
+	    state[i]->tunnel_response (r1);
+	    break;
+	  }
+      goto out;
+    }
+  if (p1->service == DEVICE_CONFIGURATION_REQUEST)
+    {
+      EIBnet_ConfigRequest r1;
+      EIBnet_ConfigACK r2;
+      if (parseEIBnet_ConfigRequest (*p1, r1))
+	goto out;
+      TRACEPRINTF (t, 8, this, "CONFIG_REQ");
+      for (unsigned int i = 0; i < state (); i++)
+	if (state[i]->channel == r1.channel)
+	  {
+	    if (!compareIPAddress (p1->src, state[i]->daddr))
+	      {
+		TRACEPRINTF (t, 8, this, "Invalid data endpoint");
+		  break;
+	      }
+	    state[i]->config_request (r1);
+	    break;
+	  }
+      goto out;
+    }
+  if (p1->service == DEVICE_CONFIGURATION_ACK)
+    {
+      EIBnet_ConfigACK r1;
+      if (parseEIBnet_ConfigACK (*p1, r1))
+	goto out;
+      TRACEPRINTF (t, 8, this, "CONFIG_ACK");
+      for (unsigned int i = 0; i < state (); i++)
+	if (state[i]->channel == r1.channel)
+	  {
+	    if (!compareIPAddress (p1->src, state[i]->daddr))
+	      {
+		TRACEPRINTF (t, 8, this, "Invalid data endpoint");
+		break;
+	      }
+	    state[i]->config_response (r1);
+	    break;
+	  }
+      goto out;
+    }
+  TRACEPRINTF (t, 8, this, "Unexpected service type: %04x", p1->service);
+out:
+  delete p1;
+}
+
 void
 EIBnetServer::Run (pth_sem_t * stop1)
 {
@@ -386,309 +767,28 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	    natstate.deletepart (i, 1);
 	  }
       if (p1)
-	{
-          /* Get MAC Address */
-
-          struct ifreq ifr;
-          struct ifconf ifc;
-          char buf[1024];
-          unsigned char mac_address[IFHWADDRLEN]= {0,0,0,0,0,0};
-
-          int sock_mac = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
-          if (sock_mac != -1)
-	    {
-              ifc.ifc_len = sizeof(buf);
-              ifc.ifc_buf = buf;
-              if (ioctl(sock_mac, SIOCGIFCONF, &ifc) != -1)
-		{
-                  struct ifreq* it = ifc.ifc_req;
-                  const struct ifreq* const end = it + (ifc.ifc_len / sizeof(struct ifreq));
-
-                  for (; it != end; ++it)
-                    {
-                      strcpy(ifr.ifr_name, it->ifr_name);
-                      if (ioctl(sock_mac, SIOCGIFFLAGS, &ifr))
-			continue;
-		      if (ifr.ifr_flags & IFF_LOOPBACK) // don't count loopback
-			continue;
-		      if (ioctl(sock_mac, SIOCGIFHWADDR, &ifr))
-			continue;
-		      if (ifr.ifr_hwaddr.sa_family != ARPHRD_ETHER)
-			continue;
-		      memcpy(mac_address, ifr.ifr_hwaddr.sa_data, sizeof(mac_address));
-		      break;
-		    }
-                }
-              close(sock_mac);
-	    }
-          /* End MAC Address */
-
-	  if (p1->service == SEARCH_REQUEST && discover)
-	    {
-	      EIBnet_SearchRequest r1;
-	      EIBnet_SearchResponse r2;
-	      DIB_service_Entry d;
-	      if (parseEIBnet_SearchRequest (*p1, r1))
-		goto out;
-	      TRACEPRINTF (t, 8, this, "SEARCH");
-	      r2.KNXmedium = 2;
-	      r2.devicestatus = 0;
-	      r2.individual_addr = l3->defaultAddr;
-	      r2.installid = 0;
-	      r2.multicastaddr = maddr.sin_addr;
-	      r2.serial[0]=1;
-	      r2.serial[1]=2;
-	      r2.serial[2]=3;
-	      r2.serial[3]=4;
-	      r2.serial[4]=5;
-	      r2.serial[5]=6;
-	      //FIXME: Hostname, MAC-addr
-              memcpy(r2.MAC, mac_address, sizeof(r2.MAC));
-	      //FIXME: Hostname, indiv. address
-              strncpy ((char *) r2.name, name (), sizeof(r2.name));
-	      d.version = 1;
-	      d.family = 2; // core
-	      r2.services.add (d);
-	      //d.family = 3; // device management
-	      //r2.services.add (d);
-	      d.family = 4;
-	      if (tunnel)
-		r2.services.add (d);
-	      d.family = 5;
-	      if (route)
-		r2.services.add (d);
-	      if (!GetSourceAddress (&r1.caddr, &r2.caddr))
-		goto out;
-	      r2.caddr.sin_port = Port;
-	      sock->Send (r2.ToPacket (), r1.caddr);
-	    }
-	  if (p1->service == DESCRIPTION_REQUEST && discover)
-	    {
-	      EIBnet_DescriptionRequest r1;
-	      EIBnet_DescriptionResponse r2;
-	      DIB_service_Entry d;
-	      if (parseEIBnet_DescriptionRequest (*p1, r1))
-		goto out;
-	      TRACEPRINTF (t, 8, this, "DESCRIBE");
-	      r2.KNXmedium = 2;
-	      r2.devicestatus = 0;
-	      r2.individual_addr = l3->defaultAddr;
-	      r2.installid = 0;
-	      r2.multicastaddr = maddr.sin_addr;
-              memcpy(r2.MAC, mac_address, sizeof(r2.MAC));
-	      //FIXME: Hostname, indiv. address
-              strncpy ((char *) r2.name, name(), sizeof(r2.name));
-	      d.version = 1;
-	      d.family = 2;
-	      if (discover)
-		r2.services.add (d);
-	      d.family = 3;
-	      r2.services.add (d);
-	      d.family = 4;
-	      if (tunnel)
-		r2.services.add (d);
-	      d.family = 5;
-	      if (route)
-		r2.services.add (d);
-	      sock->Send (r2.ToPacket (), r1.caddr);
-	    }
-	  if (p1->service == ROUTING_INDICATION && route)
-	    {
-	      if (p1->data () < 2 || p1->data[0] != 0x29)
-		goto out;
-	      const CArray data = p1->data;
-	      L_Data_PDU *c = CEMI_to_L_Data (data, this);
-	      if (c)
-		{
-		  TRACEPRINTF (t, 8, this, "Recv_Route %s", c->Decode ()());
-		  if (c->hopcount)
-		    {
-		      c->hopcount--;
-		      addNAT (*c);
-		      c->object = this;
-		      l3->recv_L_Data (c);
-		    }
-		  else
-		    {
-		      TRACEPRINTF (t, 8, this, "RecvDrop");
-		      delete c;
-		    }
-		}
-	    }
-	  if (p1->service == CONNECTIONSTATE_REQUEST)
-	    {
-	      uchar res = 21;
-	      EIBnet_ConnectionStateRequest r1;
-	      EIBnet_ConnectionStateResponse r2;
-	      if (parseEIBnet_ConnectionStateRequest (*p1, r1))
-		goto out;
-	      for (i = 0; i < state (); i++)
-		if (state[i]->channel == r1.channel)
-		  {
-		    if (compareIPAddress (p1->src, state[i]->caddr))
-		      {
-			res = 0;
-			pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE,
-				   state[i]->timeout, pth_time (120, 0));
-		      }
-		    else
-		      TRACEPRINTF (t, 8, this, "Invalid control address");
-		  }
-	      r2.channel = r1.channel;
-	      r2.status = res;
-	      sock->Send (r2.ToPacket (), r1.caddr);
-	    }
-	  if (p1->service == DISCONNECT_REQUEST)
-	    {
-	      uchar res = 0x21;
-	      EIBnet_DisconnectRequest r1;
-	      EIBnet_DisconnectResponse r2;
-	      if (parseEIBnet_DisconnectRequest (*p1, r1))
-		goto out;
-	      for (i = 0; i < state (); i++)
-		if (state[i]->channel == r1.channel)
-		  {
-		    if (compareIPAddress (p1->src, state[i]->caddr))
-		      {
-			drop_state(i);
-			break;
-		      }
-		    else
-		      TRACEPRINTF (t, 8, this, "Invalid control address");
-		  }
-	      r2.channel = r1.channel;
-	      r2.status = res;
-	      sock->Send (r2.ToPacket (), r1.caddr);
-	    }
-	  if (p1->service == CONNECTION_REQUEST)
-	    {
-	      EIBnet_ConnectRequest r1;
-	      EIBnet_ConnectResponse r2;
-	      if (parseEIBnet_ConnectRequest (*p1, r1))
-		goto out;
-	      r2.status = 0x22;
-	      if (r1.CRI () == 3 && r1.CRI[0] == 4 && tunnel)
-		{
-		  eibaddr_t a = l3->get_client_addr ();
-		  r2.CRD.resize (3);
-		  r2.CRD[0] = 0x04;
-		  TRACEPRINTF (t, 8, this, "Tunnel CONNECTION_REQ with %s", FormatEIBAddr(a)());
-		  r2.CRD[1] = (a >> 8) & 0xFF;
-		  r2.CRD[2] = (a >> 0) & 0xFF;
-		  if (r1.CRI[1] == 0x02 || r1.CRI[1] == 0x80)
-		    {
-		      int id = addClient ((r1.CRI[1] == 0x80) ? CT_BUSMONITOR : CT_STANDARD, r1, a);
-		      if (id <= 0xff)
-			{
-			  if (r1.CRI[1] == 0x80)
-			    addBusmonitor ();
-			  r2.channel = id;
-			  r2.status = 0;
-			}
-		    }
-		}
-	      else if (r1.CRI () == 1 && r1.CRI[0] == 3)
-		{
-		  r2.CRD.resize (1);
-		  r2.CRD[0] = 0x03;
-		  int id = addClient (CT_CONFIG, r1, 0);
-		  if (id <= 0xff)
-		    {
-		      r2.channel = id;
-		      r2.status = 0;
-		    }
-		}
-	      if (!GetSourceAddress (&r1.caddr, &r2.daddr))
-		goto out;
-	      r2.daddr.sin_port = Port;
-	      r2.nat = r1.nat;
-	      sock->Send (r2.ToPacket (), r1.caddr);
-	    }
-	  if (p1->service == TUNNEL_REQUEST && tunnel)
-	    {
-	      EIBnet_TunnelRequest r1;
-	      EIBnet_TunnelACK r2;
-	      if (parseEIBnet_TunnelRequest (*p1, r1))
-		goto out;
-	      TRACEPRINTF (t, 8, this, "TUNNEL_REQ");
-	      for (i = 0; i < state (); i++)
-		if (state[i]->channel == r1.channel)
-		  {
-		    if (!compareIPAddress (p1->src, state[i]->daddr))
-		      {
-			TRACEPRINTF (t, 8, this, "Invalid data endpoint");
-			break;
-		      }
-		    state[i]->tunnel_request(r1);
-		    break;
-		  }
-	      goto out;
-	    }
-	  if (p1->service == TUNNEL_RESPONSE && tunnel)
-	    {
-	      EIBnet_TunnelACK r1;
-	      if (parseEIBnet_TunnelACK (*p1, r1))
-		goto out;
-	      TRACEPRINTF (t, 8, this, "TUNNEL_ACK");
-	      for (i = 0; i < state (); i++)
-		if (state[i]->channel == r1.channel)
-		  {
-		    if (!compareIPAddress (p1->src, state[i]->daddr))
-		      {
-			TRACEPRINTF (t, 8, this, "Invalid data endpoint");
-			break;
-		      }
-		    state[i]->tunnel_response (r1);
-		    break;
-		  }
-	      goto out;
-	    }
-	  if (p1->service == DEVICE_CONFIGURATION_REQUEST)
-	    {
-	      EIBnet_ConfigRequest r1;
-	      EIBnet_ConfigACK r2;
-	      if (parseEIBnet_ConfigRequest (*p1, r1))
-		goto out;
-	      TRACEPRINTF (t, 8, this, "CONFIG_REQ");
-	      for (i = 0; i < state (); i++)
-		if (state[i]->channel == r1.channel)
-		  {
-		    if (!compareIPAddress (p1->src, state[i]->daddr))
-		      {
-			TRACEPRINTF (t, 8, this, "Invalid data endpoint");
-			  break;
-		      }
-		    state[i]->config_request (r1);
-		    break;
-		  }
-	      goto out;
-	    }
-	  if (p1->service == DEVICE_CONFIGURATION_ACK)
-	    {
-	      EIBnet_ConfigACK r1;
-	      if (parseEIBnet_ConfigACK (*p1, r1))
-		goto out;
-	      TRACEPRINTF (t, 8, this, "CONFIG_ACK");
-	      for (i = 0; i < state (); i++)
-		if (state[i]->channel == r1.channel)
-		  {
-		    if (!compareIPAddress (p1->src, state[i]->daddr))
-		      {
-			TRACEPRINTF (t, 8, this, "Invalid data endpoint");
-			break;
-		      }
-		    state[i]->config_response (r1);
-		    break;
-		  }
-	      goto out;
-	    }
-	  TRACEPRINTF (t, 8, this, "Unexpected service type: %d", p1->service);
-	out:
-	  delete p1;
-	}
+	handle_packet (p1);
     }
   for (i = 0; i < state (); i++)
-    delete state[i];
+    {
+      delete state[i];
+      state[i] = 0;
+    }
+  pth_event_free (stop, PTH_FREE_THIS);
+}
+
+void
+EIBnetDiscover::Run (pth_sem_t * stop1)
+{
+  EIBNetIPPacket *p1;
+  pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
+
+  while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
+    {
+      p1 = sock->Get (stop);
+      if (p1)
+	parent->handle_packet (p1);
+    }
   pth_event_free (stop, PTH_FREE_THIS);
 }
 

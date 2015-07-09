@@ -76,16 +76,40 @@ typedef struct
   pth_event_t timeout;
 } NATState;
 
+class EIBnetDiscover: protected Thread
+{
+  EIBnetServer *parent;
+  EIBNetIPSocket *sock; // receive only
+
+  void Run (pth_sem_t * stop);
+
+public:
+  EIBnetDiscover (EIBnetServer *parent, const char *multicastaddr, int port);
+  virtual ~EIBnetDiscover ();
+  struct sockaddr_in maddr;
+
+  bool init (void);
+  const char * Name () { return "EIBnetD"; }
+
+  void Send (EIBNetIPPacket p);
+};
+
 class EIBnetServer: protected Thread, public L_Busmonitor_CallBack, public Layer2mixin
 {
   friend class ConnState;
-  EIBNetIPSocket *sock;
-  int Port;
+  friend class EIBnetDiscover;
+
+  EIBnetDiscover *mcast; // used for multicast receiving
+  EIBNetIPSocket *sock;  // used for normal dialog
+  int sock_mac;          // used to query the list of interfaces
+  int Port;              // copy of sock->port()
+
+  /** Flags */
   bool tunnel;
   bool route;
   bool discover;
+
   int busmoncount;
-  struct sockaddr_in maddr;
   Array < ConnState *> state;
   Array < NATState > natstate;
   String name;
@@ -104,6 +128,8 @@ public:
                 const String serverName);
   virtual ~EIBnetServer ();
   bool init ();
+  bool handle_packet (EIBNetIPPacket *p1);
+
   const char * Name () { return "EIBnet"; }
   void drop_state (ConnState *s);
   void drop_state (uint8_t index);

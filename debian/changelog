@@ -1,6 +1,7 @@
 knxd (0.10.2-4) UNRELEASED; urgency=medium
 
   * Allocate remote addresses to clients
+  * Refactor multicast to use a separate port for sending
 
  -- Matthias Urlichs <matthias@urlichs.de>  Sun, 28 Jun 2015 06:53:31 +0000
 
