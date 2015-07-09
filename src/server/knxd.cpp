@@ -43,6 +43,7 @@
 #define OPT_BACK_TPUARTS_ACKINDIVIDUAL 3
 #define OPT_BACK_TPUARTS_DISCH_RESET 4
 #define OPT_BACK_EMI_NOQUEUE 5
+#define OPT_STOP_NOW 6
 
 /** structure to store the arguments */
 class arguments
@@ -75,6 +76,7 @@ public:
   const char *serverip;
   const char *eibnetname;
 
+  bool stop_now;
 private:
   /** our L3 instance (singleton (so far!)) */
   Layer3 *layer3;
@@ -290,6 +292,8 @@ static struct argp_option options[] = {
    "wait for L_Data_ind while sending (for all EMI based backends)"},
   {"no-monitor", 'N', 0, 0,
    "the next Layer2 interface may not enter monitor mode"},
+  {"stop-right-now", OPT_STOP_NOW, 0, OPTION_HIDDEN,
+   "immediately stops the server after a successful start"},
   {0}
 };
 
@@ -412,6 +416,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
 	arguments->eibnetname++;
       if(strlen(arguments->eibnetname) >= 30)
 	die("EIBnetServer/IP name must be shorter than 30 bytes");
+      break;
+    case OPT_STOP_NOW:
+      arguments->stop_now = true;
       break;
     case OPT_BACK_TUNNEL_NOQUEUE:
       arguments->l2opts.flags |= FLAG_B_TUNNEL_NOQUEUE;
@@ -548,8 +555,8 @@ main (int ac, char *ag[])
   sd_notify(0,"READY=1");
 #endif
   int sig;
-  do
-    {
+  if (! arg.stop_now)
+    do {
       sigset_t t1;
       sigemptyset (&t1);
       sigaddset (&t1, SIGINT);
@@ -575,8 +582,7 @@ main (int ac, char *ag[])
 	  close (fd);
 	}
 
-    }
-  while (sig == SIGHUP);
+    } while (sig == SIGHUP);
 #ifdef HAVE_SYSTEMD
   sd_notify(0,"STOPPING=1");
 #endif
