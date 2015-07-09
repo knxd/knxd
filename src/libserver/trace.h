@@ -39,6 +39,13 @@
 #define LEVEL_NOTICE 4
 #define LEVEL_INFO 5
 
+#define E_FATAL (LEVEL_FATAL<<28)
+#define E_CRTIICAL (LEVEL_CRITICAL<<28)
+#define E_ERROR (LEVEL_ERROR<<28)
+#define E_WARNING (LEVEL_WARNING<<28)
+#define E_NOTICE (LEVEL_NOTICE<<28)
+#define E_INFO (LEVEL_INFO<<28)
+
 /** implements debug output with different levels */
 class Trace
 {

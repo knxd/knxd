@@ -55,10 +55,15 @@ TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
   ackallindividual = opt ? (opt->flags & FLAG_B_TPUARTS_ACKINDIVIDUAL) : 0;
   dischreset = opt ? (opt->flags & FLAG_B_TPUARTS_DISCH_RESET) : 0;
 
+  if (opt)
+	opt->flags &=~ (FLAG_B_TPUARTS_ACKGROUP |
+	                FLAG_B_TPUARTS_ACKINDIVIDUAL |
+					FLAG_B_TPUARTS_DISCH_RESET);
+
   fd = open (dev, O_RDWR | O_NOCTTY | O_NDELAY | O_SYNC);
   if (fd == -1)
     {
-      TRACEPRINTF (t, 2, this, "Opening %s failed: %s", dev, strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 22, this, "Opening %s failed: %s", dev, strerror(errno));
       return;
     }
   set_low_latency (fd, &sold);
@@ -68,13 +73,13 @@ TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
   fd = open (dev, O_RDWR | O_NOCTTY | O_SYNC);
   if (fd == -1)
     {
-      TRACEPRINTF (t, 2, this, "Opening %s failed: %s", dev, strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 23, this, "Opening %s failed: %s", dev, strerror(errno));
       return;
     }
 
   if (tcgetattr (fd, &old))
     {
-      TRACEPRINTF (t, 2, this, "tcgetattr %s failed: %s", dev, strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 24, this, "tcgetattr %s failed: %s", dev, strerror(errno));
       restore_low_latency (fd, &sold);
       close (fd);
       fd = -1;
@@ -83,7 +88,7 @@ TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
 
   if (tcgetattr (fd, &t1))
     {
-      TRACEPRINTF (t, 2, this, "tcgetattr %s failed: %s", dev, strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 25, this, "tcgetattr %s failed: %s", dev, strerror(errno));
       restore_low_latency (fd, &sold);
       close (fd);
       fd = -1;
@@ -101,7 +106,7 @@ TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
 
   if (tcsetattr (fd, TCSAFLUSH, &t1))
     {
-      TRACEPRINTF (t, 2, this, "tcsetattr %s failed: %s", dev, strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 26, this, "tcsetattr %s failed: %s", dev, strerror(errno));
       restore_low_latency (fd, &sold);
       close (fd);
       fd = -1;
@@ -521,7 +526,7 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 	}
     }
   if (pth_event_status (stop) != PTH_STATUS_OCCURRED)
-    TRACEPRINTF (t, 2, this, "exited due to error: %s", strerror(errno));
+    ERRORPRINTF (t, E_FATAL | 27, this, "exited due to error: %s", strerror(errno));
   pth_event_free (stop, PTH_FREE_THIS);
   pth_event_free (input, PTH_FREE_THIS);
   pth_event_free (timeout, PTH_FREE_THIS);

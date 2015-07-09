@@ -43,6 +43,7 @@
 #define OPT_BACK_TPUARTS_ACKINDIVIDUAL 3
 #define OPT_BACK_TPUARTS_DISCH_RESET 4
 #define OPT_BACK_EMI_NOQUEUE 5
+#define OPT_STOP_NOW 6
 
 /** structure to store the arguments */
 class arguments
@@ -79,6 +80,7 @@ public:
   const char *serverip;
   const char *eibnetname;
 
+  bool stop_now;
 private:
   /** our L3 instance (singleton (so far!)) */
   Layer3 *layer3;
@@ -309,6 +311,8 @@ static struct argp_option options[] = {
    "wait for L_Data_ind while sending (for all EMI based backends)"},
   {"no-monitor", 'N', 0, 0,
    "the next Layer2 interface may not enter monitor mode"},
+  {"stop-right-now", OPT_STOP_NOW, 0, OPTION_HIDDEN,
+   "immediately stops the server after a successful start"},
   {0}
 };
 
@@ -410,7 +414,10 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
     case 'e':
       if (arguments->has_l3 ())
-        arguments->addr = readaddr (arg);
+	{
+	  die ("You need to specify '-e' earlier");
+	}
+      arguments->addr = readaddr (arg);
       break;
     case 'E':
       readaddrblock (arguments, arg);
@@ -431,6 +438,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
         arguments->eibnetname++;
       if(strlen(arguments->eibnetname) >= 30)
         die("EIBnetServer/IP name must be shorter than 30 bytes");
+      break;
+    case OPT_STOP_NOW:
+      arguments->stop_now = true;
       break;
     case OPT_BACK_TUNNEL_NOQUEUE:
       arguments->l2opts.flags |= FLAG_B_TUNNEL_NOQUEUE;
@@ -453,10 +463,12 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case ARGP_KEY_ARG:
     case 'b':
       {
-                arguments->l2opts.t = arguments->tracer ();
+	arguments->l2opts.t = arguments->tracer ();
         Layer2 *l2 = Create (arg, &arguments->l2opts, arguments->l3 ());
         if (!l2 || !l2->init ())
           die ("initialisation of backend '%s' failed", arg);
+	if (arguments->l2opts.flags)
+          die ("You provided options which '%s' does not recognize", arg);
         memset(&arguments->l2opts, 0, sizeof(arguments->l2opts));
         arguments->has_work |= (arguments->has_work & 0x01) ? 0x02 : 0x01;
         /* The idea is that having two or more L2 interfaces to route between,
@@ -490,10 +502,13 @@ parse_opt (int key, char *arg, struct argp_state *state)
       }
 #endif
 
+	  errno = 0;
       if (arguments->tunnel || arguments->route || arguments->discover || 
           arguments->eibnetname)
         die ("Option '-S' starts the multicast server.\n"
-             "-T/-R/-D/-n after that are useless.");
+             "-T/-R/-D/-n after or without that option are useless.");
+      if (arguments->l2opts.flags)
+	die ("You provided L2 flags after specifying an L2 interface.");
       if (!(arguments->has_work & 0x01))
         die ("I know of no Layer-2 interface. Giving up.");
       if (!(arguments->has_work & 0x02))
@@ -523,12 +538,11 @@ main (int ac, char *ag[])
 
   argp_parse (&argp, ac, ag, ARGP_IN_ORDER, &index, &arg);
 
-  signal (SIGPIPE, SIG_IGN);
-
-  /*
+  // if you ever want this to be fatal, doing it here would be too late
   if (getuid () == 0)
-    ERRORPRINTF (&t, 0x37000001, 0, "EIBD should not run as root");
-  */
+    ERRORPRINTF (arg.tracer(), E_WARNING | 20, 0, "EIBD should not run as root");
+
+  signal (SIGPIPE, SIG_IGN);
 
   if (arg.daemon)
     {
@@ -549,7 +563,6 @@ main (int ac, char *ag[])
       setsid ();
     }
 
-
   FILE *pidf;
   if (arg.pidfile)
     if ((pidf = fopen (arg.pidfile, "w")) != NULL)
@@ -566,8 +579,8 @@ main (int ac, char *ag[])
   sd_notify(0,"READY=1");
 #endif
   int sig;
-  do
-    {
+  if (! arg.stop_now)
+    do {
       sigset_t t1;
       sigemptyset (&t1);
       sigaddset (&t1, SIGINT);
@@ -577,24 +590,23 @@ main (int ac, char *ag[])
       pth_sigwait (&t1, &sig);
 
       if (sig == SIGHUP && arg.daemon)
-        {
-          int fd =
-            open (arg.daemon, O_WRONLY | O_APPEND | O_CREAT, FILE_MODE);
-          if (fd == -1)
-            {
-              ERRORPRINTF (arg.tracer(), 0x27000002, 0, "can't open log file %s",
-                           arg.daemon);
-              continue;
-            }
-          close (1);
-          close (2);
-          dup2 (fd, 1);
-          dup2 (fd, 2);
-          close (fd);
-        }
+	{
+	  int fd =
+	    open (arg.daemon, O_WRONLY | O_APPEND | O_CREAT, FILE_MODE);
+	  if (fd == -1)
+	    {
+	      ERRORPRINTF (arg.tracer(), E_ERROR | 21, 0, "can't open log file %s",
+			   arg.daemon);
+	      continue;
+	    }
+	  close (1);
+	  close (2);
+	  dup2 (fd, 1);
+	  dup2 (fd, 2);
+	  close (fd);
+	}
 
-    }
-  while (sig == SIGHUP);
+    } while (sig == SIGHUP);
 #ifdef HAVE_SYSTEMD
   sd_notify(0,"STOPPING=1");
 #endif
