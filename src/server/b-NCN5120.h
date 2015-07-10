@@ -24,7 +24,7 @@
 
 #define NCN5120_URL "ncn5120:/dev/ttySx\n"
 
-#define NCN5120_DOC "NCN5120 connects to the EIB bus over an the NCN5120 with 38400 baud and 8-bit mode\n\n"
+#define NCN5120_DOC "NCN5120 connects to the EIB bus over an NCN5120 with 38400 baud and 8-bit mode\n\n"
 
 #define NCN5120_PREFIX "ncn5120"
 
