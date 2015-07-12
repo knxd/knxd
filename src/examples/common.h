@@ -24,6 +24,7 @@
 #include <sys/select.h>
 #endif
 #include <unistd.h>
+#include "config.h"
 #include "eibclient.h"
 
 /** unsigned char*/
