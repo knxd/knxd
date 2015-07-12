@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <unistd.h>
+#include "config.h"
 #include "eibclient.h"
 
 /** unsigned char*/

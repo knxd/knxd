@@ -24,6 +24,9 @@
 #include <time.h>
 #include <fcntl.h>
 #include <string.h>
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
 
 int
 main (int ac, char *ag[])
@@ -33,37 +36,34 @@ main (int ac, char *ag[])
   EIBConnection *con;
   eibaddr_t dest;
   eibaddr_t src;
+  char *prog;
 
   /* check if the application is called by its original name
    * (and an applet name afterwards), or with a symbolic link */
-  if (strlen (ag[0]) > 7
-      && strcmp (ag[0] + strlen (ag[0]) - 7, "knxtool") == 0)
+  prog = strrchr (ag[0], '/');
+  if (strcmp(prog, "knxtool") == 0)
     {
       if (ac < 2)
-	die ("usage: %s applet", ag[0]);
+	die ("usage: %s applet [args]", prog);
       ac--;
       ag++;
+      prog = ag[0];
     }
+  if (strncmp (prog, "knx", 3) == 0)
+    prog += 3;
 
   if (ac < 2)
-    die ("usage: %s url", ag[0]);
-  if (strncmp (ag[0], "knx", 3) == 0)
-    {
-      ag[0] += 3;
-    }
+    die ("usage: %s url [args]", prog);
 
   /* Open the Socket */
   con = EIBSocketURL (ag[1]);
   if (!con)
     die ("Open failed");
 
-  if (strcmp (ag[0], "on") == 0)
+  if (strcmp (prog, "on") == 0)
     {
-      if (ac < 3)
-	{
-	  EIBClose (con);
-	  die ("usage: %s url eibaddr", ag[0]);
-	}
+      if (ac != 3)
+	die ("usage: %s url eibaddr", prog);
       dest = readgaddr (ag[2]);
       buf[0] = 0;
       buf[1] = 0x81;
@@ -76,13 +76,10 @@ main (int ac, char *ag[])
 	die ("Request failed");
       printf ("Send request\n");
     }
-  else if (strcmp (ag[0], "off") == 0)
+  else if (strcmp (prog, "off") == 0)
     {
-      if (ac < 3)
-	{
-	  EIBClose (con);
-	  die ("usage: %s url eibaddr", ag[0]);
-	}
+      if (ac != 3)
+	die ("usage: %s url eibaddr", prog);
       dest = readgaddr (ag[2]);
       buf[0] = 0;
       buf[1] = 0x80;
@@ -95,13 +92,10 @@ main (int ac, char *ag[])
 	die ("Request failed");
       printf ("Send request\n");
     }
-  else if (strcmp (ag[0], "write") == 0)
+  else if (strcmp (prog, "write") == 0)
     {
       if (ac != 4)
-	{
-	  EIBClose (con);
-	  die ("usage: %s url eibaddr val", ag[0]);
-	}
+	die ("usage: %s url eibaddr val", prog);
       dest = readgaddr (ag[2]);
       buf[0] = 0;
       buf[1] = 0x80;
@@ -115,13 +109,10 @@ main (int ac, char *ag[])
 	die ("Request failed");
       printf ("Send request\n");
     }
-  else if (strcmp (ag[0], "swrite") == 0)
+  else if (strcmp (prog, "swrite") == 0)
     {
       if (ac != 4)
-	{
-	  EIBClose (con);
-	  die ("usage: %s url eibaddr val", ag[0]);
-	}
+	die ("usage: %s url eibaddr val", prog);
       dest = readgaddr (ag[2]);
       buf[0] = 0;
       buf[1] = 0x80 | (readHex (ag[3]) & 0x3f);
@@ -134,14 +125,11 @@ main (int ac, char *ag[])
 	die ("Request failed");
       printf ("Send request\n");
     }
-  else if (strcmp (ag[0], "read") == 0)
+  else if (strcmp (prog, "read") == 0)
     {
 
       if (ac != 3)
-	{
-	  EIBClose (con);
-	  die ("usage: %s url eibaddr", ag[0]);
-	}
+	die ("usage: %s url eibaddr", prog);
       dest = readgaddr (ag[2]);
 
       if (EIBOpenT_Group (con, dest, 0) == -1)
@@ -173,18 +161,16 @@ main (int ac, char *ag[])
 	      else
 		printHex (len - 2, buf + 2);
 	      printf ("\n");
+	      fflush (stdout);
 	      break;
 	    }
 	}
 
     }
-  else if (strcmp (ag[0], "if") == 0)
+  else if (strcmp (prog, "if") == 0)
     {
-      if (ac < 4)
-	{
-	  EIBClose (con);
-	  die ("usage: %s url eibaddr text1 [text2]", ag[0]);
-	}
+      if (ac != 4 && ac != 5)
+	die ("usage: %s url eibaddr text1 [text2]", prog);
       dest = readgaddr (ag[2]);
 
       if (EIBOpenT_Group (con, dest, 0) == -1)
@@ -212,21 +198,20 @@ main (int ac, char *ag[])
 		    printf ("%s", ag[3]);
 		  else if (ac == 5)
 		    printf ("%s", ag[4]);
+		  printf ("\n");
+		  fflush (stdout);
 		}
 	      else
-		printf ("ERR");
+		printf ("ERR\n");
 	      break;
 	    }
 	}
 
     }
-  else if (strcmp (ag[0], "readtemp") == 0)
+  else if (strcmp (prog, "readtemp") == 0)
     {
       if (ac != 3)
-	{
-	  EIBClose (con);
-	  die ("usage: %s url eibaddr", ag[0]);
-	}
+	die ("usage: %s url eibaddr", prog);
       dest = readgaddr (ag[2]);
 
       if (EIBOpenT_Group (con, dest, 0) == -1)
@@ -277,13 +262,10 @@ main (int ac, char *ag[])
 	    }
 	}
     }
-  else if (strcmp (ag[0], "dimup") == 0)
+  else if (strcmp (prog, "dimup") == 0)
     {
       if (ac != 4)
-	{
-	  EIBClose (con);
-	  die ("usage: %s url eibaddr time", ag[0]);
-	}
+	die ("usage: %s url eibaddr time", prog);
 
       dest = readgaddr (ag[2]);
 
@@ -292,11 +274,9 @@ main (int ac, char *ag[])
 
       buf[0] = 0;
       buf[1] = 0x80;
-      int time;
-      if (!sscanf (ag[3], "%d", &time))
-	{
-	  die ("Invalid param: time");
-	}
+      int time = atoi(ag[3]);
+      if (time <= 0)
+	die ("Invalid param: time");
 
       unsigned long step = time * 8333;
       int idx;
@@ -325,8 +305,7 @@ main (int ac, char *ag[])
 		      if (buf[2] < idx * 2)
 			{
 			  printf ("Abort dim\n");
-			  EIBClose (con);
-			  return 0;
+			  goto out;
 			}
 		    }
 
@@ -336,10 +315,13 @@ main (int ac, char *ag[])
 	}
       printf ("Dimmed up\n");
     }
-  else if (strcmp (ag[0], "log") == 0)
+  else if (strcmp (prog, "log") == 0)
     {
       int prev_day = -1;
       FILE *log_fd = stderr;
+
+      if (ac != 2)
+	die ("usage: %s url", prog);
 
       if (EIBOpenVBusmonitorText (con) == -1)
 	die ("Open Busmonitor failed");
@@ -391,10 +373,10 @@ main (int ac, char *ag[])
 	  fclose (log_fd);
 	}
     }
-  else if (strcmp (ag[0], "busmonitor1") == 0)
+  else if (strcmp (prog, "busmonitor1") == 0)
     {
       if (ac != 2)
-	die ("usage: %s url", ag[0]);
+	die ("usage: %s url", prog);
 
       if (EIBOpenBusmonitorText (con) == -1)
 	die ("Open Busmonitor failed");
@@ -405,12 +387,13 @@ main (int ac, char *ag[])
 	    die ("Read failed");
 	  buf[len] = 0;
 	  printf ("%s\n", buf);
+	  fflush (stdout);
 	}
     }
-  else if (strcmp (ag[0], "busmonitor2") == 0)
+  else if (strcmp (prog, "busmonitor2") == 0)
     {
       if (ac != 2)
-	die ("usage: %s url", ag[0]);
+	die ("usage: %s url", prog);
 
       if (EIBOpenBusmonitor (con) == -1)
 	die ("Open Busmonitor failed");
@@ -421,39 +404,89 @@ main (int ac, char *ag[])
 	    die ("Read failed");
 	  printHex (len, buf);
 	  printf ("\n");
+	  fflush (stdout);
 	}
     }
-  else if (strcmp (ag[0], "groupcacheclear") == 0)
+  else if (strcmp (prog, "busmonitor3") == 0)
+    {
+      uint32_t ts;
+      uint8_t status;
+      if (ac != 2)
+	die ("usage: %s url", prog);
+
+      if (EIBOpenBusmonitorTS (con, &ts) == -1)
+	die ("Open Busmonitor failed");
+
+      printf ("TS-Base: %08x\n", ts);
+
+      while (1)
+	{
+	  len = EIBGetBusmonitorPacketTS (con, &status, &ts, sizeof (buf), buf);
+	  if (len == -1)
+	    die ("Read failed");
+	  printf ("(%d, %08x) ", status, ts);
+	  printHex (len, buf);
+	  printf ("\n");
+	  fflush (stdout);
+	}
+    }
+
+  else if (strcmp (prog, "groupcacheclear") == 0)
     {
       if (ac != 2)
-	die ("usage: %s url", ag[0]);
+	die ("usage: %s url", prog);
 
       len = EIB_Cache_Clear (con);
       if (len == -1)
 	die ("Clear failed");
     }
-  else if (strcmp (ag[0], "groupcachedisable") == 0)
+  else if (strcmp (prog, "groupcachedisable") == 0)
     {
       if (ac != 2)
-	die ("usage: %s url", ag[0]);
+	die ("usage: %s url", prog);
 
       len = EIB_Cache_Disable (con);
       if (len == -1)
 	die ("Disable failed");
     }
-  else if (strcmp (ag[0], "groupcacheenable") == 0)
+  else if (strcmp (prog, "groupcacheenable") == 0)
     {
       if (ac != 2)
-	die ("usage: %s url", ag[0]);
+	die ("usage: %s url", prog);
       len = EIB_Cache_Enable (con);
       if (len == -1)
 	die ("Enable failed");
 
     }
-  else if (strcmp (ag[0], "groupcacheread") == 0)
+  else if (strcmp (prog, "groupcachelastupdates") == 0)
+    {
+      int i;
+      int start;
+      int timeout;
+      uint16_t end;
+
+      if (ac != 4)
+	die ("usage: %s url start-position timeout", prog);
+      start = atoi (ag[2]);
+      timeout = atoi (ag[3]);
+
+      len = EIB_Cache_LastUpdates (con, start, timeout, sizeof (buf), buf, &end);
+      if (len == -1)
+	die ("Read failed");
+
+      printf ("new position: %d\n", end);
+      for (i = 0; i < len; i += 2)
+	{
+	  eibaddr_t a = (buf[i] << 8) | buf[i + 1];
+	  printGroup (a);
+	  printf ("\n");
+	}
+      printf ("\n");
+    }
+  else if (strcmp (prog, "groupcacheread") == 0)
     {
       if (ac != 3)
-	die ("usage: %s url", ag[0]);
+	die ("usage: %s url", prog);
       dest = readgaddr (ag[2]);
 
       len = EIB_Cache_Read (con, dest, &src, sizeof (buf), buf);
@@ -481,12 +514,12 @@ main (int ac, char *ag[])
 	}
       printf ("\n");
     }
-  else if (strcmp (ag[0], "groupcachereadsync") == 0)
+  else if (strcmp (prog, "groupcachereadsync") == 0)
     {
       uint16_t age = 0;
 
       if (ac != 3 && ac != 4)
-	die ("usage: %s url eibaddr [age]", ag[0]);
+	die ("usage: %s url eibaddr [age]", prog);
       dest = readgaddr (ag[2]);
       if (ac == 4)
 	age = atoi (ag[3]);
@@ -516,20 +549,20 @@ main (int ac, char *ag[])
 	}
       printf ("\n");
     }
-  else if (strcmp (ag[0], "groupcacheremove") == 0)
+  else if (strcmp (prog, "groupcacheremove") == 0)
     {
       if (ac != 3)
-	die ("usage: %s url eibaddr", ag[0]);
+	die ("usage: %s url eibaddr", prog);
       dest = readgaddr (ag[2]);
 
       len = EIB_Cache_Remove (con, dest);
       if (len == -1)
 	die ("Remove failed");
     }
-  else if (strcmp (ag[0], "grouplisten") == 0)
+  else if (strcmp (prog, "grouplisten") == 0)
     {
       if (ac != 3)
-	die ("usage: %s url eibaddr", ag[0]);
+	die ("usage: %s url eibaddr", prog);
       dest = readgaddr (ag[2]);
 
       if (EIBOpenT_Group (con, dest, 0) == -1)
@@ -578,13 +611,13 @@ main (int ac, char *ag[])
 	    }
 	}
     }
-  else if (strcmp (ag[0], "groupread") == 0)
+  else if (strcmp (prog, "groupread") == 0)
     {
       buf[0] = 0x0;
       buf[1] = 0x0;
 
       if (ac != 3)
-	die ("usage: %s url eibaddr", ag[0]);
+	die ("usage: %s url eibaddr", prog);
       dest = readgaddr (ag[2]);
 
       if (EIBOpenT_Group (con, dest, 1) == -1)
@@ -595,14 +628,14 @@ main (int ac, char *ag[])
 	die ("Request failed");
       printf ("Send request\n");
     }
-  else if (strcmp (ag[0], "groupreadresponse") == 0)
+  else if (strcmp (prog, "groupreadresponse") == 0)
     {
       uchar req_buf[2] = { 0, 0 };
       fd_set read;
       struct timeval tv;
 
       if (ac != 3)
-	die ("usage: %s url eibaddr", ag[0]);
+	die ("usage: %s url eibaddr", prog);
       dest = readgaddr (ag[2]);
 
       if (EIBOpenT_Group (con, dest, 0) == -1)
@@ -681,14 +714,14 @@ main (int ac, char *ag[])
 	    }
 	}
     end:
-      fprintf (stderr, "Ending %s.\n", ag[0]);
+      fprintf (stderr, "Ending %s.\n", prog);
     }
-  else if (strcmp (ag[0], "groupresponse") == 0)
+  else if (strcmp (prog, "groupresponse") == 0)
     {
       uchar lbuf[255] = { 0, 0x40 };
 
       if (ac < 4)
-	die ("usage: %s url eibaddr val val ...", ag[0]);
+	die ("usage: %s url eibaddr val val ...", prog);
       die ("Open failed");
       dest = readgaddr (ag[2]);
       len = readBlock (lbuf + 2, sizeof (lbuf) - 2, ac - 3, ag + 3);
@@ -701,10 +734,10 @@ main (int ac, char *ag[])
 	die ("Request failed");
       printf ("Send request\n");
     }
-  else if (strcmp (ag[0], "groupsocketlisten") == 0)
+  else if (strcmp (prog, "groupsocketlisten") == 0)
     {
       if (ac != 2)
-	die ("usage: %s url", ag[0]);
+	die ("usage: %s url", prog);
 
       if (EIBOpen_GroupSocket (con, 0) == -1)
 	die ("Connect failed");
@@ -756,13 +789,13 @@ main (int ac, char *ag[])
 	    }
 	}
     }
-  else if (strcmp (ag[0], "groupsocketread") == 0)
+  else if (strcmp (prog, "groupsocketread") == 0)
     {
       buf[0] = 0x0;
       buf[1] = 0x0;
 
       if (ac != 3)
-	die ("usage: %s url eibaddr", ag[0]);
+	die ("usage: %s url eibaddr", prog);
       dest = readgaddr (ag[2]);
 
       if (EIBOpen_GroupSocket (con, 1) == -1)
@@ -773,12 +806,12 @@ main (int ac, char *ag[])
 	die ("Request failed");
       printf ("Send request\n");
     }
-  else if (strcmp (ag[0], "groupsresponse") == 0)
+  else if (strcmp (prog, "groupsresponse") == 0)
     {
       uchar lbuf[3] = { 0x0, 0x40 };
 
       if (ac != 4)
-	die ("usage: %s url eibaddr val", ag[0]);
+	die ("usage: %s url eibaddr val", prog);
       dest = readgaddr (ag[2]);
       lbuf[1] |= readHex (ag[3]) & 0x3f;
 
@@ -790,12 +823,12 @@ main (int ac, char *ag[])
 	die ("Request failed");
       printf ("Send request\n");
     }
-  else if (strcmp (ag[0], "groupswrite") == 0)
+  else if (strcmp (prog, "groupswrite") == 0)
     {
       uchar lbuf[3] = { 0x0, 0x80 };
 
       if (ac != 4)
-	die ("usage: %s url eibaddr val", ag[0]);
+	die ("usage: %s url eibaddr val", prog);
       dest = readgaddr (ag[2]);
       lbuf[1] |= readHex (ag[3]) & 0x3f;
 
@@ -807,12 +840,12 @@ main (int ac, char *ag[])
 	die ("Request failed");
       printf ("Send request\n");
     }
-  else if (strcmp (ag[0], "groupwrite") == 0)
+  else if (strcmp (prog, "groupwrite") == 0)
     {
       uchar lbuf[255] = { 0x0, 0x80 };
 
       if (ac < 4)
-	die ("usage: %s url eibaddr val val ...", ag[0]);
+	die ("usage: %s url eibaddr val val ...", prog);
       dest = readgaddr (ag[2]);
       len = readBlock (lbuf + 2, sizeof (lbuf) - 2, ac - 3, ag + 3);
 
@@ -825,9 +858,8 @@ main (int ac, char *ag[])
       printf ("Send request\n");
 
     }
-  else if (strcmp (ag[0], "madcread") == 0)
+  else if (strcmp (prog, "madcread") == 0)
     {
-      char *prog = ag[0];
       int channel;
       int16_t val;
 
@@ -847,10 +879,10 @@ main (int ac, char *ag[])
 	die ("Read failed");
       printf ("Value: %d\n", val);
     }
-  else if (strcmp (ag[0], "maskver") == 0)
+  else if (strcmp (prog, "maskver") == 0)
     {
       if (ac != 3)
-	die ("usage: %s url eibaddr", ag[0]);
+	die ("usage: %s url eibaddr", prog);
       dest = readaddr (ag[2]);
 
       len = EIB_M_GetMaskVersion (con, dest);
@@ -858,10 +890,8 @@ main (int ac, char *ag[])
 	die ("Read failed");
       printf ("Mask: %04X\n", len);
     }
-  else if (strcmp (ag[0], "mmaskver") == 0)
+  else if (strcmp (prog, "mmaskver") == 0)
     {
-      char *prog = ag[0];
-
       parseKey (&ac, &ag);
       if (ac != 3)
 	die ("usage: %s [-k key] url eibaddr", prog);
@@ -876,10 +906,8 @@ main (int ac, char *ag[])
 	die ("Read failed");
       printf ("Mask: %04X\n", len);
     }
-  else if (strcmp (ag[0], "mpeitype") == 0)
+  else if (strcmp (prog, "mpeitype") == 0)
     {
-      char *prog = ag[0];
-
       parseKey (&ac, &ag);
       if (ac != 3)
 	die ("usage: %s [-k key] url eibaddr", prog);
@@ -894,10 +922,8 @@ main (int ac, char *ag[])
 	die ("Read failed");
       printf ("PEI: %d\n", len);
     }
-  else if (strcmp (ag[0], "mprogmodeoff") == 0)
+  else if (strcmp (prog, "mprogmodeoff") == 0)
     {
-      char *prog = ag[0];
-
       parseKey (&ac, &ag);
       if (ac != 3)
 	die ("usage: %s [-k key] url eibaddr", prog);
@@ -911,10 +937,8 @@ main (int ac, char *ag[])
       if (len == -1)
 	die ("Set failed");
     }
-  else if (strcmp (ag[0], "mprogmodeon") == 0)
+  else if (strcmp (prog, "mprogmodeon") == 0)
     {
-      char *prog = ag[0];
-
       parseKey (&ac, &ag);
       if (ac != 3)
 	die ("usage: %s [-k key] url eibaddr", prog);
@@ -928,10 +952,8 @@ main (int ac, char *ag[])
       if (len == -1)
 	die ("Set failed");
     }
-  else if (strcmp (ag[0], "mprogmodestatus") == 0)
+  else if (strcmp (prog, "mprogmodestatus") == 0)
     {
-      char *prog = ag[0];
-
       parseKey (&ac, &ag);
       if (ac != 3)
 	die ("usage: %s [-k key] url eibaddr", prog);
@@ -950,10 +972,8 @@ main (int ac, char *ag[])
 	printf ("not in programming mode\n");
 
     }
-  else if (strcmp (ag[0], "mprogmodetoggle") == 0)
+  else if (strcmp (prog, "mprogmodetoggle") == 0)
     {
-      char *prog = ag[0];
-
       parseKey (&ac, &ag);
       if (ac != 3)
 	die ("usage: %s [-k key] url eibaddr", prog);
@@ -967,9 +987,8 @@ main (int ac, char *ag[])
       if (len == -1)
 	die ("Set failed");
     }
-  else if (strcmp (ag[0], "mpropdesc") == 0)
+  else if (strcmp (prog, "mpropdesc") == 0)
     {
-      char *prog = ag[0];
       int obj, prop;
       uchar type, access;
       uint16_t count;
@@ -991,9 +1010,8 @@ main (int ac, char *ag[])
       printf ("Property: type:%d count:%d access:%02X\n", type, count,
 	      access);
     }
-  else if (strcmp (ag[0], "mpropread") == 0)
+  else if (strcmp (prog, "mpropread") == 0)
     {
-      char *prog = ag[0];
       int obj, prop, start, nr_of_elem;
 
       parseKey (&ac, &ag);
@@ -1018,9 +1036,8 @@ main (int ac, char *ag[])
       printHex (len, buf);
 
     }
-  else if (strcmp (ag[0], "mpropscan") == 0)
+  else if (strcmp (prog, "mpropscan") == 0)
     {
-      char *prog = ag[0];
       int i;
 
       parseKey (&ac, &ag);
@@ -1046,9 +1063,8 @@ main (int ac, char *ag[])
 		  (buf[i + 3] << 8) | buf[i + 4], buf[i + 5]);
 
     }
-  else if (strcmp (ag[0], "mpropscanpoll") == 0)
+  else if (strcmp (prog, "mpropscanpoll") == 0)
     {
-      char *prog = ag[0];
       fd_set read;
       int i;
 
@@ -1092,9 +1108,8 @@ main (int ac, char *ag[])
 		  (buf[i + 3] << 8) | buf[i + 4], buf[i + 5]);
 
     }
-  else if (strcmp (ag[0], "mpropwrite") == 0)
+  else if (strcmp (prog, "mpropwrite") == 0)
     {
-      char *prog = ag[0];
       int obj, prop, start, nr_of_elem;
       uchar res[255];
 
@@ -1124,9 +1139,8 @@ main (int ac, char *ag[])
 	die ("Write failed");
       printHex (len, res);
     }
-  else if (strcmp (ag[0], "mread") == 0)
+  else if (strcmp (prog, "mread") == 0)
     {
-      char *prog = ag[0];
       int addr;
 
       parseKey (&ac, &ag);
@@ -1145,10 +1159,8 @@ main (int ac, char *ag[])
 	die ("Read failed");
       printHex (len, buf);
     }
-  else if (strcmp (ag[0], "mrestart") == 0)
+  else if (strcmp (prog, "mrestart") == 0)
     {
-      char *prog = ag[0];
-
       parseKey (&ac, &ag);
       if (ac != 3)
 	die ("usage: %s [-k key] url eibaddr", prog);
@@ -1163,9 +1175,8 @@ main (int ac, char *ag[])
 	die ("Restart failed");
 
     }
-  else if (strcmp (ag[0], "msetkey") == 0)
+  else if (strcmp (prog, "msetkey") == 0)
     {
-      char *prog = ag[0];
       int level, k;
       uint8_t key[4];
 
@@ -1189,9 +1200,8 @@ main (int ac, char *ag[])
 	die ("SetKey failed");
 
     }
-  else if (strcmp (ag[0], "mwrite") == 0)
+  else if (strcmp (prog, "mwrite") == 0)
     {
-      char *prog = ag[0];
       int addr;
 
       parseKey (&ac, &ag);
@@ -1213,9 +1223,8 @@ main (int ac, char *ag[])
 	die ("Write failed");
 
     }
-  else if (strcmp (ag[0], "mwriteplain") == 0)
+  else if (strcmp (prog, "mwriteplain") == 0)
     {
-      char *prog = ag[0];
       int addr;
 
       parseKey (&ac, &ag);
@@ -1237,20 +1246,20 @@ main (int ac, char *ag[])
       if (len == -1)
 	die ("Write failed");
     }
-  else if (strcmp (ag[0], "progmodeoff") == 0)
+  else if (strcmp (prog, "progmodeoff") == 0)
     {
       if (ac != 3)
-	die ("usage: %s url eibaddr", ag[0]);
+	die ("usage: %s url eibaddr", prog);
       dest = readaddr (ag[2]);
 
       len = EIB_M_Progmode_Off (con, dest);
       if (len == -1)
 	die ("Set failed");
     }
-  else if (strcmp (ag[0], "progmodeon") == 0)
+  else if (strcmp (prog, "progmodeon") == 0)
     {
       if (ac != 3)
-	die ("usage: %s url eibaddr", ag[0]);
+	die ("usage: %s url eibaddr", prog);
       dest = readaddr (ag[2]);
 
       len = EIB_M_Progmode_On (con, dest);
@@ -1258,10 +1267,10 @@ main (int ac, char *ag[])
 	die ("Set failed");
 
     }
-  else if (strcmp (ag[0], "progmodestatus") == 0)
+  else if (strcmp (prog, "progmodestatus") == 0)
     {
       if (ac != 3)
-	die ("usage: %s url eibaddr", ag[0]);
+	die ("usage: %s url eibaddr", prog);
       dest = readaddr (ag[2]);
 
       len = EIB_M_Progmode_Status (con, dest);
@@ -1272,22 +1281,22 @@ main (int ac, char *ag[])
       else
 	printf ("not in programming mode\n");
     }
-  else if (strcmp (ag[0], "progmodetoggle") == 0)
+  else if (strcmp (prog, "progmodetoggle") == 0)
     {
       if (ac != 3)
-	die ("usage: %s url eibaddr", ag[0]);
+	die ("usage: %s url eibaddr", prog);
       dest = readaddr (ag[2]);
 
       len = EIB_M_Progmode_Toggle (con, dest);
       if (len == -1)
 	die ("Set failed");
     }
-  else if (strcmp (ag[0], "readindividual") == 0)
+  else if (strcmp (prog, "readindividual") == 0)
     {
       int i;
 
       if (ac != 2)
-	die ("usage: %s url", ag[0]);
+	die ("usage: %s url", prog);
 
       len = EIB_M_ReadIndividualAddresses (con, sizeof (buf), buf);
       if (len == -1)
@@ -1299,10 +1308,10 @@ main (int ac, char *ag[])
 	  printf ("\n");
 	}
     }
-  else if (strcmp (ag[0], "vbusmonitor1") == 0)
+  else if (strcmp (prog, "vbusmonitor1") == 0)
     {
       if (ac != 2)
-	die ("usage: %s url", ag[0]);
+	die ("usage: %s url", prog);
 
       if (EIBOpenVBusmonitorText (con) == -1)
 	die ("Open Busmonitor failed");
@@ -1315,14 +1324,13 @@ main (int ac, char *ag[])
 	  buf[len] = 0;
 	  printf ("%s\n", buf);
 	}
-
     }
-  else if (strcmp (ag[0], "vbusmonitor1poll") == 0)
+  else if (strcmp (prog, "vbusmonitor1poll") == 0)
     {
       fd_set read;
 
       if (ac != 2)
-	die ("usage: %s url", ag[0]);
+	die ("usage: %s url", prog);
 
       if (EIBOpenVBusmonitorText (con) == -1)
 	die ("Open Busmonitor failed");
@@ -1350,10 +1358,48 @@ main (int ac, char *ag[])
 	}
 
     }
-  else if (strcmp (ag[0], "vbusmonitor2") == 0)
+  else if (strcmp (prog, "vbusmonitor1time") == 0)
+    {
+      // hires-time
+      struct timeval tv; 
+      struct tm* ptm; 
+      char time_string[40]; 
+      long milliseconds; 
+      /* Obtain the time of day, and convert it to a tm struct. */ 
+      gettimeofday (&tv, NULL); 
+      ptm = localtime (&tv.tv_sec); 
+      /* Format the date and time, down to a single second. */ 
+      strftime (time_string, sizeof (time_string), "%Y-%m-%d %H:%M:%S", ptm); 
+      /* Compute milliseconds from microseconds. */ 
+      milliseconds = tv.tv_usec / 1000; 
+      /* Print the formatted time, in seconds, followed by a decimal point and the milliseconds. */ 
+      printf ("%s.%03ld\n", time_string, milliseconds); 
+
+      if (ac != 2)
+	die ("usage: %s url", prog);
+
+      if (EIBOpenVBusmonitorText (con) == -1)
+	die ("Open Busmonitor failed");
+
+      while (1)
+	{
+	  len = EIBGetBusmonitorPacket (con, sizeof (buf), buf);
+	  if (len == -1)
+	    die ("Read failed");
+	  buf[len] = 0;
+		      gettimeofday (&tv, NULL); 
+		      ptm = localtime (&tv.tv_sec); 
+		      strftime (time_string, sizeof (time_string), "%H:%M:%S", ptm); 
+		      milliseconds = tv.tv_usec / 1000; 
+	  printf ("%s.%03ld %s\n", time_string, milliseconds, buf);
+	  fflush (stdout);
+	}
+
+    }
+  else if (strcmp (prog, "vbusmonitor2") == 0)
     {
       if (ac != 2)
-	die ("usage: %s url", ag[0]);
+	die ("usage: %s url", prog);
 
       if (EIBOpenVBusmonitor (con) == -1)
 	die ("Open Busmonitor failed");
@@ -1367,10 +1413,34 @@ main (int ac, char *ag[])
 	  printf ("\n");
 	}
     }
-  else if (strcmp (ag[0], "writeaddress") == 0)
+  else if (strcmp (prog, "vbusmonitor3") == 0)
+    {
+      uint32_t ts;
+      uint8_t status;
+      if (ac != 2)
+	die ("usage: %s url", prog);
+
+      if (EIBOpenVBusmonitorTS (con, &ts) == -1)
+	die ("Open Busmonitor failed");
+
+      printf ("TS-Base: %08x\n", ts);
+
+      while (1)
+	{
+	  len = EIBGetBusmonitorPacketTS (con, &status, &ts, sizeof (buf), buf);
+	  if (len == -1)
+	    die ("Read failed");
+	  printf ("(%d, %08x) ", status, ts);
+	  printHex (len, buf);
+	  printf ("\n");
+	  fflush (stdout);
+	}
+
+    }
+  else if (strcmp (prog, "writeaddress") == 0)
     {
       if (ac != 3)
-	die ("usage: %s url eibaddr", ag[0]);
+	die ("usage: %s url eibaddr", prog);
       dest = readaddr (ag[2]);
 
       len = EIB_M_WriteIndividualAddress (con, dest);
@@ -1378,9 +1448,63 @@ main (int ac, char *ag[])
 	die ("Set failed");
 
     }
-  else
-    die ("No such applet %s.\n", ag[0]);
+  else if (strcmp (prog, "xpropread") == 0)
+    {
+      int len, obj, prop, start, nr_of_elem;
 
+      if (ac != 7)
+	die ("usage: %s url eibaddr obj prop start nr_of_elem", prog);
+
+      dest = readaddr (ag[2]);
+      obj = atoi (ag[3]);
+      prop = atoi (ag[4]);
+      start = atoi (ag[5]);
+      nr_of_elem = atoi (ag[6]);
+
+      if (EIB_MC_Individual_Open (con, dest) == -1)
+	die ("Connect failed");
+
+      len =
+	EIB_MC_PropertyRead (con, obj, prop, start, nr_of_elem, sizeof (buf),
+			    buf);
+      if (len == -1)
+	die ("Read failed");
+      printHex (len, buf);
+    }
+  else if (strcmp (prog, "xpropwrite") == 0)
+    {
+      int len, obj, prop, start, nr_of_elem;
+      uchar res[255];
+
+      if (ac < 7)
+	die ("usage: %s url eibaddr obj prop start nr_of_elem [xx xx ..]", prog);
+      con = EIBSocketURL (ag[1]);
+      if (!con)
+	die ("Open failed");
+      dest = readaddr (ag[2]);
+      obj = atoi (ag[3]);
+      prop = atoi (ag[4]);
+      start = atoi (ag[5]);
+      nr_of_elem = atoi (ag[6]);
+      len = readBlock (buf, sizeof (buf), ac - 7, ag + 7);
+
+      if (EIB_MC_Individual_Open (con, dest) == -1)
+	die ("Connect failed");
+
+      printf ("Write: ");
+      printHex (len, buf);
+      printf ("\n");
+      len =
+	EIB_MC_PropertyWrite (con, obj, prop, start, nr_of_elem, len, buf,
+			      sizeof (res), res);
+      if (len == -1)
+	die ("Write failed");
+      printHex (len, res);
+    }
+  else
+    die ("No such applet %s.\n", prog);
+
+out:
   EIBClose (con);
   return 0;
 }
