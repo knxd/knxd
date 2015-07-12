@@ -41,6 +41,10 @@ main (int ac, char *ag[])
   /* check if the application is called by its original name
    * (and an applet name afterwards), or with a symbolic link */
   prog = strrchr (ag[0], '/');
+  if (prog)
+    prog += 1;
+  else
+    prog = ag[0];
   if (strcmp(prog, "knxtool") == 0)
     {
       if (ac < 2)
