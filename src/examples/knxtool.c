@@ -48,13 +48,26 @@ main (int ac, char *ag[])
   if (strcmp(prog, "knxtool") == 0)
     {
       if (ac < 2)
-	die ("usage: %s applet [args]", prog);
+	die ("usage: %s applet [args] -- say '%s list' to get a list of applets", prog,prog);
       ac--;
       ag++;
       prog = ag[0];
     }
   if (strncmp (prog, "knx", 3) == 0)
     prog += 3;
+  if (strcmp (prog , "list") == 0)
+    {
+      printf("on off write swrite read if readtemp dimup log \n\
+busmonitor1 busmonitor2 readindividual progmodeon progmodeoff progmodetoggle progmodestatus maskver \n\
+writeaddress vbusmonitor1 vbusmonitor2 mprogmodeon mprogmodeoff mprogmodetoggle mprogmodestatus mmaskver \n\
+mpeitype madcread mread mwrite mpropread mpropwrite mpropdesc mpropscan groupread groupswrite groupwrite \n\
+msetkey grouplisten groupresponse groupsresponse groupsocketlisten groupsocketread mpropscanpoll \n\
+vbusmonitor1poll groupreadresponse groupcacheenable groupcachedisable groupcacheclear groupcacheremove \n\
+groupcachereadsync groupcacheread mwriteplain mrestart groupsocketwrite groupsocketswrite \n\
+xpropread xpropwrite groupcachelastupdates busmonitor3 vbusmonitor3 eibread-cgi eibwrite-cgi \n\
+vbusmonitor1time\n");
+	  return 0;
+    }
 
   if (ac < 2)
     die ("usage: %s url [args]", prog);
