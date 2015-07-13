@@ -1,4 +1,2 @@
 /usr/bin/knxd
 /usr/lib/*
-/lib/*
-/etc/knxd.conf
