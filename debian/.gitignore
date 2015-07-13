@@ -7,3 +7,4 @@
 /*.debhelper
 /*.substvars
 /files
+/knxd.install
