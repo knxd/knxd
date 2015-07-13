@@ -13,6 +13,10 @@ export DH_OPTIONS
 %:
 	dh $@ 
 
+override_dh_clean:
+	dh_clean
+	rm -f debian/knxd.install
+
 override_dh_auto_configure: configure
 	dh_auto_configure -- --enable-usb --enable-eibnetip --enable-eibnetiptunnel --enable-eibnetipserver --enable-groupcache --enable-ft12 --enable-pei16s --enable-ncn5120 --enable-tpuarts --enable-dummy
 
