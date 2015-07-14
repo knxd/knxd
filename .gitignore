@@ -19,6 +19,7 @@ Makefile
 /config.status
 /config.sub
 /configure
+/confdefs.h
 /depcomp
 /install-sh
 /libtool
