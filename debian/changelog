@@ -1,3 +1,13 @@
+knxd (0.9.3-1) unstable; urgency=medium
+
+  * Update knxtool packaging:
+    - exec unknown commands from /usr/lib/knxd
+    - print errors to stderr, dammit
+  * restore building eib{read,write}-cgi
+    - and ship them in /usr/lib/knxtool
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Tue, 14 Jul 2015 03:13:11 +0200
+
 knxd (0.9.2-1) unstable; urgency=medium
 
   * Fix knxtool packaging

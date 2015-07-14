@@ -21,12 +21,30 @@
 */
 
 #include "common.h"
+#include "path.h"
 #include <time.h>
 #include <fcntl.h>
 #include <string.h>
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
+
+static char *prog;
+
+static EIBConnection *
+open_con (const char *uri)
+{
+  EIBConnection *con;
+  if (!uri || !*uri)
+    die ("usage: %s url [args]", prog);
+
+  /* Open the Socket */
+  con = EIBSocketURL (uri);
+  if (!con)
+    die ("Open failed");
+
+  return con;
+}
 
 int
 main (int ac, char *ag[])
@@ -36,7 +54,6 @@ main (int ac, char *ag[])
   EIBConnection *con;
   eibaddr_t dest;
   eibaddr_t src;
-  char *prog;
 
   /* check if the application is called by its original name
    * (and an applet name afterwards), or with a symbolic link */
@@ -69,18 +86,11 @@ vbusmonitor1time\n");
 	  return 0;
     }
 
-  if (ac < 2)
-    die ("usage: %s url [args]", prog);
-
-  /* Open the Socket */
-  con = EIBSocketURL (ag[1]);
-  if (!con)
-    die ("Open failed");
-
   if (strcmp (prog, "on") == 0)
     {
       if (ac != 3)
 	die ("usage: %s url eibaddr", prog);
+      con = open_con(ag[1]);
       dest = readgaddr (ag[2]);
       buf[0] = 0;
       buf[1] = 0x81;
@@ -97,6 +107,7 @@ vbusmonitor1time\n");
     {
       if (ac != 3)
 	die ("usage: %s url eibaddr", prog);
+      con = open_con(ag[1]);
       dest = readgaddr (ag[2]);
       buf[0] = 0;
       buf[1] = 0x80;
@@ -113,6 +124,7 @@ vbusmonitor1time\n");
     {
       if (ac != 4)
 	die ("usage: %s url eibaddr val", prog);
+      con = open_con(ag[1]);
       dest = readgaddr (ag[2]);
       buf[0] = 0;
       buf[1] = 0x80;
@@ -130,6 +142,7 @@ vbusmonitor1time\n");
     {
       if (ac != 4)
 	die ("usage: %s url eibaddr val", prog);
+      con = open_con(ag[1]);
       dest = readgaddr (ag[2]);
       buf[0] = 0;
       buf[1] = 0x80 | (readHex (ag[3]) & 0x3f);
@@ -147,6 +160,7 @@ vbusmonitor1time\n");
 
       if (ac != 3)
 	die ("usage: %s url eibaddr", prog);
+      con = open_con(ag[1]);
       dest = readgaddr (ag[2]);
 
       if (EIBOpenT_Group (con, dest, 0) == -1)
@@ -188,6 +202,7 @@ vbusmonitor1time\n");
     {
       if (ac != 4 && ac != 5)
 	die ("usage: %s url eibaddr text1 [text2]", prog);
+      con = open_con(ag[1]);
       dest = readgaddr (ag[2]);
 
       if (EIBOpenT_Group (con, dest, 0) == -1)
@@ -229,6 +244,7 @@ vbusmonitor1time\n");
     {
       if (ac != 3)
 	die ("usage: %s url eibaddr", prog);
+      con = open_con(ag[1]);
       dest = readgaddr (ag[2]);
 
       if (EIBOpenT_Group (con, dest, 0) == -1)
@@ -268,7 +284,7 @@ vbusmonitor1time\n");
 		      int m = d1 & 0x7ff;
 		      int ex = (d1 & 0x7800) >> 11;
 		      float temp = ((float) m * (1 << ex) / 100);
-		      //                                              printf ("d1=%d;m=%d;ex=%d;temp=%f\n", d1, m, ex, temp);
+		      // printf ("d1=%d;m=%d;ex=%d;temp=%f\n", d1, m, ex, temp);
 		      printf ("%2.1f", temp);
 		    }
 		  else
@@ -283,6 +299,7 @@ vbusmonitor1time\n");
     {
       if (ac != 4)
 	die ("usage: %s url eibaddr time", prog);
+      con = open_con(ag[1]);
 
       dest = readgaddr (ag[2]);
 
@@ -339,6 +356,7 @@ vbusmonitor1time\n");
 
       if (ac != 2)
 	die ("usage: %s url", prog);
+      con = open_con(ag[1]);
 
       if (EIBOpenVBusmonitorText (con) == -1)
 	die ("Open Busmonitor failed");
@@ -394,6 +412,7 @@ vbusmonitor1time\n");
     {
       if (ac != 2)
 	die ("usage: %s url", prog);
+      con = open_con(ag[1]);
 
       if (EIBOpenBusmonitorText (con) == -1)
 	die ("Open Busmonitor failed");
@@ -411,6 +430,7 @@ vbusmonitor1time\n");
     {
       if (ac != 2)
 	die ("usage: %s url", prog);
+      con = open_con(ag[1]);
 
       if (EIBOpenBusmonitor (con) == -1)
 	die ("Open Busmonitor failed");
@@ -430,6 +450,7 @@ vbusmonitor1time\n");
       uint8_t status;
       if (ac != 2)
 	die ("usage: %s url", prog);
+      con = open_con(ag[1]);
 
       if (EIBOpenBusmonitorTS (con, &ts) == -1)
 	die ("Open Busmonitor failed");
@@ -452,6 +473,7 @@ vbusmonitor1time\n");
     {
       if (ac != 2)
 	die ("usage: %s url", prog);
+      con = open_con(ag[1]);
 
       len = EIB_Cache_Clear (con);
       if (len == -1)
@@ -461,6 +483,7 @@ vbusmonitor1time\n");
     {
       if (ac != 2)
 	die ("usage: %s url", prog);
+      con = open_con(ag[1]);
 
       len = EIB_Cache_Disable (con);
       if (len == -1)
@@ -470,6 +493,7 @@ vbusmonitor1time\n");
     {
       if (ac != 2)
 	die ("usage: %s url", prog);
+      con = open_con(ag[1]);
       len = EIB_Cache_Enable (con);
       if (len == -1)
 	die ("Enable failed");
@@ -484,6 +508,7 @@ vbusmonitor1time\n");
 
       if (ac != 4)
 	die ("usage: %s url start-position timeout", prog);
+      con = open_con(ag[1]);
       start = atoi (ag[2]);
       timeout = atoi (ag[3]);
 
@@ -504,6 +529,7 @@ vbusmonitor1time\n");
     {
       if (ac != 3)
 	die ("usage: %s url", prog);
+      con = open_con(ag[1]);
       dest = readgaddr (ag[2]);
 
       len = EIB_Cache_Read (con, dest, &src, sizeof (buf), buf);
@@ -537,6 +563,7 @@ vbusmonitor1time\n");
 
       if (ac != 3 && ac != 4)
 	die ("usage: %s url eibaddr [age]", prog);
+      con = open_con(ag[1]);
       dest = readgaddr (ag[2]);
       if (ac == 4)
 	age = atoi (ag[3]);
@@ -570,6 +597,7 @@ vbusmonitor1time\n");
     {
       if (ac != 3)
 	die ("usage: %s url eibaddr", prog);
+      con = open_con(ag[1]);
       dest = readgaddr (ag[2]);
 
       len = EIB_Cache_Remove (con, dest);
@@ -580,6 +608,7 @@ vbusmonitor1time\n");
     {
       if (ac != 3)
 	die ("usage: %s url eibaddr", prog);
+      con = open_con(ag[1]);
       dest = readgaddr (ag[2]);
 
       if (EIBOpenT_Group (con, dest, 0) == -1)
@@ -635,6 +664,7 @@ vbusmonitor1time\n");
 
       if (ac != 3)
 	die ("usage: %s url eibaddr", prog);
+      con = open_con(ag[1]);
       dest = readgaddr (ag[2]);
 
       if (EIBOpenT_Group (con, dest, 1) == -1)
@@ -653,6 +683,7 @@ vbusmonitor1time\n");
 
       if (ac != 3)
 	die ("usage: %s url eibaddr", prog);
+      con = open_con(ag[1]);
       dest = readgaddr (ag[2]);
 
       if (EIBOpenT_Group (con, dest, 0) == -1)
@@ -739,6 +770,7 @@ vbusmonitor1time\n");
 
       if (ac < 4)
 	die ("usage: %s url eibaddr val val ...", prog);
+      con = open_con(ag[1]);
       die ("Open failed");
       dest = readgaddr (ag[2]);
       len = readBlock (lbuf + 2, sizeof (lbuf) - 2, ac - 3, ag + 3);
@@ -755,6 +787,7 @@ vbusmonitor1time\n");
     {
       if (ac != 2)
 	die ("usage: %s url", prog);
+      con = open_con(ag[1]);
 
       if (EIBOpen_GroupSocket (con, 0) == -1)
 	die ("Connect failed");
@@ -813,6 +846,7 @@ vbusmonitor1time\n");
 
       if (ac != 3)
 	die ("usage: %s url eibaddr", prog);
+      con = open_con(ag[1]);
       dest = readgaddr (ag[2]);
 
       if (EIBOpen_GroupSocket (con, 1) == -1)
@@ -829,6 +863,7 @@ vbusmonitor1time\n");
 
       if (ac != 4)
 	die ("usage: %s url eibaddr val", prog);
+      con = open_con(ag[1]);
       dest = readgaddr (ag[2]);
       lbuf[1] |= readHex (ag[3]) & 0x3f;
 
@@ -846,6 +881,7 @@ vbusmonitor1time\n");
 
       if (ac != 4)
 	die ("usage: %s url eibaddr val", prog);
+      con = open_con(ag[1]);
       dest = readgaddr (ag[2]);
       lbuf[1] |= readHex (ag[3]) & 0x3f;
 
@@ -863,6 +899,7 @@ vbusmonitor1time\n");
 
       if (ac < 4)
 	die ("usage: %s url eibaddr val val ...", prog);
+      con = open_con(ag[1]);
       dest = readgaddr (ag[2]);
       len = readBlock (lbuf + 2, sizeof (lbuf) - 2, ac - 3, ag + 3);
 
@@ -883,6 +920,7 @@ vbusmonitor1time\n");
       parseKey (&ac, &ag);
       if (ac != 5)
 	die ("usage: %s [-k key] url eibaddr channel count", prog);
+      con = open_con(ag[1]);
       dest = readaddr (ag[2]);
       channel = atoi (ag[3]);
       len = atoi (ag[4]);
@@ -900,6 +938,7 @@ vbusmonitor1time\n");
     {
       if (ac != 3)
 	die ("usage: %s url eibaddr", prog);
+      con = open_con(ag[1]);
       dest = readaddr (ag[2]);
 
       len = EIB_M_GetMaskVersion (con, dest);
@@ -912,6 +951,7 @@ vbusmonitor1time\n");
       parseKey (&ac, &ag);
       if (ac != 3)
 	die ("usage: %s [-k key] url eibaddr", prog);
+      con = open_con(ag[1]);
       dest = readaddr (ag[2]);
 
       if (EIB_MC_Connect (con, dest) == -1)
@@ -928,6 +968,7 @@ vbusmonitor1time\n");
       parseKey (&ac, &ag);
       if (ac != 3)
 	die ("usage: %s [-k key] url eibaddr", prog);
+      con = open_con(ag[1]);
       dest = readaddr (ag[2]);
 
       if (EIB_MC_Connect (con, dest) == -1)
@@ -944,6 +985,7 @@ vbusmonitor1time\n");
       parseKey (&ac, &ag);
       if (ac != 3)
 	die ("usage: %s [-k key] url eibaddr", prog);
+      con = open_con(ag[1]);
       dest = readaddr (ag[2]);
 
       if (EIB_MC_Connect (con, dest) == -1)
@@ -959,6 +1001,7 @@ vbusmonitor1time\n");
       parseKey (&ac, &ag);
       if (ac != 3)
 	die ("usage: %s [-k key] url eibaddr", prog);
+      con = open_con(ag[1]);
       dest = readaddr (ag[2]);
 
       if (EIB_MC_Connect (con, dest) == -1)
@@ -974,6 +1017,7 @@ vbusmonitor1time\n");
       parseKey (&ac, &ag);
       if (ac != 3)
 	die ("usage: %s [-k key] url eibaddr", prog);
+      con = open_con(ag[1]);
       dest = readaddr (ag[2]);
 
       if (EIB_MC_Connect (con, dest) == -1)
@@ -994,6 +1038,7 @@ vbusmonitor1time\n");
       parseKey (&ac, &ag);
       if (ac != 3)
 	die ("usage: %s [-k key] url eibaddr", prog);
+      con = open_con(ag[1]);
       dest = readaddr (ag[2]);
 
       if (EIB_MC_Connect (con, dest) == -1)
@@ -1013,6 +1058,7 @@ vbusmonitor1time\n");
       parseKey (&ac, &ag);
       if (ac != 5)
 	die ("usage: %s [-k key] url eibaddr obj prop", prog);
+      con = open_con(ag[1]);
       dest = readaddr (ag[2]);
       obj = atoi (ag[3]);
       prop = atoi (ag[4]);
@@ -1035,6 +1081,7 @@ vbusmonitor1time\n");
       if (ac != 7)
 	die ("usage: %s [-k key] url eibaddr obj prop start nr_of_elem",
 	     prog);
+      con = open_con(ag[1]);
       dest = readaddr (ag[2]);
       obj = atoi (ag[3]);
       prop = atoi (ag[4]);
@@ -1060,6 +1107,7 @@ vbusmonitor1time\n");
       parseKey (&ac, &ag);
       if (ac != 3)
 	die ("usage: %s [-k key] url eibaddr", prog);
+      con = open_con(ag[1]);
       dest = readaddr (ag[2]);
 
       if (EIB_MC_Connect (con, dest) == -1)
@@ -1088,6 +1136,7 @@ vbusmonitor1time\n");
       parseKey (&ac, &ag);
       if (ac != 3)
 	die ("usage: %s [-k key] url eibaddr", prog);
+      con = open_con(ag[1]);
       dest = readaddr (ag[2]);
 
       if (EIB_MC_Connect (con, dest) == -1)
@@ -1135,6 +1184,7 @@ vbusmonitor1time\n");
 	die
 	  ("usage: %s [-k key] url eibaddr obj prop start nr_of_elem [xx xx ..]",
 	   prog);
+        con = open_con(ag[1]);
       dest = readaddr (ag[2]);
       obj = atoi (ag[3]);
       prop = atoi (ag[4]);
@@ -1163,6 +1213,7 @@ vbusmonitor1time\n");
       parseKey (&ac, &ag);
       if (ac != 5)
 	die ("usage: %s url [-k key] eibaddr addr count", prog);
+      con = open_con(ag[1]);
       dest = readaddr (ag[2]);
       addr = readHex (ag[3]);
       len = atoi (ag[4]);
@@ -1181,6 +1232,7 @@ vbusmonitor1time\n");
       parseKey (&ac, &ag);
       if (ac != 3)
 	die ("usage: %s [-k key] url eibaddr", prog);
+      con = open_con(ag[1]);
       dest = readaddr (ag[2]);
 
       if (EIB_MC_Connect (con, dest) == -1)
@@ -1200,6 +1252,7 @@ vbusmonitor1time\n");
       parseKey (&ac, &ag);
       if (ac != 5)
 	die ("usage: %s [-k key] url eibaddr level key", prog);
+      con = open_con(ag[1]);
       dest = readaddr (ag[2]);
       level = atoi (ag[3]);
       sscanf (ag[4], "%x", &k);
@@ -1224,6 +1277,7 @@ vbusmonitor1time\n");
       parseKey (&ac, &ag);
       if (ac < 4)
 	die ("usage: %s [-k key] url eibaddr addr [xx xx xx ..]", prog);
+      con = open_con(ag[1]);
       dest = readaddr (ag[2]);
       addr = readHex (ag[3]);
       len = readBlock (buf, sizeof (buf), ac - 4, ag + 4);
@@ -1247,6 +1301,7 @@ vbusmonitor1time\n");
       parseKey (&ac, &ag);
       if (ac < 4)
 	die ("usage: %s [-k key] url eibaddr addr [xx xx xx ..]", prog);
+      con = open_con(ag[1]);
 
       dest = readaddr (ag[2]);
       addr = readHex (ag[3]);
@@ -1267,6 +1322,7 @@ vbusmonitor1time\n");
     {
       if (ac != 3)
 	die ("usage: %s url eibaddr", prog);
+      con = open_con(ag[1]);
       dest = readaddr (ag[2]);
 
       len = EIB_M_Progmode_Off (con, dest);
@@ -1277,6 +1333,7 @@ vbusmonitor1time\n");
     {
       if (ac != 3)
 	die ("usage: %s url eibaddr", prog);
+      con = open_con(ag[1]);
       dest = readaddr (ag[2]);
 
       len = EIB_M_Progmode_On (con, dest);
@@ -1288,6 +1345,7 @@ vbusmonitor1time\n");
     {
       if (ac != 3)
 	die ("usage: %s url eibaddr", prog);
+      con = open_con(ag[1]);
       dest = readaddr (ag[2]);
 
       len = EIB_M_Progmode_Status (con, dest);
@@ -1302,6 +1360,7 @@ vbusmonitor1time\n");
     {
       if (ac != 3)
 	die ("usage: %s url eibaddr", prog);
+      con = open_con(ag[1]);
       dest = readaddr (ag[2]);
 
       len = EIB_M_Progmode_Toggle (con, dest);
@@ -1314,6 +1373,7 @@ vbusmonitor1time\n");
 
       if (ac != 2)
 	die ("usage: %s url", prog);
+      con = open_con(ag[1]);
 
       len = EIB_M_ReadIndividualAddresses (con, sizeof (buf), buf);
       if (len == -1)
@@ -1329,6 +1389,7 @@ vbusmonitor1time\n");
     {
       if (ac != 2)
 	die ("usage: %s url", prog);
+      con = open_con(ag[1]);
 
       if (EIBOpenVBusmonitorText (con) == -1)
 	die ("Open Busmonitor failed");
@@ -1348,6 +1409,7 @@ vbusmonitor1time\n");
 
       if (ac != 2)
 	die ("usage: %s url", prog);
+      con = open_con(ag[1]);
 
       if (EIBOpenVBusmonitorText (con) == -1)
 	die ("Open Busmonitor failed");
@@ -1397,6 +1459,7 @@ vbusmonitor1time\n");
 
       if (EIBOpenVBusmonitorText (con) == -1)
 	die ("Open Busmonitor failed");
+      con = open_con(ag[1]);
 
       while (1)
 	{
@@ -1417,6 +1480,7 @@ vbusmonitor1time\n");
     {
       if (ac != 2)
 	die ("usage: %s url", prog);
+      con = open_con(ag[1]);
 
       if (EIBOpenVBusmonitor (con) == -1)
 	die ("Open Busmonitor failed");
@@ -1436,6 +1500,7 @@ vbusmonitor1time\n");
       uint8_t status;
       if (ac != 2)
 	die ("usage: %s url", prog);
+      con = open_con(ag[1]);
 
       if (EIBOpenVBusmonitorTS (con, &ts) == -1)
 	die ("Open Busmonitor failed");
@@ -1458,6 +1523,7 @@ vbusmonitor1time\n");
     {
       if (ac != 3)
 	die ("usage: %s url eibaddr", prog);
+      con = open_con(ag[1]);
       dest = readaddr (ag[2]);
 
       len = EIB_M_WriteIndividualAddress (con, dest);
@@ -1471,7 +1537,7 @@ vbusmonitor1time\n");
 
       if (ac != 7)
 	die ("usage: %s url eibaddr obj prop start nr_of_elem", prog);
-
+      con = open_con(ag[1]);
       dest = readaddr (ag[2]);
       obj = atoi (ag[3]);
       prop = atoi (ag[4]);
@@ -1495,9 +1561,7 @@ vbusmonitor1time\n");
 
       if (ac < 7)
 	die ("usage: %s url eibaddr obj prop start nr_of_elem [xx xx ..]", prog);
-      con = EIBSocketURL (ag[1]);
-      if (!con)
-	die ("Open failed");
+      con = open_con(ag[1]);
       dest = readaddr (ag[2]);
       obj = atoi (ag[3]);
       prop = atoi (ag[4]);
@@ -1519,7 +1583,12 @@ vbusmonitor1time\n");
       printHex (len, res);
     }
   else
-    die ("No such applet %s.\n", prog);
+    {
+      char *path = malloc (strlen (PKGLIBDIR) + strlen (prog) + 2);
+      sprintf (path,"%s/%s", PKGLIBDIR, prog);
+      execv (path, ag);
+      die ("No such applet: %s", prog);
+    }
 
 out:
   EIBClose (con);
