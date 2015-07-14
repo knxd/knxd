@@ -9,7 +9,7 @@ install:
   - cd ..
 script:
   - sh -x bootstrap.sh
-  - env CFLAGS="-Wall -Wextra" CPPFLAGS="-Wall -Wextra" ./configure --without-pth-test --without-systemd
+  - env CFLAGS="-Wall -Wextra" CPPFLAGS="-Wall -Wextra" ./configure --without-pth-test --disable-systemd
   - make
 notifications:
   email:
