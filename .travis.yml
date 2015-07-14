@@ -8,12 +8,8 @@ install:
   - sudo make install
   - cd ..
 script:
-  - libtoolize --copy --force --install
-  - aclocal -I m4 --force
-  - autoheader
-  - automake --add-missing --copy --force-missing
-  - autoconf
-  - env CFLAGS="-Wall -Wextra" CPPFLAGS="-Wall -Wextra" ./configure --without-pth-test
+  - sh -x bootstrap.sh
+  - env CFLAGS="-Wall -Wextra" CPPFLAGS="-Wall -Wextra" ./configure --without-pth-test --without-systemd
   - make
 notifications:
   email:
