@@ -1,11 +1,12 @@
-knxd (0.10.3-5) UNRELEASED; urgency=medium
+knxd (0.10.3-6) unstable; urgency=medium
 
   * Try to install systemd support only when available
   * Default to systemd support being enabled if possible
   * Cleanup built knxd.install
   * Merge 0.9 branch
+  * Fix installation conflicts
 
- -- Matthias Urlichs <matthias@urlichs.de>  Tue, 14 Jul 2015 03:24:16 +0200
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 15 Jul 2015 23:00:55 +0200
 
 knxd (0.10.3-1) unstable; urgency=medium
 
