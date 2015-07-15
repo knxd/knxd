@@ -17,8 +17,8 @@ Vcs-Git: https://github.com/Makki1/knxd.git
 Package: knxd
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libpthsem20, libusb-1.0-0 (>= 1.0.10)
-Replaces: eibd
-Conflicts: eibd
+Replaces: eibd, eibd-server
+Conflicts: eibd, eibd-server
 Description: knxd is a daemon to access a KNX bus
  knxd is a fork of eibd from bcusdk.
  This Package contains the daemon to access the bus.
@@ -26,6 +26,8 @@ Description: knxd is a daemon to access a KNX bus
 Package: knxd-tools
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libpthsem20, libusb-1.0-0
+Replaces: eibd-clients, eibd-server, libeibclient0
+Conflicts: eibd-clients, eibd-server, libeibclient0
 Description: Tools to use knxd
  These are tools to access a KNX bus over the knxs Daemon
 
