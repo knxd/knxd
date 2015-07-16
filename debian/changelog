@@ -1,3 +1,9 @@
+knxd (0.10.4-1) unstable; urgency=medium
+
+  * Clean up eibread-cgi
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 16 Jul 2015 12:00:15 +0200
+
 knxd (0.10.3-6) unstable; urgency=medium
 
   * Try to install systemd support only when available
