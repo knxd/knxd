@@ -1,3 +1,11 @@
+knxd (0.10.5-1) UNRELEASED; urgency=medium
+
+  * Fix flag handling
+    Some flags were not cleared from the L2 options, causing the main code
+    to conclude that they were not handled correctly.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 17 Jul 2015 06:22:34 +0000
+
 knxd (0.10.4-1) unstable; urgency=medium
 
   * Clean up eibread-cgi

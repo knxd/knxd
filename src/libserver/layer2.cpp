@@ -26,6 +26,7 @@ Layer2::Layer2 (Layer3 *layer3, L2options *opt)
   t = opt ? opt->t : l3->t;
   mode = BUSMODE_DOWN;
   allow_monitor = !(opt && (opt->flags & FLAG_B_NO_MONITOR));
+  if (opt) opt->flags &=~ FLAG_B_NO_MONITOR;
 }
 
 bool

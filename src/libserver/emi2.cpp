@@ -39,6 +39,8 @@ EMI2Layer2::EMI2Layer2 (LowLevelDriver * i, Layer3 * l3,
   TRACEPRINTF (t, 2, this, "Open");
   iface = i;
   noqueue = opt ? (opt->flags & FLAG_B_EMI_NOQUEUE) : false;
+  if (opt->flags)
+    opt->flags &=~ FLAG_B_EMI_NOQUEUE;
   pth_sem_init (&in_signal);
   if (!iface->init ())
     {
