@@ -44,47 +44,35 @@ eibnetiptunnel_Create (const char *dev, L2options *opt, Layer3 * l3)
   char *c;
   char *d = 0;
   char *e;
-  int dport;
+  int dport = 3671;
   int dataport = -1;
-  int sport;
+  int sport = 3672;;
   Layer2 *iface;
+
   if (!a)
     die ("out of memory");
-  for (b = a; *b; b++)
-    if (*b == ':')
-      break;
-  sport = 3672;
-  if (*b == ':')
-    {
-      *b = 0;
-      for (c = b + 1; *c; c++)
-	if (*c == ':')
-	  break;
-      if (*c == ':')
-	{
-	  *c = 0;
-	  for (d = c + 1; *d; d++)
-	    if (*d == ':')
-	      break;
-	  if (*d == ':')
-	    {
-	      for (e = d + 1; *e; e++)
-		if (*e == ':')
-		  break;
-	      if (*e == ':')
-		dataport = atoi (e + 1);
-	      *e = 0;
-	      d++;
-	    }
-	  else
-	    d = 0;
-
-	  sport = atoi (c + 1);
-	}
-      dport = atoi (b + 1);
+  c = d = e = NULL;
+  b = strchr(a,':');
+  if (b) {
+    *b++ = 0;
+    c = strchr(b,':');
+    if (c) {
+      *c++ = 0;
+      d = strchr(c,':');
+      if (d) {
+        *d++ = 0;
+        e = strchr(d,':');
+        if (e)
+          *e++ = 0;
+      }
     }
-  else
-    dport = 3671;
+  }
+  if (b && *b)
+    dport = atoi(b);
+  if (c && *c)
+    sport = atoi(c);
+  if (e && *e)
+    dataport = atoi(e);
 
   iface = new EIBNetIPTunnel (a, dport, sport, d, dataport, opt, l3);
   free (a);
@@ -97,30 +85,23 @@ eibnetiptunnelnat_Create (const char *dev, L2options *opt, Layer3 * l3)
   char *a = strdup (dev);
   char *b;
   char *c;
-  int dport;
-  int sport;
+  int dport = 3671;
+  int sport = 3672;
   Layer2 *iface;
   if (!a)
     die ("out of memory");
-  for (b = a; *b; b++)
-    if (*b == ':')
-      break;
-  sport = 3672;
-  if (*b == ':')
-    {
-      *b = 0;
-      for (c = b + 1; *c; c++)
-	if (*c == ':')
-	  break;
-      if (*c == ':')
-	{
-	  *c = 0;
-	  sport = atoi (c + 1);
-	}
-      dport = atoi (b + 1);
-    }
-  else
-    dport = 3671;
+  c = NULL;
+  b = strchr(a,':');
+  if (b) {
+    *b++ = 0;
+    c = strchr(b,':');
+    if (c)
+      *c++ = 0;
+  }
+  if (b && *b)
+    dport = atoi(b);
+  if (c && *c)
+    sport = atoi(c);
 
   iface = new EIBNetIPTunnel (a, dport, sport, "0.0.0.0", -1, opt, l3);
   free (a);
