@@ -321,7 +321,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 		  TRACEPRINTF (t, 1, this, "Recv %s", c->Decode ()());
 		  if (mode != BUSMODE_MONITOR)
 		    {
-		      if (mode = BUSMODE_VMONITOR)
+		      if (mode == BUSMODE_VMONITOR)
 			{
 			  L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
 			  l2->pdu.set (c->ToPacket ());
