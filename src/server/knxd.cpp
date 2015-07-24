@@ -318,27 +318,28 @@ parse_opt (int key, char *arg, struct argp_state *state)
         const char *serverip = "";
         if (arg)
           serverip = arg;
-        if (!*serverip) 
-          serverip = "224.0.23.12";
 
         const char *name = arguments->eibnetname;
 
         EIBnetServer *c;
         int port = 0;
-        char *a = strdup (serverip);
+        char *a = strdup (arg);
         char *b;
         if (!a)
           die ("out of memory");
         b = strchr (a, ':');
         if (b)
           {
-            *b = 0;
-            port = atoi (b + 1);
+            *b++ = 0;
+            port = atoi (b);
           }
         if (port <= 0)
           port = 3671;
+        serverip = a;
+        if (!*serverip) 
+          serverip = "224.0.23.12";
 
-        c = new EIBnetServer (a, port, arguments->tunnel, arguments->route, arguments->discover,
+        c = new EIBnetServer (serverip, port, arguments->tunnel, arguments->route, arguments->discover,
                               arguments->l3(), arguments->tracer(),
                               (name && *name) ? name : "knxd");
         if (!c->init ())
