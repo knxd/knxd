@@ -413,7 +413,7 @@ int
 EIBNetIPSocket::port ()
 {
   struct sockaddr_in sa;
-  socklen_t saLen;
+  socklen_t saLen = sizeof(sa);
   if (getsockname(fd, (struct sockaddr *) &sa, &saLen) < 0)
     return -1;
   if (sa.sin_family != AF_INET)
