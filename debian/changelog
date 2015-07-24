@@ -27,6 +27,13 @@ knxd (0.10.3-6) unstable; urgency=medium
 
 knxd (0.10.3-1) unstable; urgency=medium
 
+  * Allocate remote addresses to clients
+  * Refactor multicast to use a separate port for sending
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 28 Jun 2015 06:53:31 +0000
+
+knxd (0.10.2-1) UNRELEASED; urgency=medium
+
   * Fix sock->sendaddr churn.
   * Include sys/select.h if available.
   * Clean up error handling

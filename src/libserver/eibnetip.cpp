@@ -329,7 +329,7 @@ EIBnettoIP (const CArray & buf, struct sockaddr_in *a,
 }
 
 EIBNetIPSocket::EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr,
-				Trace * tr)
+				Trace * tr, SockMode mode)
 {
   int i;
   t = tr;
@@ -366,18 +366,25 @@ EIBNetIPSocket::EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr,
       return;
     }
 
-  // Disable loopback so we do not receive our own datagrams.
+  // Enable loopback so processes on the same host see each other.
   {
-    char loopch=0;
+    char loopch=1;
  
     if (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_LOOP,
                    (char *)&loopch, sizeof(loopch)) < 0) {
-      ERRORPRINTF (t, E_ERROR | 39, this, "cannot turn off multicast loopback: %s", strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 39, this, "cannot turn on multicast loopback: %s", strerror(errno));
       close(fd);
       fd = -1;
       return;
     }
   }
+
+  // don't really care if this fails
+  if (mode == S_RD)
+    shutdown (fd, SHUT_WR);
+  else if (mode == S_WR)
+    shutdown (fd, SHUT_RD);
+
   Start ();
   TRACEPRINTF (t, 0, this, "Openend");
 }
@@ -400,6 +407,21 @@ bool
 EIBNetIPSocket::init ()
 {
   return fd != -1;
+}
+
+int
+EIBNetIPSocket::port ()
+{
+  struct sockaddr_in sa;
+  socklen_t saLen;
+  if (getsockname(fd, (struct sockaddr *) &sa, &saLen) < 0)
+    return -1;
+  if (sa.sin_family != AF_INET)
+    {
+      errno = ENODATA;
+      return -1;
+    }
+  return sa.sin_port;
 }
 
 bool
