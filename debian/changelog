@@ -1,11 +1,13 @@
-knxd (0.10.5-1) UNRELEASED; urgency=medium
+knxd (0.10.6-1) unstable; urgency=medium
 
   * Fix flag handling
     Some flags were not cleared from the L2 options, causing the main code
     to conclude that they were not handled correctly.
   * Add comments to config files
+  * Fix *emi USB backends
+    duplicate variables
 
- -- Matthias Urlichs <matthias@urlichs.de>  Fri, 17 Jul 2015 06:22:34 +0000
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 24 Jul 2015 03:36:08 +0200
 
 knxd (0.10.4-1) unstable; urgency=medium
 

@@ -28,10 +28,6 @@ class EMI1Layer2:public Layer2, private Thread
 {
   /** driver to send/receive */
   LowLevelDriver *iface;
-  /** debug output */
-  Trace *t;
-  /** default address */
-  eibaddr_t def;
   /** semaphore for inqueue */
   pth_sem_t in_signal;
   /** input queue */
