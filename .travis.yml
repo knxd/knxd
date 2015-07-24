@@ -11,6 +11,7 @@ script:
   - sh -x bootstrap.sh
   - env CFLAGS="-Wall -Wextra" CPPFLAGS="-Wall -Wextra" ./configure --without-pth-test --disable-systemd
   - make
+  - sh tools/test.sh
 notifications:
   email:
     on_success: change
