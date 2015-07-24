@@ -61,7 +61,7 @@ KNX1=$!
 trap 'rm -f $L1 $L2 $E1 $E2 $EF; kill $KNX1' 0 1 2
 
 sleep 1
-knxd -t 0xfffc -f 9 -e 3.2.2 -u$S3 -b ipt:localhost:$PORT:$((10000 + $$)) &
+knxd -t 0xfffc -f 9 -e 3.2.2 -i$((10002 + $$)) -u$S3 -b ipt:localhost:$PORT:$((10000 + $$)) &
 KNX2=$!
 trap 'rm -f $L1 $L2 $E1 $E2 $EF; kill $KNX1 $KNX2' 0 1 2
 sleep 1
