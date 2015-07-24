@@ -3,14 +3,16 @@ install:
   - wget "https://www.auto.tuwien.ac.at/~mkoegler/pth/pthsem_2.0.8.tar.gz"
   - tar xvfz pthsem_2.0.8.tar.gz
   - cd "pthsem-2.0.8"
-  - ./configure
+  - ./configure --prefix=/usr
   - make
   - sudo make install
+  - sudo ldconfig
   - cd ..
 script:
   - sh -x bootstrap.sh
   - env CFLAGS="-Wall -Wextra" CPPFLAGS="-Wall -Wextra" ./configure --without-pth-test --disable-systemd
   - make
+  - sh tools/test.sh
 notifications:
   email:
     on_success: change
