@@ -90,19 +90,18 @@ readHex (const char *addr)
 int
 readBlock (uchar * buf, int size, int ac, char *ag[])
 {
-  int i = 0;
-  if (size > ac)
+  uchar *bp = buf;
+  if (size < ac)
     return -1;
-  while (size)
+  while (ac)
     {
-      unsigned b = readHex (ag[i]);
+      unsigned b = readHex (*ag++);
       if (b > 0xFF)
         return -1;
-      buf[i] = b;
-      i++;
-      size--;
+      *bp++ = b;
+      ac--;
     }
-  return i;
+  return bp-buf;
 }
 
 static int havekey = 0;

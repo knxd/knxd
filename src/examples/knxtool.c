@@ -774,6 +774,8 @@ vbusmonitor1time\n");
       die ("Open failed");
       dest = readgaddr (ag[2]);
       len = readBlock (lbuf + 2, sizeof (lbuf) - 2, ac - 3, ag + 3);
+      if (len < 0)
+	die ("Invalid hex bytes");
 
       if (EIBOpenT_Group (con, dest, 1) == -1)
 	die ("Connect failed");
@@ -902,6 +904,8 @@ vbusmonitor1time\n");
       con = open_con(ag[1]);
       dest = readgaddr (ag[2]);
       len = readBlock (lbuf + 2, sizeof (lbuf) - 2, ac - 3, ag + 3);
+      if (len < 0)
+	die ("Invalid hex bytes");
 
       if (EIBOpenT_Group (con, dest, 1) == -1)
 	die ("Connect failed");
@@ -1191,6 +1195,8 @@ vbusmonitor1time\n");
       start = atoi (ag[5]);
       nr_of_elem = atoi (ag[6]);
       len = readBlock (buf, sizeof (buf), ac - 7, ag + 7);
+      if (len < 0)
+	die ("Invalid hex bytes");
 
       if (EIB_MC_Connect (con, dest) == -1)
 	die ("Connect failed");
@@ -1281,6 +1287,8 @@ vbusmonitor1time\n");
       dest = readaddr (ag[2]);
       addr = readHex (ag[3]);
       len = readBlock (buf, sizeof (buf), ac - 4, ag + 4);
+      if (len < 0)
+	die ("Invalid hex bytes");
 
       if (EIB_MC_Connect (con, dest) == -1)
 	die ("Connect failed");
@@ -1306,6 +1314,8 @@ vbusmonitor1time\n");
       dest = readaddr (ag[2]);
       addr = readHex (ag[3]);
       len = readBlock (buf, sizeof (buf), ac - 4, ag + 4);
+      if (len < 0)
+	die ("Invalid hex bytes");
 
       if (EIB_MC_Connect (con, dest) == -1)
 	die ("Connect failed");
@@ -1568,6 +1578,8 @@ vbusmonitor1time\n");
       start = atoi (ag[5]);
       nr_of_elem = atoi (ag[6]);
       len = readBlock (buf, sizeof (buf), ac - 7, ag + 7);
+      if (len < 0)
+	die ("Invalid hex bytes");
 
       if (EIB_MC_Individual_Open (con, dest) == -1)
 	die ("Connect failed");
