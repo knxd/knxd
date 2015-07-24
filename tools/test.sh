@@ -54,12 +54,14 @@ E1=$(tempfile)
 E2=$(tempfile)
 E3=$(tempfile)
 
-knxd -t 0xfffc -f 9 -e 3.2.1 -u$S1 -u$S2 -DTRS -bdummy: &
+PORT=$((9999 + $$))
+
+knxd -t 0xfffc -f 9 -e 3.2.1 -u$S1 -u$S2 -DTR --Server=:$PORT -bdummy: &
 KNX1=$!
 trap 'rm -f $L1 $L2 $E1 $E2 $EF; kill $KNX1' 0 1 2
 
 sleep 1
-knxd -t 0xfffc -f 9 -e 3.2.2 -u$S3 -b ipt:localhost::$((10000 + $$)) &
+knxd -t 0xfffc -f 9 -e 3.2.2 -u$S3 -b ipt:localhost:$PORT:$((10000 + $$)) &
 KNX2=$!
 trap 'rm -f $L1 $L2 $E1 $E2 $EF; kill $KNX1 $KNX2' 0 1 2
 sleep 1
