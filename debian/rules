@@ -26,3 +26,6 @@ configure: configure.ac debian/knxd.install
 debian/knxd.install: debian/knxd.install.in
 	cp $^ $@
 	grep -qs 'HAVE_SYSTEMD_TRUE.*#' config.status || cat $@.systemd >> $@
+
+override_dh_auto_test:
+	bash tools/test.sh
