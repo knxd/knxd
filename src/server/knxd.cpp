@@ -315,15 +315,12 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
     case 'S':
       {
-        const char *serverip = "";
-        if (arg)
-          serverip = arg;
-
+        const char *serverip;
         const char *name = arguments->eibnetname;
 
         EIBnetServer *c;
         int port = 0;
-        char *a = strdup (arg);
+        char *a = strdup (arg ? arg : "");
         char *b;
         if (!a)
           die ("out of memory");
