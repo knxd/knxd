@@ -338,7 +338,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
         const char *serverip;
         const char *name = arguments->eibnetname;
 
-        EIBnetServer *c;
+        EIBnetServerPtr c;
         int port = 0;
         char *a = strdup (arg ? arg : "");
         char *b;
@@ -356,9 +356,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
         if (!*serverip) 
           serverip = "224.0.23.12";
 
-        c = new EIBnetServer (serverip, port, arguments->tunnel, arguments->route, arguments->discover,
+        c = EIBnetServerPtr(new EIBnetServer (serverip, port, arguments->tunnel, arguments->route, arguments->discover,
                               arguments->l3(), arguments->tracer(),
-                              (name && *name) ? name : "knxd");
+                              (name && *name) ? name : "knxd"));
         if (!c->init ())
           die ("initialization of the EIBnet/IP server failed");
         free (a);
@@ -371,13 +371,13 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
     case 'u':
       {
-        BaseServer *s;
+        BaseServerPtr s;
         const char *name = "";
         if (arg)
           name = arg;
         if (!*name)
           name = "/tmp/eib";
-        s = new LocalServer (arguments->l3(), arguments->tracer(), name);
+        s = BaseServerPtr(new LocalServer (arguments->l3(), arguments->tracer(), name));
         if (!s->init ())
           die ("initialisation of the knxd unix protocol failed");
         arguments->has_work |= 0x02;
@@ -385,12 +385,12 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
     case 'i':
       {
-        BaseServer *s = NULL;
+        BaseServerPtr s = nullptr;
         int port = arg ? atoi (arg) : 0;
         if (port == 0)
           port = 6720;
         if (port > 0)
-          s = new InetServer (arguments->l3(), arguments->tracer(), port);
+          s = BaseServerPtr(new InetServer (arguments->l3(), arguments->tracer(), port));
         if (!s || !s->init ())
           die ("initialisation of the knxd inet protocol failed");
         arguments->has_work |= 0x02;
@@ -481,7 +481,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
 #ifdef HAVE_SYSTEMD
       {
-        BaseServer *s = NULL;
+        BaseServerPtr s = nullptr;
         const int num_fds = sd_listen_fds(0);
 
         if( num_fds < 0 )
@@ -493,7 +493,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
             if( sd_is_socket(fd, AF_UNSPEC, SOCK_STREAM, 1) <= 0 )
               die("Error: socket not of expected type.");
 
-            s = new SystemdServer(arguments->l3(), arguments->tracer(), fd);
+            s = BaseServerPtr(new SystemdServer(arguments->l3(), arguments->tracer(), fd));
             if (!s->init ())
               die ("initialisation of the systemd socket failed");
             arguments->has_work |= 0x02;

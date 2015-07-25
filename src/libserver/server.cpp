@@ -35,13 +35,6 @@ BaseServer::~BaseServer ()
     l3->deregisterServer (this);
 }
 
-bool
-BaseServer::init ()
-{
-  l3->registerServer (this);
-  return true;
-}
-
 Server::~Server ()
 {
   TRACEPRINTF (t, 8, this, "StopServer");

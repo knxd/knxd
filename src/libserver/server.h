@@ -34,9 +34,8 @@ protected:
   BaseServer (Layer3 * l3, Trace * tr);
 public:
   virtual ~BaseServer ();
-
-  virtual bool init ();
 };
+typedef std::shared_ptr<BaseServer> BaseServerPtr;
 
 /** implements the frontend (but opens no connection) */
 class Server:public BaseServer
