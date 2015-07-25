@@ -259,11 +259,6 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 	{
 	  if (in[0] == 0x8B) // L_DataConfirm positive
 	    {
-	      if (mode == BUSMODE_VMONITOR)
-		{
-		  const uchar pkt[1] = { 0xCC };
-		  RecvLPDU (pkt, 1);
-		}
 	      if (waitconfirm)
 		{
 		  waitconfirm = 0;
@@ -275,11 +270,6 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 	    }
 	  else if (in[0] == 0x0B) // L_DataConfirm negative
 	    {
-	      if (mode == BUSMODE_VMONITOR)
-		{
-		  const uchar pkt[1] = { 0x0C };
-		  RecvLPDU (pkt, 1);
-		}
 	      if (waitconfirm)
 		{
 		  retry++;

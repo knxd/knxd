@@ -107,11 +107,6 @@ Layer3::deregisterVBusmonitor (L_Busmonitor_CallBack * c)
       {
 	vbusmonitor[i] = vbusmonitor[vbusmonitor () - 1];
 	vbusmonitor.resize (vbusmonitor () - 1);
-	if (vbusmonitor () == 0)
-	  {
-            for (unsigned int i = 0; i < layer2 (); i++)
-	      layer2[i]->closeVBusmonitor ();
-	  }
 	TRACEPRINTF (t, 3, this, "deregisterVBusmonitor %08X = 1", c);
 	return true;
       }
@@ -163,20 +158,8 @@ bool
 Layer3::registerVBusmonitor (L_Busmonitor_CallBack * c)
 {
   TRACEPRINTF (t, 3, this, "registerVBusmonitor %08X", c);
-  if (!vbusmonitor ()) 
-    {
-      bool have_monitor = false;
-      for (unsigned int i = 0; i < layer2 (); i++)
-        {
-          if (layer2[i]->openVBusmonitor ())
-            have_monitor = true;
-        }
-      if (! have_monitor)
-        return false;
-    }
   vbusmonitor.resize (vbusmonitor () + 1);
   vbusmonitor[vbusmonitor () - 1].cb = c;
-  TRACEPRINTF (t, 3, this, "registerVBusmontior %08X = 1", c);
   return true;
 }
 

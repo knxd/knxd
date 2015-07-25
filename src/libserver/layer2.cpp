@@ -173,24 +173,6 @@ Layer2::leaveBusmonitor ()
 }
 
 bool
-Layer2::openVBusmonitor ()
-{
-  if (mode != BUSMODE_UP)
-    return false;
-  mode = BUSMODE_VMONITOR;
-  return true;
-}
-
-bool
-Layer2::closeVBusmonitor ()
-{
-  if (mode != BUSMODE_VMONITOR)
-    return false;
-  mode = BUSMODE_UP;
-  return true;
-}
-
-bool
 Layer2::Open ()
 {
   if (mode != BUSMODE_DOWN)

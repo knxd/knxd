@@ -93,11 +93,6 @@ public:
   /** try to leave the busmonitor mode, return true if successful */
   virtual bool leaveBusmonitor ();
 
-  /** try to enter the vbusmonitor mode, return true if successful */
-  virtual bool openVBusmonitor ();
-  /** try to leave the vbusmonitor mode, return true if successful */
-  virtual bool closeVBusmonitor ();
-
   /** try to enter the normal operation mode, return true if successful */
   virtual bool Open ();
   /** try to leave the normal operation mode, return true if successful */
@@ -132,8 +127,6 @@ public:
   virtual void Send_L_Data (L_Data_PDU * l) = 0;
   bool enterBusmonitor () { return 0; }
   bool leaveBusmonitor () { return 0; }
-  bool openVBusmonitor () { return 0; }
-  bool closeVBusmonitor () { return 0; }
   bool Open () { return 1; }
   bool Close () { return 1; }
   bool Send_Queue_Empty () { return 1; }
