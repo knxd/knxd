@@ -53,6 +53,10 @@ class Layer2
 
   bool allow_monitor;
 
+protected:
+  /** auto-assigned. NON-bus connections only! */
+  eibaddr_t remoteAddr;
+
 public:
   /** debug output */
   Trace *t;

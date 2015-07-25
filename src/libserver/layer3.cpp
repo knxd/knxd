@@ -313,10 +313,16 @@ Layer3::Run (pth_sem_t * stop1)
 	  ignore[ignore () - 1].end = getTime () + 1000000;
 	  l1->repeated = 0;
 
-	  if (l1->source != 0 && l1->source != defaultAddr)
-	    l1->l2->addAddress (l1->source);
-	  else if (l1->AddrType == IndividualAddress && l1->dest != defaultAddr)
-	    l1->l2->addReverseAddress (l1->dest);
+          {
+            Layer2Ptr l2 = l1->l2;
+
+            if (l1->source == 0)
+              l1->source = l2->remoteAddr ? l2->remoteAddr : defaultAddr;
+            if (l1->source != defaultAddr)
+              l2->addAddress (l1->source);
+            else if (l1->AddrType == IndividualAddress && l1->dest != defaultAddr)
+              l2->addReverseAddress (l1->dest);
+          }
 
 	  if (l1->AddrType == IndividualAddress
 	      && l1->dest == defaultAddr)

@@ -32,6 +32,8 @@ bool Layer4common::init ()
 {
   if (!init_ok)
     return false;
+
+  remoteAddr = l3->get_client_addr ();
   return Layer2mixin::init();
 }
 

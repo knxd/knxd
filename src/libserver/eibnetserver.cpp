@@ -329,8 +329,10 @@ ConnState::ConnState (EIBnetServer *p, eibaddr_t addr) : Layer2mixin (p->l3, p->
   pth_sem_init (outsignal);
   outwait = pth_event (PTH_EVENT_SEM, outsignal);
   sendtimeout = pth_event (PTH_EVENT_RTIME, pth_time (1, 0));
-  if (addr)
-    addAddress(addr);
+  if (!addr)
+    remoteAddr = l3->get_client_addr ();
+  if (remoteAddr)
+    addAddress(remoteAddr);
 }
 
 void
