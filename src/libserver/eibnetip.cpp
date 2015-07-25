@@ -511,10 +511,7 @@ EIBNetIPSocket::Run (pth_sem_t * stop1)
 		}
 	    }
           else
-            {
-              TRACEPRINTF (t, 1, this, "Dropped %d",i);
-	      t->TracePacket (0, this, "Dropped", i, buf);
-            }
+	    t->TracePacket (0, this, "Dropped", i, buf);
 	}
       pth_event_isolate (stop);
       if (!inqueue.isempty ())
