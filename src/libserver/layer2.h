@@ -20,27 +20,16 @@
 #ifndef LAYER2_H
 #define LAYER2_H
 
+#include "layer2common.h"
 #include "common.h"
 #include "lpdu.h"
+#include <boost/enable_shared_from_this.hpp>
 
 class Layer3;
-
-/** Bus modes. The enum is designed to allow bitwise tests
- * (& BUSMODE_UP and * & BUSMODE_MONITOR) */
-typedef enum {
-  BUSMODE_DOWN = 0,
-  BUSMODE_UP,
-  BUSMODE_MONITOR,
-  BUSMODE_VMONITOR,
-} busmode_t;
-
-typedef struct {
-  unsigned int flags;
-  Trace *t;
-} L2options;
+class Layer4common;
 
 /** generic interface for an Layer 2 driver */
-class Layer2
+class Layer2 : public boost::enable_shared_from_this<Layer2>
 {
   friend class Layer3;
 
@@ -108,13 +97,15 @@ protected:
   busmode_t mode;
 };
 
+
+
 /** pointer to a functions, which creates a Layer 2 interface
  * @exception Exception in the case of an error
  * @param conf string, which contain configuration
  * @param t trace output
  * @return new Layer 2 interface
  */
-typedef Layer2 *(*Layer2_Create_Func) (const char *conf, 
+typedef Layer2Ptr (*Layer2_Create_Func) (const char *conf, 
 				       L2options *opt, Layer3 * l3);
 
 /** Layer2 mix-in class for network interfaces
@@ -154,12 +145,5 @@ public:
   bool removeAddress (eibaddr_t addr UNUSED) { return 1; }
   bool removeGroupAddress (eibaddr_t addr UNUSED) { return 1; }
 };
-
-#define FLAG_B_TUNNEL_NOQUEUE (1<<0)
-#define FLAG_B_TPUARTS_ACKGROUP (1<<1)
-#define FLAG_B_TPUARTS_ACKINDIVIDUAL (1<<2)
-#define FLAG_B_TPUARTS_DISCH_RESET (1<<3)
-#define FLAG_B_EMI_NOQUEUE (1<<4)
-#define FLAG_B_NO_MONITOR (1<<5)
 
 #endif

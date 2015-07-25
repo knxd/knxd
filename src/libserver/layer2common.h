@@ -17,23 +17,38 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifndef EIB_EMI_H
-#define EIB_EMI_H
+#ifndef LAYER2COMMON_H
+#define LAYER2COMMON_H
 
-#include "lpdu.h"
-#include "layer2.h"
+#include <boost/shared_ptr.hpp>
+class Layer2;
+class Trace;
 
-/** convert L_Data_PDU to CEMI frame */
-CArray L_Data_ToCEMI (uchar code, const L_Data_PDU & p);
-/** create L_Data_PDU out of a CEMI frame */
-L_Data_PDU *CEMI_to_L_Data (const CArray & data, Layer2Ptr l2);
+typedef boost::shared_ptr<Layer2> Layer2Ptr;
 
-L_Busmonitor_PDU *CEMI_to_Busmonitor (const CArray & data, Layer2Ptr l2);
-CArray Busmonitor_to_CEMI (uchar code, const L_Busmonitor_PDU & p, int no);
+/** Bus modes. The enum is designed to allow bitwise tests
+ * (& BUSMODE_UP and * & BUSMODE_MONITOR) */
+typedef enum {
+  BUSMODE_DOWN = 0,
+  BUSMODE_UP,
+  BUSMODE_MONITOR,
+  BUSMODE_VMONITOR,
+} busmode_t;
 
-/** convert L_Data_PDU to EMI1/2 frame */
-CArray L_Data_ToEMI (uchar code, const L_Data_PDU & p);
-/** create L_Data_PDU out of a EMI1/2 frame */
-L_Data_PDU *EMI_to_L_Data (const CArray & data, Layer2Ptr l2);
+typedef struct {
+  unsigned int flags;
+  Trace *t;
+} L2options;
+
+class Layer3;
+typedef Layer2Ptr (*Layer2_Create_Func) (const char *conf, 
+				       L2options *opt, Layer3 * l3);
+
+#define FLAG_B_TUNNEL_NOQUEUE (1<<0)
+#define FLAG_B_TPUARTS_ACKGROUP (1<<1)
+#define FLAG_B_TPUARTS_ACKINDIVIDUAL (1<<2)
+#define FLAG_B_TPUARTS_DISCH_RESET (1<<3)
+#define FLAG_B_EMI_NOQUEUE (1<<4)
+#define FLAG_B_NO_MONITOR (1<<5)
 
 #endif

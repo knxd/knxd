@@ -189,13 +189,13 @@ NCN5120SerialLayer2Driver::RecvLPDU (const uchar * data, int len)
   t->TracePacket (1, this, "Recv", len, data);
   if (mode & BUSMODE_MONITOR)
     {
-      L_Busmonitor_PDU *l = new L_Busmonitor_PDU (this);
+      L_Busmonitor_PDU *l = new L_Busmonitor_PDU (shared_from_this());
       l->pdu.set (data, len);
       l3->recv_L_Data (l);
     }
   if (mode != BUSMODE_MONITOR)
     {
-      LPDU *l = LPDU::fromPacket (CArray (data, len), this);
+      LPDU *l = LPDU::fromPacket (CArray (data, len), shared_from_this());
       if (l->getType () == L_Data && ((L_Data_PDU *) l)->valid_checksum)
 	{
 	  l3->recv_L_Data (l);
@@ -315,12 +315,12 @@ NCN5120SerialLayer2Driver::Run (pth_sem_t * stop1)
 		  uchar c = 0x10;
 		  if ((in[5] & 0x80) == 0)
 		    {
-		      if (ackallindividual || l3->hasAddress ((in[3] << 8) | in[4], this))
+		      if (ackallindividual || l3->hasAddress ((in[3] << 8) | in[4], shared_from_this()))
 			c |= 0x1;
 		    }
 		  else
 		    {
-		      if (ackallgroup || l3->hasGroupAddress ((in[3] << 8) | in[4], this))
+		      if (ackallgroup || l3->hasGroupAddress ((in[3] << 8) | in[4], shared_from_this()))
 			c |= 0x1;
 		    }
 		  TRACEPRINTF (t, 0, this, "SendAck %02X", c);

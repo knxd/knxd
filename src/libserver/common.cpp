@@ -81,3 +81,9 @@ add16Hex (String & s, uint16_t c)
   sprintf (buf, "%04X ", c);
   s += buf;
 }
+
+namespace boost
+{
+    void throw_exception(std::exception const &e) { assert(false); }
+}
+

@@ -48,14 +48,14 @@ Layer2::layer2_is_bus ()
 {
   if (! addGroupAddress (0))
     return false;
-  if (! addAddress (0))
-    return false;
   return true;
 }
 
 bool
 Layer2::addAddress (eibaddr_t addr)
 {
+  if (addr == 0)
+    return false;
   unsigned i;
   for (i = 0; i < indaddr (); i++)
     if (indaddr[i] == addr)
@@ -67,6 +67,8 @@ Layer2::addAddress (eibaddr_t addr)
 bool
 Layer2::addReverseAddress (eibaddr_t addr)
 {
+  if (addr == 0)
+    return false;
   unsigned i;
   for (i = 0; i < revaddr (); i++)
     if (revaddr[i] == addr)

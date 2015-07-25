@@ -166,7 +166,7 @@ CEMILayer2::Run (pth_sem_t * stop1)
 	wait_confirm = false;
       if (c->len () && (*c)[0] == 0x29 && (mode & BUSMODE_UP)) /* 29h = L_Data.ind */
 	{
-	  L_Data_PDU *p = CEMI_to_L_Data (*c, this);
+	  L_Data_PDU *p = CEMI_to_L_Data (*c, shared_from_this());
 	  if (p)
 	    {
 	      delete c;
@@ -180,7 +180,7 @@ CEMILayer2::Run (pth_sem_t * stop1)
       if (c->len () > 4 && (*c)[0] == 0x2B && mode == BUSMODE_MONITOR) /* 2Bh = L_Busmon.ind */
 	{
 	  /* untested for cEMI !! */
-	  L_Busmonitor_PDU *p = new L_Busmonitor_PDU (this);
+	  L_Busmonitor_PDU *p = new L_Busmonitor_PDU (shared_from_this());
 	  p->status = (*c)[1];
 	  p->timestamp = ((*c)[2] << 24) | ((*c)[3] << 16);
 	  p->pdu.set (c->array () + 4, c->len () - 4);

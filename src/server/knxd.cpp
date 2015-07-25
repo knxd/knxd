@@ -202,7 +202,7 @@ struct urldef URLs[] = {
 };
 
 /** determines the right backend for the url and creates it */
-Layer2 *
+Layer2Ptr 
 Create (const char *url, L2options *opt, Layer3 * l3)
 {
   unsigned int p = 0;
@@ -463,7 +463,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'b':
       {
 	arguments->l2opts.t = arguments->tracer ();
-        Layer2 *l2 = Create (arg, &arguments->l2opts, arguments->l3 ());
+        Layer2Ptr l2 = Create (arg, &arguments->l2opts, arguments->l3 ());
         if (!l2 || !l2->init ())
           die ("initialisation of backend '%s' failed", arg);
 	if (arguments->l2opts.flags)

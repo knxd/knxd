@@ -28,12 +28,10 @@
 #include "config.h"
 
 ClientConnection::ClientConnection (Server * s, Layer3 * l3, Trace * tr,
-				    int fd)
+				    int fd) : Layer2mixin (l3, tr)
 {
   TRACEPRINTF (tr, 8, this, "ClientConnection Init");
   this->fd = fd;
-  this->t = tr;
-  this->l3 = l3;
   this->s = s;
   buf = 0;
   buflen = 0;
@@ -61,114 +59,114 @@ ClientConnection::Run (pth_sem_t * stop1)
 	{
 	case EIB_OPEN_BUSMONITOR:
 	  {
-	    A_Busmonitor busmon (this, l3, t, false, false);
+	    A_Busmonitor busmon (this, false, false);
 	    busmon.Do (stop);
 	  }
 	  break;
 
 	case EIB_OPEN_BUSMONITOR_TEXT:
 	  {
-	    A_Text_Busmonitor busmon (this, l3, t, false);
+	    A_Text_Busmonitor busmon (this, false);
 	    busmon.Do (stop);
 	  }
 	  break;
 
 	case EIB_OPEN_BUSMONITOR_TS:
 	  {
-	    A_Busmonitor busmon (this, l3, t, false, true);
+	    A_Busmonitor busmon (this, false, true);
 	    busmon.Do (stop);
 	  }
 	  break;
 
 	case EIB_OPEN_VBUSMONITOR:
 	  {
-	    A_Busmonitor busmon (this, l3, t, true, false);
+	    A_Busmonitor busmon (this, true, false);
 	    busmon.Do (stop);
 	  }
 	  break;
 
 	case EIB_OPEN_VBUSMONITOR_TEXT:
 	  {
-	    A_Text_Busmonitor busmon (this, l3, t, true);
+	    A_Text_Busmonitor busmon (this, true);
 	    busmon.Do (stop);
 	  }
 	  break;
 
 	case EIB_OPEN_VBUSMONITOR_TS:
 	  {
-	    A_Busmonitor busmon (this, l3, t, true, true);
+	    A_Busmonitor busmon (this, true, true);
 	    busmon.Do (stop);
 	  }
 	  break;
 
 	case EIB_OPEN_T_BROADCAST:
 	  {
-	    A_Broadcast cl (l3, t, this);
+	    A_Broadcast cl (this);
 	    cl.Do (stop);
 	  }
 	  break;
 
 	case EIB_OPEN_T_GROUP:
 	  {
-	    A_Group cl (l3, t, this);
+	    A_Group cl (this);
 	    cl.Do (stop);
 	  }
 	  break;
 
 	case EIB_OPEN_T_INDIVIDUAL:
 	  {
-	    A_Individual cl (l3, t, this);
+	    A_Individual cl (this);
 	    cl.Do (stop);
 	  }
 	  break;
 
 	case EIB_OPEN_T_TPDU:
 	  {
-	    A_TPDU cl (l3, t, this);
+	    A_TPDU cl (this);
 	    cl.Do (stop);
 	  }
 	  break;
 
 	case EIB_OPEN_T_CONNECTION:
 	  {
-	    A_Connection cl (l3, t, this);
+	    A_Connection cl (this);
 	    cl.Do (stop);
 	  }
 	  break;
 
 	case EIB_OPEN_GROUPCON:
 	  {
-	    A_GroupSocket cl (l3, t, this);
+	    A_GroupSocket cl (this);
 	    cl.Do (stop);
 	  }
 	  break;
 
 	case EIB_M_INDIVIDUAL_ADDRESS_READ:
-	  ReadIndividualAddresses (l3, t, this, stop);
+	  ReadIndividualAddresses (this, stop);
 	  break;
 
 	case EIB_PROG_MODE:
-	  ChangeProgMode (l3, t, this, stop);
+	  ChangeProgMode (this, stop);
 	  break;
 
 	case EIB_MASK_VERSION:
-	  GetMaskVersion (l3, t, this, stop);
+	  GetMaskVersion (this, stop);
 	  break;
 
 	case EIB_M_INDIVIDUAL_ADDRESS_WRITE:
-	  WriteIndividualAddress (l3, t, this, stop);
+	  WriteIndividualAddress (this, stop);
 	  break;
 
 	case EIB_MC_CONNECTION:
-	  ManagementConnection (l3, t, this, stop);
+	  ManagementConnection (this, stop);
 	  break;
 
 	case EIB_MC_INDIVIDUAL:
-	  ManagementIndividual (l3, t, this, stop);
+	  ManagementIndividual (this, stop);
 	  break;
 
 	case EIB_LOAD_IMAGE:
-	  LoadImage (l3, t, this, stop);
+	  LoadImage (this, stop);
 	  break;
 
 	case EIB_CACHE_ENABLE:
@@ -179,7 +177,7 @@ ClientConnection::Run (pth_sem_t * stop1)
 	case EIB_CACHE_READ_NOWAIT:
 	case EIB_CACHE_LAST_UPDATES:
 #ifdef HAVE_GROUPCACHE
-	  GroupCacheRequest (l3, t, this, stop);
+	  GroupCacheRequest (this, stop);
 #else
 	  sendreject (stop);
 #endif

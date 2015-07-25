@@ -128,7 +128,7 @@ EIBNetIPRouter::Run (pth_sem_t * stop1)
 	    }
 	  const CArray data = p->data;
 	  delete p;
-	  L_Data_PDU *c = CEMI_to_L_Data (data, this);
+	  L_Data_PDU *c = CEMI_to_L_Data (data, shared_from_this());
 	  if (c)
 	    {
 	      TRACEPRINTF (t, 2, this, "Recv %s", c->Decode ()());
@@ -137,7 +137,7 @@ EIBNetIPRouter::Run (pth_sem_t * stop1)
 		  l3->recv_L_Data (c);
 		  continue;
 		}
-	      L_Busmonitor_PDU *p1 = new L_Busmonitor_PDU (this);
+	      L_Busmonitor_PDU *p1 = new L_Busmonitor_PDU (shared_from_this());
 	      p1->pdu = c->ToPacket ();
 	      delete c;
 	      l3->recv_L_Data (p1);

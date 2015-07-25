@@ -37,8 +37,10 @@ Layer3::~Layer3 ()
   Stop ();
   while (servers ())
     delete servers[0];
+#if 0 // boost:: magic
   while (layer2 ())
     delete layer2[0];
+#endif
   // the next loops should do exactly nothing
   while (vbusmonitor ())
     deregisterVBusmonitor (vbusmonitor[0].cb);
@@ -115,7 +117,7 @@ Layer3::deregisterVBusmonitor (L_Busmonitor_CallBack * c)
 }
 
 bool
-Layer3::deregisterLayer2 (Layer2 * l2)
+Layer3::deregisterLayer2 (Layer2 *l2)
 {
   unsigned i;
   for (i = 0; i < layer2 (); i++)
@@ -164,7 +166,7 @@ Layer3::registerVBusmonitor (L_Busmonitor_CallBack * c)
 }
 
 bool
-Layer3::registerLayer2 (Layer2 * l2)
+Layer3::registerLayer2 (Layer2 *l2)
 {
   TRACEPRINTF (t, 3, this, "registerLayer2 %08X", l2);
   if (! busmonitor () || ! l2->enterBusmonitor ())
@@ -180,20 +182,20 @@ Layer3::registerLayer2 (Layer2 * l2)
 }
 
 bool
-Layer3::hasAddress (eibaddr_t addr, Layer2 *l2)
+Layer3::hasAddress (eibaddr_t addr, Layer2Ptr l2)
 {
   if (addr == defaultAddr)
     return true;
 
   for (unsigned i = 0; i < layer2 (); i++)
-    if (layer2[i] != l2 && layer2[i]->hasAddress (addr))
+    if (layer2[i] != l2.get() && layer2[i]->hasAddress (addr))
       return true;
 
   return false;
 }
 
 bool
-Layer3::hasGroupAddress (eibaddr_t addr, Layer2 *l2 UNUSED)
+Layer3::hasGroupAddress (eibaddr_t addr, Layer2Ptr l2 UNUSED)
 {
   if (addr == 0) // always accept broadcast
     return true;
@@ -267,28 +269,22 @@ Layer3::Run (pth_sem_t * stop1)
       if (!l)
 	continue;
 
-      if (l->getType () == L_Busmonitor)
-	{
-	  L_Busmonitor_PDU *l1, *l2;
-	  l1 = (L_Busmonitor_PDU *) l;
-
-	  TRACEPRINTF (t, 3, this, "RecvMon %s", l1->Decode ()());
-	  for (i = 0; i < busmonitor (); i++)
-	    {
-	      l2 = new L_Busmonitor_PDU (*l1);
-	      busmonitor[i].cb->Send_L_Busmonitor (l2);
-	    }
-	  for (i = 0; i < vbusmonitor (); i++)
-	    {
-	      l2 = new L_Busmonitor_PDU (*l1);
-	      vbusmonitor[i].cb->Send_L_Busmonitor (l2);
-	    }
-	}
       if (l->getType () == L_Data)
 	{
-	  L_Data_PDU *l1;
-	  l1 = (L_Data_PDU *) l;
+	  L_Data_PDU *l1 = dynamic_cast<L_Data_PDU *>(l);
 
+          if (vbusmonitor ())
+            {
+              L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (l->l2);
+              l2->pdu.set (l->ToPacket ());
+
+              for (i = 0; i < vbusmonitor (); i++)
+                {
+                  L_Busmonitor_PDU *l2x = new L_Busmonitor_PDU (*l2);
+                  vbusmonitor[i].cb->Send_L_Busmonitor (l2x);
+                }
+              delete l2;
+            }
           if (!l1->hopcount)
             {
               TRACEPRINTF (t, 3, this, "Hopcount zero: %s", l1->Decode ()());
@@ -338,7 +334,7 @@ Layer3::Run (pth_sem_t * stop1)
 	      // group.
 	      for (i = 0; i < layer2 (); i++)
                 {
-		  if (layer2[i] != l1->l2 && layer2[i]->hasGroupAddress(l1->dest))
+		  if (layer2[i] != l1->l2.get() && layer2[i]->hasGroupAddress(l1->dest))
 		    layer2[i]->Send_L_Data (new L_Data_PDU (*l1));
                 }
 	    }
@@ -352,7 +348,7 @@ Layer3::Run (pth_sem_t * stop1)
 	      bool found = false;
 	      for (i = 0; i < layer2 (); i++)
                 {
-                  if (layer2[i] == l1->l2)
+                  if (layer2[i] == l1->l2.get())
 		    continue;
                   if (l1->dest ? layer2[i]->hasAddress (l1->dest)
 		               : layer2[i]->hasReverseAddress (l1->source))
@@ -362,12 +358,23 @@ Layer3::Run (pth_sem_t * stop1)
 		    }
 		}
 	      for (i = 0; i < layer2 (); i++)
-		if (layer2[i] != l1->l2
+		if (layer2[i] != l1->l2.get()
 		    && l1->dest ? layer2[i]->hasAddress (found ? l1->dest : 0)
 		                : layer2[i]->hasReverseAddress (l1->source))
 		  layer2[i]->Send_L_Data (new L_Data_PDU (*l1));
 	    }
+	}
+      else if (l->getType () == L_Busmonitor)
+	{
+	  L_Busmonitor_PDU *l1, *l2;
+	  l1 = dynamic_cast<L_Busmonitor_PDU *>(l);
 
+	  TRACEPRINTF (t, 3, this, "RecvMon %s", l1->Decode ()());
+	  for (i = 0; i < busmonitor (); i++)
+	    {
+	      l2 = new L_Busmonitor_PDU (*l1);
+	      busmonitor[i].cb->Send_L_Busmonitor (l2);
+	    }
 	}
       // ignore[] is ordered, any timed-out items are at the front
       for (i = 0; i < ignore (); i++)

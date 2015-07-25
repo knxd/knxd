@@ -207,7 +207,7 @@ GroupCacheEntry
   pth_event_t timeout = pth_event (PTH_EVENT_RTIME, pth_time (Timeout, 0));
 
   tpdu.data = apdu.ToPacket ();
-  l = new L_Data_PDU (this);
+  l = new L_Data_PDU (shared_from_this());
   l->data = tpdu.ToPacket ();
   l->source = 0;
   l->dest = addr;

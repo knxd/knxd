@@ -33,12 +33,11 @@ A_Busmonitor::~A_Busmonitor ()
     }
 }
 
-A_Busmonitor::A_Busmonitor (ClientConnection * c, Layer3 * l3, Trace * tr,
-			    bool virt, bool TS)
+A_Busmonitor::A_Busmonitor (ClientConnection * c, bool virt, bool TS)
 {
-  TRACEPRINTF (tr, 7, this, "Open A_Busmonitor");
-  this->l3 = l3;
-  t = tr;
+  TRACEPRINTF (c->t, 7, this, "Open A_Busmonitor");
+  this->l3 = c->l3;
+  t = c->t;
   con = c;
   v = virt;
   ts = TS;

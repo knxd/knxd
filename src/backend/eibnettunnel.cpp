@@ -299,7 +299,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 		}
 	      if (treq.CEMI[0] == 0x2B)
 		{
-		  L_Busmonitor_PDU *l2 = CEMI_to_Busmonitor (treq.CEMI, this);
+		  L_Busmonitor_PDU *l2 = CEMI_to_Busmonitor (treq.CEMI, shared_from_this());
 		  l3->recv_L_Data (l2);
 		  break;
 		}
@@ -309,7 +309,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 			       treq.CEMI[0]);
 		  break;
 		}
-	      c = CEMI_to_L_Data (treq.CEMI, this);
+	      c = CEMI_to_L_Data (treq.CEMI, shared_from_this());
 	      if (c)
 		{
 		  TRACEPRINTF (t, 1, this, "Recv %s", c->Decode ()());
@@ -321,7 +321,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 		      l3->recv_L_Data (c);
 		      break;
 		    }
-		  L_Busmonitor_PDU *p1 = new L_Busmonitor_PDU (this);
+		  L_Busmonitor_PDU *p1 = new L_Busmonitor_PDU (shared_from_this());
 		  p1->pdu = c->ToPacket ();
 		  delete c;
 		  l3->recv_L_Data (p1);

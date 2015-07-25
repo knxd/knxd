@@ -30,10 +30,10 @@
 #define PEI16s_PREFIX "bcu1s"
 #define PEI16s_CREATE PEI16s_Create
 
-inline Layer2 *
+inline Layer2Ptr 
 PEI16s_Create (const char *dev, L2options *opt, Layer3 * l3)
 {
-  return new EMI1Layer2 (new BCU1SerialLowLevelDriver (dev, l3->t), l3, opt);
+  return boost::shared_ptr<EMI1Layer2>(new EMI1Layer2 (new BCU1SerialLowLevelDriver (dev, l3->t), l3, opt));
 }
 
 #endif

@@ -36,7 +36,7 @@
 #define EIBNETIPTUNNELNAT_CREATE eibnetiptunnelnat_Create
 
 
-inline Layer2 *
+inline Layer2Ptr
 eibnetiptunnel_Create (const char *dev, L2options *opt, Layer3 * l3)
 {
   char *a = strdup (dev);
@@ -47,7 +47,7 @@ eibnetiptunnel_Create (const char *dev, L2options *opt, Layer3 * l3)
   int dport = 3671;
   int dataport = -1;
   int sport = 3672;;
-  Layer2 *iface;
+  Layer2Ptr iface;
 
   if (!a)
     die ("out of memory");
@@ -74,12 +74,12 @@ eibnetiptunnel_Create (const char *dev, L2options *opt, Layer3 * l3)
   if (e && *e)
     dataport = atoi(e);
 
-  iface = new EIBNetIPTunnel (a, dport, sport, d, dataport, opt, l3);
+  iface = boost::shared_ptr<EIBNetIPTunnel>(new EIBNetIPTunnel (a, dport, sport, d, dataport, opt, l3));
   free (a);
   return iface;
 }
 
-inline Layer2 *
+inline Layer2Ptr
 eibnetiptunnelnat_Create (const char *dev, L2options *opt, Layer3 * l3)
 {
   char *a = strdup (dev);
@@ -87,7 +87,7 @@ eibnetiptunnelnat_Create (const char *dev, L2options *opt, Layer3 * l3)
   char *c;
   int dport = 3671;
   int sport = 3672;
-  Layer2 *iface;
+  Layer2Ptr iface;
   if (!a)
     die ("out of memory");
   c = NULL;
@@ -103,7 +103,7 @@ eibnetiptunnelnat_Create (const char *dev, L2options *opt, Layer3 * l3)
   if (c && *c)
     sport = atoi(c);
 
-  iface = new EIBNetIPTunnel (a, dport, sport, "0.0.0.0", -1, opt, l3);
+  iface = boost::shared_ptr<EIBNetIPTunnel>(new EIBNetIPTunnel (a, dport, sport, "0.0.0.0", -1, opt, l3));
   free (a);
   return iface;
 }

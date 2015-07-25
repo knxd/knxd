@@ -52,11 +52,10 @@ LowLevelDriver *initUSBDriver (LowLevelDriver * i,
 class USBLayer2:public Layer2
 {
   /** EMI */
-  Layer2 *emi;
+  Layer2Ptr emi;
 
 public:
   USBLayer2 (LowLevelDriver * i, Layer3 * l3, L2options *opt);
-  ~USBLayer2 ();
   bool init ();
 
   void Send_L_Data (LPDU * l);

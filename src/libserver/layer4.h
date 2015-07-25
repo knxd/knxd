@@ -88,6 +88,7 @@ public:
   /** send APDU c */
   void Send (const CArray & c);
 };
+typedef boost::shared_ptr<T_Broadcast> T_BroadcastPtr;
 
 /** Group Communication socket */
 class GroupSocket:public Layer4common
@@ -108,6 +109,7 @@ public:
   /** send APDU to L3 */
   void Send (const GroupAPDU & c);
 };
+typedef boost::shared_ptr<GroupSocket> GroupSocketPtr;
 
 /** Group Layer 4 connection */
 class T_Group:public Layer4common
@@ -130,6 +132,7 @@ public:
   /** send APDU to L3 */
   void Send (const CArray & c);
 };
+typedef boost::shared_ptr<T_Group> T_GroupPtr;
 
 /** Layer 4 raw individual connection */
 class T_TPDU:public Layer4common
@@ -152,6 +155,7 @@ public:
   /** send APDU to L3 */
   void Send (const TpduComm & c);
 };
+typedef boost::shared_ptr<T_TPDU> T_TPDUPtr;
 
 /** Layer 4 T_Individual connection */
 class T_Individual:public Layer4common
@@ -174,6 +178,7 @@ public:
   /** send APDU to L3 */
   void Send (const CArray & c);
 };
+typedef boost::shared_ptr<T_Individual> T_IndividualPtr;
 
 /** implement a client T_Connection */
 class T_Connection:public Layer4common, private Thread
@@ -221,5 +226,6 @@ public:
   /** send APDU to L3 */
   void Send (const CArray & c);
 };
+typedef boost::shared_ptr<T_Connection> T_ConnectionPtr;
 
 #endif

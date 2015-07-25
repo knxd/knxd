@@ -553,7 +553,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1)
       if (p1->data () < 2 || p1->data[0] != 0x29)
 	goto out;
       const CArray data = p1->data;
-      L_Data_PDU *c = CEMI_to_L_Data (data, this);
+      L_Data_PDU *c = CEMI_to_L_Data (data, shared_from_this());
       if (c)
 	{
 	  TRACEPRINTF (t, 8, this, "Recv_Route %s", c->Decode ()());
@@ -814,7 +814,7 @@ void ConnState::tunnel_request(EIBnet_TunnelRequest &r1)
     }
   if (type == CT_STANDARD)
     {
-      L_Data_PDU *c = CEMI_to_L_Data (r1.CEMI, this);
+      L_Data_PDU *c = CEMI_to_L_Data (r1.CEMI, shared_from_this());
       if (c)
 	{
 	  r2.status = 0;

@@ -22,17 +22,16 @@
 #include "loadimage.h"
 
 void
-ReadIndividualAddresses (Layer3 * l3, Trace * t, ClientConnection * c,
-			 pth_event_t stop)
+ReadIndividualAddresses (ClientConnection * c, pth_event_t stop)
 {
-  Layer7_Broadcast b (l3, t);
+  Layer7_Broadcast b (c->l3, c->t);
   if (!b.init ())
     {
       c->sendreject (stop, EIB_PROCESSING_ERROR);
       return;
     }
   CArray erg;
-  Array < eibaddr_t > e = b.A_IndividualAddress_Read (t);
+  Array < eibaddr_t > e = b.A_IndividualAddress_Read (c->t);
   erg.resize (2 + 2 * e ());
   EIBSETTYPE (erg, EIB_M_INDIVIDUAL_ADDRESS_READ);
   for (unsigned i = 0; i < e (); i++)
@@ -44,8 +43,7 @@ ReadIndividualAddresses (Layer3 * l3, Trace * t, ClientConnection * c,
 }
 
 void
-ChangeProgMode (Layer3 * l3, Trace * t, ClientConnection * c,
-		pth_event_t stop)
+ChangeProgMode (ClientConnection * c, pth_event_t stop)
 {
   eibaddr_t dest;
   uchar res[3];
@@ -58,7 +56,7 @@ ChangeProgMode (Layer3 * l3, Trace * t, ClientConnection * c,
       return;
     }
   dest = (c->buf[2] << 8) | (c->buf[3]);
-  Management_Connection m (l3, t, dest);
+  Management_Connection m (c->l3, c->t, dest);
   if (!m.init ())
     {
       c->sendreject (stop, EIB_PROCESSING_ERROR);
@@ -99,8 +97,7 @@ ChangeProgMode (Layer3 * l3, Trace * t, ClientConnection * c,
 }
 
 void
-GetMaskVersion (Layer3 * l3, Trace * t, ClientConnection * c,
-		pth_event_t stop)
+GetMaskVersion (ClientConnection * c, pth_event_t stop)
 {
   eibaddr_t dest;
   uchar res[4];
@@ -114,7 +111,7 @@ GetMaskVersion (Layer3 * l3, Trace * t, ClientConnection * c,
     }
 
   dest = (c->buf[2] << 8) | (c->buf[3]);
-  Management_Connection m (l3, t, dest);
+  Management_Connection m (c->l3, c->t, dest);
   if (!m.init ())
     {
       c->sendreject (stop, EIB_PROCESSING_ERROR);
@@ -131,8 +128,7 @@ GetMaskVersion (Layer3 * l3, Trace * t, ClientConnection * c,
 }
 
 void
-WriteIndividualAddress (Layer3 * l3, Trace * t, ClientConnection * c,
-			pth_event_t stop)
+WriteIndividualAddress (ClientConnection * c, pth_event_t stop)
 {
   eibaddr_t dest;
   uint16_t maskver;
@@ -143,14 +139,14 @@ WriteIndividualAddress (Layer3 * l3, Trace * t, ClientConnection * c,
     }
 
   dest = (c->buf[2] << 8) | (c->buf[3]);
-  Layer7_Broadcast b (l3, t);
+  Layer7_Broadcast b (c->l3, c->t);
   if (!b.init ())
     {
       c->sendreject (stop, EIB_PROCESSING_ERROR);
       return;
     }
   {
-    Management_Connection m (l3, t, dest);
+    Management_Connection m (c->l3, c->t, dest);
     if (!m.init ())
       {
 	c->sendreject (stop, EIB_PROCESSING_ERROR);
@@ -162,7 +158,7 @@ WriteIndividualAddress (Layer3 * l3, Trace * t, ClientConnection * c,
 	return;
       }
   }
-  Array < eibaddr_t > addr = b.A_IndividualAddress_Read (t);
+  Array < eibaddr_t > addr = b.A_IndividualAddress_Read (c->t);
   if (addr () > 1)
     {
       c->sendreject (stop, EIB_ERROR_MORE_DEVICE);
@@ -177,7 +173,7 @@ WriteIndividualAddress (Layer3 * l3, Trace * t, ClientConnection * c,
   // wait 100ms
   pth_usleep (100000);
 
-  Management_Connection m1 (l3, t, dest);
+  Management_Connection m1 (c->l3, c->t, dest);
   if (!m1.init ())
     {
       c->sendreject (stop, EIB_PROCESSING_ERROR);
@@ -197,8 +193,7 @@ WriteIndividualAddress (Layer3 * l3, Trace * t, ClientConnection * c,
 }
 
 void
-ManagementConnection (Layer3 * l3, Trace * t, ClientConnection * c,
-		      pth_event_t stop)
+ManagementConnection (ClientConnection * c, pth_event_t stop)
 {
   eibaddr_t dest;
   uint16_t maskver;
@@ -214,7 +209,7 @@ ManagementConnection (Layer3 * l3, Trace * t, ClientConnection * c,
     }
 
   dest = (c->buf[2] << 8) | (c->buf[3]);
-  Management_Connection m (l3, t, dest);
+  Management_Connection m (c->l3, c->t, dest);
   if (!m.init ())
     {
       c->sendreject (stop, EIB_PROCESSING_ERROR);
@@ -515,8 +510,7 @@ ManagementConnection (Layer3 * l3, Trace * t, ClientConnection * c,
 }
 
 void
-ManagementIndividual (Layer3 * l3, Trace * t, ClientConnection * c,
-		      pth_event_t stop)
+ManagementIndividual (ClientConnection * c, pth_event_t stop)
 {
   eibaddr_t dest;
   int i;
@@ -528,7 +522,7 @@ ManagementIndividual (Layer3 * l3, Trace * t, ClientConnection * c,
     }
 
   dest = (c->buf[2] << 8) | (c->buf[3]);
-  Management_Individual m (l3, t, dest);
+  Management_Individual m (c->l3, c->t, dest);
   if (!m.init ())
     {
       c->sendreject (stop, EIB_PROCESSING_ERROR);
@@ -598,7 +592,7 @@ ManagementIndividual (Layer3 * l3, Trace * t, ClientConnection * c,
 }
 
 void
-LoadImage (Layer3 * l3, Trace * t, ClientConnection * c, pth_event_t stop)
+LoadImage (ClientConnection * c, pth_event_t stop)
 {
   uchar buf[200];
   CArray img (c->buf + 2, c->size - 2);
@@ -618,9 +612,9 @@ LoadImage (Layer3 * l3, Trace * t, ClientConnection * c, pth_event_t stop)
     }
   {
     uint16_t maskver;
-    uchar c;
+    uchar ch;
     r = IMG_NO_DEVICE_CONNECTION;
-    Management_Connection m (l3, t, i->addr);
+    Management_Connection m (c->l3, c->t, i->addr);
     if (!m.init ())
       goto out;
     r = IMG_MASK_READ_FAILED;
@@ -634,20 +628,20 @@ LoadImage (Layer3 * l3, Trace * t, ClientConnection * c, pth_event_t stop)
 
 	/* set error flags in BCU (0x10D = 0x00) */
 	r = IMG_CLEAR_ERROR;
-	c = 0;
-	if (m.X_Memory_Write_Block (0x010d, CArray (&c, 1)) != 0)
+	ch = 0;
+	if (m.X_Memory_Write_Block (0x010d, CArray (&ch, 1)) != 0)
 	  goto out;
 
 	/*set length of the address tab to 1 */
 	r = IMG_RESET_ADDR_TAB;
-	c = 0x01;
-	if (m.X_Memory_Write_Block (0x0116, CArray (&c, 1)) != 0)
+	ch = 0x01;
+	if (m.X_Memory_Write_Block (0x0116, CArray (&ch, 1)) != 0)
 	  goto out;
 
 	/*load the data from 0x100 to 0x100 */
 	r = IMG_LOAD_HEADER;
-	c = 0xff;
-	if (m.X_Memory_Write_Block (0x0100, CArray (&c, 1)) != 0)
+	ch = 0xff;
+	if (m.X_Memory_Write_Block (0x0100, CArray (&ch, 1)) != 0)
 	  goto out;
 
 	/*load the data from 0x103 to 0x10C */
@@ -686,8 +680,8 @@ LoadImage (Layer3 * l3, Trace * t, ClientConnection * c, pth_event_t stop)
 
 	/* reset all error flags in the BCU (0x10D = 0xFF) */
 	r = IMG_PREPARE_RUN;
-	c = 0xff;
-	if (m.X_Memory_Write_Block (0x010d, CArray (&c, 1)) != 0)
+	ch = 0xff;
+	if (m.X_Memory_Write_Block (0x010d, CArray (&ch, 1)) != 0)
 	  goto out;
 
 	r = IMG_RESTART;
