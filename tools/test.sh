@@ -93,9 +93,11 @@ sed -e 's/^/E grouplisten: /' <$E1
 sed -e 's/^/E vbusmonitor1: /' <$E2
 sed -e 's/^/E vbusmonitor1 2: /' <$E3
 
-diff -u "$(dirname "$0")"/logs/listen $L1
-diff -u "$(dirname "$0")"/logs/monitor $L2
-diff -u "$(dirname "$0")"/logs/monitor $L3
+E=""
+diff -u "$(dirname "$0")"/logs/listen $L1 || E=1$E
+diff -u "$(dirname "$0")"/logs/monitor $L2 || E=2$E
+diff -u "$(dirname "$0")"/logs/monitor $L3 || E=3$E
+test -z "$E"
 
 set +ex
 #sed -e 's/^/O grouplisten: /' <$L1
