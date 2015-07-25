@@ -531,6 +531,7 @@ main (int ac, char *ag[])
 {
   int index;
   pth_init ();
+  setlinebuf(stdout);
 
   memset (&arg, 0, sizeof (arg));
   arg.errorlevel = LEVEL_WARNING;
