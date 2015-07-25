@@ -91,9 +91,9 @@ GetSourceAddress (const struct sockaddr_in *dest, struct sockaddr_in *src)
   memcpy (RTA_DATA (a), &dest->sin_addr.s_addr,
 	  sizeof (dest->sin_addr.s_addr));
   if (write (s, &req, req.n.nlmsg_len) < 0)
-    return 0;
+    goto err_out;
   if (read (s, &req, sizeof (req)) < 0)
-    return 0;
+    goto err_out;
   close (s);
   if (req.n.nlmsg_type == NLMSG_ERROR)
     return 0;
@@ -109,6 +109,9 @@ GetSourceAddress (const struct sockaddr_in *dest, struct sockaddr_in *src)
 	}
       a = RTA_NEXT (a, l);
     }
+  return 0;
+err_out:
+  close (s);
   return 0;
 }
 #endif
@@ -192,9 +195,9 @@ GetSourceAddress (const struct sockaddr_in *dest, struct sockaddr_in *src)
   req.hdr.rtm_addrs = RTA_DST | RTA_IFP;
   memcpy (cp, dest, sizeof (*dest));
   if (write (s, (char *) &req, req.hdr.rtm_msglen) < 0)
-    return 0;
+    goto err_out;
   if (read (s, (char *) &req, sizeof (req)) < 0)
-    return 0;
+    goto err_out;
   close (s);
   int i;
   cp = (char *) (&req.hdr + 1);
@@ -212,6 +215,9 @@ GetSourceAddress (const struct sockaddr_in *dest, struct sockaddr_in *src)
 	  }
 	cp += SA_SIZE (sa);
       }
+  return 0;
+err_out:
+  close (s);
   return 0;
 }
 #endif
@@ -504,6 +510,11 @@ EIBNetIPSocket::Run (pth_sem_t * stop1)
 		  pth_sem_inc (&outsignal, 1);
 		}
 	    }
+          else
+            {
+              TRACEPRINTF (t, 1, this, "Dropped %d",i);
+	      t->TracePacket (0, this, "Dropped", i, buf);
+            }
 	}
       pth_event_isolate (stop);
       if (!inqueue.isempty ())

@@ -37,33 +37,26 @@ EIBNetIPRouter::EIBNetIPRouter (const char *multicastaddr, int port,
   baddr.sin_addr.s_addr = htonl (INADDR_ANY);
   sock = new EIBNetIPSocket (baddr, 1, t);
   if (!sock->init ())
-    {
-      delete sock;
-      sock = 0;
-      return;
-    }
+    goto err_out;
   sock->recvall = 2;
   if (GetHostIP (&sock->sendaddr, multicastaddr) == 0)
-    {
-      delete sock;
-      sock = 0;
-      return;
-    }
+    goto err_out;
   sock->sendaddr.sin_port = htons (port);
   if (!GetSourceAddress (&sock->sendaddr, &sock->localaddr))
-    return;
+    goto err_out;
   sock->localaddr.sin_port = sock->sendaddr.sin_port;
 
   mcfg.imr_multiaddr = sock->sendaddr.sin_addr;
   mcfg.imr_interface.s_addr = htonl (INADDR_ANY);
   if (!sock->SetMulticast (mcfg))
-    {
-      delete sock;
-      sock = 0;
-      return;
-    }
+    goto err_out;
   Start ();
   TRACEPRINTF (t, 2, this, "Opened");
+  return;
+err_out:
+  delete sock;
+  sock = 0;
+  return;
 }
 
 EIBNetIPRouter::~EIBNetIPRouter ()
