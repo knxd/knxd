@@ -27,10 +27,12 @@
 #include "groupcacheclient.h"
 #include "config.h"
 
-ClientConnection::ClientConnection (Server * s, Layer3 * l3, Trace * tr,
-				    int fd) : Layer2mixin (l3, tr)
+ClientConnection::ClientConnection (Server *s, int fd)
 {
-  TRACEPRINTF (tr, 8, this, "ClientConnection Init");
+  TRACEPRINTF (s->t, 8, this, "ClientConnection Init");
+  this->t = s->t;
+  this->l3 = s->l3;
+
   this->fd = fd;
   this->s = s;
   buf = 0;

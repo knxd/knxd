@@ -93,7 +93,7 @@ Server::Run (pth_sem_t * stop1)
 	{
 	  TRACEPRINTF (t, 8, this, "New Connection");
 	  setupConnection (cfd);
-	  ClientConnection *c = new ClientConnection (this, l3, t, cfd);
+	  ClientConnection *c = new ClientConnection (this, cfd);
 	  connections.setpart (&c, connections (), 1);
 	  c->Start ();
 	}

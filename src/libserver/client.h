@@ -22,7 +22,6 @@
 
 #include "common.h"
 #include "eibtypes.h"
-#include "layer2.h"
 
 /** reads the type of a eibd packet */
 #define EIBTYPE(buf) (((buf)[0]<<8)|((buf)[1]))
@@ -32,10 +31,16 @@
 class Server;
 class Layer3;
 /** implements a client connection */
-class ClientConnection:public Thread, public Layer2mixin
+class ClientConnection:public Thread
 {
   /** client connection */
   int fd;
+public:
+  /** Layer 3 interface */
+  Layer3 *l3;
+  /** debug output */
+  Trace *t;
+protected:
   /** server */
   Server *s;
   /** buffer length*/
@@ -44,7 +49,7 @@ class ClientConnection:public Thread, public Layer2mixin
   void Run (pth_sem_t * stop);
   const char *Name() { return "client"; }
 public:
-  ClientConnection (Server * s, Layer3 * l3, Trace * tr, int fd);
+  ClientConnection (Server * s, int fd);
   virtual ~ClientConnection ();
   /** reads a message and stores it in buf; aborts if stop occurs */
   int readmessage (pth_event_t stop);
@@ -55,13 +60,11 @@ public:
   /** sends a reject with the code code; aborts, if stop occurs */
   int sendreject (pth_event_t stop, int code);
 
+
   /** buffer*/
   uchar *buf;
   /** message length */
   unsigned size;
-
-  /* not actually used */
-  void Send_L_Data (L_Data_PDU * l) { delete l; }
 };
 
 #endif
