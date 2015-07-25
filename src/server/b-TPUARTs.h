@@ -33,7 +33,7 @@
 inline Layer2Ptr 
 tpuarts_Create (const char *dev, L2options *opt, Layer3 *l3)
 {
-  return boost::shared_ptr<TPUARTSerialLayer2Driver>(new TPUARTSerialLayer2Driver (dev, opt, l3));
+  return std::shared_ptr<TPUARTSerialLayer2Driver>(new TPUARTSerialLayer2Driver (dev, opt, l3));
 }
 
 #endif

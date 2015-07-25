@@ -23,13 +23,13 @@
 #include "layer2common.h"
 #include "common.h"
 #include "lpdu.h"
-#include <boost/enable_shared_from_this.hpp>
+#include <memory>
 
 class Layer3;
 class Layer4common;
 
 /** generic interface for an Layer 2 driver */
-class Layer2 : public boost::enable_shared_from_this<Layer2>
+class Layer2 : public std::enable_shared_from_this<Layer2>
 {
   friend class Layer3;
 

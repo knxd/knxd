@@ -20,11 +20,12 @@
 #ifndef LAYER2COMMON_H
 #define LAYER2COMMON_H
 
-#include <boost/shared_ptr.hpp>
+#include <memory>
+
 class Layer2;
 class Trace;
 
-typedef boost::shared_ptr<Layer2> Layer2Ptr;
+typedef std::shared_ptr<Layer2> Layer2Ptr;
 
 /** Bus modes. The enum is designed to allow bitwise tests
  * (& BUSMODE_UP and * & BUSMODE_MONITOR) */

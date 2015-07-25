@@ -37,7 +37,7 @@ Layer3::~Layer3 ()
   Stop ();
   while (servers ())
     delete servers[0];
-#if 0 // boost:: magic
+#if 0 // shared_ptr magic
   while (layer2 ())
     delete layer2[0];
 #endif

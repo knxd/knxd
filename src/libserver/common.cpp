@@ -82,8 +82,3 @@ add16Hex (String & s, uint16_t c)
   s += buf;
 }
 
-namespace boost
-{
-    void throw_exception(std::exception const &e) { assert(false); }
-}
-

@@ -74,7 +74,7 @@ eibnetiptunnel_Create (const char *dev, L2options *opt, Layer3 * l3)
   if (e && *e)
     dataport = atoi(e);
 
-  iface = boost::shared_ptr<EIBNetIPTunnel>(new EIBNetIPTunnel (a, dport, sport, d, dataport, opt, l3));
+  iface = std::shared_ptr<EIBNetIPTunnel>(new EIBNetIPTunnel (a, dport, sport, d, dataport, opt, l3));
   free (a);
   return iface;
 }
@@ -103,7 +103,7 @@ eibnetiptunnelnat_Create (const char *dev, L2options *opt, Layer3 * l3)
   if (c && *c)
     sport = atoi(c);
 
-  iface = boost::shared_ptr<EIBNetIPTunnel>(new EIBNetIPTunnel (a, dport, sport, "0.0.0.0", -1, opt, l3));
+  iface = std::shared_ptr<EIBNetIPTunnel>(new EIBNetIPTunnel (a, dport, sport, "0.0.0.0", -1, opt, l3));
   free (a);
   return iface;
 }

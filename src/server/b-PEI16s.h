@@ -33,7 +33,7 @@
 inline Layer2Ptr 
 PEI16s_Create (const char *dev, L2options *opt, Layer3 * l3)
 {
-  return boost::shared_ptr<EMI1Layer2>(new EMI1Layer2 (new BCU1SerialLowLevelDriver (dev, l3->t), l3, opt));
+  return std::shared_ptr<EMI1Layer2>(new EMI1Layer2 (new BCU1SerialLowLevelDriver (dev, l3->t), l3, opt));
 }
 
 #endif

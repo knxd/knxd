@@ -5,7 +5,6 @@ Maintainer: Timo <knxd@timo-wingender.de>
 Build-Depends: debhelper (>= 7.0.0),
   autotools-dev,
   libpthsem-dev, libpthsem20,
-  libboost-dev (>= 1.55),
   libusb-1.0-0 (>= 1.0.10), libusb-1.0-0-dev (>= 1.0.10),
   pkg-config,
   libsystemd-daemon-dev,

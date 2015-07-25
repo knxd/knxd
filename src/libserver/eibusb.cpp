@@ -282,13 +282,13 @@ USBLayer2::USBLayer2 (LowLevelDriver * i, Layer3 * l3,
   switch (iface->getEMIVer ())
     {
     case LowLevelDriver::vEMI1:
-      emi = boost::shared_ptr<EMI1Layer2> (new EMI1Layer2 (iface, l3, opt));
+      emi = std::shared_ptr<EMI1Layer2> (new EMI1Layer2 (iface, l3, opt));
       break;
     case LowLevelDriver::vEMI2:
-      emi = boost::shared_ptr<EMI2Layer2>(new EMI2Layer2 (iface, l3, opt));
+      emi = std::shared_ptr<EMI2Layer2>(new EMI2Layer2 (iface, l3, opt));
       break;
     case LowLevelDriver::vCEMI:
-      emi = boost::shared_ptr<CEMILayer2>(new CEMILayer2 (iface, l3, opt));
+      emi = std::shared_ptr<CEMILayer2>(new CEMILayer2 (iface, l3, opt));
       break;
     default:
       TRACEPRINTF (t, 2, this, "Unsupported EMI");
