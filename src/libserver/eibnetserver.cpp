@@ -27,6 +27,7 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <string.h>
+#include <memory>
 
 EIBnetServer::EIBnetServer (const char *multicastaddr, int port, bool Tunnel,
                 bool Route, bool Discover, Layer3 * layer3,
@@ -110,7 +111,7 @@ EIBnetDiscover::EIBnetDiscover (EIBnetServer *parent, const char *multicastaddr,
     }
   maddr.sin_port = htons (port);
 
-  sock = new EIBNetIPSocket (baddr, 1, parent->t, S_RD);
+  sock = new EIBNetIPSocket (baddr, 1, parent->t);
   if (!sock->init ())
     goto err_out;
 
@@ -177,10 +178,10 @@ EIBnetServer::init ()
   return Layer2mixin::init();
 }
 
-void EIBnetDiscover::Send (EIBNetIPPacket p)
+void EIBnetDiscover::Send (EIBNetIPPacket p, struct sockaddr_in addr)
 {
   if (sock)
-    parent->Send (p, maddr);
+    sock->Send (p, addr);
 }
 
 void
@@ -218,23 +219,30 @@ EIBnetServer::Send_L_Data (L_Data_PDU * l)
 	      {
 		l->dest = natstate[i].src;
 		p.data = L_Data_ToCEMI (0x29, *l);
-		mcast->Send (p);
+		Send (p);
 		l->dest = 0;
 		cnt++;
 	      }
 	  if (!cnt)
 	    {
 	      p.data = L_Data_ToCEMI (0x29, *l);
-	      mcast->Send (p);
+	      Send (p);
 	    }
 	}
       else
 	{
 	  p.data = L_Data_ToCEMI (0x29, *l);
-	  mcast->Send (p);
+	  Send (p);
 	}
     }
   delete l;
+}
+
+bool ConnState::init()
+{
+  if (!Layer2::init())
+    return false;
+  return layer2_is_bus();
 }
 
 void ConnState::Send_L_Data (L_Data_PDU * l)
@@ -281,7 +289,7 @@ rt:
       }
   if (id <= 0xff)
     {
-      ConnState *s = new ConnState (this, addr);
+      ConnStatePtr s = ConnStatePtr(new ConnState (this, addr));
       s->channel = id;
       s->daddr = r1.daddr;
       s->caddr = r1.caddr;
@@ -291,6 +299,8 @@ rt:
       s->no = 1;
       s->type = type;
       s->nat = r1.nat;
+      if(!s->init())
+        return -1;
 
       int pos = state ();
       state.resize (state () + 1);
@@ -390,7 +400,7 @@ ConnState::Run (pth_sem_t * stop1)
 	    }
 	  pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE,
 		     sendtimeout, pth_time (1, 0));
-	  parent->Send (p, daddr);
+	  parent->mcast->Send (p, daddr);
 	}
     }
 
@@ -407,10 +417,10 @@ ConnState::Run (pth_sem_t * stop1)
 
 void ConnState::shutdown(void)
 {
-  parent->drop_state (this);
+  parent->drop_state (std::static_pointer_cast<ConnState>(shared_from_this()));
 }
 
-void EIBnetServer::drop_state (ConnState *s)
+void EIBnetServer::drop_state (ConnStatePtr s)
 {
   for (int i=0; i < state (); i++)
     {
@@ -424,12 +434,13 @@ void EIBnetServer::drop_state (ConnState *s)
 
 void EIBnetServer::drop_state (uint8_t index)
 {
-  delete state[index];
+  // delete state[index];
   state.deletepart (index);
 }
 
 ConnState::~ConnState()
 {
+  Stop();
   pth_event_free (timeout, PTH_FREE_THIS);
   pth_event_free (sendtimeout, PTH_FREE_THIS);
   pth_event_free (outwait, PTH_FREE_THIS);
@@ -439,7 +450,7 @@ ConnState::~ConnState()
 }
 
 bool
-EIBnetServer::handle_packet (EIBNetIPPacket *p1)
+EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
 {
   /* Get MAC Address */
   /* TODO: cache all of this, and ask at most once per seoncd */
@@ -514,7 +525,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1)
       if (!GetSourceAddress (&r1.caddr, &r2.caddr))
 	goto out;
       r2.caddr.sin_port = Port;
-      sock->Send (r2.ToPacket (), r1.caddr);
+      isock->Send (r2.ToPacket (), r1.caddr);
       goto out;
     }
   if (p1->service == DESCRIPTION_REQUEST && discover)
@@ -545,7 +556,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1)
       d.family = 5;
       if (route)
 	r2.services.add (d);
-      sock->Send (r2.ToPacket (), r1.caddr);
+      isock->Send (r2.ToPacket (), r1.caddr);
       goto out;
     }
   if (p1->service == ROUTING_INDICATION && route)
@@ -593,7 +604,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1)
 	  }
       r2.channel = r1.channel;
       r2.status = res;
-      sock->Send (r2.ToPacket (), r1.caddr);
+      isock->Send (r2.ToPacket (), r1.caddr);
       goto out;
     }
   if (p1->service == DISCONNECT_REQUEST)
@@ -616,7 +627,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1)
 	  }
       r2.channel = r1.channel;
       r2.status = res;
-      sock->Send (r2.ToPacket (), r1.caddr);
+      isock->Send (r2.ToPacket (), r1.caddr);
       goto out;
     }
   if (p1->service == CONNECTION_REQUEST)
@@ -661,7 +672,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1)
 	goto out;
       r2.daddr.sin_port = Port;
       r2.nat = r1.nat;
-      sock->Send (r2.ToPacket (), r1.caddr);
+      isock->Send (r2.ToPacket (), r1.caddr);
       goto out;
     }
   if (p1->service == TUNNEL_REQUEST && tunnel)
@@ -718,7 +729,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1)
 		TRACEPRINTF (t, 8, this, "Invalid data endpoint");
 		  break;
 	      }
-	    state[i]->config_request (r1);
+	    state[i]->config_request (r1, isock);
 	    break;
 	  }
       goto out;
@@ -769,13 +780,10 @@ EIBnetServer::Run (pth_sem_t * stop1)
 	    natstate.deletepart (i, 1);
 	  }
       if (p1)
-	handle_packet (p1);
+	handle_packet (p1, this->sock);
     }
   for (i = 0; i < state (); i++)
-    {
-      delete state[i];
-      state[i] = 0;
-    }
+    state[i] = nullptr;
   pth_event_free (stop, PTH_FREE_THIS);
 }
 
@@ -789,7 +797,7 @@ EIBnetDiscover::Run (pth_sem_t * stop1)
     {
       p1 = sock->Get (stop);
       if (p1)
-	parent->handle_packet (p1);
+	parent->handle_packet (p1, this->sock);
     }
   pth_event_free (stop, PTH_FREE_THIS);
 }
@@ -879,7 +887,7 @@ void ConnState::tunnel_response (EIBnet_TunnelACK &r1)
   pth_sem_dec (outsignal);
 }
 
-void ConnState::config_request(EIBnet_ConfigRequest &r1)
+void ConnState::config_request(EIBnet_ConfigRequest &r1, EIBNetIPSocket *isock)
 {
   EIBnet_ConfigACK r2;
   if (rno == ((r1.seqno + 1) & 0xff))
@@ -947,7 +955,7 @@ void ConnState::config_request(EIBnet_ConfigRequest &r1)
   else
     r2.status = 0x29;
   rno++;
-  parent->Send (r2.ToPacket (), daddr);
+  isock->Send (r2.ToPacket (), daddr);
 }
 
 void ConnState::config_response (EIBnet_ConfigACK &r1)

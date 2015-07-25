@@ -42,6 +42,7 @@ public:
   void Run (pth_sem_t * stop1);
 
   EIBnetServer *parent;
+  bool init();
 
   uchar channel;
   uchar sno;
@@ -52,6 +53,7 @@ public:
   bool nat;
   pth_event_t timeout;
   Queue < CArray > out;
+
   struct sockaddr_in daddr;
   struct sockaddr_in caddr;
   pth_sem_t *outsignal;
@@ -61,13 +63,14 @@ public:
   // handle various packets from the connection
   void tunnel_request(EIBnet_TunnelRequest &r1);
   void tunnel_response(EIBnet_TunnelACK &r1);
-  void config_request(EIBnet_ConfigRequest &r1);
+  void config_request(EIBnet_ConfigRequest &r1, EIBNetIPSocket *isock);
   void config_response (EIBnet_ConfigACK &r1);
 
   void shutdown(void);
   void Send_L_Data (L_Data_PDU * l);
   const char * Name () { return "EIBnetConn"; } // TODO add a sequence number
 };
+typedef std::shared_ptr<ConnState> ConnStatePtr;
 
 typedef struct
 {
@@ -91,7 +94,7 @@ public:
   bool init (void);
   const char * Name () { return "EIBnetD"; }
 
-  void Send (EIBNetIPPacket p);
+  void Send (EIBNetIPPacket p, struct sockaddr_in addr);
 };
 
 class EIBnetServer: protected Thread, public L_Busmonitor_CallBack, public Layer2mixin
@@ -110,7 +113,7 @@ class EIBnetServer: protected Thread, public L_Busmonitor_CallBack, public Layer
   bool discover;
 
   int busmoncount;
-  Array < ConnState *> state;
+  Array < ConnStatePtr > state;
   Array < NATState > natstate;
   String name;
 
@@ -128,16 +131,20 @@ public:
                 const String serverName);
   virtual ~EIBnetServer ();
   bool init ();
-  bool handle_packet (EIBNetIPPacket *p1);
+  bool handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock);
 
   const char * Name () { return "EIBnet"; }
-  void drop_state (ConnState *s);
+  void drop_state (ConnStatePtr s);
   void drop_state (uint8_t index);
+  inline void Send (EIBNetIPPacket p) {
+    Send (p, mcast->maddr);
+  }
   inline void Send (EIBNetIPPacket p, struct sockaddr_in addr) {
     if (sock)
       sock->Send (p, addr);
   }
 
 };
+typedef std::shared_ptr<EIBnetServer> EIBnetServerPtr;
 
 #endif
