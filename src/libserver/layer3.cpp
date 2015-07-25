@@ -77,10 +77,10 @@ Layer3::deregisterBusmonitor (L_Busmonitor_CallBack * c)
             if (layer2[i]->leaveBusmonitor ())
               layer2[i]->Open ();
 	TRACEPRINTF (t, 3, this, "deregisterBusmonitor %08X = 1", c);
-	return 1;
+	return true;
       }
   TRACEPRINTF (t, 3, this, "deregisterBusmonitor %08X = 0", c);
-  return 0;
+  return false;
 }
 
 void
@@ -113,10 +113,10 @@ Layer3::deregisterVBusmonitor (L_Busmonitor_CallBack * c)
 	      layer2[i]->closeVBusmonitor ();
 	  }
 	TRACEPRINTF (t, 3, this, "deregisterVBusmonitor %08X = 1", c);
-	return 1;
+	return true;
       }
   TRACEPRINTF (t, 3, this, "deregisterVBusmonitor %08X = 0", c);
-  return 0;
+  return false;
 }
 
 bool
@@ -129,10 +129,10 @@ Layer3::deregisterLayer2 (Layer2 * l2)
 	layer2[i] = layer2[layer2 () - 1];
 	layer2.resize (layer2 () - 1);
 	TRACEPRINTF (t, 3, this, "deregisterLayer2 %08X = 1", l2);
-	return 1;
+	return true;
       }
   TRACEPRINTF (t, 3, this, "deregisterLayer2 %08X = 0", l2);
-  return 0;
+  return false;
 }
 
 bool
@@ -177,7 +177,7 @@ Layer3::registerVBusmonitor (L_Busmonitor_CallBack * c)
   vbusmonitor.resize (vbusmonitor () + 1);
   vbusmonitor[vbusmonitor () - 1].cb = c;
   TRACEPRINTF (t, 3, this, "registerVBusmontior %08X = 1", c);
-  return 1;
+  return true;
 }
 
 bool
@@ -188,12 +188,12 @@ Layer3::registerLayer2 (Layer2 * l2)
     if (! l2->Open ())
       {
         TRACEPRINTF (t, 3, this, "registerLayer2 %08X = 0", l2);
-        return 0;
+        return false;
       }
   layer2.resize (layer2() + 1);
   layer2[layer2 () - 1] = l2;
   TRACEPRINTF (t, 3, this, "registerLayer2 %08X = 1", l2);
-  return 1;
+  return true;
 }
 
 bool

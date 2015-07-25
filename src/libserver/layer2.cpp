@@ -59,9 +59,9 @@ Layer2::addAddress (eibaddr_t addr)
   unsigned i;
   for (i = 0; i < indaddr (); i++)
     if (indaddr[i] == addr)
-      return 0;
+      return false;
   indaddr.add (addr);
-  return 1;
+  return true;
 }
 
 bool
@@ -70,9 +70,9 @@ Layer2::addReverseAddress (eibaddr_t addr)
   unsigned i;
   for (i = 0; i < revaddr (); i++)
     if (revaddr[i] == addr)
-      return 0;
+      return false;
   revaddr.add (addr);
-  return 1;
+  return true;
 }
 
 bool
@@ -81,9 +81,9 @@ Layer2::addGroupAddress (eibaddr_t addr)
   unsigned i;
   for (i = 0; i < groupaddr (); i++)
     if (groupaddr[i] == addr)
-      return 0;
+      return false;
   groupaddr.add (addr);
-  return 1;
+  return true;
 }
 
 bool
@@ -94,9 +94,9 @@ Layer2::removeAddress (eibaddr_t addr)
     if (indaddr[i] == addr)
       {
         indaddr.deletepart (i, 1);
-        return 1;
+        return true;
       }
-  return 0;
+  return false;
 }
 
 bool
@@ -107,9 +107,9 @@ Layer2::removeReverseAddress (eibaddr_t addr)
     if (revaddr[i] == addr)
       {
         revaddr.deletepart (i, 1);
-        return 1;
+        return true;
       }
-  return 0;
+  return false;
 }
 
 bool
@@ -120,9 +120,9 @@ Layer2::removeGroupAddress (eibaddr_t addr)
     if (groupaddr[i] == addr)
       {
         groupaddr.deletepart (i, 1);
-        return 1;
+        return true;
       }
-  return 0;
+  return false;
 }
 
 bool
