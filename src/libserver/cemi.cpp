@@ -123,12 +123,6 @@ CEMILayer2::Send (LPDU * l)
 
   CArray pdu = L_Data_ToCEMI (0x11, *l1);
   iface->Send_Packet (pdu);
-  if (mode == BUSMODE_VMONITOR)
-    {
-      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
-      l2->pdu.set (l->ToPacket ());
-      l3->recv_L_Data (l2);
-    }
   delete l;
 }
 
@@ -179,12 +173,6 @@ CEMILayer2::Run (pth_sem_t * stop1)
 	      if (p->AddrType == IndividualAddress)
 		p->dest = 0;
 	      TRACEPRINTF (t, 2, this, "Recv %s", p->Decode ()());
-	      if (mode == BUSMODE_VMONITOR)
-		{
-		  L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
-		  l2->pdu.set (p->ToPacket ());
-		  l3->recv_L_Data (l2);
-		}
 	      l3->recv_L_Data (p);
 	      continue;
 	    }

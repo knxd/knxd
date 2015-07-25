@@ -254,11 +254,6 @@ NCN5120SerialLayer2Driver::Run (pth_sem_t * stop1)
 	  rmn = false;
 	  if (in[0] == 0x8B)
 	    {
-	      if (mode == BUSMODE_VMONITOR)
-		{
-		  const uchar pkt[1] = { 0xCC };
-		  RecvLPDU (pkt, 1);
-		}
 	      if (waitconfirm)
 		{
 		  waitconfirm = 0;
@@ -270,11 +265,6 @@ NCN5120SerialLayer2Driver::Run (pth_sem_t * stop1)
 	    }
 	  else if (in[0] == 0x0B)
 	    {
-	      if (mode == BUSMODE_VMONITOR)
-		{
-		  const uchar pkt[1] = { 0x0C };
-		  RecvLPDU (pkt, 1);
-		}
 	      if (waitconfirm)
 		{
 		  retry++;

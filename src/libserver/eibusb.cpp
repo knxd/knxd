@@ -312,20 +312,6 @@ bool USBLayer2::init ()
   return Layer2::init();
 }
 
-bool USBLayer2::openVBusmonitor ()
-{
-  if (! Layer2::openVBusmonitor ())
-    return false;
-  return emi->openVBusmonitor ();
-}
-
-bool USBLayer2::closeVBusmonitor ()
-{
-  if (! Layer2::closeVBusmonitor ())
-    return false;
-  return emi->closeVBusmonitor ();
-}
-
 bool USBLayer2::enterBusmonitor ()
 {
   if (! Layer2::enterBusmonitor ())

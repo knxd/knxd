@@ -63,8 +63,6 @@ public:
 
   bool enterBusmonitor ();
   bool leaveBusmonitor ();
-  bool openVBusmonitor ();
-  bool closeVBusmonitor ();
 
   bool Open ();
   bool Close ();

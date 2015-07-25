@@ -96,12 +96,6 @@ EIBNetIPRouter::Send_L_Data (LPDU * l)
   p.data = L_Data_ToCEMI (0x29, *l1);
   p.service = ROUTING_INDICATION;
   sock->Send (p);
-  if (mode == BUSMODE_VMONITOR)
-    {
-      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
-      l2->pdu.set (l->ToPacket ());
-      l3->recv_L_Data (l2);
-    }
   delete l;
 }
 
@@ -140,12 +134,6 @@ EIBNetIPRouter::Run (pth_sem_t * stop1)
 	      TRACEPRINTF (t, 2, this, "Recv %s", c->Decode ()());
 	      if (mode & BUSMODE_UP)
 		{
-		  if (mode == BUSMODE_VMONITOR)
-		    {
-		      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
-		      l2->pdu.set (c->ToPacket ());
-		      l3->recv_L_Data (l2);
-		    }
 		  l3->recv_L_Data (c);
 		  continue;
 		}

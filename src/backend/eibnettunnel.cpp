@@ -98,12 +98,6 @@ EIBNetIPTunnel::Send_L_Data (LPDU * l)
   L_Data_PDU *l1 = (L_Data_PDU *) l;
   inqueue.put (L_Data_ToCEMI (0x11, *l1));
   pth_sem_inc (&insignal, 1);
-  if (mode == BUSMODE_VMONITOR)
-    {
-      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
-      l2->pdu.set (l->ToPacket ());
-      l3->recv_L_Data (l2);
-    }
   delete l;
 }
 
@@ -321,12 +315,6 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 		  TRACEPRINTF (t, 1, this, "Recv %s", c->Decode ()());
 		  if (mode != BUSMODE_MONITOR)
 		    {
-		      if (mode == BUSMODE_VMONITOR)
-			{
-			  L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
-			  l2->pdu.set (c->ToPacket ());
-			  l3->recv_L_Data (l2);
-			}
 		      if (c->AddrType == IndividualAddress
 			  && c->dest == myaddr)
 			c->dest = 0;
