@@ -37,10 +37,6 @@ Layer3::~Layer3 ()
   Stop ();
   while (servers ())
     delete servers[0];
-#if 0 // shared_ptr magic
-  while (layer2 ())
-    delete layer2[0];
-#endif
   // the next loops should do exactly nothing
   while (vbusmonitor ())
     deregisterVBusmonitor (vbusmonitor[0].cb);
@@ -117,7 +113,7 @@ Layer3::deregisterVBusmonitor (L_Busmonitor_CallBack * c)
 }
 
 bool
-Layer3::deregisterLayer2 (Layer2 *l2)
+Layer3::deregisterLayer2 (Layer2Ptr l2)
 {
   unsigned i;
   for (i = 0; i < layer2 (); i++)
@@ -125,10 +121,10 @@ Layer3::deregisterLayer2 (Layer2 *l2)
       {
 	layer2[i] = layer2[layer2 () - 1];
 	layer2.resize (layer2 () - 1);
-	TRACEPRINTF (t, 3, this, "deregisterLayer2 %08X = 1", l2);
+	TRACEPRINTF (t, 3, this, "deregisterLayer2 %08X = 1", l2.get());
 	return true;
       }
-  TRACEPRINTF (t, 3, this, "deregisterLayer2 %08X = 0", l2);
+  TRACEPRINTF (t, 3, this, "deregisterLayer2 %08X = 0", l2.get());
   return false;
 }
 
@@ -166,18 +162,18 @@ Layer3::registerVBusmonitor (L_Busmonitor_CallBack * c)
 }
 
 bool
-Layer3::registerLayer2 (Layer2 *l2)
+Layer3::registerLayer2 (Layer2Ptr l2)
 {
-  TRACEPRINTF (t, 3, this, "registerLayer2 %08X", l2);
+  TRACEPRINTF (t, 3, this, "registerLayer2 %08X", l2.get());
   if (! busmonitor () || ! l2->enterBusmonitor ())
     if (! l2->Open ())
       {
-        TRACEPRINTF (t, 3, this, "registerLayer2 %08X = 0", l2);
+        TRACEPRINTF (t, 3, this, "registerLayer2 %08X = 0", l2.get());
         return false;
       }
   layer2.resize (layer2() + 1);
   layer2[layer2 () - 1] = l2;
-  TRACEPRINTF (t, 3, this, "registerLayer2 %08X = 1", l2);
+  TRACEPRINTF (t, 3, this, "registerLayer2 %08X = 1", l2.get());
   return true;
 }
 
@@ -188,7 +184,7 @@ Layer3::hasAddress (eibaddr_t addr, Layer2Ptr l2)
     return true;
 
   for (unsigned i = 0; i < layer2 (); i++)
-    if (layer2[i] != l2.get() && layer2[i]->hasAddress (addr))
+    if (layer2[i] != l2 && layer2[i]->hasAddress (addr))
       return true;
 
   return false;
@@ -334,7 +330,7 @@ Layer3::Run (pth_sem_t * stop1)
 	      // group.
 	      for (i = 0; i < layer2 (); i++)
                 {
-		  if (layer2[i] != l1->l2.get() && layer2[i]->hasGroupAddress(l1->dest))
+		  if (layer2[i] != l1->l2 && layer2[i]->hasGroupAddress(l1->dest))
 		    layer2[i]->Send_L_Data (new L_Data_PDU (*l1));
                 }
 	    }
@@ -348,7 +344,7 @@ Layer3::Run (pth_sem_t * stop1)
 	      bool found = false;
 	      for (i = 0; i < layer2 (); i++)
                 {
-                  if (layer2[i] == l1->l2.get())
+                  if (layer2[i] == l1->l2)
 		    continue;
                   if (l1->dest ? layer2[i]->hasAddress (l1->dest)
 		               : layer2[i]->hasReverseAddress (l1->source))
@@ -358,7 +354,7 @@ Layer3::Run (pth_sem_t * stop1)
 		    }
 		}
 	      for (i = 0; i < layer2 (); i++)
-		if (layer2[i] != l1->l2.get()
+		if (layer2[i] != l1->l2
 		    && l1->dest ? layer2[i]->hasAddress (found ? l1->dest : 0)
 		                : layer2[i]->hasReverseAddress (l1->source))
 		  layer2[i]->Send_L_Data (new L_Data_PDU (*l1));
@@ -389,6 +385,16 @@ Layer3::Run (pth_sem_t * stop1)
   TRACEPRINTF (t, 3, this, "L3 stopping");
 
   running = false;
+  while (layer2 ())
+    {
+      Layer2Ptr l2 = layer2[layer2() - 1];
+      layer2.resize (layer2 () - 1);
+
+      // TODO: This depends on runtime typing. Ugh. Fix me.
+      std::shared_ptr<Thread> l2t = std::dynamic_pointer_cast<Thread>(l2);
+      if (l2t)
+        l2t->Stop();
+    }
 
   pth_event_free (stop, PTH_FREE_THIS);
 }

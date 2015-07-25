@@ -52,7 +52,7 @@ class Layer3;
 class Layer3:private Thread
 {
   /** Layer 2 interfaces */
-  Array < Layer2 *> layer2;
+  Array < Layer2Ptr > layer2;
   /** buffer queue for receiving from L2 */
   Queue < LPDU * >buf;
   /** semaphre for buffer queue */
@@ -92,9 +92,9 @@ public:
   virtual ~Layer3 ();
 
   /** register a layer2 interface, return true if successful*/
-  bool registerLayer2 (Layer2 *l2);
+  bool registerLayer2 (Layer2Ptr l2);
   /** deregister a layer2 interface, return true if successful*/
-  bool deregisterLayer2 (Layer2 *l2);
+  bool deregisterLayer2 (Layer2Ptr l2);
 
   /** register a busmonitor callback, return true, if successful*/
   bool registerBusmonitor (L_Busmonitor_CallBack * c);

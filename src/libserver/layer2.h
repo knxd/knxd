@@ -42,6 +42,9 @@ class Layer2 : public std::enable_shared_from_this<Layer2>
 
   bool allow_monitor;
 
+  /** auto-deregister for "tasked" layer2 objects */
+  void RunStop();
+
 protected:
   /** auto-assigned. NON-bus connections only! */
   eibaddr_t remoteAddr;
@@ -53,7 +56,6 @@ public:
   Layer3 *l3;
 
   Layer2 (Layer3 *l3, L2options *opt);
-  virtual ~Layer2 ();
   virtual bool init ();
   /** basic setup to behave like a bus: accept broadcasts, et al. */
   bool layer2_is_bus ();
@@ -137,7 +139,6 @@ public:
   Layer2virtual (Layer3 *l3, Trace *tr) : Layer2mixin (l3, tr)
     {
     }
-  bool init() { return 1; }
   void Send_L_Data (LPDU * l) { delete l; }
   void Send_L_Data (L_Data_PDU * l) { delete l; }
   bool addAddress (eibaddr_t addr UNUSED) { return 1; }

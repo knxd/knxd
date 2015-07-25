@@ -33,14 +33,15 @@ bool
 Layer2::init ()
 {
   if (l3)
-    l3->registerLayer2 (this);
+    l3->registerLayer2 (shared_from_this());
   return true;
 }
 
-Layer2::~Layer2 ()
+void
+Layer2::RunStop()
 {
   if (l3)
-    l3->deregisterLayer2 (this);
+    l3->deregisterLayer2 (shared_from_this());
 }
 
 bool
