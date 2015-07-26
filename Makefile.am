@@ -26,13 +26,13 @@ RPM:	dist
 help HELP:
 	@echo ""
 	@echo ""
-	@echo "in addition to standard targets (all, install, clean, ...) "
+	@echo "in addition to standard targets (all, install, clean, ...)"
 	@echo "the following make targets may be supported (at this level):"
 	@echo ""
 	@echo "    make help    - print this text"
 	@echo "    make RPM     - create (source and binary) RPMs"
 	@echo ""
-	@echo "NOTE: The RPM and target may fail because it requires" 
+	@echo "NOTE: The RPM target may fail because it requires" 
 	@echo "additional tools that may not be present on your machine."
 	@echo ""
 
