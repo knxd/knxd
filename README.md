@@ -23,10 +23,12 @@ On Debian:
 ### Dependencies
 
 On Debian:
+    # install the build system essentials
+    apt-get install build-essential
+    # If "dpkg-buildpackage" complains about missing packages:
+    # install them (with "apt-get install") and try again.
 
-    apt-get install build-essential libtool automake pkg-config cdbs libsystemd-daemon-dev
-    # If you're using Wheezy, remove the "libsystemd-daemon-dev" part
-    # (here and in debian/control)
+    # first we need libpthsem which unfortunately isn't part of Debian
     wget https://www.auto.tuwien.ac.at/~mkoegler/pth/pthsem_2.0.8.tar.gz
     tar xzf pthsem_2.0.8.tar.gz
     cd pthsem-2.0.8
@@ -34,11 +36,9 @@ On Debian:
     cd ..
     sudo dpkg -i libpthsem*.deb
 
-### knxd
-
+    # now build knxd
     cd knxd
-    # If the next command complains about missing packages: install it and try again
-    # If you can't install libsystemd-daemon-dev, remove it from the file 'debian/control'.
+    # If you're using Wheezy, edit debian/control and remove the "libsystemd-daemon-dev" line
     dpkg-buildpackage -b
     cd ..
     sudo dpkg -i knxd_*.deb knxd-tools_*.deb
