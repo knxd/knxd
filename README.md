@@ -24,7 +24,7 @@ On Debian:
 
 On Debian:
 
-    apt-get install build-essential libtool automake pkg-config cdbs libsystemd-daemon-dev
+    apt-get install build-essential libtool automake pkg-config cdbs libsystemd-daemon-dev debhelper
     # If you're using Wheezy, remove the "libsystemd-daemon-dev" part
     # (here and in debian/control)
     wget https://www.auto.tuwien.ac.at/~mkoegler/pth/pthsem_2.0.8.tar.gz
