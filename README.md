@@ -17,14 +17,9 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 
 On Debian:
 
-    apt-get install git-core
+    apt-get install git-core build-essential
     git clone https://github.com/knxd/knxd.git
 
-### Dependencies
-
-On Debian:
-    # install the build system essentials
-    apt-get install build-essential
     # If "dpkg-buildpackage" complains about missing packages:
     # install them (with "apt-get install") and try again.
 
