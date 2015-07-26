@@ -16,17 +16,8 @@ path.h : Makefile
 
 # source and binary RPMs
 #
-# NOTE: normally RPM should depend on 'dist' and not on 'knxd-0.10.0.tar.gz'
-#       However, the current build system fails sometimes (e.g. after a second
-#       ./configure. Therefore, we only require one successful 'make dist'
-#       until the build system is fixed.
-#
-#       The downside is that 'make RPM' does not rebuild the RPMs automatically
-#       when sources are changed but no 'make dist' is performed.
-#
 .PHONY:	RPM
-#RPM:	dist                       how it SHOULD be, see NOTE above
-RPM:	knxd-0.10.0.tar.gz
+RPM:	dist
 	rm -f rpm/rpm-tmp.*
 	make -C rpm $@
 
