@@ -317,7 +317,17 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 	  else if ((in[0] & 0xD0) == 0x90) // Matches KNX control byte L_Data_Standard Frame
 	    {
               bool recvecho = false;
-	      if (in () < 6)
+
+/*  The following line used to be:
+ *
+ *            if (in () < 6)
+ *
+ * On a Raspberry Pi this resulted in the ACK being sent over the tpuart serial
+ * interface while the reception of the KNX Telegram was still ongoing (around
+ * byte 8 of the telegram). The ELMOS chip ignores such ACKs (that were sent
+ * too early).
+ */
+	      if (in() < 8 || in() < (8 + (in[5] & 0x0F)))  // Telegram complete
 		{
 		  if (!to)
 		    {
