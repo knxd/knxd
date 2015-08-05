@@ -1,0 +1,242 @@
+
+%define _tmppath   @abs_top_srcdir@/rpm
+%define _rpmtopdir @abs_top_srcdir@/rpm
+%define _builddir  @abs_top_srcdir@
+%define _rpmdir    @abs_top_srcdir@/rpm/RPMS
+%define _sourcedir @abs_top_srcdir@
+%define _specdir   @abs_top_srcdir@
+%define _srcrpmdir @abs_top_srcdir@/rpm/SRPMS
+%define _tmpdir    /tmp
+%define _buildrootdir @abs_top_srcdir@/rpm/BUILDROOT
+
+###############################################################################
+#
+# Package header
+#
+Summary:      A KNX daemon and tools
+Name:         @PACKAGE@
+Version:      @VERSION@
+Release:      0
+Group:        Applications/Interpreters
+Source:       file://@abs_top_srcdir@/@PACKAGE@-@VERSION@.tar.gz
+Distribution: Ubuntu
+Vendor:       smurf
+License:      GPL
+Packager:     Dr. Jürgen Sauermann <juergen.sauermann@t-online.de>
+
+
+###############################################################################
+#
+# Description.
+#
+%description
+A KNX daemon 9aka. EIN daemon) and tools supporting it. 
+
+###############################################################################
+#
+# preparation for build
+#
+%prep
+
+
+###############################################################################
+#
+# build
+#
+%build
+%configure
+make
+
+
+###############################################################################
+#
+# install
+#
+%install
+rm -rf %{buildroot}
+make DESTDIR=%{buildroot} install
+
+
+###############################################################################
+#
+# what is being installed
+#
+%files
+%defattr(-,root,root,-)
+
+# /etc
+%{_sysconfdir}/knxd.conf
+
+# /usr/bin
+%{_bindir}/bcuaddrtab
+%{_bindir}/bcuread
+%{_bindir}/eibnetdescribe
+%{_bindir}/eibnetsearch
+%{_bindir}/knxd
+%{_bindir}/knxtool
+
+# /usr/include
+%{_includedir}/eibclient.h
+%{_includedir}/eibloadresult.h
+%{_includedir}/eibtypes.h
+
+# /usr/lib/knxd
+%{_libdir}/knxd/busmonitor1
+%{_libdir}/knxd/busmonitor2
+%{_libdir}/knxd/busmonitor3
+%{_libdir}/knxd/eibread-cgi
+%{_libdir}/knxd/eibwrite-cgi
+%{_libdir}/knxd/groupcacheclear
+%{_libdir}/knxd/groupcachedisable
+%{_libdir}/knxd/groupcacheenable
+%{_libdir}/knxd/groupcachelastupdates
+%{_libdir}/knxd/groupcacheread
+%{_libdir}/knxd/groupcachereadsync
+%{_libdir}/knxd/groupcacheremove
+%{_libdir}/knxd/grouplisten
+%{_libdir}/knxd/groupread
+%{_libdir}/knxd/groupreadresponse
+%{_libdir}/knxd/groupresponse
+%{_libdir}/knxd/groupsocketlisten
+%{_libdir}/knxd/groupsocketread
+%{_libdir}/knxd/groupsocketswrite
+%{_libdir}/knxd/groupsocketwrite
+%{_libdir}/knxd/groupsresponse
+%{_libdir}/knxd/groupswrite
+%{_libdir}/knxd/groupwrite
+%{_libdir}/knxd/madcread
+%{_libdir}/knxd/maskver
+%{_libdir}/knxd/mmaskver
+%{_libdir}/knxd/mpeitype
+%{_libdir}/knxd/mprogmodeoff
+%{_libdir}/knxd/mprogmodeon
+%{_libdir}/knxd/mprogmodestatus
+%{_libdir}/knxd/mprogmodetoggle
+%{_libdir}/knxd/mpropdesc
+%{_libdir}/knxd/mpropread
+%{_libdir}/knxd/mpropscan
+%{_libdir}/knxd/mpropscanpoll
+%{_libdir}/knxd/mpropwrite
+%{_libdir}/knxd/mread
+%{_libdir}/knxd/mrestart
+%{_libdir}/knxd/msetkey
+%{_libdir}/knxd/mwrite
+%{_libdir}/knxd/mwriteplain
+%{_libdir}/knxd/progmodeoff
+%{_libdir}/knxd/progmodeon
+%{_libdir}/knxd/progmodestatus
+%{_libdir}/knxd/progmodetoggle
+%{_libdir}/knxd/readindividual
+%{_libdir}/knxd/vbusmonitor1
+%{_libdir}/knxd/vbusmonitor1poll
+%{_libdir}/knxd/vbusmonitor1time
+%{_libdir}/knxd/vbusmonitor2
+%{_libdir}/knxd/vbusmonitor3
+%{_libdir}/knxd/writeaddress
+%{_libdir}/knxd/xpropread
+%{_libdir}/knxd/xpropwrite
+%{_libdir}/libeibclient.a
+%{_libdir}/libeibclient.la
+%{_libdir}/libeibclient.so
+%{_libdir}/libeibclient.so.0
+%{_libdir}/libeibclient.so.0.0.0
+%{_libdir}/systemd/system/knxd.service
+%{_libdir}/systemd/system/knxd.socket
+%{_libdir}/sysusers.d/knxd.conf
+
+# /usr/share/knxd/
+%{_datarootdir}/knxd/EIBConnection.cs
+%{_datarootdir}/knxd/EIBConnection.lua
+%{_datarootdir}/knxd/EIBConnection.pm
+%{_datarootdir}/knxd/EIBConnection.py
+%{_datarootdir}/knxd/EIBConnection.rb
+%{_datarootdir}/knxd/EIBD.pas
+%{_datarootdir}/knxd/eibclient.php
+%{_datarootdir}/knxd/examples/busmonitor1.c
+%{_datarootdir}/knxd/examples/busmonitor2.c
+%{_datarootdir}/knxd/examples/busmonitor3.c
+%{_datarootdir}/knxd/examples/eibread-cgi.c
+%{_datarootdir}/knxd/examples/eibwrite-cgi.c
+%{_datarootdir}/knxd/examples/groupcacheclear.c
+%{_datarootdir}/knxd/examples/groupcachedisable.c
+%{_datarootdir}/knxd/examples/groupcacheenable.c
+%{_datarootdir}/knxd/examples/groupcachelastupdates.c
+%{_datarootdir}/knxd/examples/groupcacheread.c
+%{_datarootdir}/knxd/examples/groupcachereadsync.c
+%{_datarootdir}/knxd/examples/groupcacheremove.c
+%{_datarootdir}/knxd/examples/grouplisten.c
+%{_datarootdir}/knxd/examples/groupread.c
+%{_datarootdir}/knxd/examples/groupreadresponse.c
+%{_datarootdir}/knxd/examples/groupresponse.c
+%{_datarootdir}/knxd/examples/groupsocketlisten.c
+%{_datarootdir}/knxd/examples/groupsocketread.c
+%{_datarootdir}/knxd/examples/groupsocketswrite.c
+%{_datarootdir}/knxd/examples/groupsocketwrite.c
+%{_datarootdir}/knxd/examples/groupsresponse.c
+%{_datarootdir}/knxd/examples/groupswrite.c
+%{_datarootdir}/knxd/examples/groupwrite.c
+%{_datarootdir}/knxd/examples/madcread.c
+%{_datarootdir}/knxd/examples/maskver.c
+%{_datarootdir}/knxd/examples/mmaskver.c
+%{_datarootdir}/knxd/examples/mpeitype.c
+%{_datarootdir}/knxd/examples/mprogmodeoff.c
+%{_datarootdir}/knxd/examples/mprogmodeon.c
+%{_datarootdir}/knxd/examples/mprogmodestatus.c
+%{_datarootdir}/knxd/examples/mprogmodetoggle.c
+%{_datarootdir}/knxd/examples/mpropdesc.c
+%{_datarootdir}/knxd/examples/mpropread.c
+%{_datarootdir}/knxd/examples/mpropscan.c
+%{_datarootdir}/knxd/examples/mpropscanpoll.c
+%{_datarootdir}/knxd/examples/mpropwrite.c
+%{_datarootdir}/knxd/examples/mread.c
+%{_datarootdir}/knxd/examples/mrestart.c
+%{_datarootdir}/knxd/examples/msetkey.c
+%{_datarootdir}/knxd/examples/mwrite.c
+%{_datarootdir}/knxd/examples/mwriteplain.c
+%{_datarootdir}/knxd/examples/progmodeoff.c
+%{_datarootdir}/knxd/examples/progmodeon.c
+%{_datarootdir}/knxd/examples/progmodestatus.c
+%{_datarootdir}/knxd/examples/progmodetoggle.c
+%{_datarootdir}/knxd/examples/readindividual.c
+%{_datarootdir}/knxd/examples/vbusmonitor1.c
+%{_datarootdir}/knxd/examples/vbusmonitor1poll.c
+%{_datarootdir}/knxd/examples/vbusmonitor1time.c
+%{_datarootdir}/knxd/examples/vbusmonitor2.c
+%{_datarootdir}/knxd/examples/vbusmonitor3.c
+%{_datarootdir}/knxd/examples/writeaddress.c
+%{_datarootdir}/knxd/examples/xpropread.c
+%{_datarootdir}/knxd/examples/xpropwrite.c
+
+###############################################################################
+#
+# preinstall
+#
+%pre
+
+###############################################################################
+#
+# postinstall
+#
+%post
+
+###############################################################################
+#
+# pre-remove script
+#
+%preun
+
+
+###############################################################################
+#
+# post-remove script
+#
+%postun
+
+
+###############################################################################
+#
+# verify
+#
+%verifyscript
+
+

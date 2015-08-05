@@ -212,6 +212,7 @@ AM_CONDITIONAL(HAVE_SOURCE_INFO, test x$have_source_info = xyes )
 AC_CHECK_PROGS(INDENT, indent, no)
 AC_CHECK_PROGS(JAR, fastjar jar, no)
 AC_CHECK_PROGS(JAVAC, "gcj -C" javac, no)
+AC_CHECK_LIB([atomic], [__atomic_fetch_add_4], [LIBS="$LIBS -latomic"])
 
 AC_ARG_ENABLE(java,
 [  --enable-java		build java client library],
@@ -261,6 +262,7 @@ src/Makefile src/include/Makefile  src/client/Makefile src/examples/Makefile src
 src/client/def/Makefile src/client/c/Makefile src/client/java/Makefile src/client/php/Makefile src/client/cs/Makefile
 src/client/perl/Makefile src/client/python/Makefile src/client/pascal/Makefile src/client/ruby/Makefile src/client/lua/Makefile
 src/tools/eibnet/Makefile src/tools/bcu/Makefile src/usb/Makefile src/tools/Makefile systemd/Makefile systemd/knxd.service systemd/knxd.socket
+rpm/Makefile rpm/knxd.spec
 )
 
 AC_CONFIG_MACRO_DIR([m4])
