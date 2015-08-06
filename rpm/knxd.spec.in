@@ -8,6 +8,9 @@
 %define _srcrpmdir @abs_top_srcdir@/rpm/SRPMS
 %define _tmpdir    /tmp
 %define _buildrootdir @abs_top_srcdir@/rpm/BUILDROOT
+%define buildroot     @abs_top_srcdir@/rpm/BUILDROOT
+
+BuildRoot: %{buildroot}
 
 ###############################################################################
 #
