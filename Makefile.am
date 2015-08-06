@@ -17,7 +17,7 @@ path.h : Makefile
 # source and binary RPMs
 #
 .PHONY:	RPM
-RPM:	dist
+RPM:	all dist
 	rm -f rpm/rpm-tmp.*
 	make -C rpm $@
 

@@ -212,7 +212,6 @@ AM_CONDITIONAL(HAVE_SOURCE_INFO, test x$have_source_info = xyes )
 AC_CHECK_PROGS(INDENT, indent, no)
 AC_CHECK_PROGS(JAR, fastjar jar, no)
 AC_CHECK_PROGS(JAVAC, "gcj -C" javac, no)
-AC_CHECK_LIB([atomic], [__atomic_fetch_add_4], [LIBS="$LIBS -latomic"])
 
 AC_ARG_ENABLE(java,
 [  --enable-java		build java client library],
