@@ -44,6 +44,7 @@
 #define OPT_BACK_TPUARTS_DISCH_RESET 4
 #define OPT_BACK_EMI_NOQUEUE 5
 #define OPT_STOP_NOW 6
+#define OPT_FORCE_BROADCAST 7
 
 /** structure to store the arguments */
 class arguments
@@ -77,6 +78,7 @@ public:
   const char *eibnetname;
 
   bool stop_now;
+  bool force_broadcast;
 private:
   /** our L3 instance (singleton (so far!)) */
   Layer3 *layer3;
@@ -96,7 +98,7 @@ public:
     {
       if (layer3 == 0) 
         {
-          layer3 = new Layer3 (addr, tracer());
+          layer3 = new Layer3 (addr, tracer(), force_broadcast);
           addr = 0;
         }
       return layer3;
@@ -292,6 +294,8 @@ static struct argp_option options[] = {
    "wait for L_Data_ind while sending (for all EMI based backends)"},
   {"no-monitor", 'N', 0, 0,
    "the next Layer2 interface may not enter monitor mode"},
+  {"allow-forced-broadcast", OPT_FORCE_BROADCAST, 0, 0,
+   "Treat routing counter 7 as per KNX spec (dangerous)"},
   {"stop-right-now", OPT_STOP_NOW, 0, OPTION_HIDDEN,
    "immediately stops the server after a successful start"},
   {0}
@@ -415,6 +419,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
 	arguments->eibnetname++;
       if(strlen(arguments->eibnetname) >= 30)
 	die("EIBnetServer/IP name must be shorter than 30 bytes");
+      break;
+    case OPT_FORCE_BROADCAST:
+      arguments->force_broadcast = true;
       break;
     case OPT_STOP_NOW:
       arguments->stop_now = true;
