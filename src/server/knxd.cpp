@@ -306,9 +306,11 @@ parse_opt (int key, char *arg, struct argp_state *state)
     {
     case 'T':
       arguments->tunnel = 1;
+      arguments->has_work++;
       break;
     case 'R':
       arguments->route = 1;
+      arguments->has_work++;
       break;
     case 'D':
       arguments->discover = 1;
@@ -346,7 +348,6 @@ parse_opt (int key, char *arg, struct argp_state *state)
         arguments->route = false;
         arguments->discover = false;
         arguments->eibnetname = 0;
-        arguments->has_work |= 0x02;
       }
       break;
     case 'u':
@@ -360,7 +361,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
         s = new LocalServer (arguments->l3(), arguments->tracer(), name);
         if (!s->init ())
           die ("initialisation of the knxd unix protocol failed");
-        arguments->has_work |= 0x02;
+        arguments->has_work++;
       }
       break;
     case 'i':
@@ -373,7 +374,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
           s = new InetServer (arguments->l3(), arguments->tracer(), port);
         if (!s || !s->init ())
           die ("initialisation of the knxd inet protocol failed");
-        arguments->has_work |= 0x02;
+        arguments->has_work++;
       }
       break;
     case 't':
@@ -446,10 +447,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 	if (arguments->l2opts.flags)
           die ("You provided options which '%s' does not recognize", arg);
         memset(&arguments->l2opts, 0, sizeof(arguments->l2opts));
-        arguments->has_work |= (arguments->has_work & 0x01) ? 0x02 : 0x01;
-        /* The idea is that having two or more L2 interfaces to route between,
-         * but no network-or-whatever front-end, is perfectly reasonable. 
-         */
+        arguments->has_work++;
         break;
       }
     case ARGP_KEY_FINI:
@@ -473,7 +471,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
             s = new SystemdServer(arguments->l3(), arguments->tracer(), fd);
             if (!s->init ())
               die ("initialisation of the systemd socket failed");
-            arguments->has_work |= 0x02;
+            arguments->has_work++;
           }
       }
 #endif
@@ -485,10 +483,10 @@ parse_opt (int key, char *arg, struct argp_state *state)
              "-T/-R/-D/-n after or without that option are useless.");
       if (arguments->l2opts.flags)
 	die ("You provided L2 flags after specifying an L2 interface.");
-      if (!(arguments->has_work & 0x01))
-        die ("I know of no Layer-2 interface. Giving up.");
-      if (!(arguments->has_work & 0x02))
-        die ("I have one Layer-2 interface but no network. Giving up.");
+      if (arguments->has_work == 0)
+        die ("I know about no interface. Nothing to do. Giving up.");
+      if (arguments->has_work == 1)
+        die ("I only have one interface. Nothing to do. Giving up.");
       arguments->finish_l3();
       break;
 
