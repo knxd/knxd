@@ -82,13 +82,16 @@ class Layer3:private Thread
   /** The servers using this L3 */
   Array < BaseServer * > servers;
 
+  /** treat route count 7 as per EIB spec? */
+  bool force_broadcast;
+
 public:
   /** debug output */
   Trace *t;
   /** our default address */
   eibaddr_t defaultAddr;
 
-  Layer3 (eibaddr_t addr, Trace * tr);
+  Layer3 (eibaddr_t addr, Trace * tr, bool force_broadcast = false);
   virtual ~Layer3 ();
 
   /** register a layer2 interface, return true if successful*/
