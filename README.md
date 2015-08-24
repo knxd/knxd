@@ -27,14 +27,14 @@ On Debian:
     wget https://www.auto.tuwien.ac.at/~mkoegler/pth/pthsem_2.0.8.tar.gz
     tar xzf pthsem_2.0.8.tar.gz
     cd pthsem-2.0.8
-    dpkg-buildpackage -b
+    dpkg-buildpackage -b -uc
     cd ..
     sudo dpkg -i libpthsem*.deb
 
     # now build knxd
     cd knxd
     # If you're using Wheezy, edit debian/control and remove the "libsystemd-daemon-dev" line
-    dpkg-buildpackage -b
+    dpkg-buildpackage -b -uc
     cd ..
     sudo dpkg -i knxd_*.deb knxd-tools_*.deb
 
