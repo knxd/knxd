@@ -2,7 +2,7 @@
 
 # This runs a couple of cheap tests on knxd.
 
-export LD_LIBRARY_PATH=src/client/c/.libs
+export LD_LIBRARY_PATH=src/client/c/.libs${LD_LIBRARY_PATH:+:}$LD_LIBRARY_PATH
 
 set -ex
 export PATH="$(pwd)/src/examples/.libs:$(pwd)/src/examples:$(pwd)/src/server/.libs:$(pwd)/src/server:$PATH"

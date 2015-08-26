@@ -1,20 +1,15 @@
 language: cpp
-install:
-  - wget "https://www.auto.tuwien.ac.at/~mkoegler/pth/pthsem_2.0.8.tar.gz"
-  - tar xvfz pthsem_2.0.8.tar.gz
-  - cd "pthsem-2.0.8"
-  - ./configure --prefix=/usr
-  - make
-  - sudo make install
-  - sudo ldconfig
-  - cd ..
 script:
+  - sh tools/get_pthsem
   - sh -x bootstrap.sh
-  - env CFLAGS="-Wall -Wextra" CPPFLAGS="-Wall -Wextra" ./configure --without-pth-test --disable-systemd
+  - env CFLAGS="-Wall -Wextra" CPPFLAGS="-Wall -Wextra" ./configure --with-pth=$HOME/pthsem --without-pth-test --disable-systemd
   - make
-  - sh tools/test.sh
+  - env LD_LIBRARY_PATH=$HOME/pthsem/lib sh tools/test.sh
 notifications:
   email:
     on_success: change
     on_failure: always
-
+cache:
+  directories:
+    - $HOME/pthsem
+sudo: false
