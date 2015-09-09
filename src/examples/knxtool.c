@@ -1466,10 +1466,10 @@ vbusmonitor1time\n");
 
       if (ac != 2)
 	die ("usage: %s url", prog);
+      con = open_con(ag[1]);
 
       if (EIBOpenVBusmonitorText (con) == -1)
 	die ("Open Busmonitor failed");
-      con = open_con(ag[1]);
 
       while (1)
 	{
