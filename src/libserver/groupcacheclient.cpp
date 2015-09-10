@@ -27,6 +27,8 @@ bool
 CreateGroupCache (Layer3 * l3, Trace * t, bool enable)
 {
   cache = new GroupCache (l3, t);
+  if (!cache->init ())
+    return false;
   if (enable)
     if (!cache->Start ())
       return false;
