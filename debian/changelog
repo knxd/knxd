@@ -1,4 +1,4 @@
-knxd (0.11.2-1) unstable; urgency=medium
+knxd (0.11.2-2) unstable; urgency=medium
 
   * Merged master branch
 
@@ -10,6 +10,12 @@ knxd (0.11.1-1) unstable; urgency=medium
   * Refactor multicast to use a separate port for sending
 
  -- Matthias Urlichs <matthias@urlichs.de>  Sun, 28 Jun 2015 06:53:31 +0000
+
+knxd (0.10.8-2) unstable; urgency=medium
+
+  * Fix systemd setup
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 10 Sep 2015 15:41:29 +0200
 
 knxd (0.10.8-1) unstable; urgency=medium
 

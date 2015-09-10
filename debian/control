@@ -7,8 +7,10 @@ Build-Depends: debhelper (>= 7.0.0),
   libpthsem-dev, libpthsem20,
   libusb-1.0-0 (>= 1.0.10), libusb-1.0-0-dev (>= 1.0.10),
   pkg-config,
-  libsystemd-daemon-dev,
+  libsystemd-daemon-dev (>= 200) | lsb-base (<= 4),
   debianutils,
+  dh-systemd | lsb-base (<= 4)
+Build-Conflicts: libsystemd-daemon-dev (<< 200)
 Standards-Version: 3.9.4
 Homepage: https://github.com/Makki1/knxd
 Vcs-Git: https://github.com/Makki1/knxd.git
