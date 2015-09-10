@@ -10,6 +10,8 @@ case "$1" in
 			chown knxd:knxd /var/lib/knxd
 		fi
 		;;
+		systemctl enable knxd.socket || true
+		systemctl start knxd.socket || true
 esac
 
 #DEBHELPER#

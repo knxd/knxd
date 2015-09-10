@@ -23,9 +23,15 @@ override_dh_auto_configure: configure
 configure: configure.ac debian/knxd.install
 	sh bootstrap.sh
 
-debian/knxd.install: debian/knxd.install.in
+debian/knxd.install: debian/knxd.install.in debian/knxd.socket debian/knxd.service
 	cp $^ $@
 	grep -qs 'HAVE_SYSTEMD_TRUE.*#' config.status || cat $@.systemd >> $@
+
+debian/knxd.socket: systemd/knxd.socket
+	cp $^ $@
+
+debian/knxd.service: systemd/knxd.service
+	cp $^ $@
 
 override_dh_auto_test:
 	bash tools/test.sh
