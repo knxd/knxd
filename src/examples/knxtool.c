@@ -528,7 +528,7 @@ vbusmonitor1time\n");
   else if (strcmp (prog, "groupcacheread") == 0)
     {
       if (ac != 3)
-	die ("usage: %s url", prog);
+	die ("usage: %s url groupaddr", prog);
       con = open_con(ag[1]);
       dest = readgaddr (ag[2]);
 
