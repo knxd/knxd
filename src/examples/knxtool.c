@@ -62,7 +62,7 @@ main (int ac, char *ag[])
     prog += 1;
   else
     prog = ag[0];
-  if (strcmp(prog, "knxtool") == 0)
+  if (strcmp(prog, "knxtool") == 0 || strcmp(prog, "lt-knxtool") == 0)
     {
       if (ac < 2)
 	die ("usage: %s applet [args] -- say '%s list' to get a list of applets", prog,prog);
