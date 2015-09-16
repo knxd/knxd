@@ -1,3 +1,9 @@
+knxd (0.10.8-4) unstable; urgency=medium
+
+  * Replaced Wheezy build-dependency on lsb-base with base-files (always installed)
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 16 Sep 2015 23:28:24 +0200
+
 knxd (0.10.8-3) unstable; urgency=medium
 
   * aded prerm to stop knxd
