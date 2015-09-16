@@ -22,6 +22,8 @@ On Debian:
 
     # If "dpkg-buildpackage" complains about missing packages:
     # install them (with "apt-get install") and try again.
+    # If it wants "x | y", try just x; install y if that doesn't work.
+    # Also, if it complains about conflicting packages, remove them (duh).
 
     # first we need libpthsem which unfortunately isn't part of Debian
     wget https://www.auto.tuwien.ac.at/~mkoegler/pth/pthsem_2.0.8.tar.gz
