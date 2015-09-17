@@ -13,8 +13,6 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 
 ## Building
 
-### Getting the source code
-
 On Debian:
 
     apt-get install git-core build-essential
@@ -22,6 +20,8 @@ On Debian:
 
     # If "dpkg-buildpackage" complains about missing packages:
     # install them (with "apt-get install") and try again.
+    # If it wants "x | y", try just x; install y if that doesn't work.
+    # Also, if it complains about conflicting packages, remove them (duh).
 
     # first we need libpthsem which unfortunately isn't part of Debian
     wget https://www.auto.tuwien.ac.at/~mkoegler/pth/pthsem_2.0.8.tar.gz
@@ -37,6 +37,22 @@ On Debian:
     dpkg-buildpackage -b -uc
     cd ..
     sudo dpkg -i knxd_*.deb knxd-tools_*.deb
+
+### Daemon Configuration
+
+Daemon configuration differs depending on whether you use systemd.
+If "systemctl status" emits something reasonable, you are.
+
+If you use systemd, the configuration file is ``/etc/knxd.conf``.
+Socket activation is used for the default IP and Unix sockets
+(port 4720 and /run/knxd, respectively).
+
+Without systemd, on Debian, edit ``/etc/default/knxd``.
+
+Old eibd clients may still use ``/tmp/eib`` to talk to knxd.
+You need to either change their configuration, or add "-u /tmp/eib"
+to knxd's options.
+(This was the default for "-u" before version 0.11.)
 
 ## Contributions
 

@@ -268,7 +268,7 @@ static struct argp_option options[] = {
   {"listen-tcp", 'i', "PORT", OPTION_ARG_OPTIONAL,
    "listen at TCP port PORT (default 6720)"},
   {"listen-local", 'u', "FILE", OPTION_ARG_OPTIONAL,
-   "listen at Unix domain socket FILE (default /tmp/eib)"},
+   "listen at Unix domain socket FILE (default /run/knx)"},
   {"trace", 't', "MASK", 0,
    "set trace flags (bitmask)"},
   {"error", 'f', "LEVEL", 0,
@@ -381,7 +381,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
         if (arg)
           name = arg;
         if (!*name)
-          name = "/tmp/eib";
+          name = "/run/knx";
         s = BaseServerPtr(new LocalServer (arguments->l3(), arguments->tracer(), name));
         if (!s->init ())
           die ("initialisation of the knxd unix protocol failed");

@@ -1,3 +1,9 @@
+knxd (0.11.2-4) unstable; urgency=medium
+
+  * Merged
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 17 Sep 2015 02:15:36 +0200
+
 knxd (0.11.2-3) unstable; urgency=medium
 
   * Merged master branch
@@ -10,6 +16,18 @@ knxd (0.11.1-1) unstable; urgency=medium
   * Refactor multicast to use a separate port for sending
 
  -- Matthias Urlichs <matthias@urlichs.de>  Sun, 28 Jun 2015 06:53:31 +0000
+
+knxd (0.10.8-5) unstable; urgency=medium
+
+  * Expanded README, clarified default options.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 17 Sep 2015 02:11:57 +0200
+
+knxd (0.10.8-4) unstable; urgency=medium
+
+  * Replaced Wheezy build-dependency on lsb-base with base-files (always installed)
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 16 Sep 2015 23:28:24 +0200
 
 knxd (0.10.8-3) unstable; urgency=medium
 
