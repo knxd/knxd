@@ -5,6 +5,7 @@ After=network.target
 [Service]
 EnvironmentFile=@sysconfdir@/knxd.conf
 ExecStart=@exec_prefix@/bin/knxd $KNXD_OPTS
+ExecReload=/bin/kill -s HUP $MAINPID
 User=knxd
 Group=knxd
 Type=notify
