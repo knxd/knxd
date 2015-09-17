@@ -1,4 +1,5 @@
 language: cpp
+compiler: gcc
 script:
   - sh tools/get_pthsem
   - sh -x bootstrap.sh
@@ -13,3 +14,12 @@ cache:
   directories:
     - $HOME/pthsem
 sudo: false
+install:
+  - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - gcc-4.8
+    - g++-4.8
