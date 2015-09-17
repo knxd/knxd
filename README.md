@@ -13,8 +13,6 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 
 ## Building
 
-### Getting the source code
-
 On Debian:
 
     apt-get install git-core build-essential
@@ -39,6 +37,22 @@ On Debian:
     dpkg-buildpackage -b -uc
     cd ..
     sudo dpkg -i knxd_*.deb knxd-tools_*.deb
+
+### Daemon Configuration
+
+Daemon configuration differs depending on whether you use systemd.
+If "systemctl status" emits something reasonable, you are.
+
+If you use systemd, the configuration file is ``/etc/knxd.conf``.
+Socket activation is used for the default IP and Unix sockets
+(port 4720 and /run/knxd, respectively).
+
+Without systemd, on Debian, edit ``/etc/default/knxd``.
+
+Old eibd clients may still use ``/tmp/eib`` to talk to knxd.
+You need to either change their configuration, or add "-u /tmp/eib"
+to knxd's options.
+(This is the default for "-u" before version 0.11. Don't depend on it.)
 
 ## Contributions
 
