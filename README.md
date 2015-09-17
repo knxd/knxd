@@ -58,10 +58,11 @@ If "systemctl status" emits something reasonable, you are.
 
 If you use systemd, the configuration file is ``/etc/knxd.conf``.
 Socket activation is used for the default IP and Unix sockets
-(port 4720 and /run/knxd, respectively).
+(port 4720 and /run/knx, respectively).
 
 Without systemd, on Debian, edit ``/etc/default/knxd``.
 
+The default Unix socket is ``/run/knx``.
 Old eibd clients may still use ``/tmp/eib`` to talk to knxd.
 You need to either change their configuration, or add "-u /tmp/eib"
 to knxd's options.

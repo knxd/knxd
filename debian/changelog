@@ -1,3 +1,9 @@
+knxd (0.10.9-1) unstable; urgency=medium
+
+  * Fix default Unix socket: /run/knx, not /run/knxd or /tmp/whatever
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 17 Sep 2015 02:51:01 +0200
+
 knxd (0.10.8-5) unstable; urgency=medium
 
   * Expanded README, clarified default options.
