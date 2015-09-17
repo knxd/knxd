@@ -8,8 +8,15 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 
 ## New Features
 
-* 0.10
+* 0.10 (``master`` branch)
 ** Support for more than one KNX interface
+** Lots of bug fixes
+** ETS5 compatibility
+
+* 0.11 (this branch)
+** Major refactoring
+** dynamic KNX address allocation to local clients
+** local clients may talk to each other
 
 ## Building
 
