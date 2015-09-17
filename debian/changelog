@@ -1,3 +1,9 @@
+knxd (0.11.3-1) unstable; urgency=medium
+
+  * Default Unix socket changed to /run/knx
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 17 Sep 2015 02:22:27 +0200
+
 knxd (0.11.2-4) unstable; urgency=medium
 
   * Merged

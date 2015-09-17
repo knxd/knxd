@@ -36,8 +36,8 @@ if __name__ == "__main__":
         port = args[0]
     else:
         import os
-        if os.path.exists('/run/knxd'):
-            port = '/run/knxd'
+        if os.path.exists('/run/knx'):
+            port = '/run/knx'
         elif os.path.exists('/tmp/eibd'):
             port = '/tmp/eibd'
         else:

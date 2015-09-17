@@ -38,7 +38,7 @@ EIBSocketURL (const char *url)
   if (!strncmp (url, "local:", 6))
     {
       url += 6;
-      return EIBSocketLocal (*url ? url : "/run/knxd");
+      return EIBSocketLocal (*url ? url : "/run/knx");
     }
   if (!strncmp (url, "ip:", 3))
     {

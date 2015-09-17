@@ -13,7 +13,7 @@ START_KNXD=NO
 # Additional options that are passed to the Daemon.
 #
 # sane default: route between local KNX clients and multicast
-DAEMON_ARGS="-u /tmp/eib -u /var/run/knxd -i -b ip:"
+DAEMON_ARGS="-u /tmp/eib -u /var/run/knx -i -b ip:"
 
 # Run `knxd --help` to get a complete list of available options and drivers.
 
