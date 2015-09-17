@@ -62,6 +62,7 @@ Socket activation is used for the default IP and Unix sockets
 
 Without systemd, on Debian, edit ``/etc/default/knxd``.
 
+The default Unix socket is ``/run/knx``.
 Old eibd clients may still use ``/tmp/eib`` to talk to knxd.
 You need to either change their configuration, or add "-u /tmp/eib"
 to knxd's options.

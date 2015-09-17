@@ -38,8 +38,8 @@ if __name__ == "__main__":
         import os
         if os.path.exists('/run/knx'):
             port = '/run/knx'
-        elif os.path.exists('/tmp/eibd'):
-            port = '/tmp/eibd'
+        elif os.path.exists('/tmp/eib'):
+            port = '/tmp/eib'
         else:
             port = 'localhost'
     run(port, adr)
