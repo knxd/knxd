@@ -46,7 +46,6 @@ On Debian:
 
     # now build knxd
     cd knxd
-    # If you're using Wheezy, edit debian/control and remove the "libsystemd-daemon-dev" line
     dpkg-buildpackage -b -uc
     cd ..
     sudo dpkg -i knxd_*.deb knxd-tools_*.deb
