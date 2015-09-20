@@ -74,7 +74,7 @@ to knxd's options.
 
 ### Adding a TPUART USB interface
 
-If you plug in a (properly programmed) TPUARTS into your computer, it'll show up as ``/dev/ttyACM0``.
+If you attach a (properly programmed) TUL (http://busware.de/tiki-index.php?page=TUL) to your computer, it'll show up as ``/dev/ttyACM0``.
 This is a problem because (a) it's owned by root, thus knxd can't access it, and (b) if you ever add another serial interface that uses the same driver, knxd will use the wrong device.
 
 Therefore, you do this:
