@@ -72,6 +72,36 @@ You need to either change their configuration, or add "-u /tmp/eib"
 to knxd's options.
 (This is the default for "-u" before version 0.11. Don't depend on it.)
 
+### Adding a TPUART USB interface
+
+If you plug in a (properly programmed) TPUARTS into your computer, it'll show up as ``/dev/ttyACM0``.
+This is a problem because (a) it's owned by root, thus knxd can't access it, and (b) if you ever add another serial interface that uses the same driver, knxd will use the wrong device.
+
+Therefore, you do this:
+
+* Run ``udevadm info --attribute-walk /sys/bus/usb/drivers/cdc_acm/*/tty/ttyACM0``.
+
+  We're interested in the third block. It contains a line ``ATTRS{manufacturer}=="busware.de"``.
+  Note the ``KERNELS=="something"`` line (your ``something`` will be different).
+
+* Copy the following line to ``/etc/udev/rules.d/70-knxd.rules``:
+
+  ```
+  ACTION=="add", SUBSYSTEM=="tty", ATTRS{idVendor}=="03eb", ATTRS{idProduct}=="204b", KERNELS="something", SYMLINK+="ttyKNX1", OWNER="knxd"
+  ```
+
+  Of course you'll have to replace the ``something`` with whatever ``udevadm`` displayed.
+
+* Run ``udevadm test /sys/bus/usb/drivers/cdc_acm/*/tty/ttyACM0``.
+
+* verify that ``/dev/ttyKNX1`` exists and belongs to "knxd":
+  
+  ``ls -lL /dev/ttyKNX1``
+
+* add ``-b tpuarts:/dev/ttyKNX1`` to the options in ``/etc/knxd.conf``.
+
+* If you have a second TPUART, repeat with "ttyACM1" and "ttyKNX2".
+
 ## Contributions
 
 * Any contribution is *very* welcome

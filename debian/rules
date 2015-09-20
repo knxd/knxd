@@ -25,6 +25,7 @@ configure: configure.ac
 
 override_dh_install: debian/knxd.install debian/knxd.socket debian/knxd.service
 	dh_install
+	dh_installudev --priority=70
 	dh_systemd_enable || true
 	dh_systemd_start || true
 
