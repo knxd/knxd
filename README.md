@@ -90,7 +90,8 @@ Therefore, you do this:
   ACTION=="add", SUBSYSTEM=="tty", ATTRS{idVendor}=="03eb", ATTRS{idProduct}=="204b", KERNELS="something", SYMLINK+="ttyKNX1", OWNER="knxd"
   ```
 
-  Of course you'll have to replace the ``something`` with whatever ``udevadm`` displayed.
+  Of course you need to replace the ``something`` with whatever ``udevadm`` displayed.
+  An example file may be in ``/lib/udev/rules.d/``.
 
 * Run ``udevadm test /sys/bus/usb/drivers/cdc_acm/*/tty/ttyACM0``.
 
@@ -100,7 +101,10 @@ Therefore, you do this:
 
 * add ``-b tpuarts:/dev/ttyKNX1`` to the options in ``/etc/knxd.conf``.
 
-* If you have a second TPUART, repeat with "ttyACM1" and "ttyKNX2".
+If you have a second TPUART, repeat with "ttyACM1" and "ttyKNX2".
+
+You'll have to update your rule if you ever plug your TPUART into a different USB port.
+This is intentional.
 
 ## Contributions
 
