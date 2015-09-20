@@ -1,3 +1,9 @@
+knxd (0.10.9-2) unstable; urgency=medium
+
+  * Added udev rule for TPUART.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 20 Sep 2015 16:14:06 +0200
+
 knxd (0.10.9-1) unstable; urgency=medium
 
   * Fix default Unix socket: /run/knx, not /run/knxd or /tmp/whatever
