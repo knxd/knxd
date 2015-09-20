@@ -1,3 +1,9 @@
+knxd (0.11.4-1) unstable; urgency=medium
+
+  * Merged master branch up to 0.10.9-2
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 20 Sep 2015 16:14:50 +0200
+
 knxd (0.11.3-1) unstable; urgency=medium
 
   * Default Unix socket changed to /run/knx
@@ -22,6 +28,12 @@ knxd (0.11.1-1) unstable; urgency=medium
   * Refactor multicast to use a separate port for sending
 
  -- Matthias Urlichs <matthias@urlichs.de>  Sun, 28 Jun 2015 06:53:31 +0000
+
+knxd (0.10.9-2) unstable; urgency=medium
+
+  * Added udev rule for TPUART.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 20 Sep 2015 16:14:06 +0200
 
 knxd (0.10.9-1) unstable; urgency=medium
 
