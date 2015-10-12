@@ -9,6 +9,9 @@ User=knxd
 Group=knxd
 Type=notify
 
+Restart=on-failure
+RestartSec=10
+
 [Install]
 WantedBy=multi-user.target
 Also=knxd.socket
