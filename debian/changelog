@@ -1,3 +1,11 @@
+knxd (0.10.10-1) unstable; urgency=medium
+
+  * USB HID fixes
+  * allow spaces behind optional arguments ('-u /tmp/knxd')
+  * warn about knxd.socket in knyd.conf [systemd]
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 18 Nov 2015 13:35:27 +0100
+
 knxd (0.10.9-3) unstable; urgency=medium
 
   * Tell systemd to auto-restart knxd if it fails.
