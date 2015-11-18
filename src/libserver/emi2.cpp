@@ -207,6 +207,7 @@ EMI2Layer2::Run (pth_sem_t * stop1)
       pth_event_isolate(timeout);
       if (!wait_confirm && !inqueue.isempty())
 	{
+	  pth_sem_dec (&in_signal);
 	  Send(inqueue.get());
 	  if (noqueue)
 	    {
