@@ -46,6 +46,10 @@
 #define OPT_STOP_NOW 6
 #define OPT_FORCE_BROADCAST 7
 
+#define OPT_ARG(_arg,_state,_default) (arg ? arg : \
+        (state->argv[state->next][0] && (state->argv[state->next][0] != '-')) ?  \
+            state->argv[state->next++] : _default)
+
 /** structure to store the arguments */
 class arguments
 {
@@ -326,7 +330,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
         EIBnetServer *c;
         int port = 0;
-        char *a = strdup (arg ? arg : "");
+        char *a = strdup (OPT_ARG(arg, state, ""));
         char *b;
         if (!a)
           die ("out of memory");
@@ -357,11 +361,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'u':
       {
         BaseServer *s;
-        const char *name = "";
-        if (arg)
-          name = arg;
-        if (!*name)
-          name = "/tmp/eib";
+        const char *name = OPT_ARG(arg,state,"/run/knx");
         s = new LocalServer (arguments->l3(), arguments->tracer(), name);
         if (!s->init ())
           die ("initialisation of the knxd unix protocol failed");
@@ -371,9 +371,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'i':
       {
         BaseServer *s = NULL;
-        int port = arg ? atoi (arg) : 0;
-        if (port == 0)
-          port = 6720;
+        int port = atoi(OPT_ARG(arg,state,"6720"));
         if (port > 0)
           s = new InetServer (arguments->l3(), arguments->tracer(), port);
         if (!s || !s->init ())
@@ -407,7 +405,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       arguments->pidfile = arg;
       break;
     case 'd':
-      arguments->daemon = (char *) (arg ? arg : "/dev/null");
+      arguments->daemon = OPT_ARG(arg,state,"/dev/null");
       break;
     case 'c':
       if (!CreateGroupCache (arguments->l3(), arguments->tracer(), true))
