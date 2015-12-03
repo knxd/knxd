@@ -23,22 +23,15 @@
 #include "layer2.h"
 #include "eibnetip.h"
 
-class EIBNetIPTunnel:public Layer2Interface, private Thread
+class EIBNetIPTunnel:public Layer2, private Thread
 {
-  Trace *t;
-  eibaddr_t addr;
   EIBNetIPSocket *sock;
   struct sockaddr_in caddr;
   struct sockaddr_in daddr;
   struct sockaddr_in saddr;
   struct sockaddr_in raddr;
   pth_sem_t insignal;
-  pth_sem_t outsignal;
-  pth_event_t getwait;
-    Queue < CArray > inqueue;
-    Queue < LPDU * >outqueue;
-  int mode;
-  int vmode;
+  Queue < CArray > inqueue;
   int dataport;
   bool NAT;
   bool noqueue;
@@ -46,30 +39,18 @@ class EIBNetIPTunnel:public Layer2Interface, private Thread
   int connect_busmonitor;
 
   void Run (pth_sem_t * stop);
+  const char *Name() { return "eibnettunnel"; }
 public:
-    EIBNetIPTunnel (const char *dest, int port, int sport, const char *srcip,
-		    int dataport, int flags, Trace * tr);
-    virtual ~ EIBNetIPTunnel ();
+  EIBNetIPTunnel (const char *dest, int port, int sport, const char *srcip,
+                  int dataport, L2options *opt, Layer3 *l3);
+  virtual ~EIBNetIPTunnel ();
   bool init ();
-
-  void Send_L_Data (LPDU * l);
-  LPDU *Get_L_Data (pth_event_t stop);
-
-  bool addAddress (eibaddr_t addr);
-  bool addGroupAddress (eibaddr_t addr);
-  bool removeAddress (eibaddr_t addr);
-  bool removeGroupAddress (eibaddr_t addr);
 
   bool enterBusmonitor ();
   bool leaveBusmonitor ();
 
-  bool openVBusmonitor ();
-  bool closeVBusmonitor ();
+  void Send_L_Data (LPDU * l);
 
-  bool Open ();
-  bool Close ();
-  eibaddr_t getDefaultAddr ();
-  bool Connection_Lost ();
   bool Send_Queue_Empty ();
 };
 

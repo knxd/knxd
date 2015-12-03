@@ -44,22 +44,18 @@ struct urldef
   const char *prefix;
   /** factory function */
   LowLevel_Create_Func Create;
-  /** cleanup function */
-  void (*Cleanup) ();
 };
 
 /** list of URLs */
 struct urldef URLs[] = {
 #undef L2_NAME
-#define L2_NAME(a) { a##_PREFIX, a##_CREATE, a##_CLEANUP },
+#define L2_NAME(a) { a##_PREFIX, a##_CREATE },
 #include "lowlevelcreate.h"
-  {0, 0, 0}
+  {0, 0}
 };
 
-void (*Cleanup) ();
-
 /** determines the right backend for the url and creates it */
-LowLevelDriverInterface *
+LowLevelDriver *
 Create (const char *url, Trace * t)
 {
   unsigned int p = 0;
@@ -71,10 +67,7 @@ Create (const char *url, Trace * t)
   while (u->prefix)
     {
       if (strlen (u->prefix) == p && !memcmp (u->prefix, url, p))
-	{
-	  Cleanup = u->Cleanup;
-	  return u->Create (url + p + 1, t);
-	}
+	return u->Create (url + p + 1, t);
       u++;
     }
   die ("url not supported");
@@ -163,7 +156,7 @@ int
 main (int ac, char *ag[])
 {
   int index;
-  LowLevelDriverInterface *iface = 0;
+  LowLevelDriver *iface = 0;
   memset (&arg, 0, sizeof (arg));
   arg.newlength = -1;
 
@@ -205,8 +198,6 @@ main (int ac, char *ag[])
     die ("invalid value %d to write", arg.newlength);
 
   delete iface;
-  if (Cleanup)
-    Cleanup ();
 
   pth_exit (0);
   return 0;

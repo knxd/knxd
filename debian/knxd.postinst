@@ -1,0 +1,16 @@
+#!/bin/sh
+
+case "$1" in
+        configure)
+		addgroup --system knxd || true
+		adduser --system --disabled-login --home /var/lib/knxd --ingroup knxd knxd || true
+		## for updates
+		if ! test -d /var/lib/knxd ; then
+			mkdir /var/lib/knxd
+			chown knxd:knxd /var/lib/knxd
+		fi
+		;;
+esac
+
+#DEBHELPER#
+

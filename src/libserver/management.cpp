@@ -106,10 +106,7 @@ Management_Connection::X_PropertyScan (Array < PropertyInfo > &p)
 	      p1.count = (a[0] << 8) | (a[1]);
 	    }
 	  if (p1.property != 0)
-	    {
-	      p.resize (p () + 1);
-	      p[p () - 1] = p1;
-	    }
+	    p.add (p1);
 	  i++;
 	}
       while (p1.property != 0);

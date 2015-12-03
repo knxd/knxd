@@ -23,6 +23,7 @@
 #include <time.h>
 
 #include "layer3.h"
+#include "layer2.h"
 
 typedef struct
 {
@@ -36,36 +37,47 @@ typedef struct
   time_t recvtime;
 } GroupCacheEntry;
 
-class GroupCache:public L_Data_CallBack
+class GroupCache:public Layer2mixin
 {
-  /** Layer 3 interface */
-  Layer3 *layer3;
-  /** debug output */
-  Trace *t;
   /** output queue */
-    Array < GroupCacheEntry * >cache;
+  Array < GroupCacheEntry * > cache;
+  /** controlled by .Start/Stop; if false, the whole code does nothing */
   bool enable;
-  pth_mutex_t mutex;
+  /** signal for .Read and .LastUpdates that the cache has been updated */
   pth_cond_t cond;
+  /** serialize access to .cond */
+  pth_mutex_t mutex;
+  /** current position in 'updates' array */
   uint16_t pos;
+  /** circular buffer of last-updated group addresses */
   eibaddr_t updates[0x100];
 
+  /** find this group */
   GroupCacheEntry *find (eibaddr_t dst);
+  /** add this entry */
   void add (GroupCacheEntry * entry);
 
 public:
-    GroupCache (Layer3 * l3, Trace * t);
-    virtual ~ GroupCache ();
+  /** constructor */
+  GroupCache (Layer3 * l3, Trace * t);
+  /** destructor */
+  virtual ~GroupCache ();
+  /** Feed data to the cache */
+  void Send_L_Data (L_Data_PDU * l);
 
-  void Get_L_Data (L_Data_PDU * l);
-
+  /** Turn on caching, calls l3.registerGroupCallBack(ANY) */
   bool Start ();
+  /** drop the whole cache */
   void Clear ();
+  /** Turn off caching, deregisters */
   void Stop ();
 
+  /** read, and optionally wait for, a cache entry for this address */
   GroupCacheEntry Read (eibaddr_t addr, unsigned timeout, uint16_t age);
-    Array < eibaddr_t > LastUpdates (uint16_t start, uint8_t timeout,
-				     uint16_t & end, pth_event_t stop);
+  /** incrementally monitor group cache updates */
+  Array < eibaddr_t > LastUpdates (uint16_t start, uint8_t timeout,
+                                   uint16_t & end, pth_event_t stop);
+  // remove this group
   void remove (eibaddr_t addr);
 };
 

@@ -22,18 +22,37 @@
 #include "client.h"
 
 
+BaseServer::BaseServer (Layer3 * layer3, Trace * tr)
+	: Layer2virtual (layer3, tr)
+{
+}
+
+BaseServer::~BaseServer ()
+{
+  TRACEPRINTF (t, 8, this, "StopBaseServer");
+  Stop ();
+  if (l3)
+    l3->deregisterServer (this);
+}
+
+bool
+BaseServer::init ()
+{
+  l3->registerServer (this);
+  return true;
+}
+
 Server::~Server ()
 {
   TRACEPRINTF (t, 8, this, "StopServer");
   Stop ();
-  for (int i = 0; i < connections (); i++)
+  for (unsigned int i = 0; i < connections (); i++)
     connections[i]->StopDelete ();
   while (connections () != 0)
     pth_yield (0);
 
   if (fd != -1)
     close (fd);
-  TRACEPRINTF (t, 8, this, "Server ended");
 }
 
 bool
@@ -49,10 +68,17 @@ Server::deregister (ClientConnection * con)
 }
 
 Server::Server (Layer3 * layer3, Trace * tr)
+    : BaseServer (layer3, tr)
 {
-  t = tr;
-  l3 = layer3;
   fd = -1;
+}
+
+bool
+Server::init ()
+{
+  if (fd == -1)
+    return false;
+  return BaseServer::init();
 }
 
 void
@@ -76,6 +102,6 @@ Server::Run (pth_sem_t * stop1)
 }
 
 void
-Server::setupConnection (int cfd)
+Server::setupConnection (int cfd UNUSED)
 {
 }

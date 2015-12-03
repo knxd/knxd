@@ -21,6 +21,7 @@
 #include <netdb.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <errno.h>
 #include "eibnetip.h"
 #include "config.h"
 #ifdef HAVE_LINUX_NETLINK
@@ -359,11 +360,24 @@ EIBNetIPSocket::EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr,
     }
   if (bind (fd, (struct sockaddr *) &bindaddr, sizeof (bindaddr)) == -1)
     {
+      ERRORPRINTF (t, E_ERROR | 38, this, "cannot bind to address: %s", strerror(errno));
       close (fd);
       fd = -1;
       return;
     }
 
+  // Disable loopback so we do not receive our own datagrams.
+  {
+    char loopch=0;
+ 
+    if (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_LOOP,
+                   (char *)&loopch, sizeof(loopch)) < 0) {
+      ERRORPRINTF (t, E_ERROR | 39, this, "cannot turn off multicast loopback: %s", strerror(errno));
+      close(fd);
+      fd = -1;
+      return;
+    }
+  }
   Start ();
   TRACEPRINTF (t, 0, this, "Openend");
 }
@@ -402,12 +416,12 @@ EIBNetIPSocket::SetMulticast (struct ip_mreq multicastaddr)
 }
 
 void
-EIBNetIPSocket::Send (EIBNetIPPacket p)
+EIBNetIPSocket::Send (EIBNetIPPacket p, struct sockaddr_in addr)
 {
   struct _EIBNetIP_Send s;
   t->TracePacket (1, this, "Send", p.data);
   s.data = p;
-  s.addr = sendaddr;
+  s.addr = addr;
   inqueue.put (s);
   pth_sem_inc (&insignal, 1);
 }
@@ -425,9 +439,11 @@ EIBNetIPSocket::Get (pth_event_t stop)
 
   if (pth_event_status (getwait) == PTH_STATUS_OCCURRED)
     {
+      EIBNetIPPacket *p;
       pth_sem_dec (&outsignal);
-      t->TracePacket (1, this, "Recv", outqueue.top ().data);
-      return new EIBNetIPPacket (outqueue.get ());
+      p = outqueue.get ();
+      t->TracePacket (1, this, "Recv", p->data);
+      return p;
     }
   else
     return 0;
@@ -462,8 +478,7 @@ EIBNetIPSocket::Run (pth_sem_t * stop1)
 		EIBNetIPPacket::fromPacket (CArray (buf, i), r);
 	      if (p)
 		{
-		  outqueue.put (*p);
-		  delete p;
+		  outqueue.put (p);
 		  pth_sem_inc (&outsignal, 1);
 		}
 	    }
@@ -934,7 +949,7 @@ EIBNetIPPacket EIBnet_DescriptionResponse::ToPacket ()CONST
   p.data[53] = 0;
   p.data[54] = services () * 2 + 2;
   p.data[55] = 2;
-  for (int i = 0; i < services (); i++)
+  for (unsigned int i = 0; i < services (); i++)
     {
       p.data[56 + i * 2] = services[i].family;
       p.data[57 + i * 2] = services[i].version;
@@ -968,7 +983,7 @@ parseEIBnet_DescriptionResponse (const EIBNetIPPacket & p,
     return 1;
   if (p.data[54] % 2)
     return 1;
-  if (p.data[54] + 54 > p.data ())
+  if (p.data[54] + 54U > p.data ())
     return 1;
   r.services.resize ((p.data[54] / 2) - 1);
   for (int i = 0; i < (p.data[54] / 2) - 1; i++)
@@ -1047,7 +1062,7 @@ EIBNetIPPacket EIBnet_SearchResponse::ToPacket ()CONST
   p.data[61] = 0;
   p.data[62] = services () * 2 + 2;
   p.data[63] = 2;
-  for (int i = 0; i < services (); i++)
+  for (unsigned int i = 0; i < services (); i++)
     {
       p.data[64 + i * 2] = services[i].family;
       p.data[65 + i * 2] = services[i].version;
@@ -1082,7 +1097,7 @@ parseEIBnet_SearchResponse (const EIBNetIPPacket & p,
     return 1;
   if (p.data[62] % 2)
     return 1;
-  if (p.data[62] + 62 > p.data ())
+  if (p.data[62] + 62U > p.data ())
     return 1;
   r.services.resize ((p.data[62] / 2) - 1);
   for (int i = 0; i < (p.data[62] / 2) - 1; i++)

@@ -47,7 +47,7 @@ A_Busmonitor::A_Busmonitor (ClientConnection * c, Layer3 * l3, Trace * tr,
 }
 
 void
-A_Busmonitor::Get_L_Busmonitor (L_Busmonitor_PDU * l)
+A_Busmonitor::Send_L_Busmonitor (L_Busmonitor_PDU * l)
 {
   data.put (l);
   pth_sem_inc (&sem, 0);

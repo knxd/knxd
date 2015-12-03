@@ -57,8 +57,7 @@ public:
   /** adds a element to the queue end */
   void push (const T & el)
   {
-    data.resize (data () + 1);
-    data[data () - 1] = el;
+    data.add (el);
   }
 
   /** remove the element from the queue head and returns it */

@@ -25,7 +25,7 @@
 #include "lowlevel.h"
 
 /** PEI16 / BCU1 user mode driver */
-class BCU1SerialLowLevelDriver:public LowLevelDriverInterface, private Thread
+class BCU1SerialLowLevelDriver:public LowLevelDriver, private Thread
 {
   /** file descriptor */
   int fd;
@@ -40,11 +40,11 @@ class BCU1SerialLowLevelDriver:public LowLevelDriverInterface, private Thread
   /** semaphore for outqueue */
   pth_sem_t out_signal;
   /** input queue */
-    Queue < CArray > inqueue;
-    /** output queue */
-    Queue < CArray * >outqueue;
-    /** semaphore to wait for outqueue */
-  pth_event_t getwait;
+  Queue < CArray > inqueue;
+  /** output queue */
+  Queue < CArray * >outqueue;
+  /** semaphore to wait for outqueue */
+pth_event_t getwait;
   /** semaphore to signal empty sendqueue */
   pth_sem_t send_empty;
 
@@ -59,9 +59,11 @@ class BCU1SerialLowLevelDriver:public LowLevelDriverInterface, private Thread
   /** exchange two bytes*/
   bool exchange (uchar c, uchar & result, pth_event_t stop);
   void Run (pth_sem_t * stop);
+
+  const char *Name() { return "BCU1Serial"; }
 public:
-    BCU1SerialLowLevelDriver (const char *device, Trace * tr);
-   ~BCU1SerialLowLevelDriver ();
+  BCU1SerialLowLevelDriver (const char *device, Trace * tr);
+  ~BCU1SerialLowLevelDriver ();
   bool init ();
 
   void Send_Packet (CArray l);
@@ -69,7 +71,6 @@ public:
   pth_sem_t *Send_Queue_Empty_Cond ();
   CArray *Get_Packet (pth_event_t stop);
   void SendReset ();
-  bool Connection_Lost ();
   EMIVer getEMIVer ();
 };
 

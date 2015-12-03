@@ -28,7 +28,7 @@ HexDump (CArray data)
 {
   char buf[200];
   String s;
-  int i;
+  unsigned int i;
   sprintf (buf, "%04X ", 0);
   s = buf;
   for (i = 0; i < data (); i++)
@@ -49,7 +49,7 @@ STR_Stream *
 STR_Stream::fromArray (const CArray & c)
 {
   assert (c () >= 4);
-  assert (((c[0] << 8) | c[1]) + 2 == c ());
+  assert (((c[0] << 8) | c[1]) + 2U == c ());
   STR_Stream *i;
 
   switch (c[2] << 8 | c[3])
@@ -231,7 +231,6 @@ STR_Code::decode ()
 {
   char buf[200];
   String s;
-  int i;
   sprintf (buf, "Code:\n");
   s = buf;
   return s + HexDump (code);
@@ -462,7 +461,7 @@ STR_ListParameter::decode ()
   String s;
   sprintf (buf, "ListParameter: addr=%04x id=%s elements=", addr, name ());
   s = buf;
-  for (int i = 0; i < elements (); i++)
+  for (unsigned int i = 0; i < elements (); i++)
     {
       sprintf (buf, "%s,", elements[i] ());
       s += buf;
@@ -779,7 +778,7 @@ CArray
 STR_BCU2Key::toArray ()
 {
   CArray d;
-  int i;
+  unsigned int i;
   uint16_t len = keys () * 4 + 4 + 2;
   d.resize (2 + len);
   d[0] = (len >> 8) & 0xff;
@@ -806,7 +805,7 @@ STR_BCU2Key::decode ()
 {
   char buf[200];
   String s;
-  int i;
+  unsigned int i;
   sprintf (buf, "BCU2_KEY: install:%08X ", installkey);
   s = buf;
   for (i = 0; i < keys (); i++)
@@ -823,7 +822,7 @@ Image::Image ()
 
 Image::~Image ()
 {
-  for (int i = 0; i < str (); i++)
+  for (unsigned int i = 0; i < str (); i++)
     if (str[i])
       delete str[i];
 }
@@ -832,7 +831,7 @@ String
 Image::decode ()
 {
   String s = "BCU Memory Image\n";
-  for (int i = 0; i < str (); i++)
+  for (unsigned int i = 0; i < str (); i++)
     s += str[i]->decode ();
   return s;
 }
@@ -850,7 +849,7 @@ Image::toArray ()
   data[5] = 0x68;
   data[6] = 0x0c;
   data[7] = 0x05;
-  for (int i = 0; i < str (); i++)
+  for (unsigned int i = 0; i < str (); i++)
     data.setpart (str[i]->toArray (), data ());
   data[8] = (data () >> 8) & 0xff;
   data[9] = (data ()) & 0xff;
@@ -860,7 +859,7 @@ Image::toArray ()
 int
 Image::findStreamNumber (STR_Type t)
 {
-  for (int i = 0; i < str (); i++)
+  for (unsigned int i = 0; i < str (); i++)
     if (str[i]->getType () == t)
       return i;
   return -1;
@@ -906,13 +905,13 @@ Image::fromArray (CArray c)
   Image *i = new Image;
   while (pos < c ())
     {
-      if (pos + 4 >= c ())
+      if (pos + 4U >= c ())
 	{
 	  delete i;
 	  return 0;
 	}
       len = c[pos] << 8 | c[pos + 1];
-      if (pos + 2 + len > c () || len < 2)
+      if (pos + 2U + len > c () || len < 2U)
 	{
 	  delete i;
 	  return 0;

@@ -1,6 +1,6 @@
 /*
     EIBD eib bus access and management daemon
-    Copyright (C) 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
+    Copyright (C) 2015 Marc Joliet <marcec@gmx.de>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,22 +17,16 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifndef C_PEI16_H
-#define C_PEI16_H
+#ifndef KNXD_LIBSERVER_SYSTEMDSERVER_H
+#define KNXD_LIBSERVER_SYSTEMDSERVER_H
 
-#include "bcu1.h"
+#include "server.h"
 
-#define PEI16_URL "bcu1:/dev/eib\n"
-#define PEI16_DOC "bcu1 connects using the PEI16 Protocoll over a BCU to the bus (using a kernel driver)\n\n"
-
-#define PEI16_PREFIX "bcu1"
-#define PEI16_CREATE PEI16_ll_Create
-#define PEI16_CLEANUP NULL
-
-inline LowLevelDriverInterface *
-PEI16_ll_Create (const char *dev, Trace * t)
+/** implements a server listening on a systemd provided file descriptor */
+class SystemdServer:public Server
 {
-  return new BCU1DriverLowLevelDriver (dev, t);
-}
+public:
+  SystemdServer (Layer3 * l3, Trace * tr, int systemd_fd);
+};
 
 #endif

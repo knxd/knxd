@@ -23,6 +23,7 @@
 #include <netinet/tcp.h>
 #include <unistd.h>
 #include <string.h>
+#include <errno.h>
 #include "inetserver.h"
 
 InetServer::InetServer (Layer3 * la3, Trace * tr, int port):
@@ -38,12 +39,16 @@ Server (la3, tr)
 
   fd = socket (AF_INET, SOCK_STREAM, 0);
   if (fd == -1)
-    return;
+    {
+      ERRORPRINTF (tr, E_ERROR | 12, this, "OpenInetSocket %d: socket: %s", port, strerror(errno));
+      return;
+    }
 
   setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof (reuse));
 
   if (bind (fd, (struct sockaddr *) &addr, sizeof (addr)) == -1)
     {
+      ERRORPRINTF (tr, E_ERROR | 13, this, "OpenInetSocket %d: bind: %s", port, strerror(errno));
       close (fd);
       fd = -1;
       return;
@@ -51,6 +56,7 @@ Server (la3, tr)
 
   if (listen (fd, 10) == -1)
     {
+      ERRORPRINTF (tr, E_ERROR | 14, this, "OpenInetSocket %d: listen: %s", port, strerror(errno));
       close (fd);
       fd = -1;
       return;
@@ -58,12 +64,6 @@ Server (la3, tr)
 
   TRACEPRINTF (tr, 8, this, "InetSocket opened");
   Start ();
-}
-
-bool
-InetServer::init ()
-{
-  return fd != -1;
 }
 
 void

@@ -20,34 +20,39 @@
 #include <stdio.h>
 #include "lpdu.h"
 #include "tpdu.h"
+#include "layer2.h"
 
 LPDU *
-LPDU::fromPacket (const CArray & c)
+LPDU::fromPacket (const CArray & c, Layer2 *layer2)
 {
   LPDU *l = 0;
   if (c () >= 1)
     {
       if (c[0] == 0xCC)
-	l = new L_ACK_PDU ();
-      if (c[0] == 0xC0)
-	l = new L_BUSY_PDU ();
-      if (c[0] == 0x0C)
-	l = new L_NACK_PDU ();
-      if ((c[0] & 0x53) == 0x10)
-	l = new L_Data_PDU ();
+	l = new L_ACK_PDU (layer2);
+      else if (c[0] == 0xC0)
+	l = new L_BUSY_PDU (layer2);
+      else if (c[0] == 0x0C)
+	l = new L_NACK_PDU (layer2);
+      else if ((c[0] & 0x53) == 0x10)
+	l = new L_Data_PDU (layer2);
     }
   if (l && l->init (c))
-    return l;
+    {
+      l->l2 = layer2;
+      return l;
+    }
   if (l)
     delete l;
-  l = new L_Unknown_PDU ();
+  l = new L_Unknown_PDU (layer2);
   l->init (c);
+  l->l2 = layer2;
   return l;
 }
 
 /* L_NACK */
 
-L_NACK_PDU::L_NACK_PDU ()
+L_NACK_PDU::L_NACK_PDU (Layer2 *layer2) : LPDU(layer2)
 {
 }
 
@@ -73,7 +78,7 @@ String L_NACK_PDU::Decode ()
 
 /* L_ACK */
 
-L_ACK_PDU::L_ACK_PDU ()
+L_ACK_PDU::L_ACK_PDU (Layer2 *layer2) : LPDU(layer2)
 {
 }
 
@@ -99,7 +104,7 @@ String L_ACK_PDU::Decode ()
 
 /* L_BUSY */
 
-L_BUSY_PDU::L_BUSY_PDU ()
+L_BUSY_PDU::L_BUSY_PDU (Layer2 *layer2) : LPDU(layer2)
 {
 }
 
@@ -125,7 +130,7 @@ String L_BUSY_PDU::Decode ()
 
 /* L_Unknown  */
 
-L_Unknown_PDU::L_Unknown_PDU ()
+L_Unknown_PDU::L_Unknown_PDU (Layer2 *layer2) : LPDU(layer2)
 {
 }
 
@@ -159,7 +164,7 @@ L_Unknown_PDU::Decode ()
 
 /* L_Busmonitor  */
 
-L_Busmonitor_PDU::L_Busmonitor_PDU ()
+L_Busmonitor_PDU::L_Busmonitor_PDU (Layer2 *layer2) : LPDU(layer2)
 {
   timestamp = 0;
   status = 0;
@@ -190,7 +195,7 @@ L_Busmonitor_PDU::Decode ()
   for (i = 0; i < pdu (); i++)
     addHex (s, pdu[i]);
   s += ":";
-  LPDU *l = LPDU::fromPacket (pdu);
+  LPDU *l = LPDU::fromPacket (pdu, l2);
   s += l->Decode ();
   delete l;
   return s;
@@ -198,7 +203,7 @@ L_Busmonitor_PDU::Decode ()
 
 /* L_Data */
 
-L_Data_PDU::L_Data_PDU ()
+L_Data_PDU::L_Data_PDU (Layer2 *layer2) : LPDU(layer2)
 {
   prio = PRIO_LOW;
   repeated = 0;
@@ -292,12 +297,9 @@ CArray L_Data_PDU::ToPacket ()
   assert (data () >= 1);
   assert (data () <= 0xff);
   assert ((hopcount & 0xf8) == 0);
-  CArray
-    pdu;
-  uchar
-    c;
-  unsigned
-    i;
+  CArray pdu;
+  uchar c = 0; // stupid compiler
+  unsigned i;
   switch (prio)
     {
     case PRIO_LOW:
@@ -355,8 +357,7 @@ String L_Data_PDU::Decode ()
   assert (data () <= 0xff);
   assert ((hopcount & 0xf8) == 0);
 
-  String
-  s ("L_Data");
+  String s ("L_Data");
   if (!valid_length)
     s += " (incomplete)";
   if (repeated)
@@ -378,16 +379,17 @@ String L_Data_PDU::Decode ()
     }
   if (!valid_checksum)
     s += " INVALID CHECKSUM";
-  s =
-    s + " from " + FormatEIBAddr (source) + " to " + (AddrType ==
-						      GroupAddress ?
-						      FormatGroupAddr (dest) :
-						      FormatEIBAddr (dest));
+  s += " from ";
+  s += FormatEIBAddr (source);
+  s += " to ";
+  s += (AddrType == GroupAddress ?
+                    FormatGroupAddr (dest) :
+                    FormatEIBAddr (dest));
   s += " hops: ";
   addHex (s, hopcount);
   TPDU *
-    d = TPDU::fromPacket (data);
-  s += d->Decode ();
+    d = TPDU::fromPacket (data, l2->t);
+  s += d->Decode (l2->t);
   delete
     d;
   return s;

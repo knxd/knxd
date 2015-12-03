@@ -55,17 +55,18 @@ protected:
   /** main function of the thread
    * @param stop if stop can be decemented, the routine should exit
    */
-    virtual void Run (pth_sem_t * stop);
+  virtual void Run (pth_sem_t * stop);
+  virtual const char * Name () = 0;
 public:
-    /** create a thread
-     * if o and t are not present, Run is runned, which has to be replaced
-     * @param o Object to run
-     * @param t Entry point
-     */
-    Thread (int Priority = PTH_PRIO_STD, Runable * o = 0, THREADENTRY t = 0);
-    virtual ~ Thread ();
+  /** create a thread
+   * if o and t are not present, Run is runned, which has to be replaced
+   * @param o Object to run
+   * @param t Entry point
+   */
+  Thread (int Priority = PTH_PRIO_STD, Runable * o = 0, THREADENTRY t = 0);
+  virtual ~Thread ();
 
-    /** starts the thread*/
+  /** starts the thread*/
   void Start ();
   /** stops the thread, if it is running */
   void Stop ();

@@ -24,18 +24,16 @@
 
 #define TPUARTs_URL "tpuarts:/dev/ttySx[:baudrate(default 19200)]\n"
 
-#define TPUARTs_DOC "tpuarts connects to the EIB bus over an TPUART (using a user mode driver, experimental)\n\n"
+#define TPUARTs_DOC "tpuarts connects to the EIB bus over a TPUART (using a serial interface)\n\n"
 
 #define TPUARTs_PREFIX "tpuarts"
 
 #define TPUARTs_CREATE tpuarts_Create
 
-#define TPUARTs_CLEANUP NULL
-
-inline Layer2Interface *
-tpuarts_Create (const char *dev, int flags, Trace * t)
+inline Layer2 *
+tpuarts_Create (const char *dev, L2options *opt, Layer3 *l3)
 {
-  return new TPUARTSerialLayer2Driver (dev, arg.addr, flags, t);
+  return new TPUARTSerialLayer2Driver (dev, opt, l3);
 }
 
 #endif

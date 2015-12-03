@@ -22,7 +22,7 @@
 CArray
 L_Data_ToCEMI (uchar code, const L_Data_PDU & l1)
 {
-  uchar c;
+  uchar c = 0; // stupid compiler
   CArray pdu;
   assert (l1.data () >= 1);
   assert (l1.data () < 0xff);
@@ -64,16 +64,25 @@ L_Data_ToCEMI (uchar code, const L_Data_PDU & l1)
 }
 
 L_Data_PDU *
-CEMI_to_L_Data (const CArray & data)
+CEMI_to_L_Data (const CArray & data, Layer2 * l2)
 {
-  L_Data_PDU c;
+  L_Data_PDU c = L_Data_PDU (l2);
   if (data () < 2)
-    return 0;
+    {
+      TRACEPRINTF (l2->t, 7, NULL, "packet too short (%d)", data ());
+      return 0;
+    }
   unsigned start = data[1] + 2;
   if (data () < 7 + start)
-    return 0;
+    {
+      TRACEPRINTF (l2->t, 7, NULL, "start too large (%d/%d)", data (),start);
+      return 0;
+    }
   if (data () < 7 + start + data[6 + start] + 1)
-    return 0;
+    {
+      TRACEPRINTF (l2->t, 7, NULL, "packet too short (%d/%d)", data (), 7 + start + data[6 + start] + 1);
+      return 0;
+    }
   c.source = (data[start + 2] << 8) | (data[start + 3]);
   c.dest = (data[start + 4] << 8) | (data[start + 5]);
   c.data.set (data.array () + start + 7, data[6 + start] + 1);
@@ -98,15 +107,18 @@ CEMI_to_L_Data (const CArray & data)
     }
   c.hopcount = (data[start + 1] >> 4) & 0x07;
   c.AddrType = (data[start + 1] & 0x80) ? GroupAddress : IndividualAddress;
-  if (!data[start] & 0x80 && data[start + 1] & 0x0f)
-    return 0;
+  if (!(data[start] & 0x80) && (data[start + 1] & 0x0f))
+    {
+      TRACEPRINTF (l2->t, 7, NULL, "Length? invalid (%02x%02x)", data[start],data[start+1]);
+      return 0;
+    }
   return new L_Data_PDU (c);
 }
 
 L_Busmonitor_PDU *
-CEMI_to_Busmonitor (const CArray & data)
+CEMI_to_Busmonitor (const CArray & data, Layer2 * l2)
 {
-  L_Busmonitor_PDU c;
+  L_Busmonitor_PDU c = L_Busmonitor_PDU (l2);
   if (data () < 2)
     return 0;
   unsigned start = data[1] + 2;
@@ -147,7 +159,7 @@ CArray
 L_Data_ToEMI (uchar code, const L_Data_PDU & l1)
 {
   CArray pdu;
-  uchar c;
+  uchar c = 0; // stupid compiler
   switch (l1.prio)
     {
     case PRIO_LOW:
@@ -179,9 +191,9 @@ L_Data_ToEMI (uchar code, const L_Data_PDU & l1)
 }
 
 L_Data_PDU *
-EMI_to_L_Data (const CArray & data)
+EMI_to_L_Data (const CArray & data, Layer2 * l2)
 {
-  L_Data_PDU c;
+  L_Data_PDU c = L_Data_PDU (l2);
   unsigned len;
 
   if (data () < 8)

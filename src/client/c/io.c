@@ -25,10 +25,13 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#include "config.h"
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/time.h>
 #include <sys/types.h>
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
 
 #include "eibclient-int.h"
 

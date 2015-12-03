@@ -32,7 +32,7 @@ ReadIndividualAddresses (Layer3 * l3, Trace * t, ClientConnection * c,
       return;
     }
   CArray erg;
-  Array < eibaddr_t > e = b.A_IndividualAddress_Read ();
+  Array < eibaddr_t > e = b.A_IndividualAddress_Read (t);
   erg.resize (2 + 2 * e ());
   EIBSETTYPE (erg, EIB_M_INDIVIDUAL_ADDRESS_READ);
   for (unsigned i = 0; i < e (); i++)
@@ -162,7 +162,7 @@ WriteIndividualAddress (Layer3 * l3, Trace * t, ClientConnection * c,
 	return;
       }
   }
-  Array < eibaddr_t > addr = b.A_IndividualAddress_Read ();
+  Array < eibaddr_t > addr = b.A_IndividualAddress_Read (t);
   if (addr () > 1)
     {
       c->sendreject (stop, EIB_ERROR_MORE_DEVICE);
@@ -519,11 +519,7 @@ ManagementIndividual (Layer3 * l3, Trace * t, ClientConnection * c,
 		      pth_event_t stop)
 {
   eibaddr_t dest;
-  uint16_t maskver;
-  int16_t val;
-  uchar buf[10];
   int i;
-  eibkey_type key;
 
   if (c->size < 4)
     {
@@ -607,7 +603,7 @@ LoadImage (Layer3 * l3, Trace * t, ClientConnection * c, pth_event_t stop)
   uchar buf[200];
   CArray img (c->buf + 2, c->size - 2);
   CArray erg;
-  int j;
+  unsigned int j;
   BCUImage *i;
   BCU_LOAD_RESULT r = PrepareLoadImage (img, i);
   if (r != IMG_IMAGE_LOADABLE)

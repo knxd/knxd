@@ -72,18 +72,18 @@ APDU_type;
 class APDU
 {
 public:
-  virtual ~ APDU ()
+  virtual ~APDU ()
   {
   };
 
-  virtual bool init (const CArray &) = 0;
+  virtual bool init (const CArray &, Trace *) = 0;
   /** convert to character array */
   virtual CArray ToPacket () = 0;
   /** decode content as string */
-  virtual String Decode () = 0;
+  virtual String Decode (Trace * t) = 0;
 
   /** converts character array to a APDU */
-  static APDU *fromPacket (const CArray &);
+  static APDU *fromPacket (const CArray &, Trace * t);
   /** gets APDU type */
   virtual APDU_type getType () const = 0;
   /** returns true, if this is can be an answer of req */
@@ -96,151 +96,161 @@ public:
   CArray pdu;
 
   A_Unknown_PDU ();
-  bool init (const CArray & p);
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_Unknown;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_GroupValue_Read_PDU:public APDU
 {
 public:
 
   A_GroupValue_Read_PDU ();
-  bool init (const CArray & p);
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_GroupValue_Read;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_GroupValue_Response_PDU:public APDU
 {
 public:
   bool issmall;
   CArray data;
 
-    A_GroupValue_Response_PDU ();
-  bool init (const CArray & p);
+  A_GroupValue_Response_PDU ();
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_GroupValue_Response;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_GroupValue_Write_PDU:public APDU
 {
 public:
   bool issmall;
   CArray data;
 
-    A_GroupValue_Write_PDU ();
-  bool init (const CArray & p);
+  A_GroupValue_Write_PDU ();
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_GroupValue_Write;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_IndividualAddress_Read_PDU:public APDU
 {
 public:
 
   A_IndividualAddress_Read_PDU ();
-  bool init (const CArray & p);
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_IndividualAddress_Read;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_IndividualAddress_Response_PDU:public APDU
 {
 public:
 
   A_IndividualAddress_Response_PDU ();
-  bool init (const CArray & p);
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_IndividualAddress_Response;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_IndividualAddress_Write_PDU:public APDU
 {
 public:
   eibaddr_t addr;
 
   A_IndividualAddress_Write_PDU ();
-  bool init (const CArray & p);
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_IndividualAddress_Write;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_IndividualAddressSerialNumber_Read_PDU:public APDU
 {
 public:
   serialnumber_t serno;
 
   A_IndividualAddressSerialNumber_Read_PDU ();
-  bool init (const CArray & p);
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_IndividualAddressSerialNumber_Read;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_IndividualAddressSerialNumber_Response_PDU:public APDU
 {
 public:
   serialnumber_t serno;
   domainaddr_t addr;
 
-    A_IndividualAddressSerialNumber_Response_PDU ();
-  bool init (const CArray & p);
+  A_IndividualAddressSerialNumber_Response_PDU ();
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_IndividualAddressSerialNumber_Response;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_IndividualAddressSerialNumber_Write_PDU:public APDU
 {
 public:
   serialnumber_t serno;
   eibaddr_t addr;
 
-    A_IndividualAddressSerialNumber_Write_PDU ();
-  bool init (const CArray & p);
+  A_IndividualAddressSerialNumber_Write_PDU ();
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_IndividualAddressSerialNumber_Write;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_ServiceInformation_Indication_Write_PDU:public APDU
 {
 public:
@@ -248,60 +258,64 @@ public:
   bool duplicate_address;
   bool appl_stopped;
 
-    A_ServiceInformation_Indication_Write_PDU ();
-  bool init (const CArray & p);
+  A_ServiceInformation_Indication_Write_PDU ();
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_ServiceInformation_Indication_Write;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_DomainAddress_Write_PDU:public APDU
 {
 public:
   domainaddr_t addr;
 
   A_DomainAddress_Write_PDU ();
-  bool init (const CArray & p);
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_DomainAddress_Write;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_DomainAddress_Read_PDU:public APDU
 {
 public:
 
   A_DomainAddress_Read_PDU ();
-  bool init (const CArray & p);
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_DomainAddress_Read;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_DomainAddress_Response_PDU:public APDU
 {
 public:
   domainaddr_t addr;
 
   A_DomainAddress_Response_PDU ();
-  bool init (const CArray & p);
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_DomainAddress_Response;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_DomainAddressSelective_Read_PDU:public APDU
 {
 public:
@@ -310,15 +324,16 @@ public:
   uchar range;
 
     A_DomainAddressSelective_Read_PDU ();
-  bool init (const CArray & p);
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_DomainAddressSelective_Read;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_PropertyValue_Read_PDU:public APDU
 {
 public:
@@ -327,16 +342,17 @@ public:
   uchar count;
   uint16_t start;
 
-    A_PropertyValue_Read_PDU ();
-  bool init (const CArray & p);
+  A_PropertyValue_Read_PDU ();
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_PropertyValue_Read;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_PropertyValue_Response_PDU:public APDU
 {
 public:
@@ -346,16 +362,17 @@ public:
   uint16_t start;
   CArray data;
 
-    A_PropertyValue_Response_PDU ();
-  bool init (const CArray & p);
+  A_PropertyValue_Response_PDU ();
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_PropertyValue_Response;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_PropertyValue_Write_PDU:public APDU
 {
 public:
@@ -365,16 +382,17 @@ public:
   uint16_t start;
   CArray data;
 
-    A_PropertyValue_Write_PDU ();
-  bool init (const CArray & p);
+  A_PropertyValue_Write_PDU ();
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_PropertyValue_Write;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_PropertyDescription_Read_PDU:public APDU
 {
 public:
@@ -382,16 +400,17 @@ public:
   propertyid_t prop;
   uchar property_index;
 
-    A_PropertyDescription_Read_PDU ();
-  bool init (const CArray & p);
+  A_PropertyDescription_Read_PDU ();
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_PropertyDescription_Read;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_PropertyDescription_Response_PDU:public APDU
 {
 public:
@@ -402,63 +421,67 @@ public:
   uint16_t count;
   uchar access;
 
-    A_PropertyDescription_Response_PDU ();
-  bool init (const CArray & p);
+  A_PropertyDescription_Response_PDU ();
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_PropertyDescription_Read;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_DeviceDescriptor_Read_PDU:public APDU
 {
 public:
   uchar type;
 
   A_DeviceDescriptor_Read_PDU ();
-  bool init (const CArray & p);
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_DeviceDescriptor_Read;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_DeviceDescriptor_Response_PDU:public APDU
 {
 public:
   uchar type;
   uint16_t descriptor;
 
-    A_DeviceDescriptor_Response_PDU ();
-  bool init (const CArray & p);
+  A_DeviceDescriptor_Response_PDU ();
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_DeviceDescriptor_Response;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_ADC_Read_PDU:public APDU
 {
 public:
   uchar channel;
   uchar count;
 
-    A_ADC_Read_PDU ();
-  bool init (const CArray & p);
+  A_ADC_Read_PDU ();
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_ADC_Read;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_ADC_Response_PDU:public APDU
 {
 public:
@@ -466,32 +489,34 @@ public:
   uchar count;
   int16_t val;
 
-    A_ADC_Response_PDU ();
-  bool init (const CArray & p);
+  A_ADC_Response_PDU ();
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_ADC_Response;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_Memory_Read_PDU:public APDU
 {
 public:
   uchar count;
   memaddr_t addr;
 
-    A_Memory_Read_PDU ();
-  bool init (const CArray & p);
+  A_Memory_Read_PDU ();
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_Memory_Read;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_Memory_Response_PDU:public APDU
 {
 public:
@@ -499,16 +524,17 @@ public:
   memaddr_t addr;
   CArray data;
 
-    A_Memory_Response_PDU ();
-  bool init (const CArray & p);
+  A_Memory_Response_PDU ();
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_Memory_Response;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_Memory_Write_PDU:public APDU
 {
 public:
@@ -516,16 +542,17 @@ public:
   memaddr_t addr;
   CArray data;
 
-    A_Memory_Write_PDU ();
-  bool init (const CArray & p);
+  A_Memory_Write_PDU ();
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_Memory_Write;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_MemoryBit_Write_PDU:public APDU
 {
 public:
@@ -534,16 +561,17 @@ public:
   CArray andmask;
   CArray xormask;
 
-    A_MemoryBit_Write_PDU ();
-  bool init (const CArray & p);
+  A_MemoryBit_Write_PDU ();
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_MemoryBit_Write;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_UserMemory_Read_PDU:public APDU
 {
 public:
@@ -551,16 +579,17 @@ public:
   uchar count;
   memaddr_t addr;
 
-    A_UserMemory_Read_PDU ();
-  bool init (const CArray & p);
+  A_UserMemory_Read_PDU ();
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_UserMemory_Read;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_UserMemory_Response_PDU:public APDU
 {
 public:
@@ -569,16 +598,17 @@ public:
   memaddr_t addr;
   CArray data;
 
-    A_UserMemory_Response_PDU ();
-  bool init (const CArray & p);
+  A_UserMemory_Response_PDU ();
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_UserMemory_Response;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_UserMemory_Write_PDU:public APDU
 {
 public:
@@ -587,16 +617,17 @@ public:
   memaddr_t addr;
   CArray data;
 
-    A_UserMemory_Write_PDU ();
-  bool init (const CArray & p);
+  A_UserMemory_Write_PDU ();
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_UserMemory_Write;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_UserMemoryBit_Write_PDU:public APDU
 {
 public:
@@ -606,115 +637,122 @@ public:
   CArray andmask;
   CArray xormask;
 
-    A_UserMemoryBit_Write_PDU ();
-  bool init (const CArray & p);
+  A_UserMemoryBit_Write_PDU ();
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_UserMemoryBit_Write;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_UserManufacturerInfo_Read_PDU:public APDU
 {
 public:
 
   A_UserManufacturerInfo_Read_PDU ();
-  bool init (const CArray & p);
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_UserManufacturerInfo_Read;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_UserManufacturerInfo_Response_PDU:public APDU
 {
 public:
   uchar manufacturerid;
   uint16_t data;
 
-    A_UserManufacturerInfo_Response_PDU ();
-  bool init (const CArray & p);
+  A_UserManufacturerInfo_Response_PDU ();
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_UserManufacturerInfo_Response;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_Restart_PDU:public APDU
 {
 public:
 
   A_Restart_PDU ();
-  bool init (const CArray & p);
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_Restart;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_Authorize_Request_PDU:public APDU
 {
 public:
   eibkey_type key;
 
   A_Authorize_Request_PDU ();
-  bool init (const CArray & p);
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_Authorize_Request;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_Authorize_Response_PDU:public APDU
 {
 public:
   uchar level;
 
   A_Authorize_Response_PDU ();
-  bool init (const CArray & p);
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_Authorize_Response;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_Key_Write_PDU:public APDU
 {
 public:
   uchar level;
   eibkey_type key;
 
-    A_Key_Write_PDU ();
-  bool init (const CArray & p);
+  A_Key_Write_PDU ();
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_Key_Write;
   }
   bool isResponse (const APDU * req) const;
 };
+
 class A_Key_Response_PDU:public APDU
 {
 public:
   uchar level;
 
   A_Key_Response_PDU ();
-  bool init (const CArray & p);
+  bool init (const CArray & p, Trace * tr);
   CArray ToPacket ();
-  String Decode ();
+  String Decode (Trace * t);
   APDU_type getType () const
   {
     return A_Key_Response;

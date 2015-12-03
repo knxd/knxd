@@ -1,6 +1,6 @@
 /*
     EIBD eib bus access and management daemon
-    Copyright (C) 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
+    Copyright (C) 2015 Marc Joliet <marcec@gmx.de>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,23 +17,25 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifndef C_PEI16_H
-#define C_PEI16_H
+#include <unistd.h>
+#include <errno.h>
+#include "systemdserver.h"
 
-#include "emi1.h"
-#include "bcu1.h"
-
-#define PEI16_URL "bcu1:/dev/eib\n"
-#define PEI16_DOC "bcu1 connects using the PEI16 Protocoll over a BCU to the bus (using a kernel driver)\n\n"
-
-#define PEI16_PREFIX "bcu1"
-#define PEI16_CREATE PEI16_Create
-#define PEI16_CLEANUP NULL
-
-inline Layer2Interface *
-PEI16_Create (const char *dev, int flags, Trace * t)
+SystemdServer::SystemdServer (Layer3 * la3, Trace * tr, int systemd_fd):
+Server (la3, tr)
 {
-  return new EMI1Layer2Interface (new BCU1DriverLowLevelDriver (dev, t), t, flags);
+  TRACEPRINTF (tr, 8, this, "OpenSystemdSocket");
+
+  fd = systemd_fd;
+  if (listen (fd, 10) == -1)
+    {
+      ERRORPRINTF (tr, E_ERROR | 18, this, "OpenSystemdSocket: listen: %s", strerror(errno));
+      close (fd);
+      fd = -1;
+      return;
+    }
+
+  TRACEPRINTF (tr, 8, this, "SystemdSocket opened");
+  Start ();
 }
 
-#endif

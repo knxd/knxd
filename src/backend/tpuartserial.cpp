@@ -18,10 +18,13 @@
 */
 
 #include <unistd.h>
+#include <errno.h>
 #include <fcntl.h>
+#include <errno.h>
 #include <sys/ioctl.h>
 #include "tpuartserial.h"
 #include <stdlib.h>
+#include "layer3.h"
 
 /** get serial status lines */
 static int
@@ -51,11 +54,10 @@ static speed_t getbaud(int baud) {
 }
 
 TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
-						    eibaddr_t a, int flags,
-						    Trace * tr)
+						    L2options *opt, Layer3 *l3)
+	: Layer2 (l3, opt)
 {
   struct termios t1;
-  t = tr;
   TRACEPRINTF (t, 2, this, "Open");
 
   char *pch;
@@ -79,27 +81,36 @@ TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
 
 
   pth_sem_init (&in_signal);
-  pth_sem_init (&out_signal);
 
-  ackallgroup = flags & FLAG_B_TPUARTS_ACKGROUP;
-  ackallindividual = flags & FLAG_B_TPUARTS_ACKINDIVIDUAL;
-  dischreset = flags & FLAG_B_TPUARTS_DISCH_RESET;
+  ackallgroup = opt ? (opt->flags & FLAG_B_TPUARTS_ACKGROUP) : 0;
+  ackallindividual = opt ? (opt->flags & FLAG_B_TPUARTS_ACKINDIVIDUAL) : 0;
+  dischreset = opt ? (opt->flags & FLAG_B_TPUARTS_DISCH_RESET) : 0;
 
-  getwait = pth_event (PTH_EVENT_SEM, &out_signal);
+  if (opt)
+	opt->flags &=~ (FLAG_B_TPUARTS_ACKGROUP |
+	                FLAG_B_TPUARTS_ACKINDIVIDUAL |
+					FLAG_B_TPUARTS_DISCH_RESET);
 
   fd = open (dev, O_RDWR | O_NOCTTY | O_NDELAY | O_SYNC);
   if (fd == -1)
-    return;
+    {
+      ERRORPRINTF (t, E_ERROR | 22, this, "Opening %s failed: %s", dev, strerror(errno));
+      return;
+    }
   set_low_latency (fd, &sold);
 
   close (fd);
 
   fd = open (dev, O_RDWR | O_NOCTTY | O_SYNC);
   if (fd == -1)
-    return;
+    {
+      ERRORPRINTF (t, E_ERROR | 23, this, "Opening %s failed: %s", dev, strerror(errno));
+      return;
+    }
 
   if (tcgetattr (fd, &old))
     {
+      ERRORPRINTF (t, E_ERROR | 24, this, "tcgetattr %s failed: %s", dev, strerror(errno));
       restore_low_latency (fd, &sold);
       close (fd);
       fd = -1;
@@ -108,6 +119,7 @@ TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
 
   if (tcgetattr (fd, &t1))
     {
+      ERRORPRINTF (t, E_ERROR | 25, this, "tcgetattr %s failed: %s", dev, strerror(errno));
       restore_low_latency (fd, &sold);
       close (fd);
       fd = -1;
@@ -126,6 +138,7 @@ TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
 
   if (tcsetattr (fd, TCSAFLUSH, &t1))
     {
+      ERRORPRINTF (t, E_ERROR | 26, this, "tcsetattr %s failed: %s", dev, strerror(errno));
       restore_low_latency (fd, &sold);
       close (fd);
       fd = -1;
@@ -133,12 +146,6 @@ TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
     }
 
   setstat (fd, (getstat (fd) & ~TIOCM_RTS) | TIOCM_DTR);
-
-  mode = 0;
-  vmode = 0;
-  addr = a;
-  indaddr.resize (1);
-  indaddr[0] = a;
 
   Start ();
   TRACEPRINTF (t, 2, this, "Openend");
@@ -148,10 +155,7 @@ TPUARTSerialLayer2Driver::~TPUARTSerialLayer2Driver ()
 {
   TRACEPRINTF (t, 2, this, "Close");
   Stop ();
-  pth_event_free (getwait, PTH_FREE_THIS);
 
-  while (!outqueue.isempty ())
-    delete outqueue.get ();
   while (!inqueue.isempty ())
     delete inqueue.get ();
 
@@ -167,81 +171,11 @@ TPUARTSerialLayer2Driver::~TPUARTSerialLayer2Driver ()
 
 bool TPUARTSerialLayer2Driver::init ()
 {
-  return fd != -1;
-}
-
-bool
-TPUARTSerialLayer2Driver::addAddress (eibaddr_t addr)
-{
-  unsigned i;
-  for (i = 0; i < indaddr (); i++)
-    if (indaddr[i] == addr)
-      return 0;
-  indaddr.resize (indaddr () + 1);
-  indaddr[indaddr () - 1] = addr;
-  return 1;
-}
-
-bool
-TPUARTSerialLayer2Driver::addGroupAddress (eibaddr_t addr)
-{
-  unsigned i;
-  for (i = 0; i < groupaddr (); i++)
-    if (groupaddr[i] == addr)
-      return 0;
-  groupaddr.resize (groupaddr () + 1);
-  groupaddr[groupaddr () - 1] = addr;
-  return 1;
-}
-
-bool
-TPUARTSerialLayer2Driver::removeAddress (eibaddr_t addr)
-{
-  unsigned i;
-  for (i = 0; i < indaddr (); i++)
-    if (indaddr[i] == addr)
-      {
-	indaddr.deletepart (i, 1);
-	return 1;
-      }
-  return 0;
-}
-
-bool
-TPUARTSerialLayer2Driver::removeGroupAddress (eibaddr_t addr)
-{
-  unsigned i;
-  for (i = 0; i < groupaddr (); i++)
-    if (groupaddr[i] == addr)
-      {
-	groupaddr.deletepart (i, 1);
-	return 1;
-      }
-  return 0;
-}
-
-bool TPUARTSerialLayer2Driver::openVBusmonitor ()
-{
-  vmode = 1;
-  return 1;
-}
-
-bool TPUARTSerialLayer2Driver::closeVBusmonitor ()
-{
-  vmode = 0;
-  return 1;
-}
-
-eibaddr_t
-TPUARTSerialLayer2Driver::getDefaultAddr ()
-{
-  return addr;
-}
-
-bool
-TPUARTSerialLayer2Driver::Connection_Lost ()
-{
-  return 0;
+  if (fd == -1)
+    return false;
+  if (! layer2_is_bus())
+    return false;
+  return Layer2::init ();
 }
 
 bool
@@ -258,85 +192,59 @@ TPUARTSerialLayer2Driver::Send_L_Data (LPDU * l)
   pth_sem_inc (&in_signal, 1);
 }
 
-LPDU *
-TPUARTSerialLayer2Driver::Get_L_Data (pth_event_t stop)
-{
-  if (stop != NULL)
-    pth_event_concat (getwait, stop, NULL);
-
-  pth_wait (getwait);
-
-  if (stop)
-    pth_event_isolate (getwait);
-
-  if (pth_event_status (getwait) == PTH_STATUS_OCCURRED)
-    {
-      pth_sem_dec (&out_signal);
-      LPDU *l = outqueue.get ();
-      TRACEPRINTF (t, 2, this, "Recv %s", l->Decode ()());
-      return l;
-    }
-  else
-    return 0;
-}
-
-
 //Open
 
 bool
 TPUARTSerialLayer2Driver::enterBusmonitor ()
 {
+  if (!Layer2::enterBusmonitor ())
+    return false;
   uchar c = 0x05;
   t->TracePacket (2, this, "openBusmonitor", 1, &c);
-  write (fd, &c, 1);
-  mode = 1;
+  if (write (fd, &c, 1) != 1)
+    return 0;
   return 1;
 }
 
 bool
 TPUARTSerialLayer2Driver::leaveBusmonitor ()
 {
+  if (!Layer2::leaveBusmonitor ())
+    return false;
   uchar c = 0x01;
   t->TracePacket (2, this, "leaveBusmonitor", 1, &c);
-  write (fd, &c, 1);
-  mode = 0;
+  if (write (fd, &c, 1) != 1)
+    return 0;
   return 1;
 }
 
 bool
 TPUARTSerialLayer2Driver::Open ()
 {
+  if (!Layer2::Open ())
+    return false;
   uchar c = 0x01;
   t->TracePacket (2, this, "open-reset", 1, &c);
-  write (fd, &c, 1);
-  return 1;
-}
-
-bool
-TPUARTSerialLayer2Driver::Close ()
-{
+  if (write (fd, &c, 1) != 1)
+    return 0;
   return 1;
 }
 
 void
 TPUARTSerialLayer2Driver::RecvLPDU (const uchar * data, int len)
 {
-  t->TracePacket (1, this, "Recv", len, data);
-  if (mode || vmode)
+  t->TracePacket (1, this, "RecvLP", len, data);
+  if (mode & BUSMODE_MONITOR)
     {
-      L_Busmonitor_PDU *l = new L_Busmonitor_PDU;
+      L_Busmonitor_PDU *l = new L_Busmonitor_PDU (this);
       l->pdu.set (data, len);
-      outqueue.put (l);
-      pth_sem_inc (&out_signal, 1);
+      l3->recv_L_Data (l);
     }
-  if (!mode)
+  if (mode == BUSMODE_UP)
     {
-      LPDU *l = LPDU::fromPacket (CArray (data, len));
+      LPDU *l = LPDU::fromPacket (CArray (data, len), this);
       if (l->getType () == L_Data && ((L_Data_PDU *) l)->valid_checksum)
-	{
-	  outqueue.put (l);
-	  pth_sem_inc (&out_signal, 1);
-	}
+	l3->recv_L_Data (l);
       else
 	delete l;
     }
@@ -350,6 +258,7 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
   CArray in;
   int to = 0;
   int waitconfirm = 0;
+  CArray sendheader;
   int acked = 0;
   int retry = 0;
   int watch = 0;
@@ -375,14 +284,14 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
       pth_event_isolate (watchdog);
       if (i > 0)
 	{
-	  t->TracePacket (0, this, "Recv", i, buf);
+	  t->TracePacket (0, this, "RecvB", i, buf);
 	  in.setpart (buf, in (), i);
 	}
       while (in () > 0)
 	{
 	  if (in[0] == 0x8B)
 	    {
-	      if (!mode && vmode)
+	      if (mode == BUSMODE_VMONITOR)
 		{
 		  const uchar pkt[1] = { 0xCC };
 		  RecvLPDU (pkt, 1);
@@ -398,7 +307,7 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 	    }
 	  else if (in[0] == 0x0B)
 	    {
-	      if (!mode && vmode)
+	      if (mode == BUSMODE_VMONITOR)
 		{
 		  const uchar pkt[1] = { 0x0C };
 		  RecvLPDU (pkt, 1);
@@ -407,14 +316,15 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 		{
 		  retry++;
 		  waitconfirm = 0;
-		  TRACEPRINTF (t, 0, this, "NACK");
 		  if (retry > 3)
 		    {
-		      TRACEPRINTF (t, 0, this, "Drop NACK");
+		      TRACEPRINTF (t, 0, this, "NACK: dropping packet");
 		      delete inqueue.get ();
 		      pth_sem_dec (&in_signal);
 		      retry = 0;
 		    }
+                  else
+		    TRACEPRINTF (t, 0, this, "NACK");
 		}
 	      in.deletepart (0, 1);
 	    }
@@ -431,9 +341,20 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 	      RecvLPDU (in.array (), 1);
 	      in.deletepart (0, 1);
 	    }
-	  else if ((in[0] & 0xD0) == 0x90)
+	  else if ((in[0] & 0xD0) == 0x90) // Matches KNX control byte L_Data_Standard Frame
 	    {
-	      if (in () < 6)
+              bool recvecho = false;
+
+/*  The following line used to be:
+ *
+ *            if (in () < 6)
+ *
+ * On a Raspberry Pi this resulted in the ACK being sent over the tpuart serial
+ * interface while the reception of the KNX Telegram was still ongoing (around
+ * byte 8 of the telegram). The ELMOS chip ignores such ACKs (that were sent
+ * too early).
+ */
+	      if (in() < 8 || in() < (8 + (in[5] & 0x0F)))  // Telegram complete
 		{
 		  if (!to)
 		    {
@@ -447,26 +368,29 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 		  in.deletepart (0, 1);
 		  continue;
 		}
-	      if (!acked)
+              if (waitconfirm)
+                {
+                  CArray recvheader;
+                  recvheader.set(in.array(),6);
+                  recvheader[0] &=~ 0x20;
+                  if (recvheader == sendheader)
+                    {
+                      TRACEPRINTF (t, 0, this, "Ignoring this telegram. We sent it.");
+                      recvecho = true;
+                    }
+                }
+	      if (!acked && !recvecho)
 		{
 		  uchar c = 0x10;
 		  if ((in[5] & 0x80) == 0)
 		    {
-		      if (ackallindividual)
+		      if (ackallindividual || l3->hasAddress ((in[3] << 8) | in[4], this))
 			c |= 0x1;
-		      else
-			for (unsigned i = 0; i < indaddr (); i++)
-			  if (indaddr[i] == ((in[3] << 8) | in[4]))
-			    c |= 0x1;
 		    }
 		  else
 		    {
-		      if (ackallgroup)
-			c |= 0x1;
-		      else
-			for (unsigned i = 0; i < groupaddr (); i++)
-			  if (groupaddr[i] == ((in[3] << 8) | in[4]))
-			    c |= 0x1;
+		      if (ackallgroup || l3->hasGroupAddress ((in[3] << 8) | in[4], this))
+		        c |= 0x1;
 		    }
 		  TRACEPRINTF (t, 0, this, "SendAck %02X", c);
 		  pth_write_ev (fd, &c, 1, stop);
@@ -488,12 +412,16 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 		  in.deletepart (0, 1);
 		  continue;
 		}
-	      acked = 0;
-	      RecvLPDU (in.array (), len);
+              if (!recvecho)
+                {
+	          acked = 0;
+	          RecvLPDU (in.array (), len);
+                }
 	      in.deletepart (0, len);
 	    }
-	  else if ((in[0] & 0xD0) == 0x10)
+	  else if ((in[0] & 0xD0) == 0x10) //Matches KNX control byte L_Data_Extended Frame
 	    {
+              bool recvecho = false;
 	      if (in () < 7)
 		{
 		  if (!to)
@@ -508,26 +436,29 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 		  in.deletepart (0, 1);
 		  continue;
 		}
-	      if (!acked)
+              if (waitconfirm)
+                {
+                  CArray recvheader;
+                  recvheader.set(in.array(),6);
+                  recvheader[0] &=~ 0x20;
+                  if (recvheader == sendheader)
+                    {
+                      TRACEPRINTF (t, 0, this, "ignoring this telegram. we sent it.");
+                      recvecho = true;
+                    }
+                }
+	      if (!acked  && !recvecho)
 		{
 		  uchar c = 0x10;
 		  if ((in[1] & 0x80) == 0)
 		    {
-		      if (ackallindividual)
+		      if (ackallindividual || l3->hasAddress ((in[4] << 8) | in[5], this))
 			c |= 0x1;
-		      else
-			for (unsigned i = 0; i < indaddr (); i++)
-			  if (indaddr[i] == ((in[4] << 8) | in[5]))
-			    c |= 0x1;
 		    }
 		  else
 		    {
-		      if (ackallgroup)
+		      if (ackallgroup || l3->hasGroupAddress ((in[4] << 8) | in[5], this))
 			c |= 0x1;
-		      else
-			for (unsigned i = 0; i < groupaddr (); i++)
-			  if (groupaddr[i] == ((in[4] << 8) | in[5]))
-			    c |= 0x1;
 		    }
 		  TRACEPRINTF (t, 0, this, "SendAck %02X", c);
 		  pth_write_ev (fd, &c, 1, stop);
@@ -549,8 +480,11 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 		  in.deletepart (0, 1);
 		  continue;
 		}
-	      acked = 0;
-	      RecvLPDU (in.array (), len);
+              if (!recvecho)
+                {
+	          acked = 0;
+	          RecvLPDU (in.array (), len);
+                }
 	      in.deletepart (0, len);
 	    }
 	  else
@@ -574,7 +508,7 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 	    }
 	}
       if (watch == 1 && pth_event_status (watchdog) == PTH_STATUS_OCCURRED
-	  && mode == 0)
+	  && mode != BUSMODE_MONITOR)
 	{
 	  if (dischreset)
 	    {
@@ -586,11 +520,12 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 
 	  uchar c = 0x01;
 	  t->TracePacket (2, this, "Watchdog Reset", 1, &c);
-	  write (fd, &c, 1);
+	  if (write (fd, &c, 1) != 1)
+	    break;
 	  watch = 0;
 	}
       if (watch == 1 && pth_event_status (watchdog) == PTH_STATUS_OCCURRED
-	  && mode)
+	  && mode == BUSMODE_MONITOR)
 	watch = 0;
       if (watch == 2 && pth_event_status (watchdog) == PTH_STATUS_OCCURRED)
 	watch = 0;
@@ -600,7 +535,9 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 	  CArray d = l->ToPacket ();
 	  CArray w;
 	  unsigned i;
-	  int j;
+
+	  sendheader.set(d.array(), 6);
+          sendheader[0] &=~ 0x20;
 	  w.resize (d () * 2);
 	  for (i = 0; i < d (); i++)
 	    {
@@ -609,21 +546,24 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 	    }
 	  w[(d () * 2) - 2] = (w[(d () * 2) - 2] & 0x3f) | 0x40;
 	  t->TracePacket (0, this, "Write", w);
-	  j = pth_write_ev (fd, w.array (), w (), stop);
+	  (void) pth_write_ev (fd, w.array (), w (), stop);
 	  waitconfirm = 1;
 	  pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE, sendtimeout,
 		     pth_time (0, 600000));
 	}
-      else if (in () == 0 && !waitconfirm && !watch && mode == 0 && !to)
+      else if (in () == 0 && !waitconfirm && !watch && mode != BUSMODE_MONITOR && !to)
 	{
 	  pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE, watchdog,
 		     pth_time (10, 0));
 	  watch = 1;
 	  uchar c = 0x02;
 	  t->TracePacket (2, this, "Watchdog Status", 1, &c);
-	  write (fd, &c, 1);
+	  if (write (fd, &c, 1) != 1)
+	    break;
 	}
     }
+  if (pth_event_status (stop) != PTH_STATUS_OCCURRED)
+    ERRORPRINTF (t, E_FATAL | 27, this, "exited due to error: %s", strerror(errno));
   pth_event_free (stop, PTH_FREE_THIS);
   pth_event_free (input, PTH_FREE_THIS);
   pth_event_free (timeout, PTH_FREE_THIS);

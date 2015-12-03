@@ -29,14 +29,15 @@ printHex (int len, uchar * data)
     printf ("%02X ", data[i]);
 }
 
+void die (const char *msg, ...) __attribute__((noreturn));
 void
 die (const char *msg, ...)
 {
   va_list ap;
   va_start (ap, msg);
-  vprintf (msg, ap);
+  vfprintf (stderr, msg, ap);
   va_end (ap);
-  printf (": %s\n", strerror (errno));
+  fprintf (stderr, ": %s\n", strerror (errno));
   exit (1);
 }
 
@@ -66,13 +67,14 @@ printGroup (eibaddr_t addr)
 eibaddr_t
 readgaddr (const char *addr)
 {
-  int a, b, c;
-  if (sscanf (addr, "%d/%d/%d", &a, &b, &c) == 3)
-    return ((a & 0x01f) << 11) | ((b & 0x07) << 8) | ((c & 0xff));
-  if (sscanf (addr, "%d/%d", &a, &b) == 2)
-    return ((a & 0x01f) << 11) | ((b & 0x7FF));
-  if (sscanf (addr, "%x", &a) == 1)
-    return a & 0xffff;
+  unsigned int a, b, c, res;
+  res = sscanf (addr, "%u/%u/%u", &a, &b, &c);
+  if (res == 3 && a <= 0x1F && b <= 0x07 && c <= 0xFF)
+    return (a << 11) | (b << 8) | c;
+  if (res == 2 && a <= 0x1F && b <= 0x7FF)
+    return (a << 11) | (b & 0x7FF);
+  if (sscanf (addr, "%x", &a) == 1 && a <= 0xFFFF)
+    return a;
   die ("invalid group address format %s", addr);
 }
 
@@ -80,21 +82,26 @@ unsigned
 readHex (const char *addr)
 {
   int i;
-  sscanf (addr, "%x", &i);
-  return i;
+  if (sscanf (addr, "%x", &i) == 1)
+    return i;
+  return ~0;
 }
 
 int
 readBlock (uchar * buf, int size, int ac, char *ag[])
 {
-  int i = 0;
-  while (size - i > 0 && ac > 0)
+  uchar *bp = buf;
+  if (size < ac)
+    return -1;
+  while (ac)
     {
-      buf[i] = readHex (ag[i]);
-      i++;
+      unsigned b = readHex (*ag++);
+      if (b > 0xFF)
+        return -1;
+      *bp++ = b;
       ac--;
     }
-  return i;
+  return bp-buf;
 }
 
 static int havekey = 0;

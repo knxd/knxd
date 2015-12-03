@@ -22,12 +22,12 @@
 
 #include "lowlevel.h"
 
-int readAddrTabSize (LowLevelDriverInterface * iface, uchar & result);
-int writeAddrTabSize (LowLevelDriverInterface * iface, uchar size);
+int readAddrTabSize (LowLevelDriver * iface, uchar & result);
+int writeAddrTabSize (LowLevelDriver * iface, uchar size);
 
-int readEMIMem (LowLevelDriverInterface * iface, memaddr_t addr, uchar len,
+int readEMIMem (LowLevelDriver * iface, memaddr_t addr, uchar len,
 		CArray & result);
-int writeEMIMem (LowLevelDriverInterface * iface, memaddr_t addr,
+int writeEMIMem (LowLevelDriver * iface, memaddr_t addr,
 		 CArray data);
 
 #endif

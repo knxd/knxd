@@ -29,17 +29,18 @@ class A_Busmonitor:public L_Busmonitor_CallBack, private Thread
   /** semaphore for the input queue */
   pth_sem_t sem;
   /** input queue */
-    Queue < L_Busmonitor_PDU * >data;
-    /** is virtual busmonitor */
+  Queue < L_Busmonitor_PDU * >data;
+  /** is virtual busmonitor */
   bool v;
-    /** should provide timestamps */
+  /** should provide timestamps */
   bool ts;
 
   void Run (pth_sem_t * stop);
+  const char *Name() { return "busmonitor"; }
 protected:
   /** Layer 3 Interface*/
-    Layer3 * l3;
-    /** client connection */
+  Layer3 * l3;
+  /** client connection */
   ClientConnection *con;
   /** debug output */
   Trace *t;
@@ -53,10 +54,10 @@ public:
    * @param virt is virtual busmonitor
    * @param ts provide timestamps
    */
-    A_Busmonitor (ClientConnection * c, Layer3 * l3, Trace * tr, bool virt =
-		  false, bool ts = false);
-    virtual ~ A_Busmonitor ();
-  void Get_L_Busmonitor (L_Busmonitor_PDU * l);
+  A_Busmonitor (ClientConnection * c, Layer3 * l3, Trace * tr, bool virt =
+                false, bool ts = false);
+  virtual ~A_Busmonitor ();
+  void Send_L_Busmonitor (L_Busmonitor_PDU * l);
 
   /** start processing */
   void Do (pth_event_t stop);

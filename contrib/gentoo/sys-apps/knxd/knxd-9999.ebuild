@@ -15,7 +15,7 @@ HOMEPAGE="https://github.com/Makki1/knxd"
 LICENSE="GPL-2"
 SLOT="9999"
 KEYWORDS=""
-IUSE="eibd ft12 pei16 tpuart pei16s tpuarts eibnetip eibnetiptunnel eibnetipserver usb groupcache java ncn5120"
+IUSE="eibd ft12 pei16s tpuarts eibnetip eibnetiptunnel eibnetipserver usb groupcache java ncn5120 dummy"
 
 DEPEND="dev-libs/pthsem"
 
@@ -30,8 +30,6 @@ src_configure() {
 #        --without-pth-test \
     econf \
         $(use_enable ft12) \
-        $(use_enable pei16) \
-        $(use_enable tpuart) \
         $(use_enable pei16s) \
         $(use_enable tpuarts) \
         $(use_enable eibnetip) \

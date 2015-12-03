@@ -27,6 +27,8 @@ bool
 CreateGroupCache (Layer3 * l3, Trace * t, bool enable)
 {
   cache = new GroupCache (l3, t);
+  if (!cache->init ())
+    return false;
   if (enable)
     if (!cache->Start ())
       return false;
@@ -41,7 +43,7 @@ DeleteGroupCache ()
 }
 
 void
-GroupCacheRequest (Layer3 * l3, Trace * t, ClientConnection * c,
+GroupCacheRequest (Layer3 * l3 UNUSED, Trace * t UNUSED, ClientConnection * c,
 		   pth_event_t stop)
 {
   GroupCacheEntry gc;
@@ -126,7 +128,7 @@ GroupCacheRequest (Layer3 * l3, Trace * t, ClientConnection * c,
 	EIBSETTYPE (erg, EIBTYPE (c->buf));
 	erg[2] = (end >> 8) & 0xff;
 	erg[3] = (end >> 0) & 0xff;
-	for (int i = 0; i < addrs (); i++)
+	for (unsigned int i = 0; i < addrs (); i++)
 	  {
 	    erg[4 + i * 2] = (addrs[i] >> 8) & 0xff;
 	    erg[4 + i * 2 + 1] = (addrs[i]) & 0xff;

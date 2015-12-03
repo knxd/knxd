@@ -20,17 +20,14 @@
 #include "eibnetrouter.h"
 #include "emi.h"
 #include "config.h"
+#include "layer3.h"
 
 EIBNetIPRouter::EIBNetIPRouter (const char *multicastaddr, int port,
-				eibaddr_t a, Trace * tr)
+				eibaddr_t a UNUSED, Layer3 * l3, L2options *opt) : Layer2 (l3, opt)
 {
   struct sockaddr_in baddr;
   struct ip_mreq mcfg;
-  t = tr;
   TRACEPRINTF (t, 2, this, "Open");
-  addr = a;
-  mode = 0;
-  vmode = 0;
   memset (&baddr, 0, sizeof (baddr));
 #ifdef HAVE_SOCKADDR_IN_LEN
   baddr.sin_len = sizeof (baddr);
@@ -38,8 +35,6 @@ EIBNetIPRouter::EIBNetIPRouter (const char *multicastaddr, int port,
   baddr.sin_family = AF_INET;
   baddr.sin_port = htons (port);
   baddr.sin_addr.s_addr = htonl (INADDR_ANY);
-  pth_sem_init (&out_signal);
-  getwait = pth_event (PTH_EVENT_SEM, &out_signal);
   sock = new EIBNetIPSocket (baddr, 1, t);
   if (!sock->init ())
     {
@@ -75,9 +70,6 @@ EIBNetIPRouter::~EIBNetIPRouter ()
 {
   TRACEPRINTF (t, 2, this, "Destroy");
   Stop ();
-  pth_event_free (getwait, PTH_FREE_THIS);
-  while (!outqueue.isempty ())
-    delete outqueue.get ();
   if (sock)
     delete sock;
 }
@@ -85,7 +77,9 @@ EIBNetIPRouter::~EIBNetIPRouter ()
 bool
 EIBNetIPRouter::init ()
 {
-  return sock != 0;
+  if (sock == 0)
+    return false;
+  return Layer2::init ();
 }
 
 void
@@ -102,39 +96,14 @@ EIBNetIPRouter::Send_L_Data (LPDU * l)
   p.data = L_Data_ToCEMI (0x29, *l1);
   p.service = ROUTING_INDICATION;
   sock->Send (p);
-  if (vmode)
+  if (mode == BUSMODE_VMONITOR)
     {
-      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU;
+      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
       l2->pdu.set (l->ToPacket ());
-      outqueue.put (l2);
-      pth_sem_inc (&out_signal, 1);
+      l3->recv_L_Data (l2);
     }
-  outqueue.put (l);
-  pth_sem_inc (&out_signal, 1);
+  delete l;
 }
-
-LPDU *
-EIBNetIPRouter::Get_L_Data (pth_event_t stop)
-{
-  if (stop != NULL)
-    pth_event_concat (getwait, stop, NULL);
-
-  pth_wait (getwait);
-
-  if (stop)
-    pth_event_isolate (getwait);
-
-  if (pth_event_status (getwait) == PTH_STATUS_OCCURRED)
-    {
-      pth_sem_dec (&out_signal);
-      LPDU *l = outqueue.get ();
-      TRACEPRINTF (t, 2, this, "Recv %s", l->Decode ()());
-      return l;
-    }
-  else
-    return 0;
-}
-
 
 void
 EIBNetIPRouter::Run (pth_sem_t * stop1)
@@ -152,33 +121,38 @@ EIBNetIPRouter::Run (pth_sem_t * stop1)
 	    }
 	  if (p->data () < 2 || p->data[0] != 0x29)
 	    {
+              if (p->data () < 2)
+                {
+	          TRACEPRINTF (t, 2, this, "No payload (%d)", p->data ());
+                }
+              else
+                {
+	          TRACEPRINTF (t, 2, this, "Payload not L_Data.ind (%02x)", p->data[0]);
+                }
 	      delete p;
 	      continue;
 	    }
 	  const CArray data = p->data;
 	  delete p;
-	  L_Data_PDU *c = CEMI_to_L_Data (data);
+	  L_Data_PDU *c = CEMI_to_L_Data (data, this);
 	  if (c)
 	    {
 	      TRACEPRINTF (t, 2, this, "Recv %s", c->Decode ()());
-	      if (mode == 0)
+	      if (mode & BUSMODE_UP)
 		{
-		  if (vmode)
+		  if (mode == BUSMODE_VMONITOR)
 		    {
-		      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU;
+		      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
 		      l2->pdu.set (c->ToPacket ());
-		      outqueue.put (l2);
-		      pth_sem_inc (&out_signal, 1);
+		      l3->recv_L_Data (l2);
 		    }
-		  outqueue.put (c);
-		  pth_sem_inc (&out_signal, 1);
+		  l3->recv_L_Data (c);
 		  continue;
 		}
-	      L_Busmonitor_PDU *p1 = new L_Busmonitor_PDU;
+	      L_Busmonitor_PDU *p1 = new L_Busmonitor_PDU (this);
 	      p1->pdu = c->ToPacket ();
 	      delete c;
-	      outqueue.put (p1);
-	      pth_sem_inc (&out_signal, 1);
+	      l3->recv_L_Data (p1);
 	      continue;
 	    }
 	}
@@ -186,85 +160,3 @@ EIBNetIPRouter::Run (pth_sem_t * stop1)
   pth_event_free (stop, PTH_FREE_THIS);
 }
 
-bool
-EIBNetIPRouter::addAddress (eibaddr_t addr)
-{
-  return 1;
-}
-
-bool
-EIBNetIPRouter::addGroupAddress (eibaddr_t addr)
-{
-  return 1;
-}
-
-bool
-EIBNetIPRouter::removeAddress (eibaddr_t addr)
-{
-  return 1;
-}
-
-bool
-EIBNetIPRouter::removeGroupAddress (eibaddr_t addr)
-{
-  return 1;
-}
-
-bool
-EIBNetIPRouter::openVBusmonitor ()
-{
-  vmode = 1;
-  return 1;
-}
-
-bool
-EIBNetIPRouter::closeVBusmonitor ()
-{
-  vmode = 0;
-  return 1;
-}
-
-bool
-EIBNetIPRouter::enterBusmonitor ()
-{
-  mode = 1;
-  return 1;
-}
-
-bool
-EIBNetIPRouter::leaveBusmonitor ()
-{
-  mode = 0;
-  return 1;
-}
-
-bool
-EIBNetIPRouter::Open ()
-{
-  mode = 0;
-  return 1;
-}
-
-bool
-EIBNetIPRouter::Close ()
-{
-  return 1;
-}
-
-eibaddr_t
-EIBNetIPRouter::getDefaultAddr ()
-{
-  return addr;
-}
-
-bool
-EIBNetIPRouter::Connection_Lost ()
-{
-  return 0;
-}
-
-bool
-EIBNetIPRouter::Send_Queue_Empty ()
-{
-  return 1;
-}

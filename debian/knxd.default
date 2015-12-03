@@ -2,11 +2,34 @@
 # sourced by /etc/init.d/knxd
 # installed at /etc/default/knxd by the maintainer scripts
 
-#
-# This is a POSIX shell fragment
-#
+########################################################################
+# This file is ignored when using systemd: edit /etc/knxd.conf instead #
+########################################################################
 
-# Additional options that are passed to the Daemon.
+# start knxd when /etc/init.d/knxd start is run
+# by default knxd does NOT start. set to YES to enable
 START_KNXD=NO
 
-DAEMON_OPTS=""
+# Additional options that are passed to the Daemon.
+#
+# sane default: route between local KNX clients and multicast
+DAEMON_ARGS="-u /tmp/eib -u /var/run/knx -i -b ip:"
+
+# Run `knxd --help` to get a complete list of available options and drivers.
+
+# If you have KNX hardware on a serial port or USB, add the appropriate
+# "-b TYPE:…" option. In this case, you probably want to set up a multicast
+# server, not a client (i.e. use "-D -T -R -S", not "-b ip:").
+# DO NOT use both.
+# 
+# If your KNX hardware is a KNX/IP gateway that doesn't do multicast,
+# use "-b ipt:192.168.1.2" (or its DNS name) to talk to it.
+#
+# KNX MUST NOT have more than one path between any two devices. Thus,
+# you need to make sure that the KNX/IP gateway does not route multicast
+# before you use both "-S" and "-b ipt:".
+
+# The default bus address of knxd is 0.0.1. If that's in use in your KNX
+# network (or if you run more than one knxd on your network), set a
+# different address (-e 15.0.99).
+

@@ -25,9 +25,6 @@
 #ifdef HAVE_FT12
 #include "l-FT12.h"
 #endif
-#ifdef HAVE_PEI16
-#include "l-PEI16.h"
-#endif
 #ifdef HAVE_PEI16s
 #include "l-PEI16s.h"
 #endif

@@ -1,4 +1,4 @@
-EXTRA_DIST=README COPYING
+EXTRA_DIST=
 
 EIBD_USB = usb.cpp usb.h
 

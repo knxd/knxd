@@ -1,0 +1,5 @@
+#!/bin/sh
+
+systemctl stop knxd.service >/dev/null 2>&1 || true
+
+#DEBHELPER#

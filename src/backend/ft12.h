@@ -27,7 +27,7 @@
 #include "lowlatency.h"
 
 /** FT1.2 lowlevel driver*/
-class FT12LowLevelDriver:public LowLevelDriverInterface, private Thread
+class FT12LowLevelDriver:public LowLevelDriver, private Thread
 {
   /** old serial config */
   low_latency_save sold;
@@ -46,10 +46,10 @@ class FT12LowLevelDriver:public LowLevelDriverInterface, private Thread
   /** semaphore for outqueue */
   pth_sem_t out_signal;
   /** input queue */
-    Queue < CArray > inqueue;
-    /** output queue */
-    Queue < CArray * >outqueue;
-    /** frame in receiving */
+  Queue < CArray > inqueue;
+  /** output queue */
+  Queue < CArray * >outqueue;
+  /** frame in receiving */
   CArray akt;
   /** repeatcount of the transmitting frame */
   int repeatcount;
@@ -61,9 +61,10 @@ class FT12LowLevelDriver:public LowLevelDriverInterface, private Thread
   pth_sem_t send_empty;
 
   void Run (pth_sem_t * stop);
+  const char *Name() { return "ft12"; }
 public:
-    FT12LowLevelDriver (const char *device, Trace * tr);
-   ~FT12LowLevelDriver ();
+  FT12LowLevelDriver (const char *device, Trace * tr);
+  ~FT12LowLevelDriver ();
   bool init ();
 
   void Send_Packet (CArray l);
@@ -71,7 +72,6 @@ public:
   pth_sem_t *Send_Queue_Empty_Cond ();
   CArray *Get_Packet (pth_event_t stop);
   void SendReset ();
-  bool Connection_Lost ();
   EMIVer getEMIVer ();
 };
 

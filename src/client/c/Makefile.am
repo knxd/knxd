@@ -1,4 +1,6 @@
 
+AUTOMAKE_OPTIONS = subdir-objects
+
 HEADER=eibclient-int.h
 NATIVE=close.c  closesync.c  complete.c  io.c  openlocal.c  openremote.c  openurl.c  pollcomplete.c  pollfd.c
 
@@ -19,7 +21,7 @@ FUNCS= \
 BUILT_SOURCES=$(FUNCS)
 CLEANFILES=$(FUNCS)
 
-gen/%.c : Makefile
+gen/%.c : eibclient-int.h
 	mkdir -p gen
 	echo '#include "c/eibclient-int.h"' > $@ 
 	echo '#include "def/'`basename $@|sed -e "s/\.c/.inc/g"`'"' >> $@

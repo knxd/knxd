@@ -24,55 +24,34 @@
 #include "lowlevel.h"
 
 /** EMI1 backend */
-class EMI1Layer2Interface:public Layer2Interface, private Thread
+class EMI1Layer2:public Layer2, private Thread
 {
   /** driver to send/receive */
-  LowLevelDriverInterface *iface;
-  /** debug output */
-  Trace *t;
-  /** state */
-  int mode;
-  /** default address */
-  eibaddr_t def;
-  /** vbusmonitor */
-  int vmode;
-  /** semaphore for outqueue */
-  pth_sem_t out_signal;
+  LowLevelDriver *iface;
   /** semaphore for inqueue */
   pth_sem_t in_signal;
-  /** output queue */
-    Queue < LPDU * >outqueue;
   /** input queue */
-    Queue < LPDU * >inqueue;
-    /** event for outqueue*/
-  pth_event_t getwait;
+  Queue < LPDU * >inqueue;
   bool noqueue;
-  int sendmode;
 
   void Send (LPDU * l);
   void Run (pth_sem_t * stop);
+  const char *Name() { return "emi1"; }
 public:
-  EMI1Layer2Interface (LowLevelDriverInterface * i, Trace * tr, int flags);
-   ~EMI1Layer2Interface ();
+  EMI1Layer2 (LowLevelDriver * i, Layer3 * l3, L2options *opt);
+  ~EMI1Layer2 ();
   bool init ();
 
   void Send_L_Data (LPDU * l);
-  LPDU *Get_L_Data (pth_event_t stop);
 
   bool addAddress (eibaddr_t addr);
-  bool addGroupAddress (eibaddr_t addr);
   bool removeAddress (eibaddr_t addr);
-  bool removeGroupAddress (eibaddr_t addr);
 
   bool enterBusmonitor ();
   bool leaveBusmonitor ();
-  bool openVBusmonitor ();
-  bool closeVBusmonitor ();
 
   bool Open ();
   bool Close ();
-  eibaddr_t getDefaultAddr ();
-  bool Connection_Lost ();
   bool Send_Queue_Empty ();
 };
 

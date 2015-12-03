@@ -26,9 +26,8 @@
 #define FT12_DOC "ft12 connects over a serial line without any driver with the FT1.2 Protocol to a BCU 2\n\n"
 #define FT12_PREFIX "ft12"
 #define FT12_CREATE ft12_ll_Create
-#define FT12_CLEANUP NULL
 
-inline LowLevelDriverInterface *
+inline LowLevelDriver *
 ft12_ll_Create (const char *dev, Trace * t)
 {
   return new FT12LowLevelDriver (dev, t);

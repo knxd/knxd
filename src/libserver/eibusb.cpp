@@ -22,11 +22,11 @@
 #include "emi2.h"
 #include "cemi.h"
 
-LowLevelDriverInterface *
-initUSBDriver (LowLevelDriverInterface * i, Trace * tr)
+LowLevelDriver *
+initUSBDriver (LowLevelDriver * i, Trace * tr)
 {
   CArray r1, *r = 0;
-  LowLevelDriverInterface *iface;
+  LowLevelDriver *iface;
   uchar emiver;
   int cnt = 0;
   const uchar ask[64] = {
@@ -102,19 +102,19 @@ initUSBDriver (LowLevelDriverInterface * i, Trace * tr)
       init[12] = 1;
       i->Send_Packet (CArray (init, sizeof (init)));
       iface =
-	new USBConverterInterface (i, tr, LowLevelDriverInterface::vEMI1);
+	new USBConverterInterface (i, tr, LowLevelDriver::vEMI1);
       break;
     case 2:
       init[12] = 2;
       i->Send_Packet (CArray (init, sizeof (init)));
       iface =
-	new USBConverterInterface (i, tr, LowLevelDriverInterface::vEMI2);
+	new USBConverterInterface (i, tr, LowLevelDriver::vEMI2);
       break;
     case 3:
       init[12] = 3;
       i->Send_Packet (CArray (init, sizeof (init)));
       iface =
-	new USBConverterInterface (i, tr, LowLevelDriverInterface::vCEMI);
+	new USBConverterInterface (i, tr, LowLevelDriver::vCEMI);
       break;
     default:
       TRACEPRINTF (tr, 1, i, "Unsupported EMI %02x %02x", r1[12], r1[13]);
@@ -124,7 +124,7 @@ initUSBDriver (LowLevelDriverInterface * i, Trace * tr)
   return iface;
 }
 
-USBConverterInterface::USBConverterInterface (LowLevelDriverInterface * iface,
+USBConverterInterface::USBConverterInterface (LowLevelDriver * iface,
 					      Trace * tr, EMIVer ver)
 {
   t = tr;
@@ -161,7 +161,7 @@ USBConverterInterface::Send_Packet (CArray l)
 {
   t->TracePacket (0, this, "Send-EMI", l);
   CArray out;
-  int j, l1;
+  unsigned int j, l1;
   l1 = l ();
   out.resize (64);
   if (l1 + 11 > 64)
@@ -189,6 +189,8 @@ USBConverterInterface::Send_Packet (CArray l)
     case vCEMI:
       out[8] = 0x03;
       break;
+    default:
+      return; // should not happen
     }
   i->Send_Packet (out);
 }
@@ -202,7 +204,7 @@ USBConverterInterface::Get_Packet (pth_event_t stop)
       CArray res = *res1;
       if (res () != 64)
 	goto out;
-      if (res[0] = !0x01)
+      if (res[0] != 0x01)
 	goto out;
       if ((res[1] & 0x0f) != 3)
 	goto out;
@@ -251,13 +253,7 @@ USBConverterInterface::SendReset ()
   return i->SendReset ();
 }
 
-bool
-USBConverterInterface::Connection_Lost ()
-{
-  return i->Connection_Lost ();
-}
-
-LowLevelDriverInterface::EMIVer USBConverterInterface::getEMIVer ()
+LowLevelDriver::EMIVer USBConverterInterface::getEMIVer ()
 {
   return v;
 }
@@ -275,117 +271,98 @@ USBConverterInterface::Send_Queue_Empty ()
 }
 
 
-USBLayer2Interface::USBLayer2Interface (LowLevelDriverInterface * i,
-					Trace * tr, int flags)
+USBLayer2::USBLayer2 (LowLevelDriver * i, Layer3 * l3,
+                      L2options *opt) : Layer2 (l3, opt)
 {
   emi = 0;
-  LowLevelDriverInterface *iface = initUSBDriver (i, tr);
+  LowLevelDriver *iface = initUSBDriver (i, t);
   if (!iface)
     return;
 
   switch (iface->getEMIVer ())
     {
-    case LowLevelDriverInterface::vEMI1:
-      emi = new EMI1Layer2Interface (iface, tr, flags);
+    case LowLevelDriver::vEMI1:
+      emi = new EMI1Layer2 (iface, l3, opt);
       break;
-    case LowLevelDriverInterface::vEMI2:
-      emi = new EMI2Layer2Interface (iface, tr, flags);
+    case LowLevelDriver::vEMI2:
+      emi = new EMI2Layer2 (iface, l3, opt);
       break;
-    case LowLevelDriverInterface::vCEMI:
-      emi = new CEMILayer2Interface (iface, tr, flags);
+    case LowLevelDriver::vCEMI:
+      emi = new CEMILayer2 (iface, l3, opt);
       break;
     default:
-      TRACEPRINTF (tr, 2, this, "Unsupported EMI");
+      TRACEPRINTF (t, 2, this, "Unsupported EMI");
       delete iface;
       return;
     }
 }
 
-USBLayer2Interface::~USBLayer2Interface ()
+USBLayer2::~USBLayer2 ()
 {
   if (emi)
     delete emi;
 }
 
-bool USBLayer2Interface::init ()
+bool USBLayer2::init ()
 {
-  return emi != 0;
+  if (emi == 0)
+    return false;
+  if (! layer2_is_bus())
+    return false;
+  return Layer2::init();
 }
 
-bool USBLayer2Interface::addAddress (eibaddr_t addr)
+bool USBLayer2::openVBusmonitor ()
 {
-  return emi->addAddress (addr);
-}
-
-bool USBLayer2Interface::addGroupAddress (eibaddr_t addr)
-{
-  return emi->addGroupAddress (addr);
-}
-
-bool USBLayer2Interface::removeAddress (eibaddr_t addr)
-{
-  return emi->removeAddress (addr);
-}
-
-bool USBLayer2Interface::removeGroupAddress (eibaddr_t addr)
-{
-  return emi->removeGroupAddress (addr);
-}
-
-bool USBLayer2Interface::Connection_Lost ()
-{
-  return emi->Connection_Lost ();
-}
-
-eibaddr_t USBLayer2Interface::getDefaultAddr ()
-{
-  return emi->getDefaultAddr ();
-}
-
-bool USBLayer2Interface::openVBusmonitor ()
-{
+  if (! Layer2::openVBusmonitor ())
+    return false;
   return emi->openVBusmonitor ();
 }
 
-bool USBLayer2Interface::closeVBusmonitor ()
+bool USBLayer2::closeVBusmonitor ()
 {
+  if (! Layer2::closeVBusmonitor ())
+    return false;
   return emi->closeVBusmonitor ();
 }
 
-bool USBLayer2Interface::enterBusmonitor ()
+bool USBLayer2::enterBusmonitor ()
 {
+  if (! Layer2::enterBusmonitor ())
+    return false;
   return emi->enterBusmonitor ();
 }
 
-bool USBLayer2Interface::leaveBusmonitor ()
+bool USBLayer2::leaveBusmonitor ()
 {
+  if (! Layer2::leaveBusmonitor ())
+    return false;
   return emi->leaveBusmonitor ();
 }
 
-bool USBLayer2Interface::Open ()
+bool USBLayer2::Open ()
 {
+  if (! Layer2::Open ())
+    return false;
   return emi->Open ();
 }
 
-bool USBLayer2Interface::Close ()
+bool USBLayer2::Close ()
 {
+  if (! Layer2::Close ())
+    return false;
   return emi->Close ();
 }
 
-bool USBLayer2Interface::Send_Queue_Empty ()
+bool USBLayer2::Send_Queue_Empty ()
 {
   return emi->Send_Queue_Empty ();
 }
 
 
 void
-USBLayer2Interface::Send_L_Data (LPDU * l)
+USBLayer2::Send_L_Data (LPDU * l)
 {
   emi->Send_L_Data (l);
 }
 
-LPDU *
-USBLayer2Interface::Get_L_Data (pth_event_t stop)
-{
-  return emi->Get_L_Data (stop);
-}

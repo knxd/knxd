@@ -2,7 +2,15 @@ Source: knxd
 Section: net
 Priority: optional
 Maintainer: Timo <knxd@timo-wingender.de>
-Build-Depends: debhelper (>= 7.0.0), autotools-dev, libpthsem-dev, libpthsem20, libusb-1.0-0 (>= 1.0.10), libusb-1.0-0-dev (>= 1.0.10), pkg-config
+Build-Depends: debhelper (>= 7.0.0),
+  autotools-dev, autoconf, automake, libtool,
+  libpthsem-dev, libpthsem20,
+  libusb-1.0-0 (>= 1.0.10), libusb-1.0-0-dev (>= 1.0.10),
+  pkg-config,
+  libsystemd-daemon-dev (>= 200) | base-files (<< 8),
+  debianutils,
+  dh-systemd | base-files (<< 8)
+Build-Conflicts: libsystemd-daemon-dev (<< 200)
 Standards-Version: 3.9.4
 Homepage: https://github.com/Makki1/knxd
 Vcs-Git: https://github.com/Makki1/knxd.git
@@ -11,6 +19,8 @@ Vcs-Git: https://github.com/Makki1/knxd.git
 Package: knxd
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libpthsem20, libusb-1.0-0 (>= 1.0.10)
+Replaces: eibd, eibd-server
+Conflicts: eibd, eibd-server
 Description: knxd is a daemon to access a KNX bus
  knxd is a fork of eibd from bcusdk.
  This Package contains the daemon to access the bus.
@@ -18,6 +28,8 @@ Description: knxd is a daemon to access a KNX bus
 Package: knxd-tools
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libpthsem20, libusb-1.0-0
+Replaces: eibd-clients, eibd-server, libeibclient0
+Conflicts: eibd-clients, eibd-server, libeibclient0
 Description: Tools to use knxd
  These are tools to access a KNX bus over the knxs Daemon
 

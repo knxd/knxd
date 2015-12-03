@@ -28,13 +28,10 @@
 #define USB_DOC "usb connects over a KNX USB interface\n\n"
 #define USB_PREFIX "usb"
 #define USB_CREATE usb_ll_Create
-#define USB_CLEANUP USBEnd
 
-inline LowLevelDriverInterface *
+inline LowLevelDriver *
 usb_ll_Create (const char *dev, Trace * t)
 {
-  if (!USBInit (t))
-    return 0;
   return initUSBDriver (new USBLowLevelDriver (dev, t), t);
 }
 

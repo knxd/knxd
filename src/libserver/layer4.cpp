@@ -20,15 +20,31 @@
 #include "layer4.h"
 #include "tpdu.h"
 
+/***************** Layer4Common *****************/
+
+Layer4common::Layer4common(Layer3 *l3, Trace * tr)
+	: Layer2mixin (l3,tr)
+{
+  init_ok = false;
+}
+
+bool Layer4common::init ()
+{
+  if (!init_ok)
+    return false;
+  return Layer2mixin::init();
+}
+
+/***************** T_Brodcast *****************/
+
 T_Broadcast::T_Broadcast (Layer3 * l3, Trace * tr, int write_only)
+	: Layer4common (l3, tr)
 {
   TRACEPRINTF (tr, 4, this, "OpenBroadcast %s", write_only ? "WO" : "RW");
-  layer3 = l3;
-  t = tr;
   pth_sem_init (&sem);
   init_ok = false;
   if (!write_only)
-    if (!layer3->registerBroadcastCallBack (this))
+    if (!addGroupAddress (0))
       return;
   init_ok = true;
 }
@@ -36,19 +52,13 @@ T_Broadcast::T_Broadcast (Layer3 * l3, Trace * tr, int write_only)
 T_Broadcast::~T_Broadcast ()
 {
   TRACEPRINTF (t, 4, this, "CloseBroadcast");
-  layer3->deregisterBroadcastCallBack (this);
-}
-
-bool T_Broadcast::init ()
-{
-  return init_ok;
 }
 
 void
-T_Broadcast::Get_L_Data (L_Data_PDU * l)
+T_Broadcast::Send_L_Data (L_Data_PDU * l)
 {
   BroadcastComm c;
-  TPDU *t = TPDU::fromPacket (l->data);
+  TPDU *t = TPDU::fromPacket (l->data, this->t);
   if (t->getType () == T_DATA_XXX_REQ)
     {
       T_DATA_XXX_REQ_PDU *t1 = (T_DATA_XXX_REQ_PDU *) t;
@@ -66,14 +76,14 @@ T_Broadcast::Send (const CArray & c)
 {
   T_DATA_XXX_REQ_PDU t;
   t.data = c;
-  String s = t.Decode ();
+  String s = t.Decode (this->t);
   TRACEPRINTF (this->t, 4, this, "Send Broadcast %s", s ());
-  L_Data_PDU *l = new L_Data_PDU;
+  L_Data_PDU *l = new L_Data_PDU (this);
   l->source = 0;
   l->dest = 0;
   l->AddrType = GroupAddress;
   l->data = t.ToPacket ();
-  layer3->send_L_Data (l);
+  l3->recv_L_Data (l);
 }
 
 BroadcastComm *
@@ -98,12 +108,13 @@ T_Broadcast::Get (pth_event_t stop)
   return 0;
 }
 
+/***************** T_Group *****************/
+
 T_Group::T_Group (Layer3 * l3, Trace * tr, eibaddr_t group, int write_only)
+	: Layer4common (l3, tr)
 {
-  TRACEPRINTF (tr, 4, this, "OpenGroup %d/%d/%d %s", (group >> 11) & 0x1f,
-	       (group >> 8) & 0x07, (group) & 0xff, write_only ? "WO" : "RW");
-  layer3 = l3;
-  t = tr;
+  TRACEPRINTF (tr, 4, this, "OpenGroup %s %s", FormatGroupAddr (group)(),
+	       write_only ? "WO" : "RW");
   groupaddr = group;
   pth_sem_init (&sem);
   init_ok = false;
@@ -111,21 +122,16 @@ T_Group::T_Group (Layer3 * l3, Trace * tr, eibaddr_t group, int write_only)
     return;
 
   if (!write_only)
-    if (!layer3->registerGroupCallBack (this, group))
+    if (!addGroupAddress (group))
       return;
   init_ok = true;
 }
 
-bool T_Group::init ()
-{
-  return init_ok;
-}
-
 void
-T_Group::Get_L_Data (L_Data_PDU * l)
+T_Group::Send_L_Data (L_Data_PDU * l)
 {
   GroupComm c;
-  TPDU *t = TPDU::fromPacket (l->data);
+  TPDU *t = TPDU::fromPacket (l->data, this->t);
   if (t->getType () == T_DATA_XXX_REQ)
     {
       T_DATA_XXX_REQ_PDU *t1 = (T_DATA_XXX_REQ_PDU *) t;
@@ -143,20 +149,19 @@ T_Group::Send (const CArray & c)
 {
   T_DATA_XXX_REQ_PDU t;
   t.data = c;
-  String s = t.Decode ();
+  String s = t.Decode (this->t);
   TRACEPRINTF (this->t, 4, this, "Send Group %s", s ());
-  L_Data_PDU *l = new L_Data_PDU;
+  L_Data_PDU *l = new L_Data_PDU (this);
   l->source = 0;
   l->dest = groupaddr;
   l->AddrType = GroupAddress;
   l->data = t.ToPacket ();
-  layer3->send_L_Data (l);
+  l3->recv_L_Data (l);
 }
 
 T_Group::~T_Group ()
 {
   TRACEPRINTF (t, 4, this, "CloseGroup");
-  layer3->deregisterGroupCallBack (this, groupaddr);
 }
 
 GroupComm *
@@ -181,28 +186,22 @@ T_Group::Get (pth_event_t stop)
   return 0;
 }
 
+/***************** T_TPDU *****************/
+
 T_TPDU::T_TPDU (Layer3 * l3, Trace * tr, eibaddr_t d)
+	: Layer4common (l3, tr)
 {
-  TRACEPRINTF (tr, 4, this, "OpenTPDU %d.%d.%d", (d >> 12) & 0x0f,
-	       (d >> 8) & 0x0f, (d) & 0xff);
-  layer3 = l3;
-  t = tr;
+  TRACEPRINTF (tr, 4, this, "OpenTPDU %s", FormatEIBAddr (d)());
   src = d;
   pth_sem_init (&sem);
   init_ok = false;
-  if (!layer3->registerIndividualCallBack
-      (this, Individual_Lock_None, 0, src))
+  if (!addReverseAddress (src))
     return;
   init_ok = true;
 }
 
-bool T_TPDU::init ()
-{
-  return init_ok;
-}
-
 void
-T_TPDU::Get_L_Data (L_Data_PDU * l)
+T_TPDU::Send_L_Data (L_Data_PDU * l)
 {
   TpduComm t;
   t.data = l->data;
@@ -216,18 +215,17 @@ void
 T_TPDU::Send (const TpduComm & c)
 {
   t->TracePacket (4, this, "Send TPDU", c.data);
-  L_Data_PDU *l = new L_Data_PDU;
+  L_Data_PDU *l = new L_Data_PDU (this);
   l->source = src;
   l->dest = c.addr;
   l->AddrType = IndividualAddress;
   l->data = c.data;
-  layer3->send_L_Data (l);
+  l3->recv_L_Data (l);
 }
 
 T_TPDU::~T_TPDU ()
 {
   TRACEPRINTF (t, 4, this, "CloseTPDU");
-  layer3->deregisterIndividualCallBack (this, 0, src);
 }
 
 TpduComm *
@@ -252,33 +250,28 @@ T_TPDU::Get (pth_event_t stop)
   return 0;
 }
 
+/***************** T_Individual *****************/
+
 T_Individual::T_Individual (Layer3 * l3, Trace * tr, eibaddr_t d,
 			    int write_only)
+	: Layer4common (l3, tr)
 {
-  TRACEPRINTF (tr, 4, this, "OpenIndividual %d.%d.%d %s", (d >> 12) & 0x0f,
-	       (d >> 8) & 0x0f, (d) & 0xff, write_only ? "WO" : "RW");
-  layer3 = l3;
-  t = tr;
+  TRACEPRINTF (tr, 4, this, "OpenIndividual %s %s",
+               FormatEIBAddr (d)(), write_only ? "WO" : "RW");
   dest = d;
   pth_sem_init (&sem);
   init_ok = false;
   if (!write_only)
-    if (!layer3->registerIndividualCallBack
-	(this, Individual_Lock_None, dest))
+    if (!addAddress(dest))
       return;
   init_ok = true;
 }
 
-bool T_Individual::init ()
-{
-  return init_ok;
-}
-
 void
-T_Individual::Get_L_Data (L_Data_PDU * l)
+T_Individual::Send_L_Data (L_Data_PDU * l)
 {
   CArray c;
-  TPDU *t = TPDU::fromPacket (l->data);
+  TPDU *t = TPDU::fromPacket (l->data, this->t);
   if (t->getType () == T_DATA_XXX_REQ)
     {
       T_DATA_XXX_REQ_PDU *t1 = (T_DATA_XXX_REQ_PDU *) t;
@@ -295,20 +288,19 @@ T_Individual::Send (const CArray & c)
 {
   T_DATA_XXX_REQ_PDU t;
   t.data = c;
-  String s = t.Decode ();
+  String s = t.Decode (this->t);
   TRACEPRINTF (this->t, 4, this, "Send Individual %s", s ());
-  L_Data_PDU *l = new L_Data_PDU;
+  L_Data_PDU *l = new L_Data_PDU (this);
   l->source = 0;
   l->dest = dest;
   l->AddrType = IndividualAddress;
   l->data = t.ToPacket ();
-  layer3->send_L_Data (l);
+  l3->recv_L_Data (l);
 }
 
 T_Individual::~T_Individual ()
 {
   TRACEPRINTF (t, 4, this, "CloseIndividual");
-  layer3->deregisterIndividualCallBack (this, dest);
 }
 
 CArray *
@@ -333,12 +325,12 @@ T_Individual::Get (pth_event_t stop)
   return 0;
 }
 
+/***************** T_COnnection *****************/
+
 T_Connection::T_Connection (Layer3 * l3, Trace * tr, eibaddr_t d)
+	: Layer4common (l3, tr)
 {
-  TRACEPRINTF (tr, 4, this, "OpenConnection %d.%d.%d", (d >> 12) & 0x0f,
-	       (d >> 8) & 0x0f, (d) & 0xff);
-  layer3 = l3;
-  t = tr;
+  TRACEPRINTF (tr, 4, this, "OpenConnection %s", FormatEIBAddr (d)());
   dest = d;
   pth_sem_init (&insem);
   pth_sem_init (&outsem);
@@ -347,8 +339,7 @@ T_Connection::T_Connection (Layer3 * l3, Trace * tr, eibaddr_t d)
   sendno = 0;
   mode = 0;
   init_ok = false;
-  if (!layer3->registerIndividualCallBack
-      (this, Individual_Lock_Connection, dest))
+  if (!addAddress (dest))
     return;
   Start ();
   init_ok = true;
@@ -360,16 +351,10 @@ T_Connection::~T_Connection ()
   Stop ();
   while (!buf.isempty ())
     delete buf.get ();
-  layer3->deregisterIndividualCallBack (this, dest);
-}
-
-bool T_Connection::init ()
-{
-  return init_ok;
 }
 
 void
-T_Connection::Get_L_Data (L_Data_PDU * l)
+T_Connection::Send_L_Data (L_Data_PDU * l)
 {
   buf.put (l);
   pth_sem_inc (&bufsem, 0);
@@ -410,13 +395,13 @@ T_Connection::SendConnect ()
 {
   TRACEPRINTF (t, 4, this, "SendConnect");
   T_CONNECT_REQ_PDU p;
-  L_Data_PDU *l = new L_Data_PDU;
+  L_Data_PDU *l = new L_Data_PDU (this);
   l->source = 0;
   l->dest = dest;
   l->AddrType = IndividualAddress;
   l->data = p.ToPacket ();
   l->prio = PRIO_SYSTEM;
-  layer3->send_L_Data (l);
+  l3->recv_L_Data (l);
 }
 
 void
@@ -424,13 +409,13 @@ T_Connection::SendDisconnect ()
 {
   TRACEPRINTF (t, 4, this, "SendDisconnect");
   T_DISCONNECT_REQ_PDU p;
-  L_Data_PDU *l = new L_Data_PDU;
+  L_Data_PDU *l = new L_Data_PDU (this);
   l->source = 0;
   l->dest = dest;
   l->AddrType = IndividualAddress;
   l->data = p.ToPacket ();
   l->prio = PRIO_SYSTEM;
-  layer3->send_L_Data (l);
+  l3->recv_L_Data (l);
 }
 
 void
@@ -439,12 +424,12 @@ T_Connection::SendAck (int serno)
   TRACEPRINTF (t, 4, this, "SendACK %d", serno);
   T_ACK_PDU p;
   p.serno = serno;
-  L_Data_PDU *l = new L_Data_PDU;
+  L_Data_PDU *l = new L_Data_PDU (this);
   l->source = 0;
   l->dest = dest;
   l->AddrType = IndividualAddress;
   l->data = p.ToPacket ();
-  layer3->send_L_Data (l);
+  l3->recv_L_Data (l);
 }
 
 void
@@ -453,13 +438,13 @@ T_Connection::SendData (int serno, const CArray & c)
   T_DATA_CONNECTED_REQ_PDU p;
   p.data = c;
   p.serno = serno;
-  TRACEPRINTF (t, 4, this, "SendData %s", p.Decode ()());
-  L_Data_PDU *l = new L_Data_PDU;
+  TRACEPRINTF (t, 4, this, "SendData %s", p.Decode (t)());
+  L_Data_PDU *l = new L_Data_PDU (this);
   l->source = 0;
   l->dest = dest;
   l->AddrType = IndividualAddress;
   l->data = p.ToPacket ();
-  layer3->send_L_Data (l);
+  l3->recv_L_Data (l);
 }
 
 /*
@@ -504,7 +489,7 @@ T_Connection::Run (pth_sem_t * stop1)
 	{
 	  pth_sem_dec (&bufsem);
 	  L_Data_PDU *l = buf.get ();
-	  TPDU *t = TPDU::fromPacket (l->data);
+	  TPDU *t = TPDU::fromPacket (l->data, this->t);
 	  switch (t->getType ())
 	    {
 	    case T_DISCONNECT_REQ:
@@ -608,20 +593,20 @@ T_Connection::Run (pth_sem_t * stop1)
   pth_event_free (timeout, PTH_FREE_THIS);
   SendDisconnect ();
   mode = 0;
-  layer3->deregisterIndividualCallBack (this, dest);
   out.put (CArray ());
   pth_sem_inc (&outsem, 0);
 }
 
+/***************** GroupSocket *****************/
+
 GroupSocket::GroupSocket (Layer3 * l3, Trace * tr, int write_only)
+	: Layer4common(l3, tr)
 {
   TRACEPRINTF (tr, 4, this, "OpenGroupSocket %s", write_only ? "WO" : "RW");
-  layer3 = l3;
-  t = tr;
   pth_sem_init (&sem);
   init_ok = false;
   if (!write_only)
-    if (!layer3->registerGroupCallBack (this, 0))
+    if (!addGroupAddress (0))
       return;
   init_ok = true;
 }
@@ -629,19 +614,13 @@ GroupSocket::GroupSocket (Layer3 * l3, Trace * tr, int write_only)
 GroupSocket::~GroupSocket ()
 {
   TRACEPRINTF (t, 4, this, "CloseGroupSocket");
-  layer3->deregisterGroupCallBack (this, 0);
-}
-
-bool GroupSocket::init ()
-{
-  return init_ok;
 }
 
 void
-GroupSocket::Get_L_Data (L_Data_PDU * l)
+GroupSocket::Send_L_Data (L_Data_PDU * l)
 {
   GroupAPDU c;
-  TPDU *t = TPDU::fromPacket (l->data);
+  TPDU *t = TPDU::fromPacket (l->data, this->t);
   if (t->getType () == T_DATA_XXX_REQ)
     {
       T_DATA_XXX_REQ_PDU *t1 = (T_DATA_XXX_REQ_PDU *) t;
@@ -660,14 +639,14 @@ GroupSocket::Send (const GroupAPDU & c)
 {
   T_DATA_XXX_REQ_PDU t;
   t.data = c.data;
-  String s = t.Decode ();
+  String s = t.Decode (this->t);
   TRACEPRINTF (this->t, 4, this, "Send GroupSocket %s", s ());
-  L_Data_PDU *l = new L_Data_PDU;
+  L_Data_PDU *l = new L_Data_PDU (this);
   l->source = 0;
   l->dest = c.dst;
   l->AddrType = GroupAddress;
   l->data = t.ToPacket ();
-  layer3->send_L_Data (l);
+  l3->recv_L_Data (l);
 }
 
 GroupAPDU *

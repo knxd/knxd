@@ -45,7 +45,7 @@ typedef struct
 static int
 AddSegmentOverlap (Array < Segment > &s, uint16_t start, uint16_t len)
 {
-  int i;
+  unsigned int i;
   if (!len)
     return 1;
   for (i = 0; i < s (); i++)

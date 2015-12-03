@@ -22,18 +22,18 @@
 
 #include "emi1.h"
 #include "bcu1serial.h"
+#include "layer3.h"
 
 #define PEI16s_URL "bcu1s:/dev/ttySx\n"
-#define PEI16s_DOC "bcu1s connects using the PEI16 Protocoll over a BCU to the bus (using a experimental user mode driver, tracelevel % 2 must be 1 and the output must be displayed in a fast enough terminal)\n\n"
+#define PEI16s_DOC "bcu1s connects using the PEI16 Protocol over a BCU to the bus (using an experimental user mode driver)\n\n"
 
 #define PEI16s_PREFIX "bcu1s"
 #define PEI16s_CREATE PEI16s_Create
-#define PEI16s_CLEANUP NULL
 
-inline Layer2Interface *
-PEI16s_Create (const char *dev, int flags, Trace * t)
+inline Layer2 *
+PEI16s_Create (const char *dev, L2options *opt, Layer3 * l3)
 {
-  return new EMI1Layer2Interface (new BCU1SerialLowLevelDriver (dev, t), t, flags);
+  return new EMI1Layer2 (new BCU1SerialLowLevelDriver (dev, l3->t), l3, opt);
 }
 
 #endif

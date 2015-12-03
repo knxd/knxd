@@ -5,9 +5,9 @@ LDFLAGS = $(LDFLAGS_FOR_BUILD)
 LIBS = $(LIBS_FOR_BUILD)
 EXEEXT = $(EXEEXT_FOR_BUILD)
 
-AM_CPPFLAGS=-I$(top_srcdir)/src/include -I$(top_srcdir)/arc/client -I$(top_builddir)/src/client
+AM_CPPFLAGS=-I$(top_srcdir)/src/include -I$(top_srcdir)/src/client -I$(top_builddir)/src/client
 
-EXTRA_DIST = header1.inc header2.inc body1.inc body2.inc
+EXTRA_DIST = header1.inc header2.inc body1.inc body2.inc hdef.def
 CLEANFILES = genh.inc gen.inc result.inc EIBD.pas
 
 pkgdata_DATA = EIBD.pas

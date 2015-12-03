@@ -1,6 +1,6 @@
 pkgdata_DATA = EIBConnection.pm
 
-AM_CPPFLAGS=-I$(top_srcdir)/src/include -I$(top_srcdir)/src/client -I$(top_builddir)/src/client
+AM_CPPFLAGS=-I$(top_srcdir)/src/include -I$(top_srcdir)/src/client -I$(top_builddir)/src/client -I.
 
 result.inc : $(top_srcdir)/src/common/eibloadresult.h
 	cat $<  |grep IMG_ |sed -e 's/#define \(IMG_[A-Z_0-9]\+\)  \+\([0-9]\+\)/ use constant \1 => \2;/g' > $@
@@ -21,11 +21,11 @@ EIBConnection.pm : lic.inc EIBConnection.p
 	cat $^ > $@
 
 .pre.post:
-@am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -D__cplusplus -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -E -P -x c -O0 -o $@ $<; \
+@am__fastdepCXX_TRUE@	if $(CPP) $(AM_CPPFLAGS) -D__cplusplus -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" -P -x c -O0 -o $@ $<; \
 @am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/$*.Tpo" "$(DEPDIR)/$*.Po"; else rm -f "$(DEPDIR)/$*.Tpo"; exit 1; fi
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(CXXCOMPILE) -D__cplusplus -E -P -x c -O0 -o $@ $<
+@am__fastdepCXX_FALSE@	$(CPP) $(AM_CPPFLAGS) -D__cplusplus -P -x c -O0 -o $@ $<
 
 
 noinst_LIBRARIES=libdummy.a
