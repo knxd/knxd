@@ -32,8 +32,9 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 On Debian:
 
     # Do not use "sudo" unless told to do so.
-    # If "dpkg-buildpackage" complains about missing packages:
-    # install them (with "apt-get install") and try again.
+    # If "dpkg-buildpackage" complains about missing packages
+    # ("Unmet build dependencies"): install them
+    # (apt-get install …) and try that step again.
     # If it wants "x | y", try just x; install y if that doesn't work.
     # Also, if it complains about conflicting packages, remove them (duh).
 
