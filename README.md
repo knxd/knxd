@@ -32,8 +32,9 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 On Debian:
 
     # Do not use "sudo" unless told to do so.
-    # If "dpkg-buildpackage" complains about missing packages:
-    # install them (with "apt-get install") and try again.
+    # If "dpkg-buildpackage" complains about missing packages
+    # ("Unmet build dependencies"): install them
+    # (apt-get install …) and try that step again.
     # If it wants "x | y", try just x; install y if that doesn't work.
     # Also, if it complains about conflicting packages, remove them (duh).
 
@@ -105,6 +106,15 @@ If you have a second TPUART, repeat with "ttyACM1" and "ttyKNX2".
 
 You'll have to update your rule if you ever plug your TPUART into a different USB port.
 This is intentional.
+
+
+## Migrating from ``eibd``
+
+* Before you even build: remove *any* traces of the old eibd installation from ``/usr/local``.
+* The order of arguments is now significant. Among the "-D -T -R -S" arguments, ``-S`` must occur *last*.
+* The groupswrite etc. aliases are no longer installed by default. To workaround, you can either add ``/usr/lib/knxd`` to your ``$PATH``, or use ``knxtool groupswrite``.
+* If you use Debian Jessie or another systemd-based distribution, the ``/lib/systemd/system/knxd.socket`` file is used to open the local sockets for knxd. Therefore you no longer need your old ``-i`` or ``-u`` options.
+* knxd's Unix socket should never have been located in ``/tmp``; the default is now ``/run/knxd``.
 
 ## Contributions
 
