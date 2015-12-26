@@ -47,7 +47,7 @@
 #define OPT_FORCE_BROADCAST 7
 
 #define OPT_ARG(_arg,_state,_default) (arg ? arg : \
-        (state->argv[state->next][0] && (state->argv[state->next][0] != '-')) ?  \
+        (state->argv[state->next] && state->argv[state->next][0] && (state->argv[state->next][0] != '-')) ?  \
             state->argv[state->next++] : _default)
 
 /** structure to store the arguments */
