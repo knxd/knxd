@@ -21,18 +21,6 @@
 #include "emi.h"
 #include "layer3.h"
 
-bool
-EMI1Layer2::addAddress (eibaddr_t addr UNUSED)
-{
-  return false;
-}
-
-bool
-EMI1Layer2::removeAddress (eibaddr_t addr UNUSED)
-{
-  return false;
-}
-
 EMI1Layer2::EMI1Layer2 (LowLevelDriver * i, Layer3 * l3,
                         L2options *opt) : Layer2(l3, opt)
 {
