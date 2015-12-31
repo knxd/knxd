@@ -43,9 +43,11 @@ EMI2Layer2::EMI2Layer2 (LowLevelDriver * i, Layer3 * l3,
 bool
 EMI2Layer2::init ()
 {
+  if (iface == 0)
+    return false;
   if (! layer2_is_bus())
     return false;
-  return iface != 0;
+  return Layer2::init ();
 }
 
 EMI2Layer2::~EMI2Layer2 ()

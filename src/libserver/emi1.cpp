@@ -43,6 +43,8 @@ EMI1Layer2::EMI1Layer2 (LowLevelDriver * i, Layer3 * l3,
 bool
 EMI1Layer2::init ()
 {
+  if (iface == 0)
+    return false;
   if (! layer2_is_bus())
     return false;
   return iface != 0;
