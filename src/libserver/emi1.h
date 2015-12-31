@@ -44,9 +44,6 @@ public:
 
   void Send_L_Data (LPDU * l);
 
-  bool addAddress (eibaddr_t addr);
-  bool removeAddress (eibaddr_t addr);
-
   bool enterBusmonitor ();
   bool leaveBusmonitor ();
 

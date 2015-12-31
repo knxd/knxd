@@ -46,9 +46,11 @@ CEMILayer2::CEMILayer2 (LowLevelDriver * i, Layer3 * l3,
 bool
 CEMILayer2::init ()
 {
+  if (iface == 0)
+    return false;
   if (! layer2_is_bus())
     return false;
-  return iface != 0;
+  return Layer2::init ();
 }
 
 CEMILayer2::~CEMILayer2 ()
