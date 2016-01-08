@@ -1,3 +1,9 @@
+knxd (0.11.6-1) unstable; urgency=medium
+
+  * Merged master branch up to 0.10.11-1
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 08 Jan 2016 17:57:49 +0100
+
 knxd (0.11.5-1) unstable; urgency=medium
 
   * Merged master branch up to 0.10.10-1
@@ -40,6 +46,12 @@ knxd (0.11.1-1) unstable; urgency=medium
   * Refactor multicast to use a separate port for sending
 
  -- Matthias Urlichs <matthias@urlichs.de>  Sun, 28 Jun 2015 06:53:31 +0000
+
+knxd (0.10.11-1) unstable; urgency=medium
+
+  * Fix the ft12 driver
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 31 Dec 2015 07:00:07 +0100
 
 knxd (0.10.10-1) unstable; urgency=medium
 

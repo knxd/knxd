@@ -192,7 +192,7 @@ void
 FT12LowLevelDriver::Run (pth_sem_t * stop1)
 {
   CArray last;
-  unsigned int i;
+  int i;
   uchar buf[255];
 
   pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
