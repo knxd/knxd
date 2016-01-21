@@ -25,9 +25,13 @@ configure: configure.ac
 
 override_dh_install: debian/knxd.install debian/knxd.socket debian/knxd.service
 	dh_install
-	dh_installudev --priority=70
 	dh_systemd_enable || true
 	dh_systemd_start || true
+
+override_dh_installudev: debian/knxd.udev
+	# install the udev file to /etc since it needs to be modified
+	mkdir -p debian/knxd/etc/udev/rules.d/
+	install debian/knxd.udev debian/knxd/etc/udev/rules.d/70-kndx.rules
 
 debian/knxd.install: debian/knxd.install.in
 	cp $^ $@
