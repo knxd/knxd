@@ -114,7 +114,7 @@ This is intentional.
 * The order of arguments is now significant. Among the "-D -T -R -S" arguments, ``-S`` must occur *last*.
 * The groupswrite etc. aliases are no longer installed by default. To workaround, you can either add ``/usr/lib/knxd`` to your ``$PATH``, or use ``knxtool groupswrite``.
 * If you use Debian Jessie or another systemd-based distribution, the ``/lib/systemd/system/knxd.socket`` file is used to open the local sockets for knxd. Therefore you no longer need your old ``-i`` or ``-u`` options.
-* knxd's Unix socket should never have been located in ``/tmp``; the default is now ``/run/knxd``.
+* knxd's Unix socket should never have been located in ``/tmp``; the default is now ``/run/knx``.
 
 ## Contributions
 

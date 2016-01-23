@@ -1,3 +1,9 @@
+knxd (0.11.7-2) unstable; urgency=medium
+
+  * Merged master branch up to 0.10.12-1
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sat, 23 Jan 2016 15:52:06 +0100
+
 knxd (0.11.6-1) unstable; urgency=medium
 
   * Merged master branch up to 0.10.11-1
@@ -46,6 +52,18 @@ knxd (0.11.1-1) unstable; urgency=medium
   * Refactor multicast to use a separate port for sending
 
  -- Matthias Urlichs <matthias@urlichs.de>  Sun, 28 Jun 2015 06:53:31 +0000
+
+knxd (0.10.12-1) unstable; urgency=medium
+
+  * /run/knx, not /run/knxd
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 22 Jan 2016 14:42:58 +0100
+
+knxd (0.10.11-2) unstable; urgency=medium
+
+  * Fix udev installation
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 21 Jan 2016 21:07:27 +0100
 
 knxd (0.10.11-1) unstable; urgency=medium
 
