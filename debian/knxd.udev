@@ -1,0 +1,4 @@
+# The following rule does nothing unless you replace the 'something' with the actual USB path of your TPUART interface.
+# Run "udevadm info --attribute-walk /sys/bus/usb/drivers/cdc_acm/*/tty/ttyACM0", look at the third block (the one with 'ATTRS{manufacturer}=="busware.de"').
+#
+ACTION=="add", SUBSYSTEM=="tty", ATTRS{idVendor}=="03eb", ATTRS{idProduct}=="204b", KERNELS=="something", SYMLINK+="ttyKNX1", OWNER="knxd"

@@ -21,18 +21,6 @@
 #include "emi.h"
 #include "layer3.h"
 
-bool
-EMI2Layer2::addAddress (eibaddr_t addr UNUSED)
-{
-  return false;
-}
-
-bool
-EMI2Layer2::removeAddress (eibaddr_t addr UNUSED)
-{
-  return false;
-}
-
 EMI2Layer2::EMI2Layer2 (LowLevelDriver * i, Layer3 * l3,
                         L2options *opt) : Layer2 (l3, opt)
 {
@@ -55,9 +43,11 @@ EMI2Layer2::EMI2Layer2 (LowLevelDriver * i, Layer3 * l3,
 bool
 EMI2Layer2::init ()
 {
+  if (iface == 0)
+    return false;
   if (! layer2_is_bus())
     return false;
-  return iface != 0;
+  return Layer2::init ();
 }
 
 EMI2Layer2::~EMI2Layer2 ()
@@ -213,6 +203,7 @@ EMI2Layer2::Run (pth_sem_t * stop1)
       pth_event_isolate(timeout);
       if (!wait_confirm && !inqueue.isempty())
 	{
+	  pth_sem_dec (&in_signal);
 	  Send(inqueue.get());
 	  if (noqueue)
 	    {

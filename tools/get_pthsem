@@ -1,0 +1,10 @@
+#!/bin/sh
+cd $HOME
+if test -e pthsem/lib/libpthsem.so ; then exit 0; fi
+wget "https://www.auto.tuwien.ac.at/~mkoegler/pth/pthsem_2.0.8.tar.gz"
+tar xvfz pthsem_2.0.8.tar.gz
+cd "pthsem-2.0.8"
+./configure --prefix=$HOME/pthsem
+make
+make install
+

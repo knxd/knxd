@@ -21,10 +21,11 @@
 #include "layer2.h"
 #include "server.h"
 
-Layer3::Layer3 (eibaddr_t addr, Trace * tr)
+Layer3::Layer3 (eibaddr_t addr, Trace * tr, bool force_broadcast)
 {
   t = tr;
   defaultAddr = addr;
+  this->force_broadcast = force_broadcast;
   TRACEPRINTF (t, 3, this, "Open");
   pth_sem_init (&bufsem);
   running = false;
@@ -279,7 +280,8 @@ Layer3::Run (pth_sem_t * stop1)
               delete l;
               continue;
             }
-          l1->hopcount--;
+          if (l1->hopcount < 7 || !force_broadcast)
+            l1->hopcount--;
 
 	  if (l1->repeated)
 	    {
@@ -316,7 +318,8 @@ Layer3::Run (pth_sem_t * stop1)
 	      // group.
 	      for (i = 0; i < layer2 (); i++)
                 {
-		  if (layer2[i] != l1->l2 && layer2[i]->hasGroupAddress(l1->dest))
+		  if ((l1->hopcount == 7)
+		      || ((layer2[i] != l1->l2) && layer2[i]->hasGroupAddress(l1->dest)))
 		    layer2[i]->Send_L_Data (new L_Data_PDU (*l1));
                 }
 	    }
@@ -340,9 +343,10 @@ Layer3::Run (pth_sem_t * stop1)
 		    }
 		}
 	      for (i = 0; i < layer2 (); i++)
-		if (layer2[i] != l1->l2
-		    && l1->dest ? layer2[i]->hasAddress (found ? l1->dest : 0)
-		                : layer2[i]->hasReverseAddress (l1->source))
+		if ((l1->hopcount == 7)
+                    || (layer2[i] != l1->l2
+		     && l1->dest ? layer2[i]->hasAddress (found ? l1->dest : 0)
+		                 : layer2[i]->hasReverseAddress (l1->source)))
 		  layer2[i]->Send_L_Data (new L_Data_PDU (*l1));
 	    }
 

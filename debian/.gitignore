@@ -8,3 +8,5 @@
 /*.substvars
 /files
 /knxd.install
+/knxd.service
+/knxd.socket

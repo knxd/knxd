@@ -1,32 +1,44 @@
+# Maintainer: Claus Klingberg <cjk at pobox dot com>
+# Contributor: vapourismo <ole at vprsm dot de>
+_pkgname=knxd
 pkgname='knxd-git'
-pkgver='r100.06292d9'
-pkgrel='0'
+pkgver=449.ra241b3d
+pkgrel=4
 pkgdesc='A server which provides an interface to a KNX/EIB installation'
-license='GPL2'
+license=('GPL')
 
 arch=('i686' 'x86_64' 'arm' 'armv6h' 'armv7h')
 conflicts=('knxd' 'eibd')
 provides=('knxd')
 replaces=('eibd')
 depends=('pthsem>=2.0.8' 'gcc-libs')
+optdepends=('libsystemd' 'libusb')
 makedepends=('git' 'libtool' 'autoconf' 'automake')
 
-source=("$pkgname::git+https://github.com/Makki1/knxd.git")
+source=("git://github.com/knxd/${_pkgname}.git")
 sha512sums=('SKIP')
+url="https://github.com/knxd/knxd"
 
 pkgver() {
-	cd "$srcdir/$pkgname"
-	printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+	cd "$srcdir/$_pkgname"
+	printf "%s.r%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
 }
 
 build() {
-	cd "$srcdir/$pkgname"
+	cd "$srcdir/$_pkgname"
 	./bootstrap.sh
-	./configure --prefix="$pkgdir/usr"
+	./configure \
+      --prefix="/usr" \
+      --sysconfdir=/etc \
+      --libdir=/usr/lib \
+      --libexecdir=/usr/lib \
+      --enable-usb
 	make
 }
 
 package() {
-	cd "$srcdir/$pkgname"
-	make install
+  backup=(etc/knxd.conf)
+
+	cd "$srcdir/$_pkgname"
+	make DESTDIR="$pkgdir/" install
 }
