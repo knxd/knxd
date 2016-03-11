@@ -44,14 +44,18 @@ AC_DEFUN([AX_ALLOW_SYSTEMD_OPTS], [
 
 AC_DEFUN([AX_CHECK_SYSTEMD_LIBS], [
 	AC_CHECK_HEADER([systemd/sd-daemon.h], [
-	    AC_CHECK_LIB([systemd-daemon], [sd_listen_fds], [libsystemd="y"])
-	    AC_CHECK_LIB([systemd], [sd_listen_fds], [libsystemd="y"])
+	    AC_CHECK_LIB([systemd-daemon], [sd_listen_fds], [libsystemd="y"; old=y])
+	    AC_CHECK_LIB([systemd], [sd_listen_fds], [libsystemd="y"; old=n])
 	])
 	AS_IF([test "x$libsystemd" = x], [
 	    AC_MSG_ERROR([Unable to find a suitable libsystemd library])
 	])
 
+	if test "$old" = y ; then
 	PKG_CHECK_MODULES([SYSTEMD], [libsystemd-daemon])
+	else
+	PKG_CHECK_MODULES([SYSTEMD], [libsystemd])
+	fi
 	dnl pkg-config older than 0.24 does not set these for
 	dnl PKG_CHECK_MODULES() worth also noting is that as of version 208
 	dnl of systemd pkg-config --cflags currently yields no extra flags yet.
@@ -120,6 +124,7 @@ AC_DEFUN([AX_CHECK_SYSTEMD], [
 AC_DEFUN([AX_CHECK_SYSTEMD_ENABLE_AVAILABLE], [
 	AC_CHECK_HEADER([systemd/sd-daemon.h], [
 	    AC_CHECK_LIB([systemd-daemon], [sd_listen_fds], [systemd="y"])
+	    AC_CHECK_LIB([systemd], [sd_listen_fds], [systemd="y"])
 	])
 ])
 

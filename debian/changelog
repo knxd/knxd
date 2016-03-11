@@ -1,3 +1,10 @@
+knxd (0.10.7-1) unstable; urgency=medium
+
+  * Fix systemd test
+    post Jessie there is no more libsystemd-daemon
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 11 Mar 2016 15:08:45 +0100
+
 knxd (0.10.6-1) unstable; urgency=medium
 
   * Fix flag handling
