@@ -51,7 +51,7 @@ PTHSEM_LIB="$PTH_LDFLAGS $PTH_LIBS"
 AC_SUBST(PTHSEM_LIB)
 
 AX_LOCAL_EXPAND_CONFIG
-AX_ENABLE_SYSTEMD
+AX_AVAILABLE_SYSTEMD
 
 AC_CHECK_HEADER(argp.h,,[AC_MSG_ERROR([argp_parse not found])])
 AC_SEARCH_LIBS(argp_parse,argp,,[AC_MSG_ERROR([argp_parse not found])])
@@ -261,6 +261,7 @@ src/Makefile src/include/Makefile  src/client/Makefile src/examples/Makefile src
 src/client/def/Makefile src/client/c/Makefile src/client/java/Makefile src/client/php/Makefile src/client/cs/Makefile
 src/client/perl/Makefile src/client/python/Makefile src/client/pascal/Makefile src/client/ruby/Makefile src/client/lua/Makefile
 src/tools/eibnet/Makefile src/tools/bcu/Makefile src/usb/Makefile src/tools/Makefile systemd/Makefile systemd/knxd.service systemd/knxd.socket
+rpm/Makefile rpm/knxd.spec
 )
 
 AC_CONFIG_MACRO_DIR([m4])

@@ -62,7 +62,7 @@ main (int ac, char *ag[])
     prog += 1;
   else
     prog = ag[0];
-  if (strcmp(prog, "knxtool") == 0)
+  if (strcmp(prog, "knxtool") == 0 || strcmp(prog, "lt-knxtool") == 0)
     {
       if (ac < 2)
 	die ("usage: %s applet [args] -- say '%s list' to get a list of applets", prog,prog);
@@ -528,7 +528,7 @@ vbusmonitor1time\n");
   else if (strcmp (prog, "groupcacheread") == 0)
     {
       if (ac != 3)
-	die ("usage: %s url", prog);
+	die ("usage: %s url groupaddr", prog);
       con = open_con(ag[1]);
       dest = readgaddr (ag[2]);
 
@@ -1466,10 +1466,10 @@ vbusmonitor1time\n");
 
       if (ac != 2)
 	die ("usage: %s url", prog);
+      con = open_con(ag[1]);
 
       if (EIBOpenVBusmonitorText (con) == -1)
 	die ("Open Busmonitor failed");
-      con = open_con(ag[1]);
 
       while (1)
 	{

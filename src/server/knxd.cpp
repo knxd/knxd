@@ -44,6 +44,11 @@
 #define OPT_BACK_TPUARTS_DISCH_RESET 4
 #define OPT_BACK_EMI_NOQUEUE 5
 #define OPT_STOP_NOW 6
+#define OPT_FORCE_BROADCAST 7
+
+#define OPT_ARG(_arg,_state,_default) (arg ? arg : \
+        (state->argv[state->next] && state->argv[state->next][0] && (state->argv[state->next][0] != '-')) ?  \
+            state->argv[state->next++] : _default)
 
 /** structure to store the arguments */
 class arguments
@@ -77,6 +82,7 @@ public:
   const char *eibnetname;
 
   bool stop_now;
+  bool force_broadcast;
 private:
   /** our L3 instance (singleton (so far!)) */
   Layer3 *layer3;
@@ -96,7 +102,7 @@ public:
     {
       if (layer3 == 0) 
         {
-          layer3 = new Layer3 (addr, tracer());
+          layer3 = new Layer3 (addr, tracer(), force_broadcast);
           addr = 0;
         }
       return layer3;
@@ -292,6 +298,8 @@ static struct argp_option options[] = {
    "wait for L_Data_ind while sending (for all EMI based backends)"},
   {"no-monitor", 'N', 0, 0,
    "the next Layer2 interface may not enter monitor mode"},
+  {"allow-forced-broadcast", OPT_FORCE_BROADCAST, 0, 0,
+   "Treat routing counter 7 as per KNX spec (dangerous)"},
   {"stop-right-now", OPT_STOP_NOW, 0, OPTION_HIDDEN,
    "immediately stops the server after a successful start"},
   {0}
@@ -306,39 +314,39 @@ parse_opt (int key, char *arg, struct argp_state *state)
     {
     case 'T':
       arguments->tunnel = 1;
+      arguments->has_work++;
       break;
     case 'R':
       arguments->route = 1;
+      arguments->has_work++;
       break;
     case 'D':
       arguments->discover = 1;
       break;
     case 'S':
       {
-        const char *serverip = "";
-        if (arg)
-          serverip = arg;
-        if (!*serverip) 
-          serverip = "224.0.23.12";
-
+        const char *serverip;
         const char *name = arguments->eibnetname;
 
         EIBnetServer *c;
         int port = 0;
-        char *a = strdup (serverip);
+        char *a = strdup (OPT_ARG(arg, state, ""));
         char *b;
         if (!a)
           die ("out of memory");
         b = strchr (a, ':');
         if (b)
           {
-            *b = 0;
-            port = atoi (b + 1);
+            *b++ = 0;
+            port = atoi (b);
           }
         if (port <= 0)
           port = 3671;
+        serverip = a;
+        if (!*serverip) 
+          serverip = "224.0.23.12";
 
-        c = new EIBnetServer (a, port, arguments->tunnel, arguments->route, arguments->discover,
+        c = new EIBnetServer (serverip, port, arguments->tunnel, arguments->route, arguments->discover,
                               arguments->l3(), arguments->tracer(),
                               (name && *name) ? name : "knxd");
         if (!c->init ())
@@ -348,34 +356,27 @@ parse_opt (int key, char *arg, struct argp_state *state)
         arguments->route = false;
         arguments->discover = false;
         arguments->eibnetname = 0;
-        arguments->has_work |= 0x02;
       }
       break;
     case 'u':
       {
         BaseServer *s;
-        const char *name = "";
-        if (arg)
-          name = arg;
-        if (!*name)
-          name = "/tmp/eib";
+        const char *name = OPT_ARG(arg,state,"/run/knx");
         s = new LocalServer (arguments->l3(), arguments->tracer(), name);
         if (!s->init ())
           die ("initialisation of the knxd unix protocol failed");
-        arguments->has_work |= 0x02;
+        arguments->has_work++;
       }
       break;
     case 'i':
       {
         BaseServer *s = NULL;
-        int port = arg ? atoi (arg) : 0;
-        if (port == 0)
-          port = 6720;
+        int port = atoi(OPT_ARG(arg,state,"6720"));
         if (port > 0)
           s = new InetServer (arguments->l3(), arguments->tracer(), port);
         if (!s || !s->init ())
           die ("initialisation of the knxd inet protocol failed");
-        arguments->has_work |= 0x02;
+        arguments->has_work++;
       }
       break;
     case 't':
@@ -404,7 +405,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       arguments->pidfile = arg;
       break;
     case 'd':
-      arguments->daemon = (char *) (arg ? arg : "/dev/null");
+      arguments->daemon = OPT_ARG(arg,state,"/dev/null");
       break;
     case 'c':
       if (!CreateGroupCache (arguments->l3(), arguments->tracer(), true))
@@ -416,6 +417,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
 	arguments->eibnetname++;
       if(strlen(arguments->eibnetname) >= 30)
 	die("EIBnetServer/IP name must be shorter than 30 bytes");
+      break;
+    case OPT_FORCE_BROADCAST:
+      arguments->force_broadcast = true;
       break;
     case OPT_STOP_NOW:
       arguments->stop_now = true;
@@ -448,10 +452,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 	if (arguments->l2opts.flags)
           die ("You provided options which '%s' does not recognize", arg);
         memset(&arguments->l2opts, 0, sizeof(arguments->l2opts));
-        arguments->has_work |= (arguments->has_work & 0x01) ? 0x02 : 0x01;
-        /* The idea is that having two or more L2 interfaces to route between,
-         * but no network-or-whatever front-end, is perfectly reasonable. 
-         */
+        arguments->has_work++;
         break;
       }
     case ARGP_KEY_FINI:
@@ -475,7 +476,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
             s = new SystemdServer(arguments->l3(), arguments->tracer(), fd);
             if (!s->init ())
               die ("initialisation of the systemd socket failed");
-            arguments->has_work |= 0x02;
+            arguments->has_work++;
           }
       }
 #endif
@@ -487,10 +488,10 @@ parse_opt (int key, char *arg, struct argp_state *state)
              "-T/-R/-D/-n after or without that option are useless.");
       if (arguments->l2opts.flags)
 	die ("You provided L2 flags after specifying an L2 interface.");
-      if (!(arguments->has_work & 0x01))
-        die ("I know of no Layer-2 interface. Giving up.");
-      if (!(arguments->has_work & 0x02))
-        die ("I have one Layer-2 interface but no network. Giving up.");
+      if (arguments->has_work == 0)
+        die ("I know about no interface. Nothing to do. Giving up.");
+      if (arguments->has_work == 1)
+        die ("I only have one interface. Nothing to do. Giving up.");
       arguments->finish_l3();
       break;
 

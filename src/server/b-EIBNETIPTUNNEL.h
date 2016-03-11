@@ -24,13 +24,13 @@
 #include "eibnettunnel.h"
 
 #define EIBNETIPTUNNEL_URL "ipt:router-ip[:dest-port[:src-port[:nat-ip[:data-port]]]]]\n"
-#define EIBNETIPTUNNEL_DOC "ipt connects with the EIBnet/IP Tunneling protocol over an EIBnet/IP gateway. The gateway must be configured to route the necessary addresses\n\n"
+#define EIBNETIPTUNNEL_DOC "ipt directly connects to an EIBnet/IP gateway. The gateway must be configured to route the necessary addresses\n\n"
 
 #define EIBNETIPTUNNEL_PREFIX "ipt"
 #define EIBNETIPTUNNEL_CREATE eibnetiptunnel_Create
 
 #define EIBNETIPTUNNELNAT_URL "iptn:router-ip[:dest-port[:src-port]]\n"
-#define EIBNETIPTUNNELNAT_DOC "iptn connects with the EIBnet/IP Tunneling protocol over an EIBnet/IP gateway using NAT mode\n\n"
+#define EIBNETIPTUNNELNAT_DOC "iptn connects to an EIBnet/IP gateway using NAT mode\n\n"
 
 #define EIBNETIPTUNNELNAT_PREFIX "iptn"
 #define EIBNETIPTUNNELNAT_CREATE eibnetiptunnelnat_Create
@@ -52,15 +52,15 @@ eibnetiptunnel_Create (const char *dev, L2options *opt, Layer3 * l3)
   if (!a)
     die ("out of memory");
   c = d = e = NULL;
-  b = strchr(a,':')
+  b = strchr(a,':');
   if (b) {
     *b++ = 0;
     c = strchr(b,':');
     if (c) {
-      *c++ = ':';
+      *c++ = 0;
       d = strchr(c,':');
       if (d) {
-        *d++ = 0:
+        *d++ = 0;
         e = strchr(d,':');
         if (e)
           *e++ = 0;
@@ -97,6 +97,7 @@ eibnetiptunnelnat_Create (const char *dev, L2options *opt, Layer3 * l3)
     c = strchr(b,':');
     if (c)
       *c++ = 0;
+  }
   if (b && *b)
     dport = atoi(b);
   if (c && *c)

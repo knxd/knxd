@@ -21,7 +21,7 @@ FUNCS= \
 BUILT_SOURCES=$(FUNCS)
 CLEANFILES=$(FUNCS)
 
-gen/%.c : Makefile
+gen/%.c : eibclient-int.h
 	mkdir -p gen
 	echo '#include "c/eibclient-int.h"' > $@ 
 	echo '#include "def/'`basename $@|sed -e "s/\.c/.inc/g"`'"' >> $@

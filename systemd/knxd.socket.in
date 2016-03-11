@@ -2,7 +2,7 @@
 Description=KNX Daemon (socket)
 
 [Socket]
-ListenStream=@RUNDIR@/knxd
+ListenStream=@RUNDIR@/knx
 ListenStream=6720
 
 [Install]

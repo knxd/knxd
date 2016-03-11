@@ -3,12 +3,14 @@ Section: net
 Priority: optional
 Maintainer: Timo <knxd@timo-wingender.de>
 Build-Depends: debhelper (>= 7.0.0),
-  autotools-dev,
+  autotools-dev, autoconf, automake, libtool,
   libpthsem-dev, libpthsem20,
   libusb-1.0-0 (>= 1.0.10), libusb-1.0-0-dev (>= 1.0.10),
   pkg-config,
-  libsystemd-dev | libsystemd-daemon-dev,
+  libsystemd-dev (>= 228) | libsystemd-daemon-dev (>= 200) | base-files (<< 8),
   debianutils,
+  dh-systemd | base-files (<< 8)
+Build-Conflicts: libsystemd-daemon-dev (<< 200)
 Standards-Version: 3.9.4
 Homepage: https://github.com/Makki1/knxd
 Vcs-Git: https://github.com/Makki1/knxd.git

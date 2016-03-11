@@ -57,8 +57,8 @@ AC_DEFUN([AX_CHECK_SYSTEMD_LIBS], [
 	PKG_CHECK_MODULES([SYSTEMD], [libsystemd])
 	fi
 	dnl pkg-config older than 0.24 does not set these for
-	dnl PKG_CHECK_MODULES() worth also noting is that as of version 208
-	dnl of systemd pkg-config --cflags currently yields no extra flags yet.
+	dnl PKG_CHECK_MODULES()  Worth also noting is that, as of version 208
+	dnl of systemd, pkg-config --cflags yields no extra flags.
 	AC_SUBST([SYSTEMD_CFLAGS])
 	AC_SUBST([SYSTEMD_LIBS])
 
@@ -69,7 +69,7 @@ AC_DEFUN([AX_CHECK_SYSTEMD_LIBS], [
 	    dnl moment as they depend on another rootprefix, which can vary
 	    dnl from prefix in practice. We provide our own definition as we
 	    dnl *know* where systemd will dump this to, but this does limit
-	    dnl us to stick to a non custom systemdsystemunitdir, dnl to work
+	    dnl us to stick to a non custom systemdsystemunitdir, to work
 	    dnl around this we provide the additional configure option
 	    dnl --with-systemd where you can specify the directory for the unit
 	    dnl files. It would also be best to just extend the upstream
