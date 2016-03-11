@@ -17,10 +17,10 @@ override_dh_clean:
 	dh_clean
 	rm -f debian/knxd.install
 
-override_dh_auto_configure: configure
+override_dh_auto_configure: configure install-sh
 	dh_auto_configure -- --enable-usb --enable-eibnetip --enable-eibnetiptunnel --enable-eibnetipserver --enable-groupcache --enable-ft12 --enable-pei16s --enable-ncn5120 --enable-tpuarts --enable-dummy
 
-configure: configure.ac
+configure install-sh: configure.ac
 	sh bootstrap.sh
 
 override_dh_install: debian/knxd.install debian/knxd.socket debian/knxd.service

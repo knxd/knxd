@@ -1,3 +1,9 @@
+knxd (0.11.8-1) unstable; urgency=medium
+
+  * Merged master branch up to 0.10.13-2
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 11 Mar 2016 16:40:16 +0100
+
 knxd (0.11.7-2) unstable; urgency=medium
 
   * Merged master branch up to 0.10.12-1
@@ -52,6 +58,19 @@ knxd (0.11.1-1) unstable; urgency=medium
   * Refactor multicast to use a separate port for sending
 
  -- Matthias Urlichs <matthias@urlichs.de>  Sun, 28 Jun 2015 06:53:31 +0000
+
+knxd (0.10.13-2) unstable; urgency=medium
+
+  * Fix rebuild when install-sh is missing
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 11 Mar 2016 16:19:02 +0100
+
+knxd (0.10.13-1) unstable; urgency=medium
+
+  * Fix systemd test
+    post Jessie there is no more libsystemd-daemon
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 11 Mar 2016 15:08:45 +0100
 
 knxd (0.10.12-1) unstable; urgency=medium
 
