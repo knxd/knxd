@@ -256,7 +256,7 @@ L_Data_PDU::init (const CArray & c)
       for (i = 0; i < c () - 1; i++)
 	c1 ^= c[i];
       c1 = ~c1;
-      valid_checksum = (c[c () - 1] == c1 ? 1 : 0);
+      valid_checksum = (c[c () - 1] == c1);
     }
   else
     {
@@ -287,7 +287,7 @@ L_Data_PDU::init (const CArray & c)
       for (i = 0; i < c () - 1; i++)
 	c1 ^= c[i];
       c1 = ~c1;
-      valid_checksum = (c[c () - 1] == c1 ? 1 : 0);
+      valid_checksum = (c[c () - 1] == c1);
     }
   return true;
 }
