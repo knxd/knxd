@@ -62,7 +62,7 @@ EIBnetServer::EIBnetServer (const char *multicastaddr, int port, bool Tunnel,
   route = Route;
   discover = Discover;
   if (route || tunnel)
-    layer2_is_bus ();
+    addGroupAddress(0);
 
   busmoncount = 0;
   Start ();
@@ -240,9 +240,11 @@ EIBnetServer::Send_L_Data (L_Data_PDU * l)
 
 bool ConnState::init()
 {
-  if (!Layer2::init())
+  if (! Layer2::init())
     return false;
-  return layer2_is_bus();
+  if (! addGroupAddress(0))
+    return false;
+  return true;
 }
 
 void ConnState::Send_L_Data (L_Data_PDU * l)

@@ -129,7 +129,7 @@ bool NCN5120SerialLayer2Driver::init ()
 {
   if (fd == -1)
     return false;
-  if (! layer2_is_bus())
+  if (! addGroupAddress(0))
     return false;
   return Layer2::init ();
 }

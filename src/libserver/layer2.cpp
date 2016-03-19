@@ -45,14 +45,6 @@ Layer2::RunStop()
 }
 
 bool
-Layer2::layer2_is_bus ()
-{
-  if (! addGroupAddress (0))
-    return false;
-  return true;
-}
-
-bool
 Layer2::addAddress (eibaddr_t addr)
 {
   if (addr == 0)

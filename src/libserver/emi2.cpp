@@ -45,7 +45,7 @@ EMI2Layer2::init ()
 {
   if (iface == 0)
     return false;
-  if (! layer2_is_bus())
+  if (! addGroupAddress(0))
     return false;
   return Layer2::init ();
 }

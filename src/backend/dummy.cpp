@@ -28,10 +28,7 @@
 DummyL2Driver::DummyL2Driver (Layer3 *l3, L2options *opt) : Layer2 (l3, opt)
 {
   TRACEPRINTF (t, 2, this, "Open");
-
-  layer2_is_bus();
   Start ();
-
   TRACEPRINTF (t, 2, this, "Openend");
 }
 

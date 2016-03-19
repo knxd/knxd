@@ -57,8 +57,6 @@ public:
 
   Layer2 (Layer3 *l3, L2options *opt);
   virtual bool init ();
-  /** basic setup to behave like a bus: accept broadcasts, et al. */
-  bool layer2_is_bus ();
 
   /** sends a Layer 2 frame asynchronouse */
   virtual void Send_L_Data (LPDU * l) = 0;

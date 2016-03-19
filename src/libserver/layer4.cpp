@@ -32,8 +32,6 @@ bool Layer4common::init ()
 {
   if (!init_ok)
     return false;
-  if (!layer2_is_bus())
-    return false;
 
   remoteAddr = l3->get_client_addr ();
   return Layer2mixin::init();
@@ -122,8 +120,6 @@ T_Group::T_Group (Layer3 * l3, Trace * tr, eibaddr_t group, int write_only)
   groupaddr = group;
   pth_sem_init (&sem);
   init_ok = false;
-  if (group == 0)
-    return;
 
   if (!write_only)
     if (!addGroupAddress (group))
