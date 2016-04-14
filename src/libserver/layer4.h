@@ -60,156 +60,131 @@ typedef struct
   eibaddr_t dst;
 } GroupAPDU;
 
-/** Broadcast Layer 4 connection */
-class T_Broadcast:public L_Data_CallBack
+class Layer4common:public Layer2mixin
 {
-  /** Layer 3 interface */
-  Layer3 *layer3;
-  /** debug output */
-  Trace *t;
-  /** output queue */
-    Queue < BroadcastComm > outqueue;
-    /** semaphore for output queue */
-  pth_sem_t sem;
+protected:
+  Layer4common(Layer3 *l3, Trace * tr);
   bool init_ok;
+public:
+  bool init ();
+};
+
+/** Broadcast Layer 4 connection */
+class T_Broadcast:public Layer4common
+{
+  /** output queue */
+  Queue < BroadcastComm > outqueue;
+  /** semaphore for output queue */
+  pth_sem_t sem;
 
 public:
-    T_Broadcast (Layer3 * l3, Trace * t, int write_only);
-    virtual ~ T_Broadcast ();
-  bool init ();
+  T_Broadcast (Layer3 * l3, Trace * t, int write_only);
+  virtual ~T_Broadcast ();
 
-  void Get_L_Data (L_Data_PDU * l);
-
-  /** receives APDU of a broadcast; aborts with NULL if stop occurs */
+  /** enqueues a packet */
+  void Send_L_Data (L_Data_PDU * l);
+  /** dequeues APDU of a broadcast; aborts with NULL if stop occurs */
   BroadcastComm *Get (pth_event_t stop);
   /** send APDU c */
   void Send (const CArray & c);
 };
 
 /** Group Communication socket */
-class GroupSocket:public L_Data_CallBack
+class GroupSocket:public Layer4common
 {
-  /** Layer 3 interface */
-  Layer3 *layer3;
-  /** debug output */
-  Trace *t;
   /** output queue */
-    Queue < GroupAPDU > outqueue;
-    /** semaphore for output queue */
+  Queue < GroupAPDU > outqueue;
+  /** semaphore for output queue */
   pth_sem_t sem;
-  bool init_ok;
 
 public:
-    GroupSocket (Layer3 * l3, Trace * t, int write_only);
-    virtual ~ GroupSocket ();
-  bool init ();
+  GroupSocket (Layer3 * l3, Trace * t, int write_only);
+  virtual ~GroupSocket ();
 
-  void Get_L_Data (L_Data_PDU * l);
-
-  /** receives APDU of a broadcast; aborts with NULL if stop occurs */
+  /** enqueues a packet from L3 */
+  void Send_L_Data (L_Data_PDU * l);
+  /** dequeues APDU of a broadcast; aborts with NULL if stop occurs */
   GroupAPDU *Get (pth_event_t stop);
-  /** send APDU c */
+  /** send APDU to L3 */
   void Send (const GroupAPDU & c);
 };
 
 /** Group Layer 4 connection */
-class T_Group:public L_Data_CallBack
+class T_Group:public Layer4common
 {
-  /** Layer 3 interface */
-  Layer3 *layer3;
-  /** debug output */
-  Trace *t;
   /** output queue */
-    Queue < GroupComm > outqueue;
-    /** semaphore for output queue */
+  Queue < GroupComm > outqueue;
+  /** semaphore for output queue */
   pth_sem_t sem;
   /** group address */
   eibaddr_t groupaddr;
-  bool init_ok;
 
 public:
-    T_Group (Layer3 * l3, Trace * t, eibaddr_t dest, int write_only);
-    virtual ~ T_Group ();
-  bool init ();
+  T_Group (Layer3 * l3, Trace * t, eibaddr_t dest, int write_only);
+  virtual ~T_Group ();
 
-  void Get_L_Data (L_Data_PDU * l);
-
-  /** receives APDU of a group telegram; aborts with NULL if stop occurs */
+  /** enqueues a packet from L3 */
+  void Send_L_Data (L_Data_PDU * l);
+  /** dequeues APDU of a group telegram; aborts with NULL if stop occurs */
   GroupComm *Get (pth_event_t stop);
-  /** send APDU c */
+  /** send APDU to L3 */
   void Send (const CArray & c);
 };
 
 /** Layer 4 raw individual connection */
-class T_TPDU:public L_Data_CallBack
+class T_TPDU:public Layer4common
 {
-  /** Layer 3 interface */
-  Layer3 *layer3;
-  /** debug output */
-  Trace *t;
   /** output queue */
-    Queue < TpduComm > outqueue;
-    /** semaphore for output queue */
+  Queue < TpduComm > outqueue;
+  /** semaphore for output queue */
   pth_sem_t sem;
   /** source address to use */
   eibaddr_t src;
-  bool init_ok;
 
 public:
-    T_TPDU (Layer3 * l3, Trace * t, eibaddr_t src);
-    virtual ~ T_TPDU ();
-  bool init ();
+  T_TPDU (Layer3 * l3, Trace * t, eibaddr_t src);
+  virtual ~T_TPDU ();
 
-  void Get_L_Data (L_Data_PDU * l);
-
-  /** receives TPDU of a telegram; aborts with NULL if stop occurs */
+  /** enqueues a packet from L3 */
+  void Send_L_Data (L_Data_PDU * l);
+  /** dequeues TPDU of a telegram; aborts with NULL if stop occurs */
   TpduComm *Get (pth_event_t stop);
-  /** send APDU c */
+  /** send APDU to L3 */
   void Send (const TpduComm & c);
 };
 
 /** Layer 4 T_Individual connection */
-class T_Individual:public L_Data_CallBack
+class T_Individual:public Layer4common
 {
-  /** Layer 3 interface */
-  Layer3 *layer3;
-  /** debug output */
-  Trace *t;
   /** output queue */
-    Queue < CArray > outqueue;
-    /** semaphore for output queue */
+  Queue < CArray > outqueue;
+  /** semaphore for output queue */
   pth_sem_t sem;
   /** destination address */
   eibaddr_t dest;
-  bool init_ok;
 
 public:
-    T_Individual (Layer3 * l3, Trace * t, eibaddr_t dest, int write_only);
-    virtual ~ T_Individual ();
-  bool init ();
+  T_Individual (Layer3 * l3, Trace * t, eibaddr_t dest, int write_only);
+  virtual ~T_Individual ();
 
-  void Get_L_Data (L_Data_PDU * l);
-
-  /** receives APDU of a telegram; aborts with NULL if stop occurs */
+  /** enqueues a packet from L3 */
+  void Send_L_Data (L_Data_PDU * l);
+  /** dequeues APDU of a telegram; aborts with NULL if stop occurs */
   CArray *Get (pth_event_t stop);
-  /** send APDU c */
+  /** send APDU to L3 */
   void Send (const CArray & c);
 };
 
 /** implement a client T_Connection */
-class T_Connection:public L_Data_CallBack, private Thread
+class T_Connection:public Layer4common, private Thread
 {
-  /** Layer 3 interface */
-  Layer3 *layer3;
-  /** debug output */
-  Trace *t;
   /** input queue */
-    Queue < CArray > in;
-    /** buffer queue for layer 3 */
-    Queue < L_Data_PDU * >buf;
+  Queue < CArray > in;
+  /** buffer queue for layer 3 */
+  Queue < L_Data_PDU * >buf;
   /** output queue */
-    Queue < CArray > out;
-    /** receiving sequence number */
+  Queue < CArray > out;
+  /** receiving sequence number */
   int recvno;
   /** sending sequence number */
   int sendno;
@@ -222,9 +197,8 @@ class T_Connection:public L_Data_CallBack, private Thread
   pth_sem_t insem;
   /** semaphre for buffer queue */
   pth_sem_t bufsem;
-    /** semaphore for output queue */
+  /** semaphore for output queue */
   pth_sem_t outsem;
-  bool init_ok;
 
   /** sends T_Connect */
   void SendConnect ();
@@ -235,16 +209,16 @@ class T_Connection:public L_Data_CallBack, private Thread
   /** Sends T_DataConnected */
   void SendData (int serno, const CArray & c);
   void Run (pth_sem_t * stop);
+  const char *Name() { return "Tconnection"; }
 public:
-    T_Connection (Layer3 * l3, Trace * t, eibaddr_t dest);
-   ~T_Connection ();
-  bool init ();
+  T_Connection (Layer3 * l3, Trace * t, eibaddr_t dest);
+  ~T_Connection ();
 
-  void Get_L_Data (L_Data_PDU * l);
-
-  /** receives APDU of a telegram; aborts with NULL if stop occurs */
+  /** enqueues a packet from L3 */
+  void Send_L_Data (L_Data_PDU * l);
+  /** dequeues APDU of a telegram; aborts with NULL if stop occurs */
   CArray *Get (pth_event_t stop);
-  /** send APDU c */
+  /** send APDU to L3 */
   void Send (const CArray & c);
 };
 

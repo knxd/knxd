@@ -24,7 +24,7 @@
 #include "layer2.h"
 
 /** TPUART user mode driver */
-class NCN5120SerialLayer2Driver : public Layer2Interface, private Thread
+class NCN5120SerialLayer2Driver : public Layer2, private Thread
 {
   /** old serial config */
   low_latency_save sold;
@@ -32,58 +32,29 @@ class NCN5120SerialLayer2Driver : public Layer2Interface, private Thread
   struct termios old;
   /** file descriptor */
   int fd;
-  /** debug output */
-  Trace *t;
-  /** default EIB address */
-  eibaddr_t addr;
-  /** state */
-  int mode;
-  /** vbusmonitor mode */
-  int vmode;
   /** semaphore for inqueue */
   pth_sem_t in_signal;
-  /** semaphore for outqueue */
-  pth_sem_t out_signal;
   /** input queue */
-    Queue < LPDU * >inqueue;
-    /** output queue */
-    Queue < LPDU * >outqueue;
-    /** event to wait for outqueue */
-  pth_event_t getwait;
-  /** my individual addresses */
-    Array < eibaddr_t > indaddr;
-    /** my group addresses */
-    Array < eibaddr_t > groupaddr;
+  Queue < LPDU * >inqueue;
   bool ackallgroup;
   bool ackallindividual;
   bool dischreset;
 
-    /** process a recevied frame */
+  /** process a recevied frame */
   void RecvLPDU (const uchar * data, int len);
   void Run (pth_sem_t * stop);
+  const char *Name() { return "ncn5120"; }
 public:
-    NCN5120SerialLayer2Driver (const char *dev, eibaddr_t addr, int flags,
-			      Trace * tr);
-   ~NCN5120SerialLayer2Driver ();
+  NCN5120SerialLayer2Driver (const char *dev, L2options *opt, Layer3 *l3);
+  ~NCN5120SerialLayer2Driver ();
   bool init ();
 
   void Send_L_Data (LPDU * l);
-  LPDU *Get_L_Data (pth_event_t stop);
-
-  bool addAddress (eibaddr_t addr);
-  bool addGroupAddress (eibaddr_t addr);
-  bool removeAddress (eibaddr_t addr);
-  bool removeGroupAddress (eibaddr_t addr);
 
   bool enterBusmonitor ();
   bool leaveBusmonitor ();
-  bool openVBusmonitor ();
-  bool closeVBusmonitor ();
 
   bool Open ();
-  bool Close ();
-  eibaddr_t getDefaultAddr ();
-  bool Connection_Lost ();
   bool Send_Queue_Empty ();
 };
 

@@ -24,50 +24,21 @@
 #include "eibnetip.h"
 
 /** EIBnet/IP routing backend */
-class EIBNetIPRouter:public Layer2Interface, private Thread
+class EIBNetIPRouter:public Layer2, private Thread
 {
-  /** debug output */
-  Trace *t;
-  /** default address */
-  eibaddr_t addr;
   /** EIBnet/IP socket */
   EIBNetIPSocket *sock;
-  /** state */
-  int mode;
-  /** vbusmonitor */
-  int vmode;
-  /** semaphore for outqueue */
-  pth_sem_t out_signal;
-  /** output queue */
-    Queue < LPDU * >outqueue;
-    /** event to wait for outqueue */
-  pth_event_t getwait;
 
   void Run (pth_sem_t * stop);
+  const char *Name() { return "eibnetrouter"; }
 public:
-    EIBNetIPRouter (const char *multicastaddr, int port, eibaddr_t a,
-		    Trace * tr);
-    virtual ~ EIBNetIPRouter ();
+  EIBNetIPRouter (const char *multicastaddr, int port, eibaddr_t a,
+                  Layer3 *l3, L2options *opt);
+  virtual ~EIBNetIPRouter ();
   bool init ();
 
   void Send_L_Data (LPDU * l);
-  LPDU *Get_L_Data (pth_event_t stop);
 
-  bool addAddress (eibaddr_t addr);
-  bool addGroupAddress (eibaddr_t addr);
-  bool removeAddress (eibaddr_t addr);
-  bool removeGroupAddress (eibaddr_t addr);
-
-  bool enterBusmonitor ();
-  bool leaveBusmonitor ();
-  bool openVBusmonitor ();
-  bool closeVBusmonitor ();
-
-  bool Open ();
-  bool Close ();
-  eibaddr_t getDefaultAddr ();
-  bool Connection_Lost ();
-  bool Send_Queue_Empty ();
 };
 
 #endif

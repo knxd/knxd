@@ -25,7 +25,7 @@ dnl ##    SUCH DAMAGE.
 
 AC_PREREQ(2.59)
 
-AC_INIT(knxd, 0.1.0)
+AC_INIT(knxd, 0.10.0)
 AM_INIT_AUTOMAKE([foreign])
 
 AC_CANONICAL_HOST
@@ -38,7 +38,7 @@ AM_PROG_AS
 AC_PROG_RANLIB
 AC_PROG_LIBTOOL
 
-AC_CHECK_HEADERS([sys/time.h])
+AC_CHECK_HEADERS([sys/time.h sys/select.h])
 
 GMP_PROG_CPP_FOR_BUILD
 GMP_PROG_EXEEXT_FOR_BUILD
@@ -49,6 +49,9 @@ AC_COMPILER_OPTION(noexceptions,[-fno-exceptions],[-fno-exceptions],CXXFLAGS="$C
 AC_CHECK_PTHSEM(2.0.8,yes,yes,no)
 PTHSEM_LIB="$PTH_LDFLAGS $PTH_LIBS"
 AC_SUBST(PTHSEM_LIB)
+
+AX_LOCAL_EXPAND_CONFIG
+AX_AVAILABLE_SYSTEMD
 
 AC_CHECK_HEADER(argp.h,,[AC_MSG_ERROR([argp_parse not found])])
 AC_SEARCH_LIBS(argp_parse,argp,,[AC_MSG_ERROR([argp_parse not found])])
@@ -85,28 +88,16 @@ if test x$ft12 = xtrue ; then
  AC_DEFINE(HAVE_FT12, 1 , [FT1.2 enabled])
 fi
 
-AC_ARG_ENABLE(pei16,
-[  --enable-pei16	enable BCU1 kernel driver backend],
+AC_ARG_ENABLE(dummy,
+[  --enable-dummy		enable do-nothing backend],
 [case "${enableval}" in
- yes) pei16=true ;;
-  no)  pei16=false ;;
-   *) AC_MSG_ERROR(bad value ${enableval} for --enable-pei16) ;;
- esac],[pei16=false])
-AM_CONDITIONAL(HAVE_PEI16, test x$pei16 = xtrue)
-if test x$pei16 = xtrue; then
- AC_DEFINE(HAVE_PEI16, 1 , [PEI16 enabled])
-fi
-
-AC_ARG_ENABLE(tpuart,
-[  --enable-tpuart	enable TPUART kernel driver backend (deprecated)],
-[case "${enableval}" in
- yes) tpuart=true ;;
-  no)  tpuart=false ;;
-   *) AC_MSG_ERROR(bad value ${enableval} for --enable-tpuart) ;;
- esac],[tpuart=false])
-AM_CONDITIONAL(HAVE_TPUART, test x$tpuart = xtrue)
-if test x$tpuart = xtrue ; then
- AC_DEFINE(HAVE_TPUART, 1 , [TPUART enabled])
+ yes) dummy=true ;;
+  no)  dummy=false ;;
+   *) AC_MSG_ERROR(bad value ${enableval} for --enable-dummy) ;;
+ esac],[dummy=true])
+AM_CONDITIONAL(HAVE_DUMMY, test x$dummy = xtrue)
+if test x$dummy = xtrue ; then
+ AC_DEFINE(HAVE_DUMMY, 1 , [FT1.2 enabled])
 fi
 
 AC_ARG_ENABLE(pei16s,
@@ -269,7 +260,8 @@ src/common/Makefile
 src/Makefile src/include/Makefile  src/client/Makefile src/examples/Makefile src/libserver/Makefile src/server/Makefile src/backend/Makefile
 src/client/def/Makefile src/client/c/Makefile src/client/java/Makefile src/client/php/Makefile src/client/cs/Makefile
 src/client/perl/Makefile src/client/python/Makefile src/client/pascal/Makefile src/client/ruby/Makefile src/client/lua/Makefile
-src/tools/eibnet/Makefile src/tools/bcu/Makefile src/usb/Makefile src/tools/Makefile
+src/tools/eibnet/Makefile src/tools/bcu/Makefile src/usb/Makefile src/tools/Makefile systemd/Makefile systemd/knxd.service systemd/knxd.socket
+rpm/Makefile rpm/knxd.spec
 )
 
 AC_CONFIG_MACRO_DIR([m4])

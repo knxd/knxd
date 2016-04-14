@@ -28,7 +28,7 @@ const uchar EMI1_READ[] = { 0x4C, 0x01, 0x01, 0x16 };
 
 
 static void
-llwait (LowLevelDriverInterface * iface)
+llwait (LowLevelDriver * iface)
 {
   if (!iface->Send_Queue_Empty ())
     {
@@ -40,7 +40,7 @@ llwait (LowLevelDriverInterface * iface)
 }
 
 int
-readEMI1Mem (LowLevelDriverInterface * iface, memaddr_t addr, uchar len,
+readEMI1Mem (LowLevelDriver * iface, memaddr_t addr, uchar len,
 	     CArray & result)
 {
   CArray *d1, d;
@@ -71,7 +71,7 @@ readEMI1Mem (LowLevelDriverInterface * iface, memaddr_t addr, uchar len,
 }
 
 int
-writeEMI1Mem (LowLevelDriverInterface * iface, memaddr_t addr, CArray data)
+writeEMI1Mem (LowLevelDriver * iface, memaddr_t addr, CArray data)
 {
   CArray d;
   iface->SendReset ();
@@ -89,7 +89,7 @@ writeEMI1Mem (LowLevelDriverInterface * iface, memaddr_t addr, CArray data)
 }
 
 int
-readEMI2Mem (LowLevelDriverInterface * iface, memaddr_t addr, uchar len,
+readEMI2Mem (LowLevelDriver * iface, memaddr_t addr, uchar len,
 	     CArray & result)
 {
   CArray *d1, d;
@@ -189,7 +189,7 @@ readEMI2Mem (LowLevelDriverInterface * iface, memaddr_t addr, uchar len,
 }
 
 int
-writeEMI2Mem (LowLevelDriverInterface * iface, memaddr_t addr, CArray data)
+writeEMI2Mem (LowLevelDriver * iface, memaddr_t addr, CArray data)
 {
   CArray *d1, d;
   iface->SendReset ();
@@ -262,14 +262,14 @@ writeEMI2Mem (LowLevelDriverInterface * iface, memaddr_t addr, CArray data)
 }
 
 int
-readEMIMem (LowLevelDriverInterface * iface, memaddr_t addr, uchar len,
+readEMIMem (LowLevelDriver * iface, memaddr_t addr, uchar len,
 	    CArray & result)
 {
   switch (iface->getEMIVer ())
     {
-    case LowLevelDriverInterface::vEMI1:
+    case LowLevelDriver::vEMI1:
       return readEMI1Mem (iface, addr, len, result);
-    case LowLevelDriverInterface::vEMI2:
+    case LowLevelDriver::vEMI2:
       return readEMI2Mem (iface, addr, len, result);
 
     default:
@@ -278,13 +278,13 @@ readEMIMem (LowLevelDriverInterface * iface, memaddr_t addr, uchar len,
 }
 
 int
-writeEMIMem (LowLevelDriverInterface * iface, memaddr_t addr, CArray data)
+writeEMIMem (LowLevelDriver * iface, memaddr_t addr, CArray data)
 {
   switch (iface->getEMIVer ())
     {
-    case LowLevelDriverInterface::vEMI1:
+    case LowLevelDriver::vEMI1:
       return writeEMI1Mem (iface, addr, data);
-    case LowLevelDriverInterface::vEMI2:
+    case LowLevelDriver::vEMI2:
       return writeEMI2Mem (iface, addr, data);
 
     default:
@@ -293,7 +293,7 @@ writeEMIMem (LowLevelDriverInterface * iface, memaddr_t addr, CArray data)
 }
 
 int
-readAddrTabSize (LowLevelDriverInterface * iface, uchar & result)
+readAddrTabSize (LowLevelDriver * iface, uchar & result)
 {
   CArray x;
   if (!readEMIMem (iface, 0x116, 1, x))
@@ -303,7 +303,7 @@ readAddrTabSize (LowLevelDriverInterface * iface, uchar & result)
 }
 
 int
-writeAddrTabSize (LowLevelDriverInterface * iface, uchar size)
+writeAddrTabSize (LowLevelDriver * iface, uchar size)
 {
   CArray x;
   x.resize (1);

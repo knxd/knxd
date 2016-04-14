@@ -1,6 +1,11 @@
-# Author: Michael Kefeder
+# Copyright 1999-2015 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+# $Header: $
+# Author: Michael Kefeder (m.kefeder@gmail.com)
+# Author: Patrik Pfaffenbauer (patrik.pfaffenbauer@p3.co.at)
+# Author: Marc Joliet (marcec@gmx.de)
 
-EAPI="2"
+EAPI="5"
 
 inherit eutils autotools git-2
 
@@ -8,27 +13,23 @@ DESCRIPTION="Provides an interface to the EIB / KNX bus (latest git)"
 HOMEPAGE="https://github.com/Makki1/knxd"
 
 LICENSE="GPL-2"
-SLOT="0"
+SLOT="9999"
 KEYWORDS=""
-IUSE="eibd ft12 pei16 tpuart pei16s tpuarts eibnetip eibnetiptunnel eibnetipserver
-usb groupcache java"
+IUSE="eibd ft12 pei16s tpuarts eibnetip eibnetiptunnel eibnetipserver usb groupcache java ncn5120 dummy"
 
 DEPEND="dev-libs/pthsem"
 
 EGIT_REPO_URI="https://github.com/Makki1/knxd.git"
 
 src_prepare() {
-    eautoreconf || die "eautotooling failed"
+	eautoreconf || die "eautotooling failed"
 }
 
 src_configure() {
 #  works for me with the pth tests
 #        --without-pth-test \
     econf \
-        --enable-onlyeibd \
         $(use_enable ft12) \
-        $(use_enable pei16) \
-        $(use_enable tpuart) \
         $(use_enable pei16s) \
         $(use_enable tpuarts) \
         $(use_enable eibnetip) \
@@ -36,6 +37,7 @@ src_configure() {
         $(use_enable eibnetipserver) \
         $(use_enable usb) \
         $(use_enable java) \
+        $(use_enable ncn5120) \
         $(use_enable groupcache) || die "econf failed"
 
 }
@@ -45,14 +47,11 @@ src_compile() {
 }
 
 src_install() {
-    emake DESTDIR="${D}" install
+	emake DESTDIR="${D}" install
 
-    einfo "Installing init-script and config"
-    cd ${S}/contrib/gentoo/etc/
-    exeinto /etc/init.d/
-    doexe init.d/knxd
+	einfo "Installing init-script and config"
 
-    insinto /etc/conf.d/
-    doins conf.d/knxd
+	sed -e "s|@SLOT@|${SLOT}|g" \
+               "${FILESDIR}/${PN}.init" | newinitd - ${PN}-${SLOT}
 
 }

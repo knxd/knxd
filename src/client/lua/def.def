@@ -212,7 +212,7 @@
 #define EIBC_SETBOOL(value, offset) \
 	printf("    if %s ~= 0  then \n", #value); \
 	printf("      ibuf[%d] = 0xff\n", offset+1); \
-	printf("    else\n", #value); \
+	printf("    else\n"); \
 	printf("      ibuf[%d] = 0x00\n", offset+1); \
 	printf("    end\n"); 
 	

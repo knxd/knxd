@@ -27,6 +27,7 @@ Layer7_Broadcast::Layer7_Broadcast (Layer3 * l3, Trace * tr)
   l4 = new T_Broadcast (l3, tr, 0);
   if (!l4->init ())
     {
+      TRACEPRINTF (t, 5, this, "L7Broadcast init bad");
       delete l4;
       l4 = 0;
     }
@@ -53,7 +54,7 @@ Layer7_Broadcast::A_IndividualAddress_Write (eibaddr_t addr)
 }
 
 Array < eibaddr_t >
-  Layer7_Broadcast::A_IndividualAddress_Read (unsigned timeout)
+  Layer7_Broadcast::A_IndividualAddress_Read (Trace * tr, unsigned timeout)
 {
   Array < eibaddr_t > addrs;
   A_IndividualAddress_Read_PDU r;
@@ -65,12 +66,9 @@ Array < eibaddr_t >
       BroadcastComm *c = l4->Get (t);
       if (c)
 	{
-	  a = APDU::fromPacket (c->data);
+	  a = APDU::fromPacket (c->data, tr);
 	  if (a->isResponse (&r))
-	    {
-	      addrs.resize (addrs () + 1);
-	      addrs[addrs () - 1] = c->src;
-	    }
+	    addrs.add (c->src);
 	  delete a;
 	  delete c;
 	}
@@ -81,11 +79,13 @@ Array < eibaddr_t >
 
 Layer7_Connection::Layer7_Connection (Layer3 * l3, Trace * tr, eibaddr_t d)
 {
+  TRACEPRINTF (t, 5, this, "L7Connection open");
   t = tr;
   dest = d;
   l4 = new T_Connection (l3, tr, d);
   if (!l4->init ())
     {
+      TRACEPRINTF (t, 5, this, "L7Connection init bad");
       delete l4;
       l4 = 0;
     }
@@ -119,25 +119,21 @@ Layer7_Connection::Request_Response (APDU * r)
   while (pth_event_status (t) != PTH_STATUS_OCCURRED)
     {
       c = l4->Get (t);
-      if (c)
-	{
-	  if (c->len () == 0)
-	    {
-	      delete c;
-	      pth_event_free (t, PTH_FREE_THIS);
-	      return 0;
-	    }
-	  a = APDU::fromPacket (*c);
-	  delete c;
-	  if (a->isResponse (r))
-	    {
-	      pth_event_free (t, PTH_FREE_THIS);
-	      return a;
-	    }
-	  delete a;
-	  pth_event_free (t, PTH_FREE_THIS);
-	  return 0;
-	}
+      if (!c)
+        continue;
+      if (c->len () == 0)
+        {
+          delete c;
+          continue;
+        }
+      a = APDU::fromPacket (*c, this->t);
+      delete c;
+      if (a->isResponse (r))
+        {
+          pth_event_free (t, PTH_FREE_THIS);
+          return a;
+        }
+      delete a;
     }
   pth_event_free (t, PTH_FREE_THIS);
   return 0;
@@ -321,7 +317,8 @@ int
 Layer7_Connection::X_Memory_Write_Block (memaddr_t addr, const CArray & data)
 {
   CArray prev;
-  int i, j, k, res = 0;
+  unsigned int i, j;
+  int k, res = 0;
   const unsigned blocksize = 12;
   if (X_Memory_Read_Block (addr, data (), prev) == -1)
     return -1;
@@ -344,7 +341,7 @@ Layer7_Connection::X_Memory_Write_Block (memaddr_t addr, const CArray & data)
 }
 
 int
-Layer7_Connection::X_Memory_Read_Block (memaddr_t addr, int len, CArray & erg)
+Layer7_Connection::X_Memory_Read_Block (memaddr_t addr, unsigned int len, CArray & erg)
 {
   unsigned blocksize = 12;
   CArray e;
@@ -371,7 +368,8 @@ int
 Layer7_Connection::A_Memory_Write_Block (memaddr_t addr, const CArray & data)
 {
   CArray prev;
-  int i, j, k, res = 0;
+  unsigned int i, j;
+  int k, res = 0;
   const unsigned blocksize = 12;
 
   for (i = 0; i < data (); i += blocksize)
@@ -389,11 +387,13 @@ Layer7_Connection::A_Memory_Write_Block (memaddr_t addr, const CArray & data)
 
 Layer7_Individual::Layer7_Individual (Layer3 * l3, Trace * tr, eibaddr_t d)
 {
+  TRACEPRINTF (t, 5, this, "L7Individual open");
   t = tr;
   dest = d;
   l4 = new T_Individual (l3, tr, d, false);
   if (!l4->init ())
     {
+      TRACEPRINTF (t, 5, this, "L7Individual init bad");
       delete l4;
       l4 = 0;
     }
@@ -428,7 +428,7 @@ Layer7_Individual::Request_Response (APDU * r)
 	      pth_event_free (t, PTH_FREE_THIS);
 	      return 0;
 	    }
-	  a = APDU::fromPacket (*c);
+	  a = APDU::fromPacket (*c, this->t);
 	  delete c;
 	  if (a->isResponse (r))
 	    {

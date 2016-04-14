@@ -22,6 +22,7 @@
 
 #include "lowlevel.h"
 #include "libusb.h"
+#include "usb.h"
 
 typedef struct
 {
@@ -45,9 +46,11 @@ typedef struct
 USBEndpoint parseUSBEndpoint (const char *addr);
 USBDevice detectUSBEndpoint (USBEndpoint e);
 
-class USBLowLevelDriver:public LowLevelDriverInterface, private Thread
+class USBLowLevelDriver:public LowLevelDriver, private Thread
 {
   libusb_device_handle *dev;
+  /* libusb event loop */
+  USBLoop *loop;
   USBDevice d;
   /** debug output */
   Trace *t;
@@ -56,10 +59,10 @@ class USBLowLevelDriver:public LowLevelDriverInterface, private Thread
   /** semaphore for outqueue */
   pth_sem_t out_signal;
   /** input queue */
-    Queue < CArray > inqueue;
-    /** output queue */
-    Queue < CArray * >outqueue;
-    /** event to wait for outqueue */
+  Queue < CArray > inqueue;
+  /** output queue */
+  Queue < CArray * >outqueue;
+  /** event to wait for outqueue */
   pth_event_t getwait;
   /** semaphore to signal empty sendqueue */
   pth_sem_t send_empty;
@@ -73,13 +76,14 @@ class USBLowLevelDriver:public LowLevelDriverInterface, private Thread
   bool startUsbRecvTransferFailed;
 
   void Run (pth_sem_t * stop);
+  const char *Name() { return "usbif"; }
   void StartUsbRecvTransfer(struct libusb_transfer *recvh);
   void FinishUsbRecvTransfer(struct libusb_transfer *recvh);
   void ReceiveUsb();
 
 public:
-    USBLowLevelDriver (const char *device, Trace * tr);
-   ~USBLowLevelDriver ();
+  USBLowLevelDriver (const char *device, Trace * tr);
+  ~USBLowLevelDriver ();
   bool init ();
   void CompleteReceive(struct libusb_transfer *recvh);
 
@@ -88,7 +92,6 @@ public:
   pth_sem_t *Send_Queue_Empty_Cond ();
   CArray *Get_Packet (pth_event_t stop);
   void SendReset ();
-  bool Connection_Lost ();
   EMIVer getEMIVer ();
 };
 

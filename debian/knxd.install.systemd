@@ -1,0 +1,3 @@
+/lib/*
+/etc/knxd.conf
+/usr/lib/sysusers.d

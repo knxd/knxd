@@ -21,6 +21,7 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include "ncn5120.h"
+#include "layer3.h"
 
 /** get serial status lines */
 static int
@@ -40,22 +41,22 @@ setstat (int fd, int s)
 
 
 NCN5120SerialLayer2Driver::NCN5120SerialLayer2Driver (const char *dev,
-						    eibaddr_t a, int flags,
-						    Trace * tr)
+						    L2options *opt, Layer3 * l3)
+	: Layer2::Layer2(l3, opt)
 {
   struct termios t1;
-  t = tr;
   TRACEPRINTF (t, 2, this, "Open");
 
   pth_sem_init (&in_signal);
-  pth_sem_init (&out_signal);
 
-  ackallgroup = flags & FLAG_B_TPUARTS_ACKGROUP;
-  ackallindividual = flags & FLAG_B_TPUARTS_ACKINDIVIDUAL;
-  dischreset = flags & FLAG_B_TPUARTS_DISCH_RESET;
+  ackallgroup = opt ? (opt->flags & FLAG_B_TPUARTS_ACKGROUP) : 0;
+  ackallindividual = opt ? (opt->flags & FLAG_B_TPUARTS_ACKINDIVIDUAL) : 0;
+  dischreset = opt ? (opt->flags & FLAG_B_TPUARTS_DISCH_RESET) : 0;
 
-  getwait = pth_event (PTH_EVENT_SEM, &out_signal);
-
+  if (opt)
+    opt->flags &=~ (FLAG_B_TPUARTS_ACKGROUP |
+                    FLAG_B_TPUARTS_ACKINDIVIDUAL |
+		            FLAG_B_TPUARTS_DISCH_RESET);
   fd = open (dev, O_RDWR | O_NOCTTY | O_NDELAY | O_SYNC);
   if (fd == -1)
     return;
@@ -102,12 +103,6 @@ NCN5120SerialLayer2Driver::NCN5120SerialLayer2Driver (const char *dev,
 
   setstat (fd, (getstat (fd) & ~TIOCM_RTS) | TIOCM_DTR);
 
-  mode = 0;
-  vmode = 0;
-  addr = a;
-  indaddr.resize (1);
-  indaddr[0] = a;
-
   Start ();
   TRACEPRINTF (t, 2, this, "Openend");
 }
@@ -116,10 +111,7 @@ NCN5120SerialLayer2Driver::~NCN5120SerialLayer2Driver ()
 {
   TRACEPRINTF (t, 2, this, "Close");
   Stop ();
-  pth_event_free (getwait, PTH_FREE_THIS);
 
-  while (!outqueue.isempty ())
-    delete outqueue.get ();
   while (!inqueue.isempty ())
     delete inqueue.get ();
 
@@ -135,81 +127,11 @@ NCN5120SerialLayer2Driver::~NCN5120SerialLayer2Driver ()
 
 bool NCN5120SerialLayer2Driver::init ()
 {
-  return fd != -1;
-}
-
-bool
-NCN5120SerialLayer2Driver::addAddress (eibaddr_t addr)
-{
-  unsigned i;
-  for (i = 0; i < indaddr (); i++)
-    if (indaddr[i] == addr)
-      return 0;
-  indaddr.resize (indaddr () + 1);
-  indaddr[indaddr () - 1] = addr;
-  return 1;
-}
-
-bool
-NCN5120SerialLayer2Driver::addGroupAddress (eibaddr_t addr)
-{
-  unsigned i;
-  for (i = 0; i < groupaddr (); i++)
-    if (groupaddr[i] == addr)
-      return 0;
-  groupaddr.resize (groupaddr () + 1);
-  groupaddr[groupaddr () - 1] = addr;
-  return 1;
-}
-
-bool
-NCN5120SerialLayer2Driver::removeAddress (eibaddr_t addr)
-{
-  unsigned i;
-  for (i = 0; i < indaddr (); i++)
-    if (indaddr[i] == addr)
-      {
-	indaddr.deletepart (i, 1);
-	return 1;
-      }
-  return 0;
-}
-
-bool
-NCN5120SerialLayer2Driver::removeGroupAddress (eibaddr_t addr)
-{
-  unsigned i;
-  for (i = 0; i < groupaddr (); i++)
-    if (groupaddr[i] == addr)
-      {
-	groupaddr.deletepart (i, 1);
-	return 1;
-      }
-  return 0;
-}
-
-bool NCN5120SerialLayer2Driver::openVBusmonitor ()
-{
-  vmode = 1;
-  return 1;
-}
-
-bool NCN5120SerialLayer2Driver::closeVBusmonitor ()
-{
-  vmode = 0;
-  return 1;
-}
-
-eibaddr_t
-NCN5120SerialLayer2Driver::getDefaultAddr ()
-{
-  return addr;
-}
-
-bool
-NCN5120SerialLayer2Driver::Connection_Lost ()
-{
-  return 0;
+  if (fd == -1)
+    return false;
+  if (! layer2_is_bus())
+    return false;
+  return Layer2::init ();
 }
 
 bool
@@ -226,63 +148,38 @@ NCN5120SerialLayer2Driver::Send_L_Data (LPDU * l)
   pth_sem_inc (&in_signal, 1);
 }
 
-LPDU *
-NCN5120SerialLayer2Driver::Get_L_Data (pth_event_t stop)
-{
-  if (stop != NULL)
-    pth_event_concat (getwait, stop, NULL);
-
-  pth_wait (getwait);
-
-  if (stop)
-    pth_event_isolate (getwait);
-
-  if (pth_event_status (getwait) == PTH_STATUS_OCCURRED)
-    {
-      pth_sem_dec (&out_signal);
-      LPDU *l = outqueue.get ();
-      TRACEPRINTF (t, 2, this, "Recv %s", l->Decode ()());
-      return l;
-    }
-  else
-    return 0;
-}
-
-
 //Open
 
 bool
 NCN5120SerialLayer2Driver::enterBusmonitor ()
 {
+  if (! Layer2::enterBusmonitor ())
+	return false;
   uchar c = 0x05;
   t->TracePacket (2, this, "openBusmonitor", 1, &c);
   write (fd, &c, 1);
-  mode = 1;
-  return 1;
+  return true;
 }
 
 bool
 NCN5120SerialLayer2Driver::leaveBusmonitor ()
 {
+  if (! Layer2::leaveBusmonitor ())
+	return false;
   uchar c = 0x01;
   t->TracePacket (2, this, "leaveBusmonitor", 1, &c);
   write (fd, &c, 1);
-  mode = 0;
-  return 1;
+  return true;
 }
 
 bool
 NCN5120SerialLayer2Driver::Open ()
 {
+  if (! Layer2::Open ())
+	return false;
   uchar c = 0x01;
   t->TracePacket (2, this, "open-reset", 1, &c);
   write (fd, &c, 1);
-  return 1;
-}
-
-bool
-NCN5120SerialLayer2Driver::Close ()
-{
   return 1;
 }
 
@@ -290,20 +187,18 @@ void
 NCN5120SerialLayer2Driver::RecvLPDU (const uchar * data, int len)
 {
   t->TracePacket (1, this, "Recv", len, data);
-  if (mode || vmode)
+  if (mode & BUSMODE_MONITOR)
     {
-      L_Busmonitor_PDU *l = new L_Busmonitor_PDU;
+      L_Busmonitor_PDU *l = new L_Busmonitor_PDU (this);
       l->pdu.set (data, len);
-      outqueue.put (l);
-      pth_sem_inc (&out_signal, 1);
+      l3->recv_L_Data (l);
     }
-  if (!mode)
+  if (mode != BUSMODE_MONITOR)
     {
-      LPDU *l = LPDU::fromPacket (CArray (data, len));
+      LPDU *l = LPDU::fromPacket (CArray (data, len), this);
       if (l->getType () == L_Data && ((L_Data_PDU *) l)->valid_checksum)
 	{
-	  outqueue.put (l);
-	  pth_sem_inc (&out_signal, 1);
+	  l3->recv_L_Data (l);
 	}
       else
 	delete l;
@@ -349,16 +244,17 @@ NCN5120SerialLayer2Driver::Run (pth_sem_t * stop1)
 	}
       while (in () > 0)
 	{
-	  if(rmn) {
-	  	TRACEPRINTF (t, 0, this, "Remove next");
-	  	in.deletepart(0, 1);
-		rmn = false;
-		continue;
-	  }
+	  if(rmn)
+	    {
+	      TRACEPRINTF (t, 0, this, "Remove next");
+	      in.deletepart(0, 1);
+	      rmn = false;
+	      continue;
+	    }
 	  rmn = false;
 	  if (in[0] == 0x8B)
 	    {
-	      if (!mode && vmode)
+	      if (mode == BUSMODE_VMONITOR)
 		{
 		  const uchar pkt[1] = { 0xCC };
 		  RecvLPDU (pkt, 1);
@@ -374,7 +270,7 @@ NCN5120SerialLayer2Driver::Run (pth_sem_t * stop1)
 	    }
 	  else if (in[0] == 0x0B)
 	    {
-	      if (!mode && vmode)
+	      if (mode == BUSMODE_VMONITOR)
 		{
 		  const uchar pkt[1] = { 0x0C };
 		  RecvLPDU (pkt, 1);
@@ -429,21 +325,13 @@ NCN5120SerialLayer2Driver::Run (pth_sem_t * stop1)
 		  uchar c = 0x10;
 		  if ((in[5] & 0x80) == 0)
 		    {
-		      if (ackallindividual)
+		      if (ackallindividual || l3->hasAddress ((in[3] << 8) | in[4], this))
 			c |= 0x1;
-		      else
-			for (unsigned i = 0; i < indaddr (); i++)
-			  if (indaddr[i] == ((in[3] << 8) | in[4]))
-			    c |= 0x1;
 		    }
 		  else
 		    {
-		      if (ackallgroup)
+		      if (ackallgroup || l3->hasGroupAddress ((in[3] << 8) | in[4], this))
 			c |= 0x1;
-		      else
-			for (unsigned i = 0; i < groupaddr (); i++)
-			  if (groupaddr[i] == ((in[3] << 8) | in[4]))
-			    c |= 0x1;
 		    }
 		  TRACEPRINTF (t, 0, this, "SendAck %02X", c);
 		  pth_write_ev (fd, &c, 1, stop);
@@ -491,7 +379,7 @@ NCN5120SerialLayer2Driver::Run (pth_sem_t * stop1)
 	    }
 	}
       if (watch == 1 && pth_event_status (watchdog) == PTH_STATUS_OCCURRED
-	  && mode == 0)
+	  && mode != BUSMODE_MONITOR)
 	{
 	  if (dischreset)
 	    {
@@ -507,7 +395,7 @@ NCN5120SerialLayer2Driver::Run (pth_sem_t * stop1)
 	  watch = 0;
 	}
       if (watch == 1 && pth_event_status (watchdog) == PTH_STATUS_OCCURRED
-	  && mode)
+	  && mode == BUSMODE_MONITOR)
 	watch = 0;
       if (watch == 2 && pth_event_status (watchdog) == PTH_STATUS_OCCURRED)
 	watch = 0;
@@ -517,7 +405,6 @@ NCN5120SerialLayer2Driver::Run (pth_sem_t * stop1)
 	  CArray d = l->ToPacket ();
 	  CArray w;
 	  unsigned i;
-	  int j;
 	  w.resize (d () * 2);
 	  for (i = 0; i < d (); i++)
 	    {
@@ -526,12 +413,12 @@ NCN5120SerialLayer2Driver::Run (pth_sem_t * stop1)
 	    }
 	  w[(d () * 2) - 2] = (w[(d () * 2) - 2] & 0x3f) | 0x40;
 	  t->TracePacket (0, this, "Write", w);
-	  j = pth_write_ev (fd, w.array (), w (), stop);
+	  (void) pth_write_ev (fd, w.array (), w (), stop);
 	  waitconfirm = 1;
 	  pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE, sendtimeout,
 		     pth_time (0, 600000));
 	}
-      else if (in () == 0 && !waitconfirm && !watch && mode == 0 && !to)
+      else if (in () == 0 && !waitconfirm && !watch && mode != BUSMODE_MONITOR && !to)
 	{
 	  pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE, watchdog,
 		     pth_time (10, 0));

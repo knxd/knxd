@@ -30,16 +30,15 @@
 #include <time.h>
 
 #include <string.h>
-#define MAX_POSTSIZE 4096 /* max post-size */
-#define MAX_GA 1024 /* max number of GAs */
+#define MAX_POSTSIZE 10000 /* max post-size */
 #define BUFSIZE 512 /* max buffer of cfgfile-line */
-#define UINT16 65535
+#define UINT16 65536
 
 char *eiburl[256];
 int lastpos = 0;
 int timeout = 300;
-int subscribedGA[UINT16];
-int gaDPT[UINT16];
+int subscribedGA[UINT16 >>3];
+//int gaDPT[UINT16];
 
 //struct gaconfig_s {
 //  int ga;
@@ -183,10 +182,10 @@ void readConfig()
       {
         currentga=((hg & 0x01f) << 11) | ((mg & 0x07) << 8) | ((ga & 0xff));
       }
-      else if (currentga && (ptr=strstr(tok,"DPTId")) )
-      {
-          sscanf(tok,"%*s = %d",&gaDPT[currentga]);
-      }
+//      else if (currentga && (ptr=strstr(tok,"DPTId")) )
+//      {
+//          sscanf(tok,"%*s = %d",&gaDPT[currentga]);
+//      }
     }
   }/*until EOF*/
   fclose(fp);
@@ -197,78 +196,69 @@ void readConfig()
 // read parameters
 void readParseCGI()
 {
-  char* params;
-  char* value;
-  char *valuepairs[MAX_GA];
+  char *param,*nextp;
+  char *value;
   char *cgistr;
-  int i=0,j=0,k=0;
   cgistr = parseRequest();
   if(cgistr == NULL)
     cgidie ("No data");
   hex2ascii(cgistr);
-  params=strtok(cgistr,"&");
-  while( params != NULL && i < MAX_GA)
+  nextp = cgistr;
+  while (nextp != NULL) 
   {
-      valuepairs[i] = (char *)malloc(strlen(params)+1);
-      if(valuepairs[i] == NULL)
-         return;
-      valuepairs[i] = params;
-      params=strtok(NULL,"&");
-      i++;
-  }
-  while (i > j)
-  {
-      value=strtok(valuepairs[j],"=");
-      if ( value != NULL )
+      param = nextp;
+      nextp = strchr(param, '&');
+      if (nextp)
+        *nextp++ = 0;
+
+      value=strchr(param,'=');
+      if (!value)
+        continue;
+      *value++ = 0;
+
+      if (strcmp (param,"url") == 0)
       {
-          if (strcmp (value,"url") == 0)
-          {
-            value=strtok(NULL,"=");
 #ifdef BETA
-            if ( value != NULL )
-                 *eiburl = (char *) strdup(value);
+        if ( value != NULL )
+              *eiburl = (char *) strdup(value);
 /* FIXME: Security - define url from ENV - Parameter only for devel */
 #endif
-          }
-          else if (strcmp (value,"i") == 0)
-          {
-            value=strtok(NULL,"=");
-            lastpos=atoi(value);
-          }
-          else if (strcmp (value,"t") == 0)
-          {
-            value=strtok(NULL,"=");
-            timeout=atoi(value);
-            if (timeout==0) {
-              lastpos=0;
-              timeout=1;
-            }
-          }
-          else if (strcmp (value,"a") == 0)
-          {
-            value=strtok(NULL,"=");
-            if (value==NULL)
-        	break;
-            if (isNumeric(value))
-            {
-              subscribedGA[atoi(value)]=1;
-            }
-            else if (strcmp (value,"all") == 0)
-            {
-              subscribedGA[0] = -1;
-            } else {
-              subscribedGA[readgaddr(value)] = 1;
-            }
-            k++;
-          }
-          //FIXME: Session,filter?
-          else
-          {
-            //printf ("Unknown param %s\n",value); //debug
-          }
-
       }
-      j++;
+      else if (strcmp (param,"i") == 0)
+      {
+        lastpos=atoi(value);
+      }
+      else if (strcmp (param,"t") == 0)
+      {
+        timeout=atoi(value);
+        if (timeout==0) {
+          lastpos=0;
+          timeout=1;
+        }
+      }
+      else if (strcmp (param,"a") == 0)
+      {
+        if (value==NULL)
+            break;
+        if (isNumeric(value))
+        {
+          int v = atoi(value);
+          subscribedGA[v>>3] |= 1<<(v&7);
+        }
+        else if (strcmp (value,"all") == 0)
+        {
+          subscribedGA[0] |= 1;
+        } else {
+          int ga = readgaddr(value);
+          if (ga > 0)
+            subscribedGA[ga >> 3] |= 1<<(ga&7);
+        }
+      }
+      //FIXME: Session,filter?
+      else
+      {
+        //printf ("Unknown param %s\n",value); //debug
+      }
   }
 }
 
@@ -284,8 +274,9 @@ main ()
   uint16_t end;
   uchar buf[300];
   uchar buf_gread[200];
-  int written = 0;
   char outbuf[10000];
+  char *outptr = outbuf;
+#define OPL ({ int opl = sizeof(outbuf)-(outptr-outbuf); if (opl < 3) opl=0; opl;})
   char tmpbuf[50];
   time_t tstart;
   tstart = time(NULL);
@@ -302,12 +293,14 @@ main ()
   if (!con)
     cgidie ("Open failed");
 
-  strcat(outbuf,"{\"d\": {");
+  strcpy(outptr,"{\"d\": {");
+  outptr += strlen(outptr);
+
   if (lastpos==0) //initial read
   {
     for (i = 0; i < UINT16; i++)
     {
-      if (subscribedGA[i] || subscribedGA[0] == -1) //this is HEAVY g=all reads ALL this will take LONG!
+      if ((subscribedGA[i>>3]&(1<<(i&7))) || (subscribedGA[0] | 1)) //this is HEAVY g=all reads ALL this will take LONG!
       {
         dest = i;
         len_gread = EIB_Cache_Read_Sync (con, dest, &src, sizeof (buf_gread), buf_gread, 0);
@@ -317,26 +310,22 @@ main ()
         {
           if (buf_gread[1] & 0xC0)
           {
-            if (written)
-              strcat(outbuf,",");
-            written=1;
+            if (outptr != outbuf)
+              *outptr++ = ',';
 
             if (len_gread == 2)
             {
-              sprintf (tmpbuf,"\"%d/%d/%d\":\"%02X", (dest >> 11) & 0x1f, (dest >> 8) & 0x07, dest & 0xff, buf_gread[1] & 0x3F);
-              strcat(outbuf,tmpbuf);
+              outptr += snprintf (outptr,OPL, "\"%d/%d/%d\":\"%02X", (dest >> 11) & 0x1f, (dest >> 8) & 0x07, dest & 0xff, buf_gread[1] & 0x3F);
             }
             else
             {
-              sprintf (tmpbuf,"\"%d/%d/%d\":\"", (dest >> 11) & 0x1f, (dest >> 8) & 0x07, dest & 0xff);
-              strcat(outbuf,tmpbuf);
+              outptr += snprintf(outptr,OPL, "\"%d/%d/%d\":\"", (dest >> 11) & 0x1f, (dest >> 8) & 0x07, dest & 0xff);
               for (j = 0; j < len_gread-2; j++)
               {
-                sprintf (tmpbuf,"%02X", buf_gread[j+2]);
-                strcat(outbuf,tmpbuf);
+                outptr += snprintf (outptr,OPL, "%02X", buf_gread[j+2]);
               }
             }
-            strcat(outbuf,"\"");
+            *outptr++ = '"';
           }
         } else {
           //printf ("read failed!\n");
@@ -345,7 +334,7 @@ main ()
     }
   }
 
-  while ((!written || lastpos <1) &&  difftime(time(NULL), tstart) < timeout)
+  while ((outptr == outbuf || lastpos <1) &&  difftime(time(NULL), tstart) < timeout)
   {
   len = EIB_Cache_LastUpdates (con, lastpos, timeout, sizeof (buf), buf, &end);
   if (len == -1)
@@ -361,11 +350,10 @@ main ()
       dest = (buf[i] << 8) | buf[i + 1];
       // and output only one if changed multiple times to save the planet
       sprintf(tmpbuf,"\"%d/%d/%d\":",(dest >> 11) & 0x1f, (dest >> 8) & 0x07, dest & 0xff);
-      if ((subscribedGA[dest] || subscribedGA[0] == -1) && !strstr(outbuf,tmpbuf))
+      if (((subscribedGA[dest>>3]&(1<<((dest&7)))) || (subscribedGA[0] | 1)) && !strstr(outbuf,tmpbuf))
       {
-        if (written)
+        if (outptr != outbuf)
           strcat(outbuf,",");
-        written=1;
         // read value from cache
         len_gread = EIB_Cache_Read (con, dest, &src, sizeof(buf_gread), buf_gread);
         if (len_gread != -1)
@@ -376,26 +364,23 @@ main ()
               //sprintf (tmpbuf,"%d,\"YES %02X", dest, buf_gread[1] & 0x3F);
             if (len_gread == 2)
             {
-              sprintf (tmpbuf,"\"%d/%d/%d\":\"%02X", (dest >> 11) & 0x1f, (dest >> 8) & 0x07, dest & 0xff, buf_gread[1] & 0x3F);
-              strcat(outbuf,tmpbuf);
+              outptr += snprintf (outptr,OPL, "\"%d/%d/%d\":\"%02X", (dest >> 11) & 0x1f, (dest >> 8) & 0x07, dest & 0xff, buf_gread[1] & 0x3F);
             }
             else
             {
-              sprintf (tmpbuf,"\"%d/%d/%d\":\"", (dest >> 11) & 0x1f, (dest >> 8) & 0x07, dest & 0xff);
-              strcat(outbuf,tmpbuf);
+              outptr += snprintf (outptr,OPL, "\"%d/%d/%d\":\"", (dest >> 11) & 0x1f, (dest >> 8) & 0x07, dest & 0xff);
               for (j = 0; j < len_gread-2; j++)
               {
-                sprintf (tmpbuf,"%02X", buf_gread[j+2]);
-                strcat(outbuf,tmpbuf);
+                outptr += snprintf (outptr,OPL, "%02X", buf_gread[j+2]);
               }
               //printHex (len_gread - 2, buf_gread + 2);
             }
-            strcat(outbuf,"\"");
+            *outptr++ = '"';
           }
         }
       }
     }
-  if (written)
+  if (outptr != outbuf)
     printf ("%s},\"i\":%d}\n",outbuf,end);
   }
   EIBClose (con);

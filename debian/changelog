@@ -1,0 +1,211 @@
+knxd (0.10.13-3) unstable; urgency=medium
+
+  * Typo in debian/rules
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sat, 12 Mar 2016 14:51:46 +0100
+
+knxd (0.10.13-2) unstable; urgency=medium
+
+  * Fix rebuild when install-sh is missing
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 11 Mar 2016 16:19:02 +0100
+
+knxd (0.10.13-1) unstable; urgency=medium
+
+  * Fix systemd test
+    post Jessie there is no more libsystemd-daemon
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 11 Mar 2016 15:08:45 +0100
+
+knxd (0.10.12-1) unstable; urgency=medium
+
+  * /run/knx, not /run/knxd
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 22 Jan 2016 14:42:58 +0100
+
+knxd (0.10.11-2) unstable; urgency=medium
+
+  * Fix udev installation
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 21 Jan 2016 21:07:27 +0100
+
+knxd (0.10.11-1) unstable; urgency=medium
+
+  * Fix the ft12 driver
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 31 Dec 2015 07:00:07 +0100
+
+knxd (0.10.10-1) unstable; urgency=medium
+
+  * USB HID fixes
+  * allow spaces behind optional arguments ('-u /tmp/knxd')
+  * warn about knxd.socket in knyd.conf [systemd]
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 18 Nov 2015 13:35:27 +0100
+
+knxd (0.10.9-3) unstable; urgency=medium
+
+  * Tell systemd to auto-restart knxd if it fails.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 12 Oct 2015 16:13:17 +0200
+
+knxd (0.10.9-2) unstable; urgency=medium
+
+  * Added udev rule for TPUART.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 20 Sep 2015 16:14:06 +0200
+
+knxd (0.10.9-1) unstable; urgency=medium
+
+  * Fix default Unix socket: /run/knx, not /run/knxd or /tmp/whatever
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 17 Sep 2015 02:51:01 +0200
+
+knxd (0.10.8-5) unstable; urgency=medium
+
+  * Expanded README, clarified default options.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 17 Sep 2015 02:11:57 +0200
+
+knxd (0.10.8-4) unstable; urgency=medium
+
+  * Replaced Wheezy build-dependency on lsb-base with base-files (always installed)
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 16 Sep 2015 23:28:24 +0200
+
+knxd (0.10.8-3) unstable; urgency=medium
+
+  * aded prerm to stop knxd
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 11 Sep 2015 08:18:06 +0200
+
+knxd (0.10.8-2) unstable; urgency=medium
+
+  * Fix systemd setup
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 10 Sep 2015 15:41:29 +0200
+
+knxd (0.10.8-1) unstable; urgency=medium
+
+  * Group cache must be initialized to work correctly
+  * Missing build dependencies
+  * "knxtool vbusmonitor1time" fixed
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 10 Sep 2015 14:04:59 +0200
+
+knxd (0.10.7-1) unstable; urgency=medium
+
+  * Clean up "only-one-interface" handling.
+    Routing and tunneling are separate functions, a knxd which only routes
+    between these two is perfectly reasonable.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sat, 15 Aug 2015 10:21:03 +0200
+
+knxd (0.10.6-1) unstable; urgency=medium
+
+  * Fix flag handling
+    Some flags were not cleared from the L2 options, causing the main code
+    to conclude that they were not handled correctly.
+  * Add comments to config files
+  * Fix *emi USB backends
+    duplicate variables
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 24 Jul 2015 03:36:08 +0200
+
+knxd (0.10.4-1) unstable; urgency=medium
+
+  * Clean up eibread-cgi
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 16 Jul 2015 12:00:15 +0200
+
+knxd (0.10.3-6) unstable; urgency=medium
+
+  * Try to install systemd support only when available
+  * Default to systemd support being enabled if possible
+  * Cleanup built knxd.install
+  * Merge 0.9 branch
+  * Fix installation conflicts
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 15 Jul 2015 23:00:55 +0200
+
+knxd (0.10.3-1) unstable; urgency=medium
+
+  * Fix sock->sendaddr churn.
+  * Include sys/select.h if available.
+  * Clean up error handling
+  * Delete Unix socket after closing it.
+  * Debian packaging: do create /var/lib/knxd
+  * Warn about wrongly-ordered or unrecognized flag options
+  * Add a rudimentary test script
+  * Merge 0.9 branch
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 05 Jul 2015 19:47:26 +0200
+
+knxd (0.10.1-2) unstable; urgency=medium
+
+  * Merge build fixes
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sat, 27 Jun 2015 20:26:00 +0200
+
+knxd (0.10.1-1) unstable; urgency=medium
+
+  * Depend on systemd library
+  * Fix systemd support
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sat, 27 Jun 2015 16:00:51 +0000
+
+knxd (0.10.0-2) unstable; urgency=medium
+
+  * Bug fixes
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 26 Jun 2015 08:23:17 +0000
+
+knxd (0.10.0-1) unstable; urgency=medium
+
+  * Initial multi-L2 version
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 26 Jun 2015 08:23:17 +0000
+
+knxd (0.9.3-1) unstable; urgency=medium
+
+  * Update knxtool packaging:
+    - exec unknown commands from /usr/lib/knxd
+    - print errors to stderr, dammit
+  * restore building eib{read,write}-cgi
+    - and ship them in /usr/lib/knxtool
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Tue, 14 Jul 2015 03:13:11 +0200
+
+knxd (0.9.2-1) unstable; urgency=medium
+
+  * Fix knxtool packaging
+  * Create "home" directory
+  * Accept "local:" or "ip:" as URLs
+  * Use "knxtool list" to get a list of applets
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 12 Jul 2015 06:56:18 +0200
+
+knxd (0.9.1-3) unstable; urgency=medium
+
+  * Conflict with eibd.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 28 Jun 2015 14:36:42 +0200
+
+knxd (0.9.1-2) unstable; urgency=medium
+
+  * Build fixes
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sat, 27 Jun 2015 20:24:46 +0200
+
+knxd (0.9.1-1) unstable; urgency=medium
+
+  * Release. (Sort of.)
+  * Bugs fixed.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 18 May 2015 07:24:02 +0200
+
+knxd (0.9.0-1) unstable; urgency=low
+
+  * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+
+ -- Timo <knxd@timo-wingender.de>  Tue, 16 Dec 2014 12:55:54 +0100

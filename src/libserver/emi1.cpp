@@ -19,69 +19,17 @@
 
 #include "emi1.h"
 #include "emi.h"
+#include "layer3.h"
 
-bool
-EMI1Layer2Interface::addAddress (eibaddr_t addr)
+EMI1Layer2::EMI1Layer2 (LowLevelDriver * i, Layer3 * l3,
+                        L2options *opt) : Layer2(l3, opt)
 {
-  return 0;
-}
-
-bool
-EMI1Layer2Interface::addGroupAddress (eibaddr_t addr)
-{
-  return 1;
-}
-
-bool
-EMI1Layer2Interface::removeAddress (eibaddr_t addr)
-{
-  return 0;
-}
-
-bool
-EMI1Layer2Interface::removeGroupAddress (eibaddr_t addr)
-{
-  return 1;
-}
-
-bool
-EMI1Layer2Interface::Connection_Lost ()
-{
-  return iface->Connection_Lost ();
-}
-
-eibaddr_t
-EMI1Layer2Interface::getDefaultAddr ()
-{
-  return 0;
-}
-
-bool
-EMI1Layer2Interface::openVBusmonitor ()
-{
-  vmode = 1;
-  return 1;
-}
-
-bool
-EMI1Layer2Interface::closeVBusmonitor ()
-{
-  vmode = 0;
-  return 1;
-}
-
-EMI1Layer2Interface::EMI1Layer2Interface (LowLevelDriverInterface * i,
-					  Trace * tr, int flags)
-{
-  TRACEPRINTF (tr, 2, this, "Open");
+  TRACEPRINTF (t, 2, this, "Open");
   iface = i;
-  t = tr;
-  mode = 0;
-  vmode = 0;
-  noqueue = flags & FLAG_B_EMI_NOQUEUE;
-  pth_sem_init (&out_signal);
+  noqueue = opt ? (opt->flags & FLAG_B_EMI_NOQUEUE) : false;
+  if (opt->flags)
+    opt->flags &=~ FLAG_B_EMI_NOQUEUE;
   pth_sem_init (&in_signal);
-  getwait = pth_event (PTH_EVENT_SEM, &out_signal);
   if (!iface->init ())
     {
       delete iface;
@@ -89,22 +37,23 @@ EMI1Layer2Interface::EMI1Layer2Interface (LowLevelDriverInterface * i,
       return;
     }
   Start ();
-  TRACEPRINTF (tr, 2, this, "Opened");
+  TRACEPRINTF (t, 2, this, "Opened");
 }
 
 bool
-EMI1Layer2Interface::init ()
+EMI1Layer2::init ()
 {
+  if (iface == 0)
+    return false;
+  if (! layer2_is_bus())
+    return false;
   return iface != 0;
 }
 
-EMI1Layer2Interface::~EMI1Layer2Interface ()
+EMI1Layer2::~EMI1Layer2 ()
 {
   TRACEPRINTF (t, 2, this, "Destroy");
   Stop ();
-  pth_event_free (getwait, PTH_FREE_THIS);
-  while (!outqueue.isempty ())
-    delete outqueue.get ();
   while (!inqueue.isempty ())
     delete inqueue.get ();
   if (iface)
@@ -112,12 +61,12 @@ EMI1Layer2Interface::~EMI1Layer2Interface ()
 }
 
 bool
-EMI1Layer2Interface::enterBusmonitor ()
+EMI1Layer2::enterBusmonitor ()
 {
+  if (!Layer2::enterBusmonitor ())
+    return false;
   const uchar t1[] = { 0x46, 0x01, 0x00, 0x60, 0x90 };
   TRACEPRINTF (t, 2, this, "OpenBusmon");
-  if (mode != 0)
-    return 0;
   iface->SendReset ();
   pth_usleep (1000000);
   iface->Send_Packet (CArray (t1, sizeof (t1)));
@@ -129,19 +78,16 @@ EMI1Layer2Interface::enterBusmonitor ()
       pth_wait (e);
       pth_event_free (e, PTH_FREE_THIS);
     }
-  mode = 1;
-  return 1;
+  return true;
 }
 
 bool
-EMI1Layer2Interface::leaveBusmonitor ()
+EMI1Layer2::leaveBusmonitor ()
 {
-  if (mode != 1)
-    return 0;
+  if (!Layer2::leaveBusmonitor ())
+    return false;
   TRACEPRINTF (t, 2, this, "CloseBusmon");
-  uchar t[] =
-  {
-  0x46, 0x01, 0x00, 0x60, 0xc0};
+  uchar t[] = { 0x46, 0x01, 0x00, 0x60, 0xc0 };
   iface->Send_Packet (CArray (t, sizeof (t)));
   while (!iface->Send_Queue_Empty ())
     {
@@ -150,18 +96,17 @@ EMI1Layer2Interface::leaveBusmonitor ()
       pth_wait (e);
       pth_event_free (e, PTH_FREE_THIS);
     }
-  mode = 0;
   pth_usleep (1000000);
-  return 1;
+  return true;
 }
 
 bool
-EMI1Layer2Interface::Open ()
+EMI1Layer2::Open ()
 {
+  if (!Layer2::Open ())
+    return false;
   const uchar t1[] = { 0x46, 0x01, 0x00, 0x60, 0x12 };
   TRACEPRINTF (t, 2, this, "OpenL2");
-  if (mode != 0)
-    return 0;
   iface->SendReset ();
   iface->Send_Packet (CArray (t1, sizeof (t1)));
 
@@ -172,19 +117,16 @@ EMI1Layer2Interface::Open ()
       pth_wait (e);
       pth_event_free (e, PTH_FREE_THIS);
     }
-  mode = 2;
-  return 1;
+  return true;
 }
 
 bool
-EMI1Layer2Interface::Close ()
+EMI1Layer2::Close ()
 {
-  if (mode != 2)
-    return 0;
+  if (!Layer2::Close ())
+    return false;
   TRACEPRINTF (t, 2, this, "CloseL2");
-  uchar t[] =
-  {
-  0x46, 0x01, 0x00, 0x60, 0xc0};
+  uchar t[] = { 0x46, 0x01, 0x00, 0x60, 0xc0 };
   iface->Send_Packet (CArray (t, sizeof (t)));
   if (!iface->Send_Queue_Empty ())
     {
@@ -193,18 +135,17 @@ EMI1Layer2Interface::Close ()
       pth_wait (e);
       pth_event_free (e, PTH_FREE_THIS);
     }
-  mode = 0;
-  return 1;
+  return true;
 }
 
 bool
-EMI1Layer2Interface::Send_Queue_Empty ()
+EMI1Layer2::Send_Queue_Empty ()
 {
   return iface->Send_Queue_Empty () && inqueue.isempty();
 }
 
 void
-EMI1Layer2Interface::Send_L_Data (LPDU * l)
+EMI1Layer2::Send_L_Data (LPDU * l)
 {
   TRACEPRINTF (t, 2, this, "Send %s", l->Decode ()());
   if (l->getType () != L_Data)
@@ -225,123 +166,97 @@ EMI1Layer2Interface::Send_L_Data (LPDU * l)
 }
 
 void
-EMI1Layer2Interface::Send (LPDU * l)
+EMI1Layer2::Send (LPDU * l)
 {
   TRACEPRINTF (t, 1, this, "Send %s", l->Decode ()());
   L_Data_PDU *l1 = (L_Data_PDU *) l;
 
   CArray pdu = L_Data_ToEMI (0x11, *l1);
   iface->Send_Packet (pdu);
-  if (vmode)
+  if (mode == BUSMODE_VMONITOR)
     {
-      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU;
+      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
       l2->pdu.set (l->ToPacket ());
-      outqueue.put (l2);
-      pth_sem_inc (&out_signal, 1);
+      l3->recv_L_Data (l2);
     }
-  outqueue.put (l);
-  pth_sem_inc (&out_signal, 1);
-}
-
-LPDU *
-EMI1Layer2Interface::Get_L_Data (pth_event_t stop)
-{
-  if (stop != NULL)
-    pth_event_concat (getwait, stop, NULL);
-
-  pth_wait (getwait);
-
-  if (stop)
-    pth_event_isolate (getwait);
-
-  if (pth_event_status (getwait) == PTH_STATUS_OCCURRED)
-    {
-      pth_sem_dec (&out_signal);
-      LPDU *l = outqueue.get ();
-      TRACEPRINTF (t, 2, this, "Recv %s", l->Decode ()());
-      return l;
-    }
-  else
-    return 0;
+  delete l;
 }
 
 void
-EMI1Layer2Interface::Run (pth_sem_t * stop1)
+EMI1Layer2::Run (pth_sem_t * stop1)
 {
   pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
   pth_event_t input = pth_event (PTH_EVENT_SEM, &in_signal);
   pth_event_t timeout = pth_event (PTH_EVENT_RTIME, pth_time (0, 0));
-  sendmode = 0;
+  bool wait_confirm = false;
   while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
     {
-      if (sendmode == 0)
+      if (!wait_confirm)
 	pth_event_concat (stop, input, NULL);
-      if (sendmode == 1)
+      if (wait_confirm)
 	pth_event_concat (stop, timeout, NULL);
       CArray *c = iface->Get_Packet (stop);
       pth_event_isolate(input);
       pth_event_isolate(timeout);
-      if (!inqueue.isempty() && sendmode == 0)
+      if (!wait_confirm && !inqueue.isempty())
 	{
+	  pth_sem_dec (&in_signal);	
 	  Send(inqueue.get());
 	  if (noqueue)
 	    {
 	      pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE, timeout,
 			 pth_time (1, 0));
-	      sendmode = 1;
+	      wait_confirm = true;
 	    }
-	  else
-	    sendmode = 0;
 	}
-      if (sendmode == 1 && pth_event_status(timeout) == PTH_STATUS_OCCURRED)
-	sendmode = 0;
+      if (wait_confirm && pth_event_status(timeout) == PTH_STATUS_OCCURRED)
+	wait_confirm = false;
       if (!c)
 	continue;
-      if (c->len () == 1 && (*c)[0] == 0xA0 && mode == 2)
+      if (c->len () == 1 && (*c)[0] == 0xA0 && (mode & BUSMODE_UP))
 	{
 	  TRACEPRINTF (t, 2, this, "Reopen");
-	  mode = 0;
-	  Open ();
+          busmode_t old_mode = mode;
+	  mode = BUSMODE_DOWN;
+	  if (Open ())
+            mode = old_mode; // restore VMONITOR
 	}
-      if (c->len () == 1 && (*c)[0] == 0xA0 && mode == 1)
+      if (c->len () == 1 && (*c)[0] == 0xA0 && mode == BUSMODE_MONITOR)
 	{
 	  TRACEPRINTF (t, 2, this, "Reopen Busmonitor");
-	  mode = 0;
+	  mode = BUSMODE_DOWN;
 	  enterBusmonitor ();
 	}
       if (c->len () && (*c)[0] == 0x4E)
-	sendmode = 0;
-      if (c->len () && (*c)[0] == 0x49 && mode == 2)
+	wait_confirm = false;
+      if (c->len () && (*c)[0] == 0x49 && (mode & BUSMODE_UP))
 	{
-	  L_Data_PDU *p = EMI_to_L_Data (*c);
+	  L_Data_PDU *p = EMI_to_L_Data (*c, this);
 	  if (p)
 	    {
 	      delete c;
 	      if (p->AddrType == IndividualAddress)
 		p->dest = 0;
 	      TRACEPRINTF (t, 2, this, "Recv %s", p->Decode ()());
-	      if (vmode)
+	      if (mode == BUSMODE_VMONITOR)
 		{
-		  L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU;
+		  L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
 		  l2->pdu.set (p->ToPacket ());
-		  outqueue.put (l2);
-		  pth_sem_inc (&out_signal, 1);
+		  l3->recv_L_Data (l2);
 		}
-	      outqueue.put (p);
-	      pth_sem_inc (&out_signal, 1);
+	      l3->recv_L_Data (p);
 	      continue;
 	    }
 	}
-      if (c->len () > 4 && (*c)[0] == 0x49 && mode == 1)
+      if (c->len () > 4 && (*c)[0] == 0x49 && mode == BUSMODE_MONITOR)
 	{
-	  L_Busmonitor_PDU *p = new L_Busmonitor_PDU;
+	  L_Busmonitor_PDU *p = new L_Busmonitor_PDU (this);
 	  p->status = (*c)[1];
 	  p->timestamp = ((*c)[2] << 24) | ((*c)[3] << 16);
 	  p->pdu.set (c->array () + 4, c->len () - 4);
 	  delete c;
 	  TRACEPRINTF (t, 2, this, "Recv %s", p->Decode ()());
-	  outqueue.put (p);
-	  pth_sem_inc (&out_signal, 1);
+	  l3->recv_L_Data (p);
 	  continue;
 	}
       delete c;

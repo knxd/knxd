@@ -69,13 +69,13 @@ public:
   /** source address */
   struct sockaddr_in src;
 
-    EIBNetIPPacket ();
-    /** create from character array */
+  EIBNetIPPacket ();
+  /** create from character array */
   static EIBNetIPPacket *fromPacket (const CArray & c,
 				     const struct sockaddr_in src);
   /** convert to character array */
   CArray ToPacket () const;
-    virtual ~ EIBNetIPPacket ()
+  virtual ~EIBNetIPPacket ()
   {
   }
 };
@@ -237,7 +237,7 @@ public:
   eibaddr_t individual_addr;
   uint16_t installid;
   serialnumber_t serial;
-    Array < DIB_service_Entry > services;
+  Array < DIB_service_Entry > services;
   struct in_addr multicastaddr;
   uchar MAC[6];
   uchar name[30];
@@ -269,7 +269,7 @@ public:
   eibaddr_t individual_addr;
   uint16_t installid;
   serialnumber_t serial;
-    Array < DIB_service_Entry > services;
+  Array < DIB_service_Entry > services;
   struct in_addr multicastaddr;
   uchar MAC[6];
   uchar name[30];
@@ -297,10 +297,10 @@ class EIBNetIPSocket:private Thread
   /** debug output */
   Trace *t;
   /** input queue */
-    Queue < struct _EIBNetIP_Send >inqueue;
-    /** output queue */
-    Queue < EIBNetIPPacket > outqueue;
-    /** semaphore for inqueue */
+  Queue < struct _EIBNetIP_Send >inqueue;
+  /** output queue */
+  Queue < EIBNetIPPacket *> outqueue;
+  /** semaphore for inqueue */
   pth_sem_t insignal;
   /** semaphore for outqueue */
   pth_sem_t outsignal;
@@ -314,16 +314,19 @@ class EIBNetIPSocket:private Thread
   int multicast;
 
   void Run (pth_sem_t * stop);
+  const char *Name() { return "eibnetipsocket"; }
 public:
-    EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr, Trace * tr);
-    virtual ~ EIBNetIPSocket ();
+  EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr, Trace * tr);
+  virtual ~EIBNetIPSocket ();
   bool init ();
 
     /** enables multicast */
   bool SetMulticast (struct ip_mreq multicastaddr);
   /** sends a packet */
-  void Send (EIBNetIPPacket p);
-  /** waits for an packet; aborts if stop occurs */
+  void Send (EIBNetIPPacket p, struct sockaddr_in addr);
+  void Send (EIBNetIPPacket p) {
+    Send (p, sendaddr);
+  }
   EIBNetIPPacket *Get (pth_event_t stop);
 
   /** default send address */

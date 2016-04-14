@@ -18,14 +18,27 @@
 */
 
 #include <stdlib.h>
+#include <errno.h>
 #include "usb.h"
 
-USBLoop::USBLoop (libusb_context * c, Trace * tr)
+USBLoop::USBLoop (Trace * tr)
 {
   t = tr;
-  context = c;
+  if (libusb_init (&context))
+    {
+      ERRORPRINTF (t, E_ERROR | 40, this, "USBLoop-Create: %s", strerror(errno));
+      context = 0;
+      return;
+    }
   TRACEPRINTF (t, 10, this, "USBLoop-Create");
   Start ();
+}
+
+USBLoop::~USBLoop ()
+{
+  Stop();
+  if (context)
+    libusb_exit (context);
 }
 
 void
@@ -36,6 +49,7 @@ USBLoop::Run (pth_sem_t * stop1)
   struct timeval tv, tv1;
   const struct libusb_pollfd **usbfd, **usbfd_orig;
   pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
+  // The next two are dummy allocations which will be replaced later
   pth_event_t event = pth_event (PTH_EVENT_SEM, stop1);
   pth_event_t timeout = pth_event (PTH_EVENT_SEM, stop1);
 
@@ -43,7 +57,7 @@ USBLoop::Run (pth_sem_t * stop1)
   TRACEPRINTF (t, 10, this, "LoopStart");
   while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
     {
-      TRACEPRINTF (t, 10, this, "LoopBegin");
+      //TRACEPRINTF (t, 10, this, "LoopBegin");
       FD_ZERO (&r);
       FD_ZERO (&w);
       FD_ZERO (&e);
@@ -77,16 +91,16 @@ USBLoop::Run (pth_sem_t * stop1)
       pth_event (PTH_EVENT_SELECT | PTH_MODE_REUSE, event, &rc, fds + 1, &r,
 		 &w, &e);
       pth_event_concat (stop, event, NULL);
-      TRACEPRINTF (t, 10, this, "LoopWait");
+      //TRACEPRINTF (t, 10, this, "LoopWait");
       pth_wait (stop);
-      TRACEPRINTF (t, 10, this, "LoopProcess");
+      //TRACEPRINTF (t, 10, this, "LoopProcess");
 
       pth_event_isolate (event);
       pth_event_isolate (timeout);
 
       if (libusb_handle_events_timeout (context, &tv1))
 	break;
-      TRACEPRINTF (t, 10, this, "LoopEnd");
+      //TRACEPRINTF (t, 10, this, "LoopEnd");
     }
   TRACEPRINTF (t, 10, this, "LoopStop");
 
@@ -95,24 +109,3 @@ USBLoop::Run (pth_sem_t * stop1)
   pth_event_free (stop, PTH_FREE_THIS);
 }
 
-libusb_context *context = 0;
-static USBLoop *loop = 0;
-
-bool
-USBInit (Trace * tr)
-{
-  if (libusb_init (&context))
-    return false;
-  loop = new USBLoop (context, tr);
-
-  return true;
-}
-
-void
-USBEnd ()
-{
-  if (loop)
-    delete loop;
-  if (context)
-    libusb_exit (context);
-}

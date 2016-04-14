@@ -24,21 +24,20 @@
 #include "eibnetrouter.h"
 
 #define EIBNETIP_URL "ip:[multicast_addr[:port]]\n"
-#define EIBNETIP_DOC "ip connects with the EIBnet/IP Routing protocol over an EIBnet/IP gateway. The gateway must be so configured, that it routes the necessary addresses\n\n"
+#define EIBNETIP_DOC "ip uses multicast to talk to an EIBnet/IP gateway. The gateway must be configured to route your addresses to multicast.\n\n"
 
 #define EIBNETIP_PREFIX "ip"
 #define EIBNETIP_CREATE eibnetip_Create
-#define EIBNETIP_CLEANUP NULL
 
-inline Layer2Interface *
-eibnetip_Create (const char *dev, int flags, Trace * t)
+inline Layer2 *
+eibnetip_Create (const char *dev, L2options *opt, Layer3 *l3)
 {
   if (!*dev)
-    return new EIBNetIPRouter ("224.0.23.12", 3671, arg.addr, t);
+    return new EIBNetIPRouter ("224.0.23.12", 3671, arg.addr, l3, opt);
   char *a = strdup (dev);
   char *b;
   int port;
-  Layer2Interface *c;
+  Layer2 *c;
   if (!a)
     die ("out of memory");
   for (b = a; *b; b++)
@@ -51,7 +50,7 @@ eibnetip_Create (const char *dev, int flags, Trace * t)
     }
   else
     port = 3671;
-  c = new EIBNetIPRouter (a, port, arg.addr, t);
+  c = new EIBNetIPRouter (a, port, arg.addr, l3, opt);
   free (a);
   return c;
 }

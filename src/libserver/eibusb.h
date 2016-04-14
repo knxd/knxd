@@ -24,15 +24,15 @@
 #include "lowlevel.h"
 
 /** USBConverterInterface */
-class USBConverterInterface:public LowLevelDriverInterface
+class USBConverterInterface:public LowLevelDriver
 {
   Trace *t;
-  LowLevelDriverInterface *i;
+  LowLevelDriver *i;
   EMIVer v;
 public:
-    USBConverterInterface (LowLevelDriverInterface * iface, Trace * tr,
-			   EMIVer ver);
-    virtual ~ USBConverterInterface ();
+  USBConverterInterface (LowLevelDriver * iface, Trace * tr,
+                          EMIVer ver);
+  virtual ~USBConverterInterface ();
   bool init ();
 
   void Send_Packet (CArray l);
@@ -41,32 +41,25 @@ public:
   CArray *Get_Packet (pth_event_t stop);
 
   void SendReset ();
-  bool Connection_Lost ();
 
   EMIVer getEMIVer ();
 };
 
-LowLevelDriverInterface *initUSBDriver (LowLevelDriverInterface * i,
+LowLevelDriver *initUSBDriver (LowLevelDriver * i,
 					Trace * tr);
 
 /** USB backend */
-class USBLayer2Interface:public Layer2Interface
+class USBLayer2:public Layer2
 {
   /** EMI */
-  Layer2Interface *emi;
+  Layer2 *emi;
 
 public:
-  USBLayer2Interface (LowLevelDriverInterface * i, Trace * tr, int flags);
-   ~USBLayer2Interface ();
+  USBLayer2 (LowLevelDriver * i, Layer3 * l3, L2options *opt);
+  ~USBLayer2 ();
   bool init ();
 
   void Send_L_Data (LPDU * l);
-  LPDU *Get_L_Data (pth_event_t stop);
-
-  bool addAddress (eibaddr_t addr);
-  bool addGroupAddress (eibaddr_t addr);
-  bool removeAddress (eibaddr_t addr);
-  bool removeGroupAddress (eibaddr_t addr);
 
   bool enterBusmonitor ();
   bool leaveBusmonitor ();
@@ -75,8 +68,6 @@ public:
 
   bool Open ();
   bool Close ();
-  eibaddr_t getDefaultAddr ();
-  bool Connection_Lost ();
   bool Send_Queue_Empty ();
 };
 

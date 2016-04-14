@@ -24,18 +24,18 @@
 #include "threads.h"
 #include "libusb.h"
 
-bool USBInit (Trace * tr);
-void USBEnd ();
-
 class USBLoop:public Thread
 {
   Trace *t;
-  libusb_context *context;
 
   void Run (pth_sem_t * stop);
+  const char *Name() { return "usbloop"; }
 
 public:
-    USBLoop (libusb_context * context, Trace * tr);
+  libusb_context *context;
+
+  USBLoop (Trace * tr);
+  ~USBLoop ();
 
 };
 

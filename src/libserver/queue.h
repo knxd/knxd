@@ -61,7 +61,7 @@ public:
   }
 
   /** destructor */
-  virtual ~ Queue ()
+  virtual ~Queue ()
   {
     while (akt)
       get ();
@@ -78,6 +78,7 @@ public:
 	put (a->entry);
 	a = a->Next;
       }
+    return *this;
   }
 
   /** adds a element to the queue end */

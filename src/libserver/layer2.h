@@ -20,78 +20,93 @@
 #ifndef LAYER2_H
 #define LAYER2_H
 
+#include "common.h"
 #include "lpdu.h"
 
-/** interface for an Layer 2 driver */
-class Layer2Interface
+class Layer3;
+
+/** Bus modes. The enum is designed to allow bitwise tests
+ * (& BUSMODE_UP and * & BUSMODE_MONITOR) */
+typedef enum {
+  BUSMODE_DOWN = 0,
+  BUSMODE_UP,
+  BUSMODE_MONITOR,
+  BUSMODE_VMONITOR,
+} busmode_t;
+
+typedef struct {
+  unsigned int flags;
+  Trace *t;
+} L2options;
+
+/** generic interface for an Layer 2 driver */
+class Layer2
 {
+  friend class Layer3;
+
+  /** my individual addresses */
+  Array < eibaddr_t > indaddr;
+  /** source addresses when the destination is my own */
+  Array < eibaddr_t > revaddr;
+  /** my group addresses */
+  Array < eibaddr_t > groupaddr;
+
+  bool allow_monitor;
+
 public:
-  virtual ~ Layer2Interface ()
-  {
-  }
-  virtual bool init () = 0;
+  /** debug output */
+  Trace *t;
+  /** our layer-3 (to send packets to) */
+  Layer3 *l3;
+
+  Layer2 (Layer3 *l3, L2options *opt);
+  virtual ~Layer2 ();
+  virtual bool init ();
+  /** basic setup to behave like a bus: accept broadcasts, et al. */
+  bool layer2_is_bus ();
 
   /** sends a Layer 2 frame asynchronouse */
   virtual void Send_L_Data (LPDU * l) = 0;
-  /** waits for the next frame
-   * @param stop return NULL, if stop occurs
-   * @return returns frame or NULL
-   */
-  virtual LPDU *Get_L_Data (pth_event_t stop) = 0;
+  virtual void Send_L_Data (L_Data_PDU * l) { Send_L_Data((LPDU *)l); }
 
-  /** try to add the individual address addr to the device, return true if successful */
-  virtual bool addAddress (eibaddr_t addr) = 0;
+  /** try to add the individual addr to the device, return true if successful */
+  virtual bool addAddress (eibaddr_t addr);
+  /** add the reverse addr to the device, return true if successful */
+  virtual bool addReverseAddress (eibaddr_t addr);
   /** try to add the group address addr to the device, return true if successful */
-  virtual bool addGroupAddress (eibaddr_t addr) = 0;
+  virtual bool addGroupAddress (eibaddr_t addr);
   /** try to remove the individual address addr to the device, return true if successful */
-  virtual bool removeAddress (eibaddr_t addr) = 0;
+  virtual bool removeAddress (eibaddr_t addr);
+  /** try to remove the individual address addr to the device, return true if successful */
+  virtual bool removeReverseAddress (eibaddr_t addr);
   /** try to remove the group address addr to the device, return true if successful */
-  virtual bool removeGroupAddress (eibaddr_t addr) = 0;
+  virtual bool removeGroupAddress (eibaddr_t addr);
+  /** individual address known? */
+  bool hasAddress (eibaddr_t addr);
+  /** reverse address known? */
+  bool hasReverseAddress (eibaddr_t addr);
+  /** group address known? */
+  bool hasGroupAddress (eibaddr_t addr);
 
   /** try to enter the busmonitor mode, return true if successful */
-  virtual bool enterBusmonitor () = 0;
+  virtual bool enterBusmonitor ();
   /** try to leave the busmonitor mode, return true if successful */
-  virtual bool leaveBusmonitor () = 0;
+  virtual bool leaveBusmonitor ();
 
   /** try to enter the vbusmonitor mode, return true if successful */
-  virtual bool openVBusmonitor () = 0;
+  virtual bool openVBusmonitor ();
   /** try to leave the vbusmonitor mode, return true if successful */
-  virtual bool closeVBusmonitor () = 0;
+  virtual bool closeVBusmonitor ();
 
   /** try to enter the normal operation mode, return true if successful */
-  virtual bool Open () = 0;
+  virtual bool Open ();
   /** try to leave the normal operation mode, return true if successful */
-  virtual bool Close () = 0;
-  /** returns the default individual address of the device */
-  virtual eibaddr_t getDefaultAddr () = 0;
-  /** return true, if the connection is broken */
-  virtual bool Connection_Lost () = 0;
+  virtual bool Close ();
   /** return true, if all frames have been sent */
-  virtual bool Send_Queue_Empty () = 0;
-};
+  virtual bool Send_Queue_Empty ();
 
-/** interface for callback for Layer 2 frames */
-class LPDU_CallBack
-{
-public:
-  /** callback: a Layer 2 frame has been received */
-  virtual void Get_LPDU (LPDU * l) = 0;
-};
-
-/** interface for callback for L_Data frames */
-class L_Data_CallBack
-{
-public:
-  /** callback: a L_Data frame has been received */
-  virtual void Get_L_Data (L_Data_PDU * l) = 0;
-};
-
-/** interface for callback for busmonitor frames */
-class L_Busmonitor_CallBack
-{
-public:
-  /** callback: a bus monitor frame has been received */
-  virtual void Get_L_Busmonitor (L_Busmonitor_PDU * l) = 0;
+protected:
+  busmode_t mode;
 };
 
 /** pointer to a functions, which creates a Layer 2 interface
@@ -100,13 +115,54 @@ public:
  * @param t trace output
  * @return new Layer 2 interface
  */
-typedef Layer2Interface *(*Layer2_Create_Func) (const char *conf, int flags,
-						Trace * t);
+typedef Layer2 *(*Layer2_Create_Func) (const char *conf, 
+				       L2options *opt, Layer3 * l3);
+
+/** Layer2 mix-in class for network interfaces
+ * without "real" hardware behind them
+ */
+class Layer2mixin:public Layer2
+{
+public:
+  Layer2mixin (Layer3 *l3, Trace *tr) : Layer2 (l3, NULL)
+    {
+      t = tr;
+    }
+  void Send_L_Data (LPDU * l) { delete l; }
+  virtual void Send_L_Data (L_Data_PDU * l) = 0;
+  bool enterBusmonitor () { return 0; }
+  bool leaveBusmonitor () { return 0; }
+  bool openVBusmonitor () { return 0; }
+  bool closeVBusmonitor () { return 0; }
+  bool Open () { return 1; }
+  bool Close () { return 1; }
+  bool Send_Queue_Empty () { return 1; }
+};
+
+/** Layer2 mix-in class for interfaces
+ * which don't ever do anything,
+ * e.g. server sockets used to accept() connections
+ */
+class Layer2virtual:public Layer2mixin
+{
+public:
+  Layer2virtual (Layer3 *l3, Trace *tr) : Layer2mixin (l3, tr)
+    {
+    }
+  bool init() { return 1; }
+  void Send_L_Data (LPDU * l) { delete l; }
+  void Send_L_Data (L_Data_PDU * l) { delete l; }
+  bool addAddress (eibaddr_t addr UNUSED) { return 1; }
+  bool addGroupAddress (eibaddr_t addr UNUSED) { return 1; }
+  bool removeAddress (eibaddr_t addr UNUSED) { return 1; }
+  bool removeGroupAddress (eibaddr_t addr UNUSED) { return 1; }
+};
 
 #define FLAG_B_TUNNEL_NOQUEUE (1<<0)
 #define FLAG_B_TPUARTS_ACKGROUP (1<<1)
 #define FLAG_B_TPUARTS_ACKINDIVIDUAL (1<<2)
 #define FLAG_B_TPUARTS_DISCH_RESET (1<<3)
 #define FLAG_B_EMI_NOQUEUE (1<<4)
+#define FLAG_B_NO_MONITOR (1<<5)
 
 #endif

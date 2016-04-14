@@ -1,13 +1,59 @@
-EXTRA_DIST= all.lst karg.def \
-  getapdu.inc              loadimage.inc         mcpropertyread.inc   mprogmodeoff.inc              opentconnection.inc \
-  getapdusrc.inc           mcauthorize.inc       mcpropertyscan.inc   mprogmodeon.inc               opentgroup.inc \
-  getbusmonitorpacket.inc  mcconnect.inc         mcpropertywrite.inc  mprogmodestatus.inc           opentindividual.inc \
-  getgroupsrc.inc          mcgetmaskversion.inc  mcreadadc.inc        mprogmodetoggle.inc           openttpdu.inc \
-  groupcacheclear.inc      mcgetpeitype.inc      mcread.inc           mreadindividualaddresses.inc  openvbusmonitor.inc \
-  groupcachedisable.inc    mcprogmodeoff.inc     mcrestart.inc        mwriteindividualaddress.inc   openvbusmonitortext.inc \
-  groupcacheenable.inc     mcprogmodeon.inc      mcsetkey.inc         openbusmonitor.inc            reset.inc \
-  groupcacheread.inc       mcprogmodestatus.inc  mcwrite.inc          openbusmonitortext.inc        sendapdu.inc \
-  groupcachereadsync.inc   mcprogmodetoggle.inc  mcwriteplain.inc     opengroupsocket.inc           sendgroup.inc \
-  groupcacheremove.inc     mcpropertydesc.inc    mgetmaskversion.inc  opentbroadcast.inc            sendtpdu.inc \
-  gettpdu.inc       groupcachelastupdates.inc    mcindividual.inc
+EXTRA_DIST= all.lst              \
+  getapdu.inc                    \
+  getapdusrc.inc                 \
+  getbusmonitorpacket.inc        \
+  getgroupsrc.inc                \
+  gettpdu.inc                    \
+  getbusmonitorpacketts.inc      \
+  groupcacheclear.inc            \
+  groupcachedisable.inc          \
+  groupcacheenable.inc           \
+  groupcacheread.inc             \
+  groupcachereadsync.inc         \
+  groupcacheremove.inc           \
+  groupcachelastupdates.inc      \
+  karg.def                       \
+  loadimage.inc                  \
+  mcauthorize.inc                \
+  mcconnect.inc                  \
+  mcgetmaskversion.inc           \
+  mcgetpeitype.inc               \
+  mcpropertyread.inc             \
+  mcpropertywrite.inc            \
+  mcreadadc.inc                  \
+  mcprogmodeoff.inc              \
+  mcprogmodeon.inc               \
+  mcsetkey.inc                   \
+  mcrestart.inc                  \
+  mcpropertyscan.inc             \
+  mcread.inc                     \
+  mcprogmodestatus.inc           \
+  mcwrite.inc                    \
+  mcprogmodetoggle.inc           \
+  mcwriteplain.inc               \
+  mcpropertydesc.inc             \
+  mcindividual.inc               \
+  mgetmaskversion.inc            \
+  mreadindividualaddresses.inc   \
+  mprogmodeoff.inc               \
+  mprogmodeon.inc                \
+  mprogmodestatus.inc            \
+  mprogmodetoggle.inc            \
+  mwriteindividualaddress.inc    \
+  openbusmonitorts.inc           \
+  openvbusmonitorts.inc          \
+  opengroupsocket.inc            \
+  opentconnection.inc            \
+  opentgroup.inc                 \
+  opentbroadcast.inc             \
+  opentindividual.inc            \
+  openttpdu.inc                  \
+  openvbusmonitor.inc            \
+  openvbusmonitortext.inc        \
+  openbusmonitor.inc             \
+  openbusmonitortext.inc         \
+  reset.inc                      \
+  sendapdu.inc                   \
+  sendgroup.inc                  \
+  sendtpdu.inc
 

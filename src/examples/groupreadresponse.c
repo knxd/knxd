@@ -16,10 +16,11 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
-#include <sys/time.h>
-#include <sys/types.h>
-
 #include "common.h"
+#include <sys/types.h>
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>
+#endif
 
 int
 main (int ac, char *ag[])

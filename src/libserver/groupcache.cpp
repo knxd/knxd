@@ -22,11 +22,10 @@
 #include "apdu.h"
 
 GroupCache::GroupCache (Layer3 * l3, Trace * t)
+	: Layer2mixin(l3, t)
 {
   TRACEPRINTF (t, 4, this, "GroupCacheInit");
-  this->t = t;
-  this->layer3 = l3;
-  this->enable = 0;
+  enable = 0;
   pos = 0;
   memset (updates, 0, sizeof (updates));
   pth_mutex_init (&mutex);
@@ -36,8 +35,6 @@ GroupCache::GroupCache (Layer3 * l3, Trace * t)
 GroupCache::~GroupCache ()
 {
   TRACEPRINTF (t, 4, this, "GroupCacheDestroy");
-  if (enable)
-    layer3->deregisterGroupCallBack (this, 0);
   Clear ();
 }
 
@@ -61,8 +58,7 @@ GroupCache::find (eibaddr_t dst)
 void
 GroupCache::remove (eibaddr_t addr)
 {
-  TRACEPRINTF (t, 4, this, "GroupCacheRemove %d/%d/%d", (addr >> 11) & 0x1f,
-	       (addr >> 8) & 0x07, (addr) & 0xff);
+  TRACEPRINTF (t, 4, this, "GroupCacheRemove %s", FormatGroupAddr (addr)());
 
   int l = 0, r = cache () - 1;
   while (l <= r)
@@ -98,12 +94,12 @@ GroupCache::add (GroupCacheEntry * entry)
 
 
 void
-GroupCache::Get_L_Data (L_Data_PDU * l)
+GroupCache::Send_L_Data (L_Data_PDU * l)
 {
   GroupCacheEntry *c;
   if (enable)
     {
-      TPDU *t = TPDU::fromPacket (l->data);
+      TPDU *t = TPDU::fromPacket (l->data, this->t);
       if (t->getType () == T_DATA_XXX_REQ)
 	{
 	  T_DATA_XXX_REQ_PDU *t1 = (T_DATA_XXX_REQ_PDU *) t;
@@ -143,7 +139,7 @@ GroupCache::Start ()
 {
   TRACEPRINTF (t, 4, this, "GroupCacheEnable");
   if (!enable)
-    if (!layer3->registerGroupCallBack (this, 0))
+    if (!addGroupAddress (0))
       return false;
   enable = 1;
   return true;
@@ -152,7 +148,7 @@ GroupCache::Start ()
 void
 GroupCache::Clear ()
 {
-  int i;
+  unsigned int i;
   TRACEPRINTF (t, 4, this, "GroupCacheClear");
   for (i = 0; i < cache (); i++)
     delete cache[i];
@@ -165,16 +161,15 @@ GroupCache::Stop ()
   Clear ();
   TRACEPRINTF (t, 4, this, "GroupCacheStop");
   if (enable)
-    layer3->deregisterGroupCallBack (this, 0);
+    removeGroupAddress (0);
   enable = 0;
 }
 
 GroupCacheEntry
   GroupCache::Read (eibaddr_t addr, unsigned Timeout, uint16_t age)
 {
-  TRACEPRINTF (t, 4, this, "GroupCacheRead %d/%d/%d %d %d",
-	       (addr >> 11) & 0x1f, (addr >> 8) & 0x07, (addr) & 0xff,
-	       Timeout, age);
+  TRACEPRINTF (t, 4, this, "GroupCacheRead %s %d %d",
+	       FormatGroupAddr (addr)(), Timeout, age);
   bool rm = false;
   GroupCacheEntry *c;
   if (!enable)
@@ -192,9 +187,8 @@ GroupCacheEntry
 
   if (c && !rm)
     {
-      TRACEPRINTF (t, 4, this, "GroupCache found: %d.%d.%d",
-		   (c->src >> 12) & 0xf, (c->src >> 8) & 0xf,
-		   (c->src) & 0xff);
+      TRACEPRINTF (t, 4, this, "GroupCache found: %s",
+		   FormatEIBAddr (c->src)());
       return *c;
     }
 
@@ -213,12 +207,12 @@ GroupCacheEntry
   pth_event_t timeout = pth_event (PTH_EVENT_RTIME, pth_time (Timeout, 0));
 
   tpdu.data = apdu.ToPacket ();
-  l = new L_Data_PDU;
+  l = new L_Data_PDU (this);
   l->data = tpdu.ToPacket ();
   l->source = 0;
   l->dest = addr;
   l->AddrType = GroupAddress;
-  layer3->send_L_Data (l);
+  l3->recv_L_Data (l);
 
   do
     {
@@ -229,9 +223,8 @@ GroupCacheEntry
 
       if (c && !rm)
 	{
-	  TRACEPRINTF (t, 4, this, "GroupCache found: %d.%d.%d",
-		       (c->src >> 12) & 0xf, (c->src >> 8) & 0xf,
-		       (c->src) & 0xff);
+	  TRACEPRINTF (t, 4, this, "GroupCache found: %s",
+		       FormatEIBAddr (c->src)());
 	  pth_event_free (timeout, PTH_FREE_THIS);
 	  return *c;
 	}
@@ -291,10 +284,7 @@ Array < eibaddr_t > GroupCache::LastUpdates (uint16_t start, uint8_t Timeout,
 	  while (start != pos)
 	    {
 	      if (updates[start & 0xff])
-		{
-		  a.resize (a () + 1);
-		  a[a () - 1] = updates[start & 0xff];
-		}
+		a.add (updates[start & 0xff]);
 	      start++;
 	    }
 	  end = pos;

@@ -45,10 +45,11 @@ class ClientConnection:public Thread
   unsigned buflen;
 
   void Run (pth_sem_t * stop);
+  const char *Name() { return "client"; }
 public:
-    ClientConnection (Server * s, Layer3 * l3, Trace * tr, int fd);
-    virtual ~ ClientConnection ();
-    /** reads a message and stores it in buf; aborts if stop occurs */
+  ClientConnection (Server * s, Layer3 * l3, Trace * tr, int fd);
+  virtual ~ClientConnection ();
+  /** reads a message and stores it in buf; aborts if stop occurs */
   int readmessage (pth_event_t stop);
   /** send a message and aborts if stop occurs */
   int sendmessage (int size, const uchar * msg, pth_event_t stop);

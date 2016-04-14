@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pkgmetadata SYSTEM "http://www.gentoo.org/dtd/metadata.dtd">
+<pkgmetadata>
+	<use>
+		<flag name="eibd"> Install the eib daemon </flag>
+		<flag name="ft12"> Add support for FT1.2 </flag>
+		<flag name="ncn5120"> Add support for NCN5120 </flag>
+		<flag name="pei16s"> Add support for PEI16 (user mode) </flag>
+		<flag name="tpuarts"> Add support for TPUART (user mode) </flag>
+		<flag name="dummy"> Add support for a dummy interface (for testing)</flag>
+		<flag name="eibnetip"> Add support for EIBNet/IP (aka KNXNet/IP) </flag>
+		<flag name="eibnetiptunnel"> Add support for EIBNet/IP tunneling to eibd </flag>
+		<flag name="eibnetipserver"> Allow eibd to act as an EIBNet/IP server </flag>
+		<flag name="groupcache"> Add support for group telegram cache </flag>
+	</use>
+</pkgmetadata>

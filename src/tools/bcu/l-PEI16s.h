@@ -23,13 +23,12 @@
 #include "bcu1serial.h"
 
 #define PEI16s_URL "bcu1s:/dev/ttySx\n"
-#define PEI16s_DOC "bcu1s connects using the PEI16 Protocoll over a BCU to the bus (using a experimental user mode driver, tracelevel % 2 must be 1 and the output must be displayed in a fast enough terminal)\n\n"
+#define PEI16s_DOC "bcu1s connects using the PEI16 Protocol over a BCU to the bus (using an experimental user mode driver)\n\n"
 
 #define PEI16s_PREFIX "bcu1s"
 #define PEI16s_CREATE PEI16s_ll_Create
-#define PEI16s_CLEANUP NULL
 
-inline LowLevelDriverInterface *
+inline LowLevelDriver *
 PEI16s_ll_Create (const char *dev, Trace * t)
 {
   return new BCU1SerialLowLevelDriver (dev, t);

@@ -18,14 +18,7 @@
 */
 
 #ifdef HAVE_FT12
-L2_NAME (FT12)
-#endif
-#ifdef HAVE_PEI16
-  L2_NAME (PEI16)
-#endif
-#ifdef HAVE_TPUART
-  L2_NAME (TPUART24)
-  L2_NAME (TPUART26)
+  L2_NAME (FT12)
 #endif
 #ifdef HAVE_EIBNETIP
   L2_NAME (EIBNETIP)
@@ -46,5 +39,9 @@ L2_NAME (FT12)
 
 #ifdef HAVE_NCN5120
   L2_NAME(NCN5120)
+#endif
+
+#ifdef HAVE_DUMMY
+  L2_NAME(DUMMY)
 #endif
 

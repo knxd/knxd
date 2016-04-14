@@ -29,12 +29,6 @@ BCU1SerialLowLevelDriver::SendReset ()
 {
 }
 
-bool
-BCU1SerialLowLevelDriver::Connection_Lost ()
-{
-  return 0;
-}
-
 void
 BCU1SerialLowLevelDriver::Send_Packet (CArray l)
 {
@@ -221,7 +215,7 @@ BCU1SerialLowLevelDriver::endsync ()
 
 bool
   BCU1SerialLowLevelDriver::exchange (uchar c, uchar & result,
-				      pth_event_t stop)
+				      pth_event_t stop UNUSED)
 {
   uchar s;
   int i;
@@ -377,7 +371,7 @@ BCU1SerialLowLevelDriver::Run (pth_sem_t * stop1)
   pth_event_free (input, PTH_FREE_THIS);
 }
 
-LowLevelDriverInterface::EMIVer BCU1SerialLowLevelDriver::getEMIVer ()
+LowLevelDriver::EMIVer BCU1SerialLowLevelDriver::getEMIVer ()
 {
   return vEMI1;
 }

@@ -32,11 +32,12 @@ class A_Broadcast:private Thread
   T_Broadcast *c;
 
   void Run (pth_sem_t * stop);
+  const char *Name() { return "broadcast"; }
 public:
-    A_Broadcast (Layer3 * l3, Trace * tr, ClientConnection * cc);
-   ~A_Broadcast ();
+  A_Broadcast (Layer3 * l3, Trace * tr, ClientConnection * cc);
+  ~A_Broadcast ();
 
-   /** start processing */
+  /** start processing */
   void Do (pth_event_t stop);
 };
 
@@ -49,11 +50,12 @@ class A_Group:private Thread
   T_Group *c;
 
   void Run (pth_sem_t * stop);
+  const char *Name() { return "group"; }
 public:
-    A_Group (Layer3 * l3, Trace * tr, ClientConnection * cc);
-   ~A_Group ();
+  A_Group (Layer3 * l3, Trace * tr, ClientConnection * cc);
+  ~A_Group ();
 
-   /** start processing */
+  /** start processing */
   void Do (pth_event_t stop);
 };
 
@@ -66,11 +68,12 @@ class A_TPDU:private Thread
   T_TPDU *c;
 
   void Run (pth_sem_t * stop);
+  const char *Name() { return "tpdu"; }
 public:
-    A_TPDU (Layer3 * l3, Trace * tr, ClientConnection * cc);
-   ~A_TPDU ();
+  A_TPDU (Layer3 * l3, Trace * tr, ClientConnection * cc);
+  ~A_TPDU ();
 
-   /** start processing */
+  /** start processing */
   void Do (pth_event_t stop);
 };
 
@@ -83,11 +86,12 @@ class A_Individual:private Thread
   T_Individual *c;
 
   void Run (pth_sem_t * stop);
+  const char *Name() { return "individual"; }
 public:
-    A_Individual (Layer3 * l3, Trace * tr, ClientConnection * cc);
-   ~A_Individual ();
+  A_Individual (Layer3 * l3, Trace * tr, ClientConnection * cc);
+  ~A_Individual ();
 
-   /** start processing */
+  /** start processing */
   void Do (pth_event_t stop);
 };
 
@@ -100,11 +104,12 @@ class A_Connection:private Thread
   T_Connection *c;
 
   void Run (pth_sem_t * stop);
+  const char *Name() { return "connection"; }
 public:
-    A_Connection (Layer3 * l3, Trace * tr, ClientConnection * cc);
-   ~A_Connection ();
+  A_Connection (Layer3 * l3, Trace * tr, ClientConnection * cc);
+  ~A_Connection ();
 
-   /** start processing */
+  /** start processing */
   void Do (pth_event_t stop);
 };
 
@@ -117,11 +122,12 @@ class A_GroupSocket:private Thread
   GroupSocket *c;
 
   void Run (pth_sem_t * stop);
+  const char *Name() { return "groupsocket"; }
 public:
-    A_GroupSocket (Layer3 * l3, Trace * tr, ClientConnection * cc);
-   ~A_GroupSocket ();
+  A_GroupSocket (Layer3 * l3, Trace * tr, ClientConnection * cc);
+  ~A_GroupSocket ();
 
-   /** start processing */
+  /** start processing */
   void Do (pth_event_t stop);
 };
 

@@ -22,7 +22,8 @@
 
 #include "eibnetip.h"
 #include "layer3.h"
-#include <string>
+#include "layer2.h"
+#include "server.h"
 
 typedef struct
 {
@@ -49,11 +50,8 @@ typedef struct
   pth_event_t timeout;
 } NATState;
 
-class EIBnetServer:public L_Data_CallBack, public L_Busmonitor_CallBack,
-  private Thread
+class EIBnetServer: protected Thread, public L_Busmonitor_CallBack, public Layer2mixin
 {
-  Layer3 *l3;
-  Trace *t;
   EIBNetIPSocket *sock;
   int Port;
   bool tunnel;
@@ -61,22 +59,24 @@ class EIBnetServer:public L_Data_CallBack, public L_Busmonitor_CallBack,
   bool discover;
   int busmoncount;
   struct sockaddr_in maddr;
-    Array < ConnState > state;
-    Array < NATState > natstate;
-  std::string name;
+  Array < ConnState > state;
+  Array < NATState > natstate;
+  String name;
 
   void Run (pth_sem_t * stop);
-  void Get_L_Data (L_Data_PDU * l);
-  void Get_L_Busmonitor (L_Busmonitor_PDU * l);
+  void Send_L_Data (L_Data_PDU * l);
+  void Send_L_Busmonitor (L_Busmonitor_PDU * l);
   void addBusmonitor ();
   void delBusmonitor ();
   int addClient (int type, const EIBnet_ConnectRequest & r1);
   void addNAT (const L_Data_PDU & l);
 public:
-    EIBnetServer (const char *multicastaddr, int port, bool Tunnel,
-          bool Route, bool Discover, Layer3 * layer3, Trace * tr, const std::string serverName);
-    virtual ~ EIBnetServer ();
+  EIBnetServer (const char *multicastaddr, int port, bool Tunnel,
+                bool Route, bool Discover, Layer3 * layer3, Trace * tr,
+                const String serverName);
+  virtual ~EIBnetServer ();
   bool init ();
+  const char * Name () { return "EIBnet"; }
 
 };
 

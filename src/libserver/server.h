@@ -24,29 +24,41 @@
 #include "layer3.h"
 
 class ClientConnection;
+
 /** implements the frontend (but opens no connection) */
-class Server:protected Thread
+class BaseServer:protected Thread, public Layer2virtual
 {
-  /** Layer 3 interface */
-  Layer3 *l3;
+  virtual void Run (pth_sem_t * stop) = 0;
+  const char *Name() { return "baseserver"; }
+protected:
+  BaseServer (Layer3 * l3, Trace * tr);
+public:
+  virtual ~BaseServer ();
+
+  virtual bool init ();
+};
+
+/** implements the frontend (but opens no connection) */
+class Server:public BaseServer
+{
   /** open client connections*/
-    Array < ClientConnection * >connections;
+  Array < ClientConnection * >connections;
 
   void Run (pth_sem_t * stop);
+  const char *Name() { return "server"; }
 protected:
-  /** debug output */
-    Trace * t;
-    /** server socket */
+  /** server socket */
   int fd;
 
   virtual void setupConnection (int cfd);
 
-    Server (Layer3 * l3, Trace * tr);
+  Server (Layer3 * l3, Trace * tr);
 public:
-    virtual ~ Server ();
+  virtual ~Server ();
 
-  virtual bool init () = 0;
-    /** deregister client connection */
+  virtual bool init ();
+
+  /** deregister client connection */
   bool deregister (ClientConnection * con);
 };
 

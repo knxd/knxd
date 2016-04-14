@@ -182,8 +182,8 @@ public:
     T *d1 = new T[newcount];
     for (unsigned i = 0; i < (count < newcount ? count : newcount); i++)
       d1[i] = data[i];
-    if (data);
-    delete[]data;
+    if (data)
+      delete[]data;
     data = d1;
     count = newcount;
   }
@@ -203,8 +203,8 @@ public:
     data[pos] = elem;
     for (unsigned i = pos; i < count; i++)
       d1[i + 1] = data[i];
-    if (data);
-    delete[]data;
+    if (data)
+      delete[]data;
     data = d1;
     count = count + 1;
   }

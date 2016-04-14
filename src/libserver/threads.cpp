@@ -17,6 +17,7 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#include <stdio.h>
 #include "types.h"
 #include "threads.h"
 
@@ -71,6 +72,10 @@ Thread::StopDelete ()
 void
 Thread::Start ()
 {
+  static int thread_nr = 0;
+  char buf[20];
+  snprintf(buf,sizeof(buf),"%s_%d",Name(),++thread_nr);
+
   if (tid)
     {
       pth_attr_t a = pth_attr_of (tid);
@@ -83,6 +88,7 @@ Thread::Start ()
     }
   pth_attr_t attr = pth_attr_new ();
   pth_attr_set (attr, PTH_ATTR_PRIO, prio);
+  pth_attr_set (attr, PTH_ATTR_NAME, buf);
   tid = pth_spawn (attr, &ThreadWrapper, this);
   pth_attr_destroy (attr);
 }

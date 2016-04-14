@@ -37,23 +37,24 @@ EIBSocketURL (const char *url)
     }
   if (!strncmp (url, "local:", 6))
     {
-      return EIBSocketLocal (url + 6);
+      url += 6;
+      return EIBSocketLocal (*url ? url : "/run/knx");
     }
   if (!strncmp (url, "ip:", 3))
     {
-      char *a = strdup (url + 3);
-      char *b;
+      char *a, *b;
       int port;
       EIBConnection *c;
+
+      url += 3;
+      a = strdup (*url ? url : "localhost");
       if (!a)
 	{
 	  errno = ENOMEM;
 	  return 0;
 	}
-      for (b = a; *b; b++)
-	if (*b == ':')
-	  break;
-      if (*b == ':')
+      b = strchr (a,':');
+      if (b)
 	{
 	  *b = 0;
 	  port = atoi (b + 1);
@@ -64,6 +65,7 @@ EIBSocketURL (const char *url)
       free (a);
       return c;
     }
+  fprintf(stderr, "Unknown URL prefix, need 'local:' or 'ip:'\n");
   errno = EINVAL;
   return 0;
 }
