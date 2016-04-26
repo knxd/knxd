@@ -198,6 +198,20 @@ Layer3::registerLayer2 (Layer2 * l2)
 }
 
 bool
+Layer3::layer2Registered(Layer2 * l2)
+{
+  unsigned i;
+  for (i = 0; i < layer2 (); i++)
+    if (layer2[i] == l2)
+      {
+	TRACEPRINTF (t, 3, this, "Layer2 %08X is registered.", l2);
+	return 1;
+      }
+  TRACEPRINTF (t, 3, this, "Layer2 %08X is NOT registered.", l2);
+  return 0;
+}
+
+bool
 Layer3::hasAddress (eibaddr_t addr, Layer2 *l2)
 {
   if (addr == defaultAddr)
@@ -299,10 +313,14 @@ Layer3::Run (pth_sem_t * stop1)
 	  ignore[ignore () - 1].end = getTime () + 1000000;
 	  l1->repeated = 0;
 
-	  if (l1->source != 0 && l1->source != defaultAddr)
-	    l1->l2->addAddress (l1->source);
-	  else if (l1->AddrType == IndividualAddress && l1->dest != defaultAddr)
-	    l1->l2->addReverseAddress (l1->dest);
+	  if (layer2Registered(l1->l2)) {
+		  if (l1->source != 0 && l1->source != defaultAddr) {
+		    l1->l2->addAddress (l1->source);
+		  }
+		  else if (l1->AddrType == IndividualAddress && l1->dest != defaultAddr) {
+		    l1->l2->addReverseAddress (l1->dest);
+		  }
+	  }
 
 	  if (l1->AddrType == IndividualAddress
 	      && l1->dest == defaultAddr)
