@@ -79,8 +79,8 @@ Array < eibaddr_t >
 
 Layer7_Connection::Layer7_Connection (Layer3 * l3, Trace * tr, eibaddr_t d)
 {
-  TRACEPRINTF (t, 5, this, "L7Connection open");
   t = tr;
+  TRACEPRINTF (t, 5, this, "L7Connection open");
   dest = d;
   l4 = new T_Connection (l3, tr, d);
   if (!l4->init ())
