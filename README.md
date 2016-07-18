@@ -63,7 +63,7 @@ If "systemctl status" emits something reasonable, you are.
 
 If you use systemd, the configuration file is ``/etc/knxd.conf``.
 Socket activation is used for the default IP and Unix sockets
-(port 4720 and /run/knx, respectively).
+(port 6720 and /run/knx, respectively).
 
 Without systemd, on Debian, edit ``/etc/default/knxd``.
 
