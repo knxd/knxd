@@ -32,16 +32,19 @@ Layer2::Layer2 (Layer3 *layer3, L2options *opt)
 bool
 Layer2::init ()
 {
-  if (l3)
-    l3->registerLayer2 (shared_from_this());
+  if (! l3)
+    return false;
+  l3->registerLayer2 (shared_from_this());
   return true;
 }
 
 void
 Layer2::RunStop()
 {
-  if (l3)
+  if (l3) {
     l3->deregisterLayer2 (shared_from_this());
+    l3 = 0;
+  }
 }
 
 bool
