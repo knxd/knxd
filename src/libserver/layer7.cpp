@@ -79,8 +79,8 @@ Array < eibaddr_t >
 
 Layer7_Connection::Layer7_Connection (Layer3 * l3, Trace * tr, eibaddr_t d)
 {
-  TRACEPRINTF (t, 5, this, "L7Connection open");
   t = tr;
+  TRACEPRINTF (t, 5, this, "L7Connection open");
   dest = d;
   l4 = new T_Connection (l3, tr, d);
   if (!l4->init ())
@@ -387,8 +387,8 @@ Layer7_Connection::A_Memory_Write_Block (memaddr_t addr, const CArray & data)
 
 Layer7_Individual::Layer7_Individual (Layer3 * l3, Trace * tr, eibaddr_t d)
 {
-  TRACEPRINTF (t, 5, this, "L7Individual open");
   t = tr;
+  TRACEPRINTF (t, 5, this, "L7Individual open");
   dest = d;
   l4 = new T_Individual (l3, tr, d, false);
   if (!l4->init ())
