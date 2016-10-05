@@ -209,7 +209,7 @@ struct urldef URLs[] = {
 
 /** determines the right backend for the url and creates it */
 Layer2Ptr 
-Create (const char *url, L2options *opt, Layer3 * l3)
+Create (const char *url, L2options *opt)
 {
   unsigned int p = 0;
   struct urldef *u = URLs;
@@ -220,7 +220,7 @@ Create (const char *url, L2options *opt, Layer3 * l3)
   while (u->prefix)
     {
       if (strlen (u->prefix) == p && !memcmp (u->prefix, url, p))
-        return u->Create (url + p + 1, opt, l3);
+        return u->Create (url + p + 1, opt);
       u++;
     }
   die ("url not supported");
@@ -367,9 +367,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
           serverip = "224.0.23.12";
 
         c = EIBnetServerPtr(new EIBnetServer (serverip, port, arguments->tunnel, arguments->route, arguments->discover,
-                              arguments->l3(), arguments->tracer(),
+                              arguments->tracer(),
                               (name && *name) ? name : "knxd"));
-        if (!c->init ())
+        if (!c->init (arguments->l3()))
           die ("initialization of the EIBnet/IP server failed");
         free (a);
         arguments->tunnel = false;
@@ -382,8 +382,8 @@ parse_opt (int key, char *arg, struct argp_state *state)
       {
         BaseServerPtr s;
         const char *name = OPT_ARG(arg,state,"/run/knx");
-        s = BaseServerPtr(new LocalServer (arguments->l3(), arguments->tracer(), name));
-        if (!s->init ())
+        s = BaseServerPtr(new LocalServer (arguments->tracer(), name));
+        if (!s->init (arguments->l3()))
           die ("initialisation of the knxd unix protocol failed");
         arguments->has_work++;
       }
@@ -393,8 +393,8 @@ parse_opt (int key, char *arg, struct argp_state *state)
         BaseServerPtr s = nullptr;
         int port = atoi(OPT_ARG(arg,state,"6720"));
         if (port > 0)
-          s = BaseServerPtr(new InetServer (arguments->l3(), arguments->tracer(), port));
-        if (!s || !s->init ())
+          s = BaseServerPtr(new InetServer (arguments->tracer(), port));
+        if (!s || !s->init (arguments->l3()))
           die ("initialisation of the knxd inet protocol failed");
         arguments->has_work++;
       }
@@ -469,8 +469,8 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'b':
       {
 	arguments->l2opts.t = arguments->tracer ();
-        Layer2Ptr l2 = Create (arg, &arguments->l2opts, arguments->l3 ());
-        if (!l2 || !l2->init ())
+        Layer2Ptr l2 = Create (arg, &arguments->l2opts);
+        if (!l2 || !l2->init (arguments->l3 ()))
           die ("initialisation of backend '%s' failed", arg);
 	if (arguments->l2opts.flags)
           die ("You provided options which '%s' does not recognize", arg);
@@ -496,8 +496,8 @@ parse_opt (int key, char *arg, struct argp_state *state)
             if( sd_is_socket(fd, AF_UNSPEC, SOCK_STREAM, 1) <= 0 )
               die("Error: socket not of expected type.");
 
-            s = BaseServerPtr(new SystemdServer(arguments->l3(), arguments->tracer(), fd));
-            if (!s->init ())
+            s = BaseServerPtr(new SystemdServer(arguments->tracer(), fd));
+            if (!s->init (arguments->l3()))
               die ("initialisation of the systemd socket failed");
             arguments->has_work++;
           }

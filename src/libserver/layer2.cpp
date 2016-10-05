@@ -20,18 +20,21 @@
 #include "layer2.h"
 #include "layer3.h"
 
-Layer2::Layer2 (Layer3 *layer3, L2options *opt)
+Layer2::Layer2 (L2options *opt, Trace *tr)
 {
-  l3 = layer3;
-  t = opt ? opt->t : l3->t;
+  l3 = 0;
+  t = opt ? opt->t : 0;
+  if (! t)
+    t = tr;
   mode = BUSMODE_DOWN;
   allow_monitor = !(opt && (opt->flags & FLAG_B_NO_MONITOR));
   if (opt) opt->flags &=~ FLAG_B_NO_MONITOR;
 }
 
 bool
-Layer2::init ()
+Layer2::init (Layer3 *layer3)
 {
+  l3 = layer3;
   if (! l3)
     return false;
   l3->registerLayer2 (shared_from_this());

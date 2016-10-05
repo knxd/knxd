@@ -127,10 +127,10 @@ class EIBnetServer: protected Thread, public L_Busmonitor_CallBack, public Layer
   void addNAT (const L_Data_PDU & l);
 public:
   EIBnetServer (const char *multicastaddr, int port, bool Tunnel,
-                bool Route, bool Discover, Layer3 * layer3, Trace * tr,
+                bool Route, bool Discover, Trace * tr,
                 const String serverName);
   virtual ~EIBnetServer ();
-  bool init ();
+  bool init (Layer3 *l3);
   bool handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock);
 
   const char * Name () { return "EIBnet"; }

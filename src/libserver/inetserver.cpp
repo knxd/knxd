@@ -26,8 +26,8 @@
 #include <errno.h>
 #include "inetserver.h"
 
-InetServer::InetServer (Layer3 * la3, Trace * tr, int port):
-Server (la3, tr)
+InetServer::InetServer (Trace * tr, int port):
+Server (tr)
 {
   struct sockaddr_in addr;
   int reuse = 1;

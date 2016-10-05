@@ -24,8 +24,8 @@
 void
 ReadIndividualAddresses (ClientConnection * c, pth_event_t stop)
 {
-  Layer7_Broadcast b (c->l3, c->t);
-  if (!b.init ())
+  Layer7_Broadcast b (c->t);
+  if (!b.init (c->l3))
     {
       c->sendreject (stop, EIB_PROCESSING_ERROR);
       return;
@@ -56,8 +56,8 @@ ChangeProgMode (ClientConnection * c, pth_event_t stop)
       return;
     }
   dest = (c->buf[2] << 8) | (c->buf[3]);
-  Management_Connection m (c->l3, c->t, dest);
-  if (!m.init ())
+  Management_Connection m = Management_Connection (c->t, dest);
+  if (!m.init (c->l3))
     {
       c->sendreject (stop, EIB_PROCESSING_ERROR);
       return;
@@ -111,8 +111,8 @@ GetMaskVersion (ClientConnection * c, pth_event_t stop)
     }
 
   dest = (c->buf[2] << 8) | (c->buf[3]);
-  Management_Connection m (c->l3, c->t, dest);
-  if (!m.init ())
+  Management_Connection m = Management_Connection (c->t, dest);
+  if (!m.init (c->l3))
     {
       c->sendreject (stop, EIB_PROCESSING_ERROR);
       return;
@@ -139,15 +139,15 @@ WriteIndividualAddress (ClientConnection * c, pth_event_t stop)
     }
 
   dest = (c->buf[2] << 8) | (c->buf[3]);
-  Layer7_Broadcast b (c->l3, c->t);
-  if (!b.init ())
+  Layer7_Broadcast b (c->t);
+  if (!b.init (c->l3))
     {
       c->sendreject (stop, EIB_PROCESSING_ERROR);
       return;
     }
   {
-    Management_Connection m (c->l3, c->t, dest);
-    if (!m.init ())
+    Management_Connection m = Management_Connection (c->t, dest);
+    if (!m.init (c->l3))
       {
 	c->sendreject (stop, EIB_PROCESSING_ERROR);
 	return;
@@ -173,8 +173,8 @@ WriteIndividualAddress (ClientConnection * c, pth_event_t stop)
   // wait 100ms
   pth_usleep (100000);
 
-  Management_Connection m1 (c->l3, c->t, dest);
-  if (!m1.init ())
+  Management_Connection m1 = Management_Connection (c->t, dest);
+  if (!m1.init (c->l3))
     {
       c->sendreject (stop, EIB_PROCESSING_ERROR);
       return;
@@ -209,8 +209,8 @@ ManagementConnection (ClientConnection * c, pth_event_t stop)
     }
 
   dest = (c->buf[2] << 8) | (c->buf[3]);
-  Management_Connection m (c->l3, c->t, dest);
-  if (!m.init ())
+  Management_Connection m = Management_Connection (c->t, dest);
+  if (!m.init (c->l3))
     {
       c->sendreject (stop, EIB_PROCESSING_ERROR);
       return;
@@ -522,8 +522,8 @@ ManagementIndividual (ClientConnection * c, pth_event_t stop)
     }
 
   dest = (c->buf[2] << 8) | (c->buf[3]);
-  Management_Individual m (c->l3, c->t, dest);
-  if (!m.init ())
+  Management_Individual m (c->t, dest);
+  if (!m.init (c->l3))
     {
       c->sendreject (stop, EIB_PROCESSING_ERROR);
       return;
@@ -614,8 +614,8 @@ LoadImage (ClientConnection * c, pth_event_t stop)
     uint16_t maskver;
     uchar ch;
     r = IMG_NO_DEVICE_CONNECTION;
-    Management_Connection m (c->l3, c->t, i->addr);
-    if (!m.init ())
+    Management_Connection m = Management_Connection (c->t, i->addr);
+    if (!m.init (c->l3))
       goto out;
     r = IMG_MASK_READ_FAILED;
     if (m.A_Device_Descriptor_Read (maskver) == -1)

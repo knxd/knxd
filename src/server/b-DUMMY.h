@@ -30,9 +30,9 @@
 #define DUMMY_CREATE dummy_Create
 
 inline Layer2Ptr
-dummy_Create (const char *dev UNUSED, L2options *opt, Layer3 * l3)
+dummy_Create (const char *dev UNUSED, L2options *opt)
 {
-  return std::shared_ptr<DummyL2Driver>(new DummyL2Driver (l3, opt));
+  return std::shared_ptr<DummyL2Driver>(new DummyL2Driver (opt));
 }
 
 #endif

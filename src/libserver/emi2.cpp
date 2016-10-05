@@ -21,8 +21,8 @@
 #include "emi.h"
 #include "layer3.h"
 
-EMI2Layer2::EMI2Layer2 (LowLevelDriver * i, Layer3 * l3,
-                        L2options *opt) : Layer2 (l3, opt)
+EMI2Layer2::EMI2Layer2 (LowLevelDriver * i, 
+                        L2options *opt) : Layer2 (opt)
 {
   TRACEPRINTF (t, 2, this, "Open");
   iface = i;
@@ -41,13 +41,13 @@ EMI2Layer2::EMI2Layer2 (LowLevelDriver * i, Layer3 * l3,
 }
 
 bool
-EMI2Layer2::init ()
+EMI2Layer2::init (Layer3 * l3)
 {
   if (iface == 0)
     return false;
   if (! addGroupAddress(0))
     return false;
-  return Layer2::init ();
+  return Layer2::init (l3);
 }
 
 EMI2Layer2::~EMI2Layer2 ()

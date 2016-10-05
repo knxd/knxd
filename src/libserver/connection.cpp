@@ -29,8 +29,8 @@ A_Broadcast::A_Broadcast (ClientConnection * cc)
       TRACEPRINTF (con->t, 7, this, "OpenBroadcast size bad %d", con->size);
       return;
     }
-  c = T_BroadcastPtr(new T_Broadcast (con->l3, con->t, con->buf[4] != 0));
-  if (!c->init ())
+  c = T_BroadcastPtr(new T_Broadcast (con->t, con->buf[4] != 0));
+  if (!c->init (con->l3))
     {
       TRACEPRINTF (con->t, 7, this, "OpenBroadcast init bad");
       return;
@@ -49,9 +49,9 @@ A_Group::A_Group (ClientConnection * cc)
       TRACEPRINTF (con->t, 7, this, "OpenGroup size bad %d", con->size);
       return;
     }
-  c = T_GroupPtr(new T_Group (con->l3, cc->t, (con->buf[2] << 8) | (con->buf[3]),
+  c = T_GroupPtr(new T_Group (cc->t, (con->buf[2] << 8) | (con->buf[3]),
 		 con->buf[4] != 0));
-  if (!c->init ())
+  if (!c->init (con->l3))
     {
       TRACEPRINTF (con->t, 7, this, "OpenGroup init bad");
       return;
@@ -70,8 +70,8 @@ A_TPDU::A_TPDU (ClientConnection * cc)
       TRACEPRINTF (con->t, 7, this, "OpenTPDU size bad %d", con->size);
       return;
     }
-  c = T_TPDUPtr(new T_TPDU (con->l3, con->t, (con->buf[2] << 8) | (con->buf[3])));
-  if (!c->init ())
+  c = T_TPDUPtr(new T_TPDU (con->t, (con->buf[2] << 8) | (con->buf[3])));
+  if (!c->init (con->l3))
     {
       TRACEPRINTF (con->t, 7, this, "OpenTPDU init bad");
       return;
@@ -91,9 +91,9 @@ A_Individual::A_Individual (ClientConnection * cc)
       return;
     }
   c = T_IndividualPtr(
-    new T_Individual (con->l3, con->t, (con->buf[2] << 8) | (con->buf[3]),
+    new T_Individual (con->t, (con->buf[2] << 8) | (con->buf[3]),
 		      con->buf[4] != 0));
-  if (!c->init ())
+  if (!c->init (con->l3))
     {
       TRACEPRINTF (con->t, 7, this, "OpenIndividual init bad");
       return;
@@ -112,8 +112,8 @@ A_Connection::A_Connection (ClientConnection * cc)
       TRACEPRINTF (con->t, 7, this, "OpenConnection size bad %d", con->size);
       return;
     }
-  c = T_ConnectionPtr(new T_Connection (con->l3, con->t, (con->buf[2] << 8) | (con->buf[3])));
-  if (!c->init ())
+  c = T_ConnectionPtr(new T_Connection (con->t, (con->buf[2] << 8) | (con->buf[3])));
+  if (!c->init (con->l3))
     {
       TRACEPRINTF (con->t, 7, this, "OpenConnection init bad");
       return;
@@ -132,8 +132,8 @@ A_GroupSocket::A_GroupSocket (ClientConnection * cc)
       TRACEPRINTF (con->t, 7, this, "OpenGroupSocket size bad %d", con->size);
       return;
     }
-  c = GroupSocketPtr(new GroupSocket (con->l3, con->t, con->buf[4] != 0));
-  if (!c->init ())
+  c = GroupSocketPtr(new GroupSocket (con->t, con->buf[4] != 0));
+  if (!c->init (con->l3))
     {
       TRACEPRINTF (con->t, 7, this, "OpenGroupSocket init bad");
       return;

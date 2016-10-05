@@ -43,8 +43,8 @@ setstat (int fd, int s)
 
 
 TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
-						    L2options *opt, Layer3 *l3)
-	: Layer2 (l3, opt)
+						    L2options *opt)
+	: Layer2 (opt)
 {
   struct termios t1;
   TRACEPRINTF (t, 2, this, "Open");
@@ -137,13 +137,13 @@ TPUARTSerialLayer2Driver::~TPUARTSerialLayer2Driver ()
 
 }
 
-bool TPUARTSerialLayer2Driver::init ()
+bool TPUARTSerialLayer2Driver::init (Layer3 *l3)
 {
   if (fd == -1)
     return false;
   if (! addGroupAddress(0))
     return false;
-  return Layer2::init ();
+  return Layer2::init (l3);
 }
 
 bool

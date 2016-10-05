@@ -21,8 +21,8 @@
 #include "tpdu.h"
 #include "apdu.h"
 
-GroupCache::GroupCache (Layer3 * l3, Trace * t)
-	: Layer2mixin(l3, t)
+GroupCache::GroupCache (Trace * t)
+	: Layer2mixin(t)
 {
   TRACEPRINTF (t, 4, this, "GroupCacheInit");
   enable = 0;

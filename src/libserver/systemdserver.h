@@ -26,7 +26,7 @@
 class SystemdServer:public Server
 {
 public:
-  SystemdServer (Layer3 * l3, Trace * tr, int systemd_fd);
+  SystemdServer (Trace * tr, int systemd_fd);
 };
 
 #endif

@@ -22,8 +22,7 @@
 #include "layer3.h"
 
 EIBNetIPTunnel::EIBNetIPTunnel (const char *dest, int port, int sport,
-				const char *srcip, int Dataport, L2options *opt,
-				Layer3 * l3) : Layer2 (l3, opt)
+				const char *srcip, int Dataport, L2options *opt) : Layer2 (opt)
 {
   TRACEPRINTF (t, 2, this, "Open");
   pth_sem_init (&insignal);
@@ -77,13 +76,13 @@ EIBNetIPTunnel::~EIBNetIPTunnel ()
     delete sock;
 }
 
-bool EIBNetIPTunnel::init ()
+bool EIBNetIPTunnel::init (Layer3 *l3)
 {
   if (sock == 0)
     return false;
   if (! addGroupAddress(0))
     return false;
-  return Layer2::init ();
+  return Layer2::init (l3);
 }
 
 void

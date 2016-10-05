@@ -23,8 +23,8 @@
 #include <errno.h>
 #include "localserver.h"
 
-LocalServer::LocalServer (Layer3 * la3, Trace * tr, const char *path):
-Server (la3, tr)
+LocalServer::LocalServer (Trace * tr, const char *path):
+Server (tr)
 {
   struct sockaddr_un addr;
   TRACEPRINTF (tr, 8, this, "OpenLocalSocket %s", path);

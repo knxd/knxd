@@ -30,9 +30,9 @@
 #include <memory>
 
 EIBnetServer::EIBnetServer (const char *multicastaddr, int port, bool Tunnel,
-                bool Route, bool Discover, Layer3 * layer3,
+                bool Route, bool Discover,
                 Trace * tr, String serverName)
-	: Layer2mixin::Layer2mixin (layer3, tr)
+	: Layer2mixin::Layer2mixin (tr)
 {
   struct sockaddr_in baddr;
   name = serverName;
@@ -171,11 +171,11 @@ EIBnetDiscover::~EIBnetDiscover ()
 }
 
 bool
-EIBnetServer::init ()
+EIBnetServer::init (Layer3 *l3)
 {
   if (!sock)
     return false;
-  return Layer2mixin::init();
+  return Layer2mixin::init(l3);
 }
 
 void EIBnetDiscover::Send (EIBNetIPPacket p, struct sockaddr_in addr)
@@ -240,7 +240,7 @@ EIBnetServer::Send_L_Data (L_Data_PDU * l)
 
 bool ConnState::init()
 {
-  if (! Layer2::init())
+  if (! Layer2mixin::init(parent->l3))
     return false;
   if (! addGroupAddress(0))
     return false;
@@ -333,7 +333,7 @@ EIBnetServer::addNAT (const L_Data_PDU & l)
   natstate[i].timeout = pth_event (PTH_EVENT_RTIME, pth_time (180, 0));
 }
 
-ConnState::ConnState (EIBnetServer *p, eibaddr_t addr) : Layer2mixin (p->l3, p->t)
+ConnState::ConnState (EIBnetServer *p, eibaddr_t addr) : Layer2mixin (p->t)
 {
   parent = p;
   timeout = pth_event (PTH_EVENT_RTIME, pth_time (120, 0));
@@ -342,7 +342,7 @@ ConnState::ConnState (EIBnetServer *p, eibaddr_t addr) : Layer2mixin (p->l3, p->
   outwait = pth_event (PTH_EVENT_SEM, outsignal);
   sendtimeout = pth_event (PTH_EVENT_RTIME, pth_time (1, 0));
   if (!addr)
-    remoteAddr = l3->get_client_addr ();
+    remoteAddr = p->l3->get_client_addr ();
   if (remoteAddr)
     addAddress(remoteAddr);
 }

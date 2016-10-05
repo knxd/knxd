@@ -23,7 +23,7 @@
 #include "layer3.h"
 
 EIBNetIPRouter::EIBNetIPRouter (const char *multicastaddr, int port,
-				eibaddr_t a UNUSED, Layer3 * l3, L2options *opt) : Layer2 (l3, opt)
+				eibaddr_t a UNUSED, L2options *opt) : Layer2 (opt)
 {
   struct sockaddr_in baddr;
   struct ip_mreq mcfg;
@@ -68,11 +68,11 @@ EIBNetIPRouter::~EIBNetIPRouter ()
 }
 
 bool
-EIBNetIPRouter::init ()
+EIBNetIPRouter::init (Layer3 *l3)
 {
   if (sock == 0)
     return false;
-  return Layer2::init ();
+  return Layer2::init (l3);
 }
 
 void

@@ -42,8 +42,7 @@ typedef struct {
 } L2options;
 
 class Layer3;
-typedef Layer2Ptr (*Layer2_Create_Func) (const char *conf, 
-				       L2options *opt, Layer3 * l3);
+typedef Layer2Ptr (*Layer2_Create_Func) (const char *conf, L2options *opt);
 
 #define FLAG_B_TUNNEL_NOQUEUE (1<<0)
 #define FLAG_B_TPUARTS_ACKGROUP (1<<1)

@@ -22,25 +22,25 @@
 
 /***************** Layer4Common *****************/
 
-Layer4common::Layer4common(Layer3 *l3, Trace * tr)
-	: Layer2mixin (l3,tr)
+Layer4common::Layer4common(Trace * tr)
+	: Layer2mixin (tr)
 {
   init_ok = false;
 }
 
-bool Layer4common::init ()
+bool Layer4common::init (Layer3 *l3)
 {
   if (!init_ok)
     return false;
 
   remoteAddr = l3->get_client_addr ();
-  return Layer2mixin::init();
+  return Layer2mixin::init(l3);
 }
 
 /***************** T_Brodcast *****************/
 
-T_Broadcast::T_Broadcast (Layer3 * l3, Trace * tr, int write_only)
-	: Layer4common (l3, tr)
+T_Broadcast::T_Broadcast (Trace * tr, int write_only)
+	: Layer4common (tr)
 {
   TRACEPRINTF (tr, 4, this, "OpenBroadcast %s", write_only ? "WO" : "RW");
   pth_sem_init (&sem);
@@ -112,8 +112,8 @@ T_Broadcast::Get (pth_event_t stop)
 
 /***************** T_Group *****************/
 
-T_Group::T_Group (Layer3 * l3, Trace * tr, eibaddr_t group, int write_only)
-	: Layer4common (l3, tr)
+T_Group::T_Group (Trace * tr, eibaddr_t group, int write_only)
+	: Layer4common (tr)
 {
   TRACEPRINTF (tr, 4, this, "OpenGroup %s %s", FormatGroupAddr (group)(),
 	       write_only ? "WO" : "RW");
@@ -188,8 +188,8 @@ T_Group::Get (pth_event_t stop)
 
 /***************** T_TPDU *****************/
 
-T_TPDU::T_TPDU (Layer3 * l3, Trace * tr, eibaddr_t d)
-	: Layer4common (l3, tr)
+T_TPDU::T_TPDU (Trace * tr, eibaddr_t d)
+	: Layer4common (tr)
 {
   TRACEPRINTF (tr, 4, this, "OpenTPDU %s", FormatEIBAddr (d)());
   src = d;
@@ -252,9 +252,9 @@ T_TPDU::Get (pth_event_t stop)
 
 /***************** T_Individual *****************/
 
-T_Individual::T_Individual (Layer3 * l3, Trace * tr, eibaddr_t d,
+T_Individual::T_Individual (Trace * tr, eibaddr_t d,
 			    int write_only)
-	: Layer4common (l3, tr)
+	: Layer4common (tr)
 {
   TRACEPRINTF (tr, 4, this, "OpenIndividual %s %s",
                FormatEIBAddr (d)(), write_only ? "WO" : "RW");
@@ -327,8 +327,8 @@ T_Individual::Get (pth_event_t stop)
 
 /***************** T_COnnection *****************/
 
-T_Connection::T_Connection (Layer3 * l3, Trace * tr, eibaddr_t d)
-	: Layer4common (l3, tr)
+T_Connection::T_Connection (Trace * tr, eibaddr_t d)
+	: Layer4common (tr)
 {
   TRACEPRINTF (tr, 4, this, "OpenConnection %s", FormatEIBAddr (d)());
   dest = d;
@@ -599,8 +599,8 @@ T_Connection::Run (pth_sem_t * stop1)
 
 /***************** GroupSocket *****************/
 
-GroupSocket::GroupSocket (Layer3 * l3, Trace * tr, int write_only)
-	: Layer4common(l3, tr)
+GroupSocket::GroupSocket (Trace * tr, int write_only)
+	: Layer4common(tr)
 {
   TRACEPRINTF (tr, 4, this, "OpenGroupSocket %s", write_only ? "WO" : "RW");
   pth_sem_init (&sem);

@@ -25,7 +25,7 @@
 #include "dummy.h"
 #include "layer3.h"
 
-DummyL2Driver::DummyL2Driver (Layer3 *l3, L2options *opt) : Layer2 (l3, opt)
+DummyL2Driver::DummyL2Driver (L2options *opt) : Layer2 (opt)
 {
   TRACEPRINTF (t, 2, this, "Open");
   Start ();

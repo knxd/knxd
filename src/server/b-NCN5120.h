@@ -31,9 +31,9 @@
 #define NCN5120_CREATE ncn5120_Create
 
 inline Layer2Ptr 
-ncn5120_Create (const char *dev, L2options *opt, Layer3 *l3)
+ncn5120_Create (const char *dev, L2options *opt)
 {
-  return std::shared_ptr<NCN5120SerialLayer2Driver>(new NCN5120SerialLayer2Driver(dev, opt, l3));
+  return std::shared_ptr<NCN5120SerialLayer2Driver>(new NCN5120SerialLayer2Driver(dev, opt));
 }
 
 #endif
