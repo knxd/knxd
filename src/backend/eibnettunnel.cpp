@@ -366,7 +366,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 		    {
 		      mod = 3;
 		      pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE, timeout,
-				 pth_time (1, 0));
+				 pth_time (0, 20000)); // 20 msec
 		    }
 		  else
 		    mod = 1;
