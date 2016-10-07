@@ -92,6 +92,8 @@ public:
   bool registerLayer2 (Layer2 * l2);
   /** deregister a layer2 interface, return true if successful*/
   bool deregisterLayer2 (Layer2 * l2);
+  /** check if a layer2 interface has been registered, return true if successful*/
+  bool layer2Registered(Layer2 * l2);
 
   /** register a busmonitor callback, return true, if successful*/
   bool registerBusmonitor (L_Busmonitor_CallBack * c);
