@@ -234,18 +234,6 @@ if test x$enablejava = xtrue ; then
 
 fi
 
-AC_ARG_WITH(libstdc,
-[  --without-libstdc	don't use function from libstdc++],
-[case "${withval}" in
- yes) use_libstdc=true ;;
-  no)  use_libstdc=false ;;
-   *) AC_MSG_ERROR(bad value ${withval} for --with-libstdc) ;;
- esac],[use_libstdc=true])
-if test x$use_libstdc = xfalse ; then
- AC_DEFINE(USE_NOLIBSTDC, 1 , [don't use libstdc++])
- CXX=$CC
-fi
-
 AM_CONDITIONAL(BUILD_JAVA, test x$enablejava = xtrue )
 
 AC_CHECK_MEMBER([struct sockaddr_in.sin_len],[AC_DEFINE(HAVE_SOCKADDR_IN_LEN,1,[Do we have sockaddr_in.sin_len?])],[],
