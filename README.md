@@ -11,7 +11,7 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 
 ## New Features
 
-* 0.10 (this branch -- please try 0.11 first!)
+* 0.10 (``stable`` branch -- please try 0.11 first!)
 
   * Support for more than one KNX interface
 
@@ -19,7 +19,7 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 
   * ETS5 compatibility
 
-* 0.11 (``conn_sep`` branch -- new features here)
+* 0.11 (``master`` branch -- new features here)
 
   * Major refactoring
 
@@ -127,3 +127,4 @@ This is intentional.
 
 * Code-related issues are on GitHub: https://github.com/knxd/knxd/issues
 * For everything else there's a Google Groups forum on https://groups.google.com/forum/#!forum/knxd
+
