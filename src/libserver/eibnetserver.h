@@ -25,23 +25,52 @@
 #include "layer2.h"
 #include "server.h"
 
-typedef struct
+class EIBnetServer;
+
+typedef enum {
+	CT_STANDARD = 0,
+	CT_BUSMONITOR,
+	CT_CONFIG,
+} ConnType;
+
+class ConnState: protected Thread, public Layer2mixin
 {
+public:
+  ConnState (EIBnetServer *p, eibaddr_t addr);
+  ~ConnState ();
+  void Start () { Thread::Start(); }
+  void Run (pth_sem_t * stop1);
+
+  EIBnetServer *parent;
+  bool init();
+
   uchar channel;
   uchar sno;
   uchar rno;
   int state;
-  int type;
+  ConnType type;
   int no;
   bool nat;
   pth_event_t timeout;
-    Queue < CArray > out;
+  Queue < CArray > out;
+
   struct sockaddr_in daddr;
   struct sockaddr_in caddr;
   pth_sem_t *outsignal;
   pth_event_t outwait;
   pth_event_t sendtimeout;
-} ConnState;
+
+  // handle various packets from the connection
+  void tunnel_request(EIBnet_TunnelRequest &r1);
+  void tunnel_response(EIBnet_TunnelACK &r1);
+  void config_request(EIBnet_ConfigRequest &r1, EIBNetIPSocket *isock);
+  void config_response (EIBnet_ConfigACK &r1);
+
+  void shutdown(void);
+  void Send_L_Data (L_Data_PDU * l);
+  const char * Name () { return "EIBnetConn"; } // TODO add a sequence number
+};
+typedef std::shared_ptr<ConnState> ConnStatePtr;
 
 typedef struct
 {
@@ -50,16 +79,41 @@ typedef struct
   pth_event_t timeout;
 } NATState;
 
+class EIBnetDiscover: protected Thread
+{
+  EIBnetServer *parent;
+  EIBNetIPSocket *sock; // receive only
+
+  void Run (pth_sem_t * stop);
+
+public:
+  EIBnetDiscover (EIBnetServer *parent, const char *multicastaddr, int port);
+  virtual ~EIBnetDiscover ();
+  struct sockaddr_in maddr;
+
+  bool init (void);
+  const char * Name () { return "EIBnetD"; }
+
+  void Send (EIBNetIPPacket p, struct sockaddr_in addr);
+};
+
 class EIBnetServer: protected Thread, public L_Busmonitor_CallBack, public Layer2mixin
 {
-  EIBNetIPSocket *sock;
-  int Port;
+  friend class ConnState;
+  friend class EIBnetDiscover;
+
+  EIBnetDiscover *mcast; // used for multicast receiving
+  EIBNetIPSocket *sock;  // used for normal dialog
+  int sock_mac;          // used to query the list of interfaces
+  int Port;              // copy of sock->port()
+
+  /** Flags */
   bool tunnel;
   bool route;
   bool discover;
+
   int busmoncount;
-  struct sockaddr_in maddr;
-  Array < ConnState > state;
+  Array < ConnStatePtr > state;
   Array < NATState > natstate;
   String name;
 
@@ -68,16 +122,29 @@ class EIBnetServer: protected Thread, public L_Busmonitor_CallBack, public Layer
   void Send_L_Busmonitor (L_Busmonitor_PDU * l);
   void addBusmonitor ();
   void delBusmonitor ();
-  int addClient (int type, const EIBnet_ConnectRequest & r1);
+  int addClient (ConnType type, const EIBnet_ConnectRequest & r1,
+                 eibaddr_t addr = 0);
   void addNAT (const L_Data_PDU & l);
 public:
   EIBnetServer (const char *multicastaddr, int port, bool Tunnel,
-                bool Route, bool Discover, Layer3 * layer3, Trace * tr,
+                bool Route, bool Discover, Trace * tr,
                 const String serverName);
   virtual ~EIBnetServer ();
-  bool init ();
+  bool init (Layer3 *l3);
+  bool handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock);
+
   const char * Name () { return "EIBnet"; }
+  void drop_state (ConnStatePtr s);
+  void drop_state (uint8_t index);
+  inline void Send (EIBNetIPPacket p) {
+    Send (p, mcast->maddr);
+  }
+  inline void Send (EIBNetIPPacket p, struct sockaddr_in addr) {
+    if (sock)
+      sock->Send (p, addr);
+  }
 
 };
+typedef std::shared_ptr<EIBnetServer> EIBnetServerPtr;
 
 #endif

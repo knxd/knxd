@@ -20,59 +20,60 @@
 #include "layer2.h"
 #include "layer3.h"
 
-Layer2::Layer2 (Layer3 *layer3, L2options *opt)
+Layer2::Layer2 (L2options *opt, Trace *tr)
 {
-  l3 = layer3;
-  t = opt ? opt->t : l3->t;
+  l3 = 0;
+  t = opt ? opt->t : 0;
+  if (! t)
+    t = tr;
   mode = BUSMODE_DOWN;
   allow_monitor = !(opt && (opt->flags & FLAG_B_NO_MONITOR));
   if (opt) opt->flags &=~ FLAG_B_NO_MONITOR;
 }
 
 bool
-Layer2::init ()
+Layer2::init (Layer3 *layer3)
 {
-  if (l3)
-    l3->registerLayer2 (this);
+  l3 = layer3;
+  if (! l3)
+    return false;
+  l3->registerLayer2 (shared_from_this());
   return true;
 }
 
-Layer2::~Layer2 ()
+void
+Layer2::RunStop()
 {
-  if (l3)
-    l3->deregisterLayer2 (this);
-}
-
-bool
-Layer2::layer2_is_bus ()
-{
-  if (! addGroupAddress (0))
-    return false;
-  if (! addAddress (0))
-    return false;
-  return true;
+  if (l3) {
+    l3->deregisterLayer2 (shared_from_this());
+    l3 = 0;
+  }
 }
 
 bool
 Layer2::addAddress (eibaddr_t addr)
 {
+  if (addr == 0)
+    return false;
   unsigned i;
   for (i = 0; i < indaddr (); i++)
     if (indaddr[i] == addr)
-      return 0;
+      return false;
   indaddr.add (addr);
-  return 1;
+  return true;
 }
 
 bool
 Layer2::addReverseAddress (eibaddr_t addr)
 {
+  if (addr == 0)
+    return false;
   unsigned i;
   for (i = 0; i < revaddr (); i++)
     if (revaddr[i] == addr)
-      return 0;
+      return false;
   revaddr.add (addr);
-  return 1;
+  return true;
 }
 
 bool
@@ -81,9 +82,9 @@ Layer2::addGroupAddress (eibaddr_t addr)
   unsigned i;
   for (i = 0; i < groupaddr (); i++)
     if (groupaddr[i] == addr)
-      return 0;
+      return false;
   groupaddr.add (addr);
-  return 1;
+  return true;
 }
 
 bool
@@ -94,9 +95,9 @@ Layer2::removeAddress (eibaddr_t addr)
     if (indaddr[i] == addr)
       {
         indaddr.deletepart (i, 1);
-        return 1;
+        return true;
       }
-  return 0;
+  return false;
 }
 
 bool
@@ -107,9 +108,9 @@ Layer2::removeReverseAddress (eibaddr_t addr)
     if (revaddr[i] == addr)
       {
         revaddr.deletepart (i, 1);
-        return 1;
+        return true;
       }
-  return 0;
+  return false;
 }
 
 bool
@@ -120,9 +121,9 @@ Layer2::removeGroupAddress (eibaddr_t addr)
     if (groupaddr[i] == addr)
       {
         groupaddr.deletepart (i, 1);
-        return 1;
+        return true;
       }
-  return 0;
+  return false;
 }
 
 bool
@@ -169,24 +170,6 @@ Layer2::leaveBusmonitor ()
   if (mode != BUSMODE_MONITOR)
     return false;
   mode = BUSMODE_DOWN;
-  return true;
-}
-
-bool
-Layer2::openVBusmonitor ()
-{
-  if (mode != BUSMODE_UP)
-    return false;
-  mode = BUSMODE_VMONITOR;
-  return true;
-}
-
-bool
-Layer2::closeVBusmonitor ()
-{
-  if (mode != BUSMODE_VMONITOR)
-    return false;
-  mode = BUSMODE_UP;
   return true;
 }
 

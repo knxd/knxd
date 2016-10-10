@@ -72,6 +72,10 @@ public:
   /** do I have enough to do? */
   unsigned int has_work;
 
+  /** Start of address block to be assigned dynamically to clients */
+  eibaddr_t alloc_addrs;
+  /** Length of address block to be assigned dynamically to clients */
+  int alloc_addrs_len;
   /* EIBnet/IP multicast server flags */
   bool tunnel;
   bool route;
@@ -104,6 +108,11 @@ public:
         {
           layer3 = new Layer3 (addr, tracer(), force_broadcast);
           addr = 0;
+          if (alloc_addrs_len)
+            {
+              layer3->set_client_block (alloc_addrs, alloc_addrs_len);
+              alloc_addrs_len = 0;
+            }
         }
       return layer3;
     }
@@ -199,8 +208,8 @@ struct urldef URLs[] = {
 };
 
 /** determines the right backend for the url and creates it */
-Layer2 *
-Create (const char *url, L2options *opt, Layer3 * l3)
+Layer2Ptr 
+Create (const char *url, L2options *opt)
 {
   unsigned int p = 0;
   struct urldef *u = URLs;
@@ -211,7 +220,7 @@ Create (const char *url, L2options *opt, Layer3 * l3)
   while (u->prefix)
     {
       if (strlen (u->prefix) == p && !memcmp (u->prefix, url, p))
-        return u->Create (url + p + 1, opt, l3);
+        return u->Create (url + p + 1, opt);
       u++;
     }
   die ("url not supported");
@@ -223,8 +232,18 @@ eibaddr_t
 readaddr (const char *addr)
 {
   int a, b, c;
-  sscanf (addr, "%d.%d.%d", &a, &b, &c);
+  if (sscanf (addr, "%d.%d.%d", &a, &b, &c) != 3)
+    die ("Address needs to look like X.X.X");
   return ((a & 0x0f) << 12) | ((b & 0x0f) << 8) | ((c & 0xff));
+}
+
+bool
+readaddrblock (struct arguments *args, const char *addr)
+{
+  int a, b, c;
+  if (sscanf (addr, "%d.%d.%d:%d", &a, &b, &c, &args->alloc_addrs_len) != 4)
+    die ("Address block needs to look like X.X.X:X");
+  args->alloc_addrs = ((a & 0x0f) << 12) | ((b & 0x0f) << 8) | ((c & 0xff));
 }
 
 /** version */
@@ -253,15 +272,16 @@ static struct argp_option options[] = {
   {"listen-tcp", 'i', "PORT", OPTION_ARG_OPTIONAL,
    "listen at TCP port PORT (default 6720)"},
   {"listen-local", 'u', "FILE", OPTION_ARG_OPTIONAL,
-   "listen at Unix domain socket FILE (default /tmp/eib)"},
+   "listen at Unix domain socket FILE (default /run/knx)"},
   {"trace", 't', "MASK", 0,
    "set trace flags (bitmask)"},
   {"error", 'f', "LEVEL", 0,
    "set error level"},
   {"eibaddr", 'e', "EIBADDR", 0,
    "set our EIB address to EIBADDR (default 0.0.1)"},
-  {"pid-file", 'p', "FILE", 0,
-   "write the PID of the process to FILE"},
+  {"client-addrs", 'E', "ADDRSTART", 0,
+   "assign addresses ADDRSTART through ADDRSTART+n to clients"},
+  {"pid-file", 'p', "FILE", 0, "write the PID of the process to FILE"},
   {"daemon", 'd', "FILE", OPTION_ARG_OPTIONAL,
    "start the programm as daemon. Output will be written to FILE if given"},
 #ifdef HAVE_EIBNETIPSERVER
@@ -328,7 +348,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
         const char *serverip;
         const char *name = arguments->eibnetname;
 
-        EIBnetServer *c;
+        EIBnetServerPtr c;
         int port = 0;
         char *a = strdup (OPT_ARG(arg, state, ""));
         char *b;
@@ -346,10 +366,10 @@ parse_opt (int key, char *arg, struct argp_state *state)
         if (!*serverip) 
           serverip = "224.0.23.12";
 
-        c = new EIBnetServer (serverip, port, arguments->tunnel, arguments->route, arguments->discover,
-                              arguments->l3(), arguments->tracer(),
-                              (name && *name) ? name : "knxd");
-        if (!c->init ())
+        c = EIBnetServerPtr(new EIBnetServer (serverip, port, arguments->tunnel, arguments->route, arguments->discover,
+                              arguments->tracer(),
+                              (name && *name) ? name : "knxd"));
+        if (!c->init (arguments->l3()))
           die ("initialization of the EIBnet/IP server failed");
         free (a);
         arguments->tunnel = false;
@@ -360,34 +380,34 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
     case 'u':
       {
-        BaseServer *s;
+        BaseServerPtr s;
         const char *name = OPT_ARG(arg,state,"/run/knx");
-        s = new LocalServer (arguments->l3(), arguments->tracer(), name);
-        if (!s->init ())
+        s = BaseServerPtr(new LocalServer (arguments->tracer(), name));
+        if (!s->init (arguments->l3()))
           die ("initialisation of the knxd unix protocol failed");
         arguments->has_work++;
       }
       break;
     case 'i':
       {
-        BaseServer *s = NULL;
+        BaseServerPtr s = nullptr;
         int port = atoi(OPT_ARG(arg,state,"6720"));
         if (port > 0)
-          s = new InetServer (arguments->l3(), arguments->tracer(), port);
-        if (!s || !s->init ())
+          s = BaseServerPtr(new InetServer (arguments->tracer(), port));
+        if (!s || !s->init (arguments->l3()))
           die ("initialisation of the knxd inet protocol failed");
         arguments->has_work++;
       }
       break;
     case 't':
       if (arg)
-	{
-	  char *x;
-	  unsigned long level = strtoul(arg, &x, 0);
-	  if (*x)
-	    die ("Trace level: '%s' is not a number", arg);
+        {
+          char *x;
+          unsigned long level = strtoul(arg, &x, 0);
+          if (*x)
+            die ("Trace level: '%s' is not a number", arg);
           arguments->tracer(true)->SetTraceLevel (level);
-	}
+        }
       else
         arguments->tracer(true)->SetTraceLevel (0);
       break;
@@ -400,6 +420,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
 	  die ("You need to specify '-e' earlier");
 	}
       arguments->addr = readaddr (arg);
+      break;
+    case 'E':
+      readaddrblock (arguments, arg);
       break;
     case 'p':
       arguments->pidfile = arg;
@@ -414,9 +437,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'n':
       arguments->eibnetname = (char *)arg;
       if(arguments->eibnetname[0] == '=')
-	arguments->eibnetname++;
+        arguments->eibnetname++;
       if(strlen(arguments->eibnetname) >= 30)
-	die("EIBnetServer/IP name must be shorter than 30 bytes");
+        die("EIBnetServer/IP name must be shorter than 30 bytes");
       break;
     case OPT_FORCE_BROADCAST:
       arguments->force_broadcast = true;
@@ -446,8 +469,8 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'b':
       {
 	arguments->l2opts.t = arguments->tracer ();
-        Layer2 *l2 = Create (arg, &arguments->l2opts, arguments->l3 ());
-        if (!l2 || !l2->init ())
+        Layer2Ptr l2 = Create (arg, &arguments->l2opts);
+        if (!l2 || !l2->init (arguments->l3 ()))
           die ("initialisation of backend '%s' failed", arg);
 	if (arguments->l2opts.flags)
           die ("You provided options which '%s' does not recognize", arg);
@@ -461,7 +484,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
 #ifdef HAVE_SYSTEMD
       {
-        BaseServer *s = NULL;
+        BaseServerPtr s = nullptr;
         const int num_fds = sd_listen_fds(0);
 
         if( num_fds < 0 )
@@ -473,8 +496,8 @@ parse_opt (int key, char *arg, struct argp_state *state)
             if( sd_is_socket(fd, AF_UNSPEC, SOCK_STREAM, 1) <= 0 )
               die("Error: socket not of expected type.");
 
-            s = new SystemdServer(arguments->l3(), arguments->tracer(), fd);
-            if (!s->init ())
+            s = BaseServerPtr(new SystemdServer(arguments->tracer(), fd));
+            if (!s->init (arguments->l3()))
               die ("initialisation of the systemd socket failed");
             arguments->has_work++;
           }
@@ -511,6 +534,10 @@ main (int ac, char *ag[])
 {
   int index;
   pth_init ();
+  setlinebuf(stdout);
+
+  memset (&arg, 0, sizeof (arg));
+  arg.errorlevel = LEVEL_WARNING;
 
   argp_parse (&argp, ac, ag, ARGP_IN_ORDER, &index, &arg);
 
@@ -524,12 +551,12 @@ main (int ac, char *ag[])
     {
       int fd = open (arg.daemon, O_WRONLY | O_APPEND | O_CREAT, FILE_MODE);
       if (fd == -1)
-	die ("Can not open file %s", arg.daemon);
+        die ("Can not open file %s", arg.daemon);
       int i = fork ();
       if (i < 0)
-	die ("fork failed");
+        die ("fork failed");
       if (i > 0)
-	exit (0);
+        exit (0);
       close (1);
       close (2);
       close (0);
@@ -543,10 +570,9 @@ main (int ac, char *ag[])
   if (arg.pidfile)
     if ((pidf = fopen (arg.pidfile, "w")) != NULL)
       {
-	fprintf (pidf, "%d", getpid ());
-	fclose (pidf);
+        fprintf (pidf, "%d", getpid ());
+        fclose (pidf);
       }
-
 
   signal (SIGINT, SIG_IGN);
   signal (SIGTERM, SIG_IGN);

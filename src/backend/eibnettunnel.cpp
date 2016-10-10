@@ -22,8 +22,7 @@
 #include "layer3.h"
 
 EIBNetIPTunnel::EIBNetIPTunnel (const char *dest, int port, int sport,
-				const char *srcip, int Dataport, L2options *opt,
-				Layer3 * l3) : Layer2 (l3, opt)
+				const char *srcip, int Dataport, L2options *opt) : Layer2 (opt)
 {
   TRACEPRINTF (t, 2, this, "Open");
   pth_sem_init (&insignal);
@@ -77,13 +76,13 @@ EIBNetIPTunnel::~EIBNetIPTunnel ()
     delete sock;
 }
 
-bool EIBNetIPTunnel::init ()
+bool EIBNetIPTunnel::init (Layer3 *l3)
 {
   if (sock == 0)
     return false;
-  if (! layer2_is_bus())
+  if (! addGroupAddress(0))
     return false;
-  return Layer2::init ();
+  return Layer2::init (l3);
 }
 
 void
@@ -98,12 +97,6 @@ EIBNetIPTunnel::Send_L_Data (LPDU * l)
   L_Data_PDU *l1 = (L_Data_PDU *) l;
   inqueue.put (L_Data_ToCEMI (0x11, *l1));
   pth_sem_inc (&insignal, 1);
-  if (mode == BUSMODE_VMONITOR)
-    {
-      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
-      l2->pdu.set (l->ToPacket ());
-      l3->recv_L_Data (l2);
-    }
   delete l;
 }
 
@@ -305,7 +298,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 		}
 	      if (treq.CEMI[0] == 0x2B)
 		{
-		  L_Busmonitor_PDU *l2 = CEMI_to_Busmonitor (treq.CEMI, this);
+		  L_Busmonitor_PDU *l2 = CEMI_to_Busmonitor (treq.CEMI, shared_from_this());
 		  l3->recv_L_Data (l2);
 		  break;
 		}
@@ -315,25 +308,19 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 			       treq.CEMI[0]);
 		  break;
 		}
-	      c = CEMI_to_L_Data (treq.CEMI, this);
+	      c = CEMI_to_L_Data (treq.CEMI, shared_from_this());
 	      if (c)
 		{
 		  TRACEPRINTF (t, 1, this, "Recv %s", c->Decode ()());
 		  if (mode != BUSMODE_MONITOR)
 		    {
-		      if (mode == BUSMODE_VMONITOR)
-			{
-			  L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
-			  l2->pdu.set (c->ToPacket ());
-			  l3->recv_L_Data (l2);
-			}
 		      if (c->AddrType == IndividualAddress
 			  && c->dest == myaddr)
 			c->dest = 0;
 		      l3->recv_L_Data (c);
 		      break;
 		    }
-		  L_Busmonitor_PDU *p1 = new L_Busmonitor_PDU (this);
+		  L_Busmonitor_PDU *p1 = new L_Busmonitor_PDU (shared_from_this());
 		  p1->pdu = c->ToPacket ();
 		  delete c;
 		  l3->recv_L_Data (p1);

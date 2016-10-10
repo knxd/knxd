@@ -1,3 +1,76 @@
+knxd (0.11.9-1) unstable; urgency=medium
+
+  * removed layer2_is_bus() call
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sat, 19 Mar 2016 15:57:35 +0100
+
+knxd (0.11.8-2) unstable; urgency=low
+
+  * Merged master branch up to 0.10.13-3
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sat, 12 Mar 2016 14:55:20 +0100
+
+knxd (0.11.8-1) unstable; urgency=medium
+
+  * Merged master branch up to 0.10.13-2
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 11 Mar 2016 16:40:16 +0100
+
+knxd (0.11.7-2) unstable; urgency=medium
+
+  * Merged master branch up to 0.10.12-1
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sat, 23 Jan 2016 15:52:06 +0100
+
+knxd (0.11.6-1) unstable; urgency=medium
+
+  * Merged master branch up to 0.10.11-1
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 08 Jan 2016 17:57:49 +0100
+
+knxd (0.11.5-1) unstable; urgency=medium
+
+  * Merged master branch up to 0.10.10-1
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 18 Nov 2015 13:40:53 +0100
+
+knxd (0.11.4-2) unstable; urgency=medium
+
+  * Merged master branch up to 0.10.9-3
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 12 Oct 2015 16:14:16 +0200
+
+knxd (0.11.4-1) unstable; urgency=medium
+
+  * Merged master branch up to 0.10.9-2
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 20 Sep 2015 16:14:50 +0200
+
+knxd (0.11.3-1) unstable; urgency=medium
+
+  * Default Unix socket changed to /run/knx
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 17 Sep 2015 02:22:27 +0200
+
+knxd (0.11.2-4) unstable; urgency=medium
+
+  * Merged
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 17 Sep 2015 02:15:36 +0200
+
+knxd (0.11.2-3) unstable; urgency=medium
+
+  * Merged master branch
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 10 Sep 2015 14:08:39 +0200
+
+knxd (0.11.1-1) unstable; urgency=medium
+
+  * Allocate remote addresses to clients
+  * Refactor multicast to use a separate port for sending
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 28 Jun 2015 06:53:31 +0000
+
 knxd (0.10.13-3) unstable; urgency=medium
 
   * Typo in debian/rules

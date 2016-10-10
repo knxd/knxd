@@ -11,7 +11,7 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 
 ## New Features
 
-* 0.10 (this branch)
+* 0.10 (``master`` branch)
 
   * Support for more than one KNX interface
 
@@ -19,7 +19,7 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 
   * ETS5 compatibility
 
-* 0.11 (``conn_sep`` branch)
+* 0.11 (this branch)
 
   * Major refactoring
 
@@ -71,7 +71,7 @@ The default Unix socket is ``/run/knx``.
 Old eibd clients may still use ``/tmp/eib`` to talk to knxd.
 You need to either change their configuration, or add "-u /tmp/eib"
 to knxd's options.
-(This is the default for "-u" before version 0.11. Don't depend on it.)
+(This was the default for "-u" before version 0.11.)
 
 ### Adding a TPUART USB interface
 

@@ -30,10 +30,10 @@
 #define USB_PREFIX "usb"
 #define USB_CREATE Usb_Create
 
-inline Layer2 *
-Usb_Create (const char *dev, L2options *opt, Layer3 *l3)
+inline Layer2Ptr 
+Usb_Create (const char *dev, L2options *opt)
 {
-  return new USBLayer2 (new USBLowLevelDriver (dev, l3->t), l3, opt);
+  return std::shared_ptr<USBLayer2>(new USBLayer2 (new USBLowLevelDriver (dev, opt->t), opt));
 }
 
 #endif

@@ -52,13 +52,19 @@ class Layer3;
 class Layer3:private Thread
 {
   /** Layer 2 interfaces */
-  Array < Layer2 * > layer2;
+  Array < Layer2Ptr > layer2;
   /** buffer queue for receiving from L2 */
   Queue < LPDU * >buf;
   /** semaphre for buffer queue */
   pth_sem_t bufsem;
   /** buffer for packets to ignore when repeat flag is set */
   Array < IgnoreInfo > ignore;
+
+  /** Start of address block to assign dynamically to clients */
+  eibaddr_t client_addrs_start;
+  /** Length of address block to assign dynamically to clients */
+  int client_addrs_len;
+  int client_addrs_pos;
 
   /** busmonitor callbacks */
   Array < Busmonitor_Info > busmonitor;
@@ -89,9 +95,9 @@ public:
   virtual ~Layer3 ();
 
   /** register a layer2 interface, return true if successful*/
-  bool registerLayer2 (Layer2 * l2);
+  bool registerLayer2 (Layer2Ptr l2);
   /** deregister a layer2 interface, return true if successful*/
-  bool deregisterLayer2 (Layer2 * l2);
+  bool deregisterLayer2 (Layer2Ptr l2);
 
   /** register a busmonitor callback, return true, if successful*/
   bool registerBusmonitor (L_Busmonitor_CallBack * c);
@@ -110,16 +116,21 @@ public:
 
   /** check if any interface accepts this address.
       'l2' says which interface NOT to check. */
-  bool hasAddress (eibaddr_t addr, Layer2 *l2 = 0);
+  bool hasAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr);
   /** check if any interface accepts this group address.
       'l2' says which interface NOT to check. */
-  bool hasGroupAddress (eibaddr_t addr, Layer2 *l2 = 0);
+  bool hasGroupAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr);
   /** save a pointer to this tracer, for deallocation with the L3 */
   void registerTracer (Trace *t) { tracers.add (t); }
   /** remember this server, for deallocation with the L3 */
   void registerServer (BaseServer *s) { servers.add (s); }
   /** remember this server, for deallocation with the L3 */
   void deregisterServer (BaseServer *s);
+
+  /** Tell this Layer3 that it may allocate dynamic client addresses from this range */
+  void set_client_block (eibaddr_t r_start, int r_len);
+  /** Get a free dynamic address */
+  eibaddr_t get_client_addr ();
 };
 
 

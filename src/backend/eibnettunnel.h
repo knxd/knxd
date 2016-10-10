@@ -42,9 +42,9 @@ class EIBNetIPTunnel:public Layer2, private Thread
   const char *Name() { return "eibnettunnel"; }
 public:
   EIBNetIPTunnel (const char *dest, int port, int sport, const char *srcip,
-                  int dataport, L2options *opt, Layer3 *l3);
+                  int dataport, L2options *opt);
   virtual ~EIBNetIPTunnel ();
-  bool init ();
+  bool init (Layer3 *l3);
 
   bool enterBusmonitor ();
   bool leaveBusmonitor ();

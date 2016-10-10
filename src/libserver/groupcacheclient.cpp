@@ -26,8 +26,8 @@ static GroupCache *cache = 0;
 bool
 CreateGroupCache (Layer3 * l3, Trace * t, bool enable)
 {
-  cache = new GroupCache (l3, t);
-  if (!cache->init ())
+  cache = new GroupCache (t);
+  if (!cache->init (l3))
     return false;
   if (enable)
     if (!cache->Start ())
@@ -43,8 +43,7 @@ DeleteGroupCache ()
 }
 
 void
-GroupCacheRequest (Layer3 * l3 UNUSED, Trace * t UNUSED, ClientConnection * c,
-		   pth_event_t stop)
+GroupCacheRequest (ClientConnection * c, pth_event_t stop)
 {
   GroupCacheEntry gc;
   CArray erg;

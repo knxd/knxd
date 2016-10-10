@@ -63,10 +63,10 @@ typedef struct
 class Layer4common:public Layer2mixin
 {
 protected:
-  Layer4common(Layer3 *l3, Trace * tr);
+  Layer4common(Trace * tr);
   bool init_ok;
 public:
-  bool init ();
+  bool init (Layer3 *l3);
 };
 
 /** Broadcast Layer 4 connection */
@@ -78,7 +78,7 @@ class T_Broadcast:public Layer4common
   pth_sem_t sem;
 
 public:
-  T_Broadcast (Layer3 * l3, Trace * t, int write_only);
+  T_Broadcast (Trace * t, int write_only);
   virtual ~T_Broadcast ();
 
   /** enqueues a packet */
@@ -88,6 +88,7 @@ public:
   /** send APDU c */
   void Send (const CArray & c);
 };
+typedef std::shared_ptr<T_Broadcast> T_BroadcastPtr;
 
 /** Group Communication socket */
 class GroupSocket:public Layer4common
@@ -98,7 +99,7 @@ class GroupSocket:public Layer4common
   pth_sem_t sem;
 
 public:
-  GroupSocket (Layer3 * l3, Trace * t, int write_only);
+  GroupSocket (Trace * t, int write_only);
   virtual ~GroupSocket ();
 
   /** enqueues a packet from L3 */
@@ -108,6 +109,7 @@ public:
   /** send APDU to L3 */
   void Send (const GroupAPDU & c);
 };
+typedef std::shared_ptr<GroupSocket> GroupSocketPtr;
 
 /** Group Layer 4 connection */
 class T_Group:public Layer4common
@@ -120,7 +122,7 @@ class T_Group:public Layer4common
   eibaddr_t groupaddr;
 
 public:
-  T_Group (Layer3 * l3, Trace * t, eibaddr_t dest, int write_only);
+  T_Group (Trace * t, eibaddr_t dest, int write_only);
   virtual ~T_Group ();
 
   /** enqueues a packet from L3 */
@@ -130,6 +132,7 @@ public:
   /** send APDU to L3 */
   void Send (const CArray & c);
 };
+typedef std::shared_ptr<T_Group> T_GroupPtr;
 
 /** Layer 4 raw individual connection */
 class T_TPDU:public Layer4common
@@ -142,7 +145,7 @@ class T_TPDU:public Layer4common
   eibaddr_t src;
 
 public:
-  T_TPDU (Layer3 * l3, Trace * t, eibaddr_t src);
+  T_TPDU (Trace * t, eibaddr_t src);
   virtual ~T_TPDU ();
 
   /** enqueues a packet from L3 */
@@ -152,6 +155,7 @@ public:
   /** send APDU to L3 */
   void Send (const TpduComm & c);
 };
+typedef std::shared_ptr<T_TPDU> T_TPDUPtr;
 
 /** Layer 4 T_Individual connection */
 class T_Individual:public Layer4common
@@ -164,7 +168,7 @@ class T_Individual:public Layer4common
   eibaddr_t dest;
 
 public:
-  T_Individual (Layer3 * l3, Trace * t, eibaddr_t dest, int write_only);
+  T_Individual (Trace * t, eibaddr_t dest, int write_only);
   virtual ~T_Individual ();
 
   /** enqueues a packet from L3 */
@@ -174,6 +178,7 @@ public:
   /** send APDU to L3 */
   void Send (const CArray & c);
 };
+typedef std::shared_ptr<T_Individual> T_IndividualPtr;
 
 /** implement a client T_Connection */
 class T_Connection:public Layer4common, private Thread
@@ -211,8 +216,8 @@ class T_Connection:public Layer4common, private Thread
   void Run (pth_sem_t * stop);
   const char *Name() { return "Tconnection"; }
 public:
-  T_Connection (Layer3 * l3, Trace * t, eibaddr_t dest);
-  ~T_Connection ();
+  T_Connection (Trace * t, eibaddr_t dest);
+  virtual ~T_Connection ();
 
   /** enqueues a packet from L3 */
   void Send_L_Data (L_Data_PDU * l);
@@ -221,5 +226,6 @@ public:
   /** send APDU to L3 */
   void Send (const CArray & c);
 };
+typedef std::shared_ptr<T_Connection> T_ConnectionPtr;
 
 #endif

@@ -91,9 +91,9 @@ GetSourceAddress (const struct sockaddr_in *dest, struct sockaddr_in *src)
   memcpy (RTA_DATA (a), &dest->sin_addr.s_addr,
 	  sizeof (dest->sin_addr.s_addr));
   if (write (s, &req, req.n.nlmsg_len) < 0)
-    return 0;
+    goto err_out;
   if (read (s, &req, sizeof (req)) < 0)
-    return 0;
+    goto err_out;
   close (s);
   if (req.n.nlmsg_type == NLMSG_ERROR)
     return 0;
@@ -109,6 +109,9 @@ GetSourceAddress (const struct sockaddr_in *dest, struct sockaddr_in *src)
 	}
       a = RTA_NEXT (a, l);
     }
+  return 0;
+err_out:
+  close (s);
   return 0;
 }
 #endif
@@ -192,9 +195,9 @@ GetSourceAddress (const struct sockaddr_in *dest, struct sockaddr_in *src)
   req.hdr.rtm_addrs = RTA_DST | RTA_IFP;
   memcpy (cp, dest, sizeof (*dest));
   if (write (s, (char *) &req, req.hdr.rtm_msglen) < 0)
-    return 0;
+    goto err_out;
   if (read (s, (char *) &req, sizeof (req)) < 0)
-    return 0;
+    goto err_out;
   close (s);
   int i;
   cp = (char *) (&req.hdr + 1);
@@ -212,6 +215,9 @@ GetSourceAddress (const struct sockaddr_in *dest, struct sockaddr_in *src)
 	  }
 	cp += SA_SIZE (sa);
       }
+  return 0;
+err_out:
+  close (s);
   return 0;
 }
 #endif
@@ -329,7 +335,7 @@ EIBnettoIP (const CArray & buf, struct sockaddr_in *a,
 }
 
 EIBNetIPSocket::EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr,
-				Trace * tr)
+				Trace * tr, SockMode mode)
 {
   int i;
   t = tr;
@@ -366,18 +372,25 @@ EIBNetIPSocket::EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr,
       return;
     }
 
-  // Disable loopback so we do not receive our own datagrams.
+  // Enable loopback so processes on the same host see each other.
   {
-    char loopch=0;
+    char loopch=1;
  
     if (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_LOOP,
                    (char *)&loopch, sizeof(loopch)) < 0) {
-      ERRORPRINTF (t, E_ERROR | 39, this, "cannot turn off multicast loopback: %s", strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 39, this, "cannot turn on multicast loopback: %s", strerror(errno));
       close(fd);
       fd = -1;
       return;
     }
   }
+
+  // don't really care if this fails
+  if (mode == S_RD)
+    shutdown (fd, SHUT_WR);
+  else if (mode == S_WR)
+    shutdown (fd, SHUT_RD);
+
   Start ();
   TRACEPRINTF (t, 0, this, "Openend");
 }
@@ -400,6 +413,21 @@ bool
 EIBNetIPSocket::init ()
 {
   return fd != -1;
+}
+
+int
+EIBNetIPSocket::port ()
+{
+  struct sockaddr_in sa;
+  socklen_t saLen = sizeof(sa);
+  if (getsockname(fd, (struct sockaddr *) &sa, &saLen) < 0)
+    return -1;
+  if (sa.sin_family != AF_INET)
+    {
+      errno = ENODATA;
+      return -1;
+    }
+  return sa.sin_port;
 }
 
 bool
@@ -482,6 +510,8 @@ EIBNetIPSocket::Run (pth_sem_t * stop1)
 		  pth_sem_inc (&outsignal, 1);
 		}
 	    }
+          else
+	    t->TracePacket (0, this, "Dropped", i, buf);
 	}
       pth_event_isolate (stop);
       if (!inqueue.isempty ())

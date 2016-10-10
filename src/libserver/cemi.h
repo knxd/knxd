@@ -41,9 +41,9 @@ class CEMILayer2:public Layer2, private Thread
   void Run (pth_sem_t * stop);
   const char *Name() { return "cemi"; }
 public:
-  CEMILayer2 (LowLevelDriver * i, Layer3 * l3, L2options *opt);
+  CEMILayer2 (LowLevelDriver * i, L2options *opt);
   ~CEMILayer2 ();
-  bool init ();
+  bool init (Layer3 *l3);
 
   void Send_L_Data (LPDU * l);
 

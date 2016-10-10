@@ -23,7 +23,7 @@
 #include "layer3.h"
 
 EIBNetIPRouter::EIBNetIPRouter (const char *multicastaddr, int port,
-				eibaddr_t a UNUSED, Layer3 * l3, L2options *opt) : Layer2 (l3, opt)
+				eibaddr_t a UNUSED, L2options *opt) : Layer2 (opt)
 {
   struct sockaddr_in baddr;
   struct ip_mreq mcfg;
@@ -37,33 +37,26 @@ EIBNetIPRouter::EIBNetIPRouter (const char *multicastaddr, int port,
   baddr.sin_addr.s_addr = htonl (INADDR_ANY);
   sock = new EIBNetIPSocket (baddr, 1, t);
   if (!sock->init ())
-    {
-      delete sock;
-      sock = 0;
-      return;
-    }
+    goto err_out;
   sock->recvall = 2;
   if (GetHostIP (&sock->sendaddr, multicastaddr) == 0)
-    {
-      delete sock;
-      sock = 0;
-      return;
-    }
+    goto err_out;
   sock->sendaddr.sin_port = htons (port);
   if (!GetSourceAddress (&sock->sendaddr, &sock->localaddr))
-    return;
+    goto err_out;
   sock->localaddr.sin_port = sock->sendaddr.sin_port;
 
   mcfg.imr_multiaddr = sock->sendaddr.sin_addr;
   mcfg.imr_interface.s_addr = htonl (INADDR_ANY);
   if (!sock->SetMulticast (mcfg))
-    {
-      delete sock;
-      sock = 0;
-      return;
-    }
+    goto err_out;
   Start ();
   TRACEPRINTF (t, 2, this, "Opened");
+  return;
+err_out:
+  delete sock;
+  sock = 0;
+  return;
 }
 
 EIBNetIPRouter::~EIBNetIPRouter ()
@@ -75,11 +68,11 @@ EIBNetIPRouter::~EIBNetIPRouter ()
 }
 
 bool
-EIBNetIPRouter::init ()
+EIBNetIPRouter::init (Layer3 *l3)
 {
   if (sock == 0)
     return false;
-  return Layer2::init ();
+  return Layer2::init (l3);
 }
 
 void
@@ -96,12 +89,6 @@ EIBNetIPRouter::Send_L_Data (LPDU * l)
   p.data = L_Data_ToCEMI (0x29, *l1);
   p.service = ROUTING_INDICATION;
   sock->Send (p);
-  if (mode == BUSMODE_VMONITOR)
-    {
-      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
-      l2->pdu.set (l->ToPacket ());
-      l3->recv_L_Data (l2);
-    }
   delete l;
 }
 
@@ -134,22 +121,16 @@ EIBNetIPRouter::Run (pth_sem_t * stop1)
 	    }
 	  const CArray data = p->data;
 	  delete p;
-	  L_Data_PDU *c = CEMI_to_L_Data (data, this);
+	  L_Data_PDU *c = CEMI_to_L_Data (data, shared_from_this());
 	  if (c)
 	    {
 	      TRACEPRINTF (t, 2, this, "Recv %s", c->Decode ()());
 	      if (mode & BUSMODE_UP)
 		{
-		  if (mode == BUSMODE_VMONITOR)
-		    {
-		      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
-		      l2->pdu.set (c->ToPacket ());
-		      l3->recv_L_Data (l2);
-		    }
 		  l3->recv_L_Data (c);
 		  continue;
 		}
-	      L_Busmonitor_PDU *p1 = new L_Busmonitor_PDU (this);
+	      L_Busmonitor_PDU *p1 = new L_Busmonitor_PDU (shared_from_this());
 	      p1->pdu = c->ToPacket ();
 	      delete c;
 	      l3->recv_L_Data (p1);

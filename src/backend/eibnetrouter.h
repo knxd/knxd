@@ -33,9 +33,9 @@ class EIBNetIPRouter:public Layer2, private Thread
   const char *Name() { return "eibnetrouter"; }
 public:
   EIBNetIPRouter (const char *multicastaddr, int port, eibaddr_t a,
-                  Layer3 *l3, L2options *opt);
+                  L2options *opt);
   virtual ~EIBNetIPRouter ();
-  bool init ();
+  bool init (Layer3 *l3);
 
   void Send_L_Data (LPDU * l);
 

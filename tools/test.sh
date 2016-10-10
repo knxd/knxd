@@ -58,13 +58,16 @@ E3=$(tempfile)
 
 PORT=$((9999 + $$))
 
-knxd -t 0xfffc -f 9 -e 3.2.1 -u$S1 -u$S2 -DTR --Server=:$PORT -bdummy: &
+knxd -t 0xfffc -f 9 -e 3.2.1 -E 4.3.2:10 -u$S1 -u$S2 -DTR --Server=:$PORT -bdummy: &
 KNX1=$!
 trap 'rm -f $L1 $L2 $E1 $E2 $EF; kill $KNX1' 0 1 2
 
 sleep 1
-knxd -t 0xfffc -f 9 -e 3.2.2 -i$((10002 + $$)) -u$S3 -b ipt:localhost:$PORT:$((10000 + $$)) &
+#echo knxd -t 0xfffc -f 9 -e 3.2.2 -E 4.5.6:10 -i$((10002 + $$)) -u$S3 -b ipt:localhost:$PORT:$((10000 + $$)) 
+#sleep 1000 &
+knxd -t 0xffff -f 9 -e 3.2.2 -E 4.5.6:10 -i$((10002 + $$)) -u$S3 -b ipt:localhost:$PORT:$((10000 + $$)) &
 KNX2=$!
+#read RETURN
 trap 'rm -f $L1 $L2 $E1 $E2 $EF; kill $KNX1 $KNX2' 0 1 2
 sleep 1
 
@@ -82,6 +85,7 @@ sleep 1
 knxtool groupwrite local:$S2 1/2/3 4 5 6
 
 sleep 1
+#read RETURN
 kill $KNX1 $KNX2
 sleep 1
 kill $PL1 $PL2 $PL3 || true
@@ -93,9 +97,11 @@ sed -e 's/^/E grouplisten: /' <$E1
 sed -e 's/^/E vbusmonitor1: /' <$E2
 sed -e 's/^/E vbusmonitor1 2: /' <$E3
 
-diff -u "$(dirname "$0")"/logs/listen $L1
-diff -u "$(dirname "$0")"/logs/monitor $L2
-diff -u "$(dirname "$0")"/logs/monitor $L3
+E=""
+diff -u "$(dirname "$0")"/logs/listen $L1 || E=1$E
+diff -u "$(dirname "$0")"/logs/monitor $L2 || E=2$E
+diff -u "$(dirname "$0")"/logs/monitor2 $L3 || E=3$E
+test -z "$E"
 
 set +ex
 #sed -e 's/^/O grouplisten: /' <$L1

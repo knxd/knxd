@@ -37,5 +37,5 @@ EIB_Poll_Complete (EIBConnection * con)
     }
   if (_EIB_CheckRequest (con, 0) == -1)
     return -1;
-  return (con->readlen >= 2 && con->readlen >= con->size + 2) ? 1 : 0;
+  return (con->readlen >= 2 && con->readlen >= con->size + 2);
 }

@@ -21,8 +21,8 @@
 #include "tpdu.h"
 #include "apdu.h"
 
-GroupCache::GroupCache (Layer3 * l3, Trace * t)
-	: Layer2mixin(l3, t)
+GroupCache::GroupCache (Trace * t)
+	: Layer2mixin(t)
 {
   TRACEPRINTF (t, 4, this, "GroupCacheInit");
   enable = 0;
@@ -207,7 +207,7 @@ GroupCacheEntry
   pth_event_t timeout = pth_event (PTH_EVENT_RTIME, pth_time (Timeout, 0));
 
   tpdu.data = apdu.ToPacket ();
-  l = new L_Data_PDU (this);
+  l = new L_Data_PDU (shared_from_this());
   l->data = tpdu.ToPacket ();
   l->source = 0;
   l->dest = addr;

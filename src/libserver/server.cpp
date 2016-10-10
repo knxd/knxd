@@ -22,8 +22,8 @@
 #include "client.h"
 
 
-BaseServer::BaseServer (Layer3 * layer3, Trace * tr)
-	: Layer2virtual (layer3, tr)
+BaseServer::BaseServer (Trace * tr)
+	: Layer2virtual (tr)
 {
 }
 
@@ -33,13 +33,6 @@ BaseServer::~BaseServer ()
   Stop ();
   if (l3)
     l3->deregisterServer (this);
-}
-
-bool
-BaseServer::init ()
-{
-  l3->registerServer (this);
-  return true;
 }
 
 Server::~Server ()
@@ -67,18 +60,18 @@ Server::deregister (ClientConnection * con)
   return 0;
 }
 
-Server::Server (Layer3 * layer3, Trace * tr)
-    : BaseServer (layer3, tr)
+Server::Server (Trace * tr)
+    : BaseServer (tr)
 {
   fd = -1;
 }
 
 bool
-Server::init ()
+Server::init (Layer3 *l3)
 {
   if (fd == -1)
     return false;
-  return BaseServer::init();
+  return BaseServer::init(l3);
 }
 
 void
@@ -93,7 +86,7 @@ Server::Run (pth_sem_t * stop1)
 	{
 	  TRACEPRINTF (t, 8, this, "New Connection");
 	  setupConnection (cfd);
-	  ClientConnection *c = new ClientConnection (this, l3, t, cfd);
+	  ClientConnection *c = new ClientConnection (this, cfd);
 	  connections.setpart (&c, connections (), 1);
 	  c->Start ();
 	}

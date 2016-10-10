@@ -41,8 +41,8 @@ setstat (int fd, int s)
 
 
 NCN5120SerialLayer2Driver::NCN5120SerialLayer2Driver (const char *dev,
-						    L2options *opt, Layer3 * l3)
-	: Layer2::Layer2(l3, opt)
+						    L2options *opt)
+	: Layer2::Layer2(opt)
 {
   struct termios t1;
   TRACEPRINTF (t, 2, this, "Open");
@@ -125,13 +125,13 @@ NCN5120SerialLayer2Driver::~NCN5120SerialLayer2Driver ()
 
 }
 
-bool NCN5120SerialLayer2Driver::init ()
+bool NCN5120SerialLayer2Driver::init (Layer3 *l3)
 {
   if (fd == -1)
     return false;
-  if (! layer2_is_bus())
+  if (! addGroupAddress(0))
     return false;
-  return Layer2::init ();
+  return Layer2::init (l3);
 }
 
 bool
@@ -189,13 +189,13 @@ NCN5120SerialLayer2Driver::RecvLPDU (const uchar * data, int len)
   t->TracePacket (1, this, "Recv", len, data);
   if (mode & BUSMODE_MONITOR)
     {
-      L_Busmonitor_PDU *l = new L_Busmonitor_PDU (this);
+      L_Busmonitor_PDU *l = new L_Busmonitor_PDU (shared_from_this());
       l->pdu.set (data, len);
       l3->recv_L_Data (l);
     }
   if (mode != BUSMODE_MONITOR)
     {
-      LPDU *l = LPDU::fromPacket (CArray (data, len), this);
+      LPDU *l = LPDU::fromPacket (CArray (data, len), shared_from_this());
       if (l->getType () == L_Data && ((L_Data_PDU *) l)->valid_checksum)
 	{
 	  l3->recv_L_Data (l);
@@ -254,11 +254,6 @@ NCN5120SerialLayer2Driver::Run (pth_sem_t * stop1)
 	  rmn = false;
 	  if (in[0] == 0x8B)
 	    {
-	      if (mode == BUSMODE_VMONITOR)
-		{
-		  const uchar pkt[1] = { 0xCC };
-		  RecvLPDU (pkt, 1);
-		}
 	      if (waitconfirm)
 		{
 		  waitconfirm = 0;
@@ -270,11 +265,6 @@ NCN5120SerialLayer2Driver::Run (pth_sem_t * stop1)
 	    }
 	  else if (in[0] == 0x0B)
 	    {
-	      if (mode == BUSMODE_VMONITOR)
-		{
-		  const uchar pkt[1] = { 0x0C };
-		  RecvLPDU (pkt, 1);
-		}
 	      if (waitconfirm)
 		{
 		  retry++;
@@ -325,12 +315,12 @@ NCN5120SerialLayer2Driver::Run (pth_sem_t * stop1)
 		  uchar c = 0x10;
 		  if ((in[5] & 0x80) == 0)
 		    {
-		      if (ackallindividual || l3->hasAddress ((in[3] << 8) | in[4], this))
+		      if (ackallindividual || l3->hasAddress ((in[3] << 8) | in[4], shared_from_this()))
 			c |= 0x1;
 		    }
 		  else
 		    {
-		      if (ackallgroup || l3->hasGroupAddress ((in[3] << 8) | in[4], this))
+		      if (ackallgroup || l3->hasGroupAddress ((in[3] << 8) | in[4], shared_from_this()))
 			c |= 0x1;
 		    }
 		  TRACEPRINTF (t, 0, this, "SendAck %02X", c);

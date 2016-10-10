@@ -44,7 +44,8 @@ GMP_PROG_CPP_FOR_BUILD
 GMP_PROG_EXEEXT_FOR_BUILD
 CC_FOR_BUILD_OPTS
 
-AC_COMPILER_OPTION(nortti,[-fno-rtti],[-fno-rtti],CXXFLAGS="$CXXFLAGS -fno-rtti")
+dnl AC_COMPILER_OPTION(nortti,[-fno-rtti],[-fno-rtti],CXXFLAGS="$CXXFLAGS -fno-rtti")
+AC_COMPILER_OPTION(stdc,[-std=c++0x],[-std=c++0x],CXXFLAGS="$CXXFLAGS -std=c++0x")
 AC_COMPILER_OPTION(noexceptions,[-fno-exceptions],[-fno-exceptions],CXXFLAGS="$CXXFLAGS -fno-exceptions")
 AC_CHECK_PTHSEM(2.0.8,yes,yes,no)
 PTHSEM_LIB="$PTH_LDFLAGS $PTH_LIBS"

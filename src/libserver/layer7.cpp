@@ -20,28 +20,25 @@
 #include "apdu.h"
 #include "layer7.h"
 
-Layer7_Broadcast::Layer7_Broadcast (Layer3 * l3, Trace * tr)
+Layer7_Broadcast::Layer7_Broadcast (Trace * tr)
 {
   t = tr;
   TRACEPRINTF (t, 5, this, "L7Broadcast Open");
-  l4 = new T_Broadcast (l3, tr, 0);
-  if (!l4->init ())
-    {
-      TRACEPRINTF (t, 5, this, "L7Broadcast init bad");
-      delete l4;
-      l4 = 0;
-    }
 }
 
 Layer7_Broadcast::~Layer7_Broadcast ()
 {
   TRACEPRINTF (t, 5, this, "L7Broadcast Close");
-  if (l4)
-    delete l4;
 }
 
-bool Layer7_Broadcast::init ()
+bool Layer7_Broadcast::init (Layer3 * l3)
 {
+  l4 = T_BroadcastPtr(new T_Broadcast (t, 0));
+  if (!l4->init (l3))
+    {
+      TRACEPRINTF (t, 5, this, "L7Broadcast init bad");
+      l4 = 0;
+    }
   return l4 != 0;
 }
 
@@ -77,28 +74,25 @@ Array < eibaddr_t >
   return addrs;
 }
 
-Layer7_Connection::Layer7_Connection (Layer3 * l3, Trace * tr, eibaddr_t d)
+Layer7_Connection::Layer7_Connection (Trace * tr, eibaddr_t d)
 {
-  TRACEPRINTF (t, 5, this, "L7Connection open");
   t = tr;
+  TRACEPRINTF (t, 5, this, "L7Connection open");
   dest = d;
-  l4 = new T_Connection (l3, tr, d);
-  if (!l4->init ())
-    {
-      TRACEPRINTF (t, 5, this, "L7Connection init bad");
-      delete l4;
-      l4 = 0;
-    }
 }
 
 Layer7_Connection::~Layer7_Connection ()
 {
-  if (l4)
-    delete l4;
 }
 
-bool Layer7_Connection::init ()
+bool Layer7_Connection::init (Layer3 * l3)
 {
+  l4 = T_ConnectionPtr(new T_Connection (t, dest));
+  if (!l4->init (l3))
+    {
+      TRACEPRINTF (t, 5, this, "L7Connection init bad");
+      l4 = 0;
+    }
   return l4 != 0;
 }
 
@@ -385,28 +379,25 @@ Layer7_Connection::A_Memory_Write_Block (memaddr_t addr, const CArray & data)
   return res;
 }
 
-Layer7_Individual::Layer7_Individual (Layer3 * l3, Trace * tr, eibaddr_t d)
+Layer7_Individual::Layer7_Individual (Trace * tr, eibaddr_t d)
 {
-  TRACEPRINTF (t, 5, this, "L7Individual open");
   t = tr;
+  TRACEPRINTF (t, 5, this, "L7Individual open");
   dest = d;
-  l4 = new T_Individual (l3, tr, d, false);
-  if (!l4->init ())
-    {
-      TRACEPRINTF (t, 5, this, "L7Individual init bad");
-      delete l4;
-      l4 = 0;
-    }
 }
 
 Layer7_Individual::~Layer7_Individual ()
 {
-  if (l4)
-    delete l4;
 }
 
-bool Layer7_Individual::init ()
+bool Layer7_Individual::init (Layer3 * l3)
 {
+  l4 = T_IndividualPtr(new T_Individual (t, dest, false));
+  if (!l4->init (l3))
+    {
+      TRACEPRINTF (t, 5, this, "L7Individual init bad");
+      l4 = 0;
+    }
   return l4 != 0;
 }
 

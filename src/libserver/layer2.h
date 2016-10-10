@@ -20,27 +20,16 @@
 #ifndef LAYER2_H
 #define LAYER2_H
 
+#include "layer2common.h"
 #include "common.h"
 #include "lpdu.h"
+#include <memory>
 
 class Layer3;
-
-/** Bus modes. The enum is designed to allow bitwise tests
- * (& BUSMODE_UP and * & BUSMODE_MONITOR) */
-typedef enum {
-  BUSMODE_DOWN = 0,
-  BUSMODE_UP,
-  BUSMODE_MONITOR,
-  BUSMODE_VMONITOR,
-} busmode_t;
-
-typedef struct {
-  unsigned int flags;
-  Trace *t;
-} L2options;
+class Layer4common;
 
 /** generic interface for an Layer 2 driver */
-class Layer2
+class Layer2 : public std::enable_shared_from_this<Layer2>
 {
   friend class Layer3;
 
@@ -53,17 +42,21 @@ class Layer2
 
   bool allow_monitor;
 
+  /** auto-deregister for "tasked" layer2 objects */
+  void RunStop();
+
+protected:
+  /** auto-assigned. NON-bus connections only! */
+  eibaddr_t remoteAddr;
+
 public:
   /** debug output */
   Trace *t;
   /** our layer-3 (to send packets to) */
   Layer3 *l3;
 
-  Layer2 (Layer3 *l3, L2options *opt);
-  virtual ~Layer2 ();
-  virtual bool init ();
-  /** basic setup to behave like a bus: accept broadcasts, et al. */
-  bool layer2_is_bus ();
+  Layer2 (L2options *opt, Trace *tr = 0);
+  virtual bool init (Layer3 *l3);
 
   /** sends a Layer 2 frame asynchronouse */
   virtual void Send_L_Data (LPDU * l) = 0;
@@ -93,11 +86,6 @@ public:
   /** try to leave the busmonitor mode, return true if successful */
   virtual bool leaveBusmonitor ();
 
-  /** try to enter the vbusmonitor mode, return true if successful */
-  virtual bool openVBusmonitor ();
-  /** try to leave the vbusmonitor mode, return true if successful */
-  virtual bool closeVBusmonitor ();
-
   /** try to enter the normal operation mode, return true if successful */
   virtual bool Open ();
   /** try to leave the normal operation mode, return true if successful */
@@ -109,14 +97,15 @@ protected:
   busmode_t mode;
 };
 
+
+
 /** pointer to a functions, which creates a Layer 2 interface
  * @exception Exception in the case of an error
  * @param conf string, which contain configuration
  * @param t trace output
  * @return new Layer 2 interface
  */
-typedef Layer2 *(*Layer2_Create_Func) (const char *conf, 
-				       L2options *opt, Layer3 * l3);
+typedef Layer2Ptr (*Layer2_Create_Func) (const char *conf, L2options *opt);
 
 /** Layer2 mix-in class for network interfaces
  * without "real" hardware behind them
@@ -124,7 +113,7 @@ typedef Layer2 *(*Layer2_Create_Func) (const char *conf,
 class Layer2mixin:public Layer2
 {
 public:
-  Layer2mixin (Layer3 *l3, Trace *tr) : Layer2 (l3, NULL)
+  Layer2mixin (Trace *tr) : Layer2 (NULL, tr)
     {
       t = tr;
     }
@@ -132,8 +121,6 @@ public:
   virtual void Send_L_Data (L_Data_PDU * l) = 0;
   bool enterBusmonitor () { return 0; }
   bool leaveBusmonitor () { return 0; }
-  bool openVBusmonitor () { return 0; }
-  bool closeVBusmonitor () { return 0; }
   bool Open () { return 1; }
   bool Close () { return 1; }
   bool Send_Queue_Empty () { return 1; }
@@ -146,10 +133,7 @@ public:
 class Layer2virtual:public Layer2mixin
 {
 public:
-  Layer2virtual (Layer3 *l3, Trace *tr) : Layer2mixin (l3, tr)
-    {
-    }
-  bool init() { return 1; }
+  Layer2virtual (Trace *tr) : Layer2mixin (tr) { }
   void Send_L_Data (LPDU * l) { delete l; }
   void Send_L_Data (L_Data_PDU * l) { delete l; }
   bool addAddress (eibaddr_t addr UNUSED) { return 1; }
@@ -157,12 +141,5 @@ public:
   bool removeAddress (eibaddr_t addr UNUSED) { return 1; }
   bool removeGroupAddress (eibaddr_t addr UNUSED) { return 1; }
 };
-
-#define FLAG_B_TUNNEL_NOQUEUE (1<<0)
-#define FLAG_B_TPUARTS_ACKGROUP (1<<1)
-#define FLAG_B_TPUARTS_ACKINDIVIDUAL (1<<2)
-#define FLAG_B_TPUARTS_DISCH_RESET (1<<3)
-#define FLAG_B_EMI_NOQUEUE (1<<4)
-#define FLAG_B_NO_MONITOR (1<<5)
 
 #endif

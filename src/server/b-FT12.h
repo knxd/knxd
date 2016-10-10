@@ -29,10 +29,10 @@
 #define FT12_PREFIX "ft12"
 #define FT12_CREATE ft12_Create
 
-inline Layer2 *
-ft12_Create (const char *dev, L2options *opt, Layer3 * l3)
+inline Layer2Ptr 
+ft12_Create (const char *dev, L2options *opt)
 {
-  return new EMI2Layer2 (new FT12LowLevelDriver (dev, l3->t), l3, opt);
+  return std::shared_ptr<EMI2Layer2>(new EMI2Layer2 (new FT12LowLevelDriver (dev, opt->t), opt));
 }
 
 #endif

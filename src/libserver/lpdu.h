@@ -20,9 +20,11 @@
 #ifndef LPDU_H
 #define LPDU_H
 
-#include "common.h"
+class LPDU;
+class L_Data_PDU;
 
-class Layer2;
+#include "common.h"
+#include "layer2common.h"
 
 /** enumartion of Layer 2 frame types*/
 typedef enum
@@ -50,8 +52,8 @@ class Layer2;
 class LPDU
 {
 public:
-  Layer2 *l2;
-  explicit LPDU (Layer2 *layer2)
+  Layer2Ptr l2;
+  explicit LPDU (Layer2Ptr layer2)
   {
     object = 0;
     l2 = layer2;
@@ -68,7 +70,7 @@ public:
   /** get frame type */
   virtual LPDU_Type getType () const = 0;
   /** converts a character array to a Layer 2 frame */
-  static LPDU *fromPacket (const CArray & c, Layer2 * layer2);
+  static LPDU *fromPacket (const CArray & c, Layer2Ptr layer2);
 
   void *object;
 };
@@ -81,7 +83,7 @@ public:
   /** real content*/
   CArray pdu;
 
-  L_Unknown_PDU (Layer2 *layer2);
+  L_Unknown_PDU (Layer2Ptr layer2);
 
   bool init (const CArray & c);
   CArray ToPacket ();
@@ -112,7 +114,7 @@ public:
   /** payload of Layer 4 */
   CArray data;
 
-  L_Data_PDU (Layer2 *layer2);
+  L_Data_PDU (Layer2Ptr layer2);
 
   bool init (const CArray & c);
   CArray ToPacket ();
@@ -133,7 +135,7 @@ public:
   uint8_t status;
   uint32_t timestamp;
 
-  L_Busmonitor_PDU (Layer2 *layer2);
+  L_Busmonitor_PDU (Layer2Ptr layer2);
 
   bool init (const CArray & c);
   CArray ToPacket ();
@@ -148,7 +150,7 @@ class L_ACK_PDU:public LPDU
 {
 public:
 
-  L_ACK_PDU (Layer2 *layer2);
+  L_ACK_PDU (Layer2Ptr layer2);
 
   bool init (const CArray & c);
   CArray ToPacket ();
@@ -163,7 +165,7 @@ class L_NACK_PDU:public LPDU
 {
 public:
 
-  explicit L_NACK_PDU (Layer2 *layer2);
+  explicit L_NACK_PDU (Layer2Ptr layer2);
 
   bool init (const CArray & c);
   CArray ToPacket ();
@@ -178,7 +180,7 @@ class L_BUSY_PDU:public LPDU
 {
 public:
 
-  L_BUSY_PDU (Layer2 *layer2);
+  L_BUSY_PDU (Layer2Ptr layer2);
 
   bool init (const CArray & c);
   CArray ToPacket ();
