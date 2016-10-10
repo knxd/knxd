@@ -11,7 +11,7 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 
 ## New Features
 
-* 0.10 (``master`` branch)
+* 0.10 (``stable`` branch -- please try 0.11 first!)
 
   * Support for more than one KNX interface
 
@@ -19,7 +19,7 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 
   * ETS5 compatibility
 
-* 0.11 (this branch)
+* 0.11 (``master`` branch -- new features here)
 
   * Major refactoring
 
@@ -122,3 +122,9 @@ This is intentional.
 * Please use Github and create a pull request with your patches
 * Please see SubmittingPatches to correctly Sign-Off your code and add yourself to AUTHORS (`tools/list_AUTHORS > AUTHORS`)
 * Adhere to our [coding conventions](https://github.com/knxd/knxd/wiki/CodingConventions).
+
+## Community
+
+* Code-related issues are on GitHub: https://github.com/knxd/knxd/issues
+* For everything else there's a Google Groups forum on https://groups.google.com/forum/#!forum/knxd
+
