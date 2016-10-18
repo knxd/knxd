@@ -24,6 +24,7 @@
 #include "lpdu.h"
 
 class BaseServer;
+class GroupCache;
 
 /** stores a registered busmonitor callback */
 typedef struct
@@ -90,6 +91,9 @@ public:
   Trace *t;
   /** our default address */
   eibaddr_t defaultAddr;
+
+  /** group cache */
+  std::shared_ptr<GroupCache> cache;
 
   Layer3 (eibaddr_t addr, Trace * tr, bool force_broadcast = false);
   virtual ~Layer3 ();

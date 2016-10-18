@@ -617,10 +617,6 @@ main (int ac, char *ag[])
   signal (SIGINT, SIG_DFL);
   signal (SIGTERM, SIG_DFL);
 
-#ifdef HAVE_GROUPCACHE
-  DeleteGroupCache ();
-#endif
-
   arg.free_l3();
 
   if (arg.pidfile)

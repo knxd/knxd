@@ -81,4 +81,6 @@ public:
   void remove (eibaddr_t addr);
 };
 
+typedef std::shared_ptr<GroupCache> GroupCachePtr;
+
 #endif
