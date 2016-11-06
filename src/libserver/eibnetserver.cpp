@@ -29,6 +29,13 @@
 #include <string.h>
 #include <memory>
 
+static void reset_time(pth_event_t ev, unsigned int sec, unsigned int usec)
+{
+  pth_event_t ev_prev = pth_event_isolate(ev); // NULL if no other member
+  pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE, ev, pth_time (sec, usec));
+  pth_event_concat(ev, ev_prev, NULL);
+}
+
 EIBnetServer::EIBnetServer (const char *multicastaddr, int port, bool Tunnel,
                 bool Route, bool Discover,
                 Trace * tr, String serverName)
@@ -322,8 +329,7 @@ EIBnetServer::addNAT (const L_Data_PDU & l)
   for (i = 0; i < natstate (); i++)
     if (natstate[i].src == l.source && natstate[i].dest == l.dest)
       {
-	pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE,
-		   natstate[i].timeout, pth_time (180, 0));
+	reset_time(natstate[i].timeout, 180, 0);
 	return;
       }
   i = natstate ();
@@ -400,8 +406,7 @@ ConnState::Run (pth_sem_t * stop1)
 	      r.CEMI = out.top ();
 	      p = r.ToPacket ();
 	    }
-	  pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE,
-		     sendtimeout, pth_time (1, 0));
+	  reset_time(sendtimeout, 1, 0);
 	  parent->mcast->Send (p, daddr);
 	}
     }
@@ -598,8 +603,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
 	    if (compareIPAddress (p1->src, state[i]->caddr))
 	      {
 		res = 0;
-		pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE,
-			    state[i]->timeout, pth_time (120, 0));
+                reset_time(state[i]->timeout, 120,0);
 	      }
 	    else
 	      TRACEPRINTF (t, 8, this, "Invalid control address");
