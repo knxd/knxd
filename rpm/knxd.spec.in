@@ -9,6 +9,7 @@
 %define _tmpdir    /tmp
 %define _buildrootdir @abs_top_srcdir@/rpm/BUILDROOT
 %define buildroot     @abs_top_srcdir@/rpm/BUILDROOT
+%define systemddir @SYSTEMD_DIR@
 
 BuildRoot: %{buildroot}
 
@@ -143,9 +144,9 @@ make DESTDIR=%{buildroot} install
 %{_libdir}/libeibclient.so
 %{_libdir}/libeibclient.so.0
 %{_libdir}/libeibclient.so.0.0.0
-%{_libdir}/systemd/system/knxd.service
-%{_libdir}/systemd/system/knxd.socket
-%{_libdir}/sysusers.d/knxd.conf
+%{systemddir}/systemd/system/knxd.service
+%{systemddir}/systemd/system/knxd.socket
+%{systemddir}/sysusers.d/knxd.conf
 
 # /usr/share/knxd/
 %{_datarootdir}/knxd/EIBConnection.cs
@@ -210,6 +211,10 @@ make DESTDIR=%{buildroot} install
 %{_datarootdir}/knxd/examples/xpropread.c
 %{_datarootdir}/knxd/examples/xpropwrite.c
 
+%exclude
+%{_datarootdir}/knxd/EIBConnection.pyc
+%{_datarootdir}/knxd/EIBConnection.pyo
+
 ###############################################################################
 #
 # preinstall
@@ -241,5 +246,3 @@ make DESTDIR=%{buildroot} install
 # verify
 #
 %verifyscript
-
-
