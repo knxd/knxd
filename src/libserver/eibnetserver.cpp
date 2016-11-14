@@ -36,63 +36,18 @@ static void reset_time(pth_event_t ev, unsigned int sec, unsigned int usec)
   pth_event_concat(ev, ev_prev, NULL);
 }
 
-EIBnetServer::EIBnetServer (const char *multicastaddr, int port, bool Tunnel,
-                bool Route, bool Discover,
-                Trace * tr, String serverName)
+EIBnetServer::EIBnetServer (Trace * tr, String serverName)
 	: Layer2mixin::Layer2mixin (tr)
+  , name(serverName)
+  , mcast(NULL)
+  , sock(NULL)
+  , tunnel(false)
+  , route(false)
+  , discover(false)
+  , Port(-1)
+  , sock_mac(-1)
+  , busmoncount(0)
 {
-  struct sockaddr_in baddr;
-  name = serverName;
-  sock = 0;
-  sock_mac = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
-
-  TRACEPRINTF (t, 8, this, "Open");
-  memset (&baddr, 0, sizeof (baddr));
-#ifdef HAVE_SOCKADDR_IN_LEN
-  baddr.sin_len = sizeof (baddr);
-#endif
-  baddr.sin_family = AF_INET;
-  baddr.sin_addr.s_addr = htonl (INADDR_ANY);
-  baddr.sin_port = 0;
-
-  sock = new EIBNetIPSocket (baddr, 1, t);
-  if (!sock->init ())
-    goto err_out;
-  sock->recvall = 1;
-  Port = sock->port ();
-
-  mcast = new EIBnetDiscover (this, multicastaddr, port);
-  if (! mcast->init ())
-    goto err_out;
-
-  tunnel = Tunnel;
-  route = Route;
-  discover = Discover;
-  if (route || tunnel)
-    addGroupAddress(0);
-
-  busmoncount = 0;
-  Start ();
-  TRACEPRINTF (t, 8, this, "Opened");
-  return;
-
-err_out:
-  if (sock)
-    {
-      delete (sock);
-      sock = 0;
-    }
-  if (mcast)
-    {
-      delete (mcast);
-      mcast = 0;
-    }
-  if (sock_mac >= 0)
-    {
-      close (sock_mac);
-      sock_mac = -1;
-    }
-  return;
 }
 
 EIBnetDiscover::EIBnetDiscover (EIBnetServer *parent, const char *multicastaddr, int port)
@@ -178,11 +133,70 @@ EIBnetDiscover::~EIBnetDiscover ()
 }
 
 bool
-EIBnetServer::init (Layer3 *l3)
+EIBnetServer::ServerInit (const char *multicastaddr, const int &port,
+                          const bool &tunnel, const bool &route,
+                          const bool &discover,
+                          Layer3 *l3)
 {
-  if (!sock)
+  struct sockaddr_in baddr;
+  sock_mac = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
+  if (sock_mac < 0)
+  {
+    perror("SOCKET");
     return false;
+  }
+
+  TRACEPRINTF (t, 8, this, "Open");
+  memset (&baddr, 0, sizeof (baddr));
+#ifdef HAVE_SOCKADDR_IN_LEN
+  baddr.sin_len = sizeof (baddr);
+#endif
+  baddr.sin_family = AF_INET;
+  baddr.sin_addr.s_addr = htonl (INADDR_ANY);
+  baddr.sin_port = 0;
+
+  sock = new EIBNetIPSocket (baddr, 1, t);
+  if (!sock)
+  {
+    fprintf(stderr, "Create new object failed.\n");
+    goto err_out1;
+  }
+  if (!sock->init ())
+    goto err_out2;
+  sock->recvall = 1;
+  Port = sock->port ();
+
+  mcast = new EIBnetDiscover (this, multicastaddr, port);
+  if (!mcast)
+  {
+    fprintf(stderr, "Create new object failed.\n");
+    goto err_out2;
+  }
+  if (!mcast && !mcast->init ())
+    goto err_out3;
+
+  this->tunnel = tunnel;
+  this->route = route;
+  this->discover = discover;
+  if (this->route || this->tunnel)
+    addGroupAddress(0);
+
+  busmoncount = 0;
+  Start ();
+  TRACEPRINTF (t, 8, this, "Opened");
+
   return Layer2mixin::init(l3);
+
+err_out3:
+  delete (mcast);
+  mcast = NULL;
+err_out2:
+  delete (sock);
+  sock = NULL;
+err_out1:
+  close (sock_mac);
+  sock_mac = -1;
+  return false;
 }
 
 void EIBnetDiscover::Send (EIBNetIPPacket p, struct sockaddr_in addr)

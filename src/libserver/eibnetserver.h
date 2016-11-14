@@ -126,11 +126,11 @@ class EIBnetServer: protected Thread, public L_Busmonitor_CallBack, public Layer
                  eibaddr_t addr = 0);
   void addNAT (const L_Data_PDU & l);
 public:
-  EIBnetServer (const char *multicastaddr, int port, bool Tunnel,
-                bool Route, bool Discover, Trace * tr,
-                const String serverName);
+  EIBnetServer (Trace * tr, const String serverName);
   virtual ~EIBnetServer ();
-  bool init (Layer3 *l3);
+  bool ServerInit (const char *multicastaddr, const int &port,
+                   const bool &tunnel, const bool &route, const bool &discover,
+                   Layer3 *l3);
   bool handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock);
 
   const char * Name () { return "EIBnet"; }

@@ -366,11 +366,12 @@ parse_opt (int key, char *arg, struct argp_state *state)
         if (!*serverip) 
           serverip = "224.0.23.12";
 
-        c = EIBnetServerPtr(new EIBnetServer (serverip, port, arguments->tunnel, arguments->route, arguments->discover,
-                              arguments->tracer(),
-                              (name && *name) ? name : "knxd"));
-        if (!c->init (arguments->l3()))
+        c = EIBnetServerPtr(new EIBnetServer (arguments->tracer(), (name && *name) ? name : "knxd"));
+        if (!c->ServerInit (serverip, port, arguments->tunnel, arguments->route, arguments->discover, arguments->l3()))
+        {
+          free(a);
           die ("initialization of the EIBnet/IP server failed");
+        }
         free (a);
         arguments->tunnel = false;
         arguments->route = false;
