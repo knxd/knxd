@@ -367,7 +367,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
           serverip = "224.0.23.12";
 
         c = EIBnetServerPtr(new EIBnetServer (arguments->tracer(), (name && *name) ? name : "knxd"));
-        if (!c->ServerInit (serverip, port, arguments->tunnel, arguments->route, arguments->discover, arguments->l3()))
+        if (!c->init (arguments->l3(), serverip, port, arguments->tunnel, arguments->route, arguments->discover))
         {
           free(a);
           die ("initialization of the EIBnet/IP server failed");

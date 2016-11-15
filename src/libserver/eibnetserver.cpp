@@ -132,21 +132,29 @@ EIBnetDiscover::~EIBnetDiscover ()
     delete sock;
 }
 
+// we can't just not define this function
 bool
-EIBnetServer::ServerInit (const char *multicastaddr, const int &port,
-                          const bool &tunnel, const bool &route,
-                          const bool &discover,
-                          Layer3 *l3)
+EIBnetServer::init (Layer3 *l3)
+{
+  ERRORPRINTF (t, E_ERROR | 43, this, "Code error: missing parameters");
+  return false;
+}
+
+bool
+EIBnetServer::init (Layer3 *l3,
+                    const char *multicastaddr, const int port,
+                    const bool tunnel, const bool route,
+                    const bool discover)
 {
   struct sockaddr_in baddr;
+
+  TRACEPRINTF (t, 8, this, "Open");
   sock_mac = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
   if (sock_mac < 0)
   {
-    perror("SOCKET");
-    return false;
+    ERRORPRINTF (t, E_ERROR | 11, this, "Lookup socket creation failed");
+    goto err_out0;
   }
-
-  TRACEPRINTF (t, 8, this, "Open");
   memset (&baddr, 0, sizeof (baddr));
 #ifdef HAVE_SOCKADDR_IN_LEN
   baddr.sin_len = sizeof (baddr);
@@ -158,7 +166,7 @@ EIBnetServer::ServerInit (const char *multicastaddr, const int &port,
   sock = new EIBNetIPSocket (baddr, 1, t);
   if (!sock)
   {
-    fprintf(stderr, "Create new object failed.\n");
+    ERRORPRINTF (t, E_ERROR | 41, this, "EIBNetIPSocket creation failed");
     goto err_out1;
   }
   if (!sock->init ())
@@ -169,10 +177,10 @@ EIBnetServer::ServerInit (const char *multicastaddr, const int &port,
   mcast = new EIBnetDiscover (this, multicastaddr, port);
   if (!mcast)
   {
-    fprintf(stderr, "Create new object failed.\n");
+    ERRORPRINTF (t, E_ERROR | 42, this, "EIBnetDiscover creation failed");
     goto err_out2;
   }
-  if (!mcast && !mcast->init ())
+  if (!mcast->init ())
     goto err_out3;
 
   this->tunnel = tunnel;
@@ -185,17 +193,19 @@ EIBnetServer::ServerInit (const char *multicastaddr, const int &port,
   Start ();
   TRACEPRINTF (t, 8, this, "Opened");
 
-  return Layer2mixin::init(l3);
+  if (Layer2mixin::init(l3))
+    return true;
 
 err_out3:
-  delete (mcast);
+  delete mcast;
   mcast = NULL;
 err_out2:
-  delete (sock);
+  delete sock;
   sock = NULL;
 err_out1:
   close (sock_mac);
   sock_mac = -1;
+err_out0:
   return false;
 }
 
