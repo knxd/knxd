@@ -463,7 +463,8 @@ void EIBnetServer::drop_state (ConnStatePtr s)
     }
 }
 
-void EIBnetServer::drop_state (uint8_t index)
+void
+EIBnetServer::drop_state (uint8_t index)
 {
   // delete state[index];
   state.deletepart (index);
@@ -480,7 +481,7 @@ ConnState::~ConnState()
     parent->delBusmonitor ();
 }
 
-bool
+void
 EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
 {
   /* Get MAC Address */

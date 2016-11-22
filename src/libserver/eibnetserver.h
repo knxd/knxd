@@ -132,7 +132,7 @@ public:
   bool init (Layer3 *l3,
              const char *multicastaddr, const int port,
              const bool tunnel, const bool route, const bool discover);
-  bool handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock);
+  void handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock);
 
   const char * Name () { return "EIBnet"; }
   void drop_state (ConnStatePtr s);
