@@ -412,27 +412,29 @@ ConnState::Run (pth_sem_t * stop1)
 	      pth_sem_dec (outsignal);
 	      state = 0;
 	    }
-
-	  EIBNetIPPacket p;
-	  if (type == CT_CONFIG)
-	    {
-	      EIBnet_ConfigRequest r;
-	      r.channel = channel;
-	      r.seqno = sno;
-	      r.CEMI = out.top ();
-	      p = r.ToPacket ();
-	    }
-	  else
-	    {
-	      EIBnet_TunnelRequest r;
-	      r.channel = channel;
-	      r.seqno = sno;
-	      r.CEMI = out.top ();
-	      p = r.ToPacket ();
-	    }
-	  reset_time(sendtimeout, 1, 0);
-	  parent->mcast->Send (p, daddr);
-	}
+          else
+            {
+              EIBNetIPPacket p;
+              if (type == CT_CONFIG)
+                {
+                  EIBnet_ConfigRequest r;
+                  r.channel = channel;
+                  r.seqno = sno;
+                  r.CEMI = out.top ();
+                  p = r.ToPacket ();
+                }
+              else
+                {
+                  EIBnet_TunnelRequest r;
+                  r.channel = channel;
+                  r.seqno = sno;
+                  r.CEMI = out.top ();
+                  p = r.ToPacket ();
+                }
+              reset_time(sendtimeout, 1, 0);
+              parent->mcast->Send (p, daddr);
+            }
+        }
     }
 
   EIBnet_DisconnectRequest r;
