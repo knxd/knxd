@@ -1,3 +1,10 @@
+knxd (0.11.10-1) unstable; urgency=medium
+
+  * Correct invalid length of L_Busmon.ind field for busmonitor mode
+  * fix server crash when there's no ACK
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 27 Nov 2016 22:07:56 +0100
+
 knxd (0.11.9-1) unstable; urgency=medium
 
   * removed layer2_is_bus() call
