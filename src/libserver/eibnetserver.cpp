@@ -652,6 +652,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
 	  {
 	    if (compareIPAddress (p1->src, state[i]->caddr))
 	      {
+		res = 0;
 		drop_state(i);
 		break;
 	      }
