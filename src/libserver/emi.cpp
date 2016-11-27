@@ -132,14 +132,13 @@ CArray
 Busmonitor_to_CEMI (uchar code, const L_Busmonitor_PDU & p, int no)
 {
   CArray pdu;
-  pdu.resize (p.pdu () + 6);
+  pdu.resize (p.pdu () + 5);
   pdu[0] = code;
-  pdu[1] = 4;
-  pdu[2] = 3;
-  pdu[3] = 1;
-  pdu[4] = 1;
-  pdu[5] = no & 0x7;
-  pdu.setpart (p.pdu, 6);
+  pdu[1] = 3;        /* AddIL */
+  pdu[2] = 3;        /* Type ID = L_Busmon.ind */
+  pdu[3] = 1;        /* Len */
+  pdu[4] = no & 0x7; /* Status */
+  pdu.setpart (p.pdu, 5);
   return pdu;
 }
 
