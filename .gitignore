@@ -62,6 +62,7 @@ Makefile
 /src/client/ruby/gen
 /src/client/ruby/gen.inc
 /src/client/ruby/result.inc
+/src/client/ruby/EIBConnection.rb
 /src/examples/busmonitor1
 /src/examples/busmonitor2
 /src/examples/busmonitor3

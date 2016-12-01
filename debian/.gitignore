@@ -10,3 +10,4 @@
 /knxd.install
 /knxd.service
 /knxd.socket
+/debhelper-build-stamp
