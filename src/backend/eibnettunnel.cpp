@@ -26,9 +26,11 @@ EIBNetIPTunnel::EIBNetIPTunnel (const char *dest, int port, int sport,
 {
   TRACEPRINTF (t, 2, this, "Open");
   pth_sem_init (&insignal);
-  noqueue = opt ? (opt->flags & FLAG_B_TUNNEL_NOQUEUE) : 0;
-  if (opt)
-    opt->flags &=~ FLAG_B_TUNNEL_NOQUEUE;
+  if (opt && opt->send_delay) {
+    send_delay = pth_time(opt->send_delay / 1000, (opt->send_delay % 1000) * 1000);
+    opt->send_delay = 0;
+  } else
+    send_delay = pth_null_time;
 
   sock = 0;
   if (!GetHostIP (&caddr, dest))
@@ -362,11 +364,10 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 		    sno = 0;
 		  pth_sem_dec (&insignal);
 		  inqueue.get ();
-		  if (noqueue)
+		  if (send_delay != pth_null_time)
 		    {
 		      mod = 3;
-		      pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE, timeout,
-				 pth_time (0, 20000)); // 20 msec
+		      pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE, timeout, send_delay);
 		    }
 		  else
 		    mod = 1;

@@ -1,3 +1,9 @@
+knxd (0.11.11-1) unstable; urgency=medium
+
+  * Implemented a --send-delay=X option
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 02 Dec 2016 00:44:40 +0100
+
 knxd (0.11.10-1) unstable; urgency=medium
 
   * Correct invalid length of L_Busmon.ind field for busmonitor mode

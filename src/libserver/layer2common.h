@@ -38,6 +38,7 @@ typedef enum {
 
 typedef struct {
   unsigned int flags;
+  unsigned int send_delay;
   Trace *t;
 } L2options;
 
