@@ -1,3 +1,3 @@
 /usr/include/*
 /usr/share/knxd/*.*
-/usr/lib/libeibclient.so
+/usr/lib/*/libeibclient.so

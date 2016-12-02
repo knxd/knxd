@@ -18,7 +18,7 @@ override_dh_clean:
 	rm -f debian/knxd.install
 
 override_dh_auto_configure: configure install-sh
-	dh_auto_configure -- --enable-usb --enable-eibnetip --enable-eibnetiptunnel --enable-eibnetipserver --enable-groupcache --enable-ft12 --enable-pei16s --enable-ncn5120 --enable-tpuarts --enable-dummy
+	dh_auto_configure -- --enable-usb --enable-eibnetip --enable-eibnetiptunnel --enable-eibnetipserver --enable-groupcache --enable-ft12 --enable-pei16s --enable-ncn5120 --enable-tpuarts --enable-dummy --libexecdir=/usr/lib
 
 configure install-sh: configure.ac
 	sh bootstrap.sh

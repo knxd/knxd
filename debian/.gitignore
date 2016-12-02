@@ -11,3 +11,5 @@
 /knxd.service
 /knxd.socket
 /debhelper-build-stamp
+/autoreconf.before
+/autoreconf.after
