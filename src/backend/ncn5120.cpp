@@ -157,8 +157,7 @@ NCN5120SerialLayer2Driver::enterBusmonitor ()
 	return false;
   uchar c = 0x05;
   t->TracePacket (2, this, "openBusmonitor", 1, &c);
-  write (fd, &c, 1);
-  return true;
+  return write (fd, &c, 1)>0;
 }
 
 bool
@@ -168,8 +167,7 @@ NCN5120SerialLayer2Driver::leaveBusmonitor ()
 	return false;
   uchar c = 0x01;
   t->TracePacket (2, this, "leaveBusmonitor", 1, &c);
-  write (fd, &c, 1);
-  return true;
+  return write (fd, &c, 1)>0;
 }
 
 bool
@@ -179,8 +177,7 @@ NCN5120SerialLayer2Driver::Open ()
 	return false;
   uchar c = 0x01;
   t->TracePacket (2, this, "open-reset", 1, &c);
-  write (fd, &c, 1);
-  return 1;
+  return write (fd, &c, 1)>0;
 }
 
 void
@@ -381,7 +378,7 @@ NCN5120SerialLayer2Driver::Run (pth_sem_t * stop1)
 
 	  uchar c = 0x01;
 	  t->TracePacket (2, this, "Watchdog Reset", 1, &c);
-	  write (fd, &c, 1);
+	  ignore_result (write (fd, &c, 1));
 	  watch = 0;
 	}
       if (watch == 1 && pth_event_status (watchdog) == PTH_STATUS_OCCURRED
@@ -415,7 +412,7 @@ NCN5120SerialLayer2Driver::Run (pth_sem_t * stop1)
 	  watch = 1;
 	  uchar c = 0x02;
 	  t->TracePacket (2, this, "Watchdog Status", 1, &c);
-	  write (fd, &c, 1);
+	  ignore_result (write (fd, &c, 1));
 	}
     }
   pth_event_free (stop, PTH_FREE_THIS);

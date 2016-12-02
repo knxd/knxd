@@ -128,7 +128,7 @@ class EIBnetServer: protected Thread, public L_Busmonitor_CallBack, public Layer
 public:
   EIBnetServer (Trace * tr, const String serverName);
   virtual ~EIBnetServer ();
-  bool init (Layer3 *l3) __attribute__ ((deprecated));
+  bool init (Layer3 *l3); // __attribute__((deprecated));
   bool init (Layer3 *l3,
              const char *multicastaddr, const int port,
              const bool tunnel, const bool route, const bool discover);
