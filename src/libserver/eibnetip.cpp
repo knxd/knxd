@@ -42,7 +42,7 @@
 #endif
 
 int
-GetHostIP (struct sockaddr_in *sock, const char *Name)
+GetHostIP (Trace *t, struct sockaddr_in *sock, const char *Name)
 {
   struct hostent *h;
   if (!Name)
@@ -51,8 +51,8 @@ GetHostIP (struct sockaddr_in *sock, const char *Name)
   h = gethostbyname (Name);
   if (!h)
     {
-      ERRORPRINTF (t, E_ERROR | 50, this, "Resolving %s failed: %s", Name, hstrerror(h_errno));
-
+      if (t)
+        ERRORPRINTF (t, E_ERROR | 50, NULL, "Resolving %s failed: %s", Name, hstrerror(h_errno));
       return 0;
     }
 #ifdef HAVE_SOCKADDR_IN_LEN

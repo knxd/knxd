@@ -1,3 +1,9 @@
+knxd (0.11.11-1) unstable; urgency=medium
+
+  * Add tpuarts-over-tcp driver (for CUNx, busware.de)
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 08 Dec 2016 17:22:29 +0100
+
 knxd (0.11.10-1) unstable; urgency=medium
 
   * Correct invalid length of L_Busmon.ind field for busmonitor mode

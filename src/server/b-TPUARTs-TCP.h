@@ -22,13 +22,13 @@
 
 #include "tpuarttcp.h"
 
-#define TPUARTs_URL "tpuarttcp:CUNX_IP_ADDR:2324\n"
+#define TPUARTs_TCP_URL "tpuarttcp:CUNX_IP_ADDR:2324\n"
 
-#define TPUARTs_DOC "tpuarttcp connects to the EIB bus over a TPUART (using a TCP connection)\n\n"
+#define TPUARTs_TCP_DOC "tpuarttcp connects to the EIB bus over a TPUART (using a TCP connection)\n\n"
 
-#define TPUARTs_PREFIX "tpuarttcp"
+#define TPUARTs_TCP_PREFIX "tpuarttcp"
 
-#define TPUARTs_CREATE tpuarts_tcp_Create
+#define TPUARTs_TCP_CREATE tpuarts_tcp_Create
 
 inline Layer2Ptr 
 tpuarts_tcp_Create (const char *dev, L2options *opt)

@@ -19,8 +19,8 @@
 
 #ifndef TPUART_TCP_H
 #define TPUART_TCP_H
-#include <termios.h>
-#include "lowlatency.h"
+#include <netinet/in.h>
+#include "eibnetip.h"
 #include "layer2.h"
 #include "lpdu.h"
 
@@ -43,7 +43,7 @@ class TPUARTTCPLayer2Driver:public Layer2, private Thread
   void Run (pth_sem_t * stop);
   const char *Name() { return "tpuarts"; }
 public:
-  TPUARTTCPLayer2Driver (const char *dest, int port,, L2options *opt);
+  TPUARTTCPLayer2Driver (const char *dest, int port, L2options *opt);
   ~TPUARTTCPLayer2Driver ();
   bool init (Layer3 *l3);
 

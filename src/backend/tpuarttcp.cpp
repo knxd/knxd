@@ -22,10 +22,11 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/ioctl.h>
-#include "tpuartserial.h"
+#include <netinet/tcp.h>
+#include "tpuarttcp.h"
 #include "layer3.h"
 
-TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dest, int port,
+TPUARTTCPLayer2Driver::TPUARTTCPLayer2Driver (const char *dest, int port,
 						    L2options *opt)
 	: Layer2 (opt)
 {
@@ -46,32 +47,32 @@ TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dest, int port,
 	                FLAG_B_TPUARTS_ACKINDIVIDUAL |
 					FLAG_B_TPUARTS_DISCH_RESET);
 
-  if (!GetHostIP (&addr, dest))
+  if (!GetHostIP (t, &addr, dest))
     return;
   addr.sin_port = htons (port);
 
   fd = socket (AF_INET, SOCK_STREAM, 0);
   if (fd == -1)
     {
-      ERRORPRINTF (t, E_ERROR | 52, this, "Opening %s failed: %s", dev, strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 52, this, "Opening %s:%d failed: %s", dest,port, strerror(errno));
       return;
     }
   setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof (reuse));
 
   if (connect (fd, (struct sockaddr *) &addr, sizeof (addr)) == -1)
     {
-      ERRORPRINTF (tr, E_ERROR | 53, this, "OpenInetSocket %d: connect: %s", port, strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 53, this, "Connect %s:%d: connect: %s", dest,port, strerror(errno));
       close (fd);
       fd = -1;
       return;
     }
-  setsockopt (fd, IPPROTO_TCP, TCP_NODELAY, SO_REUSEADDR, &nodelay, sizeof (nodelay));
+  setsockopt (fd, IPPROTO_TCP, TCP_NODELAY, &nodelay, sizeof (nodelay));
 
   Start ();
   TRACEPRINTF (t, 2, this, "Openend");
 }
 
-TPUARTSerialLayer2Driver::~TPUARTSerialLayer2Driver ()
+TPUARTTCPLayer2Driver::~TPUARTTCPLayer2Driver ()
 {
   TRACEPRINTF (t, 2, this, "Close");
   Stop ();
@@ -84,7 +85,7 @@ TPUARTSerialLayer2Driver::~TPUARTSerialLayer2Driver ()
 
 }
 
-bool TPUARTSerialLayer2Driver::init (Layer3 *l3)
+bool TPUARTTCPLayer2Driver::init (Layer3 *l3)
 {
   if (fd == -1)
     return false;
@@ -94,13 +95,13 @@ bool TPUARTSerialLayer2Driver::init (Layer3 *l3)
 }
 
 bool
-TPUARTSerialLayer2Driver::Send_Queue_Empty ()
+TPUARTTCPLayer2Driver::Send_Queue_Empty ()
 {
   return inqueue.isempty ();
 }
 
 void
-TPUARTSerialLayer2Driver::Send_L_Data (LPDU * l)
+TPUARTTCPLayer2Driver::Send_L_Data (LPDU * l)
 {
   TRACEPRINTF (t, 2, this, "Send %s", l->Decode ()());
   inqueue.put (l);
@@ -110,7 +111,7 @@ TPUARTSerialLayer2Driver::Send_L_Data (LPDU * l)
 //Open
 
 bool
-TPUARTSerialLayer2Driver::enterBusmonitor ()
+TPUARTTCPLayer2Driver::enterBusmonitor ()
 {
   if (!Layer2::enterBusmonitor ())
     return false;
@@ -122,7 +123,7 @@ TPUARTSerialLayer2Driver::enterBusmonitor ()
 }
 
 bool
-TPUARTSerialLayer2Driver::leaveBusmonitor ()
+TPUARTTCPLayer2Driver::leaveBusmonitor ()
 {
   if (!Layer2::leaveBusmonitor ())
     return false;
@@ -134,7 +135,7 @@ TPUARTSerialLayer2Driver::leaveBusmonitor ()
 }
 
 bool
-TPUARTSerialLayer2Driver::Open ()
+TPUARTTCPLayer2Driver::Open ()
 {
   if (!Layer2::Open ())
     return false;
@@ -146,7 +147,7 @@ TPUARTSerialLayer2Driver::Open ()
 }
 
 void
-TPUARTSerialLayer2Driver::RecvLPDU (const uchar * data, int len)
+TPUARTTCPLayer2Driver::RecvLPDU (const uchar * data, int len)
 {
   t->TracePacket (1, this, "RecvLP", len, data);
   if (mode & BUSMODE_MONITOR)
@@ -166,7 +167,7 @@ TPUARTSerialLayer2Driver::RecvLPDU (const uchar * data, int len)
 }
 
 void
-TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
+TPUARTTCPLayer2Driver::Run (pth_sem_t * stop1)
 {
   uchar buf[255];
   int i;

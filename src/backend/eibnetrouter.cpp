@@ -39,7 +39,7 @@ EIBNetIPRouter::EIBNetIPRouter (const char *multicastaddr, int port,
   if (!sock->init ())
     goto err_out;
   sock->recvall = 2;
-  if (GetHostIP (&sock->sendaddr, multicastaddr) == 0)
+  if (GetHostIP (t, &sock->sendaddr, multicastaddr) == 0)
     goto err_out;
   sock->sendaddr.sin_port = htons (port);
   if (!GetSourceAddress (&sock->sendaddr, &sock->localaddr))

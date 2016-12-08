@@ -66,7 +66,7 @@ EIBnetDiscover::EIBnetDiscover (EIBnetServer *parent, const char *multicastaddr,
   baddr.sin_addr.s_addr = htonl (INADDR_ANY);
   baddr.sin_port = htons (port);
 
-  if (GetHostIP (&maddr, multicastaddr) == 0)
+  if (GetHostIP (parent->t, &maddr, multicastaddr) == 0)
     {
       ERRORPRINTF (parent->t, E_ERROR | 11, this, "Addr '%s' not resolvable", multicastaddr);
       goto err_out;

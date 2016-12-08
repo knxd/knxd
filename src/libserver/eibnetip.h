@@ -48,8 +48,10 @@ typedef enum {
   S_RDWR, S_RD, S_WR,
 } SockMode;
 
+class Trace;
+
 /** resolve host name */
-int GetHostIP (struct sockaddr_in *sock, const char *Name);
+int GetHostIP (Trace *t, struct sockaddr_in *sock, const char *Name);
 /** gets source address for a route */
 int GetSourceAddress (const struct sockaddr_in *dest,
 		      struct sockaddr_in *src);

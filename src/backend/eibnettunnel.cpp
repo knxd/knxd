@@ -31,7 +31,7 @@ EIBNetIPTunnel::EIBNetIPTunnel (const char *dest, int port, int sport,
     opt->flags &=~ FLAG_B_TUNNEL_NOQUEUE;
 
   sock = 0;
-  if (!GetHostIP (&caddr, dest))
+  if (!GetHostIP (t, &caddr, dest))
     return;
   caddr.sin_port = htons (port);
   if (!GetSourceAddress (&caddr, &raddr))
@@ -48,7 +48,7 @@ EIBNetIPTunnel::EIBNetIPTunnel (const char *dest, int port, int sport,
     }
   if (srcip)
     {
-      if (!GetHostIP (&saddr, srcip))
+      if (!GetHostIP (t, &saddr, srcip))
 	{
 	  delete sock;
 	  sock = 0;
