@@ -820,8 +820,12 @@ EIBnetServer::Run (pth_sem_t * stop1)
       if (p1)
 	handle_packet (p1, this->sock);
     }
-  for (i = 0; i < state (); i++)
-    state[i] = nullptr;
+
+  /* copy aray since shutdown will mutate this */
+  Array<ConnStatePtr> state2 = state;
+  state.resize(0);
+  for (i = 0; i < state2 (); i++)
+    state2[i]->shutdown();
   pth_event_free (stop, PTH_FREE_THIS);
 }
 
