@@ -726,7 +726,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
 		TRACEPRINTF (t, 8, this, "Invalid data endpoint");
 		break;
 	      }
-	    state[i]->tunnel_request(r1);
+	    state[i]->tunnel_request(r1, isock);
 	    break;
 	  }
       goto out;
@@ -838,7 +838,7 @@ EIBnetDiscover::Run (pth_sem_t * stop1)
   pth_event_free (stop, PTH_FREE_THIS);
 }
 
-void ConnState::tunnel_request(EIBnet_TunnelRequest &r1)
+void ConnState::tunnel_request(EIBnet_TunnelRequest &r1, EIBNetIPSocket *isock)
 {
   EIBnet_TunnelACK r2;
   r2.channel = r1.channel;
@@ -891,7 +891,7 @@ void ConnState::tunnel_request(EIBnet_TunnelRequest &r1)
       r2.status = 0x29;
     }
   rno++;
-  parent->Send (r2.ToPacket (), daddr);
+  isock->Send (r2.ToPacket (), daddr);
 }
 
 void ConnState::tunnel_response (EIBnet_TunnelACK &r1)
