@@ -17,39 +17,41 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifndef LAYER2_CONF_H
-#define LAYER2_CONF_H
+#ifndef C_TPUARTs_TCP_H
+#define C_TPUARTs_TCP_H
 
-#include "config.h"
+#include "tpuarttcp.h"
 
-#ifdef HAVE_FT12
-#include "b-FT12.h"
-#endif
-#ifdef HAVE_EIBNETIP
-#include "b-EIBNETIP.h"
-#endif
-#ifdef HAVE_EIBNETIPTUNNEL
-#include "b-EIBNETIPTUNNEL.h"
-#endif
-#ifdef HAVE_PEI16s
-#include "b-PEI16s.h"
-#endif
-#ifdef HAVE_TPUARTs
-#include "b-TPUARTs.h"
-#endif
-#ifdef HAVE_TPUARTs_TCP
-#include "b-TPUARTs-TCP.h"
-#endif
-#ifdef HAVE_USB
-#include "b-USB.h"
-#endif
+#define TPUARTs_URL "tpuarttcp:CUNX_IP_ADDR:2324\n"
 
-#ifdef HAVE_NCN5120
-#include "b-NCN5120.h"
-#endif
+#define TPUARTs_DOC "tpuarttcp connects to the EIB bus over a TPUART (using a TCP connection)\n\n"
 
-#ifdef HAVE_DUMMY
-#include "b-DUMMY.h"
-#endif
+#define TPUARTs_PREFIX "tpuarttcp"
+
+#define TPUARTs_CREATE tpuarts_tcp_Create
+
+inline Layer2Ptr 
+tpuarts_tcp_Create (const char *dev, L2options *opt)
+{
+  char *a = strdup (dev);
+  char *b;
+  int port;
+  Layer2Ptr c;
+  if (!a)
+    die ("out of memory");
+  for (b = a; *b; b++)
+    if (*b == ':')
+      break;
+  if (*b == ':')
+    {
+      *b = 0;
+      port = atoi (b + 1);
+    }
+  else
+    port = 2324;
+  c = std::shared_ptr<TPUARTTCPLayer2Driver>(new TPUARTTCPLayer2Driver (a, port, opt));
+  free (a);
+  return c;
+}
 
 #endif

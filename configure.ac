@@ -125,6 +125,18 @@ if test x$tpuarts = xtrue ; then
  AC_DEFINE(HAVE_TPUARTs, 1 , [TPUARTs enabled])
 fi
 
+AC_ARG_ENABLE(tpuarts-tcp,
+[  --enable-tpuarts-tcp	enable TPUART-over-TCP user driver backend],
+[case "${enableval}" in
+ yes) tpuarts_tcp=true ;;
+  no)  tpuarts_tcp=false ;;
+   *) AC_MSG_ERROR(bad value ${enableval} for --enable-tpuarts-tcp) ;;
+ esac],[tpuarts=true])
+AM_CONDITIONAL(HAVE_TPUARTs_TCP, test x$tpuarts_tcp = xtrue)
+if test x$tpuarts_tcp = xtrue ; then
+ AC_DEFINE(HAVE_TPUARTs_TCP, 1 , [TPUART-over-TCP enabled])
+fi
+
 AC_ARG_ENABLE(eibnetip,
 [  --enable-eibnetip	enable EIBnet/IP routing backend],
 [case "${enableval}" in

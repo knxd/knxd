@@ -33,6 +33,9 @@
 #ifdef HAVE_TPUARTs
   L2_NAME (TPUARTs)
 #endif
+#ifdef HAVE_TPUARTs_TCP
+  L2_NAME (TPUARTs_TCP)
+#endif
 #ifdef HAVE_USB
   L2_NAME (USB)
 #endif
