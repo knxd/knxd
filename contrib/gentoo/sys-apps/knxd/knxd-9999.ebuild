@@ -54,4 +54,6 @@ src_install() {
 	sed -e "s|@SLOT@|${SLOT}|g" \
                "${FILESDIR}/${PN}.init" | newinitd - ${PN}-${SLOT}
 
+        sed -e "s|@SLOT@|${SLOT}|g" \
+               "${FILESDIR}/${PN}.confd" | newconfd ${PN}-${SLOT}
 }
