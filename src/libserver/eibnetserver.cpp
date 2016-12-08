@@ -397,10 +397,8 @@ ConnState::Run (pth_sem_t * stop1)
       pth_event_isolate (outwait);
 
       if (pth_event_status (timeout) == PTH_STATUS_OCCURRED)
-	{
-	  parent->drop_state (std::static_pointer_cast<ConnState>(shared_from_this()));
-	  return;
-	}
+        break;
+
       if (state ? pth_event_status (sendtimeout) == PTH_STATUS_OCCURRED
                 : !out.isempty ())
 	{
@@ -437,13 +435,16 @@ ConnState::Run (pth_sem_t * stop1)
         }
     }
 
-  EIBnet_DisconnectRequest r;
-  r.channel = channel;
-  if (GetSourceAddress (&caddr, &r.caddr))
+  if (pth_event_status (stop) != PTH_STATUS_OCCURRED)
     {
-      r.caddr.sin_port = parent->Port;
-      r.nat = nat;
-      parent->Send (r.ToPacket (), caddr);
+      EIBnet_DisconnectRequest r;
+      r.channel = channel;
+      if (GetSourceAddress (&caddr, &r.caddr))
+        {
+          r.caddr.sin_port = parent->Port;
+          r.nat = nat;
+          parent->Send (r.ToPacket (), caddr);
+        }
     }
   parent->drop_state (std::static_pointer_cast<ConnState>(shared_from_this()));
 }
