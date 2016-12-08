@@ -398,7 +398,7 @@ ConnState::Run (pth_sem_t * stop1)
 
       if (pth_event_status (timeout) == PTH_STATUS_OCCURRED)
 	{
-	  shutdown();
+	  parent->drop_state (std::static_pointer_cast<ConnState>(shared_from_this()));
 	  return;
 	}
       if (state ? pth_event_status (sendtimeout) == PTH_STATUS_OCCURRED
@@ -445,12 +445,12 @@ ConnState::Run (pth_sem_t * stop1)
       r.nat = nat;
       parent->Send (r.ToPacket (), caddr);
     }
-  shutdown();
+  parent->drop_state (std::static_pointer_cast<ConnState>(shared_from_this()));
 }
 
 void ConnState::shutdown(void)
 {
-  parent->drop_state (std::static_pointer_cast<ConnState>(shared_from_this()));
+  Stop();
 }
 
 void EIBnetServer::drop_state (ConnStatePtr s)
@@ -468,8 +468,8 @@ void EIBnetServer::drop_state (ConnStatePtr s)
 void
 EIBnetServer::drop_state (uint8_t index)
 {
-  // delete state[index];
-  state.deletepart (index);
+  /* Stop state, it will de-register itself. index is invalid after this */
+  state[index]->shutdown();
 }
 
 ConnState::~ConnState()
