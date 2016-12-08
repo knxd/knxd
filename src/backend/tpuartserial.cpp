@@ -142,7 +142,7 @@ TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
       ERRORPRINTF (t, E_ERROR | 56, this, "baudrate %d not recognized", baudrate);
       restore_low_latency (fd, &sold);
       close (fd);
-      fd = -1
+      fd = -1;
       return;
     }
   TRACEPRINTF(t, 0, this, "Opened %s with baud %d", dev, baudrate);
