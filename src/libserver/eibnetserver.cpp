@@ -469,8 +469,9 @@ void EIBnetServer::drop_state (ConnStatePtr s)
 void
 EIBnetServer::drop_state (uint8_t index)
 {
-  /* Stop state, it will de-register itself. index is invalid after this */
-  state[index]->shutdown();
+  ConnStatePtr state2 = state[index];
+  state.deletepart (index);
+  state2->shutdown();
 }
 
 ConnState::~ConnState()
