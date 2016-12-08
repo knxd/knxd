@@ -435,7 +435,7 @@ ConnState::Run (pth_sem_t * stop1)
         }
     }
 
-  if (pth_event_status (stop) != PTH_STATUS_OCCURRED)
+  if (channel > 0)
     {
       EIBnet_DisconnectRequest r;
       r.channel = channel;
@@ -656,6 +656,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
 	    if (compareIPAddress (p1->src, state[i]->caddr))
 	      {
 		res = 0;
+		state[i]->channel = 0;
 		drop_state(i);
 		break;
 	      }
