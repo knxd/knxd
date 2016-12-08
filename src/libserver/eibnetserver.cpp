@@ -474,6 +474,7 @@ EIBnetServer::drop_state (uint8_t index)
 
 ConnState::~ConnState()
 {
+  TRACEPRINTF (parent->t, 8, this, "CloseS");
   Stop();
   pth_event_free (timeout, PTH_FREE_THIS);
   pth_event_free (sendtimeout, PTH_FREE_THIS);
