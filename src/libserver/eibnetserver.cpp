@@ -848,7 +848,7 @@ void ConnState::tunnel_request(EIBnet_TunnelRequest &r1, EIBNetIPSocket *isock)
   if (rno == ((r1.seqno + 1) & 0xff))
     {
       TRACEPRINTF (t, 8, this, "Lost ACK for %d", rno);
-      parent->Send (r2.ToPacket (), daddr);
+      isock->Send (r2.ToPacket (), daddr);
       return;
     }
   if (rno != r1.seqno)
@@ -931,7 +931,7 @@ void ConnState::config_request(EIBnet_ConfigRequest &r1, EIBNetIPSocket *isock)
     {
       r2.channel = r1.channel;
       r2.seqno = r1.seqno;
-      parent->Send (r2.ToPacket (), daddr);
+      isock->Send (r2.ToPacket (), daddr);
       return;
     }
   if (rno != r1.seqno)
