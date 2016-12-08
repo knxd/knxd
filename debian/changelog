@@ -1,3 +1,10 @@
+knxd (0.11.12-1) unstable; urgency=medium
+
+  * Change tpuarts baud rate
+  * Merge #174: elupus:disconnect_success
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 08 Dec 2016 19:27:15 +0100
+
 knxd (0.11.11-1) unstable; urgency=medium
 
   * Add tpuarts-over-tcp driver (for CUNx, busware.de)
