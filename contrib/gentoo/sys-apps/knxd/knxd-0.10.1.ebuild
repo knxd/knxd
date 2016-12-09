@@ -7,19 +7,20 @@
 
 EAPI="5"
 
-inherit eutils autotools git-2
+inherit eutils autotools git-r3
 
-DESCRIPTION="Provides an interface to the EIB / KNX bus (latest git)"
+DESCRIPTION="Provides an interface to the EIB / KNX bus"
 HOMEPAGE="https://github.com/Makki1/knxd"
 
 LICENSE="GPL-2"
-SLOT="9999"
+SLOT="0"
 KEYWORDS=""
 IUSE="eibd ft12 pei16s tpuarts eibnetip eibnetiptunnel eibnetipserver usb groupcache java ncn5120 dummy"
 
 DEPEND="dev-libs/pthsem"
 
 EGIT_REPO_URI="https://github.com/Makki1/knxd.git"
+EGIT_COMMIT="v${PV}"
 
 src_prepare() {
 	eautoreconf || die "eautotooling failed"
