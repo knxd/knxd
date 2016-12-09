@@ -10,3 +10,5 @@
 /knxd.install
 /knxd.service
 /knxd.socket
+/autoreconf.after
+/autoreconf.before
