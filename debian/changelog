@@ -1,3 +1,9 @@
+knxd (0.10.14-1) unstable; urgency=medium
+
+  * New release.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 09 Dec 2016 16:28:09 +0100
+
 knxd (0.10.13-3) unstable; urgency=medium
 
   * Typo in debian/rules
