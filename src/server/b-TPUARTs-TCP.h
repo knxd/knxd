@@ -17,23 +17,41 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifndef C_TPUARTs_H
-#define C_TPUARTs_H
+#ifndef C_TPUARTs_TCP_H
+#define C_TPUARTs_TCP_H
 
-#include "tpuartserial.h"
+#include "tpuarttcp.h"
 
-#define TPUARTs_URL "tpuarts:/dev/ttySx[:baudrate(optional)]\n"
+#define TPUARTs_TCP_URL "tpuarttcp:CUNX_IP_ADDR:2324\n"
 
-#define TPUARTs_DOC "tpuarts connects to the EIB bus over a TPUART (using a serial interface)\n\n"
+#define TPUARTs_TCP_DOC "tpuarttcp connects to the EIB bus over a TPUART (using a TCP connection)\n\n"
 
-#define TPUARTs_PREFIX "tpuarts"
+#define TPUARTs_TCP_PREFIX "tpuarttcp"
 
-#define TPUARTs_CREATE tpuarts_Create
+#define TPUARTs_TCP_CREATE tpuarts_tcp_Create
 
 inline Layer2Ptr 
-tpuarts_Create (const char *dev, L2options *opt)
+tpuarts_tcp_Create (const char *dev, L2options *opt)
 {
-  return std::shared_ptr<TPUARTSerialLayer2Driver>(new TPUARTSerialLayer2Driver (dev, opt));
+  char *a = strdup (dev);
+  char *b;
+  int port;
+  Layer2Ptr c;
+  if (!a)
+    die ("out of memory");
+  for (b = a; *b; b++)
+    if (*b == ':')
+      break;
+  if (*b == ':')
+    {
+      *b = 0;
+      port = atoi (b + 1);
+    }
+  else
+    port = 2324;
+  c = std::shared_ptr<TPUARTTCPLayer2Driver>(new TPUARTTCPLayer2Driver (a, port, opt));
+  free (a);
+  return c;
 }
 
 #endif

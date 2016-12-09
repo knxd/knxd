@@ -17,23 +17,43 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifndef C_TPUARTs_H
-#define C_TPUARTs_H
+#ifndef TPUART_TCP_H
+#define TPUART_TCP_H
+#include <netinet/in.h>
+#include "eibnetip.h"
+#include "layer2.h"
+#include "lpdu.h"
 
-#include "tpuartserial.h"
-
-#define TPUARTs_URL "tpuarts:/dev/ttySx[:baudrate(optional)]\n"
-
-#define TPUARTs_DOC "tpuarts connects to the EIB bus over a TPUART (using a serial interface)\n\n"
-
-#define TPUARTs_PREFIX "tpuarts"
-
-#define TPUARTs_CREATE tpuarts_Create
-
-inline Layer2Ptr 
-tpuarts_Create (const char *dev, L2options *opt)
+/** TPUART user mode driver */
+class TPUARTTCPLayer2Driver:public Layer2, private Thread
 {
-  return std::shared_ptr<TPUARTSerialLayer2Driver>(new TPUARTSerialLayer2Driver (dev, opt));
-}
+  /** TCP/IP connection */
+  int fd;
+  /** semaphore for inqueue */
+  pth_sem_t in_signal;
+  /** input queue */
+  Queue < LPDU * >inqueue;
+  /** output queue */
+  bool ackallgroup;
+  bool ackallindividual;
+  bool dischreset;
+
+  /** process a received frame */
+  void RecvLPDU (const uchar * data, int len);
+  void Run (pth_sem_t * stop);
+  const char *Name() { return "tpuarts"; }
+public:
+  TPUARTTCPLayer2Driver (const char *dest, int port, L2options *opt);
+  ~TPUARTTCPLayer2Driver ();
+  bool init (Layer3 *l3);
+
+  void Send_L_Data (LPDU * l);
+
+  bool enterBusmonitor ();
+  bool leaveBusmonitor ();
+
+  bool Open ();
+  bool Send_Queue_Empty ();
+};
 
 #endif

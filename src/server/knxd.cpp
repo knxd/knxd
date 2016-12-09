@@ -306,7 +306,7 @@ static struct argp_option options[] = {
   {"no-tunnel-client-queuing", OPT_BACK_TUNNEL_NOQUEUE, 0, 0,
    "do not assume KNXnet/IP Tunneling bus interface can handle parallel cEMI requests"},
 #endif
-#ifdef HAVE_TPUARTs
+#if defined(HAVE_TPUARTs) || defined(HAVE_TPUARTs_TCP)
   {"tpuarts-ack-all-group", OPT_BACK_TPUARTS_ACKGROUP, 0, 0,
    "tpuarts backend should generate L2 acks for all group telegrams"},
   {"tpuarts-ack-all-individual", OPT_BACK_TPUARTS_ACKINDIVIDUAL, 0, 0,

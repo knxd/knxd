@@ -1,3 +1,16 @@
+knxd (0.11.12-1) unstable; urgency=medium
+
+  * Change tpuarts baud rate
+  * Merge #174: elupus:disconnect_success
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 08 Dec 2016 19:27:15 +0100
+
+knxd (0.11.11-1) unstable; urgency=medium
+
+  * Add tpuarts-over-tcp driver (for CUNx, busware.de)
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 08 Dec 2016 17:22:29 +0100
+
 knxd (0.11.10-1) unstable; urgency=medium
 
   * Correct invalid length of L_Busmon.ind field for busmonitor mode
@@ -77,6 +90,12 @@ knxd (0.11.1-1) unstable; urgency=medium
   * Refactor multicast to use a separate port for sending
 
  -- Matthias Urlichs <matthias@urlichs.de>  Sun, 28 Jun 2015 06:53:31 +0000
+
+knxd (0.10.14-1) unstable; urgency=medium
+
+  * New release.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 09 Dec 2016 16:28:09 +0100
 
 knxd (0.10.13-3) unstable; urgency=medium
 

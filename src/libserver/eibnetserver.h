@@ -35,6 +35,8 @@ typedef enum {
 
 class ConnState: protected Thread, public Layer2mixin
 {
+  virtual void RunDone() { Layer2mixin::RunStop(); }
+
 public:
   ConnState (EIBnetServer *p, eibaddr_t addr);
   ~ConnState ();
@@ -61,7 +63,7 @@ public:
   pth_event_t sendtimeout;
 
   // handle various packets from the connection
-  void tunnel_request(EIBnet_TunnelRequest &r1);
+  void tunnel_request(EIBnet_TunnelRequest &r1, EIBNetIPSocket *isock);
   void tunnel_response(EIBnet_TunnelACK &r1);
   void config_request(EIBnet_ConfigRequest &r1, EIBNetIPSocket *isock);
   void config_response (EIBnet_ConfigACK &r1);

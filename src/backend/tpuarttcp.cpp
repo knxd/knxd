@@ -22,66 +22,19 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/ioctl.h>
-#include "tpuartserial.h"
+#include <netinet/tcp.h>
+#include "tpuarttcp.h"
 #include "layer3.h"
-#include <stdlib.h>
 
-/** get serial status lines */
-static int
-getstat (int fd)
-{
-  int s;
-  ioctl (fd, TIOCMGET, &s);
-  return s;
-}
-
-/** set serial status lines */
-static void
-setstat (int fd, int s)
-{
-  ioctl (fd, TIOCMSET, &s);
-}
-
-static speed_t getbaud(int baud) {
-    switch(baud) {
-        case 9600:
-            return B9600;
-        case 19200:
-            return B19200;
-        case 115200:
-            return B115200;
-        default:
-            return -1;
-    }
-}
-
-TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
+TPUARTTCPLayer2Driver::TPUARTTCPLayer2Driver (const char *dest, int port,
 						    L2options *opt)
 	: Layer2 (opt)
 {
-  struct termios t1;
+  int reuse = 1;
+  int nodelay = 1;
+  struct sockaddr_in addr;
+
   TRACEPRINTF (t, 2, this, "Open");
-
-  char *pch;
-  int baudrate = 19200;
-  int term_baudrate;
-  pch = strtok((char*)dev, ":");
-  int i = 0;
-
-  while(pch != NULL) {
-
-      switch(i) {
-      case 0:
-        break;
-      case 1:
-          baudrate = atoi(pch);
-          break;
-      }
-
-      pch = strtok(NULL, ":");
-      i++;
-  }
-
 
   pth_sem_init (&in_signal);
 
@@ -94,77 +47,32 @@ TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
 	                FLAG_B_TPUARTS_ACKINDIVIDUAL |
 					FLAG_B_TPUARTS_DISCH_RESET);
 
-  fd = open (dev, O_RDWR | O_NOCTTY | O_NDELAY | O_SYNC);
+  if (!GetHostIP (t, &addr, dest))
+    return;
+  addr.sin_port = htons (port);
+
+  fd = socket (AF_INET, SOCK_STREAM, 0);
   if (fd == -1)
     {
-      ERRORPRINTF (t, E_ERROR | 22, this, "Opening %s failed: %s", dev, strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 52, this, "Opening %s:%d failed: %s", dest,port, strerror(errno));
       return;
     }
-  set_low_latency (fd, &sold);
+  setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof (reuse));
 
-  close (fd);
-
-  fd = open (dev, O_RDWR | O_NOCTTY | O_SYNC);
-  if (fd == -1)
+  if (connect (fd, (struct sockaddr *) &addr, sizeof (addr)) == -1)
     {
-      ERRORPRINTF (t, E_ERROR | 23, this, "Opening %s failed: %s", dev, strerror(errno));
-      return;
-    }
-
-  if (tcgetattr (fd, &old))
-    {
-      ERRORPRINTF (t, E_ERROR | 24, this, "tcgetattr %s failed: %s", dev, strerror(errno));
-      restore_low_latency (fd, &sold);
+      ERRORPRINTF (t, E_ERROR | 53, this, "Connect %s:%d: connect: %s", dest,port, strerror(errno));
       close (fd);
       fd = -1;
       return;
     }
-
-  if (tcgetattr (fd, &t1))
-    {
-      ERRORPRINTF (t, E_ERROR | 25, this, "tcgetattr %s failed: %s", dev, strerror(errno));
-      restore_low_latency (fd, &sold);
-      close (fd);
-      fd = -1;
-      return;
-    }
-
-  t1.c_cflag = CS8 | CLOCAL | CREAD | PARENB;
-  t1.c_iflag = IGNBRK | INPCK | ISIG;
-  t1.c_oflag = 0;
-  t1.c_lflag = 0;
-  t1.c_cc[VTIME] = 1;
-  t1.c_cc[VMIN] = 0;
-
-  term_baudrate = getbaud(baudrate);
-  if (term_baudrate == -1)
-    {
-      ERRORPRINTF (t, E_ERROR | 56, this, "baudrate %d not recognized", baudrate);
-      restore_low_latency (fd, &sold);
-      close (fd);
-      fd = -1;
-      return;
-    }
-  TRACEPRINTF(t, 0, this, "Opened %s with baud %d", dev, baudrate);
-  cfsetospeed (&t1, term_baudrate);
-  cfsetispeed (&t1, 0);
-
-  if (tcsetattr (fd, TCSAFLUSH, &t1))
-    {
-      ERRORPRINTF (t, E_ERROR | 26, this, "tcsetattr %s failed: %s", dev, strerror(errno));
-      restore_low_latency (fd, &sold);
-      close (fd);
-      fd = -1;
-      return;
-    }
-
-  setstat (fd, (getstat (fd) & ~TIOCM_RTS) | TIOCM_DTR);
+  setsockopt (fd, IPPROTO_TCP, TCP_NODELAY, &nodelay, sizeof (nodelay));
 
   Start ();
   TRACEPRINTF (t, 2, this, "Openend");
 }
 
-TPUARTSerialLayer2Driver::~TPUARTSerialLayer2Driver ()
+TPUARTTCPLayer2Driver::~TPUARTTCPLayer2Driver ()
 {
   TRACEPRINTF (t, 2, this, "Close");
   Stop ();
@@ -173,16 +81,11 @@ TPUARTSerialLayer2Driver::~TPUARTSerialLayer2Driver ()
     delete inqueue.get ();
 
   if (fd != -1)
-    {
-      setstat (fd, (getstat (fd) & ~TIOCM_RTS) & ~TIOCM_DTR);
-      tcsetattr (fd, TCSAFLUSH, &old);
-      restore_low_latency (fd, &sold);
-      close (fd);
-    }
+    close (fd);
 
 }
 
-bool TPUARTSerialLayer2Driver::init (Layer3 *l3)
+bool TPUARTTCPLayer2Driver::init (Layer3 *l3)
 {
   if (fd == -1)
     return false;
@@ -192,13 +95,13 @@ bool TPUARTSerialLayer2Driver::init (Layer3 *l3)
 }
 
 bool
-TPUARTSerialLayer2Driver::Send_Queue_Empty ()
+TPUARTTCPLayer2Driver::Send_Queue_Empty ()
 {
   return inqueue.isempty ();
 }
 
 void
-TPUARTSerialLayer2Driver::Send_L_Data (LPDU * l)
+TPUARTTCPLayer2Driver::Send_L_Data (LPDU * l)
 {
   TRACEPRINTF (t, 2, this, "Send %s", l->Decode ()());
   inqueue.put (l);
@@ -208,7 +111,7 @@ TPUARTSerialLayer2Driver::Send_L_Data (LPDU * l)
 //Open
 
 bool
-TPUARTSerialLayer2Driver::enterBusmonitor ()
+TPUARTTCPLayer2Driver::enterBusmonitor ()
 {
   if (!Layer2::enterBusmonitor ())
     return false;
@@ -220,7 +123,7 @@ TPUARTSerialLayer2Driver::enterBusmonitor ()
 }
 
 bool
-TPUARTSerialLayer2Driver::leaveBusmonitor ()
+TPUARTTCPLayer2Driver::leaveBusmonitor ()
 {
   if (!Layer2::leaveBusmonitor ())
     return false;
@@ -232,7 +135,7 @@ TPUARTSerialLayer2Driver::leaveBusmonitor ()
 }
 
 bool
-TPUARTSerialLayer2Driver::Open ()
+TPUARTTCPLayer2Driver::Open ()
 {
   if (!Layer2::Open ())
     return false;
@@ -244,7 +147,7 @@ TPUARTSerialLayer2Driver::Open ()
 }
 
 void
-TPUARTSerialLayer2Driver::RecvLPDU (const uchar * data, int len)
+TPUARTTCPLayer2Driver::RecvLPDU (const uchar * data, int len)
 {
   t->TracePacket (1, this, "RecvLP", len, data);
   if (mode & BUSMODE_MONITOR)
@@ -264,7 +167,7 @@ TPUARTSerialLayer2Driver::RecvLPDU (const uchar * data, int len)
 }
 
 void
-TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
+TPUARTTCPLayer2Driver::Run (pth_sem_t * stop1)
 {
   uchar buf[255];
   int i;
@@ -520,9 +423,7 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 	{
 	  if (dischreset)
 	    {
-	      setstat (fd, (getstat (fd) & ~TIOCM_RTS) & ~TIOCM_DTR);
 	      pth_usleep (2000);
-	      setstat (fd, (getstat (fd) & ~TIOCM_RTS) | TIOCM_DTR);
 	      pth_usleep (1000);
 	    }
 

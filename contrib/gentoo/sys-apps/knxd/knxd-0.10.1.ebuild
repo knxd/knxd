@@ -57,5 +57,9 @@ src_install() {
                "${FILESDIR}/${PN}.init" | newinitd - ${PN}-${SLOT}
 
         sed -e "s|@SLOT@|${SLOT}|g" \
+<<<<<<< HEAD
                "${FILESDIR}/${PN}.confd" | newconfd - ${PN}-${SLOT}
+=======
+               "${FILESDIR}/${PN}.confd" | newconfd ${PN}-${SLOT}
+>>>>>>> master
 }

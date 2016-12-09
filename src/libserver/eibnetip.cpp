@@ -22,6 +22,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <errno.h>
+#include <netdb.h>
 #include "eibnetip.h"
 #include "config.h"
 #ifdef HAVE_LINUX_NETLINK
@@ -41,7 +42,7 @@
 #endif
 
 int
-GetHostIP (struct sockaddr_in *sock, const char *Name)
+GetHostIP (Trace *t, struct sockaddr_in *sock, const char *Name)
 {
   struct hostent *h;
   if (!Name)
@@ -49,7 +50,11 @@ GetHostIP (struct sockaddr_in *sock, const char *Name)
   memset (sock, 0, sizeof (*sock));
   h = gethostbyname (Name);
   if (!h)
-    return 0;
+    {
+      if (t)
+        ERRORPRINTF (t, E_ERROR | 50, NULL, "Resolving %s failed: %s", Name, hstrerror(h_errno));
+      return 0;
+    }
 #ifdef HAVE_SOCKADDR_IN_LEN
   sock->sin_len = sizeof (*sock);
 #endif

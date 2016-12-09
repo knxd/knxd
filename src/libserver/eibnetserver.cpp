@@ -66,7 +66,7 @@ EIBnetDiscover::EIBnetDiscover (EIBnetServer *parent, const char *multicastaddr,
   baddr.sin_addr.s_addr = htonl (INADDR_ANY);
   baddr.sin_port = htons (port);
 
-  if (GetHostIP (&maddr, multicastaddr) == 0)
+  if (GetHostIP (parent->t, &maddr, multicastaddr) == 0)
     {
       ERRORPRINTF (parent->t, E_ERROR | 11, this, "Addr '%s' not resolvable", multicastaddr);
       goto err_out;
@@ -397,10 +397,8 @@ ConnState::Run (pth_sem_t * stop1)
       pth_event_isolate (outwait);
 
       if (pth_event_status (timeout) == PTH_STATUS_OCCURRED)
-	{
-	  shutdown();
-	  return;
-	}
+        break;
+
       if (state ? pth_event_status (sendtimeout) == PTH_STATUS_OCCURRED
                 : !out.isempty ())
 	{
@@ -437,20 +435,23 @@ ConnState::Run (pth_sem_t * stop1)
         }
     }
 
-  EIBnet_DisconnectRequest r;
-  r.channel = channel;
-  if (GetSourceAddress (&caddr, &r.caddr))
+  if (channel > 0)
     {
-      r.caddr.sin_port = parent->Port;
-      r.nat = nat;
-      parent->Send (r.ToPacket (), caddr);
+      EIBnet_DisconnectRequest r;
+      r.channel = channel;
+      if (GetSourceAddress (&caddr, &r.caddr))
+        {
+          r.caddr.sin_port = parent->Port;
+          r.nat = nat;
+          parent->Send (r.ToPacket (), caddr);
+        }
     }
-  shutdown();
+  parent->drop_state (std::static_pointer_cast<ConnState>(shared_from_this()));
 }
 
 void ConnState::shutdown(void)
 {
-  parent->drop_state (std::static_pointer_cast<ConnState>(shared_from_this()));
+  Stop();
 }
 
 void EIBnetServer::drop_state (ConnStatePtr s)
@@ -468,12 +469,14 @@ void EIBnetServer::drop_state (ConnStatePtr s)
 void
 EIBnetServer::drop_state (uint8_t index)
 {
-  // delete state[index];
+  ConnStatePtr state2 = state[index];
   state.deletepart (index);
+  state2->shutdown();
 }
 
 ConnState::~ConnState()
 {
+  TRACEPRINTF (parent->t, 8, this, "CloseS");
   Stop();
   pth_event_free (timeout, PTH_FREE_THIS);
   pth_event_free (sendtimeout, PTH_FREE_THIS);
@@ -652,6 +655,8 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
 	  {
 	    if (compareIPAddress (p1->src, state[i]->caddr))
 	      {
+		res = 0;
+		state[i]->channel = 0;
 		drop_state(i);
 		break;
 	      }
@@ -723,7 +728,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
 		TRACEPRINTF (t, 8, this, "Invalid data endpoint");
 		break;
 	      }
-	    state[i]->tunnel_request(r1);
+	    state[i]->tunnel_request(r1, isock);
 	    break;
 	  }
       goto out;
@@ -815,8 +820,12 @@ EIBnetServer::Run (pth_sem_t * stop1)
       if (p1)
 	handle_packet (p1, this->sock);
     }
-  for (i = 0; i < state (); i++)
-    state[i] = nullptr;
+
+  /* copy aray since shutdown will mutate this */
+  Array<ConnStatePtr> state2 = state;
+  state.resize(0);
+  for (i = 0; i < state2 (); i++)
+    state2[i]->shutdown();
   pth_event_free (stop, PTH_FREE_THIS);
 }
 
@@ -835,7 +844,7 @@ EIBnetDiscover::Run (pth_sem_t * stop1)
   pth_event_free (stop, PTH_FREE_THIS);
 }
 
-void ConnState::tunnel_request(EIBnet_TunnelRequest &r1)
+void ConnState::tunnel_request(EIBnet_TunnelRequest &r1, EIBNetIPSocket *isock)
 {
   EIBnet_TunnelACK r2;
   r2.channel = r1.channel;
@@ -844,7 +853,7 @@ void ConnState::tunnel_request(EIBnet_TunnelRequest &r1)
   if (rno == ((r1.seqno + 1) & 0xff))
     {
       TRACEPRINTF (t, 8, this, "Lost ACK for %d", rno);
-      parent->Send (r2.ToPacket (), daddr);
+      isock->Send (r2.ToPacket (), daddr);
       return;
     }
   if (rno != r1.seqno)
@@ -888,7 +897,7 @@ void ConnState::tunnel_request(EIBnet_TunnelRequest &r1)
       r2.status = 0x29;
     }
   rno++;
-  parent->Send (r2.ToPacket (), daddr);
+  isock->Send (r2.ToPacket (), daddr);
 }
 
 void ConnState::tunnel_response (EIBnet_TunnelACK &r1)
@@ -927,7 +936,7 @@ void ConnState::config_request(EIBnet_ConfigRequest &r1, EIBNetIPSocket *isock)
     {
       r2.channel = r1.channel;
       r2.seqno = r1.seqno;
-      parent->Send (r2.ToPacket (), daddr);
+      isock->Send (r2.ToPacket (), daddr);
       return;
     }
   if (rno != r1.seqno)

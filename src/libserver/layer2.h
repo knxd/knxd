@@ -42,10 +42,10 @@ class Layer2 : public std::enable_shared_from_this<Layer2>
 
   bool allow_monitor;
 
+protected:
   /** auto-deregister for "tasked" layer2 objects */
   void RunStop();
 
-protected:
   /** auto-assigned. NON-bus connections only! */
   eibaddr_t remoteAddr;
 
