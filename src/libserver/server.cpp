@@ -23,7 +23,7 @@
 
 
 BaseServer::BaseServer (Trace * tr)
-	: Layer2virtual (tr)
+	: Layer2virtual (new Trace(tr, tr->name))
 {
 }
 
