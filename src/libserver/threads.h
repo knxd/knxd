@@ -22,6 +22,16 @@
 
 #include <pthsem.h>
 
+// SIGH
+static inline bool operator!=(const pth_time_t& a, const pth_time_t& b)
+{
+    return a.tv_sec != b.tv_sec || a.tv_usec != b.tv_usec;
+}
+static inline bool operator==(const pth_time_t& a, const pth_time_t& b)
+{
+    return a.tv_sec == b.tv_sec && a.tv_usec == b.tv_usec;
+}
+
 /** interface for a class started by a thread */
 class Runable
 {

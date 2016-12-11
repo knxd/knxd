@@ -38,6 +38,7 @@
 #include "systemdserver.h"
 #endif
 
+// The NOQUEUE options are deprecated
 #define OPT_BACK_TUNNEL_NOQUEUE 1
 #define OPT_BACK_TPUARTS_ACKGROUP 2
 #define OPT_BACK_TPUARTS_ACKINDIVIDUAL 3
@@ -45,6 +46,7 @@
 #define OPT_BACK_EMI_NOQUEUE 5
 #define OPT_STOP_NOW 6
 #define OPT_FORCE_BROADCAST 7
+#define OPT_BACK_SEND_DELAY 8
 
 #define OPT_ARG(_arg,_state,_default) (arg ? arg : \
         (state->argv[state->next] && state->argv[state->next][0] && (state->argv[state->next][0] != '-')) ?  \
@@ -286,7 +288,7 @@ static struct argp_option options[] = {
 #endif
 #ifdef HAVE_EIBNETIPTUNNEL
   {"no-tunnel-client-queuing", OPT_BACK_TUNNEL_NOQUEUE, 0, 0,
-   "do not assume KNXnet/IP Tunneling bus interface can handle parallel cEMI requests"},
+   "wait 30msec between transmitting packets. Obsolete, please use --send-delay=30"},
 #endif
 #if defined(HAVE_TPUARTs) || defined(HAVE_TPUARTs_TCP)
   {"tpuarts-ack-all-group", OPT_BACK_TPUARTS_ACKGROUP, 0, 0,
@@ -296,8 +298,10 @@ static struct argp_option options[] = {
   {"tpuarts-disch-reset", OPT_BACK_TPUARTS_DISCH_RESET, 0, 0,
    "tpuarts backend should should use a full interface reset (for Disch TPUART interfaces)"},
 #endif
+  {"send-delay", OPT_BACK_SEND_DELAY, "DELAY", OPTION_ARG_OPTIONAL,
+   "wait after sending a packet"},
   {"no-emi-send-queuing", OPT_BACK_EMI_NOQUEUE, 0, 0,
-   "wait for L_Data_ind while sending (for all EMI based backends)"},
+   "wait for ACK after transmitting packets. Obsolete, please use --send-delay=500"},
   {"no-monitor", 'N', 0, 0,
    "the next Layer2 interface may not enter monitor mode"},
   {"allow-forced-broadcast", OPT_FORCE_BROADCAST, 0, 0,
@@ -439,8 +443,18 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case OPT_STOP_NOW:
       arguments->stop_now = true;
       break;
-    case OPT_BACK_TUNNEL_NOQUEUE:
-      arguments->l2opts.flags |= FLAG_B_TUNNEL_NOQUEUE;
+    case OPT_BACK_TUNNEL_NOQUEUE: // obsolete
+      ERRORPRINTF (&arguments->t, E_WARNING | 41, 0, "The option '--no-tunnel-client-queuing' is obsolete.");
+      ERRORPRINTF (&arguments->t, E_WARNING | 42, 0, "Please use '--send-delay=30'.");
+      arguments->l2opts.send_delay = 30; // msec
+      break;
+    case OPT_BACK_EMI_NOQUEUE: // obsolete
+      ERRORPRINTF (&arguments->t, E_WARNING | 43, 0, "The option '--no-emi-send-queuing' is obsolete.");
+      ERRORPRINTF (&arguments->t, E_WARNING | 44, 0, "Please use '--send-delay=500'.");
+      arguments->l2opts.send_delay = 500; // msec
+      break;
+    case OPT_BACK_SEND_DELAY:
+      arguments->l2opts.send_delay = atoi(OPT_ARG(arg,state,"30"));
       break;
     case OPT_BACK_TPUARTS_ACKGROUP:
       arguments->l2opts.flags |= FLAG_B_TPUARTS_ACKGROUP;
@@ -450,9 +464,6 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
     case OPT_BACK_TPUARTS_DISCH_RESET:
       arguments->l2opts.flags |= FLAG_B_TPUARTS_DISCH_RESET;
-      break;
-    case OPT_BACK_EMI_NOQUEUE:
-      arguments->l2opts.flags |= FLAG_B_EMI_NOQUEUE;
       break;
     case 'N':
       arguments->l2opts.flags |= FLAG_B_NO_MONITOR;
@@ -464,7 +475,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
         Layer2Ptr l2 = Create (arg, &arguments->l2opts);
         if (!l2 || !l2->init (arguments->l3 ()))
           die ("initialisation of backend '%s' failed", arg);
-	if (arguments->l2opts.flags)
+	if (arguments->l2opts.flags || arguments->l2opts.send_delay)
           die ("You provided options which '%s' does not recognize", arg);
         memset(&arguments->l2opts, 0, sizeof(arguments->l2opts));
         arguments->has_work++;

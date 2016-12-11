@@ -1,3 +1,10 @@
+knxd (0.11.14-1) unstable; urgency=medium
+
+  * Merge #171: configurable send delay
+    (for those interfaces which already had a delay)
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 11 Dec 2016 23:41:48 +0100
+
 knxd (0.11.13-1) unstable; urgency=medium
 
   * Re-do logging
@@ -18,6 +25,12 @@ knxd (0.11.11-1) unstable; urgency=medium
   * Add tpuarts-over-tcp driver (for CUNx, busware.de)
 
  -- Matthias Urlichs <matthias@urlichs.de>  Thu, 08 Dec 2016 17:22:29 +0100
+
+knxd (0.11.11-0) unstable; urgency=medium
+
+  * Implemented a --send-delay=X option
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 02 Dec 2016 00:44:40 +0100
 
 knxd (0.11.10-1) unstable; urgency=medium
 

@@ -35,7 +35,7 @@ class CEMILayer2:public Layer2, private Thread
   pth_sem_t in_signal;
   /** input queue */
   Queue < LPDU * >inqueue;
-  bool noqueue;
+  pth_time_t send_delay;
 
   void Send (LPDU * l);
   void Run (pth_sem_t * stop);

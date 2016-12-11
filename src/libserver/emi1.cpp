@@ -26,9 +26,12 @@ EMI1Layer2::EMI1Layer2 (LowLevelDriver * i,
 {
   TRACEPRINTF (t, 2, this, "Open");
   iface = i;
-  noqueue = opt ? (opt->flags & FLAG_B_EMI_NOQUEUE) : false;
-  if (opt->flags)
-    opt->flags &=~ FLAG_B_EMI_NOQUEUE;
+  if (opt && opt->send_delay) {
+    send_delay = pth_time(opt->send_delay / 1000, (opt->send_delay % 1000) * 1000);
+    opt->send_delay = 0;
+  } else
+    send_delay = pth_null_time;
+
   pth_sem_init (&in_signal);
   if (!iface->init ())
     {
@@ -196,10 +199,9 @@ EMI1Layer2::Run (pth_sem_t * stop1)
 	{
 	  pth_sem_dec (&in_signal);	
 	  Send(inqueue.get());
-	  if (noqueue)
+	  if (send_delay != pth_null_time)
 	    {
-	      pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE, timeout,
-			 pth_time (1, 0));
+	      pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE, timeout, send_delay);
 	      wait_confirm = true;
 	    }
 	}

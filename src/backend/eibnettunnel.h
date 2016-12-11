@@ -34,7 +34,7 @@ class EIBNetIPTunnel:public Layer2, private Thread
   Queue < CArray > inqueue;
   int dataport;
   bool NAT;
-  bool noqueue;
+  pth_time_t send_delay;
   int support_busmonitor;
   int connect_busmonitor;
 
