@@ -363,7 +363,8 @@ EIBnetServer::addNAT (const L_Data_PDU & l)
   natstate[i].timeout = pth_event (PTH_EVENT_RTIME, pth_time (180, 0));
 }
 
-ConnState::ConnState (EIBnetServer *p, eibaddr_t addr) : Layer2mixin (p->t)
+ConnState::ConnState (EIBnetServer *p, eibaddr_t addr)
+  : Layer2mixin (new Trace(p->t,p->t->name+':'+FormatEIBAddr(addr)))
 {
   parent = p;
   timeout = pth_event (PTH_EVENT_RTIME, pth_time (120, 0));

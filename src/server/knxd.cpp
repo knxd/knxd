@@ -90,12 +90,12 @@ public:
 private:
   /** our L3 instance (singleton (so far!)) */
   Layer3 *layer3;
-  /** The current tracer */
-  Trace *t;
-  bool trace_used;
 
 public:
-  arguments () {
+  /** The current tracer */
+  Trace t;
+
+  arguments (): t("main") {
     addr = 0x0001;
   }
   ~arguments () {
@@ -106,7 +106,9 @@ public:
     {
       if (layer3 == 0) 
         {
-          layer3 = new Layer3 (addr, tracer(), force_broadcast);
+          Trace *tr = tracer("layer3", false);
+          layer3 = new Layer3 (addr, tr, force_broadcast);
+          layer3->registerTracer(tr);
           addr = 0;
           if (alloc_addrs_len)
             {
@@ -133,33 +135,13 @@ public:
    * passed to Layer3 (which will deallocate it when it ends) and copied to
    * a new instance.
    */
-  Trace *tracer(bool modify = false)
-    {
-      if (modify && trace_used)
-        {
-          Trace *tr = new Trace(*t);
-          l3()->registerTracer(t);
-          t = tr;
-          trace_used = false;
-        }
-      else if (! t)
-        {
-          t = new Trace();
-          trace_used = !modify;
 
-          t->SetErrorLevel (LEVEL_WARNING); // default
-        }
-      else if (!modify)
-        trace_used = true;
-      return t;
-    }
-  void finish_l3 ()
+  Trace *tracer(std::string name, bool reg = true)
     {
-      if (trace_used)
-        l3()->registerTracer(t);
-      else if (t)
-        delete t;
-      t = NULL;
+      Trace *tr = new Trace(&t, name);
+      if (reg)
+        l3()->registerTracer(tr);
+      return tr;
     }
 };
 
@@ -347,6 +329,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       {
         const char *serverip;
         const char *name = arguments->eibnetname;
+        std::string tracename;
 
         EIBnetServerPtr c;
         int port = 0;
@@ -366,7 +349,15 @@ parse_opt (int key, char *arg, struct argp_state *state)
         if (!*serverip) 
           serverip = "224.0.23.12";
 
-        c = EIBnetServerPtr(new EIBnetServer (arguments->tracer(), (name && *name) ? name : "knxd"));
+        if (!name || !*name) {
+            name = "knxd";
+            tracename = "mcast";
+        } else {
+            tracename = "mcast:";
+            tracename += name;
+        }
+
+        c = EIBnetServerPtr(new EIBnetServer (arguments->tracer(tracename), name));
         if (!c->init (arguments->l3(), serverip, port, arguments->tunnel, arguments->route, arguments->discover))
         {
           free(a);
@@ -383,7 +374,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       {
         BaseServerPtr s;
         const char *name = OPT_ARG(arg,state,"/run/knx");
-        s = BaseServerPtr(new LocalServer (arguments->tracer(), name));
+        s = BaseServerPtr(new LocalServer (arguments->tracer(name), name));
         if (!s->init (arguments->l3()))
           die ("initialisation of the knxd unix protocol failed");
         arguments->has_work++;
@@ -394,7 +385,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
         BaseServerPtr s = nullptr;
         int port = atoi(OPT_ARG(arg,state,"6720"));
         if (port > 0)
-          s = BaseServerPtr(new InetServer (arguments->tracer(), port));
+          s = BaseServerPtr(new InetServer (arguments->tracer("inet"), port));
         if (!s || !s->init (arguments->l3()))
           die ("initialisation of the knxd inet protocol failed");
         arguments->has_work++;
@@ -407,13 +398,13 @@ parse_opt (int key, char *arg, struct argp_state *state)
           unsigned long level = strtoul(arg, &x, 0);
           if (*x)
             die ("Trace level: '%s' is not a number", arg);
-          arguments->tracer(true)->SetTraceLevel (level);
+          arguments->t.SetTraceLevel (level);
         }
       else
-        arguments->tracer(true)->SetTraceLevel (0);
+        arguments->t.SetTraceLevel (0);
       break;
     case 'f':
-      arguments->tracer(true)->SetErrorLevel (arg ? atoi (arg) : 0);
+      arguments->t.SetErrorLevel (arg ? atoi (arg) : 0);
       break;
     case 'e':
       if (arguments->has_l3 ())
@@ -432,7 +423,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       arguments->daemon = OPT_ARG(arg,state,"/dev/null");
       break;
     case 'c':
-      if (!CreateGroupCache (arguments->l3(), arguments->tracer(), true))
+      if (!CreateGroupCache (arguments->l3(), arguments->tracer("cache"), true))
         die ("initialisation of the group cache failed");
       break;
     case 'n':
@@ -469,7 +460,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case ARGP_KEY_ARG:
     case 'b':
       {
-	arguments->l2opts.t = arguments->tracer ();
+	arguments->l2opts.t = arguments->tracer(arg);
         Layer2Ptr l2 = Create (arg, &arguments->l2opts);
         if (!l2 || !l2->init (arguments->l3 ()))
           die ("initialisation of backend '%s' failed", arg);
@@ -497,7 +488,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
             if( sd_is_socket(fd, AF_UNSPEC, SOCK_STREAM, 1) <= 0 )
               die("Error: socket not of expected type.");
 
-            s = BaseServerPtr(new SystemdServer(arguments->tracer(), fd));
+            s = BaseServerPtr(new SystemdServer(arguments->tracer("systemd"), fd));
             if (!s->init (arguments->l3()))
               die ("initialisation of the systemd socket failed");
             arguments->has_work++;
@@ -516,7 +507,6 @@ parse_opt (int key, char *arg, struct argp_state *state)
         die ("I know about no interface. Nothing to do. Giving up.");
       if (arguments->has_work == 1)
         die ("I only have one interface. Nothing to do. Giving up.");
-      arguments->finish_l3();
       break;
 
     default:
@@ -537,14 +527,13 @@ main (int ac, char *ag[])
   pth_init ();
   setlinebuf(stdout);
 
-  memset (&arg, 0, sizeof (arg));
   arg.errorlevel = LEVEL_WARNING;
 
   argp_parse (&argp, ac, ag, ARGP_IN_ORDER, &index, &arg);
 
   // if you ever want this to be fatal, doing it here would be too late
   if (getuid () == 0)
-    ERRORPRINTF (arg.tracer(), E_WARNING | 20, 0, "EIBD should not run as root");
+    ERRORPRINTF (&arg.t, E_WARNING | 20, 0, "EIBD should not run as root");
 
   signal (SIGPIPE, SIG_IGN);
 
@@ -599,7 +588,7 @@ main (int ac, char *ag[])
 	    open (arg.daemon, O_WRONLY | O_APPEND | O_CREAT, FILE_MODE);
 	  if (fd == -1)
 	    {
-	      ERRORPRINTF (arg.tracer(), E_ERROR | 21, 0, "can't open log file %s",
+	      ERRORPRINTF (&arg.t, E_ERROR | 21, 0, "can't open log file %s",
 			   arg.daemon);
 	      continue;
 	    }

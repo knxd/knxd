@@ -21,6 +21,7 @@
 #define TRACE_H
 
 #include <stdarg.h>
+#include <sys/time.h>
 #include "common.h"
 
 #define TRACE_LEVEL_0 0x01
@@ -46,6 +47,9 @@
 #define E_NOTICE (LEVEL_NOTICE<<28)
 #define E_INFO (LEVEL_INFO<<28)
 
+extern unsigned int trace_seq;
+extern unsigned int trace_namelen;
+
 /** implements debug output with different levels */
 class Trace
 {
@@ -53,13 +57,39 @@ class Trace
   unsigned int layers;
   /** error levels to print */
   unsigned int level;
+  /** when did we start up? */
+  struct timeval started;
+  unsigned int seq;
+
+  /** print the common header */
+  void TraceHeader (int layer);
+
 public:
-  Trace ()
+  /** name of this tracer */
+  std::string name;
+
+  Trace (const char *name)
   {
     layers = 0;
     level = 0;
+    seq = ++trace_seq;
+    this->name = name;
+    if (trace_namelen < this->name.length())
+      trace_namelen = this->name.length();
+    gettimeofday(&started, NULL);
   }
-  virtual ~ Trace ()
+
+  Trace (Trace *orig, std::string name)
+  {
+    this->layers = orig->layers;
+    this->level = orig->level;
+    this->name = name;
+    this->started = orig->started;
+    this->seq = ++trace_seq;
+    if (trace_namelen < this->name.length())
+      trace_namelen = this->name.length();
+  }
+  virtual ~Trace ()
   {
   }
 

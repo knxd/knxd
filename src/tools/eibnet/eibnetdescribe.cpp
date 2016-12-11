@@ -86,7 +86,7 @@ main (int ac, char *ag[])
   else
     dport = 3671;
 
-  Trace t;
+  Trace t = Trace("main");
   t.SetTraceLevel (tracelevel);
 
   printf ("Asking %s at port %d from port %d\n", a, dport, sport);

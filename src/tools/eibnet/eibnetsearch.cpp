@@ -94,7 +94,7 @@ main (int ac, char *ag[])
   else
     dport = 3671;
 
-  Trace t;
+  Trace t = Trace("main");
   t.SetTraceLevel (tracelevel);
   if (!strcmp (a, "-"))
     a = (char *) "224.0.23.12";
