@@ -59,14 +59,14 @@ class Trace
   unsigned int level;
   /** when did we start up? */
   struct timeval started;
-  unsigned int seq;
 
   /** print the common header */
   void TraceHeader (int layer);
 
 public:
-  /** name of this tracer */
+  /** name and number of this tracer */
   std::string name;
+  unsigned int seq;
 
   Trace (const char *name)
   {

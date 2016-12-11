@@ -91,10 +91,10 @@ Layer3::deregisterServer (BaseServer * s)
       {
 	servers[i] = servers[servers () - 1];
 	servers.resize (servers () - 1);
-	TRACEPRINTF (t, 3, this, "deregisterServer %08X = 1", s);
+	TRACEPRINTF (t, 3, this, "deregisterServer %d:%s = 1", s->t->seq, s->t->name.c_str());
 	return;
       }
-  TRACEPRINTF (t, 3, this, "deregisterServer %08X = 0", s);
+  TRACEPRINTF (t, 3, this, "deregisterServer %d:%s = 0", s->t->seq, s->t->name.c_str());
 }
 
 bool
@@ -122,10 +122,10 @@ Layer3::deregisterLayer2 (Layer2Ptr l2)
       {
 	layer2[i] = layer2[layer2 () - 1];
 	layer2.resize (layer2 () - 1);
-	TRACEPRINTF (t, 3, this, "deregisterLayer2 %08X = 1", l2.get());
+	TRACEPRINTF (t, 3, this, "deregisterLayer2 %d:%s = 1", l2->t->seq, l2->t->name.c_str());
 	return true;
       }
-  TRACEPRINTF (t, 3, this, "deregisterLayer2 %08X = 0", l2.get());
+  TRACEPRINTF (t, 3, this, "deregisterLayer2 %d:%s = 0", l2->t->seq, l2->t->name.c_str());
   return false;
 }
 
@@ -165,16 +165,16 @@ Layer3::registerVBusmonitor (L_Busmonitor_CallBack * c)
 bool
 Layer3::registerLayer2 (Layer2Ptr l2)
 {
-  TRACEPRINTF (t, 3, this, "registerLayer2 %08X", l2.get());
+  TRACEPRINTF (t, 3, this, "registerLayer2 %d:%s", l2->t->seq, l2->t->name.c_str());
   if (! busmonitor () || ! l2->enterBusmonitor ())
     if (! l2->Open ())
       {
-        TRACEPRINTF (t, 3, this, "registerLayer2 %08X = 0", l2.get());
+        TRACEPRINTF (t, 3, this, "registerLayer2 %d:%s = 0", l2->t->seq, l2->t->name.c_str());
         return false;
       }
   layer2.resize (layer2() + 1);
   layer2[layer2 () - 1] = l2;
-  TRACEPRINTF (t, 3, this, "registerLayer2 %08X = 1", l2.get());
+  TRACEPRINTF (t, 3, this, "registerLayer2 %d:%s = 1", l2->t->seq, l2->t->name.c_str());
   return true;
 }
 
