@@ -374,6 +374,8 @@ ConnState::ConnState (EIBnetServer *p, eibaddr_t addr)
   sendtimeout = pth_event (PTH_EVENT_RTIME, pth_time (1, 0));
   if (!addr)
     remoteAddr = p->l3->get_client_addr ();
+  else
+    remoteAddr = addr;
   if (remoteAddr)
     addAddress(remoteAddr);
 }
@@ -872,6 +874,8 @@ void ConnState::tunnel_request(EIBnet_TunnelRequest &r1, EIBNetIPSocket *isock)
 	  if (c->hopcount)
 	    {
 	      c->hopcount--;
+              if (c->source == 0)
+                c->source = remoteAddr;
 	      if (r1.CEMI[0] == 0x11)
 		{
 		  out.put (L_Data_ToCEMI (0x2E, *c));
