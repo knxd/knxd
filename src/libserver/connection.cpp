@@ -354,9 +354,9 @@ A_Broadcast::Run (pth_sem_t * stop1)
 	  EIBSETTYPE (res, EIB_APDU_PACKET);
 	  res[2] = (e->src >> 8) & 0xff;
 	  res[3] = (e->src) & 0xff;
-	  res.setpart (e->data.data (), 4, e->data.size());
+	  res.setpart (e->data.data(), 4, e->data.size());
 	  con->t->TracePacket (7, this, "Recv", e->data);
-	  con->sendmessage (res.size(), res.data (), stop);
+	  con->sendmessage (res.size(), res.data(), stop);
 	  delete e;
 	}
     }
@@ -379,7 +379,7 @@ A_Group::Run (pth_sem_t * stop1)
 	  res[3] = (e->src) & 0xff;
 	  res.setpart (e->data.data(), 4, e->data.size());
 	  con->t->TracePacket (7, this, "Recv", e->data);
-	  con->sendmessage (res.size(), res.data (), stop);
+	  con->sendmessage (res.size(), res.data(), stop);
 	  delete e;
 	}
     }
@@ -400,9 +400,9 @@ A_TPDU::Run (pth_sem_t * stop1)
 	  EIBSETTYPE (res, EIB_APDU_PACKET);
 	  res[2] = (e->addr >> 8) & 0xff;
 	  res[3] = (e->addr) & 0xff;
-	  res.setpart (e->data.data (), 4, e->data.size());
+	  res.setpart (e->data.data(), 4, e->data.size());
 	  con->t->TracePacket (7, this, "Recv", e->data);
-	  con->sendmessage (res.size(), res.data (), stop);
+	  con->sendmessage (res.size(), res.data(), stop);
 	  delete e;
 	}
     }
@@ -421,9 +421,9 @@ A_Individual::Run (pth_sem_t * stop1)
 	  CArray res;
 	  res.resize (2 + e->size());
 	  EIBSETTYPE (res, EIB_APDU_PACKET);
-	  res.setpart (e->data (), 2, e->size());
+	  res.setpart (e->data(), 2, e->size());
 	  con->t->TracePacket (7, this, "Recv", *e);
-	  con->sendmessage (res.size(), res.data (), stop);
+	  con->sendmessage (res.size(), res.data(), stop);
 	  delete e;
 	}
     }
@@ -440,11 +440,11 @@ A_Connection::Run (pth_sem_t * stop1)
       if (e)
 	{
 	  CArray res;
-	  res.resize (2 + e->size ());
+	  res.resize (2 + e->size());
 	  EIBSETTYPE (res, EIB_APDU_PACKET);
-	  res.setpart (e->data (), 2, e->size ());
+	  res.setpart (e->data(), 2, e->size());
 	  con->t->TracePacket (7, this, "Recv", *e);
-	  con->sendmessage (res.size(), res.data (), stop);
+	  con->sendmessage (res.size(), res.data(), stop);
 	  delete e;
 	}
     }
@@ -467,9 +467,9 @@ A_GroupSocket::Run (pth_sem_t * stop1)
 	  res[3] = (e->src) & 0xff;
 	  res[4] = (e->dst >> 8) & 0xff;
 	  res[5] = (e->dst) & 0xff;
-	  res.setpart (e->data.data (), 6, e->data.size());
+	  res.setpart (e->data.data(), 6, e->data.size());
 	  con->t->TracePacket (7, this, "Recv", e->data);
-	  con->sendmessage (res.size(), res.data (), stop);
+	  con->sendmessage (res.size(), res.data(), stop);
 	  delete e;
 	}
     }

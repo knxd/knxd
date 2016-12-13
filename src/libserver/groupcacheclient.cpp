@@ -111,7 +111,7 @@ GroupCacheRequest (ClientConnection * c, pth_event_t stop)
       erg[4] = (gc.dst >> 8) & 0xff;
       erg[5] = (gc.dst >> 0) & 0xff;
       erg.setpart (gc.data, 6);
-      c->sendmessage (erg.size(), erg.data (), stop);
+      c->sendmessage (erg.size(), erg.data(), stop);
       break;
 
     case EIB_CACHE_LAST_UPDATES:
@@ -134,7 +134,7 @@ GroupCacheRequest (ClientConnection * c, pth_event_t stop)
 	    erg[4 + i * 2] = (addrs[i] >> 8) & 0xff;
 	    erg[4 + i * 2 + 1] = (addrs[i]) & 0xff;
 	  }
-	c->sendmessage (erg.size(), erg.data (), stop);
+	c->sendmessage (erg.size(), erg.data(), stop);
       }
       break;
 

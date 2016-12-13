@@ -314,7 +314,7 @@ PrepareLoadImage (const CArray & im, BCUImage * &img)
       r.req[2] = (s1->addrtab_start >> 8) & 0xff;
       r.req[3] = (s1->addrtab_start) & 0xff;
       r.req[4] = c->code[0x09];
-      r.req.setpart (c->code.data () + 0x03, 5, 5);
+      r.req.setpart (c->code.data() + 0x03, 5, 5);
       r.error = IMG_SET_ADDR;
       img->load.push_back (r);
 
@@ -344,7 +344,7 @@ PrepareLoadImage (const CArray & im, BCUImage * &img)
       r.req[2] = (s1->assoctab_start >> 8) & 0xff;
       r.req[3] = (s1->assoctab_start) & 0xff;
       r.req[4] = c->code[0x09];
-      r.req.setpart (c->code.data () + 0x03, 5, 5);
+      r.req.setpart (c->code.data() + 0x03, 5, 5);
       r.error = IMG_SET_ASSOC;
       img->load.push_back (r);
 
@@ -412,7 +412,7 @@ PrepareLoadImage (const CArray & im, BCUImage * &img)
       r.req[2] = (s1->runaddr >> 8) & 0xff;
       r.req[3] = (s1->runaddr) & 0xff;
       r.req[4] = c->code[0x09];
-      r.req.setpart (c->code.data () + 0x03, 5, 5);
+      r.req.setpart (c->code.data() + 0x03, 5, 5);
       r.error = IMG_SET_PROG;
       img->load.push_back (r);
 

@@ -59,7 +59,7 @@ L_Data_ToCEMI (uchar code, const L_Data_PDU & l1)
   pdu[6] = (l1.dest >> 8) & 0xff;
   pdu[7] = (l1.dest) & 0xff;
   pdu[8] = l1.data.size() - 1;
-  pdu.setpart (l1.data.data (), 9, l1.data.size());
+  pdu.setpart (l1.data.data(), 9, l1.data.size());
   return pdu;
 }
 
@@ -85,7 +85,7 @@ CEMI_to_L_Data (const CArray & data, Layer2Ptr l2)
     }
   c.source = (data[start + 2] << 8) | (data[start + 3]);
   c.dest = (data[start + 4] << 8) | (data[start + 5]);
-  c.data.set (data.data () + start + 7, data[6 + start] + 1);
+  c.data.set (data.data() + start + 7, data[6 + start] + 1);
   if (data[0] == 0x29)
     c.repeated = (data[start] & 0x20) ? 0 : 1;
   else
@@ -124,7 +124,7 @@ CEMI_to_Busmonitor (const CArray & data, Layer2Ptr l2)
   unsigned start = data[1] + 2;
   if (data.size() < 1 + start)
     return 0;
-  c.pdu.set (data.data () + start, data.size() - start);
+  c.pdu.set (data.data() + start, data.size() - start);
   return new L_Busmonitor_PDU (c);
 }
 
@@ -173,7 +173,7 @@ L_Data_ToEMI (uchar code, const L_Data_PDU & l1)
     (l1.hopcount & 0x07) << 4 | ((l1.data.size() - 1) & 0x0f) | (l1.AddrType ==
 							     GroupAddress ?
 							     0x80 : 0x00);
-  pdu.setpart (l1.data.data (), 7, l1.data.size());
+  pdu.setpart (l1.data.data(), 7, l1.data.size());
   return pdu;
 }
 
@@ -207,7 +207,7 @@ EMI_to_L_Data (const CArray & data, Layer2Ptr l2)
   len = (data[6] & 0x0f) + 1;
   if (len > data.size() - 7)
     len = data.size() - 7;
-  c.data.set (data.data () + 7, len);
+  c.data.set (data.data() + 7, len);
   c.hopcount = (data[6] >> 4) & 0x07;
   return new L_Data_PDU (c);
 }

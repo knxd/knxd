@@ -251,7 +251,7 @@ L_Data_PDU::init (const CArray & c)
       AddrType = (c[5] & 0x80) ? GroupAddress : IndividualAddress;
       if (len + 7 != c.size())
 	return false;
-      data.set (c.data () + 6, len);
+      data.set (c.data() + 6, len);
       c1 = 0;
       for (i = 0; i < c.size() - 1; i++)
 	c1 ^= c[i];
@@ -275,13 +275,13 @@ L_Data_PDU::init (const CArray & c)
 	  if (c.size() == 23)
 	    {
 	      valid_length = 0;
-	      data.set (c.data () + 7, 8);
+	      data.set (c.data() + 7, 8);
 	    }
 	  else
 	    return false;
 	}
       else
-	data.set (c.data () + 7, len);
+	data.set (c.data() + 7, len);
 
       c1 = 0;
       for (i = 0; i < c.size() - 1; i++)
@@ -327,7 +327,7 @@ CArray L_Data_PDU::ToPacket ()
 	(hopcount & 0x07) << 4 | ((data.size() - 1) & 0x0f) | (AddrType ==
 							   GroupAddress ? 0x80
 							   : 0x00);
-      pdu.setpart (data.data (), 6, 1 + ((data.size() - 1) & 0x0f));
+      pdu.setpart (data.data(), 6, 1 + ((data.size() - 1) & 0x0f));
     }
   else
     {
@@ -340,7 +340,7 @@ CArray L_Data_PDU::ToPacket ()
       pdu[4] = (dest >> 8) & 0xff;
       pdu[5] = (dest) & 0xff;
       pdu[6] = (data.size() - 1) & 0xff;
-      pdu.setpart (data.data (), 7, 1 + ((data.size() - 1) & 0xff));
+      pdu.setpart (data.data(), 7, 1 + ((data.size() - 1) & 0xff));
     }
   /* checksum */
   c = 0;

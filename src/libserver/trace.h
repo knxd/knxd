@@ -136,7 +136,7 @@ public:
    */
   void TracePacket (int layer, void *inst, const char *msg, const CArray & c)
   {
-    TracePacket (layer, inst, msg, c.size(), c.data ());
+    TracePacket (layer, inst, msg, c.size(), c.data());
   }
 
   /** like printf for this trace

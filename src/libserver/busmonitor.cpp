@@ -142,7 +142,7 @@ A_Busmonitor::sendResponse (L_Busmonitor_PDU * p, pth_event_t stop)
     }
   delete p;
 
-  return con->sendmessage (buf.size(), buf.data (), stop);
+  return con->sendmessage (buf.size(), buf.data(), stop);
 }
 
 int

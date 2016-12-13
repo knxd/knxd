@@ -237,7 +237,7 @@ USBConverterInterface::Get_Packet (pth_event_t stop)
 	default:
 	  goto out;
 	}
-      res1->set (res.data () + 11, res[6]);
+      res1->set (res.data() + 11, res[6]);
       t->TracePacket (0, this, "RecvEMI", *res1);
     }
   return res1;

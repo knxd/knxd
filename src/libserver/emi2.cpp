@@ -246,7 +246,7 @@ EMI2Layer2::Run (pth_sem_t * stop1)
 	  L_Busmonitor_PDU *p = new L_Busmonitor_PDU (shared_from_this());
 	  p->status = (*c)[1];
 	  p->timestamp = ((*c)[2] << 24) | ((*c)[3] << 16);
-	  p->pdu.set (c->data () + 4, c->size() - 4);
+	  p->pdu.set (c->data() + 4, c->size() - 4);
 	  delete c;
 	  TRACEPRINTF (t, 2, this, "Recv %s", p->Decode ()());
 	  l3->recv_L_Data (p);

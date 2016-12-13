@@ -208,7 +208,7 @@ STR_Code::STR_Code ()
 bool
 STR_Code::init (const CArray & c)
 {
-  code.set (c.data () + 4, c.size() - 4);
+  code.set (c.data() + 4, c.size() - 4);
   return true;
 }
 
@@ -257,7 +257,7 @@ STR_StringParameter::init (const CArray & c)
     d++;
   if (d != &c[c.size() - 1])
     return false;
-  name = (const char *) c.data () + 8;
+  name = (const char *) c.data() + 8;
   return true;
 }
 
@@ -309,7 +309,7 @@ STR_IntParameter::init (const CArray & c)
     d++;
   if (d != &c[c.size() - 1])
     return false;
-  name = (const char *) c.data () + 7;
+  name = (const char *) c.data() + 7;
   return true;
 }
 
@@ -358,7 +358,7 @@ STR_FloatParameter::init (const CArray & c)
     d++;
   if (d != &c[c.size() - 1])
     return false;
-  name = (const char *) c.data () + 6;
+  name = (const char *) c.data() + 6;
   return true;
 }
 
@@ -489,7 +489,7 @@ STR_GroupObject::init (const CArray & c)
     d++;
   if (d != &c[c.size() - 1])
     return false;
-  name = (const char *) c.data () + 5;
+  name = (const char *) c.data() + 5;
   return true;
 }
 

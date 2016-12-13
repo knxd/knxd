@@ -39,7 +39,7 @@ ReadIndividualAddresses (ClientConnection * c, pth_event_t stop)
       erg[2 + i * 2] = (e[i] >> 8) & 0xff;
       erg[2 + i * 2 + 1] = (e[i]) & 0xff;
     }
-  c->sendmessage (erg.size(), erg.data (), stop);
+  c->sendmessage (erg.size(), erg.data(), stop);
 }
 
 void
@@ -324,7 +324,7 @@ ManagementConnection (ClientConnection * c, pth_event_t stop)
 		  erg.resize (6);
 		  EIBSETTYPE (erg, EIB_MC_READ);
 		  erg.setpart (data, 2);
-		  c->sendmessage (erg.size(), erg.data (), stop);
+		  c->sendmessage (erg.size(), erg.data(), stop);
 		}
 	    }
 	    break;
@@ -370,7 +370,7 @@ ManagementConnection (ClientConnection * c, pth_event_t stop)
 		  erg.resize (2);
 		  EIBSETTYPE (erg, EIB_MC_PROP_READ);
 		  erg.setpart (data, 2);
-		  c->sendmessage (erg.size(), erg.data (), stop);
+		  c->sendmessage (erg.size(), erg.data(), stop);
 		}
 	    }
 	    break;
@@ -393,7 +393,7 @@ ManagementConnection (ClientConnection * c, pth_event_t stop)
 		  erg.resize (2);
 		  EIBSETTYPE (erg, EIB_MC_PROP_WRITE);
 		  erg.setpart (data, 2);
-		  c->sendmessage (erg.size(), erg.data (), stop);
+		  c->sendmessage (erg.size(), erg.data(), stop);
 		}
 	    }
 	    break;
@@ -468,7 +468,7 @@ ManagementConnection (ClientConnection * c, pth_event_t stop)
 		      erg[ii + 7] = i->access;
 			  ii += 6;
 		    }
-		  c->sendmessage (erg.size(), erg.data (), stop);
+		  c->sendmessage (erg.size(), erg.data(), stop);
 		}
 	    }
 	    break;
@@ -554,7 +554,7 @@ ManagementIndividual (ClientConnection * c, pth_event_t stop)
 		  erg.resize (2);
 		  EIBSETTYPE (erg, EIB_MC_PROP_READ);
 		  erg.setpart (data, 2);
-		  c->sendmessage (erg.size(), erg.data (), stop);
+		  c->sendmessage (erg.size(), erg.data(), stop);
 		}
 	    }
 	    break;
@@ -577,7 +577,7 @@ ManagementIndividual (ClientConnection * c, pth_event_t stop)
 		  erg.resize (2);
 		  EIBSETTYPE (erg, EIB_MC_PROP_WRITE);
 		  erg.setpart (data, 2);
-		  c->sendmessage (erg.size(), erg.data (), stop);
+		  c->sendmessage (erg.size(), erg.data(), stop);
 		}
 	    }
 	    break;
@@ -648,23 +648,23 @@ LoadImage (ClientConnection * c, pth_event_t stop)
 
 	/*load the data from 0x103 to 0x10C */
 	if (m.X_Memory_Write_Block (0x0103,
-				    CArray (i->code.data () + 0x03,
+				    CArray (i->code.data() + 0x03,
 					    10)) != 0)
 	  goto out;
 
 	/*load the data from 0x10E to 0x115 */
 	if (m.X_Memory_Write_Block (0x010E,
-				    CArray (i->code.data () + 0x0E, 8)) != 0)
+				    CArray (i->code.data() + 0x0E, 8)) != 0)
 	  goto out;
 
 	/*load the data from 0x119H to eeprom end */
 	r = IMG_LOAD_MAIN;
 	if (m.X_Memory_Write_Block (0x119,
-				    CArray (i->code.data () + 0x19,
+				    CArray (i->code.data() + 0x19,
 					    i->code.size() - 0x19)) != 0)
 	  goto out;
 
-	if (m.X_Memory_Write_Block (0x0100, CArray (i->code.data (), 1)) !=
+	if (m.X_Memory_Write_Block (0x0100, CArray (i->code.data(), 1)) !=
 	    0)
 	  goto out;
 
@@ -677,7 +677,7 @@ LoadImage (ClientConnection * c, pth_event_t stop)
 	/* set the length of the address table */
 	r = IMG_FINALIZE_ADDR_TAB;
 	if (m.X_Memory_Write_Block (0x0116,
-				    CArray (i->code.data () + 0x16, 1)) != 0)
+				    CArray (i->code.data() + 0x16, 1)) != 0)
 	  goto out;
 
 	/* reset all error flags in the BCU (0x10D = 0xFF) */
@@ -732,7 +732,7 @@ LoadImage (ClientConnection * c, pth_event_t stop)
 	      }
 	    if (j->memaddr != 0xffff)
 	      if (m.X_Memory_Write_Block (j->memaddr,
-					  CArray (i->code.data () +
+					  CArray (i->code.data() +
 						  j->memaddr - 0x100,
 						  j->len)) != 0)
 		goto out;
