@@ -38,7 +38,7 @@ Trace::TraceHeader (int layer)
   tv.tv_usec -= started.tv_usec;
   tv.tv_sec -= started.tv_sec;
 
-  printf ("Layer %d [%d:%-*s %d.%03d] ", layer, seq, trace_namelen, name.c_str(), tv.tv_sec,tv.tv_usec/1000);
+  printf ("Layer %d [%2d:%-*s %d.%03d] ", layer, seq, trace_namelen, name.c_str(), tv.tv_sec,tv.tv_usec/1000);
 }
 
 void
