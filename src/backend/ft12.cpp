@@ -278,7 +278,7 @@ FT12LowLevelDriver::Run (pth_sem_t * stop1)
 		{
 		  len = akt[1] + 6;
 		  //Forget wrong short frame
-		  akt.erase (akt.begin(), akt.begin()+len);
+		  akt.deletepart (0, len);
 		  continue;
 		}
 
