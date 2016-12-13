@@ -239,7 +239,7 @@ EIBnetServer::Send_L_Data (L_Data_PDU * l)
     }
   if (route)
     {
-      TRACEPRINTF (t, 8, this, "Send_Route %s", l->Decode ()());
+      TRACEPRINTF (t, 8, this, "Send_Route %s", l->Decode ().c_str());
       EIBNetIPPacket p;
       p.service = ROUTING_INDICATION;
       if (l->dest == 0 && l->AddrType == IndividualAddress)
@@ -545,7 +545,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       //FIXME: Hostname, MAC-addr
       memcpy(r2.MAC, mac_address, sizeof(r2.MAC));
       //FIXME: Hostname, indiv. address
-      strncpy ((char *) r2.name, name (), sizeof(r2.name));
+      strncpy ((char *) r2.name, name.c_str(), sizeof(r2.name));
       d.version = 1;
       d.family = 2; // core
       r2.services.push_back (d);
@@ -578,7 +578,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       r2.multicastaddr = mcast->maddr.sin_addr;
       memcpy(r2.MAC, mac_address, sizeof(r2.MAC));
       //FIXME: Hostname, indiv. address
-      strncpy ((char *) r2.name, name(), sizeof(r2.name));
+      strncpy ((char *) r2.name, name.c_str(), sizeof(r2.name));
       d.version = 1;
       d.family = 2;
       if (discover)
@@ -602,7 +602,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       L_Data_PDU *c = CEMI_to_L_Data (data, shared_from_this());
       if (c)
 	{
-	  TRACEPRINTF (t, 8, this, "Recv_Route %s", c->Decode ()());
+	  TRACEPRINTF (t, 8, this, "Recv_Route %s", c->Decode ().c_str());
 	  if (c->hopcount)
 	    {
 	      c->hopcount--;
@@ -678,7 +678,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
 	  eibaddr_t a = l3->get_client_addr ();
 	  r2.CRD.resize (3);
 	  r2.CRD[0] = 0x04;
-	  TRACEPRINTF (t, 8, this, "Tunnel CONNECTION_REQ with %s", FormatEIBAddr(a)());
+	  TRACEPRINTF (t, 8, this, "Tunnel CONNECTION_REQ with %s", FormatEIBAddr(a).c_str());
 	  r2.CRD[1] = (a >> 8) & 0xFF;
 	  r2.CRD[2] = (a >> 0) & 0xFF;
 	  if (r1.CRI[1] == 0x02 || r1.CRI[1] == 0x80)

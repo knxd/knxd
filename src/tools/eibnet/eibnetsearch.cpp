@@ -134,7 +134,7 @@ main (int ac, char *ag[])
 		  ntohs (resp.caddr.sin_port));
 	  if (shortlist)
 	    {
-	      printf ("Addr: %s\n", FormatEIBAddr (resp.individual_addr) ());
+	      printf ("Addr: %s\n", FormatEIBAddr (resp.individual_addr).c_str());
 	      printf ("Name: %s\n", resp.name);
 	    }
 	  else
@@ -142,7 +142,7 @@ main (int ac, char *ag[])
 	      printf
 		("Medium: %d\nState: %d\nAddr: %s\nInstallID: %d\nSerial:",
 		 resp.KNXmedium, resp.devicestatus,
-		 FormatEIBAddr (resp.individual_addr) (), resp.installid);
+		 FormatEIBAddr (resp.individual_addr).c_str(), resp.installid);
 	      HexDump (resp.serial, sizeof (resp.serial));
 	      printf ("Multicast-Addr: %s\nMAC:",
 		      inet_ntoa (resp.multicastaddr));

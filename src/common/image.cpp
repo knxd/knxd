@@ -265,7 +265,7 @@ CArray
 STR_StringParameter::toArray ()
 {
   CArray d;
-  uint16_t len = 7 + strlen (name ());
+  uint16_t len = 7 + name.length();
   d.resize (2 + len);
   d[0] = (len >> 8) & 0xff;
   d[1] = (len) & 0xff;
@@ -275,7 +275,7 @@ STR_StringParameter::toArray ()
   d[5] = (addr) & 0xff;
   d[6] = (length >> 8) & 0xff;
   d[7] = (length) & 0xff;
-  d.setpart ((const uchar *) name (), 8, strlen (name ()) + 1);
+  d.setpart (name, 8);
   return d;
 }
 
@@ -283,7 +283,7 @@ String
 STR_StringParameter::decode ()
 {
   char buf[200];
-  sprintf (buf, "StringParameter: addr=%04x id=%s length=%d\n", addr, name (),
+  sprintf (buf, "StringParameter: addr=%04x id=%s length=%d\n", addr, name.c_str(),
 	   length);
   return buf;
 }
@@ -317,7 +317,7 @@ CArray
 STR_IntParameter::toArray ()
 {
   CArray d;
-  uint16_t len = 6 + strlen (name ());
+  uint16_t len = 6 + name.length();
   d.resize (2 + len);
   d[0] = (len >> 8) & 0xff;
   d[1] = (len) & 0xff;
@@ -326,7 +326,7 @@ STR_IntParameter::toArray ()
   d[4] = (addr >> 8) & 0xff;
   d[5] = (addr) & 0xff;
   d[6] = (type) & 0xff;
-  d.setpart ((const uchar *) name (), 7, strlen (name ()) + 1);
+  d.setpart (name, 7);
   return d;
 }
 
@@ -335,7 +335,7 @@ STR_IntParameter::decode ()
 {
   char buf[200];
   sprintf (buf, "IntParameter: addr=%04x id=%s type=%s %d bytes\n", addr,
-	   name (), type < 0 ? "signed" : "unsigned", 1 << (abs (type) - 1));
+	   name.c_str(), type < 0 ? "signed" : "unsigned", 1 << (abs (type) - 1));
   return buf;
 }
 
@@ -366,7 +366,7 @@ CArray
 STR_FloatParameter::toArray ()
 {
   CArray d;
-  uint16_t len = 5 + strlen (name ());
+  uint16_t len = 5 + name.length();
   d.resize (2 + len);
   d[0] = (len >> 8) & 0xff;
   d[1] = (len) & 0xff;
@@ -374,7 +374,7 @@ STR_FloatParameter::toArray ()
   d[3] = (L_FLOAT_PAR) & 0xff;
   d[4] = (addr >> 8) & 0xff;
   d[5] = (addr) & 0xff;
-  d.setpart ((const uchar *) name (), 6, strlen (name ()) + 1);
+  d.setpart (name, 6);
   return d;
 }
 
@@ -382,7 +382,7 @@ String
 STR_FloatParameter::decode ()
 {
   char buf[200];
-  sprintf (buf, "FloatParameter: addr=%04x id=%s\n", addr, name ());
+  sprintf (buf, "FloatParameter: addr=%04x id=%s\n", addr, name.c_str());
   return buf;
 }
 
@@ -433,10 +433,10 @@ CArray
 STR_ListParameter::toArray ()
 {
   CArray d;
-  uint16_t i, p;
-  uint16_t len = 7 + strlen (name ());
-  for (i = 0; i < elements.size(); i++)
-    len += strlen (elements[i] ()) + 1;
+  uint16_t p;
+  uint16_t len = 7 + name.length();
+  ITER(i, elements)
+    len += i->length() + 1;
   d.resize (2 + len);
   d[0] = (len >> 8) & 0xff;
   d[1] = (len) & 0xff;
@@ -446,11 +446,12 @@ STR_ListParameter::toArray ()
   d[5] = (addr) & 0xff;
   d[6] = (elements.size() >> 8) & 0xff;
   d[7] = (elements.size()) & 0xff;
-  d.setpart ((const uchar *) name (), 8, strlen (name ()) + 1);
-  p = 8 + strlen (name ()) + 1;
-  for (i = 0; i < elements.size(); p += strlen (elements[i] ()) + 1, i++)
-    d.setpart ((const uchar *) elements[i] (), p,
-	       strlen (elements[i] ()) + 1);
+  d.setpart (name, 8);
+  p = 8 + name.length() + 1;
+  ITER(i, elements) {
+    d.setpart (*i, p);
+    p += i->length() + 1;
+  }
   return d;
 }
 
@@ -459,11 +460,11 @@ STR_ListParameter::decode ()
 {
   char buf[200];
   String s;
-  sprintf (buf, "ListParameter: addr=%04x id=%s elements=", addr, name ());
+  sprintf (buf, "ListParameter: addr=%04x id=%s elements=", addr, name.c_str());
   s = buf;
   for (unsigned int i = 0; i < elements.size(); i++)
     {
-      sprintf (buf, "%s,", elements[i] ());
+      sprintf (buf, "%s,", elements[i].c_str());
       s += buf;
     }
   s += "\n";
@@ -497,7 +498,7 @@ String
 STR_GroupObject::decode ()
 {
   char buf[200];
-  sprintf (buf, "GROUP_OBJECT %d: id=%s\n", no, name ());
+  sprintf (buf, "GROUP_OBJECT %d: id=%s\n", no, name.c_str());
   return buf;
 }
 
@@ -505,14 +506,14 @@ CArray
 STR_GroupObject::toArray ()
 {
   CArray d;
-  uint16_t len = 4 + strlen (name ());
+  uint16_t len = 4 + name.length();
   d.resize (2 + len);
   d[0] = (len >> 8) & 0xff;
   d[1] = (len) & 0xff;
   d[2] = (L_GROUP_OBJECT >> 8) & 0xff;
   d[3] = (L_GROUP_OBJECT) & 0xff;
   d[4] = (no) & 0xff;
-  d.setpart ((const uchar *) name (), 5, strlen (name ()) + 1);
+  d.setpart (name, 5);
   return d;
 }
 
@@ -849,19 +850,19 @@ Image::toArray ()
   data[5] = 0x68;
   data[6] = 0x0c;
   data[7] = 0x05;
-  for (unsigned int i = 0; i < str.size(); i++)
-    data.setpart (str[i]->toArray (), data.size());
   data[8] = (data.size() >> 8) & 0xff;
   data[9] = (data.size()) & 0xff;
+  ITER(i, str)
+    data.setpart ((*i)->toArray (), data.size());
   return data;
 }
 
 int
 Image::findStreamNumber (STR_Type t)
 {
-  for (unsigned int i = 0; i < str.size(); i++)
-    if (str[i]->getType () == t)
-      return i;
+  ITER(i, str)
+    if ((*i)->getType () == t)
+      return i-str.begin();
   return -1;
 }
 

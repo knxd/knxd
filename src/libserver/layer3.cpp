@@ -51,13 +51,13 @@ Layer3::recv_L_Data (LPDU * l)
 {
   if (running)
     {
-      TRACEPRINTF (t, 3, this, "Enqueue %s", l->Decode ()());
+      TRACEPRINTF (t, 3, this, "Enqueue %s", l->Decode ().c_str());
       buf.put (l);
       pth_sem_inc (&bufsem, 0);
     }
   else
     {
-      TRACEPRINTF (t, 3, this, "Discard(not running) %s", l->Decode ()());
+      TRACEPRINTF (t, 3, this, "Discard(not running) %s", l->Decode ().c_str());
       delete l;
     }
 }
@@ -215,7 +215,7 @@ Layer3::get_client_addr ()
         eibaddr_t a = client_addrs_start + (client_addrs_pos + i) % client_addrs_len;
         if (! hasAddress (a))
           {
-            TRACEPRINTF (t, 3, this, "Allocate %s", FormatEIBAddr (a)());
+            TRACEPRINTF (t, 3, this, "Allocate %s", FormatEIBAddr (a).c_str());
             /* remember for next pass */
             client_addrs_pos = a - client_addrs_start;
             return a;
@@ -223,7 +223,7 @@ Layer3::get_client_addr ()
       }
 
   /* Fall back to our own address */
-  TRACEPRINTF (t, 3, this, "Allocate: falling back to %s", FormatEIBAddr (defaultAddr)());
+  TRACEPRINTF (t, 3, this, "Allocate: falling back to %s", FormatEIBAddr (defaultAddr).c_str());
   return 0;
 }
 
@@ -274,7 +274,7 @@ Layer3::Run (pth_sem_t * stop1)
             }
           if (!l1->hopcount)
             {
-              TRACEPRINTF (t, 3, this, "Hopcount zero: %s", l1->Decode ()());
+              TRACEPRINTF (t, 3, this, "Hopcount zero: %s", l1->Decode ().c_str());
               delete l;
               continue;
             }
@@ -309,7 +309,7 @@ Layer3::Run (pth_sem_t * stop1)
 	  if (l1->AddrType == IndividualAddress
 	      && l1->dest == defaultAddr)
 	    l1->dest = 0;
-	  TRACEPRINTF (t, 3, this, "RecvData %s", l1->Decode ()());
+	  TRACEPRINTF (t, 3, this, "RecvData %s", l1->Decode ().c_str());
 
 	  if (l1->source == 0)
 	    l1->source = defaultAddr;
@@ -357,7 +357,7 @@ Layer3::Run (pth_sem_t * stop1)
 	  L_Busmonitor_PDU *l1, *l2;
 	  l1 = dynamic_cast<L_Busmonitor_PDU *>(l);
 
-	  TRACEPRINTF (t, 3, this, "RecvMon %s", l1->Decode ()());
+	  TRACEPRINTF (t, 3, this, "RecvMon %s", l1->Decode ().c_str());
 	  ITER (i, busmonitor)
 	    {
 	      l2 = new L_Busmonitor_PDU (*l1);

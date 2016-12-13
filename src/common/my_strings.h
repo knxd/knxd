@@ -48,13 +48,6 @@ public:
 	String(const char* lhs): std::string(lhs) {}
 
 	/**
-	 * Transform into a C-String
-	 */
-	const char* operator ()() const {
-		return c_str();
-	}
-
-	/**
 	 * Concatenation
 	 */
 	String operator +(const String& rhs) const {

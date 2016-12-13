@@ -79,7 +79,7 @@ T_Broadcast::Send (const CArray & c)
   T_DATA_XXX_REQ_PDU t;
   t.data = c;
   String s = t.Decode (this->t);
-  TRACEPRINTF (this->t, 4, this, "Send Broadcast %s", s ());
+  TRACEPRINTF (this->t, 4, this, "Send Broadcast %s", s.c_str());
   L_Data_PDU *l = new L_Data_PDU (shared_from_this());
   l->source = 0;
   l->dest = 0;
@@ -115,7 +115,7 @@ T_Broadcast::Get (pth_event_t stop)
 T_Group::T_Group (Trace * tr, eibaddr_t group, int write_only)
 	: Layer4common (tr)
 {
-  TRACEPRINTF (tr, 4, this, "OpenGroup %s %s", FormatGroupAddr (group)(),
+  TRACEPRINTF (tr, 4, this, "OpenGroup %s %s", FormatGroupAddr (group).c_str(),
 	       write_only ? "WO" : "RW");
   groupaddr = group;
   pth_sem_init (&sem);
@@ -150,7 +150,7 @@ T_Group::Send (const CArray & c)
   T_DATA_XXX_REQ_PDU t;
   t.data = c;
   String s = t.Decode (this->t);
-  TRACEPRINTF (this->t, 4, this, "Send Group %s", s ());
+  TRACEPRINTF (this->t, 4, this, "Send Group %s", s.c_str());
   L_Data_PDU *l = new L_Data_PDU (shared_from_this());
   l->source = 0;
   l->dest = groupaddr;
@@ -191,7 +191,7 @@ T_Group::Get (pth_event_t stop)
 T_TPDU::T_TPDU (Trace * tr, eibaddr_t d)
 	: Layer4common (tr)
 {
-  TRACEPRINTF (tr, 4, this, "OpenTPDU %s", FormatEIBAddr (d)());
+  TRACEPRINTF (tr, 4, this, "OpenTPDU %s", FormatEIBAddr (d).c_str());
   src = d;
   pth_sem_init (&sem);
   init_ok = false;
@@ -257,7 +257,7 @@ T_Individual::T_Individual (Trace * tr, eibaddr_t d,
 	: Layer4common (tr)
 {
   TRACEPRINTF (tr, 4, this, "OpenIndividual %s %s",
-               FormatEIBAddr (d)(), write_only ? "WO" : "RW");
+               FormatEIBAddr (d).c_str(), write_only ? "WO" : "RW");
   dest = d;
   pth_sem_init (&sem);
   init_ok = false;
@@ -289,7 +289,7 @@ T_Individual::Send (const CArray & c)
   T_DATA_XXX_REQ_PDU t;
   t.data = c;
   String s = t.Decode (this->t);
-  TRACEPRINTF (this->t, 4, this, "Send Individual %s", s ());
+  TRACEPRINTF (this->t, 4, this, "Send Individual %s", s.c_str());
   L_Data_PDU *l = new L_Data_PDU (shared_from_this());
   l->source = 0;
   l->dest = dest;
@@ -330,7 +330,7 @@ T_Individual::Get (pth_event_t stop)
 T_Connection::T_Connection (Trace * tr, eibaddr_t d)
 	: Layer4common (tr)
 {
-  TRACEPRINTF (tr, 4, this, "OpenConnection %s", FormatEIBAddr (d)());
+  TRACEPRINTF (tr, 4, this, "OpenConnection %s", FormatEIBAddr (d).c_str());
   dest = d;
   pth_sem_init (&insem);
   pth_sem_init (&outsem);
@@ -438,7 +438,7 @@ T_Connection::SendData (int serno, const CArray & c)
   T_DATA_CONNECTED_REQ_PDU p;
   p.data = c;
   p.serno = serno;
-  TRACEPRINTF (t, 4, this, "SendData %s", p.Decode (t)());
+  TRACEPRINTF (t, 4, this, "SendData %s", p.Decode (t).c_str());
   L_Data_PDU *l = new L_Data_PDU (shared_from_this());
   l->source = 0;
   l->dest = dest;
@@ -640,7 +640,7 @@ GroupSocket::Send (const GroupAPDU & c)
   T_DATA_XXX_REQ_PDU t;
   t.data = c.data;
   String s = t.Decode (this->t);
-  TRACEPRINTF (this->t, 4, this, "Send GroupSocket %s", s ());
+  TRACEPRINTF (this->t, 4, this, "Send GroupSocket %s", s.c_str());
   L_Data_PDU *l = new L_Data_PDU (shared_from_this());
   l->source = 0;
   l->dest = c.dst;

@@ -90,7 +90,7 @@ bool EIBNetIPTunnel::init (Layer3 *l3)
 void
 EIBNetIPTunnel::Send_L_Data (LPDU * l)
 {
-  TRACEPRINTF (t, 2, this, "Send %s", l->Decode ()());
+  TRACEPRINTF (t, 2, this, "Send %s", l->Decode ().c_str());
   if (l->getType () != L_Data)
     {
       delete l;
@@ -313,7 +313,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 	      c = CEMI_to_L_Data (treq.CEMI, shared_from_this());
 	      if (c)
 		{
-		  TRACEPRINTF (t, 1, this, "Recv %s", c->Decode ()());
+		  TRACEPRINTF (t, 1, this, "Recv %s", c->Decode ().c_str());
 		  if (mode != BUSMODE_MONITOR)
 		    {
 		      if (c->AddrType == IndividualAddress

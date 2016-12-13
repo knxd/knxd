@@ -116,7 +116,7 @@ main (int ac, char *ag[])
 	die ("Invalid description response");
       printf ("Medium: %d\nState: %d\nAddr: %s\nInstallID: %d\nSerial:",
 	      resp.KNXmedium, resp.devicestatus,
-	      FormatEIBAddr (resp.individual_addr) (), resp.installid);
+	      FormatEIBAddr (resp.individual_addr).c_str(), resp.installid);
       HexDump (resp.serial, sizeof (resp.serial));
       printf ("Multicast-Addr: %s\nMAC:", inet_ntoa (resp.multicastaddr));
       HexDump (resp.MAC, sizeof (resp.MAC));

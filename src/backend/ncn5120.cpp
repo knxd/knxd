@@ -143,7 +143,7 @@ NCN5120SerialLayer2Driver::Send_Queue_Empty ()
 void
 NCN5120SerialLayer2Driver::Send_L_Data (LPDU * l)
 {
-  TRACEPRINTF (t, 2, this, "Send %s", l->Decode ()());
+  TRACEPRINTF (t, 2, this, "Send %s", l->Decode ().c_str());
   inqueue.put (l);
   pth_sem_inc (&in_signal, 1);
 }

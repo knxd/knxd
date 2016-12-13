@@ -95,6 +95,10 @@ public:
     while(cnt--)
         *i++ = *elem++;
   }
+  inline void setpart (const std::string &str, unsigned start)
+  {
+    setpart((const uint8_t *)str.c_str(),start,str.length()+1);
+  }
 
   inline void operator+= (const CArray &a)
   {

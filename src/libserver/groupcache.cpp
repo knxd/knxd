@@ -58,7 +58,7 @@ GroupCache::find (eibaddr_t dst)
 void
 GroupCache::remove (eibaddr_t addr)
 {
-  TRACEPRINTF (t, 4, this, "GroupCacheRemove %s", FormatGroupAddr (addr)());
+  TRACEPRINTF (t, 4, this, "GroupCacheRemove %s", FormatGroupAddr (addr).c_str());
 
   int l = 0, r = cache.size() - 1;
   while (l <= r)
@@ -169,7 +169,7 @@ GroupCacheEntry
   GroupCache::Read (eibaddr_t addr, unsigned Timeout, uint16_t age)
 {
   TRACEPRINTF (t, 4, this, "GroupCacheRead %s %d %d",
-	       FormatGroupAddr (addr)(), Timeout, age);
+	       FormatGroupAddr (addr).c_str(), Timeout, age);
   bool rm = false;
   GroupCacheEntry *c;
   if (!enable)
@@ -188,7 +188,7 @@ GroupCacheEntry
   if (c && !rm)
     {
       TRACEPRINTF (t, 4, this, "GroupCache found: %s",
-		   FormatEIBAddr (c->src)());
+		   FormatEIBAddr (c->src).c_str());
       return *c;
     }
 
@@ -224,7 +224,7 @@ GroupCacheEntry
       if (c && !rm)
 	{
 	  TRACEPRINTF (t, 4, this, "GroupCache found: %s",
-		       FormatEIBAddr (c->src)());
+		       FormatEIBAddr (c->src).c_str());
 	  pth_event_free (timeout, PTH_FREE_THIS);
 	  return *c;
 	}
