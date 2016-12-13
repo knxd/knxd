@@ -221,7 +221,7 @@ bool
   int i;
   int to = 0;
 
-  write (fd, &c, 1);
+  ignore_result(write (fd, &c, 1));
   while ((i = read (fd, &s, 1)) == -1)
     {
       to++;
