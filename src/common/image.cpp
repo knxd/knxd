@@ -290,7 +290,7 @@ STR_StringParameter::decode ()
 
 STR_IntParameter::STR_IntParameter ()
 {
-  name = 0;
+  name = "";
   type = 0;
 }
 

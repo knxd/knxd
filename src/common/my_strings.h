@@ -25,35 +25,7 @@
 
 #include <string>
 
-class String: public std::string {
-public:
-	/**
-	 * Construct an empty string.
-	 */
-	String() {}
+typedef std::string String;
 
-	/**
-	 * Copy constructor
-	 */
-	String(const String& lhs): std::string(lhs) {}
-
-	/**
-	 * Copy constructor
-	 */
-	String(const std::string& lhs): std::string(lhs) {}
-
-	/**
-	 * Copy constructor
-	 */
-	String(const char* lhs): std::string(lhs) {}
-
-	/**
-	 * Concatenation
-	 */
-	String operator +(const String& rhs) const {
-		return String(static_cast<const std::string&>(*this)
-		              + static_cast<const std::string&>(rhs));
-	}
-};
 
 #endif
