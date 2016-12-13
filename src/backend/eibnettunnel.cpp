@@ -141,7 +141,6 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
   int retry = 0;
   int heartbeat = 0;
   int drop = 0;
-  eibaddr_t myaddr = 0;
   pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
   pth_event_t input = pth_event (PTH_EVENT_SEM, &insignal);
   pth_event_t timeout = pth_event (PTH_EVENT_RTIME, pth_time (0, 0));
@@ -220,7 +219,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 		  TRACEPRINTF (t, 1, this, "Recv wrong connection response");
 		  break;
 		}
-	      myaddr = (cresp.CRD[1] << 8) | cresp.CRD[2];
+	      addAddress((cresp.CRD[1] << 8) | cresp.CRD[2]);
 	      daddr = cresp.daddr;
 	      if (!cresp.nat)
 		{
@@ -317,7 +316,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 		  if (mode != BUSMODE_MONITOR)
 		    {
 		      if (c->AddrType == IndividualAddress
-			  && c->dest == myaddr)
+			  && hasAddress(c->dest))
 			c->dest = 0;
 		      l3->recv_L_Data (c);
 		      break;
