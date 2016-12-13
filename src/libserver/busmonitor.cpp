@@ -84,7 +84,7 @@ A_Busmonitor::Run (pth_sem_t * stop1)
       resp[5] = 0;
     }
 
-  if (con->sendmessage (resp.len (), resp.array (), stop) == -1)
+  if (con->sendmessage (resp.size(), resp.data(), stop) == -1)
     return;
 
   pth_event_t sem_ev = pth_event (PTH_EVENT_SEM, &sem);
@@ -125,24 +125,24 @@ A_Busmonitor::sendResponse (L_Busmonitor_PDU * p, pth_event_t stop)
   CArray buf;
   if (ts)
     {
-      buf.resize (7 + p->pdu ());
+      buf.resize (7);
       EIBSETTYPE (buf, EIB_BUSMONITOR_PACKET_TS);
       buf[2] = p->status;
       buf[3] = (p->timestamp >> 24) & 0xff;
       buf[4] = (p->timestamp >> 16) & 0xff;
       buf[5] = (p->timestamp >> 8) & 0xff;
       buf[6] = (p->timestamp) & 0xff;
-      buf.setpart (p->pdu.array (), 7, p->pdu ());
+      buf += p->pdu;
     }
   else
     {
-      buf.resize (2 + p->pdu ());
+      buf.resize (2);
       EIBSETTYPE (buf, EIB_BUSMONITOR_PACKET);
-      buf.setpart (p->pdu.array (), 2, p->pdu ());
+      buf += p->pdu;
     }
   delete p;
 
-  return con->sendmessage (buf (), buf.array (), stop);
+  return con->sendmessage (buf.size(), buf.data (), stop);
 }
 
 int
@@ -150,11 +150,10 @@ A_Text_Busmonitor::sendResponse (L_Busmonitor_PDU * p, pth_event_t stop)
 {
   CArray buf;
   String s = p->Decode ();
-  buf.resize (2 + strlen (s ()) + 1);
+  buf.resize (2 + s.length() + 1);
   EIBSETTYPE (buf, EIB_BUSMONITOR_PACKET);
-  buf.setpart ((const uchar *) s (), 2, strlen (s ()));
-  buf[buf () - 1] = 0;
+  buf.setpart ((uint8_t *)s.c_str(), 2, s.length()+1);
   delete p;
 
-  return con->sendmessage (buf (), buf.array (), stop);
+  return con->sendmessage (buf.size(), buf.data(), stop);
 }

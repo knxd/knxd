@@ -215,7 +215,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 		    }
 		  break;
 		}
-	      if (cresp.CRD () != 3)
+	      if (cresp.CRD.size() != 3)
 		{
 		  TRACEPRINTF (t, 1, this, "Recv wrong connection response");
 		  break;
@@ -525,7 +525,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 	  sock->Send (p, caddr);
 	}
 
-      if (!inqueue.isempty () && inqueue.top ()() == 0)
+      if (!inqueue.isempty () && inqueue.top().size() == 0)
 	{
 	  pth_sem_dec (&insignal);
 	  inqueue.get ();

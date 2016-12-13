@@ -160,11 +160,11 @@ EMI2Layer2::Send_L_Data (LPDU * l)
       return;
     }
   L_Data_PDU *l1 = (L_Data_PDU *) l;
-  assert (l1->data () >= 1);
+  assert (l1->data.size() >= 1);
   /* discard long frames, as they are not supported by EMI 2 */
-  if (l1->data () > 0x10)
+  if (l1->data.size() > 0x10)
     return;
-  assert (l1->data () <= 0x10);
+  assert (l1->data.size() <= 0x10);
   assert ((l1->hopcount & 0xf8) == 0);
 
   inqueue.put (l);
@@ -212,7 +212,7 @@ EMI2Layer2::Run (pth_sem_t * stop1)
 	wait_confirm = false;
       if (!c)
 	continue;
-      if (c->len () == 1 && (*c)[0] == 0xA0 && (mode & BUSMODE_UP))
+      if (c->size() == 1 && (*c)[0] == 0xA0 && (mode & BUSMODE_UP))
 	{
 	  TRACEPRINTF (t, 2, this, "Reopen");
           busmode_t old_mode = mode;
@@ -220,15 +220,15 @@ EMI2Layer2::Run (pth_sem_t * stop1)
 	  if (Open ())
             mode = old_mode;
 	}
-      if (c->len () == 1 && (*c)[0] == 0xA0 && mode == BUSMODE_MONITOR)
+      if (c->size() == 1 && (*c)[0] == 0xA0 && mode == BUSMODE_MONITOR)
 	{
 	  TRACEPRINTF (t, 2, this, "Reopen Busmonitor");
 	  mode = BUSMODE_DOWN;
 	  enterBusmonitor ();
 	}
-      if (c->len () && (*c)[0] == 0x2E)
+      if (c->size() && (*c)[0] == 0x2E)
 	wait_confirm = false;
-      if (c->len () && (*c)[0] == 0x29 && (mode & BUSMODE_UP))
+      if (c->size() && (*c)[0] == 0x29 && (mode & BUSMODE_UP))
 	{
 	  L_Data_PDU *p = EMI_to_L_Data (*c, shared_from_this());
 	  if (p)
@@ -241,12 +241,12 @@ EMI2Layer2::Run (pth_sem_t * stop1)
 	      continue;
 	    }
 	}
-      if (c->len () > 4 && (*c)[0] == 0x2B && mode == BUSMODE_MONITOR)
+      if (c->size() > 4 && (*c)[0] == 0x2B && mode == BUSMODE_MONITOR)
 	{
 	  L_Busmonitor_PDU *p = new L_Busmonitor_PDU (shared_from_this());
 	  p->status = (*c)[1];
 	  p->timestamp = ((*c)[2] << 24) | ((*c)[3] << 16);
-	  p->pdu.set (c->array () + 4, c->len () - 4);
+	  p->pdu.set (c->data () + 4, c->size() - 4);
 	  delete c;
 	  TRACEPRINTF (t, 2, this, "Recv %s", p->Decode ()());
 	  l3->recv_L_Data (p);

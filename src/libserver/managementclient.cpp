@@ -32,14 +32,14 @@ ReadIndividualAddresses (ClientConnection * c, pth_event_t stop)
     }
   CArray erg;
   Array < eibaddr_t > e = b.A_IndividualAddress_Read (c->t);
-  erg.resize (2 + 2 * e ());
+  erg.resize (2 + 2 * e.size());
   EIBSETTYPE (erg, EIB_M_INDIVIDUAL_ADDRESS_READ);
-  for (unsigned i = 0; i < e (); i++)
+  for (unsigned i = 0; i < e.size(); i++)
     {
       erg[2 + i * 2] = (e[i] >> 8) & 0xff;
       erg[2 + i * 2 + 1] = (e[i]) & 0xff;
     }
-  c->sendmessage (erg (), erg.array (), stop);
+  c->sendmessage (erg.size(), erg.data (), stop);
 }
 
 void
@@ -159,12 +159,12 @@ WriteIndividualAddress (ClientConnection * c, pth_event_t stop)
       }
   }
   Array < eibaddr_t > addr = b.A_IndividualAddress_Read (c->t);
-  if (addr () > 1)
+  if (addr.size() > 1)
     {
       c->sendreject (stop, EIB_ERROR_MORE_DEVICE);
       return;
     }
-  if (addr () == 0)
+  if (addr.size() == 0)
     {
       c->sendreject (stop, EIB_ERROR_TIMEOUT);
       return;
@@ -324,7 +324,7 @@ ManagementConnection (ClientConnection * c, pth_event_t stop)
 		  erg.resize (6);
 		  EIBSETTYPE (erg, EIB_MC_READ);
 		  erg.setpart (data, 2);
-		  c->sendmessage (erg (), erg.array (), stop);
+		  c->sendmessage (erg.size(), erg.data (), stop);
 		}
 	    }
 	    break;
@@ -370,7 +370,7 @@ ManagementConnection (ClientConnection * c, pth_event_t stop)
 		  erg.resize (2);
 		  EIBSETTYPE (erg, EIB_MC_PROP_READ);
 		  erg.setpart (data, 2);
-		  c->sendmessage (erg (), erg.array (), stop);
+		  c->sendmessage (erg.size(), erg.data (), stop);
 		}
 	    }
 	    break;
@@ -393,7 +393,7 @@ ManagementConnection (ClientConnection * c, pth_event_t stop)
 		  erg.resize (2);
 		  EIBSETTYPE (erg, EIB_MC_PROP_WRITE);
 		  erg.setpart (data, 2);
-		  c->sendmessage (erg (), erg.array (), stop);
+		  c->sendmessage (erg.size(), erg.data (), stop);
 		}
 	    }
 	    break;
@@ -455,18 +455,20 @@ ManagementConnection (ClientConnection * c, pth_event_t stop)
 	      else
 		{
 		  CArray erg;
-		  erg.resize (2 + p () * 6);
+		  erg.resize (2 + p.size() * 6);
 		  EIBSETTYPE (erg, EIB_MC_PROP_SCAN);
-		  for (unsigned i = 0; i < p (); i++)
+		  unsigned int ii = 0;
+		  ITER( i,p)
 		    {
-		      erg[i * 6 + 2] = p[i].obj;
-		      erg[i * 6 + 3] = p[i].property;
-		      erg[i * 6 + 4] = p[i].type;
-		      erg[i * 6 + 5] = (p[i].count >> 8) & 0xff;
-		      erg[i * 6 + 6] = (p[i].count) & 0xff;
-		      erg[i * 6 + 7] = p[i].access;
+		      erg[ii + 2] = i->obj;
+		      erg[ii + 3] = i->property;
+		      erg[ii + 4] = i->type;
+		      erg[ii + 5] = (i->count >> 8) & 0xff;
+		      erg[ii + 6] = (i->count) & 0xff;
+		      erg[ii + 7] = i->access;
+			  ii += 6;
 		    }
-		  c->sendmessage (erg (), erg.array (), stop);
+		  c->sendmessage (erg.size(), erg.data (), stop);
 		}
 	    }
 	    break;
@@ -552,7 +554,7 @@ ManagementIndividual (ClientConnection * c, pth_event_t stop)
 		  erg.resize (2);
 		  EIBSETTYPE (erg, EIB_MC_PROP_READ);
 		  erg.setpart (data, 2);
-		  c->sendmessage (erg (), erg.array (), stop);
+		  c->sendmessage (erg.size(), erg.data (), stop);
 		}
 	    }
 	    break;
@@ -575,7 +577,7 @@ ManagementIndividual (ClientConnection * c, pth_event_t stop)
 		  erg.resize (2);
 		  EIBSETTYPE (erg, EIB_MC_PROP_WRITE);
 		  erg.setpart (data, 2);
-		  c->sendmessage (erg (), erg.array (), stop);
+		  c->sendmessage (erg.size(), erg.data (), stop);
 		}
 	    }
 	    break;
@@ -646,23 +648,23 @@ LoadImage (ClientConnection * c, pth_event_t stop)
 
 	/*load the data from 0x103 to 0x10C */
 	if (m.X_Memory_Write_Block (0x0103,
-				    CArray (i->code.array () + 0x03,
+				    CArray (i->code.data () + 0x03,
 					    10)) != 0)
 	  goto out;
 
 	/*load the data from 0x10E to 0x115 */
 	if (m.X_Memory_Write_Block (0x010E,
-				    CArray (i->code.array () + 0x0E, 8)) != 0)
+				    CArray (i->code.data () + 0x0E, 8)) != 0)
 	  goto out;
 
 	/*load the data from 0x119H to eeprom end */
 	r = IMG_LOAD_MAIN;
 	if (m.X_Memory_Write_Block (0x119,
-				    CArray (i->code.array () + 0x19,
-					    i->code () - 0x19)) != 0)
+				    CArray (i->code.data () + 0x19,
+					    i->code.size() - 0x19)) != 0)
 	  goto out;
 
-	if (m.X_Memory_Write_Block (0x0100, CArray (i->code.array (), 1)) !=
+	if (m.X_Memory_Write_Block (0x0100, CArray (i->code.data (), 1)) !=
 	    0)
 	  goto out;
 
@@ -675,7 +677,7 @@ LoadImage (ClientConnection * c, pth_event_t stop)
 	/* set the length of the address table */
 	r = IMG_FINALIZE_ADDR_TAB;
 	if (m.X_Memory_Write_Block (0x0116,
-				    CArray (i->code.array () + 0x16, 1)) != 0)
+				    CArray (i->code.data () + 0x16, 1)) != 0)
 	  goto out;
 
 	/* reset all error flags in the BCU (0x10D = 0xFF) */
@@ -716,23 +718,23 @@ LoadImage (ClientConnection * c, pth_event_t stop)
 	      goto out;
 	  }
 
-	for (j = 0; j < i->load (); j++)
+	ITER (j, i->load)
 	  {
-	    r = i->load[j].error;
-	    if (i->load[j].obj != 0xff)
+	    r = j->error;
+	    if (j->obj != 0xff)
 	      {
-		if (m.A_Property_Write (i->load[j].obj, i->load[j].prop,
-					i->load[j].start, 1, i->load[j].req,
+		if (m.A_Property_Write (j->obj, j->prop,
+					j->start, 1, j->req,
 					erg) == -1)
 		  goto out;
-		if (erg != i->load[j].result)
+		if (erg != j->result)
 		  goto out;
 	      }
-	    if (i->load[j].memaddr != 0xffff)
-	      if (m.X_Memory_Write_Block (i->load[j].memaddr,
-					  CArray (i->code.array () +
-						  i->load[j].memaddr - 0x100,
-						  i->load[j].len)) != 0)
+	    if (j->memaddr != 0xffff)
+	      if (m.X_Memory_Write_Block (j->memaddr,
+					  CArray (i->code.data () +
+						  j->memaddr - 0x100,
+						  j->len)) != 0)
 		goto out;
 	  }
 

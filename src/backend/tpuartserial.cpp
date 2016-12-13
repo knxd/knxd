@@ -282,7 +282,7 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
   pth_event_t sendtimeout = pth_event (PTH_EVENT_RTIME, pth_time (0, 0));
   while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
     {
-      if (in () == 0 && !waitconfirm)
+      if (in.size() == 0 && !waitconfirm)
 	pth_event_concat (stop, input, NULL);
       if (to)
 	pth_event_concat (stop, timeout, NULL);
@@ -298,9 +298,9 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
       if (i > 0)
 	{
 	  t->TracePacket (0, this, "RecvB", i, buf);
-	  in.setpart (buf, in (), i);
+	  in.setpart (buf, in.size(), i);
 	}
-      while (in () > 0)
+      while (in.size() > 0)
 	{
 	  if (in[0] == 0x8B) // L_DataConfirm positive
 	    {
@@ -346,7 +346,7 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
            */
 	  else if (in[0] == 0xCC || in[0] == 0xC0 || in[0] == 0x0C)
 	    {
-	      RecvLPDU (in.array (), 1);
+	      RecvLPDU (in.data(), 1);
 	      in.deletepart (0, 1);
 	    }
 	  else if ((in[0] & 0xD0) == 0x90) // Matches KNX control byte L_Data_Standard Frame
@@ -362,7 +362,7 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
  * byte 8 of the telegram). The ELMOS chip ignores such ACKs (that were sent
  * too early).
  */
-	      if (in() < 8 || in() < (8 + (in[5] & 0x0F)))  // Telegram complete
+	      if (in.size() < 8 || in.size() < (8 + (in[5] & 0x0F)))  // Telegram complete
 		{
 		  if (!to)
 		    {
@@ -379,7 +379,7 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
               if (waitconfirm)
                 {
                   CArray recvheader;
-                  recvheader.set(in.array(),6);
+                  recvheader.set(in.data(),6);
                   recvheader[0] &=~ 0x20;
                   if (recvheader == sendheader)
                     {
@@ -406,7 +406,7 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 		}
 	      unsigned len = in[5] & 0x0f;
 	      len += 6 + 2;
-	      if (in () < len)
+	      if (in.size() < len)
 		{
 		  if (!to)
 		    {
@@ -423,14 +423,14 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
               if (!recvecho)
                 {
 	          acked = 0;
-	          RecvLPDU (in.array (), len);
+	          RecvLPDU (in.data(), len);
                 }
 	      in.deletepart (0, len);
 	    }
 	  else if ((in[0] & 0xD0) == 0x10) //Matches KNX control byte L_Data_Extended Frame
 	    {
               bool recvecho = false;
-	      if (in () < 7)
+	      if (in.size() < 7)
 		{
 		  if (!to)
 		    {
@@ -447,7 +447,7 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
               if (waitconfirm)
                 {
                   CArray recvheader;
-                  recvheader.set(in.array(),6);
+                  recvheader.set(in.data(),6);
                   recvheader[0] &=~ 0x20;
                   if (recvheader == sendheader)
                     {
@@ -474,7 +474,7 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 		}
 	      unsigned len = in[6] & 0xff;
 	      len += 7 + 2;
-	      if (in () < len)
+	      if (in.size() < len)
 		{
 		  if (!to)
 		    {
@@ -491,7 +491,7 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
               if (!recvecho)
                 {
 	          acked = 0;
-	          RecvLPDU (in.array (), len);
+	          RecvLPDU (in.data(), len);
                 }
 	      in.deletepart (0, len);
 	    }
@@ -537,29 +537,29 @@ TPUARTSerialLayer2Driver::Run (pth_sem_t * stop1)
 	watch = 0;
       if (watch == 2 && pth_event_status (watchdog) == PTH_STATUS_OCCURRED)
 	watch = 0;
-      if (in () == 0 && !inqueue.isempty () && !waitconfirm)
+      if (in.size() == 0 && !inqueue.isempty () && !waitconfirm)
 	{
 	  LPDU *l = (LPDU *) inqueue.top ();
 	  CArray d = l->ToPacket ();
 	  CArray w;
 	  unsigned i;
 
-	  sendheader.set(d.array(), 6);
+	  sendheader.set(d.data(), 6);
           sendheader[0] &=~ 0x20;
-	  w.resize (d () * 2);
-	  for (i = 0; i < d (); i++)
+	  w.resize (d.size() * 2);
+	  for (i = 0; i < d.size(); i++)
 	    {
 	      w[2 * i] = 0x80 | (i & 0x3f);
 	      w[2 * i + 1] = d[i];
 	    }
-	  w[(d () * 2) - 2] = (w[(d () * 2) - 2] & 0x3f) | 0x40;
+	  w[(d.size() * 2) - 2] = (w[(d.size() * 2) - 2] & 0x3f) | 0x40;
 	  t->TracePacket (0, this, "Write", w);
-	  (void) pth_write_ev (fd, w.array (), w (), stop);
+	  (void) pth_write_ev (fd, w.data(), w.size(), stop);
 	  waitconfirm = 1;
 	  pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE, sendtimeout,
 		     pth_time (0, 600000));
 	}
-      else if (in () == 0 && !waitconfirm && !watch && mode != BUSMODE_MONITOR && !to)
+      else if (in.size() == 0 && !waitconfirm && !watch && mode != BUSMODE_MONITOR && !to)
 	{
 	  pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE, watchdog,
 		     pth_time (10, 0));

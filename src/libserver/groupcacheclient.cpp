@@ -104,14 +104,14 @@ GroupCacheRequest (ClientConnection * c, pth_event_t stop)
       gc =
 	cache->Read (dst, EIBTYPE (c->buf) == EIB_CACHE_READ_NOWAIT ? 0 : 1,
 		     age);
-      erg.resize (6 + gc.data ());
+      erg.resize (6 + gc.data.size());
       EIBSETTYPE (erg, EIBTYPE (c->buf));
       erg[2] = (gc.src >> 8) & 0xff;
       erg[3] = (gc.src >> 0) & 0xff;
       erg[4] = (gc.dst >> 8) & 0xff;
       erg[5] = (gc.dst >> 0) & 0xff;
       erg.setpart (gc.data, 6);
-      c->sendmessage (erg (), erg.array (), stop);
+      c->sendmessage (erg.size(), erg.data (), stop);
       break;
 
     case EIB_CACHE_LAST_UPDATES:
@@ -125,16 +125,16 @@ GroupCacheRequest (ClientConnection * c, pth_event_t stop)
 	uint8_t timeout = c->buf[4];
 	Array < eibaddr_t > addrs =
 	  cache->LastUpdates (start, timeout, end, stop);
-	erg.resize (addrs () * 2 + 4);
+	erg.resize (addrs.size() * 2 + 4);
 	EIBSETTYPE (erg, EIBTYPE (c->buf));
 	erg[2] = (end >> 8) & 0xff;
 	erg[3] = (end >> 0) & 0xff;
-	for (unsigned int i = 0; i < addrs (); i++)
+	for (unsigned int i = 0; i < addrs.size(); i++)
 	  {
 	    erg[4 + i * 2] = (addrs[i] >> 8) & 0xff;
 	    erg[4 + i * 2 + 1] = (addrs[i]) & 0xff;
 	  }
-	c->sendmessage (erg (), erg.array (), stop);
+	c->sendmessage (erg.size(), erg.data (), stop);
       }
       break;
 

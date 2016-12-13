@@ -176,8 +176,8 @@ main (int ac, char *ag[])
     }
   else
     {
-      for (int i = 0; i < result (); i++)
-	printf ("%02x ", result[i]);
+      ITER(i,result)
+	printf ("%02x ", *i);
       printf ("\n");
     }
 

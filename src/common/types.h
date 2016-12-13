@@ -29,16 +29,12 @@
 typedef uint8_t uchar;
 
 /** Array of characters */
-typedef Array < uchar > CArray;
+//typedef Array < uchar > CArray;
 
 /** EIB address */
 typedef uint16_t eibaddr_t;
 
 /** EIB key */
 typedef uint32_t eibkey_type;
-
-#ifdef USE_NOLIBSTDC
-#include "libstdc.h"
-#endif
 
 #endif

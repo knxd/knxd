@@ -106,11 +106,11 @@ EIBNetIPRouter::Run (pth_sem_t * stop1)
 	      delete p;
 	      continue;
 	    }
-	  if (p->data () < 2 || p->data[0] != 0x29)
+	  if (p->data.size() < 2 || p->data[0] != 0x29)
 	    {
-              if (p->data () < 2)
+              if (p->data.size() < 2)
                 {
-	          TRACEPRINTF (t, 2, this, "No payload (%d)", p->data ());
+	          TRACEPRINTF (t, 2, this, "No payload (%d)", p->data.size());
                 }
               else
                 {

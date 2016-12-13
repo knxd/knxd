@@ -41,7 +41,7 @@ GroupCache::~GroupCache ()
 GroupCacheEntry *
 GroupCache::find (eibaddr_t dst)
 {
-  int l = 0, r = cache () - 1;
+  int l = 0, r = cache.size() - 1;
   while (l <= r)
     {
       int p = (l + r) / 2;
@@ -60,14 +60,14 @@ GroupCache::remove (eibaddr_t addr)
 {
   TRACEPRINTF (t, 4, this, "GroupCacheRemove %s", FormatGroupAddr (addr)());
 
-  int l = 0, r = cache () - 1;
+  int l = 0, r = cache.size() - 1;
   while (l <= r)
     {
       int p = (l + r) / 2;
       if (cache[p]->dst == addr)
 	{
 	  delete cache[p];
-	  cache.deletepart (p, 1);
+	  cache.erase (cache.begin()+p);
 	  return;
 	}
       if (addr > cache[p]->dst)
@@ -82,8 +82,8 @@ void
 GroupCache::add (GroupCacheEntry * entry)
 {
   unsigned p;
-  cache.resize (cache () + 1);
-  p = cache () - 1;
+  cache.resize (cache.size() + 1);
+  p = cache.size() - 1;
   while (p > 0 && cache[p - 1]->dst > entry->dst)
     {
       cache[p] = cache[p - 1];
@@ -103,7 +103,7 @@ GroupCache::Send_L_Data (L_Data_PDU * l)
       if (t->getType () == T_DATA_XXX_REQ)
 	{
 	  T_DATA_XXX_REQ_PDU *t1 = (T_DATA_XXX_REQ_PDU *) t;
-	  if (t1->data () >= 2 && !(t1->data[0] & 0x3) &&
+	  if (t1->data.size() >= 2 && !(t1->data[0] & 0x3) &&
 	      ((t1->data[1] & 0xC0) == 0x40 || (t1->data[1] & 0xC0) == 0x80))
 	    {
 	      c = find (l->dest);
@@ -150,8 +150,8 @@ GroupCache::Clear ()
 {
   unsigned int i;
   TRACEPRINTF (t, 4, this, "GroupCacheClear");
-  for (i = 0; i < cache (); i++)
-    delete cache[i];
+  ITER(i,cache)
+    delete *i;
   cache.resize (0);
 }
 
@@ -284,7 +284,7 @@ Array < eibaddr_t > GroupCache::LastUpdates (uint16_t start, uint8_t Timeout,
 	  while (start != pos)
 	    {
 	      if (updates[start & 0xff])
-		a.add (updates[start & 0xff]);
+		a.push_back (updates[start & 0xff]);
 	      start++;
 	    }
 	  end = pos;

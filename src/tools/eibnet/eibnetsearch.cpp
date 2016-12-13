@@ -148,9 +148,8 @@ main (int ac, char *ag[])
 		      inet_ntoa (resp.multicastaddr));
 	      HexDump (resp.MAC, sizeof (resp.MAC));
 	      printf ("Name: %s\n", resp.name);
-	      for (int i = 0; i < resp.services (); i++)
-		printf ("Service %d Version %d\n", resp.services[i].family,
-			resp.services[i].version);
+	      ITER(i, resp.services)
+		printf ("Service %d Version %d\n", i->family, i->version);
 	    }
 	  printf ("\n");
 	}

@@ -263,8 +263,8 @@ BCU1SerialLowLevelDriver::Run (pth_sem_t * stop1)
       if (!inqueue.isempty ())
 	{
 	  const CArray & c = inqueue.top ();
-	  e.resize (c () + 1);
-	  s = c () & 0x1f;
+	  e.resize (c.size() + 1);
+	  s = c.size() & 0x1f;
 	  s |= 0x20;
 	  s |= 0x80 * bitcount (s);
 	  e[0] = s;
@@ -292,7 +292,7 @@ BCU1SerialLowLevelDriver::Run (pth_sem_t * stop1)
 	}
       if (s == 0xff && e[0] != 0xff)
 	{
-	  for (unsigned i = 1; i < e (); i++)
+	  for (unsigned i = 1; i < e.size(); i++)
 	    {
 	      if (!startsync ())
 		{

@@ -20,67 +20,65 @@
 #ifndef ARRAY_H
 #define ARRAY_H
 
+#include <vector>
+
+#define ITER(_i,_t) for(decltype(_t)::iterator _i = _t.begin(); _i != _t.end(); _i++)
+
 /** implements a generic array */
-template < class T > class Array
+#define Array std::vector
+
+inline unsigned int _sub(unsigned int _a, unsigned int _b) { return (_a>_b) ? _a-_b : 0; }
+inline unsigned int _min(unsigned int _a, unsigned int _b) { return (_a<_b) ? _a : _b; }
+
+typedef std::vector<uint8_t> u8str;
+class CArray : public u8str
 {
-protected:
-  /** pointer to the data */
-  T * data;
-  /** element count */
-  unsigned count;
 public:
-  /** create empty array */
-  Array ()
+  CArray() : u8str() { }
+  CArray(const CArray& __str, size_type __pos) : u8str(_sub(__pos,__str.size()))
   {
-    data = 0;
-    count = 0;
+    CArray::iterator j = this->begin();
+    const uint8_t *str = __str.data()+__pos;
+    for(unsigned int i = this->size(); i > 0; i--,j++)
+        *j = *str++;
   }
-  /** destructor */
-  virtual ~ Array ()
+  CArray(const CArray& __str, size_type __pos, size_type __n) : u8str(_min(__n,_sub(__pos,__str.size())))
   {
-    if (data)
-      delete[]data;
+    CArray::iterator j = this->begin();
+    const uint8_t *str = __str.data()+__pos;
+    while(j != this->end())
+        *j++ = *str++;
   }
-  /** copy constructor */
-  Array (const Array < T > &a)
+  CArray(const uint8_t *__str, size_type __pos, size_type __n) : u8str(__n)
   {
-    count = a.count;
-    data = 0;
-    if (count)
-      {
-	data = new T[count];
-	for (unsigned i = 0; i < count; i++)
-	  data[i] = a.data[i];
-      }
+    CArray::iterator j = this->begin();
+    __str += __pos;
+    for(unsigned int i = __pos; j != this->end(); i++,j++)
+        *j = *__str++;
   }
-
-  /** create array from old style array
-   * @param elem pointer to elements
-   * @param cnt element count
-   */
-  Array (const T elem[], unsigned cnt)
+  CArray(const uint8_t *__str, size_type __n) : u8str(__n)
   {
-    data = 0;
-    count = 0;
-    set (elem, cnt);
+    CArray::iterator j = this->begin();
+    while(j != this->end())
+        *j++ = *__str++;
   }
 
-  /** set content to them of a old style array
-   * @param elem pointer to elements
-   * @param cnt element count
-   */
-  void set (const T elem[], unsigned cnt)
+  inline void set (const uint8_t *elem, unsigned cnt)
   {
-    unsigned i;
-    resize (cnt);
-    for (i = 0; i < cnt; i++)
-      data[i] = elem[i];
+    this->resize(cnt);
+    CArray::iterator j = this->begin();
+    while(j != this->end())
+        *j++ = *elem++;
   }
 
   /** copy content of an array */
-  void set (const Array & a)
+  inline void set (const CArray & a)
   {
-    set (a.array (), a ());
+    this->resize(a.size());
+    CArray::const_iterator i = a.begin();
+    CArray::iterator j = this->begin();
+    while (i != a.end())
+      *j++ = *i++;
   }
 
   /** replace a part of the array and resize to fit
@@ -88,166 +86,56 @@ public:
    * @param start start position
    * @param cnt element count
    */
-  void setpart (const T elem[], unsigned start, unsigned cnt)
+  inline void setpart (const uint8_t *elem, unsigned start, unsigned cnt)
   {
-    unsigned i;
-    if (cnt + start > count)
+    if (cnt + start > size())
       resize (cnt + start);
-    for (i = 0; i < cnt; i++)
-      data[i + start] = elem[i];
+
+    CArray::iterator i = this->begin()+start;
+    while(cnt--)
+        *i++ = *elem++;
+  }
+
+  inline void operator+= (const CArray &a)
+  {
+    unsigned int off = this->size();
+    resize(this->size()+a.size());
+
+    CArray::const_iterator i = a.begin();
+    CArray::iterator j = this->begin()+off;
+    while (i != a.end())
+      *j++ = *i++;
+
   }
 
   /** replace a part of the array with the content of a and resize to fit
    * @param start start index
    * @param a new elements
    */
-  void setpart (const Array < T > &a, unsigned start)
+  inline void setpart (const CArray &a, unsigned start)
   {
-    setpart (a.array (), start, a ());
+    setpart (a.data(), start, a.size());
   }
 
   /** delete content
    * @param start start index
    * @param cnt element count
    */
-  void deletepart (unsigned start, unsigned cnt = 1)
+  inline void deletepart (unsigned start, unsigned cnt = 1)
   {
-    if (start >= count)
+    if (start >= size())
       return;
-    if (cnt <= 0)
+    if (start+cnt >= size())
+        cnt = size()-start;
+    if (cnt == 0)
       return;
-    if (start + cnt >= count)
-      cnt -= start + cnt - count;
-    for (unsigned i = start + cnt; i < count; i++)
-      data[i - cnt] = data[i];
-    resize (count - cnt);
-  }
-
-  /** assignement operator */
-  const Array & operator = (const Array & a)
-  {
-    if (data)
-      delete[]data;
-    count = a.count;
-    data = 0;
-    if (count)
-      {
-	data = new T[count];
-	for (unsigned i = 0; i < count; i++)
-	  data[i] = a.data[i];
-      }
-    return a;
-  }
-
-  /** compare array elementwise for equal */
-  bool operator== (const Array & a)
-  {
-    if (a () != count)
-      return 0;
-    for (unsigned i = 0; i < count; i++)
-      if (a[i] != data[i])
-	return 0;
-    return 1;
-  }
-
-  /** compare array elementwise for not equal */
-  bool operator!= (const Array & a)
-  {
-    return !(*this == a);
-  }
-
-  /** returns pointer to the elements */
-  const T *array () const
-  {
-    return data;
-  }
-
-  /** returns pointer to the elements */
-  T *array ()
-  {
-    return data;
-  }
-
-  /** resize array to newcount elements */
-  void resize (unsigned newcount)
-  {
-    if (!newcount)
-      {
-	if (data)
-	  delete[]data;
-	data = 0;
-	count = 0;
-	return;
-      }
-    T *d1 = new T[newcount];
-    for (unsigned i = 0; i < (count < newcount ? count : newcount); i++)
-      d1[i] = data[i];
-    if (data)
-      delete[]data;
-    data = d1;
-    count = newcount;
-  }
-
-  /** insert elem at pos */
-  void insert (unsigned pos, const T & elem)
-  {
-    if (pos >= count)
-      {
-	add (elem);
-	return;
-      }
-
-    T *d1 = new T[count + 1];
-    for (unsigned i = 0; i < pos; i++)
-      d1[i] = data[i];
-    data[pos] = elem;
-    for (unsigned i = pos; i < count; i++)
-      d1[i + 1] = data[i];
-    if (data)
-      delete[]data;
-    data = d1;
-    count = count + 1;
+    erase (this->begin()+start,this->begin()+start+cnt);
   }
 
   /** add element elem to the add */
-  void add (const T & elem)
+  inline void add (const uint8_t elem)
   {
-    resize (count + 1);
-    operator[](count - 1) = elem;
-  }
-  /** access random element in standart C notation */
-  T & operator[](unsigned elem)
-  {
-    //no boundcheck
-    return data[elem];
-  }
-  /** access random element in standart C notation */
-  const T & operator[] (unsigned elem) const
-  {
-    //kein Boundcheck
-    return data[elem];
-  }
-  /** returns element count */
-  unsigned operator  () () const
-  {
-    return count;
-  }
-  /** return element count */
-  unsigned len () const
-  {
-    return count;
-  }
-
-  void sort ()
-  {
-    for (int i = 0; i < count; i++)
-      for (int j = i + 1; j < count; j++)
-	if (data[i] > data[j])
-	  {
-	    T x = data[i];
-	    data[i] = data[j];
-	    data[j] = x;
-	  }
+    this->push_back(elem);
   }
 };
 

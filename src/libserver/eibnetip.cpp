@@ -252,16 +252,16 @@ EIBNetIPPacket::fromPacket (const CArray & c, const struct sockaddr_in src)
 {
   EIBNetIPPacket *p;
   unsigned len;
-  if (c () < 6)
+  if (c.size() < 6)
     return 0;
   if (c[0] != 0x6 || c[1] != 0x10)
     return 0;
   len = (c[4] << 8) | c[5];
-  if (len != c ())
+  if (len != c.size())
     return 0;
   p = new EIBNetIPPacket;
   p->service = (c[2] << 8) | c[3];
-  p->data.set (c.array () + 6, len - 6);
+  p->data.set (c.data () + 6, len - 6);
   p->src = src;
   return p;
 }
@@ -271,13 +271,13 @@ EIBNetIPPacket::ToPacket ()
   CONST
 {
   CArray c;
-  c.resize (6 + data ());
+  c.resize (6 + data.size());
   c[0] = 0x06;
   c[1] = 0x10;
   c[2] = (service >> 8) & 0xff;
   c[3] = (service) & 0xff;
-  c[4] = ((data () + 6) >> 8) & 0xff;
-  c[5] = ((data () + 6)) & 0xff;
+  c[4] = ((data.size() + 6) >> 8) & 0xff;
+  c[5] = ((data.size() + 6)) & 0xff;
   c.setpart (data, 6);
   return c;
 }
@@ -497,9 +497,8 @@ EIBNetIPSocket::Run (pth_sem_t * stop1)
       pth_event_concat (stop, input, NULL);
       rl = sizeof (r);
       memset (&r, 0, sizeof (r));
-      i =
-	pth_recvfrom_ev (fd, buf, sizeof (buf), 0, (struct sockaddr *) &r,
-			 &rl, stop);
+      i = pth_recvfrom_ev (fd, buf, sizeof (buf), 0, (struct sockaddr *) &r,
+			   &rl, stop);
       if (i > 0 && rl == sizeof (r))
 	{
 	  if (recvall == 1 || !memcmp (&r, &recvaddr, sizeof (r)) ||
@@ -524,10 +523,9 @@ EIBNetIPSocket::Run (pth_sem_t * stop1)
 	  const struct _EIBNetIP_Send s = inqueue.top ();
 	  CArray p = s.data.ToPacket ();
 	  t->TracePacket (0, this, "Send", p);
-	  i =
-	    pth_sendto_ev (fd, p.array (), p (), 0,
-			   (const struct sockaddr *) &s.addr, sizeof (s.addr),
-			   stop);
+	  i = pth_sendto_ev (fd, p.data (), p.size(), 0,
+			     (const struct sockaddr *) &s.addr, sizeof (s.addr),
+			     stop);
 	  if (i > 0)
 	    {
 	      pth_sem_dec (&insignal);
@@ -558,19 +556,16 @@ EIBnet_ConnectRequest::EIBnet_ConnectRequest ()
 
 EIBNetIPPacket EIBnet_ConnectRequest::ToPacket ()CONST
 {
-  EIBNetIPPacket
-    p;
-  CArray
-    ca,
-    da;
+  EIBNetIPPacket p;
+  CArray ca, da;
   ca = IPtoEIBNetIP (&caddr, nat);
   da = IPtoEIBNetIP (&daddr, nat);
   p.service = CONNECTION_REQUEST;
-  p.data.resize (ca () + da () + 1 + CRI ());
+  p.data.resize (ca.size() + da.size() + 1 + CRI.size());
   p.data.setpart (ca, 0);
-  p.data.setpart (da, ca ());
-  p.data[ca () + da ()] = CRI () + 1;
-  p.data.setpart (CRI, ca () + da () + 1);
+  p.data.setpart (da, ca.size());
+  p.data[ca.size() + da.size()] = CRI.size() + 1;
+  p.data.setpart (CRI, ca.size() + da.size() + 1);
   return p;
 }
 
@@ -580,15 +575,15 @@ parseEIBnet_ConnectRequest (const EIBNetIPPacket & p,
 {
   if (p.service != CONNECTION_REQUEST)
     return 1;
-  if (p.data () < 18)
+  if (p.data.size() < 18)
     return 1;
-  if (EIBnettoIP (CArray (p.data.array (), 8), &r.caddr, &p.src, r.nat))
+  if (EIBnettoIP (CArray (p.data.data (), 8), &r.caddr, &p.src, r.nat))
     return 1;
-  if (EIBnettoIP (CArray (p.data.array () + 8, 8), &r.daddr, &p.src, r.nat))
+  if (EIBnettoIP (CArray (p.data.data () + 8, 8), &r.daddr, &p.src, r.nat))
     return 1;
-  if (p.data () - 16 != p.data[16])
+  if (p.data.size() - 16 != p.data[16])
     return 1;
-  r.CRI = CArray (p.data.array () + 17, p.data () - 17);
+  r.CRI = CArray (p.data.data () + 17, p.data.size() - 17);
   return 0;
 }
 
@@ -602,22 +597,20 @@ EIBnet_ConnectResponse::EIBnet_ConnectResponse ()
 
 EIBNetIPPacket EIBnet_ConnectResponse::ToPacket ()CONST
 {
-  EIBNetIPPacket
-    p;
-  CArray
-    da = IPtoEIBNetIP (&daddr, nat);
+  EIBNetIPPacket p;
+  CArray da = IPtoEIBNetIP (&daddr, nat);
   p.service = CONNECTION_RESPONSE;
   if (status != 0)
     p.data.resize (2);
   else
-    p.data.resize (da () + CRD () + 3);
+    p.data.resize (da.size() + CRD.size() + 3);
   p.data[0] = channel;
   p.data[1] = status;
   if (status == 0)
     {
       p.data.setpart (da, 2);
-      p.data[da () + 2] = CRD () + 1;
-      p.data.setpart (CRD, da () + 3);
+      p.data[da.size() + 2] = CRD.size() + 1;
+      p.data.setpart (CRD, da.size() + 3);
     }
   return p;
 }
@@ -628,25 +621,25 @@ parseEIBnet_ConnectResponse (const EIBNetIPPacket & p,
 {
   if (p.service != CONNECTION_RESPONSE)
     return 1;
-  if (p.data () < 2)
+  if (p.data.size() < 2)
     return 1;
   if (p.data[1] != 0)
     {
-      if (p.data () != 2)
+      if (p.data.size() != 2)
 	return 1;
       r.channel = p.data[0];
       r.status = p.data[1];
       return 0;
     }
-  if (p.data () < 12)
+  if (p.data.size() < 12)
     return 1;
-  if (EIBnettoIP (CArray (p.data.array () + 2, 8), &r.daddr, &p.src, r.nat))
+  if (EIBnettoIP (CArray (p.data.data () + 2, 8), &r.daddr, &p.src, r.nat))
     return 1;
-  if (p.data () - 10 != p.data[10])
+  if (p.data.size() - 10 != p.data[10])
     return 1;
   r.channel = p.data[0];
   r.status = p.data[1];
-  r.CRD = CArray (p.data.array () + 11, p.data () - 11);
+  r.CRD = CArray (p.data.data () + 11, p.data.size() - 11);
   return 0;
 }
 
@@ -659,12 +652,10 @@ EIBnet_ConnectionStateRequest::EIBnet_ConnectionStateRequest ()
 
 EIBNetIPPacket EIBnet_ConnectionStateRequest::ToPacket ()CONST
 {
-  EIBNetIPPacket
-    p;
-  CArray
-    ca = IPtoEIBNetIP (&caddr, nat);
+  EIBNetIPPacket p;
+  CArray ca = IPtoEIBNetIP (&caddr, nat);
   p.service = CONNECTIONSTATE_REQUEST;
-  p.data.resize (ca () + 2);
+  p.data.resize (ca.size() + 2);
   p.data[0] = channel;
   p.data[1] = 0;
   p.data.setpart (ca, 2);
@@ -677,9 +668,9 @@ parseEIBnet_ConnectionStateRequest (const EIBNetIPPacket & p,
 {
   if (p.service != CONNECTIONSTATE_REQUEST)
     return 1;
-  if (p.data () != 10)
+  if (p.data.size() != 10)
     return 1;
-  if (EIBnettoIP (CArray (p.data.array () + 2, 8), &r.caddr, &p.src, r.nat))
+  if (EIBnettoIP (CArray (p.data.data () + 2, 8), &r.caddr, &p.src, r.nat))
     return 1;
   r.channel = p.data[0];
   return 0;
@@ -693,8 +684,7 @@ EIBnet_ConnectionStateResponse::EIBnet_ConnectionStateResponse ()
 
 EIBNetIPPacket EIBnet_ConnectionStateResponse::ToPacket ()CONST
 {
-  EIBNetIPPacket
-    p;
+  EIBNetIPPacket p;
   p.service = CONNECTIONSTATE_RESPONSE;
   p.data.resize (2);
   p.data[0] = channel;
@@ -708,7 +698,7 @@ parseEIBnet_ConnectionStateResponse (const EIBNetIPPacket & p,
 {
   if (p.service != CONNECTIONSTATE_RESPONSE)
     return 1;
-  if (p.data () != 2)
+  if (p.data.size() != 2)
     return 1;
   r.channel = p.data[0];
   r.status = p.data[1];
@@ -724,12 +714,10 @@ EIBnet_DisconnectRequest::EIBnet_DisconnectRequest ()
 
 EIBNetIPPacket EIBnet_DisconnectRequest::ToPacket ()CONST
 {
-  EIBNetIPPacket
-    p;
-  CArray
-    ca = IPtoEIBNetIP (&caddr, nat);
+  EIBNetIPPacket p;
+  CArray ca = IPtoEIBNetIP (&caddr, nat);
   p.service = DISCONNECT_REQUEST;
-  p.data.resize (ca () + 2);
+  p.data.resize (ca.size() + 2);
   p.data[0] = channel;
   p.data[1] = 0;
   p.data.setpart (ca, 2);
@@ -742,9 +730,9 @@ parseEIBnet_DisconnectRequest (const EIBNetIPPacket & p,
 {
   if (p.service != DISCONNECT_REQUEST)
     return 1;
-  if (p.data () != 10)
+  if (p.data.size() != 10)
     return 1;
-  if (EIBnettoIP (CArray (p.data.array () + 2, 8), &r.caddr, &p.src, r.nat))
+  if (EIBnettoIP (CArray (p.data.data () + 2, 8), &r.caddr, &p.src, r.nat))
     return 1;
   r.channel = p.data[0];
   return 0;
@@ -758,8 +746,7 @@ EIBnet_DisconnectResponse::EIBnet_DisconnectResponse ()
 
 EIBNetIPPacket EIBnet_DisconnectResponse::ToPacket ()CONST
 {
-  EIBNetIPPacket
-    p;
+  EIBNetIPPacket p;
   p.service = DISCONNECT_RESPONSE;
   p.data.resize (2);
   p.data[0] = channel;
@@ -773,7 +760,7 @@ parseEIBnet_DisconnectResponse (const EIBNetIPPacket & p,
 {
   if (p.service != DISCONNECT_RESPONSE)
     return 1;
-  if (p.data () != 2)
+  if (p.data.size() != 2)
     return 1;
   r.channel = p.data[0];
   r.status = p.data[1];
@@ -788,10 +775,9 @@ EIBnet_TunnelRequest::EIBnet_TunnelRequest ()
 
 EIBNetIPPacket EIBnet_TunnelRequest::ToPacket ()CONST
 {
-  EIBNetIPPacket
-    p;
+  EIBNetIPPacket p;
   p.service = TUNNEL_REQUEST;
-  p.data.resize (CEMI () + 4);
+  p.data.resize (CEMI.size() + 4);
   p.data[0] = 4;
   p.data[1] = channel;
   p.data[2] = seqno;
@@ -805,13 +791,13 @@ parseEIBnet_TunnelRequest (const EIBNetIPPacket & p, EIBnet_TunnelRequest & r)
 {
   if (p.service != TUNNEL_REQUEST)
     return 1;
-  if (p.data () < 6)
+  if (p.data.size() < 6)
     return 1;
   if (p.data[0] != 4)
     return 1;
   r.channel = p.data[1];
   r.seqno = p.data[2];
-  r.CEMI.set (p.data.array () + 4, p.data () - 4);
+  r.CEMI.set (p.data.data () + 4, p.data.size() - 4);
   return 0;
 }
 
@@ -824,8 +810,7 @@ EIBnet_TunnelACK::EIBnet_TunnelACK ()
 
 EIBNetIPPacket EIBnet_TunnelACK::ToPacket ()CONST
 {
-  EIBNetIPPacket
-    p;
+  EIBNetIPPacket p;
   p.service = TUNNEL_RESPONSE;
   p.data.resize (4);
   p.data[0] = 4;
@@ -840,7 +825,7 @@ parseEIBnet_TunnelACK (const EIBNetIPPacket & p, EIBnet_TunnelACK & r)
 {
   if (p.service != TUNNEL_RESPONSE)
     return 1;
-  if (p.data () != 4)
+  if (p.data.size() != 4)
     return 1;
   if (p.data[0] != 4)
     return 1;
@@ -858,10 +843,9 @@ EIBnet_ConfigRequest::EIBnet_ConfigRequest ()
 
 EIBNetIPPacket EIBnet_ConfigRequest::ToPacket ()CONST
 {
-  EIBNetIPPacket
-    p;
+  EIBNetIPPacket p;
   p.service = DEVICE_CONFIGURATION_REQUEST;
-  p.data.resize (CEMI () + 4);
+  p.data.resize (CEMI.size() + 4);
   p.data[0] = 4;
   p.data[1] = channel;
   p.data[2] = seqno;
@@ -875,13 +859,13 @@ parseEIBnet_ConfigRequest (const EIBNetIPPacket & p, EIBnet_ConfigRequest & r)
 {
   if (p.service != DEVICE_CONFIGURATION_REQUEST)
     return 1;
-  if (p.data () < 6)
+  if (p.data.size() < 6)
     return 1;
   if (p.data[0] != 4)
     return 1;
   r.channel = p.data[1];
   r.seqno = p.data[2];
-  r.CEMI.set (p.data.array () + 4, p.data () - 4);
+  r.CEMI.set (p.data.data () + 4, p.data.size() - 4);
   return 0;
 }
 
@@ -894,8 +878,7 @@ EIBnet_ConfigACK::EIBnet_ConfigACK ()
 
 EIBNetIPPacket EIBnet_ConfigACK::ToPacket ()CONST
 {
-  EIBNetIPPacket
-    p;
+  EIBNetIPPacket p;
   p.service = DEVICE_CONFIGURATION_ACK;
   p.data.resize (4);
   p.data[0] = 4;
@@ -910,7 +893,7 @@ parseEIBnet_ConfigACK (const EIBNetIPPacket & p, EIBnet_ConfigACK & r)
 {
   if (p.service != DEVICE_CONFIGURATION_ACK)
     return 1;
-  if (p.data () != 4)
+  if (p.data.size() != 4)
     return 1;
   if (p.data[0] != 4)
     return 1;
@@ -943,7 +926,7 @@ parseEIBnet_DescriptionRequest (const EIBNetIPPacket & p,
 {
   if (p.service != DESCRIPTION_REQUEST)
     return 1;
-  if (p.data () != 8)
+  if (p.data.size() != 8)
     return 1;
   if (EIBnettoIP (p.data, &r.caddr, &p.src, r.nat))
     return 1;
@@ -968,7 +951,7 @@ EIBNetIPPacket EIBnet_DescriptionResponse::ToPacket ()CONST
   EIBNetIPPacket
     p;
   p.service = DESCRIPTION_RESPONSE;
-  p.data.resize (56 + services () * 2);
+  p.data.resize (56 + services.size() * 2);
   p.data[0] = 54;
   p.data[1] = 1;
   p.data[2] = KNXmedium;
@@ -977,19 +960,19 @@ EIBNetIPPacket EIBnet_DescriptionResponse::ToPacket ()CONST
   p.data[5] = (individual_addr) & 0xff;
   p.data[6] = (installid >> 8) & 0xff;
   p.data[7] = (installid) & 0xff;
-  memcpy (p.data.array () + 18, &serial, 6);
-  memcpy (p.data.array () + 14, &multicastaddr, 4);
-  memcpy (p.data.array () + 18, &MAC, 6);
-  memcpy (p.data.array () + 24, &name, 30);
+  p.data.setpart((const uint8_t *)&serial, 8, 6);
+  p.data.setpart((const uint8_t *)&multicastaddr, 14, 4);
+  p.data.setpart((const uint8_t *)&MAC, 18, 6);
+  p.data.setpart((const uint8_t *)&name, 24, 30);
   p.data[53] = 0;
-  p.data[54] = services () * 2 + 2;
+  p.data[54] = services.size() * 2 + 2;
   p.data[55] = 2;
-  for (unsigned int i = 0; i < services (); i++)
+  for (unsigned int i = 0; i < services.size(); i++)
     {
       p.data[56 + i * 2] = services[i].family;
       p.data[57 + i * 2] = services[i].version;
     }
-  p.data.setpart (optional, 56 + services () * 2);
+  p.data.setpart (optional, 56 + services.size() * 2);
   return p;
 }
 
@@ -999,7 +982,7 @@ parseEIBnet_DescriptionResponse (const EIBNetIPPacket & p,
 {
   if (p.service != DESCRIPTION_RESPONSE)
     return 1;
-  if (p.data () < 56)
+  if (p.data.size() < 56)
     return 1;
   if (p.data[0] != 54)
     return 1;
@@ -1009,16 +992,16 @@ parseEIBnet_DescriptionResponse (const EIBNetIPPacket & p,
   r.devicestatus = p.data[3];
   r.individual_addr = (p.data[4] << 8) | p.data[5];
   r.installid = (p.data[6] << 8) | p.data[7];
-  memcpy (&r.serial, p.data.array () + 8, 6);
-  memcpy (&r.multicastaddr, p.data.array () + 14, 4);
-  memcpy (&r.MAC, p.data.array () + 18, 6);
-  memcpy (&r.name, p.data.array () + 24, 30);
+  memcpy (&r.serial, p.data.data () + 8, 6);
+  memcpy (&r.multicastaddr, p.data.data () + 14, 4);
+  memcpy (&r.MAC, p.data.data () + 18, 6);
+  memcpy (&r.name, p.data.data () + 24, 30);
   r.name[29] = 0;
   if (p.data[55] != 2)
     return 1;
   if (p.data[54] % 2)
     return 1;
-  if (p.data[54] + 54U > p.data ())
+  if (p.data[54] + 54U > p.data.size())
     return 1;
   r.services.resize ((p.data[54] / 2) - 1);
   for (int i = 0; i < (p.data[54] / 2) - 1; i++)
@@ -1026,8 +1009,8 @@ parseEIBnet_DescriptionResponse (const EIBNetIPPacket & p,
       r.services[i].family = p.data[56 + 2 * i];
       r.services[i].version = p.data[57 + 2 * i];
     }
-  r.optional.set (p.data.array () + p.data[54] + 54,
-		  p.data () - p.data[54] - 54);
+  r.optional.set (p.data.data () + p.data[54] + 54,
+		  p.data.size() - p.data[54] - 54);
   return 0;
 }
 
@@ -1053,7 +1036,7 @@ parseEIBnet_SearchRequest (const EIBNetIPPacket & p, EIBnet_SearchRequest & r)
 {
   if (p.service != SEARCH_REQUEST)
     return 1;
-  if (p.data () != 8)
+  if (p.data.size() != 8)
     return 1;
   if (EIBnettoIP (p.data, &r.caddr, &p.src, r.nat))
     return 1;
@@ -1075,12 +1058,10 @@ EIBnet_SearchResponse::EIBnet_SearchResponse ()
 
 EIBNetIPPacket EIBnet_SearchResponse::ToPacket ()CONST
 {
-  EIBNetIPPacket
-    p;
-  CArray
-    ca = IPtoEIBNetIP (&caddr, nat);
+  EIBNetIPPacket p;
+  CArray ca = IPtoEIBNetIP (&caddr, nat);
   p.service = SEARCH_RESPONSE;
-  p.data.resize (64 + services () * 2);
+  p.data.resize (64 + services.size() * 2);
   p.data.setpart (ca, 0);
   p.data[8] = 54;
   p.data[9] = 1;
@@ -1090,14 +1071,14 @@ EIBNetIPPacket EIBnet_SearchResponse::ToPacket ()CONST
   p.data[13] = (individual_addr) & 0xff;
   p.data[14] = (installid >> 8) & 0xff;
   p.data[15] = (installid) & 0xff;
-  memcpy (p.data.array () + 16, &serial, 6);
-  memcpy (p.data.array () + 22, &multicastaddr, 4);
-  memcpy (p.data.array () + 26, &MAC, 6);
-  memcpy (p.data.array () + 32, &name, 30);
+  p.data.setpart((uint8_t *)&serial, 16, 6);
+  p.data.setpart((uint8_t *)&multicastaddr, 22, 4);
+  p.data.setpart((uint8_t *)&MAC, 26, 6);
+  p.data.setpart((uint8_t *)&name, 32, 30);
   p.data[61] = 0;
-  p.data[62] = services () * 2 + 2;
+  p.data[62] = services.size() * 2 + 2;
   p.data[63] = 2;
-  for (unsigned int i = 0; i < services (); i++)
+  for (unsigned int i = 0; i < services.size(); i++)
     {
       p.data[64 + i * 2] = services[i].family;
       p.data[65 + i * 2] = services[i].version;
@@ -1111,9 +1092,9 @@ parseEIBnet_SearchResponse (const EIBNetIPPacket & p,
 {
   if (p.service != SEARCH_RESPONSE)
     return 1;
-  if (p.data () < 64)
+  if (p.data.size() < 64)
     return 1;
-  if (EIBnettoIP (CArray (p.data.array () + 0, 8), &r.caddr, &p.src, r.nat))
+  if (EIBnettoIP (CArray (p.data.data () + 0, 8), &r.caddr, &p.src, r.nat))
     return 1;
   if (p.data[8] != 54)
     return 1;
@@ -1123,16 +1104,16 @@ parseEIBnet_SearchResponse (const EIBNetIPPacket & p,
   r.devicestatus = p.data[11];
   r.individual_addr = (p.data[12] << 8) | p.data[13];
   r.installid = (p.data[14] << 8) | p.data[15];
-  memcpy (&r.serial, p.data.array () + 16, 6);
-  memcpy (&r.multicastaddr, p.data.array () + 22, 4);
-  memcpy (&r.MAC, p.data.array () + 26, 6);
-  memcpy (&r.name, p.data.array () + 32, 30);
+  memcpy (&r.serial, p.data.data () + 16, 6);
+  memcpy (&r.multicastaddr, p.data.data () + 22, 4);
+  memcpy (&r.MAC, p.data.data () + 26, 6);
+  memcpy (&r.name, p.data.data () + 32, 30);
   r.name[29] = 0;
   if (p.data[63] != 2)
     return 1;
   if (p.data[62] % 2)
     return 1;
-  if (p.data[62] + 62U > p.data ())
+  if (p.data[62] + 62U > p.data.size())
     return 1;
   r.services.resize ((p.data[62] / 2) - 1);
   for (int i = 0; i < (p.data[62] / 2) - 1; i++)
