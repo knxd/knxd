@@ -84,6 +84,8 @@ bool EIBNetIPTunnel::init (Layer3 *l3)
     return false;
   if (! addGroupAddress(0))
     return false;
+  if (! addAddress(0))
+    return false;
   return Layer2::init (l3);
 }
 
