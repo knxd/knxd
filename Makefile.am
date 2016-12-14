@@ -4,7 +4,7 @@ EXTRA_DIST=SubmittingPatches .gitignore version.sh
 
 BUILDDIRS = 
 
-SUBDIRS=. src systemd
+SUBDIRS=. libev src systemd
 DIST_SUBDIRS    = $(SUBDIRS) rpm
 
 BUILT_SOURCES=path.h

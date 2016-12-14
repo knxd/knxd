@@ -219,6 +219,17 @@ if test x$groupcache = xtrue ; then
  AC_DEFINE(HAVE_GROUPCACHE, 1 , [Group Cache enabled])
 fi
 
+if test ".$with_pth" != .no ; then
+ AC_DEFINE(HAVE_PTHSEM, 1, [libpthsem present])
+ dnl force linking to the embedded libev
+ CFLAGS="$CFLAGS -I$(pwd)/libev -DEV_USE_DEVPOLL"
+ CXXFLAGS="$CXXFLAGS -I$(pwd)/libev"
+ LIBS="$LIBS -Wl,-L$(pwd)/libev/.libs,-Bstatic,-lev,-Bdynamic"
+else
+ dnl nope. Use the system libev
+ AC_CHECK_LIB([ev], [ev_run],,[AC_MSG_ERROR([libev not found])])
+ LIBS="$LIBS -lev"
+fi
 
 AM_CONDITIONAL(HAVE_SOURCE_INFO, test x$have_source_info = xyes )
 
@@ -263,6 +274,7 @@ src/client/def/Makefile src/client/c/Makefile src/client/java/Makefile src/clien
 src/client/perl/Makefile src/client/python/Makefile src/client/pascal/Makefile src/client/ruby/Makefile src/client/lua/Makefile
 src/tools/eibnet/Makefile src/tools/bcu/Makefile src/usb/Makefile src/tools/Makefile systemd/Makefile systemd/knxd.service systemd/knxd.socket
 rpm/Makefile rpm/knxd.spec
+libev/Makefile
 )
 
 AC_CONFIG_MACRO_DIR([m4])

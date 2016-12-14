@@ -1,0 +1,3 @@
+[submodule "libev"]
+	path = libev
+	url = git@github.com:smurfix/libev.git
