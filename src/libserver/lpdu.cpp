@@ -252,11 +252,6 @@ L_Data_PDU::init (const CArray & c)
       if (len + 7 != c ())
 	return false;
       data.set (c.array () + 6, len);
-      c1 = 0;
-      for (i = 0; i < c () - 1; i++)
-	c1 ^= c[i];
-      c1 = ~c1;
-      valid_checksum = (c[c () - 1] == c1);
     }
   else
     {
@@ -282,13 +277,14 @@ L_Data_PDU::init (const CArray & c)
 	}
       else
 	data.set (c.array () + 7, len);
-
-      c1 = 0;
-      for (i = 0; i < c () - 1; i++)
-	c1 ^= c[i];
-      c1 = ~c1;
-      valid_checksum = (c[c () - 1] == c1);
     }
+
+  c1 = 0;
+  for (i = 0; i < c () - 1; i++)
+    c1 ^= c[i];
+  c1 = ~c1;
+  valid_checksum = (c[c () - 1] == c1);
+
   return true;
 }
 
