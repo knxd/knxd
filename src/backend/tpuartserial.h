@@ -47,9 +47,9 @@ class TPUARTSerialLayer2Driver:public Layer2, private Thread
   void Run (pth_sem_t * stop);
   const char *Name() { return "tpuarts"; }
 public:
-  TPUARTSerialLayer2Driver (const char *dev, L2options *opt, Layer3 *l3);
+  TPUARTSerialLayer2Driver (const char *dev, L2options *opt);
   ~TPUARTSerialLayer2Driver ();
-  bool init ();
+  bool init (Layer3 *l3);
 
   void Send_L_Data (LPDU * l);
 

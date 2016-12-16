@@ -30,10 +30,10 @@
 
 #define TPUARTs_CREATE tpuarts_Create
 
-inline Layer2 *
-tpuarts_Create (const char *dev, L2options *opt, Layer3 *l3)
+inline Layer2Ptr 
+tpuarts_Create (const char *dev, L2options *opt)
 {
-  return new TPUARTSerialLayer2Driver (dev, opt, l3);
+  return std::shared_ptr<TPUARTSerialLayer2Driver>(new TPUARTSerialLayer2Driver (dev, opt));
 }
 
 #endif

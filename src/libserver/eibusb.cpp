@@ -271,10 +271,10 @@ USBConverterInterface::Send_Queue_Empty ()
 }
 
 
-USBLayer2::USBLayer2 (LowLevelDriver * i, Layer3 * l3,
-                      L2options *opt) : Layer2 (l3, opt)
+USBLayer2::USBLayer2 (LowLevelDriver * i,
+                      L2options *opt) : Layer2 (opt)
 {
-  emi = 0;
+  emi = nullptr;
   LowLevelDriver *iface = initUSBDriver (i, t);
   if (!iface)
     return;
@@ -282,13 +282,13 @@ USBLayer2::USBLayer2 (LowLevelDriver * i, Layer3 * l3,
   switch (iface->getEMIVer ())
     {
     case LowLevelDriver::vEMI1:
-      emi = new EMI1Layer2 (iface, l3, opt);
+      emi = std::shared_ptr<EMI1Layer2> (new EMI1Layer2 (iface, opt));
       break;
     case LowLevelDriver::vEMI2:
-      emi = new EMI2Layer2 (iface, l3, opt);
+      emi = std::shared_ptr<EMI2Layer2>(new EMI2Layer2 (iface, opt));
       break;
     case LowLevelDriver::vCEMI:
-      emi = new CEMILayer2 (iface, l3, opt);
+      emi = std::shared_ptr<CEMILayer2>(new CEMILayer2 (iface, opt));
       break;
     default:
       TRACEPRINTF (t, 2, this, "Unsupported EMI");
@@ -297,33 +297,15 @@ USBLayer2::USBLayer2 (LowLevelDriver * i, Layer3 * l3,
     }
 }
 
-USBLayer2::~USBLayer2 ()
-{
-  if (emi)
-    delete emi;
-}
-
-bool USBLayer2::init ()
+bool USBLayer2::init (Layer3 *l3)
 {
   if (emi == 0)
     return false;
-  if (! layer2_is_bus())
+  if (! addGroupAddress(0))
     return false;
-  return Layer2::init();
-}
-
-bool USBLayer2::openVBusmonitor ()
-{
-  if (! Layer2::openVBusmonitor ())
+  if (! emi->init(l3))
     return false;
-  return emi->openVBusmonitor ();
-}
-
-bool USBLayer2::closeVBusmonitor ()
-{
-  if (! Layer2::closeVBusmonitor ())
-    return false;
-  return emi->closeVBusmonitor ();
+  return Layer2::init(l3);
 }
 
 bool USBLayer2::enterBusmonitor ()

@@ -2,7 +2,7 @@ AM_CPPFLAGS=-I$(top_srcdir)/src/include -I$(top_srcdir)/src/common
 
 bin_PROGRAMS=knxtool
 
-proglibdir=$(pkglibdir)
+proglibdir=$(libexecdir)/knxd
 proglib_PROGRAMS=eibread-cgi eibwrite-cgi
 
 LDADD=../client/c/libeibclient.la
@@ -27,8 +27,8 @@ links=busmonitor1 busmonitor2 readindividual progmodeon progmodeoff \
       vbusmonitor1time
 
 install-exec-local:
-	mkdir -p $(DESTDIR)/$(pkglibdir)
-	for L in ${links}; do ln -sf ../../bin/knxtool $(DESTDIR)/$(pkglibdir)/$$L; done
+	mkdir -p $(DESTDIR)/$(proglibdir)
+	for L in ${links}; do ln -sf ../../bin/knxtool $(DESTDIR)/$(proglibdir)/$$L; done
 	
 
 examplesdir=$(pkgdatadir)/examples

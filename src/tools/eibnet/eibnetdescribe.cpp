@@ -86,12 +86,12 @@ main (int ac, char *ag[])
   else
     dport = 3671;
 
-  Trace t;
+  Trace t = Trace("main");
   t.SetTraceLevel (tracelevel);
 
   printf ("Asking %s at port %d from port %d\n", a, dport, sport);
 
-  if (!GetHostIP (&caddr, a))
+  if (!GetHostIP (NULL, &caddr, a))
     die ("Host not found");
   caddr.sin_port = htons (dport);
   if (!GetSourceAddress (&caddr, &saddr))

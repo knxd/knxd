@@ -157,7 +157,7 @@ main (int ac, char *ag[])
   signal (SIGPIPE, SIG_IGN);
   pth_init ();
 
-  Trace t;
+  Trace t = Trace("main");
   t.SetTraceLevel (arg.tracelevel);
 
   iface = Create (ag[index], &t);

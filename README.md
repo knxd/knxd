@@ -11,7 +11,7 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 
 ## New Features
 
-* 0.10 (this branch)
+* 0.10 (``stable`` branch -- please try 0.11 first!)
 
   * Support for more than one KNX interface
 
@@ -19,7 +19,7 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 
   * ETS5 compatibility
 
-* 0.11 (``conn_sep`` branch)
+* 0.11 (``master`` branch -- new features here)
 
   * Major refactoring
 
@@ -32,8 +32,9 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 On Debian:
 
     # Do not use "sudo" unless told to do so.
-    # If "dpkg-buildpackage" complains about missing packages:
-    # install them (with "apt-get install") and try again.
+    # If "dpkg-buildpackage" complains about missing packages
+    # ("Unmet build dependencies"): install them
+    # (apt-get install …) and try that step again.
     # If it wants "x | y", try just x; install y if that doesn't work.
     # Also, if it complains about conflicting packages, remove them (duh).
 
@@ -62,7 +63,7 @@ If "systemctl status" emits something reasonable, you are.
 
 If you use systemd, the configuration file is ``/etc/knxd.conf``.
 Socket activation is used for the default IP and Unix sockets
-(port 4720 and /run/knx, respectively).
+(port 6720 and /run/knx, respectively).
 
 Without systemd, on Debian, edit ``/etc/default/knxd``.
 
@@ -70,7 +71,7 @@ The default Unix socket is ``/run/knx``.
 Old eibd clients may still use ``/tmp/eib`` to talk to knxd.
 You need to either change their configuration, or add "-u /tmp/eib"
 to knxd's options.
-(This is the default for "-u" before version 0.11. Don't depend on it.)
+(This was the default for "-u" before version 0.11.)
 
 ### Adding a TPUART USB interface
 
@@ -106,9 +107,24 @@ If you have a second TPUART, repeat with "ttyACM1" and "ttyKNX2".
 You'll have to update your rule if you ever plug your TPUART into a different USB port.
 This is intentional.
 
+
+## Migrating from ``eibd``
+
+* Before you even build: remove *any* traces of the old eibd installation from ``/usr/local``.
+* The order of arguments is now significant. Among the "-D -T -R -S" arguments, ``-S`` must occur *last*.
+* The groupswrite etc. aliases are no longer installed by default. To workaround, you can either add ``/usr/lib/knxd`` to your ``$PATH``, or use ``knxtool groupswrite``.
+* If you use Debian Jessie or another systemd-based distribution, the ``/lib/systemd/system/knxd.socket`` file is used to open the local sockets for knxd. Therefore you no longer need your old ``-i`` or ``-u`` options.
+* knxd's Unix socket should never have been located in ``/tmp``; the default is now ``/run/knx``.
+
 ## Contributions
 
 * Any contribution is *very* welcome
 * Please use Github and create a pull request with your patches
 * Please see SubmittingPatches to correctly Sign-Off your code and add yourself to AUTHORS (`tools/list_AUTHORS > AUTHORS`)
 * Adhere to our [coding conventions](https://github.com/knxd/knxd/wiki/CodingConventions).
+
+## Community
+
+* Code-related issues are on GitHub: https://github.com/knxd/knxd/issues
+* For everything else there's a Google Groups forum on https://groups.google.com/forum/#!forum/knxd
+

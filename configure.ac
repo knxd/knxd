@@ -25,7 +25,7 @@ dnl ##    SUCH DAMAGE.
 
 AC_PREREQ(2.59)
 
-AC_INIT(knxd, 0.10.0)
+AC_INIT(knxd, m4_esyscmd(sh ./version.sh))
 AM_INIT_AUTOMAKE([foreign])
 
 AC_CANONICAL_HOST
@@ -44,7 +44,8 @@ GMP_PROG_CPP_FOR_BUILD
 GMP_PROG_EXEEXT_FOR_BUILD
 CC_FOR_BUILD_OPTS
 
-AC_COMPILER_OPTION(nortti,[-fno-rtti],[-fno-rtti],CXXFLAGS="$CXXFLAGS -fno-rtti")
+dnl AC_COMPILER_OPTION(nortti,[-fno-rtti],[-fno-rtti],CXXFLAGS="$CXXFLAGS -fno-rtti")
+AC_COMPILER_OPTION(stdc,[-std=c++0x],[-std=c++0x],CXXFLAGS="$CXXFLAGS -std=c++0x")
 AC_COMPILER_OPTION(noexceptions,[-fno-exceptions],[-fno-exceptions],CXXFLAGS="$CXXFLAGS -fno-exceptions")
 AC_CHECK_PTHSEM(2.0.8,yes,yes,no)
 PTHSEM_LIB="$PTH_LDFLAGS $PTH_LIBS"
@@ -122,6 +123,18 @@ AC_ARG_ENABLE(tpuarts,
 AM_CONDITIONAL(HAVE_TPUARTs, test x$tpuarts = xtrue)
 if test x$tpuarts = xtrue ; then
  AC_DEFINE(HAVE_TPUARTs, 1 , [TPUARTs enabled])
+fi
+
+AC_ARG_ENABLE(tpuarts-tcp,
+[  --enable-tpuarts-tcp	enable TPUART-over-TCP user driver backend],
+[case "${enableval}" in
+ yes) tpuarts_tcp=true ;;
+  no)  tpuarts_tcp=false ;;
+   *) AC_MSG_ERROR(bad value ${enableval} for --enable-tpuarts-tcp) ;;
+ esac],[tpuarts=true])
+AM_CONDITIONAL(HAVE_TPUARTs_TCP, test x$tpuarts_tcp = xtrue)
+if test x$tpuarts_tcp = xtrue ; then
+ AC_DEFINE(HAVE_TPUARTs_TCP, 1 , [TPUART-over-TCP enabled])
 fi
 
 AC_ARG_ENABLE(eibnetip,
@@ -231,18 +244,6 @@ if test x$enablejava = xtrue ; then
   AC_MSG_ERROR(jar not found)
  fi
 
-fi
-
-AC_ARG_WITH(libstdc,
-[  --without-libstdc	don't use function from libstdc++],
-[case "${withval}" in
- yes) use_libstdc=true ;;
-  no)  use_libstdc=false ;;
-   *) AC_MSG_ERROR(bad value ${withval} for --with-libstdc) ;;
- esac],[use_libstdc=true])
-if test x$use_libstdc = xfalse ; then
- AC_DEFINE(USE_NOLIBSTDC, 1 , [don't use libstdc++])
- CXX=$CC
 fi
 
 AM_CONDITIONAL(BUILD_JAVA, test x$enablejava = xtrue )

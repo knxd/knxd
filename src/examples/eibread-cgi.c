@@ -2,7 +2,7 @@
     cgi for webserver to read groupcachelastupdates from comet/ajax client
 
     Parameters:
-    url= (ip:host:port or local:/tmp/eib - local is default)
+    url= (ip:host:port or local:/run/knx - local is default)
     p=position
     t=timeout (10000)
     g=GA&g=GA... - groupadresses as x/y/z or integer
@@ -287,7 +287,7 @@ main ()
   readParseCGI();
   //readConfig();
   if (*eiburl == NULL)
-    *eiburl = "local:/tmp/eib";
+    *eiburl = "local:/run/knx";
 
   con = EIBSocketURL (*eiburl);
   if (!con)

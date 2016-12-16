@@ -64,7 +64,7 @@ L_Data_ToCEMI (uchar code, const L_Data_PDU & l1)
 }
 
 L_Data_PDU *
-CEMI_to_L_Data (const CArray & data, Layer2 * l2)
+CEMI_to_L_Data (const CArray & data, Layer2Ptr l2)
 {
   L_Data_PDU c = L_Data_PDU (l2);
   if (data () < 2)
@@ -116,7 +116,7 @@ CEMI_to_L_Data (const CArray & data, Layer2 * l2)
 }
 
 L_Busmonitor_PDU *
-CEMI_to_Busmonitor (const CArray & data, Layer2 * l2)
+CEMI_to_Busmonitor (const CArray & data, Layer2Ptr l2)
 {
   L_Busmonitor_PDU c = L_Busmonitor_PDU (l2);
   if (data () < 2)
@@ -152,6 +152,13 @@ Busmonitor_to_CEMI (uchar code, const L_Busmonitor_PDU & p, int no)
   pdu[8] = (p.timestamp & 0x000000ff);
 
   pdu.setpart (p.pdu, 9);
+  /**pdu.resize (p.pdu () + 5);
+  pdu[0] = code;
+  pdu[1] = 3;        /* AddIL */
+  /**pdu[2] = 3;        /* Type ID = L_Busmon.ind */
+  /**pdu[3] = 1;        /* Len */
+  /**pdu[4] = no & 0x7; /* Status */
+  /**pdu.setpart (p.pdu, 5);*/
   return pdu;
 }
 
@@ -191,7 +198,7 @@ L_Data_ToEMI (uchar code, const L_Data_PDU & l1)
 }
 
 L_Data_PDU *
-EMI_to_L_Data (const CArray & data, Layer2 * l2)
+EMI_to_L_Data (const CArray & data, Layer2Ptr l2)
 {
   L_Data_PDU c = L_Data_PDU (l2);
   unsigned len;

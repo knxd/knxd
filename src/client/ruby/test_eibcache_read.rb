@@ -2,7 +2,7 @@ require 'EIBConnection'
 require 'knx_tools'
 
 Conn = EIBConnection.new()
-Conn.EIBSocketURL('local:/tmp/eib')
+Conn.EIBSocketURL('local:/run/knx')
 Buf =  EIBBuffer.new()
 Src = EIBAddr.new()
 Dest = str2addr('1/1/1')

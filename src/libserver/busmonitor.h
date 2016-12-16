@@ -54,8 +54,8 @@ public:
    * @param virt is virtual busmonitor
    * @param ts provide timestamps
    */
-  A_Busmonitor (ClientConnection * c, Layer3 * l3, Trace * tr, bool virt =
-                false, bool ts = false);
+  A_Busmonitor (ClientConnection * c,
+                bool virt = false, bool ts = false);
   virtual ~A_Busmonitor ();
   void Send_L_Busmonitor (L_Busmonitor_PDU * l);
 
@@ -75,9 +75,8 @@ public:
    * @param l3 Layer 3
    * @param virt is virtual busmonitor
    */
-  A_Text_Busmonitor (ClientConnection * c, Layer3 * l3, Trace * tr, bool virt = 0):A_Busmonitor (c, l3, tr,
-		virt,
-		false)
+  A_Text_Busmonitor (ClientConnection * c, bool virt = 0)
+                   : A_Busmonitor (c, virt, false)
   {
   }
 };

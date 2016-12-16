@@ -86,6 +86,9 @@ vbusmonitor1time\n");
 	  return 0;
     }
 
+  /* Buffering stdout is almost never what we want */
+  setvbuf(stdout, NULL, _IOLBF, 0);
+
   if (strcmp (prog, "on") == 0)
     {
       if (ac != 3)

@@ -59,7 +59,7 @@ class GroupCache:public Layer2mixin
 
 public:
   /** constructor */
-  GroupCache (Layer3 * l3, Trace * t);
+  GroupCache (Trace * t);
   /** destructor */
   virtual ~GroupCache ();
   /** Feed data to the cache */
@@ -80,5 +80,7 @@ public:
   // remove this group
   void remove (eibaddr_t addr);
 };
+
+typedef std::shared_ptr<GroupCache> GroupCachePtr;
 
 #endif

@@ -19,17 +19,35 @@
 
 #include <stdio.h>
 #include <stdarg.h>
+#include <sys/time.h>
 
 #include "trace.h"
+
+unsigned int trace_seq = 0;
+unsigned int trace_namelen = 3;
+
+void
+Trace::TraceHeader (int layer)
+{
+  struct timeval tv;
+  gettimeofday(&tv, NULL);
+  if (tv.tv_usec < started.tv_usec) {
+    tv.tv_usec += 1000000;
+    tv.tv_sec -= 1;
+  }
+  tv.tv_usec -= started.tv_usec;
+  tv.tv_sec -= started.tv_sec;
+
+  printf ("Layer %d [%d:%-*s %u.%03u] ", layer, seq, trace_namelen, name.c_str(), (unsigned int)tv.tv_sec,(unsigned int)tv.tv_usec/1000);
+}
 
 void
 Trace::TracePacketUncond (int layer, void *inst, const char *msg, int Len,
 			  const uchar * data)
 {
   int i;
-  int t = time (0);
-  printf ("Layer %d(%08lX,%08X) %s(%03d):", layer, (unsigned long) inst, t,
-	  msg, Len);
+  TraceHeader(layer);
+  printf ("%s(%03d):", msg, Len);
   for (i = 0; i < Len; i++)
     printf (" %02X", data[i]);
   printf ("\n");
@@ -39,8 +57,7 @@ void
 Trace::TracePrintf (int layer, void *inst, const char *msg, ...)
 {
   va_list ap;
-  int t = time (0);
-  printf ("Layer %d(%08lX,%08X) ", layer, (unsigned long) inst, t);
+  TraceHeader(layer);
   va_start (ap, msg);
   vprintf (msg, ap);
   printf ("\n");

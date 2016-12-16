@@ -2,7 +2,7 @@
     cgi for webserver to write from comet/ajax client
 
     Parameters:
-    url= (ip:host:port or local:/tmp/eib - local is default)
+    url= (ip:host:port or local:/run/knx - local is default)
     t=timeout (10000)
     g=GA - groupadress as x/y/z or integer
     v=cleartext value
@@ -224,7 +224,7 @@ main ()
 
   readParseCGI();
   if (*eiburl == NULL)
-    *eiburl = "local:/tmp/eib";
+    *eiburl = "local:/run/knx";
 
   con = EIBSocketURL (*eiburl);
   if (!con)

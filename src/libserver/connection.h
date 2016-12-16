@@ -26,15 +26,13 @@
 /** implements client interface to a broadcast connection */
 class A_Broadcast:private Thread
 {
-  Layer3 *layer3;
-  Trace *t;
   ClientConnection *con;
-  T_Broadcast *c;
+  T_BroadcastPtr c;
 
   void Run (pth_sem_t * stop);
   const char *Name() { return "broadcast"; }
 public:
-  A_Broadcast (Layer3 * l3, Trace * tr, ClientConnection * cc);
+  A_Broadcast (ClientConnection * cc);
   ~A_Broadcast ();
 
   /** start processing */
@@ -44,15 +42,13 @@ public:
 /** implements client interface to a group connection */
 class A_Group:private Thread
 {
-  Layer3 *layer3;
-  Trace *t;
   ClientConnection *con;
-  T_Group *c;
+  T_GroupPtr c;
 
   void Run (pth_sem_t * stop);
   const char *Name() { return "group"; }
 public:
-  A_Group (Layer3 * l3, Trace * tr, ClientConnection * cc);
+  A_Group (ClientConnection * cc);
   ~A_Group ();
 
   /** start processing */
@@ -62,15 +58,13 @@ public:
 /** implements client interface to a raw connection */
 class A_TPDU:private Thread
 {
-  Layer3 *layer3;
-  Trace *t;
   ClientConnection *con;
-  T_TPDU *c;
+  T_TPDUPtr c;
 
   void Run (pth_sem_t * stop);
   const char *Name() { return "tpdu"; }
 public:
-  A_TPDU (Layer3 * l3, Trace * tr, ClientConnection * cc);
+  A_TPDU (ClientConnection * cc);
   ~A_TPDU ();
 
   /** start processing */
@@ -80,15 +74,13 @@ public:
 /** implements client interface to a T_Indivdual connection */
 class A_Individual:private Thread
 {
-  Layer3 *layer3;
-  Trace *t;
   ClientConnection *con;
-  T_Individual *c;
+  T_IndividualPtr c;
 
   void Run (pth_sem_t * stop);
   const char *Name() { return "individual"; }
 public:
-  A_Individual (Layer3 * l3, Trace * tr, ClientConnection * cc);
+  A_Individual (ClientConnection * cc);
   ~A_Individual ();
 
   /** start processing */
@@ -98,15 +90,13 @@ public:
 /** implements client interface to a T_Connection connection */
 class A_Connection:private Thread
 {
-  Layer3 *layer3;
-  Trace *t;
   ClientConnection *con;
-  T_Connection *c;
+  T_ConnectionPtr c;
 
   void Run (pth_sem_t * stop);
   const char *Name() { return "connection"; }
 public:
-  A_Connection (Layer3 * l3, Trace * tr, ClientConnection * cc);
+  A_Connection (ClientConnection * cc);
   ~A_Connection ();
 
   /** start processing */
@@ -116,15 +106,13 @@ public:
 /** implements client interface to a group socket */
 class A_GroupSocket:private Thread
 {
-  Layer3 *layer3;
-  Trace *t;
   ClientConnection *con;
-  GroupSocket *c;
+  GroupSocketPtr c;
 
   void Run (pth_sem_t * stop);
   const char *Name() { return "groupsocket"; }
 public:
-  A_GroupSocket (Layer3 * l3, Trace * tr, ClientConnection * cc);
+  A_GroupSocket (ClientConnection * cc);
   ~A_GroupSocket ();
 
   /** start processing */

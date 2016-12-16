@@ -37,6 +37,9 @@
 #ifdef HAVE_TPUARTs
 #include "b-TPUARTs.h"
 #endif
+#ifdef HAVE_TPUARTs_TCP
+#include "b-TPUARTs-TCP.h"
+#endif
 #ifdef HAVE_USB
 #include "b-USB.h"
 #endif

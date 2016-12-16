@@ -21,35 +21,36 @@
 #include "groupcache.h"
 #include "client.h"
 
-static GroupCache *cache = 0;
-
 bool
 CreateGroupCache (Layer3 * l3, Trace * t, bool enable)
 {
-  cache = new GroupCache (l3, t);
-  if (!cache->init ())
+  GroupCachePtr cache;
+  if (l3->cache)
+    return false;
+  cache = GroupCachePtr(new GroupCache (t));
+  if (!cache->init (l3))
     return false;
   if (enable)
     if (!cache->Start ())
       return false;
+  l3->cache = cache;
   return true;
 }
 
 void
-DeleteGroupCache ()
+DeleteGroupCache (Layer3 * l3)
 {
-  if (cache)
-    delete cache;
+  l3->cache = 0;
 }
 
 void
-GroupCacheRequest (Layer3 * l3 UNUSED, Trace * t UNUSED, ClientConnection * c,
-		   pth_event_t stop)
+GroupCacheRequest (ClientConnection * c, pth_event_t stop)
 {
   GroupCacheEntry gc;
   CArray erg;
   eibaddr_t dst;
   uint16_t age = 0;
+  GroupCachePtr cache = c->l3 ? c->l3->cache : 0;
 
   if (!cache)
     {

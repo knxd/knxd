@@ -25,13 +25,10 @@
 #include "dummy.h"
 #include "layer3.h"
 
-DummyL2Driver::DummyL2Driver (Layer3 *l3, L2options *opt) : Layer2 (l3, opt)
+DummyL2Driver::DummyL2Driver (L2options *opt) : Layer2 (opt)
 {
   TRACEPRINTF (t, 2, this, "Open");
-
-  layer2_is_bus();
   Start ();
-
   TRACEPRINTF (t, 2, this, "Openend");
 }
 
@@ -47,7 +44,7 @@ DummyL2Driver::Send_L_Data (LPDU * l)
   TRACEPRINTF (t, 2, this, "Send %s", l->Decode ()());
   if ((mode & BUSMODE_MONITOR) && l->getType () == L_Data)
     {
-      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
+      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (shared_from_this());
       l2->pdu.set (l->ToPacket ());
       l3->recv_L_Data (l2);
     }

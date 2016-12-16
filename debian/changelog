@@ -1,3 +1,160 @@
+knxd (0.11.14-1) unstable; urgency=medium
+
+  * Merge #171: configurable send delay
+    (for those interfaces which already had a delay)
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 11 Dec 2016 23:41:48 +0100
+
+knxd (0.11.13-1) unstable; urgency=medium
+
+  * Re-do logging
+    - numbered and named channels
+    - milliseconds
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 11 Dec 2016 23:41:48 +0100
+
+knxd (0.11.12-1) unstable; urgency=medium
+
+  * Change tpuarts baud rate
+  * Merge #174: elupus:disconnect_success
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 08 Dec 2016 19:27:15 +0100
+
+knxd (0.11.11-1) unstable; urgency=medium
+
+  * Add tpuarts-over-tcp driver (for CUNx, busware.de)
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 08 Dec 2016 17:22:29 +0100
+
+knxd (0.11.11-0) unstable; urgency=medium
+
+  * Implemented a --send-delay=X option
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 02 Dec 2016 00:44:40 +0100
+
+knxd (0.11.10-1) unstable; urgency=medium
+
+  * Correct invalid length of L_Busmon.ind field for busmonitor mode
+  * fix server crash when there's no ACK
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 27 Nov 2016 22:07:56 +0100
+
+knxd (0.11.9-1) unstable; urgency=medium
+
+  * removed layer2_is_bus() call
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sat, 19 Mar 2016 15:57:35 +0100
+
+knxd (0.11.8-2) unstable; urgency=low
+
+  * Merged master branch up to 0.10.13-3
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sat, 12 Mar 2016 14:55:20 +0100
+
+knxd (0.11.8-1) unstable; urgency=medium
+
+  * Merged master branch up to 0.10.13-2
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 11 Mar 2016 16:40:16 +0100
+
+knxd (0.11.7-2) unstable; urgency=medium
+
+  * Merged master branch up to 0.10.12-1
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sat, 23 Jan 2016 15:52:06 +0100
+
+knxd (0.11.6-1) unstable; urgency=medium
+
+  * Merged master branch up to 0.10.11-1
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 08 Jan 2016 17:57:49 +0100
+
+knxd (0.11.5-1) unstable; urgency=medium
+
+  * Merged master branch up to 0.10.10-1
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 18 Nov 2015 13:40:53 +0100
+
+knxd (0.11.4-2) unstable; urgency=medium
+
+  * Merged master branch up to 0.10.9-3
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 12 Oct 2015 16:14:16 +0200
+
+knxd (0.11.4-1) unstable; urgency=medium
+
+  * Merged master branch up to 0.10.9-2
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 20 Sep 2015 16:14:50 +0200
+
+knxd (0.11.3-1) unstable; urgency=medium
+
+  * Default Unix socket changed to /run/knx
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 17 Sep 2015 02:22:27 +0200
+
+knxd (0.11.2-4) unstable; urgency=medium
+
+  * Merged
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 17 Sep 2015 02:15:36 +0200
+
+knxd (0.11.2-3) unstable; urgency=medium
+
+  * Merged master branch
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 10 Sep 2015 14:08:39 +0200
+
+knxd (0.11.1-1) unstable; urgency=medium
+
+  * Allocate remote addresses to clients
+  * Refactor multicast to use a separate port for sending
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 28 Jun 2015 06:53:31 +0000
+
+knxd (0.10.14-1) unstable; urgency=medium
+
+  * New release.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 09 Dec 2016 16:28:09 +0100
+
+knxd (0.10.13-3) unstable; urgency=medium
+
+  * Typo in debian/rules
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sat, 12 Mar 2016 14:51:46 +0100
+
+knxd (0.10.13-2) unstable; urgency=medium
+
+  * Fix rebuild when install-sh is missing
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 11 Mar 2016 16:19:02 +0100
+
+knxd (0.10.13-1) unstable; urgency=medium
+
+  * Fix systemd test
+    post Jessie there is no more libsystemd-daemon
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 11 Mar 2016 15:08:45 +0100
+
+knxd (0.10.12-1) unstable; urgency=medium
+
+  * /run/knx, not /run/knxd
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 22 Jan 2016 14:42:58 +0100
+
+knxd (0.10.11-2) unstable; urgency=medium
+
+  * Fix udev installation
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 21 Jan 2016 21:07:27 +0100
+
+knxd (0.10.11-1) unstable; urgency=medium
+
+  * Fix the ft12 driver
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 31 Dec 2015 07:00:07 +0100
+
 knxd (0.10.10-1) unstable; urgency=medium
 
   * USB HID fixes

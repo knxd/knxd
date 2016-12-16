@@ -22,6 +22,16 @@
 
 #include <pthsem.h>
 
+// SIGH
+static inline bool operator!=(const pth_time_t& a, const pth_time_t& b)
+{
+    return a.tv_sec != b.tv_sec || a.tv_usec != b.tv_usec;
+}
+static inline bool operator==(const pth_time_t& a, const pth_time_t& b)
+{
+    return a.tv_sec == b.tv_sec && a.tv_usec == b.tv_usec;
+}
+
 /** interface for a class started by a thread */
 class Runable
 {
@@ -44,7 +54,7 @@ class Thread
   pth_t tid;
   /** object to run */
   Runable *obj;
-  /** entry point */
+  /** entry point (ignored if you override Run) */
   THREADENTRY entry;
   /** stop condition */
   pth_sem_t should_stop;
@@ -56,6 +66,8 @@ protected:
    * @param stop if stop can be decemented, the routine should exit
    */
   virtual void Run (pth_sem_t * stop);
+  /** called when Run has finished */
+  virtual void RunDone () {}
   virtual const char * Name () = 0;
 public:
   /** create a thread

@@ -7,7 +7,7 @@ Build-Depends: debhelper (>= 7.0.0),
   libpthsem-dev, libpthsem20,
   libusb-1.0-0 (>= 1.0.10), libusb-1.0-0-dev (>= 1.0.10),
   pkg-config,
-  libsystemd-daemon-dev (>= 200) | base-files (<< 8),
+  libsystemd-dev (>= 228) | libsystemd-daemon-dev (>= 200) | base-files (<< 8),
   debianutils,
   dh-systemd | base-files (<< 8)
 Build-Conflicts: libsystemd-daemon-dev (<< 200)

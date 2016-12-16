@@ -21,26 +21,17 @@
 #include "emi.h"
 #include "layer3.h"
 
-bool
-EMI1Layer2::addAddress (eibaddr_t addr UNUSED)
-{
-  return false;
-}
-
-bool
-EMI1Layer2::removeAddress (eibaddr_t addr UNUSED)
-{
-  return false;
-}
-
-EMI1Layer2::EMI1Layer2 (LowLevelDriver * i, Layer3 * l3,
-                        L2options *opt) : Layer2(l3, opt)
+EMI1Layer2::EMI1Layer2 (LowLevelDriver * i, 
+                        L2options *opt) : Layer2(opt)
 {
   TRACEPRINTF (t, 2, this, "Open");
   iface = i;
-  noqueue = opt ? (opt->flags & FLAG_B_EMI_NOQUEUE) : false;
-  if (opt->flags)
-    opt->flags &=~ FLAG_B_EMI_NOQUEUE;
+  if (opt && opt->send_delay) {
+    send_delay = pth_time(opt->send_delay / 1000, (opt->send_delay % 1000) * 1000);
+    opt->send_delay = 0;
+  } else
+    send_delay = pth_null_time;
+
   pth_sem_init (&in_signal);
   if (!iface->init ())
     {
@@ -53,11 +44,13 @@ EMI1Layer2::EMI1Layer2 (LowLevelDriver * i, Layer3 * l3,
 }
 
 bool
-EMI1Layer2::init ()
+EMI1Layer2::init (Layer3 * l3)
 {
-  if (! layer2_is_bus())
+  if (iface == 0)
     return false;
-  return iface != 0;
+  if (! addGroupAddress(0))
+    return false;
+  return Layer2::init (l3);
 }
 
 EMI1Layer2::~EMI1Layer2 ()
@@ -183,12 +176,6 @@ EMI1Layer2::Send (LPDU * l)
 
   CArray pdu = L_Data_ToEMI (0x11, *l1);
   iface->Send_Packet (pdu);
-  if (mode == BUSMODE_VMONITOR)
-    {
-      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
-      l2->pdu.set (l->ToPacket ());
-      l3->recv_L_Data (l2);
-    }
   delete l;
 }
 
@@ -212,10 +199,9 @@ EMI1Layer2::Run (pth_sem_t * stop1)
 	{
 	  pth_sem_dec (&in_signal);	
 	  Send(inqueue.get());
-	  if (noqueue)
+	  if (send_delay != pth_null_time)
 	    {
-	      pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE, timeout,
-			 pth_time (1, 0));
+	      pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE, timeout, send_delay);
 	      wait_confirm = true;
 	    }
 	}
@@ -241,26 +227,20 @@ EMI1Layer2::Run (pth_sem_t * stop1)
 	wait_confirm = false;
       if (c->len () && (*c)[0] == 0x49 && (mode & BUSMODE_UP))
 	{
-	  L_Data_PDU *p = EMI_to_L_Data (*c, this);
+	  L_Data_PDU *p = EMI_to_L_Data (*c, shared_from_this());
 	  if (p)
 	    {
 	      delete c;
 	      if (p->AddrType == IndividualAddress)
 		p->dest = 0;
 	      TRACEPRINTF (t, 2, this, "Recv %s", p->Decode ()());
-	      if (mode == BUSMODE_VMONITOR)
-		{
-		  L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (this);
-		  l2->pdu.set (p->ToPacket ());
-		  l3->recv_L_Data (l2);
-		}
 	      l3->recv_L_Data (p);
 	      continue;
 	    }
 	}
       if (c->len () > 4 && (*c)[0] == 0x49 && mode == BUSMODE_MONITOR)
 	{
-	  L_Busmonitor_PDU *p = new L_Busmonitor_PDU (this);
+	  L_Busmonitor_PDU *p = new L_Busmonitor_PDU (shared_from_this());
 	  p->status = (*c)[1];
 	  p->timestamp = ((*c)[2] << 24) | ((*c)[3] << 16);
 	  p->pdu.set (c->array () + 4, c->len () - 4);

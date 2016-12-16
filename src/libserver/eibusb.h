@@ -52,19 +52,16 @@ LowLevelDriver *initUSBDriver (LowLevelDriver * i,
 class USBLayer2:public Layer2
 {
   /** EMI */
-  Layer2 *emi;
+  Layer2Ptr emi;
 
 public:
-  USBLayer2 (LowLevelDriver * i, Layer3 * l3, L2options *opt);
-  ~USBLayer2 ();
-  bool init ();
+  USBLayer2 (LowLevelDriver * i, L2options *opt);
+  bool init (Layer3 * l3);
 
   void Send_L_Data (LPDU * l);
 
   bool enterBusmonitor ();
   bool leaveBusmonitor ();
-  bool openVBusmonitor ();
-  bool closeVBusmonitor ();
 
   bool Open ();
   bool Close ();

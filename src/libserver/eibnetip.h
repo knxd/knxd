@@ -44,8 +44,14 @@
 
 #define ROUTING_INDICATION 0x0530
 
+typedef enum {
+  S_RDWR, S_RD, S_WR,
+} SockMode;
+
+class Trace;
+
 /** resolve host name */
-int GetHostIP (struct sockaddr_in *sock, const char *Name);
+int GetHostIP (Trace *t, struct sockaddr_in *sock, const char *Name);
 /** gets source address for a route */
 int GetSourceAddress (const struct sockaddr_in *dest,
 		      struct sockaddr_in *src);
@@ -316,11 +322,12 @@ class EIBNetIPSocket:private Thread
   void Run (pth_sem_t * stop);
   const char *Name() { return "eibnetipsocket"; }
 public:
-  EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr, Trace * tr);
+  EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr, Trace * tr,
+                  SockMode mode = S_RDWR);
   virtual ~EIBNetIPSocket ();
   bool init ();
 
-    /** enables multicast */
+  /** enables multicast */
   bool SetMulticast (struct ip_mreq multicastaddr);
   /** sends a packet */
   void Send (EIBNetIPPacket p, struct sockaddr_in addr);
@@ -329,15 +336,20 @@ public:
   }
   EIBNetIPPacket *Get (pth_event_t stop);
 
+  /** get the port this socket is bound to (network byte order) */
+  int port ();
+
   /** default send address */
   struct sockaddr_in sendaddr;
-  /** addres to accept packets from */
+
+  /** address to accept packets from, if recvall is 0 */
   struct sockaddr_in recvaddr;
-  /** addres to accept packets from */
+  /** address to also accept packets from, if 'recvall' is 3 */
   struct sockaddr_in recvaddr2;
-  /** addres to accept packets from */
+  /** address to NOT accept packets from, if 'recvall' is 2 */
   struct sockaddr_in localaddr;
-  /** accept all packets*/
+
+  /** flag whether to accept (almost) all packets */
   uchar recvall;
 };
 

@@ -28,7 +28,7 @@ class InetServer:public Server
 protected:
   void setupConnection (int cfd);
 public:
-  InetServer (Layer3 * l3, Trace * tr, int port);
+  InetServer (Trace * tr, int port);
 };
 
 #endif

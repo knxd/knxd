@@ -81,6 +81,14 @@ String FormatEIBKey (eibkey_type addr);
 
 #include "trace.h"
 
+template<typename T>
+inline T ignore_result(T x __attribute__((unused)))
+{
+    return x;
+}
+
+extern pth_time_t pth_null_time;
+
 #define CONST const
 #ifdef __GNUC__
 #define UNUSED __attribute__((unused))

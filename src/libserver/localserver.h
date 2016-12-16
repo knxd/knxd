@@ -26,7 +26,7 @@
 class LocalServer:public Server
 {
 public:
-  LocalServer (Layer3 * l3, Trace * tr, const char *path);
+  LocalServer (Trace * tr, const char *path);
   ~LocalServer ();
 private:
   const char *path;

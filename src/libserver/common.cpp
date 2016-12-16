@@ -23,6 +23,7 @@
 #include <sys/time.h>
 #endif
 
+pth_time_t pth_null_time = { 0L, 0L };
 
 timestamp_t
 getTime ()
@@ -81,3 +82,4 @@ add16Hex (String & s, uint16_t c)
   sprintf (buf, "%04X ", c);
   s += buf;
 }
+

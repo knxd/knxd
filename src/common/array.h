@@ -110,7 +110,7 @@ public:
    * @param start start index
    * @param cnt element count
    */
-  void deletepart (unsigned start, unsigned cnt)
+  void deletepart (unsigned start, unsigned cnt = 1)
   {
     if (start >= count)
       return;

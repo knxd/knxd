@@ -29,15 +29,15 @@
 #define EIBNETIP_PREFIX "ip"
 #define EIBNETIP_CREATE eibnetip_Create
 
-inline Layer2 *
-eibnetip_Create (const char *dev, L2options *opt, Layer3 *l3)
+inline Layer2Ptr
+eibnetip_Create (const char *dev, L2options *opt)
 {
   if (!*dev)
-    return new EIBNetIPRouter ("224.0.23.12", 3671, arg.addr, l3, opt);
+    return std::shared_ptr<EIBNetIPRouter>(new EIBNetIPRouter ("224.0.23.12", 3671, arg.addr, opt));
   char *a = strdup (dev);
   char *b;
   int port;
-  Layer2 *c;
+  Layer2Ptr c;
   if (!a)
     die ("out of memory");
   for (b = a; *b; b++)
@@ -50,7 +50,7 @@ eibnetip_Create (const char *dev, L2options *opt, Layer3 *l3)
     }
   else
     port = 3671;
-  c = new EIBNetIPRouter (a, port, arg.addr, l3, opt);
+  c = std::shared_ptr<EIBNetIPRouter>(new EIBNetIPRouter (a, port, arg.addr, opt));
   free (a);
   return c;
 }
