@@ -314,7 +314,7 @@ Layer3::Run (pth_sem_t * stop1)
               l1->source = l2->remoteAddr ? l2->remoteAddr : defaultAddr;
             if (l1->source != defaultAddr)
               l2->addAddress (l1->source);
-            else if (l1->AddrType == IndividualAddress && l1->dest != defaultAddr)
+            if (l1->AddrType == IndividualAddress && !l2->hasAddress(l1->dest))
               l2->addReverseAddress (l1->dest);
           }
 
