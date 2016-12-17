@@ -53,8 +53,6 @@ Layer2::RunStop()
 bool
 Layer2::addAddress (eibaddr_t addr)
 {
-  if (addr == 0)
-    return false;
   unsigned i;
   for (i = 0; i < indaddr (); i++)
     if (indaddr[i] == addr)
