@@ -532,6 +532,14 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
 
 #define FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH)
 
+// #define EV_TRACE
+
+static void
+signal_cb (struct ev_loop *loop, ev_signal *w, int revents)
+{
+  ev_break (loop, EVBREAK_ALL);
+}
+
 #ifdef EV_TRACE
 static void
 timeout_cb (struct ev_loop *loop, ev_timer *w, int revents)
@@ -540,31 +548,29 @@ timeout_cb (struct ev_loop *loop, ev_timer *w, int revents)
 }
 #endif
 
-extern pth_sem_t ev_pthsem_stop;
+struct _hup {
+  struct ev_signal sighup;
+  const char *daemon;
+  Trace *t;
+} hup;
 
-void *evmain(void *_loop)
+static void
+sighup_cb (struct ev_loop *loop, ev_signal *w, int revents)
 {
-#ifdef EV_TRACE
-  struct ev_timer timer;
-#endif
-  struct ev_loop **loop = (struct ev_loop **) _loop;
+  struct _hup *hup = (struct _hup *)w;
 
-  *loop = ev_loop_new(EVFLAG_AUTO | EVBACKEND_PTHSEM);
-
-#ifdef EV_TRACE
-  printf("LIBEV starting up\n");
-#endif
-
-#ifdef EV_TRACE
-  ev_timer_init (&timer, timeout_cb, 1., 10.);
-  ev_timer_again (*loop, &timer);
-#endif
-
-  // now wait for events to arrive
-  ev_run (*loop, 0);
-
-  // break was called, so exit
-  return 0;
+  int fd = open (hup->daemon, O_WRONLY | O_APPEND | O_CREAT, FILE_MODE);
+  if (fd == -1)
+  {
+    ERRORPRINTF (hup->t, E_ERROR | 21, 0, "can't open log file %s",
+                hup->daemon);
+    return;
+  }
+  close (1);
+  close (2);
+  dup2 (fd, 1);
+  dup2 (fd, 2);
+  close (fd);
 }
 
 int
@@ -573,10 +579,35 @@ main (int ac, char *ag[])
   int index;
   pth_init ();
   setlinebuf(stdout);
-  struct ev_loop *loop = NULL;
-  pth_t ev_main = pth_spawn(PTH_ATTR_DEFAULT, evmain, &loop);
-  pth_yield (ev_main);
-  assert (loop);
+
+// set up libev
+  struct ev_loop *loop = ev_default_loop(EVFLAG_AUTO | EVFLAG_NOSIGMASK | EVBACKEND_PTHSEM);
+#ifdef EV_TRACE
+  struct ev_timer timer;
+#endif
+  struct _hup hup;
+  struct ev_signal sigint;
+  struct ev_signal sigterm;
+
+#ifdef EV_TRACE
+  printf("LIBEV starting up\n");
+#endif
+
+#ifdef EV_TRACE
+  ev_timer_init (&timer, timeout_cb, 1., 10.);
+  ev_timer_again (loop, &timer);
+#endif
+  if (arg.daemon) {
+    hup.t = &arg.t;
+    hup.daemon = arg.daemon;
+    ev_signal_init (&hup.sighup, sighup_cb, SIGINT);
+    ev_signal_start (loop, &hup.sighup);
+  }
+
+  ev_signal_init (&sigint, signal_cb, SIGINT);
+  ev_signal_start (loop, &sigint);
+  ev_signal_init (&sigterm, signal_cb, SIGTERM);
+  ev_signal_start (loop, &sigterm);
 
   arg.errorlevel = LEVEL_WARNING;
 
@@ -615,50 +646,18 @@ main (int ac, char *ag[])
         fclose (pidf);
       }
 
-  signal (SIGINT, SIG_IGN);
-  signal (SIGTERM, SIG_IGN);
-
   // main loop
 #ifdef HAVE_SYSTEMD
   sd_notify(0,"READY=1");
 #endif
-  int sig;
-  if (! arg.stop_now)
-    do {
-      sigset_t t1;
-      sigemptyset (&t1);
-      sigaddset (&t1, SIGINT);
-      sigaddset (&t1, SIGHUP);
-      sigaddset (&t1, SIGTERM);
 
-      pth_sigwait (&t1, &sig);
+  // now wait for events
+  ev_run (loop, arg.stop_now ? EVRUN_NOWAIT : 0);
 
-      if (sig == SIGHUP && arg.daemon)
-	{
-	  int fd =
-	    open (arg.daemon, O_WRONLY | O_APPEND | O_CREAT, FILE_MODE);
-	  if (fd == -1)
-	    {
-	      ERRORPRINTF (&arg.t, E_ERROR | 21, 0, "can't open log file %s",
-			   arg.daemon);
-	      continue;
-	    }
-	  close (1);
-	  close (2);
-	  dup2 (fd, 1);
-	  dup2 (fd, 2);
-	  close (fd);
-	}
-
-    } while (sig == SIGHUP);
 #ifdef HAVE_SYSTEMD
   sd_notify(0,"STOPPING=1");
 #endif
 
-  signal (SIGINT, SIG_DFL);
-  signal (SIGTERM, SIG_DFL);
-  
-  pth_sem_inc (&ev_pthsem_stop, 1);
   ev_break(loop, EVBREAK_ALL);
 
   arg.free_l3();
