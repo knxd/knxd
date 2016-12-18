@@ -1,3 +1,15 @@
+knxd (0.10.15-1) unstable; urgency=medium
+
+  * Fix addressing for physically-addressed packets to tunnels
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 18 Dec 2016 14:53:56 +0100
+
+knxd (0.10.14-3) unstable; urgency=low
+
+  * Fix packaging, Lintian errors
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 18 Dec 2016 14:51:14 +0100
+
 knxd (0.10.14-2) unstable; urgency=medium
 
   * gentoo packaging update
