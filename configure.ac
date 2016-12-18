@@ -46,7 +46,8 @@ CC_FOR_BUILD_OPTS
 
 dnl AC_COMPILER_OPTION(nortti,[-fno-rtti],[-fno-rtti],CXXFLAGS="$CXXFLAGS -fno-rtti")
 AC_COMPILER_OPTION(stdc,[-std=c++0x],[-std=c++0x],CXXFLAGS="$CXXFLAGS -std=c++0x")
-AC_COMPILER_OPTION(noexceptions,[-fno-exceptions],[-fno-exceptions],CXXFLAGS="$CXXFLAGS -fno-exceptions")
+dnl libev++ requires exceptions
+dnl AC_COMPILER_OPTION(noexceptions,[-fno-exceptions],[-fno-exceptions],CXXFLAGS="$CXXFLAGS -fno-exceptions")
 AC_CHECK_PTHSEM(2.0.8,yes,yes,no)
 PTHSEM_LIB="$PTH_LDFLAGS $PTH_LIBS"
 AC_SUBST(PTHSEM_LIB)
@@ -219,17 +220,19 @@ if test x$groupcache = xtrue ; then
  AC_DEFINE(HAVE_GROUPCACHE, 1 , [Group Cache enabled])
 fi
 
+EV_LIBS=
 if test ".$with_pth" != .no ; then
  AC_DEFINE(HAVE_PTHSEM, 1, [libpthsem present])
  dnl force linking to the embedded libev
- CFLAGS="$CFLAGS -I$(pwd)/libev -DEV_USE_DEVPOLL"
+ CFLAGS="$CFLAGS -I$(pwd)/libev -DEV_USE_PTHSEM"
  CXXFLAGS="$CXXFLAGS -I$(pwd)/libev"
- LIBS="$LIBS -Wl,-L$(pwd)/libev/.libs,-Bstatic,-lev,-Bdynamic"
+ EV_LIBS="$(pwd)/libev/.libs/libev.a"
 else
  dnl nope. Use the system libev
  AC_CHECK_LIB([ev], [ev_run],,[AC_MSG_ERROR([libev not found])])
- LIBS="$LIBS -lev"
+ EV_LIBS="-lev"
 fi
+AC_SUBST([EV_LIBS])
 
 AM_CONDITIONAL(HAVE_SOURCE_INFO, test x$have_source_info = xyes )
 
