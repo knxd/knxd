@@ -30,6 +30,7 @@ Description: A daemon to access the KNX bus
 Package: knxd-tools
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libpthsem20, libusb-1.0-0
+Recommends: knxd
 Replaces: eibd-clients, eibd-server, libeibclient0
 Conflicts: eibd-clients, eibd-server, libeibclient0
 Description: Tools to use knxd
@@ -47,6 +48,7 @@ Description: Development files for knxd
 
 Package: knxd-examples
 Architecture: any
+Recommends: knxd-tools
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: documentation and examples for knxd
  KNX is a standard prototocol for home and buildin control.
