@@ -26,6 +26,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <ev++.h>
 #include "layer3.h"
 #include "layer2.h"
 #include "localserver.h"
@@ -531,12 +532,51 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
 
 #define FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH)
 
+#ifdef EV_TRACE
+static void
+timeout_cb (struct ev_loop *loop, ev_timer *w, int revents)
+{
+  printf("LIBEV ping\n");
+}
+#endif
+
+extern pth_sem_t ev_pthsem_stop;
+
+void *evmain(void *_loop)
+{
+#ifdef EV_TRACE
+  struct ev_timer timer;
+#endif
+  struct ev_loop **loop = (struct ev_loop **) _loop;
+
+  *loop = ev_loop_new(EVFLAG_AUTO | EVBACKEND_PTHSEM);
+
+#ifdef EV_TRACE
+  printf("LIBEV starting up\n");
+#endif
+
+#ifdef EV_TRACE
+  ev_timer_init (&timer, timeout_cb, 1., 10.);
+  ev_timer_again (*loop, &timer);
+#endif
+
+  // now wait for events to arrive
+  ev_run (*loop, 0);
+
+  // break was called, so exit
+  return 0;
+}
+
 int
 main (int ac, char *ag[])
 {
   int index;
   pth_init ();
   setlinebuf(stdout);
+  struct ev_loop *loop = NULL;
+  pth_t ev_main = pth_spawn(PTH_ATTR_DEFAULT, evmain, &loop);
+  pth_yield (ev_main);
+  assert (loop);
 
   arg.errorlevel = LEVEL_WARNING;
 
@@ -617,6 +657,9 @@ main (int ac, char *ag[])
 
   signal (SIGINT, SIG_DFL);
   signal (SIGTERM, SIG_DFL);
+  
+  pth_sem_inc (&ev_pthsem_stop, 1);
+  ev_break(loop, EVBREAK_ALL);
 
   arg.free_l3();
 
