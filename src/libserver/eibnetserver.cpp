@@ -374,6 +374,8 @@ ConnState::ConnState (EIBnetServer *p, eibaddr_t addr)
   sendtimeout = pth_event (PTH_EVENT_RTIME, pth_time (1, 0));
   if (!addr)
     remoteAddr = p->l3->get_client_addr ();
+  else
+    remoteAddr = addr;
   if (remoteAddr)
     addAddress(remoteAddr);
 }
@@ -631,13 +633,8 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       for (unsigned int i = 0; i < state (); i++)
 	if (state[i]->channel == r1.channel)
 	  {
-	    if (compareIPAddress (p1->src, state[i]->caddr))
-	      {
-		res = 0;
-                reset_time(state[i]->timeout, 120,0);
-	      }
-	    else
-	      TRACEPRINTF (t, 8, this, "Invalid control address");
+            res = 0;
+            reset_time(state[i]->timeout, 120,0);
 	  }
       r2.channel = r1.channel;
       r2.status = res;
@@ -654,15 +651,10 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       for (unsigned int i = 0; i < state (); i++)
 	if (state[i]->channel == r1.channel)
 	  {
-	    if (compareIPAddress (p1->src, state[i]->caddr))
-	      {
-		res = 0;
-		state[i]->channel = 0;
-		drop_state(i);
-		break;
-	      }
-	    else
-	      TRACEPRINTF (t, 8, this, "Invalid control address");
+            res = 0;
+            state[i]->channel = 0;
+            drop_state(i);
+            break;
 	  }
       r2.channel = r1.channel;
       r2.status = res;
@@ -724,11 +716,6 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       for (unsigned int i = 0; i < state (); i++)
 	if (state[i]->channel == r1.channel)
 	  {
-	    if (!compareIPAddress (p1->src, state[i]->daddr))
-	      {
-		TRACEPRINTF (t, 8, this, "Invalid data endpoint");
-		break;
-	      }
 	    state[i]->tunnel_request(r1, isock);
 	    break;
 	  }
@@ -743,11 +730,6 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       for (unsigned int i = 0; i < state (); i++)
 	if (state[i]->channel == r1.channel)
 	  {
-	    if (!compareIPAddress (p1->src, state[i]->daddr))
-	      {
-		TRACEPRINTF (t, 8, this, "Invalid data endpoint");
-		break;
-	      }
 	    state[i]->tunnel_response (r1);
 	    break;
 	  }
@@ -763,11 +745,6 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       for (unsigned int i = 0; i < state (); i++)
 	if (state[i]->channel == r1.channel)
 	  {
-	    if (!compareIPAddress (p1->src, state[i]->daddr))
-	      {
-		TRACEPRINTF (t, 8, this, "Invalid data endpoint");
-		  break;
-	      }
 	    state[i]->config_request (r1, isock);
 	    break;
 	  }
@@ -782,11 +759,6 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       for (unsigned int i = 0; i < state (); i++)
 	if (state[i]->channel == r1.channel)
 	  {
-	    if (!compareIPAddress (p1->src, state[i]->daddr))
-	      {
-		TRACEPRINTF (t, 8, this, "Invalid data endpoint");
-		break;
-	      }
 	    state[i]->config_response (r1);
 	    break;
 	  }
@@ -872,6 +844,8 @@ void ConnState::tunnel_request(EIBnet_TunnelRequest &r1, EIBNetIPSocket *isock)
 	  if (c->hopcount)
 	    {
 	      c->hopcount--;
+              if (c->source == 0)
+                c->source = remoteAddr;
 	      if (r1.CEMI[0] == 0x11)
 		{
 		  out.put (L_Data_ToCEMI (0x2E, *c));

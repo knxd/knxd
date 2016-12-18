@@ -19,36 +19,35 @@
 
 #include "lowlatency.h"
 
-#ifdef HAVE_LINUX_LOWLATENCY
-
 #include <sys/ioctl.h>
+#include <string.h> // memcpy
 
 void
 set_low_latency (int fd, low_latency_save * save)
 {
+  struct termios opts;
+
+#ifdef HAVE_LINUX_LOWLATENCY
   struct serial_struct snew;
-  ioctl (fd, TIOCGSERIAL, save);
-  ioctl (fd, TIOCGSERIAL, &snew);
+  ioctl (fd, TIOCGSERIAL, &save->ser);
+  memcpy(&snew, &save->ser, sizeof(snew));
   snew.flags |= ASYNC_LOW_LATENCY;
   ioctl (fd, TIOCSSERIAL, &snew);
-}
-
-void
-restore_low_latency (int fd, low_latency_save * save)
-{
-  ioctl (fd, TIOCSSERIAL, save);
-}
-
-#else
-
-void
-set_low_latency (int fd, low_latency_save * save)
-{
-}
-
-void
-restore_low_latency (int fd, low_latency_save * save)
-{
-}
-
 #endif
+
+  tcgetattr(fd, &save->term);
+  memcpy(&opts, &save->term, sizeof(opts));
+  opts.c_cc[VTIME] = 1;
+  opts.c_cc[VMIN] = 1;
+  tcsetattr(fd, TCSANOW, &opts);
+}
+
+void
+restore_low_latency (int fd, low_latency_save * save)
+{
+#ifdef HAVE_LINUX_LOWLATENCY
+  ioctl (fd, TIOCSSERIAL, &save->ser);
+#endif
+  ioctl (fd, TCSANOW, &save->term);
+}
+

@@ -20,7 +20,8 @@ IUSE="eibd ft12 pei16s tpuarts eibnetip eibnetiptunnel eibnetipserver usb groupc
 DEPEND="dev-libs/pthsem"
 
 EGIT_REPO_URI="https://github.com/Makki1/knxd.git"
-EGIT_COMMIT="v${PV}"
+#EGIT_COMMIT="v${PV}"
+EGIT_BRANCH="stable"
 
 src_prepare() {
 	eautoreconf || die "eautotooling failed"
@@ -56,5 +57,5 @@ src_install() {
                "${FILESDIR}/${PN}.init" | newinitd - ${PN}-${SLOT}
 
         sed -e "s|@SLOT@|${SLOT}|g" \
-               "${FILESDIR}/${PN}.confd" | newconfd ${PN}-${SLOT}
+               "${FILESDIR}/${PN}.confd" | newconfd - ${PN}-${SLOT}
 }
