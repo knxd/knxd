@@ -21,9 +21,11 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libpthsem20, libusb-1.0-0 (>= 1.0.10), lsb-base
 Replaces: eibd, eibd-server
 Conflicts: eibd, eibd-server
-Description: knxd is a daemon to access a KNX bus
- knxd is a fork of eibd from bcusdk.
- This Package contains the daemon to access the bus.
+Description: A daemon to access the KNX bus
+ KNX is a standard prototocol for home and buildin control.
+ .
+ This package contains the daemon to access the physical bus,
+ monitor and forward messages, etc.
 
 Package: knxd-tools
 Architecture: any
@@ -31,20 +33,23 @@ Depends: ${shlibs:Depends}, ${misc:Depends}, libpthsem20, libusb-1.0-0
 Replaces: eibd-clients, eibd-server, libeibclient0
 Conflicts: eibd-clients, eibd-server, libeibclient0
 Description: Tools to use knxd
- These are tools to access a KNX bus over the knxs Daemon
+ KNX is a standard prototocol for home and buildin control.
+ .
+ This package contains command-line tools to communicate with the KNX
+ daemon.
 
 Package: knxd-dev
 Architecture: all
 Description: Development files for knxd
- These are the development files for knxd clients
+ KNX is a standard prototocol for home and buildin control.
+ .
+ These are the development files for knxd clients.
 
 Package: knxd-examples
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: documentation and examples for knxd
- These are example programs for knxd
+ KNX is a standard prototocol for home and buildin control.
+ .
+ These are example programs for knxd.
 
-#Package: knxd-doc
-#Architecture: all
-#Description: documentation for knxd
-# <insert long description, indented with spaces>
