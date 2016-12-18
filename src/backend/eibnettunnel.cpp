@@ -95,8 +95,16 @@ EIBNetIPTunnel::Send_L_Data (LPDU * l)
       delete l;
       return;
     }
-  L_Data_PDU *l1 = (L_Data_PDU *) l;
-  inqueue.put (L_Data_ToCEMI (0x11, *l1));
+
+  /* when tunneling physical requests, replies must be sent
+   * back to tunnel address instead of the real address  otherwise
+   * they will not be sent up
+   * the tunnling connection  */
+  L_Data_PDU l1 = *(L_Data_PDU *)l;
+  if (l1.AddrType == IndividualAddress)
+    l1.source = 0;
+
+  inqueue.put (L_Data_ToCEMI (0x11, l1));
   pth_sem_inc (&insignal, 1);
   if (mode == BUSMODE_VMONITOR)
     {
