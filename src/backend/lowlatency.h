@@ -22,18 +22,19 @@
 
 #include "config.h"
 
+#include <termios.h>
 #ifdef HAVE_LINUX_LOWLATENCY
 #include <linux/serial.h>
-typedef struct serial_struct low_latency_save;
-
-#else
-
-typedef int low_latency_save;
-
 #endif
 
+typedef struct {
+	struct termios term;
+#ifdef HAVE_LINUX_LOWLATENCY
+	serial_struct ser;
+#endif
+} low_latency_save;
 
 void set_low_latency (int fd, low_latency_save * save);
 void restore_low_latency (int fd, low_latency_save * save);
 
-#endif
+#endif // LOW_LATENCY_H
