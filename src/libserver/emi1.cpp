@@ -150,18 +150,18 @@ EMI1Layer2::Send_Queue_Empty ()
 void
 EMI1Layer2::Send_L_Data (LPDU * l)
 {
-  TRACEPRINTF (t, 2, this, "Send %s", l->Decode ()());
+  TRACEPRINTF (t, 2, this, "Send %s", l->Decode ().c_str());
   if (l->getType () != L_Data)
     {
       delete l;
       return;
     }
   L_Data_PDU *l1 = (L_Data_PDU *) l;
-  assert (l1->data () >= 1);
+  assert (l1->data.size() >= 1);
   /* discard long frames, as they are not supported by EMI 1 */
-  if (l1->data () > 0x10)
+  if (l1->data.size() > 0x10)
     return;
-  assert (l1->data () <= 0x10);
+  assert (l1->data.size() <= 0x10);
   assert ((l1->hopcount & 0xf8) == 0);
 
   inqueue.put (l);
@@ -171,7 +171,7 @@ EMI1Layer2::Send_L_Data (LPDU * l)
 void
 EMI1Layer2::Send (LPDU * l)
 {
-  TRACEPRINTF (t, 1, this, "Send %s", l->Decode ()());
+  TRACEPRINTF (t, 1, this, "Send %s", l->Decode ().c_str());
   L_Data_PDU *l1 = (L_Data_PDU *) l;
 
   CArray pdu = L_Data_ToEMI (0x11, *l1);
@@ -209,7 +209,7 @@ EMI1Layer2::Run (pth_sem_t * stop1)
 	wait_confirm = false;
       if (!c)
 	continue;
-      if (c->len () == 1 && (*c)[0] == 0xA0 && (mode & BUSMODE_UP))
+      if (c->size() == 1 && (*c)[0] == 0xA0 && (mode & BUSMODE_UP))
 	{
 	  TRACEPRINTF (t, 2, this, "Reopen");
           busmode_t old_mode = mode;
@@ -217,15 +217,15 @@ EMI1Layer2::Run (pth_sem_t * stop1)
 	  if (Open ())
             mode = old_mode; // restore VMONITOR
 	}
-      if (c->len () == 1 && (*c)[0] == 0xA0 && mode == BUSMODE_MONITOR)
+      if (c->size() == 1 && (*c)[0] == 0xA0 && mode == BUSMODE_MONITOR)
 	{
 	  TRACEPRINTF (t, 2, this, "Reopen Busmonitor");
 	  mode = BUSMODE_DOWN;
 	  enterBusmonitor ();
 	}
-      if (c->len () && (*c)[0] == 0x4E)
+      if (c->size() && (*c)[0] == 0x4E)
 	wait_confirm = false;
-      if (c->len () && (*c)[0] == 0x49 && (mode & BUSMODE_UP))
+      if (c->size() && (*c)[0] == 0x49 && (mode & BUSMODE_UP))
 	{
 	  L_Data_PDU *p = EMI_to_L_Data (*c, shared_from_this());
 	  if (p)
@@ -233,19 +233,19 @@ EMI1Layer2::Run (pth_sem_t * stop1)
 	      delete c;
 	      if (p->AddrType == IndividualAddress)
 		p->dest = 0;
-	      TRACEPRINTF (t, 2, this, "Recv %s", p->Decode ()());
+	      TRACEPRINTF (t, 2, this, "Recv %s", p->Decode ().c_str());
 	      l3->recv_L_Data (p);
 	      continue;
 	    }
 	}
-      if (c->len () > 4 && (*c)[0] == 0x49 && mode == BUSMODE_MONITOR)
+      if (c->size() > 4 && (*c)[0] == 0x49 && mode == BUSMODE_MONITOR)
 	{
 	  L_Busmonitor_PDU *p = new L_Busmonitor_PDU (shared_from_this());
 	  p->status = (*c)[1];
 	  p->timestamp = ((*c)[2] << 24) | ((*c)[3] << 16);
-	  p->pdu.set (c->array () + 4, c->len () - 4);
+	  p->pdu.set (c->data() + 4, c->size() - 4);
 	  delete c;
-	  TRACEPRINTF (t, 2, this, "Recv %s", p->Decode ()());
+	  TRACEPRINTF (t, 2, this, "Recv %s", p->Decode ().c_str());
 	  l3->recv_L_Data (p);
 	  continue;
 	}

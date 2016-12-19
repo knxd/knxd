@@ -475,8 +475,8 @@ USBLowLevelDriver::Run (pth_sem_t * stop1)
 	  const CArray & c = inqueue.top ();
 	  t->TracePacket (0, this, "Send", c);
 	  memset (sendbuf, 0, sizeof (sendbuf));
-	  memcpy (sendbuf, c.array (),
-		  (c () > sizeof (sendbuf) ? sizeof (sendbuf) : c ()));
+	  memcpy (sendbuf, c.data(),
+		  (c.size() > sizeof (sendbuf) ? sizeof (sendbuf) : c.size()));
 	  sendh = libusb_alloc_transfer (0);
 	  if (!sendh)
 	    {

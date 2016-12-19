@@ -48,7 +48,7 @@ AddSegmentOverlap (Array < Segment > &s, uint16_t start, uint16_t len)
   unsigned int i;
   if (!len)
     return 1;
-  for (i = 0; i < s (); i++)
+  for (i = 0; i < s.size(); i++)
     {
       if (start >= s[i].start && start < s[i].start + s[i].len)
 	return 0;
@@ -59,7 +59,7 @@ AddSegmentOverlap (Array < Segment > &s, uint16_t start, uint16_t len)
   s1.start = start;
   s1.len = len;
   if (len)
-    s.add (s1);
+    s.push_back (s1);
   return 1;
 }
 
@@ -110,7 +110,7 @@ PrepareLoadImage (const CArray & im, BCUImage * &img)
 	  return IMG_TEXT_OVERFLOW;
 	}
 
-      if (s->textsize != c->code ())
+      if (s->textsize != c->code.size())
 	{
 	  delete i;
 	  return IMG_WRONG_SIZE;
@@ -121,7 +121,7 @@ PrepareLoadImage (const CArray & im, BCUImage * &img)
 	  delete i;
 	  return IMG_NO_ADDRESS;
 	}
-      if (c->code[8] < 8 || c->code[8] > c->code () + 1)
+      if (c->code[8] < 8 || c->code[8] > c->code.size() + 1)
 	{
 	  delete i;
 	  return IMG_WRONG_CHECKLIM;
@@ -157,7 +157,7 @@ PrepareLoadImage (const CArray & im, BCUImage * &img)
 	  return IMG_TEXT_OVERFLOW;
 	}
 
-      if (s->textsize != c->code ())
+      if (s->textsize != c->code.size())
 	{
 	  delete i;
 	  return IMG_WRONG_SIZE;
@@ -235,14 +235,14 @@ PrepareLoadImage (const CArray & im, BCUImage * &img)
 	  delete i;
 	  return IMG_OBJTAB_OVERFLOW;
 	}
-      if (s1->param_end > c->code () + 0x100)
+      if (s1->param_end > c->code.size() + 0x100)
 	{
 	  delete i;
 	  return IMG_WRONG_LOADCTL;
 	}
 
       STR_BCU2Key *s2 = (STR_BCU2Key *) i->findStream (S_BCU2Key);
-      if (s2 && s2->keys () != 3)
+      if (s2 && s2->keys.size() != 3)
 	{
 	  delete i;
 	  return IMG_INVALID_KEY;
@@ -280,13 +280,13 @@ PrepareLoadImage (const CArray & im, BCUImage * &img)
       r.result.resize (1);
       r.result[0] = 0x00;
       r.error = IMG_UNLOAD_ADDR;
-      img->load.add (r);
+      img->load.push_back (r);
       r.obj = 2;
       r.error = IMG_UNLOAD_ASSOC;
-      img->load.add (r);
+      img->load.push_back (r);
       r.obj = 3;
       r.error = IMG_UNLOAD_PROG;
-      img->load.add (r);
+      img->load.push_back (r);
 
       /* loadaddrtab */
       r.req.set (zero, 10);
@@ -294,18 +294,18 @@ PrepareLoadImage (const CArray & im, BCUImage * &img)
       r.req[0] = 0x01;
       r.result[0] = 0x02;
       r.error = IMG_LOAD_ADDR;
-      img->load.add (r);
+      img->load.push_back (r);
 
       GenAlloc (r.req, s1->addrtab_start, s1->addrtab_size, 0x31, 0x03, 1);
       r.memaddr = s1->addrtab_start;
       r.len = 1;
       r.error = IMG_WRITE_ADDR;
-      img->load.add (r);
+      img->load.push_back (r);
 
       r.obj = 0xff;
       r.memaddr += 3;
       r.len = s1->addrtab_size - 4;
-      img->load.add (r);
+      img->load.push_back (r);
 
       r.obj = 1;
       r.memaddr = 0xffff;
@@ -314,15 +314,15 @@ PrepareLoadImage (const CArray & im, BCUImage * &img)
       r.req[2] = (s1->addrtab_start >> 8) & 0xff;
       r.req[3] = (s1->addrtab_start) & 0xff;
       r.req[4] = c->code[0x09];
-      r.req.setpart (c->code.array () + 0x03, 5, 5);
+      r.req.setpart (c->code.data() + 0x03, 5, 5);
       r.error = IMG_SET_ADDR;
-      img->load.add (r);
+      img->load.push_back (r);
 
       r.req.set (zero, 10);
       r.req[0] = 0x02;
       r.result[0] = 0x01;
       r.error = IMG_FINISH_ADDR;
-      img->load.add (r);
+      img->load.push_back (r);
 
       /* loadassoctab */
       r.req.set (zero, 10);
@@ -330,13 +330,13 @@ PrepareLoadImage (const CArray & im, BCUImage * &img)
       r.req[0] = 0x01;
       r.result[0] = 0x02;
       r.error = IMG_LOAD_ASSOC;
-      img->load.add (r);
+      img->load.push_back (r);
 
       GenAlloc (r.req, s1->assoctab_start, s1->assoctab_size, 0x31, 0x03, 1);
       r.memaddr = s1->assoctab_start;
       r.len = s1->assoctab_size - 1;
       r.error = IMG_WRITE_ASSOC;
-      img->load.add (r);
+      img->load.push_back (r);
 
       r.memaddr = 0xffff;
       r.req[0] = 0x03;
@@ -344,15 +344,15 @@ PrepareLoadImage (const CArray & im, BCUImage * &img)
       r.req[2] = (s1->assoctab_start >> 8) & 0xff;
       r.req[3] = (s1->assoctab_start) & 0xff;
       r.req[4] = c->code[0x09];
-      r.req.setpart (c->code.array () + 0x03, 5, 5);
+      r.req.setpart (c->code.data() + 0x03, 5, 5);
       r.error = IMG_SET_ASSOC;
-      img->load.add (r);
+      img->load.push_back (r);
 
       r.req.set (zero, 10);
       r.req[0] = 0x02;
       r.result[0] = 0x01;
       r.error = IMG_FINISH_ASSOC;
-      img->load.add (r);
+      img->load.push_back (r);
 
       /* loadproctab */
       r.req.set (zero, 10);
@@ -360,26 +360,26 @@ PrepareLoadImage (const CArray & im, BCUImage * &img)
       r.req[0] = 0x01;
       r.result[0] = 0x02;
       r.error = IMG_LOAD_PROG;
-      img->load.add (r);
+      img->load.push_back (r);
 
       GenAlloc (r.req, 0x00C8, 0x0018, 0x32, 0x01, 0);
       r.error = IMG_ALLOC_LORAM;
-      img->load.add (r);
+      img->load.push_back (r);
 
       GenAlloc (r.req, 0x0972, 0x004A, 0x32, 0x02, 0);
       r.error = IMG_ALLOC_HIRAM;
-      img->load.add (r);
+      img->load.push_back (r);
 
       GenAlloc (r.req, 0x0100, 0x0016, 0x32, 0x03, 0);
       r.error = IMG_ALLOC_INIT;
       r.len = 0x001;
       r.memaddr = 0x100;
-      img->load.add (r);
+      img->load.push_back (r);
 
       r.obj = 0xff;
       r.memaddr = 0x103;
       r.len = 0x13;
-      img->load.add (r);
+      img->load.push_back (r);
       r.obj = 3;
 
       GenAlloc (r.req, s1->readonly_start,
@@ -388,7 +388,7 @@ PrepareLoadImage (const CArray & im, BCUImage * &img)
       r.len = s1->readonly_end - s1->readonly_start - 1;
       r.memaddr = s1->readonly_start;
       if (r.len)
-	img->load.add (r);
+	img->load.push_back (r);
 
       GenAlloc (r.req, s1->eeprom_start, s1->eeprom_end - s1->eeprom_start,
 		0x31, 0x03, 0);
@@ -396,7 +396,7 @@ PrepareLoadImage (const CArray & im, BCUImage * &img)
       r.len = s1->eeprom_end - s1->eeprom_start;
       r.memaddr = s1->eeprom_start;
       if (r.len)
-	img->load.add (r);
+	img->load.push_back (r);
 
       GenAlloc (r.req, s1->param_start, s1->param_end - s1->param_start, 0x32,
 		0x03, 1);
@@ -404,7 +404,7 @@ PrepareLoadImage (const CArray & im, BCUImage * &img)
       r.len = s1->param_end - s1->param_start;
       r.memaddr = s1->param_start;
       if (r.len > 1)
-	img->load.add (r);
+	img->load.push_back (r);
 
       r.memaddr = 0xffff;
       r.req[0] = 0x03;
@@ -412,9 +412,9 @@ PrepareLoadImage (const CArray & im, BCUImage * &img)
       r.req[2] = (s1->runaddr >> 8) & 0xff;
       r.req[3] = (s1->runaddr) & 0xff;
       r.req[4] = c->code[0x09];
-      r.req.setpart (c->code.array () + 0x03, 5, 5);
+      r.req.setpart (c->code.data() + 0x03, 5, 5);
       r.error = IMG_SET_PROG;
-      img->load.add (r);
+      img->load.push_back (r);
 
       r.req.set (zero, 10);
       r.req[0] = 0x03;
@@ -426,7 +426,7 @@ PrepareLoadImage (const CArray & im, BCUImage * &img)
       r.req[6] = (s1->sphandler >> 8) & 0xff;
       r.req[7] = (s1->sphandler) & 0xff;
       r.error = IMG_SET_TASK_PTR;
-      img->load.add (r);
+      img->load.push_back (r);
 
       r.req.set (zero, 10);
       r.req[0] = 0x03;
@@ -435,7 +435,7 @@ PrepareLoadImage (const CArray & im, BCUImage * &img)
       r.req[3] = (s1->obj_ptr) & 0xff;
       r.req[4] = (s1->obj_count) & 0xff;
       r.error = IMG_SET_OBJ;
-      img->load.add (r);
+      img->load.push_back (r);
 
       r.req.set (zero, 10);
       r.req[0] = 0x03;
@@ -449,13 +449,13 @@ PrepareLoadImage (const CArray & im, BCUImage * &img)
       r.req[8] = (s1->seg1 >> 8) & 0xff;
       r.req[9] = (s1->seg1) & 0xff;
       r.error = IMG_SET_TASK2;
-      img->load.add (r);
+      img->load.push_back (r);
 
       r.req.set (zero, 10);
       r.req[0] = 0x02;
       r.result[0] = 0x01;
       r.error = IMG_FINISH_PROC;
-      img->load.add (r);
+      img->load.push_back (r);
 
       return IMG_IMAGE_LOADABLE;
 

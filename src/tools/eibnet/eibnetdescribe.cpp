@@ -116,16 +116,15 @@ main (int ac, char *ag[])
 	die ("Invalid description response");
       printf ("Medium: %d\nState: %d\nAddr: %s\nInstallID: %d\nSerial:",
 	      resp.KNXmedium, resp.devicestatus,
-	      FormatEIBAddr (resp.individual_addr) (), resp.installid);
+	      FormatEIBAddr (resp.individual_addr).c_str(), resp.installid);
       HexDump (resp.serial, sizeof (resp.serial));
       printf ("Multicast-Addr: %s\nMAC:", inet_ntoa (resp.multicastaddr));
       HexDump (resp.MAC, sizeof (resp.MAC));
       printf ("Name: %s\n", resp.name);
       printf ("Optional: ");
-      HexDump (resp.optional.array (), resp.optional ());
-      for (int i = 0; i < resp.services (); i++)
-	printf ("Service %d Version %d\n", resp.services[i].family,
-		resp.services[i].version);
+      HexDump (resp.optional.data(), resp.optional.size());
+      ITER(i, resp.services)
+	printf ("Service %d Version %d\n", i->family, i->version);
     }
   else
     die ("No response");

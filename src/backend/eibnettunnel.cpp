@@ -92,7 +92,7 @@ bool EIBNetIPTunnel::init (Layer3 *l3)
 void
 EIBNetIPTunnel::Send_L_Data (LPDU * l)
 {
-  TRACEPRINTF (t, 2, this, "Send %s", l->Decode ()());
+  TRACEPRINTF (t, 2, this, "Send %s", l->Decode ().c_str());
   if (l->getType () != L_Data)
     {
       delete l;
@@ -224,7 +224,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 		    }
 		  break;
 		}
-	      if (cresp.CRD () != 3)
+	      if (cresp.CRD.size() != 3)
 		{
 		  TRACEPRINTF (t, 1, this, "Recv wrong connection response");
 		  break;
@@ -322,7 +322,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 	      c = CEMI_to_L_Data (treq.CEMI, shared_from_this());
 	      if (c)
 		{
-		  TRACEPRINTF (t, 1, this, "Recv %s", c->Decode ()());
+		  TRACEPRINTF (t, 1, this, "Recv %s", c->Decode ().c_str());
 		  if (mode != BUSMODE_MONITOR)
 		    {
 		      if (c->AddrType == IndividualAddress
@@ -534,7 +534,7 @@ EIBNetIPTunnel::Run (pth_sem_t * stop1)
 	  sock->Send (p, caddr);
 	}
 
-      if (!inqueue.isempty () && inqueue.top ()() == 0)
+      if (!inqueue.isempty () && inqueue.top().size() == 0)
 	{
 	  pth_sem_dec (&insignal);
 	  inqueue.get ();

@@ -114,8 +114,8 @@ EIBnetServer::~EIBnetServer ()
   if (busmoncount)
     l3->deregisterVBusmonitor (this);
   Stop ();
-  for (i = 0; i < natstate (); i++)
-    pth_event_free (natstate[i].timeout, PTH_FREE_THIS);
+  ITER(i,natstate)
+    pth_event_free (i->timeout, PTH_FREE_THIS);
   if (sock)
     delete sock;
   if (mcast)
@@ -218,12 +218,12 @@ void EIBnetDiscover::Send (EIBNetIPPacket p, struct sockaddr_in addr)
 void
 EIBnetServer::Send_L_Busmonitor (L_Busmonitor_PDU * l)
 {
-  for (unsigned int i = 0; i < state (); i++)
+  ITER(i, state)
     {
-      if (state[i]->type == CT_BUSMONITOR)
+      if ((*i)->type == CT_BUSMONITOR)
 	{
-	  state[i]->out.put (Busmonitor_to_CEMI (0x2B, *l, state[i]->no++));
-	  pth_sem_inc (state[i]->outsignal, 0);
+	  (*i)->out.put (Busmonitor_to_CEMI (0x2B, *l, (*i)->no++));
+	  pth_sem_inc ((*i)->outsignal, 0);
 	}
     }
 }
@@ -239,16 +239,16 @@ EIBnetServer::Send_L_Data (L_Data_PDU * l)
     }
   if (route)
     {
-      TRACEPRINTF (t, 8, this, "Send_Route %s", l->Decode ()());
+      TRACEPRINTF (t, 8, this, "Send_Route %s", l->Decode ().c_str());
       EIBNetIPPacket p;
       p.service = ROUTING_INDICATION;
       if (l->dest == 0 && l->AddrType == IndividualAddress)
 	{
 	  unsigned int i, cnt = 0;
-	  for (i = 0; i < natstate (); i++)
-	    if (natstate[i].dest == l->source)
+	  ITER(i, natstate)
+	    if (i->dest == l->source)
 	      {
-		l->dest = natstate[i].src;
+		l->dest = i->src;
 		p.data = L_Data_ToCEMI (0x29, *l);
 		Send (p);
 		l->dest = 0;
@@ -314,8 +314,8 @@ EIBnetServer::addClient (ConnType type, const EIBnet_ConnectRequest & r1,
   unsigned int i;
   int id = 1;
 rt:
-  for (i = 0; i < state (); i++)
-    if (state[i]->channel == id)
+  ITER(i, state)
+    if ((*i)->channel == id)
       {
 	id++;
 	goto rt;
@@ -335,9 +335,7 @@ rt:
       if(!s->init())
         return -1;
 
-      int pos = state ();
-      state.resize (state () + 1);
-      state[pos] = s;
+      state.push_back(s);
 
       s->Start();
     }
@@ -350,17 +348,16 @@ EIBnetServer::addNAT (const L_Data_PDU & l)
   unsigned int i;
   if (l.AddrType != IndividualAddress)
     return;
-  for (i = 0; i < natstate (); i++)
-    if (natstate[i].src == l.source && natstate[i].dest == l.dest)
+  ITER(i, natstate)
+    if ((*i).src == l.source && (*i).dest == l.dest)
       {
-	reset_time(natstate[i].timeout, 180, 0);
+	reset_time((*i).timeout, 180, 0);
 	return;
       }
-  i = natstate ();
-  natstate.resize (i + 1);
-  natstate[i].src = l.source;
-  natstate[i].dest = l.dest;
-  natstate[i].timeout = pth_event (PTH_EVENT_RTIME, pth_time (180, 0));
+  natstate.push_back((NATState){
+    .src = l.source,
+    .dest = l.dest,
+    .timeout = pth_event (PTH_EVENT_RTIME, pth_time (180, 0))});
 }
 
 ConnState::ConnState (EIBnetServer *p, eibaddr_t addr)
@@ -459,7 +456,7 @@ void ConnState::shutdown(void)
 
 void EIBnetServer::drop_state (ConnStatePtr s)
 {
-  for (int i=0; i < state (); i++)
+  for (int i=0; i < state.size(); i++)
     {
       if (state[i] == s)
         {
@@ -473,7 +470,7 @@ void
 EIBnetServer::drop_state (uint8_t index)
 {
   ConnStatePtr state2 = state[index];
-  state.deletepart (index);
+  state.erase (state.begin()+index);
   state2->shutdown();
 }
 
@@ -550,18 +547,18 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       //FIXME: Hostname, MAC-addr
       memcpy(r2.MAC, mac_address, sizeof(r2.MAC));
       //FIXME: Hostname, indiv. address
-      strncpy ((char *) r2.name, name (), sizeof(r2.name));
+      strncpy ((char *) r2.name, name.c_str(), sizeof(r2.name));
       d.version = 1;
       d.family = 2; // core
-      r2.services.add (d);
+      r2.services.push_back (d);
       //d.family = 3; // device management
       //r2.services.add (d);
       d.family = 4;
       if (tunnel)
-	r2.services.add (d);
+	r2.services.push_back (d);
       d.family = 5;
       if (route)
-	r2.services.add (d);
+	r2.services.push_back (d);
       if (!GetSourceAddress (&r1.caddr, &r2.caddr))
 	goto out;
       r2.caddr.sin_port = Port;
@@ -583,31 +580,31 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       r2.multicastaddr = mcast->maddr.sin_addr;
       memcpy(r2.MAC, mac_address, sizeof(r2.MAC));
       //FIXME: Hostname, indiv. address
-      strncpy ((char *) r2.name, name(), sizeof(r2.name));
+      strncpy ((char *) r2.name, name.c_str(), sizeof(r2.name));
       d.version = 1;
       d.family = 2;
       if (discover)
-	r2.services.add (d);
+	r2.services.push_back (d);
       d.family = 3;
-      r2.services.add (d);
+      r2.services.push_back (d);
       d.family = 4;
       if (tunnel)
-	r2.services.add (d);
+	r2.services.push_back (d);
       d.family = 5;
       if (route)
-	r2.services.add (d);
+	r2.services.push_back (d);
       isock->Send (r2.ToPacket (), r1.caddr);
       goto out;
     }
   if (p1->service == ROUTING_INDICATION && route)
     {
-      if (p1->data () < 2 || p1->data[0] != 0x29)
+      if (p1->data.size() < 2 || p1->data[0] != 0x29)
 	goto out;
       const CArray data = p1->data;
       L_Data_PDU *c = CEMI_to_L_Data (data, shared_from_this());
       if (c)
 	{
-	  TRACEPRINTF (t, 8, this, "Recv_Route %s", c->Decode ()());
+	  TRACEPRINTF (t, 8, this, "Recv_Route %s", c->Decode ().c_str());
 	  if (c->hopcount)
 	    {
 	      c->hopcount--;
@@ -630,11 +627,11 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       EIBnet_ConnectionStateResponse r2;
       if (parseEIBnet_ConnectionStateRequest (*p1, r1))
 	goto out;
-      for (unsigned int i = 0; i < state (); i++)
-	if (state[i]->channel == r1.channel)
+      ITER(i, state)
+	if ((*i)->channel == r1.channel)
 	  {
             res = 0;
-            reset_time(state[i]->timeout, 120,0);
+            reset_time((*i)->timeout, 120,0);
 	  }
       r2.channel = r1.channel;
       r2.status = res;
@@ -648,7 +645,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       EIBnet_DisconnectResponse r2;
       if (parseEIBnet_DisconnectRequest (*p1, r1))
 	goto out;
-      for (unsigned int i = 0; i < state (); i++)
+      for (unsigned int i = 0; i < state.size(); i++)
 	if (state[i]->channel == r1.channel)
 	  {
             res = 0;
@@ -668,12 +665,12 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       if (parseEIBnet_ConnectRequest (*p1, r1))
 	goto out;
       r2.status = 0x22;
-      if (r1.CRI () == 3 && r1.CRI[0] == 4 && tunnel)
+      if (r1.CRI.size() == 3 && r1.CRI[0] == 4 && tunnel)
 	{
 	  eibaddr_t a = l3->get_client_addr ();
 	  r2.CRD.resize (3);
 	  r2.CRD[0] = 0x04;
-	  TRACEPRINTF (t, 8, this, "Tunnel CONNECTION_REQ with %s", FormatEIBAddr(a)());
+	  TRACEPRINTF (t, 8, this, "Tunnel CONNECTION_REQ with %s", FormatEIBAddr(a).c_str());
 	  r2.CRD[1] = (a >> 8) & 0xFF;
 	  r2.CRD[2] = (a >> 0) & 0xFF;
 	  if (r1.CRI[1] == 0x02 || r1.CRI[1] == 0x80)
@@ -688,7 +685,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
 		}
 	    }
 	}
-      else if (r1.CRI () == 1 && r1.CRI[0] == 3)
+      else if (r1.CRI.size() == 1 && r1.CRI[0] == 3)
 	{
 	  r2.CRD.resize (1);
 	  r2.CRD[0] = 0x03;
@@ -713,10 +710,10 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       if (parseEIBnet_TunnelRequest (*p1, r1))
 	goto out;
       TRACEPRINTF (t, 8, this, "TUNNEL_REQ");
-      for (unsigned int i = 0; i < state (); i++)
-	if (state[i]->channel == r1.channel)
+      ITER(i,state)
+	if ((*i)->channel == r1.channel)
 	  {
-	    state[i]->tunnel_request(r1, isock);
+	    (*i)->tunnel_request(r1, isock);
 	    break;
 	  }
       goto out;
@@ -727,10 +724,10 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       if (parseEIBnet_TunnelACK (*p1, r1))
 	goto out;
       TRACEPRINTF (t, 8, this, "TUNNEL_ACK");
-      for (unsigned int i = 0; i < state (); i++)
-	if (state[i]->channel == r1.channel)
+      ITER(i, state)
+	if ((*i)->channel == r1.channel)
 	  {
-	    state[i]->tunnel_response (r1);
+	    (*i)->tunnel_response (r1);
 	    break;
 	  }
       goto out;
@@ -742,10 +739,10 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       if (parseEIBnet_ConfigRequest (*p1, r1))
 	goto out;
       TRACEPRINTF (t, 8, this, "CONFIG_REQ");
-      for (unsigned int i = 0; i < state (); i++)
-	if (state[i]->channel == r1.channel)
+      ITER(i, state)
+	if ((*i)->channel == r1.channel)
 	  {
-	    state[i]->config_request (r1, isock);
+	    (*i)->config_request (r1, isock);
 	    break;
 	  }
       goto out;
@@ -756,10 +753,10 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       if (parseEIBnet_ConfigACK (*p1, r1))
 	goto out;
       TRACEPRINTF (t, 8, this, "CONFIG_ACK");
-      for (unsigned int i = 0; i < state (); i++)
-	if (state[i]->channel == r1.channel)
+      ITER(i, state)
+	if ((*i)->channel == r1.channel)
 	  {
-	    state[i]->config_response (r1);
+	    (*i)->config_response (r1);
 	    break;
 	  }
       goto out;
@@ -779,17 +776,19 @@ EIBnetServer::Run (pth_sem_t * stop1)
 
   while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
     {
-      for (i = 0; i < natstate (); i++)
-	pth_event_concat (stop, natstate[i].timeout, NULL);
+      ITER(i, natstate)
+	pth_event_concat (stop, i->timeout, NULL);
       p1 = sock->Get (stop);
-      for (i = 0; i < natstate (); i++)
-	pth_event_isolate (natstate[i].timeout);
-      for (i = 0; i < natstate (); i++)
+      ITER(i,natstate)
+	pth_event_isolate (i->timeout);
+      for (i = 0; i < natstate.size(); )
 	if (pth_event_status (natstate[i].timeout) == PTH_STATUS_OCCURRED)
 	  {
 	    pth_event_free (natstate[i].timeout, PTH_FREE_THIS);
-	    natstate.deletepart (i, 1);
+	    natstate.erase (natstate.begin()+i);
 	  }
+        else
+          i++;
       if (p1)
 	handle_packet (p1, this->sock);
     }
@@ -797,8 +796,8 @@ EIBnetServer::Run (pth_sem_t * stop1)
   /* copy aray since shutdown will mutate this */
   Array<ConnStatePtr> state2 = state;
   state.resize(0);
-  for (i = 0; i < state2 (); i++)
-    state2[i]->shutdown();
+  ITER(i, state2)
+    (*i)->shutdown();
   pth_event_free (stop, PTH_FREE_THIS);
 }
 
@@ -922,11 +921,11 @@ void ConnState::config_request(EIBnet_ConfigRequest &r1, EIBNetIPSocket *isock)
     }
   r2.channel = r1.channel;
   r2.seqno = r1.seqno;
-  if (type == CT_CONFIG && r1.CEMI () > 1)
+  if (type == CT_CONFIG && r1.CEMI.size() > 1)
     {
       if (r1.CEMI[0] == 0xFC)
 	{
-	  if (r1.CEMI () == 7)
+	  if (r1.CEMI.size() == 7)
 	    {
 	      CArray res, CEMI;
 	      int obj = (r1.CEMI[1] << 8) | r1.CEMI[2];
@@ -950,7 +949,7 @@ void ConnState::config_request(EIBnet_ConfigRequest &r1, EIBNetIPSocket *isock)
 		}
 	      else
 		count = 0;
-	      CEMI.resize (6 + res ());
+	      CEMI.resize (6 + res.size());
 	      CEMI[0] = 0xFB;
 	      CEMI[1] = (obj >> 8) & 0xff;
 	      CEMI[2] = obj & 0xff;

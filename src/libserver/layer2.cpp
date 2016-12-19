@@ -53,11 +53,12 @@ Layer2::RunStop()
 bool
 Layer2::addAddress (eibaddr_t addr)
 {
-  unsigned i;
-  for (i = 0; i < indaddr (); i++)
-    if (indaddr[i] == addr)
+  if (addr == 0)
+    return false;
+  ITER(i, indaddr)
+    if (*i == addr)
       return false;
-  indaddr.add (addr);
+  indaddr.push_back (addr);
   return true;
 }
 
@@ -66,33 +67,30 @@ Layer2::addReverseAddress (eibaddr_t addr)
 {
   if (addr == 0)
     return false;
-  unsigned i;
-  for (i = 0; i < revaddr (); i++)
-    if (revaddr[i] == addr)
+  ITER(i, revaddr)
+    if (*i == addr)
       return false;
-  revaddr.add (addr);
+  revaddr.push_back (addr);
   return true;
 }
 
 bool
 Layer2::addGroupAddress (eibaddr_t addr)
 {
-  unsigned i;
-  for (i = 0; i < groupaddr (); i++)
-    if (groupaddr[i] == addr)
+  ITER(i, groupaddr)
+    if (*i == addr)
       return false;
-  groupaddr.add (addr);
+  groupaddr.push_back (addr);
   return true;
 }
 
 bool
 Layer2::removeAddress (eibaddr_t addr)
 {
-  unsigned i;
-  for (i = 0; i < indaddr (); i++)
-    if (indaddr[i] == addr)
+  ITER(i, indaddr)
+    if (*i == addr)
       {
-        indaddr.deletepart (i, 1);
+        indaddr.erase (i);
         return true;
       }
   return false;
@@ -101,11 +99,10 @@ Layer2::removeAddress (eibaddr_t addr)
 bool
 Layer2::removeReverseAddress (eibaddr_t addr)
 {
-  unsigned i;
-  for (i = 0; i < revaddr (); i++)
-    if (revaddr[i] == addr)
+  ITER(i, revaddr)
+    if (*i == addr)
       {
-        revaddr.deletepart (i, 1);
+        revaddr.erase (i);
         return true;
       }
   return false;
@@ -114,11 +111,10 @@ Layer2::removeReverseAddress (eibaddr_t addr)
 bool
 Layer2::removeGroupAddress (eibaddr_t addr)
 {
-  unsigned i;
-  for (i = 0; i < groupaddr (); i++)
-    if (groupaddr[i] == addr)
+  ITER(i, groupaddr)
+    if (*i == addr)
       {
-        groupaddr.deletepart (i, 1);
+        groupaddr.erase (i);
         return true;
       }
   return false;
@@ -127,8 +123,8 @@ Layer2::removeGroupAddress (eibaddr_t addr)
 bool
 Layer2::hasAddress (eibaddr_t addr)
 {
-  for (unsigned int i = 0; i < indaddr (); i++)
-    if (indaddr[i] == addr)
+  ITER(i, indaddr)
+    if (*i == addr)
       return true;
   return false;
 }
@@ -136,8 +132,8 @@ Layer2::hasAddress (eibaddr_t addr)
 bool
 Layer2::hasReverseAddress (eibaddr_t addr)
 {
-  for (unsigned int i = 0; i < revaddr (); i++)
-    if (revaddr[i] == addr)
+  ITER(i, revaddr)
+    if (*i == addr)
       return true;
   return false;
 }
@@ -145,8 +141,8 @@ Layer2::hasReverseAddress (eibaddr_t addr)
 bool
 Layer2::hasGroupAddress (eibaddr_t addr)
 {
-  for (unsigned int i = 0; i < groupaddr (); i++)
-    if (groupaddr[i] == addr || groupaddr[i] == 0)
+  ITER(i, groupaddr)
+    if (*i == addr || *i == 0)
       return true;
   return false;
 }

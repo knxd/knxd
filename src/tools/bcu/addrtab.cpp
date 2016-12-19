@@ -56,7 +56,7 @@ readEMI1Mem (LowLevelDriver * iface, memaddr_t addr, uchar len,
     return 0;
   d = *d1;
   delete d1;
-  if (d () != 4 + len)
+  if (d.size() != 4 + len)
     return 0;
   if (d[0] != 0x4B)
     return 0;
@@ -66,7 +66,7 @@ readEMI1Mem (LowLevelDriver * iface, memaddr_t addr, uchar len,
     return 0;
   if (d[3] != ((addr) & 0xff))
     return 0;
-  result.set (d.array () + 4, len);
+  result.set (d.data() + 4, len);
   return 1;
 }
 
@@ -75,15 +75,15 @@ writeEMI1Mem (LowLevelDriver * iface, memaddr_t addr, CArray data)
 {
   CArray d;
   iface->SendReset ();
-  d.resize (4 + data ());
+  d.resize (4 + data.size());
   d[0] = 0x46;
-  d[1] = data.len () & 0xff;
+  d[1] = data.size() & 0xff;
   d[2] = (addr >> 8) & 0xff;
   d[3] = (addr) & 0xff;
   d.setpart (data, 4);
   iface->Send_Packet (d);
   llwait (iface);
-  if (!readEMI1Mem (iface, addr, data (), d))
+  if (!readEMI1Mem (iface, addr, data.size(), d))
     return 0;
   return d == data;
 }
@@ -103,7 +103,7 @@ readEMI2Mem (LowLevelDriver * iface, memaddr_t addr, uchar len,
     {
       d = *d1;
       delete d1;
-      if (d () != 6)
+      if (d.size() != 6)
 	return 0;
       if (d[0] != 0x86)
 	return 0;
@@ -132,7 +132,7 @@ readEMI2Mem (LowLevelDriver * iface, memaddr_t addr, uchar len,
     {
       d = *d1;
       delete d1;
-      if (d () != 11)
+      if (d.size() != 11)
 	return 0;
       if (d[0] != 0x8E)
 	return 0;
@@ -145,7 +145,7 @@ readEMI2Mem (LowLevelDriver * iface, memaddr_t addr, uchar len,
     return 0;
   d = *d1;
   delete d1;
-  if (d () != 11 + len)
+  if (d.size() != 11 + len)
     return 0;
   if (d[0] != 0x89)
     return 0;
@@ -169,7 +169,7 @@ readEMI2Mem (LowLevelDriver * iface, memaddr_t addr, uchar len,
     return 0;
   if (d[10] != ((addr) & 0xff))
     return 0;
-  result.set (d.array () + 11, len);
+  result.set (d.data() + 11, len);
   iface->Send_Packet (CArray (EMI2_LDIS, sizeof (EMI2_LDIS)));
   d1 = iface->Get_Packet (0);
   if (!d1)
@@ -178,7 +178,7 @@ readEMI2Mem (LowLevelDriver * iface, memaddr_t addr, uchar len,
     {
       d = *d1;
       delete d1;
-      if (d () != 6)
+      if (d.size() != 6)
 	return 0;
       if (d[0] != 0x88)
 	return 0;
@@ -203,7 +203,7 @@ writeEMI2Mem (LowLevelDriver * iface, memaddr_t addr, CArray data)
     {
       d = *d1;
       delete d1;
-      if (d () != 6)
+      if (d.size() != 6)
 	return 0;
       if (d[0] != 0x86)
 	return 0;
@@ -211,7 +211,7 @@ writeEMI2Mem (LowLevelDriver * iface, memaddr_t addr, CArray data)
   else
     return 0;
 
-  d.resize (11 + data ());
+  d.resize (11 + data.size());
   d[0] = 0x41;
   d[1] = 0x00;
   d[2] = 0x00;
@@ -220,7 +220,7 @@ writeEMI2Mem (LowLevelDriver * iface, memaddr_t addr, CArray data)
   d[5] = 0x00;
   d[6] = 0x03;
   d[7] = 0x02;
-  d[8] = (0x80 | (data () & 0x0f));
+  d[8] = (0x80 | (data.size() & 0x0f));
   d[9] = (addr >> 8) & 0xff;
   d[10] = (addr) & 0xff;
   d.setpart (data, 11);
@@ -231,7 +231,7 @@ writeEMI2Mem (LowLevelDriver * iface, memaddr_t addr, CArray data)
     {
       d = *d1;
       delete d1;
-      if (d () != 11 + data ())
+      if (d.size() != 11 + data.size())
 	return 0;
       if (d[0] != 0x8E)
 	return 0;
@@ -247,7 +247,7 @@ writeEMI2Mem (LowLevelDriver * iface, memaddr_t addr, CArray data)
     {
       d = *d1;
       delete d1;
-      if (d () != 6)
+      if (d.size() != 6)
 	return 0;
       if (d[0] != 0x88)
 	return 0;
@@ -256,7 +256,7 @@ writeEMI2Mem (LowLevelDriver * iface, memaddr_t addr, CArray data)
   iface->Send_Packet (CArray (EMI2_NORM, sizeof (EMI2_NORM)));
   llwait (iface);
 
-  if (!readEMI2Mem (iface, addr, data (), d))
+  if (!readEMI2Mem (iface, addr, data.size(), d))
     return 0;
   return d == data;
 }

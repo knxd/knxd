@@ -39,9 +39,9 @@ Server::~Server ()
 {
   TRACEPRINTF (t, 8, this, "StopServer");
   Stop ();
-  for (unsigned int i = 0; i < connections (); i++)
-    connections[i]->StopDelete ();
-  while (connections () != 0)
+  ITER(i,connections)
+    (*i)->StopDelete ();
+  while (connections.size() != 0)
     pth_yield (0);
 
   if (fd != -1)
@@ -51,10 +51,10 @@ Server::~Server ()
 bool
 Server::deregister (ClientConnection * con)
 {
-  for (unsigned i = 0; i < connections (); i++)
-    if (connections[i] == con)
+  ITER(i, connections)
+    if (*i == con)
       {
-	connections.deletepart (i, 1);
+	connections.erase (i);
 	return 1;
       }
   return 0;
@@ -87,7 +87,7 @@ Server::Run (pth_sem_t * stop1)
 	  TRACEPRINTF (t, 8, this, "New Connection");
 	  setupConnection (cfd);
 	  ClientConnection *c = new ClientConnection (this, cfd);
-	  connections.setpart (&c, connections (), 1);
+	  connections.push_back(c);
 	  c->Start ();
 	}
     }

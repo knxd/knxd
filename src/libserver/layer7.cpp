@@ -65,7 +65,7 @@ Array < eibaddr_t >
 	{
 	  a = APDU::fromPacket (c->data, tr);
 	  if (a->isResponse (&r))
-	    addrs.add (c->src);
+	    addrs.push_back (c->src);
 	  delete a;
 	  delete c;
 	}
@@ -115,7 +115,7 @@ Layer7_Connection::Request_Response (APDU * r)
       c = l4->Get (t);
       if (!c)
         continue;
-      if (c->len () == 0)
+      if (c->size() == 0)
         {
           delete c;
           continue;
@@ -244,8 +244,8 @@ Layer7_Connection::A_Memory_Write (memaddr_t addr, const CArray & data)
 {
   A_Memory_Write_PDU r;
   r.addr = addr;
-  r.count = data () & 0x0f;
-  r.data.set (data.array (), data () & 0x0f);
+  r.count = data.size() & 0x0f;
+  r.data.set (data.data(), data.size() & 0x0f);
   l4->Send (r.ToPacket ());
   return 0;
 }
@@ -300,7 +300,7 @@ Layer7_Connection::X_Memory_Write (memaddr_t addr, const CArray & data)
   CArray d1;
   if (A_Memory_Write (addr, data) == -1)
     return -1;
-  if (A_Memory_Read (addr, data (), d1) == -1)
+  if (A_Memory_Read (addr, data.size(), d1) == -1)
     return -1;
   if (d1 != data)
     return -2;
@@ -314,16 +314,16 @@ Layer7_Connection::X_Memory_Write_Block (memaddr_t addr, const CArray & data)
   unsigned int i, j;
   int k, res = 0;
   const unsigned blocksize = 12;
-  if (X_Memory_Read_Block (addr, data (), prev) == -1)
+  if (X_Memory_Read_Block (addr, data.size(), prev) == -1)
     return -1;
-  for (i = 0; i < data (); i++)
+  for (i = 0; i < data.size(); i++)
     {
       if (data[i] == prev[i])
 	continue;
       j = 0;
-      while (data[i + j] != prev[i + j] && j < blocksize && i + j < data ())
+      while (data[i + j] != prev[i + j] && j < blocksize && i + j < data.size())
 	j++;
-      k = X_Memory_Write (addr + i, CArray (data.array () + i, j));
+      k = X_Memory_Write (addr + i, CArray (data, i, j));
       if (k == -1)
 	return -1;
       if (k == -2)
@@ -366,12 +366,12 @@ Layer7_Connection::A_Memory_Write_Block (memaddr_t addr, const CArray & data)
   int k, res = 0;
   const unsigned blocksize = 12;
 
-  for (i = 0; i < data (); i += blocksize)
+  for (i = 0; i < data.size(); i += blocksize)
     {
       j = blocksize;
-      if (i + j > data ())
-	j = data () - i;
-      k = A_Memory_Write (addr + i, CArray (data.array () + i, j));
+      if (i + j > data.size())
+	j = data.size() - i;
+      k = A_Memory_Write (addr + i, CArray (data.data() + i, j));
       if (k == -1)
 	return -1;
     }
@@ -413,7 +413,7 @@ Layer7_Individual::Request_Response (APDU * r)
       c = l4->Get (t);
       if (c)
 	{
-	  if (c->len () == 0)
+	  if (c->size() == 0)
 	    {
 	      delete c;
 	      pth_event_free (t, PTH_FREE_THIS);

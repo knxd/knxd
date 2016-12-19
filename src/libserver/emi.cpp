@@ -24,8 +24,8 @@ L_Data_ToCEMI (uchar code, const L_Data_PDU & l1)
 {
   uchar c = 0; // stupid compiler
   CArray pdu;
-  assert (l1.data () >= 1);
-  assert (l1.data () < 0xff);
+  assert (l1.data.size() >= 1);
+  assert (l1.data.size() < 0xff);
   assert ((l1.hopcount & 0xf8) == 0);
 
   switch (l1.prio)
@@ -43,10 +43,10 @@ L_Data_ToCEMI (uchar code, const L_Data_PDU & l1)
       c = 0x00;
       break;
     }
-  pdu.resize (l1.data () + 9);
+  pdu.resize (l1.data.size() + 9);
   pdu[0] = code;
   pdu[1] = 0x00;
-  pdu[2] = 0x10 | (c << 2) | (l1.data () - 1 <= 0x0f ? 0x80 : 0x00);
+  pdu[2] = 0x10 | (c << 2) | (l1.data.size() - 1 <= 0x0f ? 0x80 : 0x00);
   if (code == 0x29)
     pdu[2] |= (l1.repeated ? 0 : 0x20);
   else
@@ -58,8 +58,8 @@ L_Data_ToCEMI (uchar code, const L_Data_PDU & l1)
   pdu[5] = (l1.source) & 0xff;
   pdu[6] = (l1.dest >> 8) & 0xff;
   pdu[7] = (l1.dest) & 0xff;
-  pdu[8] = l1.data () - 1;
-  pdu.setpart (l1.data.array (), 9, l1.data ());
+  pdu[8] = l1.data.size() - 1;
+  pdu.setpart (l1.data.data(), 9, l1.data.size());
   return pdu;
 }
 
@@ -67,25 +67,25 @@ L_Data_PDU *
 CEMI_to_L_Data (const CArray & data, Layer2Ptr l2)
 {
   L_Data_PDU c = L_Data_PDU (l2);
-  if (data () < 2)
+  if (data.size() < 2)
     {
-      TRACEPRINTF (l2->t, 7, NULL, "packet too short (%d)", data ());
+      TRACEPRINTF (l2->t, 7, NULL, "packet too short (%d)", data.size());
       return 0;
     }
   unsigned start = data[1] + 2;
-  if (data () < 7 + start)
+  if (data.size() < 7 + start)
     {
-      TRACEPRINTF (l2->t, 7, NULL, "start too large (%d/%d)", data (),start);
+      TRACEPRINTF (l2->t, 7, NULL, "start too large (%d/%d)", data.size(),start);
       return 0;
     }
-  if (data () < 7 + start + data[6 + start] + 1)
+  if (data.size() < 7 + start + data[6 + start] + 1)
     {
-      TRACEPRINTF (l2->t, 7, NULL, "packet too short (%d/%d)", data (), 7 + start + data[6 + start] + 1);
+      TRACEPRINTF (l2->t, 7, NULL, "packet too short (%d/%d)", data.size(), 7 + start + data[6 + start] + 1);
       return 0;
     }
   c.source = (data[start + 2] << 8) | (data[start + 3]);
   c.dest = (data[start + 4] << 8) | (data[start + 5]);
-  c.data.set (data.array () + start + 7, data[6 + start] + 1);
+  c.data.set (data.data() + start + 7, data[6 + start] + 1);
   if (data[0] == 0x29)
     c.repeated = (data[start] & 0x20) ? 0 : 1;
   else
@@ -119,12 +119,12 @@ L_Busmonitor_PDU *
 CEMI_to_Busmonitor (const CArray & data, Layer2Ptr l2)
 {
   L_Busmonitor_PDU c = L_Busmonitor_PDU (l2);
-  if (data () < 2)
+  if (data.size() < 2)
     return 0;
   unsigned start = data[1] + 2;
-  if (data () < 1 + start)
+  if (data.size() < 1 + start)
     return 0;
-  c.pdu.set (data.array () + start, data () - start);
+  c.pdu.set (data.data() + start, data.size() - start);
   return new L_Busmonitor_PDU (c);
 }
 
@@ -132,7 +132,7 @@ CArray
 Busmonitor_to_CEMI (uchar code, const L_Busmonitor_PDU & p, int no)
 {
   CArray pdu;
-  pdu.resize (p.pdu () + 5);
+  pdu.resize (p.pdu.size() + 5);
   pdu[0] = code;
   pdu[1] = 3;        /* AddIL */
   pdu[2] = 3;        /* Type ID = L_Busmon.ind */
@@ -162,7 +162,7 @@ L_Data_ToEMI (uchar code, const L_Data_PDU & l1)
       c = 0x00;
       break;
     }
-  pdu.resize (l1.data () + 7);
+  pdu.resize (l1.data.size() + 7);
   pdu[0] = code;
   pdu[1] = c << 2;
   pdu[2] = 0;
@@ -170,10 +170,10 @@ L_Data_ToEMI (uchar code, const L_Data_PDU & l1)
   pdu[4] = (l1.dest >> 8) & 0xff;
   pdu[5] = (l1.dest) & 0xff;
   pdu[6] =
-    (l1.hopcount & 0x07) << 4 | ((l1.data () - 1) & 0x0f) | (l1.AddrType ==
+    (l1.hopcount & 0x07) << 4 | ((l1.data.size() - 1) & 0x0f) | (l1.AddrType ==
 							     GroupAddress ?
 							     0x80 : 0x00);
-  pdu.setpart (l1.data.array (), 7, l1.data ());
+  pdu.setpart (l1.data.data(), 7, l1.data.size());
   return pdu;
 }
 
@@ -183,7 +183,7 @@ EMI_to_L_Data (const CArray & data, Layer2Ptr l2)
   L_Data_PDU c = L_Data_PDU (l2);
   unsigned len;
 
-  if (data () < 8)
+  if (data.size() < 8)
     return 0;
 
   c.source = (data[2] << 8) | (data[3]);
@@ -205,9 +205,9 @@ EMI_to_L_Data (const CArray & data, Layer2Ptr l2)
     }
   c.AddrType = (data[6] & 0x80) ? GroupAddress : IndividualAddress;
   len = (data[6] & 0x0f) + 1;
-  if (len > data.len () - 7)
-    len = data.len () - 7;
-  c.data.set (data.array () + 7, len);
+  if (len > data.size() - 7)
+    len = data.size() - 7;
+  c.data.set (data.data() + 7, len);
   c.hopcount = (data[6] >> 4) & 0x07;
   return new L_Data_PDU (c);
 }

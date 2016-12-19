@@ -143,7 +143,7 @@ NCN5120SerialLayer2Driver::Send_Queue_Empty ()
 void
 NCN5120SerialLayer2Driver::Send_L_Data (LPDU * l)
 {
-  TRACEPRINTF (t, 2, this, "Send %s", l->Decode ()());
+  TRACEPRINTF (t, 2, this, "Send %s", l->Decode ().c_str());
   inqueue.put (l);
   pth_sem_inc (&in_signal, 1);
 }
@@ -221,7 +221,7 @@ NCN5120SerialLayer2Driver::Run (pth_sem_t * stop1)
   pth_event_t sendtimeout = pth_event (PTH_EVENT_RTIME, pth_time (0, 0));
   while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
     {
-      if (in () == 0 && !waitconfirm)
+      if (in.size() == 0 && !waitconfirm)
 	pth_event_concat (stop, input, NULL);
       if (to)
 	pth_event_concat (stop, timeout, NULL);
@@ -237,9 +237,9 @@ NCN5120SerialLayer2Driver::Run (pth_sem_t * stop1)
       if (i > 0)
 	{
 	  t->TracePacket (0, this, "Recv", i, buf);
-	  in.setpart (buf, in (), i);
+	  in.setpart (buf, in.size(), i);
 	}
-      while (in () > 0)
+      while (in.size() > 0)
 	{
 	  if(rmn)
 	    {
@@ -287,13 +287,13 @@ NCN5120SerialLayer2Driver::Run (pth_sem_t * stop1)
 	    }
 	  else if (in[0] == 0xCC || in[0] == 0xC0 || in[0] == 0x0C)
 	    {
-	      RecvLPDU (in.array (), 1);
+	      RecvLPDU (in.data(), 1);
 	      rmn=true;
 	      in.deletepart (0, 1);
 	    }
 	  else if ((in[0] & 0xD0) == 0x90)
 	    {
-	      if (in () < 6)
+	      if (in.size() < 6)
 		{
 		  if (!to)
 		    {
@@ -326,7 +326,7 @@ NCN5120SerialLayer2Driver::Run (pth_sem_t * stop1)
 		}
 	      unsigned len = in[5] & 0x0f;
 	      len += 6 + 2;
-	      if (in () < len)
+	      if (in.size() < len)
 		{
 		  if (!to)
 		    {
@@ -341,7 +341,7 @@ NCN5120SerialLayer2Driver::Run (pth_sem_t * stop1)
 		  continue;
 		}
 	      acked = 0;
-	      RecvLPDU (in.array (), len);
+	      RecvLPDU (in.data(), len);
 	      rmn=true;
 	      in.deletepart (0, len);
 	    }
@@ -386,26 +386,26 @@ NCN5120SerialLayer2Driver::Run (pth_sem_t * stop1)
 	watch = 0;
       if (watch == 2 && pth_event_status (watchdog) == PTH_STATUS_OCCURRED)
 	watch = 0;
-      if (in () == 0 && !inqueue.isempty () && !waitconfirm)
+      if (in.size() == 0 && !inqueue.isempty () && !waitconfirm)
 	{
 	  LPDU *l = (LPDU *) inqueue.top ();
 	  CArray d = l->ToPacket ();
 	  CArray w;
 	  unsigned i;
-	  w.resize (d () * 2);
-	  for (i = 0; i < d (); i++)
+	  w.resize (d.size() * 2);
+	  for (i = 0; i < d.size(); i++)
 	    {
 	      w[2 * i] = 0x80 | (i & 0x3f);
 	      w[2 * i + 1] = d[i];
 	    }
-	  w[(d () * 2) - 2] = (w[(d () * 2) - 2] & 0x3f) | 0x40;
+	  w[(d.size() * 2) - 2] = (w[(d.size() * 2) - 2] & 0x3f) | 0x40;
 	  t->TracePacket (0, this, "Write", w);
-	  (void) pth_write_ev (fd, w.array (), w (), stop);
+	  (void) pth_write_ev (fd, w.data(), w.size(), stop);
 	  waitconfirm = 1;
 	  pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE, sendtimeout,
 		     pth_time (0, 600000));
 	}
-      else if (in () == 0 && !waitconfirm && !watch && mode != BUSMODE_MONITOR && !to)
+      else if (in.size() == 0 && !waitconfirm && !watch && mode != BUSMODE_MONITOR && !to)
 	{
 	  pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE, watchdog,
 		     pth_time (10, 0));

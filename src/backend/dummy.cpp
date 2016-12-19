@@ -41,7 +41,7 @@ DummyL2Driver::~DummyL2Driver ()
 void
 DummyL2Driver::Send_L_Data (LPDU * l)
 {
-  TRACEPRINTF (t, 2, this, "Send %s", l->Decode ()());
+  TRACEPRINTF (t, 2, this, "Send %s", l->Decode ().c_str());
   if ((mode & BUSMODE_MONITOR) && l->getType () == L_Data)
     {
       L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (shared_from_this());

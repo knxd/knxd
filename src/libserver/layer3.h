@@ -127,9 +127,9 @@ public:
       'l2' says which interface NOT to check. */
   bool hasGroupAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr);
   /** save a pointer to this tracer, for deallocation with the L3 */
-  void registerTracer (Trace *t) { tracers.add (t); }
+  void registerTracer (Trace *t) { tracers.push_back (t); }
   /** remember this server, for deallocation with the L3 */
-  void registerServer (BaseServer *s) { servers.add (s); }
+  void registerServer (BaseServer *s) { servers.push_back (s); }
   /** remember this server, for deallocation with the L3 */
   void deregisterServer (BaseServer *s);
 

@@ -113,11 +113,11 @@ FT12LowLevelDriver::Send_Packet (CArray l)
   unsigned i;
   t->TracePacket (1, this, "Send", l);
 
-  assert (l () <= 32);
-  pdu.resize (l () + 7);
+  assert (l.size() <= 32);
+  pdu.resize (l.size() + 7);
   pdu[0] = 0x68;
-  pdu[1] = l () + 1;
-  pdu[2] = l () + 1;
+  pdu[1] = l.size() + 1;
+  pdu[2] = l.size() + 1;
   pdu[3] = 0x68;
   if (sendflag)
     pdu[4] = 0x53;
@@ -125,12 +125,12 @@ FT12LowLevelDriver::Send_Packet (CArray l)
     pdu[4] = 0x73;
   sendflag = !sendflag;
 
-  pdu.setpart (l.array (), 5, l ());
+  pdu.setpart (l.data(), 5, l.size());
   c = pdu[4];
-  for (i = 0; i < l (); i++)
+  for (i = 0; i < l.size(); i++)
     c += l[i];
-  pdu[pdu () - 2] = c;
-  pdu[pdu () - 1] = 0x16;
+  pdu[pdu.size() - 2] = c;
+  pdu[pdu.size() - 1] = 0x16;
 
   inqueue.put (pdu);
   pth_sem_set_value (&send_empty, 0);
@@ -211,10 +211,10 @@ FT12LowLevelDriver::Run (pth_sem_t * stop1)
       if (i > 0)
 	{
 	  t->TracePacket (0, this, "Recv", i, buf);
-	  akt.setpart (buf, akt (), i);
+	  akt.setpart (buf, akt.size(), i);
 	}
 
-      while (akt.len () > 0)
+      while (akt.size() > 0)
 	{
 	  if (akt[0] == 0xE5 && mode == 1)
 	    {
@@ -228,7 +228,7 @@ FT12LowLevelDriver::Run (pth_sem_t * stop1)
 	    }
 	  else if (akt[0] == 0x10)
 	    {
-	      if (akt () < 4)
+	      if (akt.size() < 4)
 		break;
 	      if (akt[1] == akt[2] && akt[3] == 0x16)
 		{
@@ -260,7 +260,7 @@ FT12LowLevelDriver::Run (pth_sem_t * stop1)
 	    {
 	      int len;
 	      uchar c1;
-	      if (akt () < 7)
+	      if (akt.size() < 7)
 		break;
 	      if (akt[1] != akt[2] || akt[3] != 0x68)
 		{
@@ -268,7 +268,7 @@ FT12LowLevelDriver::Run (pth_sem_t * stop1)
 		  akt.deletepart (0, 1);
 		  continue;
 		}
-	      if (akt () < akt[1] + 6U)
+	      if (akt.size() < akt[1] + 6U)
 		break;
 
 	      c1 = 0;
@@ -289,7 +289,7 @@ FT12LowLevelDriver::Run (pth_sem_t * stop1)
 	      if ((akt[4] == 0xF3 && recvflag) ||
 		  (akt[4] == 0xD3 && !recvflag))
 		{
-		  if (CArray (akt.array () + 5, akt[1] - 1) != last)
+		  if (CArray (akt.data() + 5, akt[1] - 1) != last)
 		    {
 		      TRACEPRINTF (t, 0, this, "Sequence jump");
 		      recvflag = !recvflag;
@@ -304,7 +304,7 @@ FT12LowLevelDriver::Run (pth_sem_t * stop1)
 		  recvflag = !recvflag;
 		  CArray *c = new CArray;
 		  len = akt[1] + 6;
-		  c->setpart (akt.array () + 5, 0, len - 7);
+		  c->setpart (akt.data() + 5, 0, len - 7);
 		  last = *c;
 		  outqueue.put (c);
 		  pth_sem_inc (&out_signal, TRUE);
@@ -325,8 +325,8 @@ FT12LowLevelDriver::Run (pth_sem_t * stop1)
 	  const CArray & c = inqueue.top ();
 	  t->TracePacket (0, this, "Send", c);
 	  repeatcount++;
-	  i = pth_write_ev (fd, c.array (), c (), stop);
-	  if (i == c ())
+	  i = pth_write_ev (fd, c.data(), c.size(), stop);
+	  if (i == c.size())
 	    {
 	      mode = 1;
 	      timeout =

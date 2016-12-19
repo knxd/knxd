@@ -78,7 +78,7 @@ EIBNetIPRouter::init (Layer3 *l3)
 void
 EIBNetIPRouter::Send_L_Data (LPDU * l)
 {
-  TRACEPRINTF (t, 2, this, "Send %s", l->Decode ()());
+  TRACEPRINTF (t, 2, this, "Send %s", l->Decode ().c_str());
   if (l->getType () != L_Data)
     {
       delete l;
@@ -106,11 +106,11 @@ EIBNetIPRouter::Run (pth_sem_t * stop1)
 	      delete p;
 	      continue;
 	    }
-	  if (p->data () < 2 || p->data[0] != 0x29)
+	  if (p->data.size() < 2 || p->data[0] != 0x29)
 	    {
-              if (p->data () < 2)
+              if (p->data.size() < 2)
                 {
-	          TRACEPRINTF (t, 2, this, "No payload (%d)", p->data ());
+	          TRACEPRINTF (t, 2, this, "No payload (%d)", p->data.size());
                 }
               else
                 {
@@ -124,7 +124,7 @@ EIBNetIPRouter::Run (pth_sem_t * stop1)
 	  L_Data_PDU *c = CEMI_to_L_Data (data, shared_from_this());
 	  if (c)
 	    {
-	      TRACEPRINTF (t, 2, this, "Recv %s", c->Decode ()());
+	      TRACEPRINTF (t, 2, this, "Recv %s", c->Decode ().c_str());
 	      if (mode & BUSMODE_UP)
 		{
 		  l3->recv_L_Data (c);

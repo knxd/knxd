@@ -53,7 +53,7 @@ initUSBDriver (LowLevelDriver * i, Trace * tr)
 	  if (r)
 	    {
 	      r1 = *r;
-	      if (r1 () != 64)
+	      if (r1.size() != 64)
 		goto cont;
 	      if (r1[0] != 01)
 		goto cont;
@@ -162,11 +162,11 @@ USBConverterInterface::Send_Packet (CArray l)
   t->TracePacket (0, this, "Send-EMI", l);
   CArray out;
   unsigned int j, l1;
-  l1 = l ();
+  l1 = l.size();
   out.resize (64);
   if (l1 + 11 > 64)
     l1 = 64 - 11;
-  for (j = 0; j < out (); j++)
+  for (j = 0; j < out.size(); j++)
     out[j] = 0;
   for (j = 0; j < l1; j++)
     out[j + 11] = l[j];
@@ -202,7 +202,7 @@ USBConverterInterface::Get_Packet (pth_event_t stop)
   if (res1)
     {
       CArray res = *res1;
-      if (res () != 64)
+      if (res.size() != 64)
 	goto out;
       if (res[0] != 0x01)
 	goto out;
@@ -237,7 +237,7 @@ USBConverterInterface::Get_Packet (pth_event_t stop)
 	default:
 	  goto out;
 	}
-      res1->set (res.array () + 11, res[6]);
+      res1->set (res.data() + 11, res[6]);
       t->TracePacket (0, this, "RecvEMI", *res1);
     }
   return res1;
