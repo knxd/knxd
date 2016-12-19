@@ -19,12 +19,12 @@ IUSE="eibd ft12 pei16s tpuarts eibnetip eibnetiptunnel eibnetipserver usb groupc
 
 DEPEND="dev-libs/pthsem"
 
-EGIT_REPO_URI="https://github.com/Makki1/knxd.git"
+EGIT_REPO_URI="https://github.com/knxd/knxd.git"
 #EGIT_COMMIT="v${PV}"
 EGIT_BRANCH="stable"
 
 src_prepare() {
-	eautoreconf || die "eautotooling failed"
+    eautoreconf || die "eautotooling failed"
 }
 
 src_configure() {
@@ -45,17 +45,17 @@ src_configure() {
 }
 
 src_compile() {
-	emake || die "build of knxd failed"
+    emake || die "build of knxd failed"
 }
 
 src_install() {
-	emake DESTDIR="${D}" install
+    emake DESTDIR="${D}" install
 
-	einfo "Installing init-script and config"
+    einfo "Installing init-script and config"
 
-	sed -e "s|@SLOT@|${SLOT}|g" \
-               "${FILESDIR}/${PN}.init" | newinitd - ${PN}-${SLOT}
+    sed -e "s|@SLOT@|${SLOT}|g" \
+           "${FILESDIR}/${PN}.init" | newinitd - ${PN}-${SLOT}
 
-        sed -e "s|@SLOT@|${SLOT}|g" \
-               "${FILESDIR}/${PN}.confd" | newconfd - ${PN}-${SLOT}
+    sed -e "s|@SLOT@|${SLOT}|g" \
+           "${FILESDIR}/${PN}.confd" | newconfd - ${PN}-${SLOT}
 }
