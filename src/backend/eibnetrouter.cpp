@@ -72,6 +72,8 @@ EIBNetIPRouter::init (Layer3 *l3)
 {
   if (sock == 0)
     return false;
+  if (! addGroupAddress(0))
+    return false;
   return Layer2::init (l3);
 }
 
