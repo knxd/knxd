@@ -27,15 +27,18 @@ Layer3::Layer3 (eibaddr_t addr, Trace * tr, bool force_broadcast)
   defaultAddr = addr;
   this->force_broadcast = force_broadcast;
   TRACEPRINTF (t, 3, this, "Open");
-  pth_sem_init (&bufsem);
-  running = false;
-  Start ();
+  running = true;
+  trigger.set<Layer3, &Layer3::trigger_cb>(this);
+  trigger.start();
+
+  TRACEPRINTF (t, 3, this, "L3 started");
 }
 
 Layer3::~Layer3 ()
 {
   TRACEPRINTF (t, 3, this, "Close");
-  Stop ();
+  running = false;
+
   while (servers ())
     delete servers[0];
   // the next loops should do exactly nothing
@@ -53,7 +56,7 @@ Layer3::recv_L_Data (LPDU * l)
     {
       TRACEPRINTF (t, 3, this, "Enqueue %s", l->Decode ()());
       buf.put (l);
-      pth_sem_inc (&bufsem, 0);
+      trigger.send();
     }
   else
     {
@@ -238,33 +241,13 @@ Layer3::get_client_addr ()
 }
 
 void
-Layer3::Run (pth_sem_t * stop1)
+Layer3::trigger_cb (ev::async &w, int revents)
 {
-  pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
   unsigned i;
 
-  running = true;
-
-  TRACEPRINTF (t, 3, this, "L3 started");
-  while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
+  while (!buf.isempty())
     {
-      pth_event_t bufev = pth_event (PTH_EVENT_SEM, &bufsem);
-      pth_event_concat (bufev, stop, NULL);
-      pth_wait (bufev);
-      pth_event_isolate (bufev);
-
-      if (pth_event_status (bufev) != PTH_STATUS_OCCURRED)
-        {
-          pth_event_free (bufev, PTH_FREE_THIS);
-          continue;
-        }
-      pth_event_free (bufev, PTH_FREE_THIS);
-
-      pth_sem_dec (&bufsem);
       LPDU *l = buf.get ();
-
-      if (!l)
-	continue;
 
       if (l->getType () == L_Data)
 	{
@@ -399,6 +382,4 @@ Layer3::Run (pth_sem_t * stop1)
       if (l2t)
         l2t->Stop();
     }
-
-  pth_event_free (stop, PTH_FREE_THIS);
 }

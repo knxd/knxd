@@ -22,6 +22,7 @@
 
 #include "layer2.h"
 #include "lpdu.h"
+#include <ev++.h>
 
 class BaseServer;
 class GroupCache;
@@ -50,14 +51,16 @@ typedef struct
 class Layer3;
 
 /** Layer 3 frame dispatches */
-class Layer3:private Thread
+class Layer3
 {
+  // libev
+  ev::async trigger;
+  void trigger_cb (ev::async &w, int revents);
+
   /** Layer 2 interfaces */
   Array < Layer2Ptr > layer2;
   /** buffer queue for receiving from L2 */
   Queue < LPDU * >buf;
-  /** semaphre for buffer queue */
-  pth_sem_t bufsem;
   /** buffer for packets to ignore when repeat flag is set */
   Array < IgnoreInfo > ignore;
 
@@ -73,7 +76,6 @@ class Layer3:private Thread
   Array < Busmonitor_Info > vbusmonitor;
 
   /** process incoming data from L2 */
-  void Run (pth_sem_t * stop);
   const char *Name() { return "Layer3"; }
 
   /** flag whether we're in .Run() */
