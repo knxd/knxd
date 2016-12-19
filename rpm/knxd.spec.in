@@ -226,6 +226,8 @@ install -m 644 %{_sourcedir}/systemd/knxd.conf %{buildroot}%{_sysconfdir}/knxd.c
 # preinstall
 #
 %pre
+/usr/bin/getent group knxd || /usr/sbin/groupadd -r knxd
+/usr/bin/getent passwd knxd || /usr/sbin/useradd -r -s /sbin/nologin -g knxd knxd
 
 ###############################################################################
 #
@@ -245,7 +247,8 @@ install -m 644 %{_sourcedir}/systemd/knxd.conf %{buildroot}%{_sysconfdir}/knxd.c
 # post-remove script
 #
 %postun
-
+/usr/sbin/userdel knxd
+/usr/sbin/groupdel knxd
 
 ###############################################################################
 #
