@@ -11,6 +11,7 @@
 %define buildroot     @abs_top_srcdir@/rpm/BUILDROOT
 
 BuildRoot: %{buildroot}
+BuildRequires: systemd
 
 ###############################################################################
 #
@@ -33,7 +34,7 @@ Packager:     Dr. Jürgen Sauermann <juergen.sauermann@t-online.de>
 # Description.
 #
 %description
-A KNX daemon 9aka. EIN daemon) and tools supporting it. 
+A KNX daemon and tools supporting it. 
 
 ###############################################################################
 #
@@ -57,8 +58,14 @@ make
 #
 %install
 rm -rf %{buildroot}
+mkdir -p %{buildroot}%{_sysconfdir}/
+mkdir -p %{buildroot}%{_unitdir}/
+mkdir -p %{buildroot}%{_sysusersdir}/
 make DESTDIR=%{buildroot} install
-
+install -m 644 %{_sourcedir}/systemd/knxd.service %{buildroot}%{_unitdir}/knxd.service
+install -m 644 %{_sourcedir}/systemd/knxd.socket %{buildroot}%{_unitdir}/knxd.socket
+install -m 644 %{_sourcedir}/systemd/sysusers.d/knxd.conf %{buildroot}%{_sysusersdir}/knxd.conf
+install -m 644 %{_sourcedir}/systemd/knxd.conf %{buildroot}%{_sysconfdir}/knxd.conf
 
 ###############################################################################
 #
@@ -68,7 +75,7 @@ make DESTDIR=%{buildroot} install
 %defattr(-,root,root,-)
 
 # /etc
-%{_sysconfdir}/knxd.conf
+%config(noreplace) %{_sysconfdir}/knxd.conf
 
 # /usr/bin
 %{_bindir}/bcuaddrtab
@@ -143,9 +150,9 @@ make DESTDIR=%{buildroot} install
 %{_libdir}/libeibclient.so
 %{_libdir}/libeibclient.so.0
 %{_libdir}/libeibclient.so.0.0.0
-%{_libdir}/systemd/system/knxd.service
-%{_libdir}/systemd/system/knxd.socket
-%{_libdir}/sysusers.d/knxd.conf
+%{_unitdir}/knxd.service
+%{_unitdir}/knxd.socket
+%{_sysusersdir}/knxd.conf
 
 # /usr/share/knxd/
 %{_datarootdir}/knxd/EIBConnection.cs
@@ -209,6 +216,10 @@ make DESTDIR=%{buildroot} install
 %{_datarootdir}/knxd/examples/writeaddress.c
 %{_datarootdir}/knxd/examples/xpropread.c
 %{_datarootdir}/knxd/examples/xpropwrite.c
+
+%exclude
+%{_datarootdir}/knxd/EIBConnection.pyc
+%{_datarootdir}/knxd/EIBConnection.pyo
 
 ###############################################################################
 #
