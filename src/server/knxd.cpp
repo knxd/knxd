@@ -535,14 +535,14 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
 // #define EV_TRACE
 
 static void
-signal_cb (struct ev_loop *loop, ev_signal *w, int revents)
+signal_cb (EV_P_ ev_signal *w, int revents)
 {
-  ev_break (loop, EVBREAK_ALL);
+  ev_break (EV_A_ EVBREAK_ALL);
 }
 
 #ifdef EV_TRACE
 static void
-timeout_cb (struct ev_loop *loop, ev_timer *w, int revents)
+timeout_cb (EV_P_ ev_timer *w, int revents)
 {
   printf("LIBEV ping\n");
 }
@@ -555,7 +555,7 @@ struct _hup {
 } hup;
 
 static void
-sighup_cb (struct ev_loop *loop, ev_signal *w, int revents)
+sighup_cb (EV_P_ ev_signal *w, int revents)
 {
   struct _hup *hup = (struct _hup *)w;
 
@@ -581,7 +581,14 @@ main (int ac, char *ag[])
   setlinebuf(stdout);
 
 // set up libev
-  struct ev_loop *loop = ev_default_loop(EVFLAG_AUTO | EVFLAG_NOSIGMASK | EVBACKEND_PTHSEM);
+#if EV_MULTIPLICITY
+  typedef struct ev_loop *LOOP_RESULT;
+#else
+  typedef int LOOP_RESULT;
+#endif
+  LOOP_RESULT loop = ev_default_loop(EVFLAG_AUTO | EVFLAG_NOSIGMASK | EVBACKEND_PTHSEM);
+  assert (loop);
+
 #ifdef EV_TRACE
   struct ev_timer timer;
 #endif
@@ -595,19 +602,19 @@ main (int ac, char *ag[])
 
 #ifdef EV_TRACE
   ev_timer_init (&timer, timeout_cb, 1., 10.);
-  ev_timer_again (loop, &timer);
+  ev_timer_again (EV_A_ &timer);
 #endif
   if (arg.daemon) {
     hup.t = &arg.t;
     hup.daemon = arg.daemon;
     ev_signal_init (&hup.sighup, sighup_cb, SIGINT);
-    ev_signal_start (loop, &hup.sighup);
+    ev_signal_start (EV_A_ &hup.sighup);
   }
 
   ev_signal_init (&sigint, signal_cb, SIGINT);
-  ev_signal_start (loop, &sigint);
+  ev_signal_start (EV_A_ &sigint);
   ev_signal_init (&sigterm, signal_cb, SIGTERM);
-  ev_signal_start (loop, &sigterm);
+  ev_signal_start (EV_A_ &sigterm);
 
   arg.errorlevel = LEVEL_WARNING;
 
@@ -652,13 +659,13 @@ main (int ac, char *ag[])
 #endif
 
   // now wait for events
-  ev_run (loop, arg.stop_now ? EVRUN_NOWAIT : 0);
+  ev_run (EV_A_ arg.stop_now ? EVRUN_NOWAIT : 0);
 
 #ifdef HAVE_SYSTEMD
   sd_notify(0,"STOPPING=1");
 #endif
 
-  ev_break(loop, EVBREAK_ALL);
+  ev_break(EV_A_ EVBREAK_ALL);
 
   arg.free_l3();
 
