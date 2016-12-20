@@ -78,6 +78,18 @@ AC_CHECK_FUNCS(gethostbyname_r,,[AC_MSG_WARN([knxd client library not thread saf
 
 AM_CONDITIONAL(LINUX_API, test x$have_linux_api = xyes)
 
+AC_ARG_ENABLE(management,
+[  --enable-ft12		enable management connections],
+[case "${enableval}" in
+ yes) management=true ;;
+  no)  management=false ;;
+   *) AC_MSG_ERROR(bad value ${enableval} for --enable-management) ;;
+ esac],[management=false])
+AM_CONDITIONAL(HAVE_MANAGEMENT, test x$management = xtrue)
+if test x$management = xtrue ; then
+ AC_DEFINE(HAVE_MANAGEMENT, 1 , [management connections enabled])
+fi
+
 AC_ARG_ENABLE(ft12,
 [  --enable-ft12		enable FT1.2 backend],
 [case "${enableval}" in
