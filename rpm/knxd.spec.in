@@ -12,6 +12,9 @@
 
 BuildRoot: %{buildroot}
 BuildRequires: systemd
+BuildRequires: systemd-devel
+BuildRequires: libpthsem-devel
+
 
 ###############################################################################
 #
