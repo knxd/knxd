@@ -57,7 +57,6 @@ Server (tr)
 
   this->path = path;
   TRACEPRINTF (tr, 8, this, "LocalSocket opened");
-  Start ();
 }
 
 LocalServer::~LocalServer ()

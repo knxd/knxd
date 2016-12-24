@@ -36,6 +36,5 @@ Server (tr)
     }
 
   TRACEPRINTF (tr, 8, this, "SystemdSocket opened");
-  Start ();
 }
 

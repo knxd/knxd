@@ -18,6 +18,7 @@
 */
 
 #include <unistd.h>
+#include <ev++.h>
 #include "server.h"
 #include "client.h"
 
@@ -30,7 +31,6 @@ BaseServer::BaseServer (Trace * tr)
 BaseServer::~BaseServer ()
 {
   TRACEPRINTF (t, 8, this, "StopBaseServer");
-  Stop ();
   if (l3)
     l3->deregisterServer (this);
 }
@@ -38,7 +38,6 @@ BaseServer::~BaseServer ()
 Server::~Server ()
 {
   TRACEPRINTF (t, 8, this, "StopServer");
-  Stop ();
   ITER(i,connections)
     (*i)->StopDelete ();
   while (connections.size() != 0)
@@ -76,27 +75,26 @@ Server::init (Layer3 *l3)
 {
   if (fd == -1)
     return false;
+  io.set<Server, &Server::io_cb>(this);
+  io.start(fd,ev::READ);
+  cleanup.set<Server, &Server::cleanup_cb>(this);
+  cleanup.start();
+
   return BaseServer::init(l3);
 }
 
 void
-Server::Run (pth_sem_t * stop1)
+Server::io_cb (ev::io &w, int revents)
 {
-  pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
-  while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
+  int cfd;
+  cfd = accept (fd, NULL,NULL);
+  if (cfd != -1)
     {
-      int cfd;
-      cfd = pth_accept_ev (fd, 0, 0, stop);
-      if (cfd != -1)
-	{
-	  TRACEPRINTF (t, 8, this, "New Connection");
-	  setupConnection (cfd);
-	  ClientConnection *c = new ClientConnection (this, cfd);
-	  connections.push_back(c);
-	  c->Start ();
-	}
+      TRACEPRINTF (t, 8, this, "New Connection");
+      setupConnection (cfd);
+      ClientConnPtr c = std::shared_ptr<ClientConnection>(new ClientConnection (this, cfd));
+      connections.push_back(c);
     }
-  pth_event_free (stop, PTH_FREE_THIS);
 }
 
 void

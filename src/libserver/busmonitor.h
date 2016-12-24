@@ -22,14 +22,11 @@
 
 #include "layer3.h"
 #include "client.h"
+#include "connection.h"
 
 /** implements busmonitor functions for a client */
-class A_Busmonitor:public L_Busmonitor_CallBack, private Thread
+class A_Busmonitor:public L_Busmonitor_CallBack, public A_Base
 {
-  /** semaphore for the input queue */
-  pth_sem_t sem;
-  /** input queue */
-  Queue < L_Busmonitor_PDU * >data;
   /** is virtual busmonitor */
   bool v;
   /** should provide timestamps */
@@ -40,12 +37,8 @@ class A_Busmonitor:public L_Busmonitor_CallBack, private Thread
 protected:
   /** Layer 3 Interface*/
   Layer3 * l3;
-  /** client connection */
-  ClientConnection *con;
   /** debug output */
   Trace *t;
-  /** turns a busmonitor LPDU into a eibd packet and sends it */
-  virtual int sendResponse (L_Busmonitor_PDU * p, pth_event_t stop);
 public:
   /** initializes busmonitor
    * @param c client connection
@@ -54,20 +47,16 @@ public:
    * @param virt is virtual busmonitor
    * @param ts provide timestamps
    */
-  A_Busmonitor (ClientConnection * c,
-                bool virt = false, bool ts = false);
+  A_Busmonitor (ClientConnPtr c,
+                bool virt, bool ts,
+                uint8_t *buf,size_t len);
   virtual ~A_Busmonitor ();
   void Send_L_Busmonitor (L_Busmonitor_PDU * l);
-
-  /** start processing */
-  void Do (pth_event_t stop);
 };
 
 /** implements text busmonitor functions for a client */
 class A_Text_Busmonitor:public A_Busmonitor
 {
-protected:
-  int sendResponse (L_Busmonitor_PDU * p, pth_event_t stop);
 public:
   /** initializes busmonitor
    * @param c client connection
@@ -75,10 +64,11 @@ public:
    * @param l3 Layer 3
    * @param virt is virtual busmonitor
    */
-  A_Text_Busmonitor (ClientConnection * c, bool virt = 0)
-                   : A_Busmonitor (c, virt, false)
+  A_Text_Busmonitor (ClientConnPtr c, bool virt, uint8_t *buf,size_t len)
+                   : A_Busmonitor (c, virt, false, buf,len)
   {
   }
+  void Send_L_Busmonitor (L_Busmonitor_PDU * l);
 };
 
 #endif

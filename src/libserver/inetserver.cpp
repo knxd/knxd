@@ -63,7 +63,6 @@ Server (tr)
     }
 
   TRACEPRINTF (tr, 8, this, "InetSocket opened");
-  Start ();
 }
 
 void

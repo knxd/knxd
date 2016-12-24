@@ -43,12 +43,18 @@ T_Broadcast::T_Broadcast (Trace * tr, int write_only)
 	: Layer4common (tr)
 {
   TRACEPRINTF (tr, 4, this, "OpenBroadcast %s", write_only ? "WO" : "RW");
-  pth_sem_init (&sem);
   init_ok = false;
   if (!write_only)
     if (!addGroupAddress (0))
       return;
   init_ok = true;
+}
+
+bool
+T_Broadcast::init (T_Reader<BroadcastComm> *app, Layer3 *l3)
+{
+    this->app = app;
+    return Layer4common::init(l3);
 }
 
 T_Broadcast::~T_Broadcast ()
@@ -66,8 +72,7 @@ T_Broadcast::Send_L_Data (L_Data_PDU * l)
       T_DATA_XXX_REQ_PDU *t1 = (T_DATA_XXX_REQ_PDU *) t;
       c.data = t1->data;
       c.src = l->source;
-      outqueue.put (c);
-      pth_sem_inc (&sem, 0);
+      app->send(c);
     }
   delete t;
   delete l;
@@ -88,28 +93,6 @@ T_Broadcast::Send (const CArray & c)
   l3->recv_L_Data (l);
 }
 
-BroadcastComm *
-T_Broadcast::Get (pth_event_t stop)
-{
-  pth_event_t s = pth_event (PTH_EVENT_SEM, &sem);
-
-  pth_event_concat (s, stop, NULL);
-  pth_wait (s);
-  pth_event_isolate (s);
-
-  if (pth_event_status (s) == PTH_STATUS_OCCURRED)
-    {
-      pth_sem_dec (&sem);
-      BroadcastComm *c = new BroadcastComm (outqueue.get ());
-
-      pth_event_free (s, PTH_FREE_THIS);
-      t->TracePacket (4, this, "Recv Broadcast", c->data);
-      return c;
-    }
-  pth_event_free (s, PTH_FREE_THIS);
-  return 0;
-}
-
 /***************** T_Group *****************/
 
 T_Group::T_Group (Trace * tr, eibaddr_t group, int write_only)
@@ -118,13 +101,19 @@ T_Group::T_Group (Trace * tr, eibaddr_t group, int write_only)
   TRACEPRINTF (tr, 4, this, "OpenGroup %s %s", FormatGroupAddr (group).c_str(),
 	       write_only ? "WO" : "RW");
   groupaddr = group;
-  pth_sem_init (&sem);
   init_ok = false;
 
   if (!write_only)
     if (!addGroupAddress (group))
       return;
   init_ok = true;
+}
+
+bool
+T_Group::init (T_Reader<GroupComm> *app, Layer3 *l3)
+{
+    this->app = app;
+    return Layer4common::init(l3);
 }
 
 void
@@ -137,8 +126,7 @@ T_Group::Send_L_Data (L_Data_PDU * l)
       T_DATA_XXX_REQ_PDU *t1 = (T_DATA_XXX_REQ_PDU *) t;
       c.data = t1->data;
       c.src = l->source;
-      outqueue.put (c);
-      pth_sem_inc (&sem, 0);
+      app->send(c);
     }
   delete t;
   delete l;
@@ -164,28 +152,6 @@ T_Group::~T_Group ()
   TRACEPRINTF (t, 4, this, "CloseGroup");
 }
 
-GroupComm *
-T_Group::Get (pth_event_t stop)
-{
-  pth_event_t s = pth_event (PTH_EVENT_SEM, &sem);
-
-  pth_event_concat (s, stop, NULL);
-  pth_wait (s);
-  pth_event_isolate (s);
-
-  if (pth_event_status (s) == PTH_STATUS_OCCURRED)
-    {
-      pth_sem_dec (&sem);
-      GroupComm *c = new GroupComm (outqueue.get ());
-
-      pth_event_free (s, PTH_FREE_THIS);
-      t->TracePacket (4, this, "Recv Group", c->data);
-      return c;
-    }
-  pth_event_free (s, PTH_FREE_THIS);
-  return 0;
-}
-
 /***************** T_TPDU *****************/
 
 T_TPDU::T_TPDU (Trace * tr, eibaddr_t d)
@@ -193,11 +159,17 @@ T_TPDU::T_TPDU (Trace * tr, eibaddr_t d)
 {
   TRACEPRINTF (tr, 4, this, "OpenTPDU %s", FormatEIBAddr (d).c_str());
   src = d;
-  pth_sem_init (&sem);
   init_ok = false;
   if (!addReverseAddress (src))
     return;
   init_ok = true;
+}
+
+bool
+T_TPDU::init (T_Reader<TpduComm> *app, Layer3 *l3)
+{
+    this->app = app;
+    return Layer4common::init(l3);
 }
 
 void
@@ -206,8 +178,7 @@ T_TPDU::Send_L_Data (L_Data_PDU * l)
   TpduComm t;
   t.data = l->data;
   t.addr = l->source;
-  outqueue.put (t);
-  pth_sem_inc (&sem, 0);
+  app->send(t);
   delete l;
 }
 
@@ -228,28 +199,6 @@ T_TPDU::~T_TPDU ()
   TRACEPRINTF (t, 4, this, "CloseTPDU");
 }
 
-TpduComm *
-T_TPDU::Get (pth_event_t stop)
-{
-  pth_event_t s = pth_event (PTH_EVENT_SEM, &sem);
-
-  pth_event_concat (s, stop, NULL);
-  pth_wait (s);
-  pth_event_isolate (s);
-
-  if (pth_event_status (s) == PTH_STATUS_OCCURRED)
-    {
-      pth_sem_dec (&sem);
-      TpduComm *c = new TpduComm (outqueue.get ());
-
-      pth_event_free (s, PTH_FREE_THIS);
-      t->TracePacket (4, this, "Recv TPDU", c->data);
-      return c;
-    }
-  pth_event_free (s, PTH_FREE_THIS);
-  return 0;
-}
-
 /***************** T_Individual *****************/
 
 T_Individual::T_Individual (Trace * tr, eibaddr_t d,
@@ -259,12 +208,18 @@ T_Individual::T_Individual (Trace * tr, eibaddr_t d,
   TRACEPRINTF (tr, 4, this, "OpenIndividual %s %s",
                FormatEIBAddr (d).c_str(), write_only ? "WO" : "RW");
   dest = d;
-  pth_sem_init (&sem);
   init_ok = false;
   if (!write_only)
     if (!addAddress(dest))
       return;
   init_ok = true;
+}
+
+bool
+T_Individual::init (T_Reader<CArray> *app, Layer3 *l3)
+{
+    this->app = app;
+    return Layer4common::init(l3);
 }
 
 void
@@ -276,8 +231,7 @@ T_Individual::Send_L_Data (L_Data_PDU * l)
     {
       T_DATA_XXX_REQ_PDU *t1 = (T_DATA_XXX_REQ_PDU *) t;
       c = t1->data;
-      outqueue.put (c);
-      pth_sem_inc (&sem, 0);
+      app->send(c);
     }
   delete t;
   delete l;
@@ -303,52 +257,35 @@ T_Individual::~T_Individual ()
   TRACEPRINTF (t, 4, this, "CloseIndividual");
 }
 
-CArray *
-T_Individual::Get (pth_event_t stop)
-{
-  pth_event_t s = pth_event (PTH_EVENT_SEM, &sem);
-
-  pth_event_concat (s, stop, NULL);
-  pth_wait (s);
-  pth_event_isolate (s);
-
-  if (pth_event_status (s) == PTH_STATUS_OCCURRED)
-    {
-      pth_sem_dec (&sem);
-      CArray *c = new CArray (outqueue.get ());
-
-      pth_event_free (s, PTH_FREE_THIS);
-      t->TracePacket (4, this, "Recv Individual", *c);
-      return c;
-    }
-  pth_event_free (s, PTH_FREE_THIS);
-  return 0;
-}
-
-/***************** T_COnnection *****************/
+/***************** T_Connection *****************/
 
 T_Connection::T_Connection (Trace * tr, eibaddr_t d)
 	: Layer4common (tr)
 {
   TRACEPRINTF (tr, 4, this, "OpenConnection %s", FormatEIBAddr (d).c_str());
+  timer.set <T_Connection, &T_Connection::timer_cb> (this);
+
   dest = d;
-  pth_sem_init (&insem);
-  pth_sem_init (&outsem);
-  pth_sem_init (&bufsem);
   recvno = 0;
   sendno = 0;
   mode = 0;
   init_ok = false;
   if (!addAddress (dest))
     return;
-  Start ();
   init_ok = true;
+}
+
+bool
+T_Connection::init (T_Reader<CArray> *app, Layer3 *l3)
+{
+    this->app = app;
+    return Layer4common::init(l3);
 }
 
 T_Connection::~T_Connection ()
 {
   TRACEPRINTF (t, 4, this, "CloseConnection");
-  Stop ();
+  stop ();
   while (!buf.isempty ())
     delete buf.get ();
 }
@@ -356,8 +293,66 @@ T_Connection::~T_Connection ()
 void
 T_Connection::Send_L_Data (L_Data_PDU * l)
 {
-  buf.put (l);
-  pth_sem_inc (&bufsem, 0);
+  TPDU *t = TPDU::fromPacket (l->data, this->t);
+  switch (t->getType ())
+    {
+    case T_DISCONNECT_REQ:
+      stop();
+      break;
+    case T_CONNECT_REQ:
+      stop();
+      break;
+    case T_DATA_CONNECTED_REQ:
+      {
+        T_DATA_CONNECTED_REQ_PDU *t1 = (T_DATA_CONNECTED_REQ_PDU *) t;
+        if (t1->serno != recvno && t1->serno != ((recvno - 1) & 0x0f))
+          stop();
+        else if (t1->serno == recvno)
+          {
+            t1->data[0] = t1->data[0] & 0x03;
+            app->send(t1->data);
+            SendAck (recvno);
+            recvno = (recvno + 1) & 0x0f;
+          }
+        else if (t1->serno == ((recvno - 1) & 0x0f))
+          SendAck (t1->serno);
+      }
+      break;
+    case T_NACK:
+      {
+        T_NACK_PDU *t1 = (T_NACK_PDU *) t;
+        if (t1->serno != sendno)
+          stop();
+        else if (repcount >= 3 || mode != 2)
+          stop();
+        else
+          {
+            repcount++;
+            SendData (sendno, current);
+          }
+      }
+      break;
+    case T_ACK:
+      {
+        T_ACK_PDU *t1 = (T_ACK_PDU *) t;
+        if (t1->serno != sendno)
+          stop();
+        else if (mode != 2)
+          stop();
+        else
+          {
+            mode = 1;
+            timer.stop();
+            sendno = (sendno + 1) & 0x0f;
+            SendCheck();
+          }
+      }
+      break;
+    default:
+      /* ignore */ ;
+    }
+  delete t;
+  delete l;
 }
 
 void
@@ -365,29 +360,21 @@ T_Connection::Send (const CArray & c)
 {
   t->TracePacket (4, this, "Send", c);
   in.put (c);
-  pth_sem_inc (&insem, 1);
+  SendCheck();
 }
 
-CArray *
-T_Connection::Get (pth_event_t stop)
+void
+T_Connection::SendCheck ()
 {
-  pth_event_t s = pth_event (PTH_EVENT_SEM, &outsem);
-
-  pth_event_concat (s, stop, NULL);
-  pth_wait (s);
-  pth_event_isolate (s);
-
-  if (pth_event_status (s) == PTH_STATUS_OCCURRED)
-    {
-      pth_sem_dec (&outsem);
-      CArray *c = new CArray (out.get ());
-
-      pth_event_free (s, PTH_FREE_THIS);
-      t->TracePacket (4, this, "RecvConnection", *c);
-      return c;
-    }
-  pth_event_free (s, PTH_FREE_THIS);
-  return 0;
+  if (mode != 1)
+    return;
+  repcount = 0;
+  if (in.isempty())
+    return;
+  current = in.get();
+  SendData (sendno, current);
+  mode = 2;
+  timer.start(3,0);
 }
 
 void
@@ -402,6 +389,11 @@ T_Connection::SendConnect ()
   l->data = p.ToPacket ();
   l->prio = PRIO_SYSTEM;
   l3->recv_L_Data (l);
+
+  mode = 1;
+  sendno = 0;
+  recvno = 0;
+  repcount = 0;
 }
 
 void
@@ -455,146 +447,27 @@ T_Connection::SendData (int serno, const CArray & c)
  *
 */
 
-void
-T_Connection::Run (pth_sem_t * stop1)
+void T_Connection::timer_cb (ev::timer &w, int revents)
 {
-  pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
-  pth_event_t inev = pth_event (PTH_EVENT_SEM, &insem);
-  pth_event_t bufev = pth_event (PTH_EVENT_SEM, &bufsem);
-
-  while (!buf.isempty ())
-    delete buf.get ();
-
-  pth_sem_set_value (&bufsem, 0);
-
-  mode = 0;
-  SendConnect ();
-  mode = 1;
-  sendno = 0;
-  recvno = 0;
-  repcount = 0;
-  pth_event_t timeout = pth_event (PTH_EVENT_RTIME, pth_time (6, 0));
-  while (pth_event_status (stop) != PTH_STATUS_OCCURRED && mode != 0)
+  if (mode == 2 && repcount < 3)
     {
-      pth_event_concat (bufev, stop, timeout, NULL);
-      if (mode == 1)
-	pth_event_concat (bufev, inev, NULL);
-
-      pth_wait (bufev);
-
-      pth_event_isolate (bufev);
-      pth_event_isolate (inev);
-      pth_event_isolate (timeout);
-      if (pth_event_status (bufev) == PTH_STATUS_OCCURRED)
-	{
-	  pth_sem_dec (&bufsem);
-	  L_Data_PDU *l = buf.get ();
-	  TPDU *t = TPDU::fromPacket (l->data, this->t);
-	  switch (t->getType ())
-	    {
-	    case T_DISCONNECT_REQ:
-	      mode = 0;
-	      break;
-	    case T_CONNECT_REQ:
-	      mode = 0;
-	      break;
-	    case T_DATA_CONNECTED_REQ:
-	      {
-		T_DATA_CONNECTED_REQ_PDU *t1 = (T_DATA_CONNECTED_REQ_PDU *) t;
-		if (t1->serno != recvno && t1->serno != ((recvno - 1) & 0x0f))
-		  mode = 0;
-		else if (t1->serno == recvno)
-		  {
-		    t1->data[0] = t1->data[0] & 0x03;
-		    out.put (t1->data);
-		    pth_sem_inc (&outsem, 0);
-		    SendAck (recvno);
-		    recvno = (recvno + 1) & 0x0f;
-		  }
-		else if (t1->serno == ((recvno - 1) & 0x0f))
-		  SendAck (t1->serno);
-
-		if (mode == 1)
-		  timeout =
-		    pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE, timeout,
-			       pth_time (6, 0));
-	      }
-	      break;
-	    case T_NACK:
-	      {
-		T_NACK_PDU *t1 = (T_NACK_PDU *) t;
-		if (t1->serno != sendno)
-		  mode = 0;
-		else if (in.isempty ())
-		  mode = 0;
-		else if (repcount >= 3 || mode != 2)
-		  mode = 0;
-		else
-		  {
-		    repcount++;
-		    SendData (sendno, in.top ());
-		    timeout =
-		      pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE, timeout,
-				 pth_time (3, 0));
-		  }
-	      }
-	      break;
-	    case T_ACK:
-	      {
-		T_ACK_PDU *t1 = (T_ACK_PDU *) t;
-		if (t1->serno != sendno)
-		  mode = 0;
-		else if (mode != 2)
-		  mode = 0;
-		else
-		  {
-		    timeout =
-		      pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE, timeout,
-				 pth_time (6, 0));
-		    mode = 1;
-		    in.get ();
-		    sendno = (sendno + 1) & 0x0f;
-		  }
-	      }
-	      break;
-	    default:
-	      /* ignore */ ;
-	    }
-	  delete t;
-	  delete l;
-	}
-      else if (pth_event_status (inev) == PTH_STATUS_OCCURRED && mode == 1)
-	{
-	  repcount = 0;
-	  pth_sem_dec (&insem);
-	  SendData (sendno, in.top ());
-	  mode = 2;
-	  timeout =
-	    pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE, timeout,
-		       pth_time (3, 0));
-	}
-      else if (pth_event_status (timeout) == PTH_STATUS_OCCURRED)
-	{
-	  if (mode == 2 && repcount < 3)
-	    {
-	      repcount++;
-	      SendData (sendno, in.top ());
-	      timeout =
-		pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE, timeout,
-			   pth_time (3, 0));
-	    }
-	  else
-	    mode = 0;
-	}
+      repcount++;
+      SendData (sendno, current);
+      timer.start(3,0);
     }
-  pth_event_free (stop, PTH_FREE_THIS);
-  pth_event_free (inev, PTH_FREE_THIS);
-  pth_event_free (bufev, PTH_FREE_THIS);
-  pth_event_free (timeout, PTH_FREE_THIS);
-  SendDisconnect ();
+  else
+    stop();
+}
+
+void
+T_Connection::stop()
+{
   mode = 0;
-  out.put (CArray ());
-  pth_sem_inc (&outsem, 0);
+  timer.stop();
+  SendDisconnect ();
+
+  CArray C;
+  app->send(C);
 }
 
 /***************** GroupSocket *****************/
@@ -603,12 +476,18 @@ GroupSocket::GroupSocket (Trace * tr, int write_only)
 	: Layer4common(tr)
 {
   TRACEPRINTF (tr, 4, this, "OpenGroupSocket %s", write_only ? "WO" : "RW");
-  pth_sem_init (&sem);
   init_ok = false;
   if (!write_only)
     if (!addGroupAddress (0))
       return;
   init_ok = true;
+}
+
+bool
+GroupSocket::init (T_Reader<GroupAPDU> *app, Layer3 *l3)
+{
+    this->app = app;
+    return Layer4common::init(l3);
 }
 
 GroupSocket::~GroupSocket ()
@@ -627,8 +506,7 @@ GroupSocket::Send_L_Data (L_Data_PDU * l)
       c.data = t1->data;
       c.src = l->source;
       c.dst = l->dest;
-      outqueue.put (c);
-      pth_sem_inc (&sem, 0);
+      app->send(c);
     }
   delete t;
   delete l;
@@ -649,24 +527,3 @@ GroupSocket::Send (const GroupAPDU & c)
   l3->recv_L_Data (l);
 }
 
-GroupAPDU *
-GroupSocket::Get (pth_event_t stop)
-{
-  pth_event_t s = pth_event (PTH_EVENT_SEM, &sem);
-
-  pth_event_concat (s, stop, NULL);
-  pth_wait (s);
-  pth_event_isolate (s);
-
-  if (pth_event_status (s) == PTH_STATUS_OCCURRED)
-    {
-      pth_sem_dec (&sem);
-      GroupAPDU *c = new GroupAPDU (outqueue.get ());
-
-      pth_event_free (s, PTH_FREE_THIS);
-      t->TracePacket (4, this, "Recv GroupSocket", c->data);
-      return c;
-    }
-  pth_event_free (s, PTH_FREE_THIS);
-  return 0;
-}
