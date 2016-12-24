@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS=1.9
 ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST=SubmittingPatches .gitignore version.sh
+EXTRA_DIST=SubmittingPatches .gitignore tools/version.sh
 
 BUILDDIRS = 
 if HAVE_PTHSEM
