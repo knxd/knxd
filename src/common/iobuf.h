@@ -39,7 +39,13 @@ public:
   error_cb on_error_cb;
   void on_error() {}
 
+  SendBuf() {} // dead
+
   SendBuf(int fd) {
+    init(fd);
+  }
+  void init(int fd) {
+    assert (this->fd == -1);
     this->fd = fd;
     io.set<SendBuf, &SendBuf::io_cb>(this);
     on_error_cb.set<SendBuf,&SendBuf::on_error>(this);
@@ -72,7 +78,7 @@ public:
 
 protected:
   /** client connection */
-  int fd;
+  int fd = -1;
 
   /** sending */
   const CArray *sendbuf = nullptr;
@@ -106,7 +112,12 @@ public:
   void on_error() {}
   size_t on_data(uint8_t *buf, size_t len) { return len; }
 
+  RecvBuf() {} // dead
   RecvBuf(int fd) {
+    init(fd);
+  }
+  void init(int fd) {
+    assert (this->fd == -1);
     this->fd = fd;
     io.set<RecvBuf, &RecvBuf::io_cb>(this);
     on_error_cb.set<RecvBuf,&RecvBuf::on_error>(this);
