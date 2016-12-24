@@ -31,6 +31,8 @@ Layer3::Layer3 (eibaddr_t addr, TracePtr tr, bool force_broadcast)
   running = true;
   trigger.set<Layer3, &Layer3::trigger_cb>(this);
   trigger.start();
+  cleanup.set<Server, &Server::cleanup_cb>(this);
+  cleanup.start();
 
   TRACEPRINTF (t, 3, this, "L3 started");
 }
@@ -58,6 +60,7 @@ Layer3::~Layer3 ()
     deregisterVBusmonitor (vbusmonitor[0].cb);
 
   layer2.resize (0);
+  cleanup.stop();
   TRACEPRINTF (t, 3, this, "Closed");
 }
 
@@ -126,15 +129,26 @@ Layer3::deregisterVBusmonitor (L_Busmonitor_CallBack * c)
 bool
 Layer3::deregisterLayer2 (Layer2Ptr l2)
 {
-  ITER(i,layer2)
-    if (*i == l2)
-      {
-	TRACEPRINTF (t, 3, this, "deregisterLayer2 %d:%s = 1", l2->t->seq, l2->t->name.c_str());
-	layer2.erase(i);
-	return true;
-      }
-  TRACEPRINTF (t, 3, this, "deregisterLayer2 %d:%s = 0", l2->t->seq, l2->t->name.c_str());
-  return false;
+  cleanup_q.put(con);
+  cleanup.send();
+}
+
+void cleanup_cb (ev::async &w, int revents)
+{
+  while (!cleanup_q.isempty())
+    {
+      Layer2Ptr l2 = cleanup_q.get();
+
+      ITER(i,layer2)
+        if (*i == l2)
+          {
+            TRACEPRINTF (t, 3, this, "deregisterLayer2 %d:%s = 1", l2->t->seq, l2->t->name.c_str());
+            layer2.erase(i);
+            return true;
+          }
+      TRACEPRINTF (t, 3, this, "deregisterLayer2 %d:%s = 0", l2->t->seq, l2->t->name.c_str());
+      return false;
+    }
 }
 
 bool

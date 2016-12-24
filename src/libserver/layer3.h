@@ -86,6 +86,11 @@ class Layer3
   /** treat route count 7 as per EIB spec? */
   bool force_broadcast;
 
+  ev::async cleanup;
+  void cleanup_cb (ev::async &w, int revents);
+  /** to-be-closed client connections*/
+  Queue <Layer2Ptr> cleanup_q;
+
 public:
   /** debug output */
   TracePtr t;
