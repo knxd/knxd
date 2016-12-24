@@ -42,7 +42,12 @@ Server::~Server ()
   ITER(i,connections)
     (*i)->StopDelete ();
   while (connections.size() != 0)
-    pth_yield (0);
+    {
+      connections[0]->stop();
+#ifdef HAVE_PTHSEM
+      pth_yield (0);
+#endif
+    }
 
   if (fd != -1)
     close (fd);

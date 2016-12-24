@@ -319,6 +319,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
   struct arguments *arguments = (struct arguments *) state->input;
   switch (key)
     {
+#ifdef HAVE_EIBNETIPSERVER
     case 'T':
       arguments->tunnel = 1;
       arguments->has_work++;
@@ -375,6 +376,14 @@ parse_opt (int key, char *arg, struct argp_state *state)
         arguments->eibnetname = 0;
       }
       break;
+    case 'n':
+      arguments->eibnetname = (char *)arg;
+      if(arguments->eibnetname[0] == '=')
+        arguments->eibnetname++;
+      if(strlen(arguments->eibnetname) >= 30)
+        die("EIBnetServer/IP name must be shorter than 30 bytes");
+      break;
+#endif
     case 'u':
       {
         BaseServerPtr s;
@@ -427,17 +436,12 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'd':
       arguments->daemon = OPT_ARG(arg,state,"/dev/null");
       break;
+#if HAVE_GROUPCACHE
     case 'c':
       if (!CreateGroupCache (arguments->l3(), arguments->tracer("cache"), true))
         die ("initialisation of the group cache failed");
       break;
-    case 'n':
-      arguments->eibnetname = (char *)arg;
-      if(arguments->eibnetname[0] == '=')
-        arguments->eibnetname++;
-      if(strlen(arguments->eibnetname) >= 30)
-        die("EIBnetServer/IP name must be shorter than 30 bytes");
-      break;
+#endif
     case OPT_FORCE_BROADCAST:
       arguments->force_broadcast = true;
       break;
@@ -577,7 +581,9 @@ int
 main (int ac, char *ag[])
 {
   int index;
+#ifdef HAVE_PTHSEM
   pth_init ();
+#endif
   setlinebuf(stdout);
 
 // set up libev
@@ -586,7 +592,11 @@ main (int ac, char *ag[])
 #else
   typedef int LOOP_RESULT;
 #endif
+#ifdef HAVE_PTHSEM
   LOOP_RESULT loop = ev_default_loop(EVFLAG_AUTO | EVFLAG_NOSIGMASK | EVBACKEND_PTHSEM);
+#else
+  LOOP_RESULT loop = ev_default_loop(EVFLAG_AUTO | EVFLAG_NOSIGMASK);
+#endif
   assert (loop);
 
 #ifdef EV_TRACE
@@ -672,10 +682,12 @@ main (int ac, char *ag[])
   if (arg.pidfile)
     unlink (arg.pidfile);
 
+#ifdef HAVE_PTHSEM
   pth_yield (0);
   pth_yield (0);
   pth_yield (0);
   pth_yield (0);
   pth_exit (0);
+#endif
   return 0;
 }
