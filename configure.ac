@@ -81,7 +81,7 @@ AC_DEFUN([NEED_PTH], [dnl
 ])
 
 AC_ARG_ENABLE(management,
-[  --enable-ft12		enable management connections],
+[  --enable-management		enable management connections],
 [case "${enableval}" in
  yes) management=true ;;
   no)  management=false ;;
