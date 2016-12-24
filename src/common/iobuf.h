@@ -26,6 +26,7 @@
 
 #include "types.h"
 #include "callbacks.h"
+#include <assert.h>
 #include <ev++.h>
 #include <queue.h>
 
