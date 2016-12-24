@@ -12,14 +12,18 @@ endif
 
 if HAVE_TPUARTs
 TPUARTs = tpuartserial.h tpuartserial.cpp lowlatency.h lowlatency.cpp
+TPUART_COMMON = tpuartcommon.h tpuartcommon.cpp
 else
 TPUARTs =
+TPUART_COMMON = 
 endif
 
 if HAVE_TPUARTs_TCP
 TPUARTs_TCP = tpuarttcp.h tpuarttcp.cpp
+TPUART_COMMON = tpuart.h tpuart.cpp
 else
 TPUARTs_TCP =
+TPUART_COMMON =
 endif
 
 if HAVE_EIBNETIP
@@ -55,5 +59,5 @@ endif
 noinst_LIBRARIES = libbackend.a
 AM_CPPFLAGS=-I$(top_srcdir)/src/libserver -I$(top_srcdir)/src/common -I$(top_srcdir)/src/usb $(PTH_CFLAGS) $(LIBUSB_CFLAGS)
 
-libbackend_a_SOURCES= $(FT12) $(PEI16s) $(TPUARTs) $(TPUARTs_TCP) $(EIBNETIP) $(EIBNETIPTUNNEL) $(USB) $(NCN5120) $(DUMMY) dummy.cpp
+libbackend_a_SOURCES= $(FT12) $(PEI16s) $(TPUARTs) $(TPUARTs_TCP) $(TPUART_COMMON) $(EIBNETIP) $(EIBNETIPTUNNEL) $(USB) $(NCN5120) $(DUMMY) dummy.cpp
 
