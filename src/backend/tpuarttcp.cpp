@@ -23,6 +23,7 @@
 #include <errno.h>
 #include <sys/ioctl.h>
 #include <netinet/tcp.h>
+#include <netinet/in.h>
 #include "tpuarttcp.h"
 #include "layer3.h"
 
