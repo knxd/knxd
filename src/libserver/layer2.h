@@ -26,7 +26,6 @@
 #include <memory>
 
 class Layer3;
-class Layer4common;
 
 /** generic interface for an Layer 2 driver */
 class Layer2 : public std::enable_shared_from_this<Layer2>
