@@ -42,7 +42,7 @@ public:
   /** Layer 3 interface */
   Layer3 *l3;
   /** debug output */
-  Trace *t;
+  TracePtr t;
 protected:
   /** server */
   Server *s;

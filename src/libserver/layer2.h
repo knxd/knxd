@@ -50,11 +50,11 @@ protected:
 
 public:
   /** debug output */
-  Trace *t;
+  TracePtr t;
   /** our layer-3 (to send packets to) */
   Layer3 *l3;
 
-  Layer2 (L2options *opt, Trace *tr = 0);
+  Layer2 (L2options *opt, TracePtr tr = 0);
   virtual bool init (Layer3 *l3);
 
   /** sends a Layer 2 frame asynchronouse */
@@ -112,7 +112,7 @@ typedef Layer2Ptr (*Layer2_Create_Func) (const char *conf, L2options *opt);
 class Layer2mixin:public Layer2
 {
 public:
-  Layer2mixin (Trace *tr) : Layer2 (NULL, tr)
+  Layer2mixin (TracePtr tr) : Layer2 (NULL, tr)
     {
       t = tr;
     }
@@ -132,7 +132,7 @@ public:
 class Layer2virtual:public Layer2mixin
 {
 public:
-  Layer2virtual (Trace *tr) : Layer2mixin (tr) { }
+  Layer2virtual (TracePtr tr) : Layer2mixin (tr) { }
   void Send_L_Data (LPDU * l) { delete l; }
   void Send_L_Data (L_Data_PDU * l) { delete l; }
   bool addAddress (eibaddr_t addr UNUSED) { return 1; }

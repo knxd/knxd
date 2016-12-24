@@ -22,6 +22,7 @@
 
 #include <stdarg.h>
 #include <sys/time.h>
+#include <memory>
 #include "common.h"
 
 #define TRACE_LEVEL_0 0x01
@@ -79,12 +80,12 @@ public:
     gettimeofday(&started, NULL);
   }
 
-  Trace (Trace *orig, std::string name)
+  Trace (Trace &orig, std::string name)
   {
-    this->layers = orig->layers;
-    this->level = orig->level;
+    this->layers = orig.layers;
+    this->level = orig.level;
     this->name = name;
-    this->started = orig->started;
+    this->started = orig.started;
     this->seq = ++trace_seq;
     if (trace_namelen < this->name.length())
       trace_namelen = this->name.length();
@@ -176,6 +177,9 @@ public:
       return 0;
   }
 };
+
+typedef std::shared_ptr<Trace> TracePtr;
+
 
 #define TRACEPRINTF(trace, layer, inst, msg, args...) do { if ((trace)->ShowPrint(layer)) (trace)->TracePrintf(layer, inst, msg, ##args); } while (0)
 #define ERRORPRINTF(trace, msgid, inst, msg, args...) do { \

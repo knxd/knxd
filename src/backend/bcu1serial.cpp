@@ -74,7 +74,7 @@ BCU1SerialLowLevelDriver::Get_Packet (pth_event_t stop)
 }
 
 BCU1SerialLowLevelDriver::BCU1SerialLowLevelDriver (const char *dev,
-						    Trace * tr)
+						    TracePtr tr)
 {
   struct termios ti;
 

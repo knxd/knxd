@@ -20,7 +20,7 @@
 #include "apdu.h"
 #include "layer7.h"
 
-Layer7_Broadcast::Layer7_Broadcast (Trace * tr)
+Layer7_Broadcast::Layer7_Broadcast (TracePtr tr)
 {
   t = tr;
   TRACEPRINTF (t, 5, this, "L7Broadcast Open");
@@ -51,7 +51,7 @@ Layer7_Broadcast::A_IndividualAddress_Write (eibaddr_t addr)
 }
 
 Array < eibaddr_t >
-  Layer7_Broadcast::A_IndividualAddress_Read (Trace * tr, unsigned timeout)
+  Layer7_Broadcast::A_IndividualAddress_Read (TracePtr tr, unsigned timeout)
 {
   Array < eibaddr_t > addrs;
   A_IndividualAddress_Read_PDU r;
@@ -74,7 +74,7 @@ Array < eibaddr_t >
   return addrs;
 }
 
-Layer7_Connection::Layer7_Connection (Trace * tr, eibaddr_t d)
+Layer7_Connection::Layer7_Connection (TracePtr tr, eibaddr_t d)
 {
   t = tr;
   TRACEPRINTF (t, 5, this, "L7Connection open");
@@ -379,7 +379,7 @@ Layer7_Connection::A_Memory_Write_Block (memaddr_t addr, const CArray & data)
   return res;
 }
 
-Layer7_Individual::Layer7_Individual (Trace * tr, eibaddr_t d)
+Layer7_Individual::Layer7_Individual (TracePtr tr, eibaddr_t d)
 {
   t = tr;
   TRACEPRINTF (t, 5, this, "L7Individual open");

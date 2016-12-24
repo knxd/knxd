@@ -125,7 +125,7 @@ EIBnettoIP (const CArray & buf, struct sockaddr_in *a,
 }
 
 EIBNetIPSocket::EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr,
-				Trace * tr, SockMode mode)
+				TracePtr tr, SockMode mode)
 {
   int i;
   t = tr;

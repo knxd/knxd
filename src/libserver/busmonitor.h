@@ -38,7 +38,7 @@ protected:
   /** Layer 3 Interface*/
   Layer3 * l3;
   /** debug output */
-  Trace *t;
+  TracePtr t;
 public:
   /** initializes busmonitor
    * @param c client connection

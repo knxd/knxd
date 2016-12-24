@@ -59,7 +59,7 @@ class GroupCache:public Layer2mixin
 
 public:
   /** constructor */
-  GroupCache (Trace * t);
+  GroupCache (TracePtr t);
   /** destructor */
   virtual ~GroupCache ();
   /** Feed data to the cache */

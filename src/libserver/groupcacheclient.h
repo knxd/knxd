@@ -25,7 +25,7 @@
 class ClientConnection;
 typedef std::shared_ptr<ClientConnection> ClientConnPtr;
 
-bool CreateGroupCache (Layer3 * l3, Trace * t, bool enable);
+bool CreateGroupCache (Layer3 * l3, TracePtr t, bool enable);
 
 void GroupCacheRequest (ClientConnPtr c, uint8_t *buf, size_t len);
 

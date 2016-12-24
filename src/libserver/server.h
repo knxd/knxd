@@ -31,7 +31,7 @@ class BaseServer: public Layer2virtual
 {
   const char *Name() { return "baseserver"; }
 protected:
-  BaseServer (Trace * tr);
+  BaseServer (TracePtr tr);
 public:
   virtual ~BaseServer ();
 };
@@ -58,7 +58,7 @@ protected:
 
   virtual void setupConnection (int cfd);
 
-  Server (Trace * tr);
+  Server (TracePtr tr);
 public:
   virtual ~Server ();
 

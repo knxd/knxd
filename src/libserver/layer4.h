@@ -63,7 +63,7 @@ typedef struct
 class Layer4common:public Layer2mixin
 {
 protected:
-  Layer4common(Trace * tr);
+  Layer4common(TracePtr tr);
   bool init_ok;
 public:
   bool init (Layer3 *l3);
@@ -84,7 +84,7 @@ class T_Broadcast:public Layer4common
   T_Reader<BroadcastComm> *app;
 
 public:
-  T_Broadcast (Trace * t, int write_only);
+  T_Broadcast (TracePtr t, int write_only);
   virtual ~T_Broadcast ();
 
   bool init (T_Reader<BroadcastComm> *app, Layer3 *l3);
@@ -102,7 +102,7 @@ class GroupSocket:public Layer4common
   T_Reader<GroupAPDU> *app;
 
 public:
-  GroupSocket (Trace * t, int write_only);
+  GroupSocket (TracePtr t, int write_only);
   virtual ~GroupSocket ();
 
   bool init (T_Reader<GroupAPDU> *app, Layer3 *l3);
@@ -122,7 +122,7 @@ class T_Group:public Layer4common
   eibaddr_t groupaddr;
 
 public:
-  T_Group (Trace * t, eibaddr_t dest, int write_only);
+  T_Group (TracePtr t, eibaddr_t dest, int write_only);
   virtual ~T_Group ();
 
   bool init (T_Reader<GroupComm> *app, Layer3 *l3);
@@ -142,7 +142,7 @@ class T_TPDU:public Layer4common
   eibaddr_t src;
 
 public:
-  T_TPDU (Trace * t, eibaddr_t src);
+  T_TPDU (TracePtr t, eibaddr_t src);
   virtual ~T_TPDU ();
 
   bool init (T_Reader<TpduComm> *app, Layer3 *l3);
@@ -163,7 +163,7 @@ class T_Individual:public Layer4common
   eibaddr_t dest;
 
 public:
-  T_Individual (Trace * t, eibaddr_t dest, int write_only);
+  T_Individual (TracePtr t, eibaddr_t dest, int write_only);
   virtual ~T_Individual ();
 
   bool init (T_Reader<CArray> *app, Layer3 *l3);
@@ -211,7 +211,7 @@ class T_Connection:public Layer4common
   void SendCheck (); 
   const char *Name() { return "Tconnection"; }
 public:
-  T_Connection (Trace * t, eibaddr_t dest);
+  T_Connection (TracePtr t, eibaddr_t dest);
   virtual ~T_Connection ();
 
   bool init (T_Reader<CArray> *app, Layer3 *l3);

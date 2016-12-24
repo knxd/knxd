@@ -287,7 +287,7 @@ struct _EIBNetIP_Send
 class EIBNetIPSocket:private Thread
 {
   /** debug output */
-  Trace *t;
+  TracePtr t;
   /** input queue */
   Queue < struct _EIBNetIP_Send >inqueue;
   /** output queue */
@@ -308,7 +308,7 @@ class EIBNetIPSocket:private Thread
   void Run (pth_sem_t * stop);
   const char *Name() { return "eibnetipsocket"; }
 public:
-  EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr, Trace * tr,
+  EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr, TracePtr tr,
                   SockMode mode = S_RDWR);
   virtual ~EIBNetIPSocket ();
   bool init ();

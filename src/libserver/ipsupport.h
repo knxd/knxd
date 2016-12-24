@@ -27,7 +27,7 @@
 class Trace;
 
 /** resolve host name */
-int GetHostIP (Trace *t, struct sockaddr_in *sock, const char *Name);
+int GetHostIP (TracePtr t, struct sockaddr_in *sock, const char *Name);
 /** gets source address for a route */
 int GetSourceAddress (const struct sockaddr_in *dest,
 		      struct sockaddr_in *src);

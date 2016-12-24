@@ -26,7 +26,7 @@
 #include <errno.h>
 #include "inetserver.h"
 
-InetServer::InetServer (Trace * tr, int port):
+InetServer::InetServer (TracePtr tr, int port):
 Server (tr)
 {
   struct sockaddr_in addr;

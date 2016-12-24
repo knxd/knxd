@@ -23,8 +23,8 @@
 #include "client.h"
 
 
-BaseServer::BaseServer (Trace * tr)
-	: Layer2virtual (new Trace(tr, tr->name))
+BaseServer::BaseServer (TracePtr tr)
+	: Layer2virtual (tr)
 {
 }
 
@@ -75,7 +75,7 @@ Server::cleanup_cb (ev::async &w, int revents)
     }
 }
 
-Server::Server (Trace * tr)
+Server::Server (TracePtr tr)
     : BaseServer (tr)
 {
   fd = -1;

@@ -22,7 +22,7 @@
 #include "server.h"
 #include <typeinfo>
 
-Layer3::Layer3 (eibaddr_t addr, Trace * tr, bool force_broadcast)
+Layer3::Layer3 (eibaddr_t addr, TracePtr tr, bool force_broadcast)
 {
   t = tr;
   defaultAddr = addr;
@@ -57,7 +57,6 @@ Layer3::~Layer3 ()
   while (vbusmonitor.size())
     deregisterVBusmonitor (vbusmonitor[0].cb);
 
-  tracers.resize(0);
   layer2.resize (0);
   TRACEPRINTF (t, 3, this, "Closed");
 }

@@ -42,7 +42,7 @@
 #endif
 
 int
-GetHostIP (Trace *t, struct sockaddr_in *sock, const char *Name)
+GetHostIP (TracePtr t, struct sockaddr_in *sock, const char *Name)
 {
   struct hostent *h;
   if (!Name)

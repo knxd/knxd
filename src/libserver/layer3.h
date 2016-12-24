@@ -80,8 +80,6 @@ class Layer3
 
   /** flag whether we're in .Run() */
   bool running;
-  /** The trace objects used here */
-  Array < Trace * > tracers;
   /** The servers using this L3 */
   Array < BaseServer * > servers;
 
@@ -90,14 +88,14 @@ class Layer3
 
 public:
   /** debug output */
-  Trace *t;
+  TracePtr t;
   /** our default address */
   eibaddr_t defaultAddr;
 
   /** group cache */
   std::shared_ptr<GroupCache> cache;
 
-  Layer3 (eibaddr_t addr, Trace * tr, bool force_broadcast = false);
+  Layer3 (eibaddr_t addr, TracePtr tr, bool force_broadcast = false);
   virtual ~Layer3 ();
 
   /** register a layer2 interface, return true if successful*/
@@ -126,8 +124,6 @@ public:
   /** check if any interface accepts this group address.
       'l2' says which interface NOT to check. */
   bool hasGroupAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr);
-  /** save a pointer to this tracer, for deallocation with the L3 */
-  void registerTracer (Trace *t) { tracers.push_back (t); }
   /** remember this server, for deallocation with the L3 */
   void registerServer (BaseServer *s) { servers.push_back (s); }
   /** remember this server, for deallocation with the L3 */

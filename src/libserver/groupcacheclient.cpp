@@ -22,7 +22,7 @@
 #include "client.h"
 
 bool
-CreateGroupCache (Layer3 * l3, Trace * t, bool enable)
+CreateGroupCache (Layer3 * l3, TracePtr t, bool enable)
 {
   GroupCachePtr cache;
   if (l3->cache)

@@ -23,7 +23,7 @@
 
 #include "ft12.h"
 
-FT12LowLevelDriver::FT12LowLevelDriver (const char *dev, Trace * tr)
+FT12LowLevelDriver::FT12LowLevelDriver (const char *dev, TracePtr tr)
 {
   struct termios t1;
   t = tr;

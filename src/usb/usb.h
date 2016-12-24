@@ -26,7 +26,7 @@
 
 class USBLoop:public Thread
 {
-  Trace *t;
+  TracePtr t;
 
   void Run (pth_sem_t * stop);
   const char *Name() { return "usbloop"; }
@@ -34,7 +34,7 @@ class USBLoop:public Thread
 public:
   libusb_context *context;
 
-  USBLoop (Trace * tr);
+  USBLoop (TracePtr tr);
   ~USBLoop ();
 
 };

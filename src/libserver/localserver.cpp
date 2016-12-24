@@ -23,7 +23,7 @@
 #include <errno.h>
 #include "localserver.h"
 
-LocalServer::LocalServer (Trace * tr, const char *path):
+LocalServer::LocalServer (TracePtr tr, const char *path):
 Server (tr)
 {
   struct sockaddr_un addr;

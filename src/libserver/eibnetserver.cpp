@@ -36,7 +36,7 @@ static void reset_time(pth_event_t ev, unsigned int sec, unsigned int usec)
   pth_event_concat(ev, ev_prev, NULL);
 }
 
-EIBnetServer::EIBnetServer (Trace * tr, String serverName)
+EIBnetServer::EIBnetServer (TracePtr tr, String serverName)
 	: Layer2mixin::Layer2mixin (tr)
   , name(serverName)
   , mcast(NULL)
@@ -361,7 +361,7 @@ EIBnetServer::addNAT (const L_Data_PDU & l)
 }
 
 ConnState::ConnState (EIBnetServer *p, eibaddr_t addr)
-  : Layer2mixin (new Trace(p->t,p->t->name+':'+FormatEIBAddr(addr)))
+  : Layer2mixin (TracePtr(new Trace(p->t,p->t->name+':'+FormatEIBAddr(addr))))
 {
   parent = p;
   timeout = pth_event (PTH_EVENT_RTIME, pth_time (120, 0));

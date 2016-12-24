@@ -34,7 +34,7 @@ class BCU1SerialLowLevelDriver:public LowLevelDriver, private Thread
   /** old serial port settings */
   low_latency_save sold;
   /** debug output */
-  Trace *t;
+  TracePtr t;
   /** semaphore for inqueue */
   pth_sem_t in_signal;
   /** semaphore for outqueue */
@@ -62,7 +62,7 @@ pth_event_t getwait;
 
   const char *Name() { return "BCU1Serial"; }
 public:
-  BCU1SerialLowLevelDriver (const char *device, Trace * tr);
+  BCU1SerialLowLevelDriver (const char *device, TracePtr tr);
   ~BCU1SerialLowLevelDriver ();
   bool init ();
 

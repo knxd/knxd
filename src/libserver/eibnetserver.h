@@ -128,7 +128,7 @@ class EIBnetServer: protected Thread, public L_Busmonitor_CallBack, public Layer
                  eibaddr_t addr = 0);
   void addNAT (const L_Data_PDU & l);
 public:
-  EIBnetServer (Trace * tr, const String serverName);
+  EIBnetServer (TracePtr tr, const String serverName);
   virtual ~EIBnetServer ();
   bool init (Layer3 *l3); // __attribute__((deprecated));
   bool init (Layer3 *l3,

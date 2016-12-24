@@ -20,7 +20,7 @@
 #include "layer2.h"
 #include "layer3.h"
 
-Layer2::Layer2 (L2options *opt, Trace *tr)
+Layer2::Layer2 (L2options *opt, TracePtr tr)
 {
   l3 = 0;
   t = opt ? opt->t : 0;

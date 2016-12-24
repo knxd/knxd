@@ -53,7 +53,7 @@ class USBLowLevelDriver:public LowLevelDriver, private Thread
   USBLoop *loop;
   USBDevice d;
   /** debug output */
-  Trace *t;
+  TracePtr t;
   /** semaphore for inqueue */
   pth_sem_t in_signal;
   /** semaphore for outqueue */
@@ -82,7 +82,7 @@ class USBLowLevelDriver:public LowLevelDriver, private Thread
   void ReceiveUsb();
 
 public:
-  USBLowLevelDriver (const char *device, Trace * tr);
+  USBLowLevelDriver (const char *device, TracePtr tr);
   ~USBLowLevelDriver ();
   bool init ();
   void CompleteReceive(struct libusb_transfer *recvh);

@@ -109,9 +109,8 @@ public:
     {
       if (layer3 == 0) 
         {
-          Trace *tr = tracer("layer3", false);
+          TracePtr tr = tracer("layer3", false);
           layer3 = new Layer3 (addr, tr, force_broadcast);
-          layer3->registerTracer(tr);
           addr = 0;
           if (alloc_addrs_len)
             {
@@ -139,11 +138,9 @@ public:
    * a new instance.
    */
 
-  Trace *tracer(std::string name, bool reg = true)
+  TracePtr tracer(std::string name, bool reg = true)
     {
-      Trace *tr = new Trace(&t, name);
-      if (reg)
-        l3()->registerTracer(tr);
+      TracePtr tr = TracePtr(new Trace(t, name));
       return tr;
     }
 };
@@ -555,7 +552,7 @@ timeout_cb (EV_P_ ev_timer *w, int revents)
 struct _hup {
   struct ev_signal sighup;
   const char *daemon;
-  Trace *t;
+  TracePtr t;
 } hup;
 
 static void
@@ -615,7 +612,7 @@ main (int ac, char *ag[])
   ev_timer_again (EV_A_ &timer);
 #endif
   if (arg.daemon) {
-    hup.t = &arg.t;
+    hup.t = TracePtr(new Trace(arg.t,"reload"));
     hup.daemon = arg.daemon;
     ev_signal_init (&hup.sighup, sighup_cb, SIGINT);
     ev_signal_start (EV_A_ &hup.sighup);

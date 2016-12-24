@@ -21,10 +21,9 @@
 #define LAYER2COMMON_H
 
 #include <memory>
+#include "trace.h"
 
 class Layer2;
-class Trace;
-
 typedef std::shared_ptr<Layer2> Layer2Ptr;
 
 /** Bus modes. The enum is designed to allow bitwise tests
@@ -39,7 +38,7 @@ typedef enum {
 typedef struct {
   unsigned int flags;
   unsigned int send_delay;
-  Trace *t;
+  TracePtr t;
 } L2options;
 
 class Layer3;

@@ -21,7 +21,7 @@
 #include <errno.h>
 #include "usb.h"
 
-USBLoop::USBLoop (Trace * tr)
+USBLoop::USBLoop (TracePtr tr)
 {
   t = tr;
   if (libusb_init (&context))

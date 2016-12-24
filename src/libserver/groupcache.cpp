@@ -21,7 +21,7 @@
 #include "tpdu.h"
 #include "apdu.h"
 
-GroupCache::GroupCache (Trace * t)
+GroupCache::GroupCache (TracePtr t)
 	: Layer2mixin(t)
 {
   TRACEPRINTF (t, 4, this, "GroupCacheInit");

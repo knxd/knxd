@@ -3,7 +3,11 @@ AM_CPPFLAGS=-I$(top_srcdir)/src/libserver -I$(top_srcdir)/src/include -I$(top_sr
 bin_PROGRAMS=$(EIBNET)
 
 if HAVE_SOURCE_INFO
+if HAVE_EIBNETSERVER
 EIBNET=eibnetdescribe eibnetsearch
+else
+EIBNET=
+endif
 else
 EIBNET=
 endif

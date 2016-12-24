@@ -23,7 +23,7 @@
 #include "cemi.h"
 
 LowLevelDriver *
-initUSBDriver (LowLevelDriver * i, Trace * tr)
+initUSBDriver (LowLevelDriver * i, TracePtr tr)
 {
   CArray r1, *r = 0;
   LowLevelDriver *iface;
@@ -125,7 +125,7 @@ initUSBDriver (LowLevelDriver * i, Trace * tr)
 }
 
 USBConverterInterface::USBConverterInterface (LowLevelDriver * iface,
-					      Trace * tr, EMIVer ver)
+					      TracePtr tr, EMIVer ver)
 {
   t = tr;
   i = iface;

@@ -40,7 +40,7 @@ class FT12LowLevelDriver:public LowLevelDriver, private Thread
   /** recevie state */
   int recvflag;
   /** debug output */
-  Trace *t;
+  TracePtr t;
   /** semaphore for inqueue */
   pth_sem_t in_signal;
   /** semaphore for outqueue */
@@ -63,7 +63,7 @@ class FT12LowLevelDriver:public LowLevelDriver, private Thread
   void Run (pth_sem_t * stop);
   const char *Name() { return "ft12"; }
 public:
-  FT12LowLevelDriver (const char *device, Trace * tr);
+  FT12LowLevelDriver (const char *device, TracePtr tr);
   ~FT12LowLevelDriver ();
   bool init ();
 

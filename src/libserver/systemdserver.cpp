@@ -21,7 +21,7 @@
 #include <errno.h>
 #include "systemdserver.h"
 
-SystemdServer::SystemdServer (Trace * tr, int systemd_fd):
+SystemdServer::SystemdServer (TracePtr tr, int systemd_fd):
 Server (tr)
 {
   TRACEPRINTF (tr, 8, this, "OpenSystemdSocket");

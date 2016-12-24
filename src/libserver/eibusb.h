@@ -26,11 +26,11 @@
 /** USBConverterInterface */
 class USBConverterInterface:public LowLevelDriver
 {
-  Trace *t;
+  TracePtr t;
   LowLevelDriver *i;
   EMIVer v;
 public:
-  USBConverterInterface (LowLevelDriver * iface, Trace * tr,
+  USBConverterInterface (LowLevelDriver * iface, TracePtr tr,
                           EMIVer ver);
   virtual ~USBConverterInterface ();
   bool init ();
@@ -46,7 +46,7 @@ public:
 };
 
 LowLevelDriver *initUSBDriver (LowLevelDriver * i,
-					Trace * tr);
+					TracePtr tr);
 
 /** USB backend */
 class USBLayer2:public Layer2

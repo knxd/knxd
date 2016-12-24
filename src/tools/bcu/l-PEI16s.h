@@ -29,7 +29,7 @@
 #define PEI16s_CREATE PEI16s_ll_Create
 
 inline LowLevelDriver *
-PEI16s_ll_Create (const char *dev, Trace * t)
+PEI16s_ll_Create (const char *dev, TracePtr t)
 {
   return new BCU1SerialLowLevelDriver (dev, t);
 }
