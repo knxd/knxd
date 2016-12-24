@@ -67,7 +67,7 @@ class Layer3
   /** Start of address block to assign dynamically to clients */
   eibaddr_t client_addrs_start;
   /** Length of address block to assign dynamically to clients */
-  int client_addrs_len;
+  int client_addrs_len = 0;
   int client_addrs_pos;
 
   /** busmonitor callbacks */

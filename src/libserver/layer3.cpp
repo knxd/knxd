@@ -225,18 +225,17 @@ Layer3::get_client_addr ()
    * Otherwise we'd need locking to protect concurrent requests
    * This is less bug-prone
    */
-  if (client_addrs_len)
-    for (int i = 1; i <= client_addrs_len; i++)
-      {
-        eibaddr_t a = client_addrs_start + (client_addrs_pos + i) % client_addrs_len;
-        if (! hasAddress (a))
-          {
-            TRACEPRINTF (t, 3, this, "Allocate %s", FormatEIBAddr (a).c_str());
-            /* remember for next pass */
-            client_addrs_pos = a - client_addrs_start;
-            return a;
-          }
-      }
+  for (int i = 1; i <= client_addrs_len; i++)
+    {
+      eibaddr_t a = client_addrs_start + (client_addrs_pos + i) % client_addrs_len;
+      if (! hasAddress (a))
+        {
+          TRACEPRINTF (t, 3, this, "Allocate %s", FormatEIBAddr (a).c_str());
+          /* remember for next pass */
+          client_addrs_pos = a - client_addrs_start;
+          return a;
+        }
+    }
 
   /* Fall back to our own address */
   TRACEPRINTF (t, 3, this, "Allocate: falling back to %s", FormatEIBAddr (defaultAddr).c_str());
