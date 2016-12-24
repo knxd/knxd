@@ -38,8 +38,8 @@ BaseServer::~BaseServer ()
 Server::~Server ()
 {
   TRACEPRINTF (t, 8, this, "StopServer");
-  ITER(i,connections)
-    (*i)->StopDelete ();
+  io.stop();
+  cleanup.stop();
   while (connections.size() != 0)
     {
       connections[0]->stop();
@@ -52,16 +52,27 @@ Server::~Server ()
     close (fd);
 }
 
-bool
-Server::deregister (ClientConnection * con)
+void
+Server::deregister (ClientConnPtr con)
 {
-  ITER(i, connections)
-    if (*i == con)
-      {
-	connections.erase (i);
-	return 1;
-      }
-  return 0;
+  cleanup_q.put(con);
+  cleanup.send();
+}
+
+void
+Server::cleanup_cb (ev::async &w, int revents)
+{
+  while (!cleanup_q.isempty())
+    {
+      ClientConnPtr con = cleanup_q.get();
+
+      ITER(i, connections)
+        if (*i == con)
+          {
+	    connections.erase (i);
+	    break;
+          }
+    }
 }
 
 Server::Server (Trace * tr)

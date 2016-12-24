@@ -45,6 +45,11 @@ class Server:public BaseServer
   /** open client connections*/
   Array <std::shared_ptr<ClientConnection>> connections;
 
+  ev::async cleanup;
+  void cleanup_cb (ev::async &w, int revents);
+private:
+  /** to-be-closed client connections*/
+  Queue <ClientConnPtr> cleanup_q;
 
   const char *Name() { return "server"; }
 protected:
