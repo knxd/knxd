@@ -28,14 +28,11 @@
 DummyL2Driver::DummyL2Driver (L2options *opt) : Layer2 (opt)
 {
   TRACEPRINTF (t, 2, this, "Open");
-  Start ();
-  TRACEPRINTF (t, 2, this, "Openend");
 }
 
 DummyL2Driver::~DummyL2Driver ()
 {
   TRACEPRINTF (t, 2, this, "Close");
-  Stop ();
 }
 
 void
@@ -51,14 +48,3 @@ DummyL2Driver::Send_L_Data (LPDU * l)
   delete l;
 }
 
-//Open
-
-void
-DummyL2Driver::Run (pth_sem_t * stop1)
-{
-  TRACEPRINTF (t, 2, this, "DummyStart");
-  pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
-  pth_wait(stop);
-  pth_event_free (stop, PTH_FREE_THIS);
-  TRACEPRINTF (t, 2, this, "DummyEnd");
-}

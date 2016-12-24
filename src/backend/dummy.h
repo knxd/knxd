@@ -25,9 +25,8 @@
 #include "lpdu.h"
 
 /** TPUART user mode driver */
-class DummyL2Driver:public Layer2, private Thread
+class DummyL2Driver:public Layer2
 {
-  void Run (pth_sem_t * stop);
   const char *Name() { return "Dummy"; }
 public:
   DummyL2Driver (L2options *opt);
