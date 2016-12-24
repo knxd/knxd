@@ -23,6 +23,7 @@
 #include <netinet/in.h>
 #include "common.h"
 #include "lpdu.h"
+#include "ipsupport.h"
 
 #define SEARCH_REQUEST 0x0201
 #define SEARCH_RESPONSE 0x0202
@@ -47,21 +48,6 @@
 typedef enum {
   S_RDWR, S_RD, S_WR,
 } SockMode;
-
-class Trace;
-
-/** resolve host name */
-int GetHostIP (Trace *t, struct sockaddr_in *sock, const char *Name);
-/** gets source address for a route */
-int GetSourceAddress (const struct sockaddr_in *dest,
-		      struct sockaddr_in *src);
-/** convert a to EIBnet/IP format */
-CArray IPtoEIBNetIP (const struct sockaddr_in *a, bool nat);
-/** convert EIBnet/IP IP Address to a */
-int EIBnettoIP (const CArray & buf, struct sockaddr_in *a,
-		const struct sockaddr_in *src, bool & nat);
-bool compareIPAddress (const struct sockaddr_in &a,
-		       const struct sockaddr_in &b);
 
 /** represents a EIBnet/IP packet */
 class EIBNetIPPacket

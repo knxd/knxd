@@ -7,7 +7,7 @@ else
 SYSTEMD_SERVER=
 endif
 
-COMMON=exception.h common.h common.cpp trace.h trace.cpp 
+COMMON=exception.h common.h common.cpp trace.h trace.cpp ipsupport.h ipsupport.cpp
 if HAVE_PTHSEM
 THREADS=threads.h threads.cpp
 else
