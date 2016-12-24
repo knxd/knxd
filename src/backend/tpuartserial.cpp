@@ -82,9 +82,6 @@ TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
       i++;
   }
 
-
-  pth_sem_init (&in_signal);
-
   dischreset = opt ? (opt->flags & FLAG_B_TPUARTS_DISCH_RESET) : 0;
 
   if (opt)
@@ -155,18 +152,37 @@ TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
     }
 
   setstat (fd, (getstat (fd) & ~TIOCM_RTS) | TIOCM_DTR);
+  setup_buffers();
 
-  Start ();
   TRACEPRINTF (t, 2, this, "Openend");
 }
 
-void TPUARTSerialLayer2Driver::reset_dtr()
+TPUARTSerialLayer2Driver::~TPUARTSerialLayer2Driver ()
+{
+  resettimer.stop();
+}
+
+void
+TPUARTSerialLayer2Driver::resettimer_cb(ev::timer &w, int revents)
+{
+  if (watch == 5)
+    {
+      watch = 6;
+      setstat (fd, (getstat (fd) & ~TIOCM_RTS) | TIOCM_DTR);
+      resettimer.start(0.001,0);
+    }
+  else
+    TPUART_Base::send_reset();
+}
+
+void TPUARTSerialLayer2Driver::send_reset()
 {
   if (dischreset)
     {
       setstat (fd, (getstat (fd) & ~TIOCM_RTS) & ~TIOCM_DTR);
-      pth_usleep (2000);
-      setstat (fd, (getstat (fd) & ~TIOCM_RTS) | TIOCM_DTR);
-      pth_usleep (1000);
+      watch = 5;
+      resettimer.start(0.002,0);
     }
+  else
+    TPUART_Base::send_reset();
 }

@@ -37,8 +37,6 @@ TPUARTTCPLayer2Driver::TPUARTTCPLayer2Driver (const char *dest, int port,
 
   TRACEPRINTF (t, 2, this, "Open");
 
-  pth_sem_init (&in_signal);
-
   if (!GetHostIP (t, &addr, dest))
     return;
   addr.sin_port = htons (port);
@@ -60,7 +58,7 @@ TPUARTTCPLayer2Driver::TPUARTTCPLayer2Driver (const char *dest, int port,
     }
   setsockopt (fd, IPPROTO_TCP, TCP_NODELAY, &nodelay, sizeof (nodelay));
 
-  Start ();
+  setup_buffers ();
   TRACEPRINTF (t, 2, this, "Openend");
 }
 

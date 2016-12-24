@@ -19,31 +19,47 @@
 
 #ifndef TPUART_H
 #define TPUART_H
-#include <termios.h>
-#include "lowlatency.h"
+#include "iobuf.h"
+#include "eibnetip.h"
 #include "layer2.h"
 #include "lpdu.h"
 
 /** TPUART user mode driver */
-class TPUART_Base:public Layer2, protected Thread
+class TPUART_Base:public Layer2
 {
 protected:
-  /** file descriptor */
+  /** device connection */
   int fd;
-  /** semaphore for inqueue */
-  pth_sem_t in_signal;
-  /** input queue */
-  Queue < LPDU * >inqueue;
-  /** output queue */
+  /** queueing */
+  SendBuf sendbuf;
+  RecvBuf recvbuf;
+  size_t read_cb(uint8_t *buf, size_t len);
+  void error_cb();
+
   bool ackallgroup;
   bool ackallindividual;
-  bool dischreset;
 
-  /** process a recevied frame */
+  /** process a received frame */
   void RecvLPDU (const uchar * data, int len);
-  void Run (pth_sem_t * stop);
-  const char *Name() = 0;
-  virtual void reset_dtr() = {};
+  void process_read(bool timed_out);
+
+  virtual const char *Name() = 0;
+  virtual void send_reset();
+  void setup_buffers();
+
+  /** main loop state */
+  ev::async trigger; void trigger_cb(ev::async &w, int revents);
+  ev::timer timer; void timer_cb(ev::timer &w, int revents);
+  ev::timer sendtimer; void sendtimer_cb(ev::timer &w, int revents);
+  ev::timer watchdogtimer; void watchdogtimer_cb(ev::timer &w, int revents);
+  LPDU *l;
+  Queue <LPDU *> send_q;
+
+  CArray in, sendheader;
+  int acked = 0;
+  int retry = 0;
+  int watch = 0;
+
 public:
   TPUART_Base (L2options *opt);
   ~TPUART_Base ();

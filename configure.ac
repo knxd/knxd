@@ -140,7 +140,6 @@ AC_ARG_ENABLE(tpuarts,
 AM_CONDITIONAL(HAVE_TPUARTs, test x$tpuarts = xtrue)
 if test x$tpuarts = xtrue ; then
  AC_DEFINE(HAVE_TPUARTs, 1 , [TPUARTs enabled])
- NEED_PTH(tpuarts)
 fi
 
 AC_ARG_ENABLE(tpuarts-tcp,
@@ -153,7 +152,6 @@ AC_ARG_ENABLE(tpuarts-tcp,
 AM_CONDITIONAL(HAVE_TPUARTs_TCP, test x$tpuarts_tcp = xtrue)
 if test x$tpuarts_tcp = xtrue ; then
  AC_DEFINE(HAVE_TPUARTs_TCP, 1 , [TPUART-over-TCP enabled])
- NEED_PTH(tpuarts-tcp)
 fi
 
 AC_ARG_ENABLE(eibnetip,

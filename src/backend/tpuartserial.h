@@ -33,10 +33,13 @@ class TPUARTSerialLayer2Driver:public TPUART_Base
   bool dischreset;
 
   const char *Name() { return "tpuarts"; }
-  void reset_dtr();
+  void send_reset();
+
+  ev::timer resettimer; void resettimer_cb(ev::timer &w, int revents);
+
 public:
   TPUARTSerialLayer2Driver (const char *dev, L2options *opt);
-  ~TPUARTSerialLayer2Driver () {}
+  ~TPUARTSerialLayer2Driver();
 };
 
 #endif
