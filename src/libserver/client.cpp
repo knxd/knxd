@@ -23,9 +23,13 @@
 #include "client.h"
 #include "busmonitor.h"
 #include "connection.h"
-#include "managementclient.h"
-#include "groupcacheclient.h"
 #include "config.h"
+#ifdef HAVE_MANAGEMENT
+#include "managementclient.h"
+#endif
+#ifdef HAVE_GROUPCACHE
+#include "groupcacheclient.h"
+#endif
 
 ClientConnection::ClientConnection (Server *s, int fd)
 {

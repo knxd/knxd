@@ -48,9 +48,6 @@ dnl AC_COMPILER_OPTION(nortti,[-fno-rtti],[-fno-rtti],CXXFLAGS="$CXXFLAGS -fno-r
 AC_COMPILER_OPTION(stdc,[-std=c++0x],[-std=c++0x],CXXFLAGS="$CXXFLAGS -std=c++0x")
 dnl libev++ requires exceptions
 dnl AC_COMPILER_OPTION(noexceptions,[-fno-exceptions],[-fno-exceptions],CXXFLAGS="$CXXFLAGS -fno-exceptions")
-AC_CHECK_PTHSEM(2.0.8,yes,yes,no)
-PTHSEM_LIB="$PTH_LDFLAGS $PTH_LIBS"
-AC_SUBST(PTHSEM_LIB)
 
 AX_LOCAL_EXPAND_CONFIG
 AX_AVAILABLE_SYSTEMD
@@ -78,6 +75,11 @@ AC_CHECK_FUNCS(gethostbyname_r,,[AC_MSG_WARN([knxd client library not thread saf
 
 AM_CONDITIONAL(LINUX_API, test x$have_linux_api = xyes)
 
+AC_DEFUN([NEED_PTH], [dnl
+ need_pthsem=yes
+ AC_MSG_RESULT([PTH because of $1])
+])
+
 AC_ARG_ENABLE(management,
 [  --enable-ft12		enable management connections],
 [case "${enableval}" in
@@ -100,6 +102,7 @@ AC_ARG_ENABLE(ft12,
 AM_CONDITIONAL(HAVE_FT12, test x$ft12 = xtrue)
 if test x$ft12 = xtrue ; then
  AC_DEFINE(HAVE_FT12, 1 , [FT1.2 enabled])
+ NEED_PTH(ft12)
 fi
 
 AC_ARG_ENABLE(dummy,
@@ -115,7 +118,7 @@ if test x$dummy = xtrue ; then
 fi
 
 AC_ARG_ENABLE(pei16s,
-[  --enable-pei16s	enable BCU1 user driver backend (very experimental)],
+[  --enable-pei16s     enable BCU1 user driver backend (very experimental)],
 [case "${enableval}" in
  yes) pei16s=true ;;
   no)  pei16s=false ;;
@@ -124,6 +127,7 @@ AC_ARG_ENABLE(pei16s,
 AM_CONDITIONAL(HAVE_PEI16s, test x$pei16s = xtrue)
 if test x$pei16s = xtrue ; then
  AC_DEFINE(HAVE_PEI16s, 1 , [PEI16s enabled])
+ NEED_PTH(pei16s)
 fi
 
 AC_ARG_ENABLE(tpuarts,
@@ -136,6 +140,7 @@ AC_ARG_ENABLE(tpuarts,
 AM_CONDITIONAL(HAVE_TPUARTs, test x$tpuarts = xtrue)
 if test x$tpuarts = xtrue ; then
  AC_DEFINE(HAVE_TPUARTs, 1 , [TPUARTs enabled])
+ NEED_PTH(tpuarts)
 fi
 
 AC_ARG_ENABLE(tpuarts-tcp,
@@ -148,10 +153,11 @@ AC_ARG_ENABLE(tpuarts-tcp,
 AM_CONDITIONAL(HAVE_TPUARTs_TCP, test x$tpuarts_tcp = xtrue)
 if test x$tpuarts_tcp = xtrue ; then
  AC_DEFINE(HAVE_TPUARTs_TCP, 1 , [TPUART-over-TCP enabled])
+ NEED_PTH(tpuarts-tcp)
 fi
 
 AC_ARG_ENABLE(eibnetip,
-[  --enable-eibnetip	enable EIBnet/IP routing backend],
+[  --enable-eibnetip	enable simple multicast EIBnet/IP backend],
 [case "${enableval}" in
  yes) eibnetip=true ;;
   no)  eibnetip=false ;;
@@ -159,7 +165,21 @@ AC_ARG_ENABLE(eibnetip,
  esac],[eibnetip=true])
 AM_CONDITIONAL(HAVE_EIBNETIP, test x$eibnetip = xtrue)
 if test x$eibnetip = xtrue ; then
- AC_DEFINE(HAVE_EIBNETIP, 1 , [EIBnet/IP enabled])
+ AC_DEFINE(HAVE_EIBNETIP, 1 , [EIBnet/IP multicast slave enabled])
+ NEED_PTH(eibnetip)
+fi
+
+AC_ARG_ENABLE(eibnetserver,
+[  --enable-eibnetserver	enable full-featured EIBnet/IP routing],
+[case "${enableval}" in
+ yes) eibnetserver=true ;;
+  no)  eibnetserver=false ;;
+   *) AC_MSG_ERROR(bad value ${enableval} for --enable-eibnetserver) ;;
+ esac],[eibnetserver=true])
+AM_CONDITIONAL(HAVE_EIBNETSERVER, test x$eibnetserver = xtrue)
+if test x$eibnetserver = xtrue ; then
+ AC_DEFINE(HAVE_EIBNETSERVER, 1 , [EIBnet/IP master enabled])
+ NEED_PTH(eibnetserver)
 fi
 
 AC_ARG_ENABLE(eibnetiptunnel,
@@ -175,6 +195,7 @@ if test x$eibnetiptunnel = xtrue ; then
   AC_MSG_ERROR(not all needed functions for EIBnet/IP tunneling backend available)
  fi
  AC_DEFINE(HAVE_EIBNETIPTUNNEL, 1 , [EIBnet/IP tunneling enabled])
+ NEED_PTH(eibnetiptunnel)
 fi
 
 AC_ARG_ENABLE(usb,
@@ -191,6 +212,7 @@ if test x$usb = xtrue ; then
   AC_MSG_ERROR(not all needed functions for USB backend available)
  fi
  AC_DEFINE(HAVE_USB, 1 , [USB backend enabled])
+ NEED_PTH(usb)
 else
  AM_CONDITIONAL(HAVE_USB, test x$usb = xtrue)
 fi
@@ -205,6 +227,7 @@ AC_ARG_ENABLE(ncn5120,
 AM_CONDITIONAL(HAVE_NCN5120, test x$ncn5120 = xtrue)
 if test x$ncn5120 = xtrue ; then
  AC_DEFINE(HAVE_NCN5120, 1 , [NCN5120 backend enabled])
+ NEED_PTH(ncn5120)
 fi
 
 AC_ARG_ENABLE(eibnetipserver,
@@ -219,6 +242,7 @@ if test x$eibnetipserver = xtrue ; then
   AC_MSG_ERROR(not all needed functions for EIBnet/IP server available)
  fi
  AC_DEFINE(HAVE_EIBNETIPSERVER, 1 , [EIBnet/IP server enabled])
+ NEED_PTH(eibnetipserver)
 fi
 
 AC_ARG_ENABLE(groupcache,
@@ -228,11 +252,19 @@ AC_ARG_ENABLE(groupcache,
   no)  groupcache=false ;;
    *) AC_MSG_ERROR(bad value ${enableval} for --enable-groupcache) ;;
  esac],[groupcache=true])
+AM_CONDITIONAL(HAVE_GROUPCACHE, test x$groupcache = xtrue)
 if test x$groupcache = xtrue ; then
  AC_DEFINE(HAVE_GROUPCACHE, 1 , [Group Cache enabled])
 fi
 
 EV_LIBS=
+if test x$need_pthsem = xyes ; then
+  AC_CHECK_PTHSEM(2.0.8,yes,yes,no)
+  PTHSEM_LIB="$PTH_LDFLAGS $PTH_LIBS"
+  AC_SUBST(PTHSEM_LIB)
+else
+  with_pth=no
+fi
 if test ".$with_pth" != .no ; then
  AC_DEFINE(HAVE_PTHSEM, 1, [libpthsem present])
  dnl force linking to the embedded libev
@@ -244,6 +276,7 @@ else
  AC_CHECK_LIB([ev], [ev_run],,[AC_MSG_ERROR([libev not found])])
  EV_LIBS="-lev"
 fi
+AM_CONDITIONAL(HAVE_PTHSEM, test x$need_pthsem = xyes)
 AC_SUBST([EV_LIBS])
 
 AM_CONDITIONAL(HAVE_SOURCE_INFO, test x$have_source_info = xyes )
