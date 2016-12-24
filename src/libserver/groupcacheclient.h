@@ -23,10 +23,10 @@
 #include "layer3.h"
 
 class ClientConnection;
+typedef std::shared_ptr<ClientConnection> ClientConnPtr;
 
 bool CreateGroupCache (Layer3 * l3, Trace * t, bool enable);
 
-void GroupCacheRequest (ClientConnection * c,
-			pth_event_t stop);
+void GroupCacheRequest (ClientConnPtr c, uint8_t *buf, size_t len);
 
 #endif

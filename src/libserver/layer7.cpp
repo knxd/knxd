@@ -34,7 +34,7 @@ Layer7_Broadcast::~Layer7_Broadcast ()
 bool Layer7_Broadcast::init (Layer3 * l3)
 {
   l4 = T_BroadcastPtr(new T_Broadcast (t, 0));
-  if (!l4->init (l3))
+  if (!l4->init (this, l3))
     {
       TRACEPRINTF (t, 5, this, "L7Broadcast init bad");
       l4 = 0;
@@ -88,7 +88,7 @@ Layer7_Connection::~Layer7_Connection ()
 bool Layer7_Connection::init (Layer3 * l3)
 {
   l4 = T_ConnectionPtr(new T_Connection (t, dest));
-  if (!l4->init (l3))
+  if (!l4->init (this, l3))
     {
       TRACEPRINTF (t, 5, this, "L7Connection init bad");
       l4 = 0;

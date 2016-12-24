@@ -259,7 +259,7 @@ GroupCacheEntry
 }
 
 Array < eibaddr_t > GroupCache::LastUpdates (uint16_t start, uint8_t Timeout,
-					     uint16_t & end, pth_event_t stop)
+					     uint16_t & end)
 {
   Array < eibaddr_t > a;
   pth_event_t timeout = pth_event (PTH_EVENT_RTIME, pth_time (Timeout, 0));

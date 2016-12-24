@@ -76,7 +76,7 @@ public:
   GroupCacheEntry Read (eibaddr_t addr, unsigned timeout, uint16_t age);
   /** incrementally monitor group cache updates */
   Array < eibaddr_t > LastUpdates (uint16_t start, uint8_t timeout,
-                                   uint16_t & end, pth_event_t stop);
+                                   uint16_t & end);
   // remove this group
   void remove (eibaddr_t addr);
 };
