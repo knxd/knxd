@@ -43,7 +43,7 @@ class Layer2 : public std::enable_shared_from_this<Layer2>
 
 protected:
   /** auto-deregister for "tasked" layer2 objects */
-  void RunStop();
+  virtual void RunStop();
 
   /** auto-assigned. NON-bus connections only! */
   eibaddr_t remoteAddr;

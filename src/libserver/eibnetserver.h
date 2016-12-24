@@ -35,8 +35,6 @@ typedef enum {
 
 class ConnState: protected Thread, public Layer2mixin
 {
-  virtual void RunDone() { Layer2mixin::RunStop(); }
-
 public:
   ConnState (EIBnetServer *p, eibaddr_t addr);
   ~ConnState ();

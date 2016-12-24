@@ -25,7 +25,6 @@ void *
 Thread::ThreadWrapper (void *arg)
 {
   ((Thread *) arg)->Run (&((Thread *) arg)->should_stop);
-  ((Thread *) arg)->RunDone ();
   if (((Thread *) arg)->autodel)
     delete ((Thread *) arg);
   pth_exit (0);
