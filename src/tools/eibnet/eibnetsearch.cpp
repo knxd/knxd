@@ -94,8 +94,8 @@ main (int ac, char *ag[])
   else
     dport = 3671;
 
-  Trace t = Trace("main");
-  t.SetTraceLevel (tracelevel);
+  TracePtr t = TracePtr(new Trace("main"));
+  t->SetTraceLevel (tracelevel);
   if (!strcmp (a, "-"))
     a = (char *) "224.0.23.12";
 
@@ -107,7 +107,7 @@ main (int ac, char *ag[])
   if (!GetSourceAddress (&caddr, &saddr))
     die ("No route found");
   saddr.sin_port = htons (sport);
-  sock = new EIBNetIPSocket (saddr, 0, &t);
+  sock = new EIBNetIPSocket (saddr, 0, t);
   sock->sendaddr = caddr;
   sock->recvaddr = caddr;
   sock->recvall = 1;
