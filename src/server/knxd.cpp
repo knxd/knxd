@@ -479,7 +479,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
           die ("initialisation of backend '%s' failed", arg);
 	if (arguments->l2opts.flags || arguments->l2opts.send_delay)
           die ("You provided options which '%s' does not recognize", arg);
-        memset(&arguments->l2opts, 0, sizeof(arguments->l2opts));
+        arguments->l2opts = L2options();
         arguments->has_work++;
         break;
       }
