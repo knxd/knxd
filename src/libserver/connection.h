@@ -32,10 +32,9 @@ public:
   error_cb on_error_cb;
 
   A_Base() {
-    printf("CONN ON\n");
     on_error_cb.set<A_Base,&A_Base::on_error>(this);
   }
-  virtual ~A_Base() { printf("CONN OFF\n"); }
+  virtual ~A_Base() { }
   inline bool is_connected() { return con != 0; }
   virtual void recv(uint8_t *buf, size_t len); // to socket
 };
