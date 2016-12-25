@@ -249,7 +249,7 @@ AC_ARG_ENABLE(groupcache,
  yes) groupcache=true ;;
   no)  groupcache=false ;;
    *) AC_MSG_ERROR(bad value ${enableval} for --enable-groupcache) ;;
- esac],[groupcache=true])
+ esac],[groupcache=false])
 AM_CONDITIONAL(HAVE_GROUPCACHE, test x$groupcache = xtrue)
 if test x$groupcache = xtrue ; then
  AC_DEFINE(HAVE_GROUPCACHE, 1 , [Group Cache enabled])
