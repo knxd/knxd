@@ -174,6 +174,7 @@ TPUART_Base::RecvLPDU (const uchar * data, int len)
 size_t
 TPUART_Base::read_cb(uint8_t *buf, size_t len)
 {
+  t->TracePacket (0, this, "Read", len, buf);
   if (watch < 4)
     in.setpart (buf, in.size(), len);
   process_read(false);
