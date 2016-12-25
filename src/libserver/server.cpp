@@ -86,6 +86,7 @@ Server::init (Layer3 *l3)
 {
   if (fd == -1)
     return false;
+  set_non_blocking(fd);
   io.set<Server, &Server::io_cb>(this);
   io.start(fd,ev::READ);
   cleanup.set<Server, &Server::cleanup_cb>(this);
@@ -106,6 +107,8 @@ Server::io_cb (ev::io &w, int revents)
       ClientConnPtr c = std::shared_ptr<ClientConnection>(new ClientConnection (this, cfd));
       connections.push_back(c);
     }
+  else if (errno != EWOULDBLOCK && errno != EAGAIN && errno != EINTR)
+    ERRORPRINTF (t, E_ERROR | 51, this, "Accept %s: %s", Name(), strerror(errno));
 }
 
 void

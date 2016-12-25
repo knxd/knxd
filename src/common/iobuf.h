@@ -30,6 +30,8 @@
 #include <ev++.h>
 #include <queue.h>
 
+void set_non_blocking(int fd);
+
 class SendBuf
 {
   ev::io io;
@@ -46,6 +48,7 @@ public:
   }
   void init(int fd) {
     assert (this->fd == -1);
+    set_non_blocking(fd);
     this->fd = fd;
     io.set<SendBuf, &SendBuf::io_cb>(this);
     on_error_cb.set<SendBuf,&SendBuf::on_error>(this);
@@ -118,6 +121,7 @@ public:
   }
   void init(int fd) {
     assert (this->fd == -1);
+    set_non_blocking(fd);
     this->fd = fd;
     io.set<RecvBuf, &RecvBuf::io_cb>(this);
     on_error_cb.set<RecvBuf,&RecvBuf::on_error>(this);

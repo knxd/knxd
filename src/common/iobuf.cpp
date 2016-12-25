@@ -86,7 +86,7 @@ RecvBuf::io_cb (ev::io &w, int revents)
 }
 
 void
-nonblock(int fd)
+set_non_blocking(int fd)
 {
     int flags = fcntl(fd, F_GETFL, 0);
     if (flags < 0)
@@ -98,14 +98,12 @@ nonblock(int fd)
 void
 RecvBuf::start()
 {
-    nonblock(fd);
     io.start(fd, ev::READ);
 }
 
 void
 SendBuf::start()
 {
-    nonblock(fd);
     io.start(fd, ev::WRITE);
 }
 
