@@ -265,7 +265,7 @@ TPUART_Base::process_read(bool timed_out)
           if (in.size() < len-9)
             goto do_timer;
 
-          if (sendtimer.is_active())
+          if (!recvecho && sendtimer.is_active())
             {
               CArray recvheader;
               recvheader.set(in.data(),6+ext);
