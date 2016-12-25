@@ -59,6 +59,7 @@ protected:
   int acked = 0;
   int retry = 0;
   int watch = 0;
+  bool recvecho = false;
 
 public:
   TPUART_Base (L2options *opt);

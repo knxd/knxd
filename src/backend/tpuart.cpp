@@ -246,7 +246,6 @@ TPUART_Base::process_read(bool timed_out)
         }
       else if ((c & 0x50) == 0x10) // Matches KNX control byte L_Data_Standard/Extended Frame
         {
-          bool recvecho = false;
           bool ext = !(c & 0x80);
 
           if (in.size () < 6+ext)
