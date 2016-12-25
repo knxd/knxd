@@ -244,7 +244,7 @@ TPUART_Base::process_read(bool timed_out)
           RecvLPDU (in.data(), 1);
           in.deletepart (0, 1);
         }
-      else if ((c & 0x50) == 0x10) // Matches KNX control byte L_Data_Standard Frame
+      else if ((c & 0x50) == 0x10) // Matches KNX control byte L_Data_Standard/Extended Frame
         {
           bool recvecho = false;
           bool ext = !(c & 0x80);
