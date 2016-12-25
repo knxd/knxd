@@ -272,7 +272,7 @@ TPUART_Base::process_read(bool timed_out)
               recvheader[0] &=~ 0x20;
               if (recvheader == sendheader)
                 {
-                  TRACEPRINTF (t, 0, this, "Ignoring this telegram. We sent it.");
+                  TRACEPRINTF (t, 0, this, "Ignoring this %d-byte telegram. We sent it.",len-2);
                   recvecho = true;
                 }
             }
