@@ -56,9 +56,9 @@ protected:
   Queue <LPDU *> send_q;
 
   CArray in, sendheader;
-  int acked = 0;
-  int retry = 0;
   int watch = 0;
+  int retry = 0;
+  bool acked = false;
   bool recvecho = false;
 
 public:

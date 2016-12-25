@@ -291,20 +291,20 @@ TPUART_Base::process_read(bool timed_out)
                 }
               TRACEPRINTF (t, 0, this, "SendAck %02X", c);
               sendbuf.write(&c,1);
-              acked = 1;
+              acked = true;
             }
           if (in.size() < len)
             goto do_timer;
           if (!recvecho)
             {
-              acked = 0;
+              acked = false;
               RecvLPDU (in.data(), len);
             }
           in.deletepart (0, len);
         }
       else
         {
-          acked = 0;
+          acked = false;
           TRACEPRINTF (t, 0, this, "Remove %02X", c);
           in.deletepart (0, 1);
         }
