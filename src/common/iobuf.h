@@ -130,7 +130,7 @@ public:
 
 protected:
   /** client connection */
-  int fd;
+  int fd = -1;
 
   /** receiving */
   uint8_t recvbuf[1024];
