@@ -131,7 +131,7 @@ if test x$pei16s = xtrue ; then
 fi
 
 AC_ARG_ENABLE(tpuarts,
-[  --enable-tpuarts	enable TPUART user driver backend],
+[  --enable-tpuarts	enable serial TPUART user driver backend],
 [case "${enableval}" in
  yes) tpuarts=true ;;
   no)  tpuarts=false ;;
