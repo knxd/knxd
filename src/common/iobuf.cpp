@@ -66,7 +66,7 @@ RecvBuf::io_cb (ev::io &w, int revents)
         return;
     }
     recvpos += i;
-    while (true) {
+    while (recvpos > 0) {
         i = on_recv_cb(recvbuf,recvpos);
         if (i == 0) {
             if (recvpos == sizeof(recvbuf)) {
