@@ -269,7 +269,7 @@ TPUART_Base::process_read(bool timed_out)
             {
               CArray recvheader;
               recvheader.set(in.data(),6+ext);
-              recvheader[0] &=~ 0x20;
+              recvheader[0] &=~ 0x20; // repeat flag
               if (recvheader == sendheader)
                 {
                   TRACEPRINTF (t, 0, this, "Ignoring this %d-byte telegram. We sent it.",len-2);
@@ -299,6 +299,20 @@ TPUART_Base::process_read(bool timed_out)
             {
               acked = false;
               RecvLPDU (in.data(), len);
+            }
+          else
+            {
+              if (l && !(in[0]&0x20)) // this is a repeat frame
+                {
+                  CArray d = l->ToPacket ();
+                  // ignore repeat flag when comparing
+                  if (!((in[0]^d[0])&~0x20) && !memcmp(in.data()+1,d.data()+1,d.size()-2))
+                    {
+                      TRACEPRINTF (t, 0, this, "Skip retrying");
+                      retry = 9; // The TPUART handles retransmitting in hardware. There is no need to do it again.
+                    }
+                }
+              recvecho = false;
             }
           in.deletepart (0, len);
         }
