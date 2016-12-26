@@ -43,8 +43,6 @@ ClientConnection::ClientConnection (Server *s, int fd) : sendbuf(fd),recvbuf(fd)
   recvbuf.on_recv_cb.set<ClientConnection,&ClientConnection::read_cb>(this);
   recvbuf.on_error_cb.set<ClientConnection,&ClientConnection::error_cb>(this);
   sendbuf.on_error_cb.set<ClientConnection,&ClientConnection::error_cb>(this);
-  recvbuf.start();
-  sendbuf.start();
 }
 
 ClientConnection::~ClientConnection ()

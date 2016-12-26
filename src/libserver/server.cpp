@@ -101,6 +101,7 @@ Server::io_cb (ev::io &w, int revents)
       setupConnection (cfd);
       ClientConnPtr c = std::shared_ptr<ClientConnection>(new ClientConnection (this, cfd));
       connections.push_back(c);
+      c->start();
     }
   else if (errno != EWOULDBLOCK && errno != EAGAIN && errno != EINTR)
     ERRORPRINTF (t, E_ERROR | 51, this, "Accept %s: %s", Name(), strerror(errno));
