@@ -104,7 +104,7 @@ void
 RecvBuf::start()
 {
     if (running)
-        return;
+      return;
     running = true;
     io.start(fd, ev::READ);
     feed_out();
