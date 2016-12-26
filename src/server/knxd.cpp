@@ -592,7 +592,7 @@ main (int ac, char *ag[])
 #ifdef HAVE_PTHSEM
   LOOP_RESULT loop = ev_default_loop(EVFLAG_AUTO | EVFLAG_NOSIGMASK | EVBACKEND_PTHSEM);
 #else
-  LOOP_RESULT loop = ev_default_loop(EVFLAG_AUTO | EVFLAG_NOSIGMASK);
+  LOOP_RESULT loop = ev_default_loop(EVFLAG_AUTO | EVFLAG_NOSIGMASK | EVBACKEND_SELECT);
 #endif
   assert (loop);
 
