@@ -68,7 +68,7 @@ protected:
 public:
   bool init (Layer3 *l3);
 
-  virtual void stop() {}
+  virtual void stop() { Layer2mixin::RunStop(); }
 };
 
 template<class T>
