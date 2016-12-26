@@ -36,12 +36,11 @@ EIBNetIPPacket *
 EIBNetIPPacket::fromPacket (const CArray & c, const struct sockaddr_in src)
 {
   EIBNetIPPacket *p;
-  unsigned len;
   if (c.size() < 6)
     return 0;
   if (c[0] != 0x6 || c[1] != 0x10)
     return 0;
-  len = (c[4] << 8) | c[5];
+  unsigned len = (c[4] << 8) | c[5];
   if (len != c.size())
     return 0;
   p = new EIBNetIPPacket;
@@ -130,25 +129,28 @@ EIBNetIPSocket::EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr,
   int i;
   t = tr;
   TRACEPRINTF (t, 0, this, "Open");
-  multicast = 0;
-  pth_sem_init (&insignal);
-  pth_sem_init (&outsignal);
-  getwait = pth_event (PTH_EVENT_SEM, &outsignal);
+  multicast = false;
   memset (&maddr, 0, sizeof (maddr));
   memset (&sendaddr, 0, sizeof (sendaddr));
   memset (&recvaddr, 0, sizeof (recvaddr));
   memset (&recvaddr2, 0, sizeof (recvaddr2));
   recvall = 0;
 
+  io_send.set<EIBNetIPSocket, &EIBNetIPSocket::io_send_cb>(this);
+  io_recv.set<EIBNetIPSocket, &EIBNetIPSocket::io_recv_cb>(this);
+  on_recv.set<EIBNetIPSocket, &EIBNetIPSocket::on_recv_cb>(this); // dummy
+
   fd = socket (AF_INET, SOCK_DGRAM, 0);
   if (fd == -1)
     return;
+  set_non_blocking(fd);
 
   if (reuseaddr)
     {
       i = 1;
       if (setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &i, sizeof (i)) == -1)
 	{
+          ERRORPRINTF (t, E_ERROR | 37, this, "cannot reuse address: %s", strerror(errno));
 	  close (fd);
 	  fd = -1;
 	  return;
@@ -181,28 +183,55 @@ EIBNetIPSocket::EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr,
   else if (mode == S_WR)
     shutdown (fd, SHUT_RD);
 
-  Start ();
   TRACEPRINTF (t, 0, this, "Openend");
 }
 
 EIBNetIPSocket::~EIBNetIPSocket ()
 {
   TRACEPRINTF (t, 0, this, "Close");
-  Stop ();
-  pth_event_free (getwait, PTH_FREE_THIS);
+  stop();
+}
+
+void
+EIBNetIPSocket::stop()
+{
   if (fd != -1)
     {
+      io_recv.stop();
+      io_send.stop();
       if (multicast)
 	setsockopt (fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, &maddr,
 		    sizeof (maddr));
       close (fd);
+      fd = -1;
     }
+}
+
+void
+EIBNetIPSocket::pause()
+{
+    if (paused)
+        return;
+    paused = true;
+    io_recv.stop();
+}
+
+void
+EIBNetIPSocket::unpause()
+{
+    if (! paused)
+        return;
+    paused = false;
+    io_recv.start();
 }
 
 bool
 EIBNetIPSocket::init ()
 {
-  return fd != -1;
+  if (fd < 0)
+    return false;
+  io_recv.start();
+  return true;
 }
 
 int
@@ -229,7 +258,7 @@ EIBNetIPSocket::SetMulticast (struct ip_mreq multicastaddr)
   if (setsockopt (fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &maddr, sizeof (maddr))
       == -1)
     return false;
-  multicast = 1;
+  multicast = true;
   return true;
 }
 
@@ -240,96 +269,63 @@ EIBNetIPSocket::Send (EIBNetIPPacket p, struct sockaddr_in addr)
   t->TracePacket (1, this, "Send", p.data);
   s.data = p;
   s.addr = addr;
-  inqueue.put (s);
-  pth_sem_inc (&insignal, 1);
-}
 
-EIBNetIPPacket *
-EIBNetIPSocket::Get (pth_event_t stop)
-{
-  if (stop != NULL)
-    pth_event_concat (getwait, stop, NULL);
-
-  pth_wait (getwait);
-
-  if (stop)
-    pth_event_isolate (getwait);
-
-  if (pth_event_status (getwait) == PTH_STATUS_OCCURRED)
-    {
-      EIBNetIPPacket *p;
-      pth_sem_dec (&outsignal);
-      p = outqueue.get ();
-      t->TracePacket (1, this, "Recv", p->data);
-      return p;
-    }
-  else
-    return 0;
+  if (send_q.isempty())
+    io_send.start();
+  send_q.put (s);
 }
 
 void
-EIBNetIPSocket::Run (pth_sem_t * stop1)
+EIBNetIPSocket::io_send_cb (ev::io &w, int revents)
 {
-  int i;
-  int error = 0;
+  if (send_q.isempty ())
+    {
+      io_send.stop();
+      return;
+    }
+  const struct _EIBNetIP_Send s = send_q.top ();
+  CArray p = s.data.ToPacket ();
+  t->TracePacket (0, this, "Send", p);
+  int i = sendto (fd, p.data(), p.size(), 0,
+                      (const struct sockaddr *) &s.addr, sizeof (s.addr));
+  if (i > 0)
+    {
+      send_q.get ();
+      send_error = 0;
+    }
+  else if (send_error++ > 5)
+    {
+      t->TracePacket (0, this, "Drop EIBnetSocket", p);
+      send_q.get ();
+      send_error = 0;
+    }
+}
+
+void
+EIBNetIPSocket::io_recv_cb (ev::io &w, int revents)
+{
   uchar buf[255];
   socklen_t rl;
   sockaddr_in r;
-  pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
-  pth_event_t input = pth_event (PTH_EVENT_SEM, &insignal);
-  while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
+  rl = sizeof (r);
+  memset (&r, 0, sizeof (r));
+
+  int i = recvfrom (fd, buf, sizeof (buf), 0, (struct sockaddr *) &r, &rl);
+  if (i > 0 && rl == sizeof (r))
     {
-      pth_event_concat (stop, input, NULL);
-      rl = sizeof (r);
-      memset (&r, 0, sizeof (r));
-      i = pth_recvfrom_ev (fd, buf, sizeof (buf), 0, (struct sockaddr *) &r,
-			   &rl, stop);
-      if (i > 0 && rl == sizeof (r))
-	{
-	  if (recvall == 1 || !memcmp (&r, &recvaddr, sizeof (r)) ||
-	      (recvall == 2 && memcmp (&r, &localaddr, sizeof (r))) ||
-	      (recvall == 3 && !memcmp (&r, &recvaddr2, sizeof (r))))
-	    {
-	      t->TracePacket (0, this, "Recv", i, buf);
-	      EIBNetIPPacket *p =
-		EIBNetIPPacket::fromPacket (CArray (buf, i), r);
-	      if (p)
-		{
-		  outqueue.put (p);
-		  pth_sem_inc (&outsignal, 1);
-		}
-	    }
-          else
-	    t->TracePacket (0, this, "Dropped", i, buf);
-	}
-      pth_event_isolate (stop);
-      if (!inqueue.isempty ())
-	{
-	  const struct _EIBNetIP_Send s = inqueue.top ();
-	  CArray p = s.data.ToPacket ();
-	  t->TracePacket (0, this, "Send", p);
-	  i = pth_sendto_ev (fd, p.data(), p.size(), 0,
-			     (const struct sockaddr *) &s.addr, sizeof (s.addr),
-			     stop);
-	  if (i > 0)
-	    {
-	      pth_sem_dec (&insignal);
-	      inqueue.get ();
-	      error = 0;
-	    }
-	  else
-	    error++;
-	  if (error > 5)
-	    {
-	      t->TracePacket (0, this, "Drop EIBnetSocket", p);
-	      pth_sem_dec (&insignal);
-	      inqueue.get ();
-	      error = 0;
-	    }
-	}
+      if (recvall == 1 || !memcmp (&r, &recvaddr, sizeof (r)) ||
+          (recvall == 2 && memcmp (&r, &localaddr, sizeof (r))) ||
+          (recvall == 3 && !memcmp (&r, &recvaddr2, sizeof (r))))
+        {
+          t->TracePacket (0, this, "Recv", i, buf);
+          EIBNetIPPacket *p =
+            EIBNetIPPacket::fromPacket (CArray (buf, i), r);
+          if (p)
+            on_recv(p);
+        }
+      else
+        t->TracePacket (0, this, "Dropped", i, buf);
     }
-  pth_event_free (stop, PTH_FREE_THIS);
-  pth_event_free (input, PTH_FREE_THIS);
 }
 
 EIBnet_ConnectRequest::EIBnet_ConnectRequest ()

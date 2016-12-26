@@ -31,15 +31,43 @@ class EIBNetIPTunnel:public Layer2, private Thread
   struct sockaddr_in saddr;
   struct sockaddr_in raddr;
   pth_sem_t insignal;
-  Queue < CArray > inqueue;
+
+  Queue < CArray > send_q;
   int dataport;
   bool NAT;
-  pth_time_t send_delay;
+// main loop internal vars
+  int channel = -1;
+  int mod = 0;
+  int rno = 0;
+  int sno = 0;
+  int heartbeat = 0;
+  int drop = 0;
+
+  float send_delay;
+  ev::timer timeout; void timeout_cb(ev::timer &w, int revents);
+  ev::timer sendtimeout; void sendtimeout_cb(ev::timer &w, int revents);
+  ev::timer conntimeout; void conntimeout_cb(ev::timer &w, int revents);
+  ev::async trigger; void trigger_cb(ev::async &w, int revents);
+  
   int support_busmonitor;
   int connect_busmonitor;
+  void on_recv_cb(EIBNetIPPacket *p);
 
-  void Run (pth_sem_t * stop);
   const char *Name() { return "eibnettunnel"; }
+
+  inline EIBnet_ConnectRequest get_creq() { 
+    EIBnet_ConnectRequest creq;
+
+    creq.nat = saddr.sin_addr.s_addr == 0;
+    creq.caddr = saddr;
+    creq.daddr = saddr;
+    creq.CRI.resize (3);
+    creq.CRI[0] = 0x04;
+    creq.CRI[1] = 0x02;
+    creq.CRI[2] = 0x00;
+    return creq;
+  } 
+
 public:
   EIBNetIPTunnel (const char *dest, int port, int sport, const char *srcip,
                   int dataport, L2options *opt);

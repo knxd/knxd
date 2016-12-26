@@ -164,7 +164,6 @@ AC_ARG_ENABLE(eibnetip,
 AM_CONDITIONAL(HAVE_EIBNETIP, test x$eibnetip = xtrue)
 if test x$eibnetip = xtrue ; then
  AC_DEFINE(HAVE_EIBNETIP, 1 , [EIBnet/IP multicast slave enabled])
- NEED_PTH(eibnetip)
 fi
 
 AC_ARG_ENABLE(eibnetserver,
@@ -177,7 +176,6 @@ AC_ARG_ENABLE(eibnetserver,
 AM_CONDITIONAL(HAVE_EIBNETSERVER, test x$eibnetserver = xtrue)
 if test x$eibnetserver = xtrue ; then
  AC_DEFINE(HAVE_EIBNETSERVER, 1 , [EIBnet/IP master enabled])
- NEED_PTH(eibnetserver)
 fi
 
 AC_ARG_ENABLE(eibnetiptunnel,
@@ -193,7 +191,6 @@ if test x$eibnetiptunnel = xtrue ; then
   AC_MSG_ERROR(not all needed functions for EIBnet/IP tunneling backend available)
  fi
  AC_DEFINE(HAVE_EIBNETIPTUNNEL, 1 , [EIBnet/IP tunneling enabled])
- NEED_PTH(eibnetiptunnel)
 fi
 
 AC_ARG_ENABLE(usb,
@@ -240,7 +237,6 @@ if test x$eibnetipserver = xtrue ; then
   AC_MSG_ERROR(not all needed functions for EIBnet/IP server available)
  fi
  AC_DEFINE(HAVE_EIBNETIPSERVER, 1 , [EIBnet/IP server enabled])
- NEED_PTH(eibnetipserver)
 fi
 
 AC_ARG_ENABLE(groupcache,

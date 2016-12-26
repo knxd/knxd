@@ -22,6 +22,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <arpa/inet.h>
+#include <ev.h>
 #include "eibnetip.h"
 
 /** aborts program with a printf like message */
@@ -45,6 +46,32 @@ HexDump (const uchar * data, int Len)
   printf ("\n");
 }
 
+static void
+end_me (EV_P_ ev_timer *w, int revents)
+{
+  die ("Request timed out");
+}
+
+static void
+recv_me (EIBNetIPPacket *p1)
+{
+  EIBnet_DescriptionResponse resp;
+  if (parseEIBnet_DescriptionResponse (*p1, resp))
+    die ("Invalid description response");
+  printf ("Medium: %d\nState: %d\nAddr: %s\nInstallID: %d\nSerial:",
+          resp.KNXmedium, resp.devicestatus,
+          FormatEIBAddr (resp.individual_addr).c_str(), resp.installid);
+  HexDump (resp.serial, sizeof (resp.serial));
+  printf ("Multicast-Addr: %s\nMAC:", inet_ntoa (resp.multicastaddr));
+  HexDump (resp.MAC, sizeof (resp.MAC));
+  printf ("Name: %s\n", resp.name);
+  printf ("Optional: ");
+  HexDump (resp.optional.data(), resp.optional.size());
+  ITER(i, resp.services)
+    printf ("Service %d Version %d\n", i->family, i->version);
+  ev_break(EV_DEFAULT_ EVBREAK_ALL);
+}
+
 int
 main (int ac, char *ag[])
 {
@@ -57,9 +84,10 @@ main (int ac, char *ag[])
   struct sockaddr_in saddr;
   struct sockaddr_in caddr;
   EIBNetIPSocket *sock;
-  pth_event_t timeout = pth_event (PTH_EVENT_RTIME, pth_time (10, 0));
+  ev_timer timeout;
+  ev_timer_init(&timeout, &end_me, 10.,0.);
+  ev_timer_start(EV_DEFAULT_ &timeout);
 
-  pth_init ();
   tracelevel = 0;
   if (ac == 3)
     tracelevel = atoi (ag[2]);
@@ -105,29 +133,12 @@ main (int ac, char *ag[])
     die ("IP initialisation failed");
 
   EIBnet_DescriptionRequest req;
-  EIBnet_DescriptionResponse resp;
   EIBNetIPPacket *p1;
   req.caddr = saddr;
+  sock->on_recv.set<recv_me>();
+
   sock->Send (req.ToPacket ());
-  p1 = sock->Get (timeout);
-  if (p1)
-    {
-      if (parseEIBnet_DescriptionResponse (*p1, resp))
-	die ("Invalid description response");
-      printf ("Medium: %d\nState: %d\nAddr: %s\nInstallID: %d\nSerial:",
-	      resp.KNXmedium, resp.devicestatus,
-	      FormatEIBAddr (resp.individual_addr).c_str(), resp.installid);
-      HexDump (resp.serial, sizeof (resp.serial));
-      printf ("Multicast-Addr: %s\nMAC:", inet_ntoa (resp.multicastaddr));
-      HexDump (resp.MAC, sizeof (resp.MAC));
-      printf ("Name: %s\n", resp.name);
-      printf ("Optional: ");
-      HexDump (resp.optional.data(), resp.optional.size());
-      ITER(i, resp.services)
-	printf ("Service %d Version %d\n", i->family, i->version);
-    }
-  else
-    die ("No response");
-  delete sock;
+  ev_run (EV_DEFAULT_ 0);
+
   return 0;
 }

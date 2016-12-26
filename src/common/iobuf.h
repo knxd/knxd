@@ -131,6 +131,7 @@ public:
 
   void start();
   void stop();
+  bool running;
 
 protected:
   /** client connection */
@@ -140,6 +141,8 @@ protected:
   uint8_t recvbuf[1024];
   size_t recvpos = 0;
   int len = 0; // of current block
+  void feed_out();
+
 };
 
 #endif

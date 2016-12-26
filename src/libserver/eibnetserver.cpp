@@ -29,13 +29,6 @@
 #include <string.h>
 #include <memory>
 
-static void reset_time(pth_event_t ev, unsigned int sec, unsigned int usec)
-{
-  pth_event_t ev_prev = pth_event_isolate(ev); // NULL if no other member
-  pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE, ev, pth_time (sec, usec));
-  pth_event_concat(ev, ev_prev, NULL);
-}
-
 EIBnetServer::EIBnetServer (TracePtr tr, String serverName)
 	: Layer2mixin::Layer2mixin (tr)
   , name(serverName)
@@ -46,8 +39,9 @@ EIBnetServer::EIBnetServer (TracePtr tr, String serverName)
   , discover(false)
   , Port(-1)
   , sock_mac(-1)
-  , busmoncount(0)
 {
+  drop_trigger.set<EIBnetServer,&EIBnetServer::drop_trigger_cb>(this);
+  drop_trigger.start();
 }
 
 EIBnetDiscover::EIBnetDiscover (EIBnetServer *parent, const char *multicastaddr, int port)
@@ -76,6 +70,8 @@ EIBnetDiscover::EIBnetDiscover (EIBnetServer *parent, const char *multicastaddr,
   sock = new EIBNetIPSocket (baddr, 1, parent->t);
   if (!sock->init ())
     goto err_out;
+  sock->on_recv.set<EIBnetDiscover,&EIBnetDiscover::on_recv_cb>(this);
+  //sock->on_error.set<EIBnetServer,&EIBnetServer::on_error_cb>(parent);
 
   mcfg.imr_multiaddr = maddr.sin_addr;
   mcfg.imr_interface.s_addr = htonl (INADDR_ANY);
@@ -88,7 +84,6 @@ EIBnetDiscover::EIBnetDiscover (EIBnetServer *parent, const char *multicastaddr,
   sock->localaddr.sin_port = parent->Port;
   sock->recvall = 2;
 
-  Start ();
   TRACEPRINTF (parent->t, 8, this, "OpenedD");
   return;
 
@@ -109,23 +104,13 @@ EIBnetDiscover::init ()
 
 EIBnetServer::~EIBnetServer ()
 {
-  unsigned int i;
+  stop();
   TRACEPRINTF (t, 8, this, "Close");
-  if (busmoncount)
-    l3->deregisterVBusmonitor (this);
-  Stop ();
-  if (sock)
-    delete sock;
-  if (mcast)
-    delete mcast;
-  if (sock_mac >= 0)
-    close (sock_mac);
 }
 
 EIBnetDiscover::~EIBnetDiscover ()
 {
   TRACEPRINTF (parent->t, 8, this, "CloseD");
-  Stop ();
   if (sock)
     delete sock;
 }
@@ -167,8 +152,12 @@ EIBnetServer::init (Layer3 *l3,
     ERRORPRINTF (t, E_ERROR | 41, this, "EIBNetIPSocket creation failed");
     goto err_out1;
   }
+
   if (!sock->init ())
     goto err_out2;
+
+  sock->on_recv.set<EIBnetServer,&EIBnetServer::on_recv_cb>(this);
+
   sock->recvall = 1;
   Port = sock->port ();
 
@@ -187,8 +176,6 @@ EIBnetServer::init (Layer3 *l3,
   if (this->route || this->tunnel)
     addGroupAddress(0);
 
-  busmoncount = 0;
-  Start ();
   TRACEPRINTF (t, 8, this, "Opened");
 
   if (Layer2mixin::init(l3))
@@ -214,20 +201,6 @@ void EIBnetDiscover::Send (EIBNetIPPacket p, struct sockaddr_in addr)
 }
 
 void
-EIBnetServer::Send_L_Busmonitor (L_Busmonitor_PDU * l)
-{
-  ITER(i, state)
-    {
-      if ((*i)->type == CT_BUSMONITOR)
-	{
-	  (*i)->out.put (Busmonitor_to_CEMI (0x2B, *l, (*i)->no++));
-	  pth_sem_inc ((*i)->outsignal, 0);
-	}
-    }
-}
-
-
-void
 EIBnetServer::Send_L_Data (L_Data_PDU * l)
 {
   if (route)
@@ -247,7 +220,19 @@ bool ConnState::init()
     return false;
   if (! addGroupAddress(0))
     return false;
+  if (type == CT_BUSMONITOR && ! l3->registerVBusmonitor(this))
+    return false;
   return true;
+}
+
+void ConnState::Send_L_Busmonitor (L_Busmonitor_PDU * l)
+{
+  if (type == CT_BUSMONITOR)
+    {
+      out.put (Busmonitor_to_CEMI (0x2B, *l, no++));
+      if (! state)
+        send_trigger.send();
+    }
 }
 
 void ConnState::Send_L_Data (L_Data_PDU * l)
@@ -255,28 +240,10 @@ void ConnState::Send_L_Data (L_Data_PDU * l)
   if (type == CT_STANDARD)
     {
       out.put (L_Data_ToCEMI (0x29, *l));
-      pth_sem_inc (outsignal, 0);
+      if (! state)
+        send_trigger.send();
     }
   delete l;
-}
-
-void
-EIBnetServer::addBusmonitor ()
-{
-  if (busmoncount == 0)
-    {
-      if (!l3->registerVBusmonitor (this))
-	TRACEPRINTF (t, 8, this, "Registervbusmonitor failed");
-      busmoncount++;
-    }
-}
-
-void
-EIBnetServer::delBusmonitor ()
-{
-  busmoncount--;
-  if (busmoncount == 0)
-    l3->deregisterVBusmonitor (this);
 }
 
 int
@@ -308,8 +275,6 @@ rt:
         return -1;
 
       state.push_back(s);
-
-      s->Start();
     }
   return id;
 }
@@ -318,11 +283,11 @@ ConnState::ConnState (EIBnetServer *p, eibaddr_t addr)
   : Layer2mixin (TracePtr(new Trace(*(p->t),p->t->name+':'+FormatEIBAddr(addr))))
 {
   parent = p;
-  timeout = pth_event (PTH_EVENT_RTIME, pth_time (120, 0));
-  outsignal = new pth_sem_t;
-  pth_sem_init (outsignal);
-  outwait = pth_event (PTH_EVENT_SEM, outsignal);
-  sendtimeout = pth_event (PTH_EVENT_RTIME, pth_time (1, 0));
+  timeout.set <ConnState,&ConnState::timeout_cb> (this);
+  sendtimeout.set <ConnState,&ConnState::sendtimeout_cb> (this);
+  send_trigger.set<ConnState,&ConnState::send_trigger_cb>(this);
+  send_trigger.start();
+
   if (!addr)
     remoteAddr = p->l3->get_client_addr ();
   else
@@ -331,64 +296,47 @@ ConnState::ConnState (EIBnetServer *p, eibaddr_t addr)
     addAddress(remoteAddr);
 }
 
-void
-ConnState::Run (pth_sem_t * stop1)
+void ConnState::sendtimeout_cb(ev::timer &w, int revents)
 {
-  EIBNetIPPacket *p1;
-  EIBNetIPPacket p;
-  pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
-
-  while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
+  state++;
+  if (state <= 10)
     {
-      pth_event_concat (stop, timeout, NULL);
-      if (state)
-	pth_event_concat (stop, sendtimeout, NULL);
-      else
-	pth_event_concat (stop, outwait, NULL);
-      pth_wait(stop);
-      pth_event_isolate (timeout);
-      pth_event_isolate (sendtimeout);
-      pth_event_isolate (outwait);
-
-      if (pth_event_status (timeout) == PTH_STATUS_OCCURRED)
-        break;
-
-      if (state ? pth_event_status (sendtimeout) == PTH_STATUS_OCCURRED
-                : !out.isempty ())
-	{
-	  TRACEPRINTF (t, 8, this, "TunnelSend %d", channel);
-	  state++;
-	  if (state > 10)
-	    {
-	      out.get ();
-	      pth_sem_dec (outsignal);
-	      state = 0;
-	    }
-          else
-            {
-              EIBNetIPPacket p;
-              if (type == CT_CONFIG)
-                {
-                  EIBnet_ConfigRequest r;
-                  r.channel = channel;
-                  r.seqno = sno;
-                  r.CEMI = out.top ();
-                  p = r.ToPacket ();
-                }
-              else
-                {
-                  EIBnet_TunnelRequest r;
-                  r.channel = channel;
-                  r.seqno = sno;
-                  r.CEMI = out.top ();
-                  p = r.ToPacket ();
-                }
-              reset_time(sendtimeout, 1, 0);
-              parent->mcast->Send (p, daddr);
-            }
-        }
+      send_trigger.send();
+      return;
     }
+  CArray p = out.get ();
+  t->TracePacket (2, this, "dropped", p.size(), p.data());
 
+  state = 0;
+}
+
+void ConnState::send_trigger_cb(ev::async &w, int revents)
+{
+  if (out.isempty ())
+    return;
+  EIBNetIPPacket p;
+  if (type == CT_CONFIG)
+    {
+      EIBnet_ConfigRequest r;
+      r.channel = channel;
+      r.seqno = sno;
+      r.CEMI = out.top ();
+      p = r.ToPacket ();
+    }
+  else
+    {
+      EIBnet_TunnelRequest r;
+      r.channel = channel;
+      r.seqno = sno;
+      r.CEMI = out.top ();
+      p = r.ToPacket ();
+    }
+  sendtimeout.start(1,0);
+  parent->mcast->Send (p, daddr);
+}
+
+void ConnState::timeout_cb(ev::timer &w, int revents)
+{
   if (channel > 0)
     {
       EIBnet_DisconnectRequest r;
@@ -400,44 +348,48 @@ ConnState::Run (pth_sem_t * stop1)
           parent->Send (r.ToPacket (), caddr);
         }
     }
-  parent->drop_state (std::static_pointer_cast<ConnState>(shared_from_this()));
+  stop();
 }
 
-void ConnState::shutdown(void)
+void ConnState::stop(void)
 {
-  Stop();
+  if (type == CT_BUSMONITOR)
+    l3->deregisterVBusmonitor(this);
+  timeout.stop();
+  sendtimeout.stop();
+  send_trigger.stop();
+  parent->drop_state (std::static_pointer_cast<ConnState>(shared_from_this()));
 }
 
 void EIBnetServer::drop_state (ConnStatePtr s)
 {
-  for (int i=0; i < state.size(); i++)
-    {
-      if (state[i] == s)
-        {
-	  drop_state(i);
-	  break;
-	}
-    }
+  drop_q.put(s);
+  drop_trigger.send();
 }
 
-void
-EIBnetServer::drop_state (uint8_t index)
+void EIBnetServer::drop_trigger_cb(ev::async &w, int revents)
 {
-  ConnStatePtr state2 = state[index];
-  state.erase (state.begin()+index);
-  state2->shutdown();
+  while (!drop_q.isempty())
+    {
+      ConnStatePtr s = drop_q.get();
+      ITER(i,state)
+        if (*i == s)
+          {
+            state.erase (i);
+            break;
+          }
+    }
 }
 
 ConnState::~ConnState()
 {
   TRACEPRINTF (parent->t, 8, this, "CloseS");
-  Stop();
-  pth_event_free (timeout, PTH_FREE_THIS);
-  pth_event_free (sendtimeout, PTH_FREE_THIS);
-  pth_event_free (outwait, PTH_FREE_THIS);
-  delete outsignal;
-  if (type == CT_BUSMONITOR)
-    parent->delBusmonitor ();
+  stop();
+}
+
+void ConnState::reset_timer()
+{
+  timeout.set(120,0);
 }
 
 void
@@ -574,7 +526,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
 	if ((*i)->channel == r1.channel)
 	  {
             res = 0;
-            reset_time((*i)->timeout, 120,0);
+            (*i)->reset_timer();
 	  }
       r2.channel = r1.channel;
       r2.status = res;
@@ -588,12 +540,12 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       EIBnet_DisconnectResponse r2;
       if (parseEIBnet_DisconnectRequest (*p1, r1))
 	goto out;
-      for (unsigned int i = 0; i < state.size(); i++)
-	if (state[i]->channel == r1.channel)
+      ITER(i,state)
+	if ((*i)->channel == r1.channel)
 	  {
             res = 0;
-            state[i]->channel = 0;
-            drop_state(i);
+            (*i)->channel = 0;
+            drop_state(*i);
             break;
 	  }
       r2.channel = r1.channel;
@@ -621,8 +573,6 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
 	      int id = addClient ((r1.CRI[1] == 0x80) ? CT_BUSMONITOR : CT_STANDARD, r1, a);
 	      if (id <= 0xff)
 		{
-		  if (r1.CRI[1] == 0x80)
-		    addBusmonitor ();
 		  r2.channel = id;
 		  r2.status = 0;
 		}
@@ -710,41 +660,45 @@ out:
 }
 
 void
-EIBnetServer::Run (pth_sem_t * stop1)
+EIBnetServer::on_recv_cb (EIBNetIPPacket *p)
 {
-  EIBNetIPPacket *p1;
-  EIBNetIPPacket p;
-  unsigned int i;
-  pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
+  handle_packet (p, this->sock);
+}
 
-  while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
-    {
-      p1 = sock->Get (stop);
-      if (p1)
-	handle_packet (p1, this->sock);
-    }
+//void
+//EIBnetServer::error_cb ()
+//{
+//  TRACEPRINTF (t, 8, this, "got an error");
+//  stop();
+//}
 
-  /* copy aray since shutdown will mutate this */
-  Array<ConnStatePtr> state2 = state;
-  state.resize(0);
-  ITER(i, state2)
-    (*i)->shutdown();
-  pth_event_free (stop, PTH_FREE_THIS);
+void
+EIBnetServer::stop()
+{
+  ITER(i, state)
+    (*i)->stop();
+  drop_trigger.stop();
+  if (sock)
+  {
+    delete sock;
+    sock = 0;
+  }
+  if (mcast)
+  {
+    delete mcast;
+    mcast = 0;
+  }
+  if (sock_mac >= 0)
+  {
+    close (sock_mac);
+    sock_mac = -1;
+  }
 }
 
 void
-EIBnetDiscover::Run (pth_sem_t * stop1)
+EIBnetDiscover::on_recv_cb (EIBNetIPPacket *p)
 {
-  EIBNetIPPacket *p1;
-  pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
-
-  while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
-    {
-      p1 = sock->Get (stop);
-      if (p1)
-	parent->handle_packet (p1, this->sock);
-    }
-  pth_event_free (stop, PTH_FREE_THIS);
+  parent->handle_packet (p, this->sock);
 }
 
 void ConnState::tunnel_request(EIBnet_TunnelRequest &r1, EIBNetIPSocket *isock)
@@ -779,7 +733,8 @@ void ConnState::tunnel_request(EIBnet_TunnelRequest &r1, EIBNetIPSocket *isock)
 	      if (r1.CEMI[0] == 0x11)
 		{
 		  out.put (L_Data_ToCEMI (0x2E, *c));
-		  pth_sem_inc (outsignal, 0);
+		  if (! state)
+                    send_trigger.send();
 		}
 	      if (r1.CEMI[0] == 0x11 || r1.CEMI[0] == 0x29)
 		l3->recv_L_Data (c);
@@ -828,9 +783,11 @@ void ConnState::tunnel_response (EIBnet_TunnelACK &r1)
       return;
     }
   sno++;
+
   state = 0;
   out.get ();
-  pth_sem_dec (outsignal);
+  if (!out.isempty())
+    send_trigger.send();
 }
 
 void ConnState::config_request(EIBnet_ConfigRequest &r1, EIBNetIPSocket *isock)
@@ -889,8 +846,13 @@ void ConnState::config_request(EIBnet_ConfigRequest &r1, EIBNetIPSocket *isock)
 	      CEMI[6] = start & 0xff;
 	      CEMI.setpart (res, 7);
 	      r2.status = 0x00;
+
 	      out.put (CEMI);
-	      pth_sem_inc (outsignal, 0);
+              if (! state)
+                {
+                  state = 1;
+                  send_trigger.send();
+                }
 	    }
 	  else
 	    r2.status = 0x26;
@@ -929,7 +891,10 @@ void ConnState::config_response (EIBnet_ConfigACK &r1)
       return;
     }
   sno++;
+
   state = 0;
   out.get ();
-  pth_sem_dec (outsignal);
+  if (!out.isempty())
+    send_trigger.send();
 }
+

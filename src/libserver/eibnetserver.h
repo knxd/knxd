@@ -20,10 +20,14 @@
 #ifndef EIBNET_SERVER_H
 #define EIBNET_SERVER_H
 
+#include <ev++.h>
+#include "callbacks.h"
 #include "eibnetip.h"
 #include "layer3.h"
 #include "layer2.h"
 #include "server.h"
+#include "lpdu.h"
+
 
 class EIBnetServer;
 
@@ -33,13 +37,12 @@ typedef enum {
 	CT_CONFIG,
 } ConnType;
 
-class ConnState: protected Thread, public Layer2mixin
+class ConnState: public Layer2mixin, public L_Busmonitor_CallBack
 {
 public:
   ConnState (EIBnetServer *p, eibaddr_t addr);
   ~ConnState ();
-  void Start () { Thread::Start(); }
-  void Run(pth_sem_t*);
+  void stop();
 
   EIBnetServer *parent;
   bool init();
@@ -51,14 +54,15 @@ public:
   ConnType type;
   int no;
   bool nat;
-  pth_event_t timeout;
+
+  ev::timer timeout; void timeout_cb(ev::timer &w, int revents);
+  ev::timer sendtimeout; void sendtimeout_cb(ev::timer &w, int revents);
+  ev::async send_trigger; void send_trigger_cb(ev::async &w, int revents);
   Queue < CArray > out;
+  void reset_timer();
 
   struct sockaddr_in daddr;
   struct sockaddr_in caddr;
-  pth_sem_t *outsignal;
-  pth_event_t outwait;
-  pth_event_t sendtimeout;
 
   // handle various packets from the connection
   void tunnel_request(EIBnet_TunnelRequest &r1, EIBNetIPSocket *isock);
@@ -66,18 +70,19 @@ public:
   void config_request(EIBnet_ConfigRequest &r1, EIBNetIPSocket *isock);
   void config_response (EIBnet_ConfigACK &r1);
 
-  void shutdown(void);
   void Send_L_Data (L_Data_PDU * l);
+  void Send_L_Busmonitor (L_Busmonitor_PDU * l);
   const char * Name () { return "EIBnetConn"; } // TODO add a sequence number
 };
 typedef std::shared_ptr<ConnState> ConnStatePtr;
 
-class EIBnetDiscover: protected Thread
+class EIBnetDiscover
 {
   EIBnetServer *parent;
   EIBNetIPSocket *sock; // receive only
 
-  void Run (pth_sem_t * stop);
+  void on_recv_cb(EIBNetIPPacket *p);
+  p_recv_cb on_recv;
 
 public:
   EIBnetDiscover (EIBnetServer *parent, const char *multicastaddr, int port);
@@ -85,12 +90,13 @@ public:
   struct sockaddr_in maddr;
 
   bool init (void);
+  void stop();
   const char * Name () { return "EIBnetD"; }
 
   void Send (EIBNetIPPacket p, struct sockaddr_in addr);
 };
 
-class EIBnetServer: protected Thread, public L_Busmonitor_CallBack, public Layer2mixin
+class EIBnetServer: public Layer2mixin
 {
   friend class ConnState;
   friend class EIBnetDiscover;
@@ -105,18 +111,18 @@ class EIBnetServer: protected Thread, public L_Busmonitor_CallBack, public Layer
   bool route;
   bool discover;
 
-  int busmoncount;
   Array < ConnStatePtr > state;
+  Queue < ConnStatePtr > drop_q;
   String name;
 
-  void Run (pth_sem_t * stop);
   void Send_L_Data (L_Data_PDU * l);
   void Send_L_Busmonitor (L_Busmonitor_PDU * l);
-  void addBusmonitor ();
-  void delBusmonitor ();
   int addClient (ConnType type, const EIBnet_ConnectRequest & r1,
                  eibaddr_t addr = 0);
   void addNAT (const L_Data_PDU & l);
+
+  void on_recv_cb(EIBNetIPPacket *p);
+
 public:
   EIBnetServer (TracePtr tr, const String serverName);
   virtual ~EIBnetServer ();
@@ -124,11 +130,13 @@ public:
   bool init (Layer3 *l3,
              const char *multicastaddr, const int port,
              const bool tunnel, const bool route, const bool discover);
+  void stop();
   void handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock);
 
-  const char * Name () { return "EIBnet"; }
+  const char * Name () { return "EIBnet:"; }
   void drop_state (ConnStatePtr s);
-  void drop_state (uint8_t index);
+  ev::async drop_trigger; void drop_trigger_cb(ev::async &w, int revents);
+
   inline void Send (EIBNetIPPacket p) {
     Send (p, mcast->maddr);
   }

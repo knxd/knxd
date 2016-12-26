@@ -38,6 +38,8 @@ EIBNetIPRouter::EIBNetIPRouter (const char *multicastaddr, int port,
   sock = new EIBNetIPSocket (baddr, 1, t);
   if (!sock->init ())
     goto err_out;
+  sock->on_recv.set<EIBNetIPRouter,&EIBNetIPRouter::on_recv_cb>(this);
+
   sock->recvall = 2;
   if (GetHostIP (t, &sock->sendaddr, multicastaddr) == 0)
     goto err_out;
@@ -50,9 +52,9 @@ EIBNetIPRouter::EIBNetIPRouter (const char *multicastaddr, int port,
   mcfg.imr_interface.s_addr = htonl (INADDR_ANY);
   if (!sock->SetMulticast (mcfg))
     goto err_out;
-  Start ();
   TRACEPRINTF (t, 2, this, "Opened");
   return;
+
 err_out:
   delete sock;
   sock = 0;
@@ -62,7 +64,6 @@ err_out:
 EIBNetIPRouter::~EIBNetIPRouter ()
 {
   TRACEPRINTF (t, 2, this, "Destroy");
-  Stop ();
   if (sock)
     delete sock;
 }
@@ -95,51 +96,43 @@ EIBNetIPRouter::Send_L_Data (LPDU * l)
 }
 
 void
-EIBNetIPRouter::Run (pth_sem_t * stop1)
+EIBNetIPRouter::on_recv_cb(EIBNetIPPacket *p)
 {
-  pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
-  while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
+  if (p->service != ROUTING_INDICATION)
     {
-      EIBNetIPPacket *p = sock->Get (stop);
-      if (p)
-	{
-	  if (p->service != ROUTING_INDICATION)
-	    {
-	      delete p;
-	      continue;
-	    }
-	  if (p->data.size() < 2 || p->data[0] != 0x29)
-	    {
-              if (p->data.size() < 2)
-                {
-	          TRACEPRINTF (t, 2, this, "No payload (%d)", p->data.size());
-                }
-              else
-                {
-	          TRACEPRINTF (t, 2, this, "Payload not L_Data.ind (%02x)", p->data[0]);
-                }
-	      delete p;
-	      continue;
-	    }
-	  const CArray data = p->data;
-	  delete p;
-	  L_Data_PDU *c = CEMI_to_L_Data (data, shared_from_this());
-	  if (c)
-	    {
-	      TRACEPRINTF (t, 2, this, "Recv %s", c->Decode ().c_str());
-	      if (mode & BUSMODE_UP)
-		{
-		  l3->recv_L_Data (c);
-		  continue;
-		}
-	      L_Busmonitor_PDU *p1 = new L_Busmonitor_PDU (shared_from_this());
-	      p1->pdu = c->ToPacket ();
-	      delete c;
-	      l3->recv_L_Data (p1);
-	      continue;
-	    }
-	}
+      delete p;
+      return;
     }
-  pth_event_free (stop, PTH_FREE_THIS);
+  if (p->data.size() < 2 || p->data[0] != 0x29)
+    {
+      if (p->data.size() < 2)
+        {
+          TRACEPRINTF (t, 2, this, "No payload (%d)", p->data.size());
+        }
+      else
+        {
+          TRACEPRINTF (t, 2, this, "Payload not L_Data.ind (%02x)", p->data[0]);
+        }
+      delete p;
+      return;
+    }
+
+  const CArray data = p->data;
+  delete p;
+  L_Data_PDU *c = CEMI_to_L_Data (data, shared_from_this());
+  if (c)
+    {
+      TRACEPRINTF (t, 2, this, "Recv %s", c->Decode ().c_str());
+      if (mode & BUSMODE_UP)
+        {
+          l3->recv_L_Data (c);
+          return;
+        }
+      L_Busmonitor_PDU *p1 = new L_Busmonitor_PDU (shared_from_this());
+      p1->pdu = c->ToPacket ();
+      delete c;
+      l3->recv_L_Data (p1);
+      return;
+    }
 }
 

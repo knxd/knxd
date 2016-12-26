@@ -66,8 +66,13 @@ RecvBuf::io_cb (ev::io &w, int revents)
         return;
     }
     recvpos += i;
-    while (recvpos > 0) {
-        i = on_recv_cb(recvbuf,recvpos);
+    feed_out();
+}
+
+void RecvBuf::feed_out()
+{
+    while (running && recvpos > 0) {
+        size_t i = on_recv_cb(recvbuf,recvpos);
         if (i == 0) {
             if (recvpos == sizeof(recvbuf)) {
                 io.stop();
@@ -98,7 +103,11 @@ set_non_blocking(int fd)
 void
 RecvBuf::start()
 {
+    if (running)
+        return;
+    running = true;
     io.start(fd, ev::READ);
+    feed_out();
 }
 
 void
@@ -110,6 +119,8 @@ SendBuf::start()
 void
 RecvBuf::stop()
 {
+    if (!running)
+        running = false;
     io.stop();
 }
 

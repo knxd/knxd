@@ -21,7 +21,9 @@
 #define EIBNETIP_H
 
 #include <netinet/in.h>
+#include <ev++.h>
 #include "common.h"
+#include "iobuf.h" // for nonblocking
 #include "lpdu.h"
 #include "ipsupport.h"
 
@@ -274,6 +276,52 @@ int parseEIBnet_SearchResponse (const EIBNetIPPacket & p,
 				EIBnet_SearchResponse & r);
 
 
+
+typedef void (*recv_cb_t)(void *data, EIBNetIPPacket *p);
+
+class p_recv_cb {
+    recv_cb_t cb_code = 0;
+    void *cb_data = 0;
+
+    void set_ (const void *data, recv_cb_t cb)
+    {
+      this->cb_data = (void *)data;
+      this->cb_code = cb;
+    }
+
+public:
+    // function callback
+    template<void (*function)(EIBNetIPPacket *p)>
+    void set (void *data = 0) throw ()
+    {
+      set_ (data, function_thunk<function>);
+    }
+
+    template<void (*function)(EIBNetIPPacket *p)>
+    static void function_thunk (void *arg, EIBNetIPPacket *p)
+    {
+      function(p);
+    }
+
+    // method callback
+    template<class K, void (K::*method)(EIBNetIPPacket *p)>
+    void set (K *object)
+    {
+      set_ (object, method_thunk<K, method>);
+    }
+
+    template<class K, void (K::*method)(EIBNetIPPacket *p)>
+    static void method_thunk (void *arg, EIBNetIPPacket *p)
+    {
+      (static_cast<K *>(arg)->*method) (p);
+    }
+
+    void operator()(EIBNetIPPacket *p) {
+        (*cb_code)(cb_data, p);
+    }
+};
+
+
 /** represents a EIBnet/IP packet to send*/
 struct _EIBNetIP_Send
 {
@@ -284,34 +332,38 @@ struct _EIBNetIP_Send
 };
 
 /** EIBnet/IP socket */
-class EIBNetIPSocket:private Thread
+class EIBNetIPSocket
 {
   /** debug output */
   TracePtr t;
+  /** input */
+  ev::io io_recv; void io_recv_cb (ev::io &w, int revents);
+  /** output */
+  ev::io io_send; void io_send_cb (ev::io &w, int revents);
+  unsigned int send_error;
+
+public:
+  p_recv_cb on_recv;
+private:
+  void on_recv_cb(EIBNetIPPacket *p) { delete p; }
+
   /** input queue */
-  Queue < struct _EIBNetIP_Send >inqueue;
-  /** output queue */
-  Queue < EIBNetIPPacket *> outqueue;
-  /** semaphore for inqueue */
-  pth_sem_t insignal;
-  /** semaphore for outqueue */
-  pth_sem_t outsignal;
-  /** event to wait for outqueue */
-  pth_event_t getwait;
+  Queue < struct _EIBNetIP_Send > send_q;
+  void send_q_drop();
   /** multicast address */
   struct ip_mreq maddr;
   /** file descriptor */
   int fd;
-  /** multicast in use */
-  int multicast;
+  /** multicast in use? */
+  bool multicast;
 
-  void Run (pth_sem_t * stop);
   const char *Name() { return "eibnetipsocket"; }
 public:
   EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr, TracePtr tr,
                   SockMode mode = S_RDWR);
   virtual ~EIBNetIPSocket ();
   bool init ();
+  void stop();
 
   /** enables multicast */
   bool SetMulticast (struct ip_mreq multicastaddr);
@@ -334,6 +386,10 @@ public:
   struct sockaddr_in recvaddr2;
   /** address to NOT accept packets from, if 'recvall' is 2 */
   struct sockaddr_in localaddr;
+
+  void pause();
+  void unpause();
+  bool paused;
 
   /** flag whether to accept (almost) all packets */
   uchar recvall;

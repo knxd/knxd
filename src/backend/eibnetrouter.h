@@ -24,13 +24,13 @@
 #include "eibnetip.h"
 
 /** EIBnet/IP routing backend */
-class EIBNetIPRouter:public Layer2, private Thread
+class EIBNetIPRouter:public Layer2
 {
   /** EIBnet/IP socket */
   EIBNetIPSocket *sock;
 
-  void Run (pth_sem_t * stop);
   const char *Name() { return "eibnetrouter"; }
+  void on_recv_cb(EIBNetIPPacket *p);
 public:
   EIBNetIPRouter (const char *multicastaddr, int port, eibaddr_t a,
                   L2options *opt);
