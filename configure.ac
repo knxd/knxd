@@ -50,7 +50,7 @@ dnl libev++ requires exceptions
 dnl AC_COMPILER_OPTION(noexceptions,[-fno-exceptions],[-fno-exceptions],CXXFLAGS="$CXXFLAGS -fno-exceptions")
 
 AX_LOCAL_EXPAND_CONFIG
-AX_AVAILABLE_SYSTEMD
+AX_ENABLE_SYSTEMD
 
 AC_CHECK_HEADER(argp.h,,[AC_MSG_ERROR([argp_parse not found])])
 AC_SEARCH_LIBS(argp_parse,argp,,[AC_MSG_ERROR([argp_parse not found])])
