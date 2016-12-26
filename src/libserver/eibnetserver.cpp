@@ -230,11 +230,6 @@ EIBnetServer::Send_L_Busmonitor (L_Busmonitor_PDU * l)
 void
 EIBnetServer::Send_L_Data (L_Data_PDU * l)
 {
-  if (l->object == this)
-    {
-      delete l;
-      return;
-    }
   if (route)
     {
       TRACEPRINTF (t, 8, this, "Send_Route %s", l->Decode ().c_str());
@@ -564,17 +559,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       if (c)
 	{
 	  TRACEPRINTF (t, 8, this, "Recv_Route %s", c->Decode ().c_str());
-	  if (c->hopcount)
-	    {
-	      c->hopcount--;
-	      c->object = this;
-	      l3->recv_L_Data (c);
-	    }
-	  else
-	    {
-	      TRACEPRINTF (t, 8, this, "RecvDrop");
-	      delete c;
-	    }
+          l3->recv_L_Data (c);
 	}
       goto out;
     }
@@ -796,7 +781,6 @@ void ConnState::tunnel_request(EIBnet_TunnelRequest &r1, EIBNetIPSocket *isock)
 		  out.put (L_Data_ToCEMI (0x2E, *c));
 		  pth_sem_inc (outsignal, 0);
 		}
-	      c->object = this;
 	      if (r1.CEMI[0] == 0x11 || r1.CEMI[0] == 0x29)
 		l3->recv_L_Data (c);
 	      else

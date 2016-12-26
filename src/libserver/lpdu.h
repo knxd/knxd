@@ -55,7 +55,6 @@ public:
   Layer2Ptr l2;
   explicit LPDU (Layer2Ptr layer2)
   {
-    object = 0;
     l2 = layer2;
   }
   virtual ~LPDU ()
@@ -71,8 +70,6 @@ public:
   virtual LPDU_Type getType () const = 0;
   /** converts a character array to a Layer 2 frame */
   static LPDU *fromPacket (const CArray & c, Layer2Ptr layer2);
-
-  void *object;
 };
 
 /* L_Unknown */
