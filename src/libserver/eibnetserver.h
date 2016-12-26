@@ -39,7 +39,7 @@ public:
   ConnState (EIBnetServer *p, eibaddr_t addr);
   ~ConnState ();
   void Start () { Thread::Start(); }
-  void Run (pth_sem_t * stop1);
+  void Run(pth_sem_t*);
 
   EIBnetServer *parent;
   bool init();
@@ -71,13 +71,6 @@ public:
   const char * Name () { return "EIBnetConn"; } // TODO add a sequence number
 };
 typedef std::shared_ptr<ConnState> ConnStatePtr;
-
-typedef struct
-{
-  eibaddr_t src;
-  eibaddr_t dest;
-  pth_event_t timeout;
-} NATState;
 
 class EIBnetDiscover: protected Thread
 {
@@ -114,7 +107,6 @@ class EIBnetServer: protected Thread, public L_Busmonitor_CallBack, public Layer
 
   int busmoncount;
   Array < ConnStatePtr > state;
-  Array < NATState > natstate;
   String name;
 
   void Run (pth_sem_t * stop);

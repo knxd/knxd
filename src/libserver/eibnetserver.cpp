@@ -114,8 +114,6 @@ EIBnetServer::~EIBnetServer ()
   if (busmoncount)
     l3->deregisterVBusmonitor (this);
   Stop ();
-  ITER(i,natstate)
-    pth_event_free (i->timeout, PTH_FREE_THIS);
   if (sock)
     delete sock;
   if (mcast)
@@ -242,29 +240,8 @@ EIBnetServer::Send_L_Data (L_Data_PDU * l)
       TRACEPRINTF (t, 8, this, "Send_Route %s", l->Decode ().c_str());
       EIBNetIPPacket p;
       p.service = ROUTING_INDICATION;
-      if (l->dest == 0 && l->AddrType == IndividualAddress)
-	{
-	  unsigned int i, cnt = 0;
-	  ITER(i, natstate)
-	    if (i->dest == l->source)
-	      {
-		l->dest = i->src;
-		p.data = L_Data_ToCEMI (0x29, *l);
-		Send (p);
-		l->dest = 0;
-		cnt++;
-	      }
-	  if (!cnt)
-	    {
-	      p.data = L_Data_ToCEMI (0x29, *l);
-	      Send (p);
-	    }
-	}
-      else
-	{
-	  p.data = L_Data_ToCEMI (0x29, *l);
-	  Send (p);
-	}
+      p.data = L_Data_ToCEMI (0x29, *l);
+      Send (p);
     }
   delete l;
 }
@@ -340,24 +317,6 @@ rt:
       s->Start();
     }
   return id;
-}
-
-void
-EIBnetServer::addNAT (const L_Data_PDU & l)
-{
-  unsigned int i;
-  if (l.AddrType != IndividualAddress)
-    return;
-  ITER(i, natstate)
-    if ((*i).src == l.source && (*i).dest == l.dest)
-      {
-	reset_time((*i).timeout, 180, 0);
-	return;
-      }
-  natstate.push_back((NATState){
-    .src = l.source,
-    .dest = l.dest,
-    .timeout = pth_event (PTH_EVENT_RTIME, pth_time (180, 0))});
 }
 
 ConnState::ConnState (EIBnetServer *p, eibaddr_t addr)
@@ -608,7 +567,6 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
 	  if (c->hopcount)
 	    {
 	      c->hopcount--;
-	      addNAT (*c);
 	      c->object = this;
 	      l3->recv_L_Data (c);
 	    }
@@ -776,19 +734,7 @@ EIBnetServer::Run (pth_sem_t * stop1)
 
   while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
     {
-      ITER(i, natstate)
-	pth_event_concat (stop, i->timeout, NULL);
       p1 = sock->Get (stop);
-      ITER(i,natstate)
-	pth_event_isolate (i->timeout);
-      for (i = 0; i < natstate.size(); )
-	if (pth_event_status (natstate[i].timeout) == PTH_STATUS_OCCURRED)
-	  {
-	    pth_event_free (natstate[i].timeout, PTH_FREE_THIS);
-	    natstate.erase (natstate.begin()+i);
-	  }
-        else
-          i++;
       if (p1)
 	handle_packet (p1, this->sock);
     }
