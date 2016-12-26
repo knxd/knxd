@@ -180,8 +180,10 @@ EIBNetIPSocket::EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr,
   // don't really care if this fails
   if (mode == S_RD)
     shutdown (fd, SHUT_WR);
-  else if (mode == S_WR)
+  if (mode == S_WR)
     shutdown (fd, SHUT_RD);
+  else
+    io_recv.start(fd, ev::READ);
 
   TRACEPRINTF (t, 0, this, "Openend");
 }
@@ -222,7 +224,7 @@ EIBNetIPSocket::unpause()
     if (! paused)
         return;
     paused = false;
-    io_recv.start();
+    io_recv.start(fd, ev::READ);
 }
 
 bool
@@ -230,7 +232,7 @@ EIBNetIPSocket::init ()
 {
   if (fd < 0)
     return false;
-  io_recv.start();
+  io_recv.start(fd, ev::READ);
   return true;
 }
 
@@ -271,7 +273,7 @@ EIBNetIPSocket::Send (EIBNetIPPacket p, struct sockaddr_in addr)
   s.addr = addr;
 
   if (send_q.isempty())
-    io_send.start();
+    io_send.start(fd, ev::WRITE);
   send_q.put (s);
 }
 
