@@ -99,7 +99,10 @@ err_out:
 bool
 EIBnetDiscover::init ()
 {
-  return sock != 0;
+  if (! sock)
+    return false;
+  
+  return true;
 }
 
 EIBnetServer::~EIBnetServer ()
@@ -178,9 +181,13 @@ EIBnetServer::init (Layer3 *l3,
 
   TRACEPRINTF (t, 8, this, "Opened");
 
-  if (Layer2mixin::init(l3))
-    return true;
+  if (!Layer2mixin::init(l3))
+    goto err_out3;
 
+  return true;
+
+err_out4:
+  Layer2mixin::RunStop();
 err_out3:
   delete mcast;
   mcast = NULL;
