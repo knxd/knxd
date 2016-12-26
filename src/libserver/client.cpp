@@ -49,8 +49,7 @@ ClientConnection::ClientConnection (Server *s, int fd) : sendbuf(fd),recvbuf(fd)
 
 ClientConnection::~ClientConnection ()
 {
-    if (fd >= 0)
-        close(fd);
+  stop();
 }
 
 void
@@ -67,16 +66,22 @@ ClientConnection::start()
 }
 
 void
-ClientConnection::stop()
+ClientConnection::stop(bool no_server)
 {
+  if (no_server)
+    s = nullptr;
   if (a_conn)
+  {
     delete a_conn;
+    a_conn = nullptr;
+  }
   if (fd == -1)
     return;
+  if (! no_server)
+    s->deregister (shared_from_this());
   TRACEPRINTF (t, 8, this, "ClientConnection closed");
   sendbuf.stop();
   recvbuf.stop();
-  s->deregister (shared_from_this());
   close (fd);
   fd = -1;
 }

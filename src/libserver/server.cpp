@@ -40,13 +40,8 @@ Server::~Server ()
   TRACEPRINTF (t, 8, this, "StopServer");
   io.stop();
   cleanup.stop();
-  while (connections.size() != 0)
-    {
-      connections[0]->stop();
-#ifdef HAVE_PTHSEM
-      pth_yield (0);
-#endif
-    }
+  ITER(i,connections)
+    (*i)->stop(true);
 
   if (fd != -1)
     close (fd);
