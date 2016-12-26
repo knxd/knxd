@@ -131,7 +131,7 @@ public:
 
   void start();
   void stop();
-  bool running;
+  bool running = false;
 
 protected:
   /** client connection */
