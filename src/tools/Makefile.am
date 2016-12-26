@@ -6,5 +6,5 @@ bin_PROGRAMS=
 if HAVE_PTHSEM
 SUBDIRS=bcu eibnet
 else
-SUBDIRS=
+SUBDIRS=eibnet
 endif
