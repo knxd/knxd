@@ -25,7 +25,6 @@ EIBNetIPTunnel::EIBNetIPTunnel (const char *dest, int port, int sport,
 				const char *srcip, int Dataport, L2options *opt) : Layer2 (opt)
 {
   TRACEPRINTF (t, 2, this, "Open");
-  pth_sem_init (&insignal);
 
   timeout.set <EIBNetIPTunnel,&EIBNetIPTunnel::timeout_cb> (this);
   conntimeout.set <EIBNetIPTunnel,&EIBNetIPTunnel::conntimeout_cb> (this);
@@ -76,7 +75,6 @@ EIBNetIPTunnel::EIBNetIPTunnel (const char *dest, int port, int sport,
   sock->recvall = 0;
   support_busmonitor = 1;
   connect_busmonitor = 0;
-  Start ();
   TRACEPRINTF (t, 2, this, "Opened");
 }
 
@@ -105,8 +103,6 @@ bool EIBNetIPTunnel::init (Layer3 *l3)
   if (sock == 0)
     return false;
   if (! addGroupAddress(0))
-    return false;
-  if (! addAddress(0))
     return false;
   if (! Layer2::init (l3))
     return false;
@@ -138,7 +134,6 @@ EIBNetIPTunnel::Send_L_Data (LPDU * l)
     l1.source = 0;
 
   send_q.put (L_Data_ToCEMI (0x11, l1));
-  pth_sem_inc (&insignal, 1);
   delete l;
 }
 
@@ -156,7 +151,6 @@ EIBNetIPTunnel::enterBusmonitor ()
   if (support_busmonitor)
     connect_busmonitor = 1;
   send_q.put (CArray ());
-  pth_sem_inc (&insignal, 1);
   return 1;
 }
 
@@ -167,7 +161,6 @@ EIBNetIPTunnel::leaveBusmonitor ()
     return false;
   connect_busmonitor = 0;
   send_q.put (CArray ());
-  pth_sem_inc (&insignal, 1);
   return 1;
 }
 
@@ -370,7 +363,6 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
 	    sno++;
 	    if (sno > 0xff)
 	      sno = 0;
-	    pth_sem_dec (&insignal);
 	    send_q.get ();
 	    if (send_delay)
 	      {
@@ -497,7 +489,6 @@ void EIBNetIPTunnel::trigger_cb(ev::async &w, int revents)
 
   if (send_q.top().size() == 0)
     {
-      pth_sem_dec (&insignal);
       send_q.get ();
       if (support_busmonitor)
 	{
@@ -584,7 +575,6 @@ EIBNetIPTunnel::timeout_cb(ev::timer &w, int revents)
   if (mod != 2)
     return;
   TRACEPRINTF (t, 1, this, "Drop");
-  pth_sem_dec (&insignal);
   send_q.get ();
   drop++;
   if (drop >= 3)

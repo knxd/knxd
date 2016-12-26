@@ -23,14 +23,13 @@
 #include "layer2.h"
 #include "eibnetip.h"
 
-class EIBNetIPTunnel:public Layer2, private Thread
+class EIBNetIPTunnel:public Layer2
 {
   EIBNetIPSocket *sock;
   struct sockaddr_in caddr;
   struct sockaddr_in daddr;
   struct sockaddr_in saddr;
   struct sockaddr_in raddr;
-  pth_sem_t insignal;
 
   Queue < CArray > send_q;
   int dataport;
