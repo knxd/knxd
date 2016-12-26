@@ -12,8 +12,8 @@ else
 EIBNET=
 endif
 eibnetdescribe_SOURCES=eibnetdescribe.cpp
-eibnetdescribe_LDADD=../../libserver/libeibstack.a ../../common/libcommon.a $(PTHSEM_LIB) $(EV_LIBS)
+eibnetdescribe_LDADD=../../libserver/libeibstack.a ../../common/libcommon.a $(EV_LIBS)
 
 eibnetsearch_SOURCES=eibnetsearch.cpp
-eibnetsearch_LDADD=../../libserver/libeibstack.a ../../common/libcommon.a $(PTHSEM_LIB) $(EV_LIBS)
+eibnetsearch_LDADD=../../libserver/libeibstack.a ../../common/libcommon.a $(EV_LIBS)
 
