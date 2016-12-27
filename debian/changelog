@@ -1,3 +1,13 @@
+knxd (0.12.0~3-1) experimental; urgency=medium
+
+  * multicast server code works.
+  * ip: and ipt: back-ends compile but have not yet been tested.
+  * eibnetsearch and describe tools work.
+  * Found a couple of errors; see git changelog.
+  * Valgrind clean. (So far.)
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Tue, 27 Dec 2016 00:17:11 +0100
+
 knxd (0.12.0~2-1) experimental; urgency=medium
 
   * connection-based server code (incomplete) and TPUART now run on libev

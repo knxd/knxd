@@ -41,6 +41,7 @@ class EIBNetIPTunnel:public Layer2
   int sno = 0;
   int heartbeat = 0;
   int drop = 0;
+  int retry = 0;
 
   float send_delay;
   ev::timer timeout; void timeout_cb(ev::timer &w, int revents);

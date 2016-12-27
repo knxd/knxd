@@ -374,6 +374,7 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
 		mod = 1; trigger.send();
 	      }
 	    drop = 0;
+	    retry = 0;
 	  }
 	else
 	  TRACEPRINTF (t, 1, this, "Unexpected ACK");
@@ -574,20 +575,25 @@ EIBNetIPTunnel::timeout_cb(ev::timer &w, int revents)
 {
   if (mod != 2)
     return;
-  TRACEPRINTF (t, 1, this, "Drop");
-  send_q.get ();
-  drop++;
-  if (drop >= 3)
+  if (retry++ > 3)
     {
-      EIBnet_DisconnectRequest dreq;
-      dreq.caddr = saddr;
-      dreq.channel = channel;
-      EIBNetIPPacket p = dreq.ToPacket ();
-      sock->Send (p, caddr);
-      sock->recvall = 0;
-      mod = 0;
-      return;
+      TRACEPRINTF (t, 1, this, "Drop");
+      send_q.get ();
+      drop++;
+      if (drop >= 3)
+	{
+	  EIBnet_DisconnectRequest dreq;
+	  dreq.caddr = saddr;
+	  dreq.channel = channel;
+	  EIBNetIPPacket p = dreq.ToPacket ();
+	  sock->Send (p, caddr);
+	  sock->recvall = 0;
+	  mod = 0;
+	  return;
+	}
     }
+  else
+    TRACEPRINTF (t, 1, this, "Retry");
   mod = 1; trigger.send();
 }
 
