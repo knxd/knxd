@@ -33,7 +33,7 @@ inline Layer2Ptr
 eibnetip_Create (const char *dev, L2options *opt)
 {
   if (!*dev)
-    return std::shared_ptr<EIBNetIPRouter>(new EIBNetIPRouter ("224.0.23.12", 3671, arg.addr, opt));
+    return std::shared_ptr<EIBNetIPRouter>(new EIBNetIPRouter ("224.0.23.12", 3671, opt));
   char *a = strdup (dev);
   char *b;
   int port;
@@ -50,7 +50,7 @@ eibnetip_Create (const char *dev, L2options *opt)
     }
   else
     port = 3671;
-  c = std::shared_ptr<EIBNetIPRouter>(new EIBNetIPRouter (a, port, arg.addr, opt));
+  c = std::shared_ptr<EIBNetIPRouter>(new EIBNetIPRouter (a, port, opt));
   free (a);
   return c;
 }

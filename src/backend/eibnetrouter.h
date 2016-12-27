@@ -32,8 +32,7 @@ class EIBNetIPRouter:public Layer2
   const char *Name() { return "eibnetrouter"; }
   void on_recv_cb(EIBNetIPPacket *p);
 public:
-  EIBNetIPRouter (const char *multicastaddr, int port, eibaddr_t a,
-                  L2options *opt);
+  EIBNetIPRouter (const char *multicastaddr, int port, L2options *opt);
   virtual ~EIBNetIPRouter ();
   bool init (Layer3 *l3);
 
