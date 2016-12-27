@@ -12,7 +12,7 @@ endif
 
 if HAVE_TPUARTs
 TPUARTs = tpuartserial.h tpuartserial.cpp lowlatency.h lowlatency.cpp
-TPUART_COMMON = tpuartcommon.h tpuartcommon.cpp
+TPUART_COMMON = tpuart.h tpuart.cpp
 else
 TPUARTs =
 TPUART_COMMON = 
