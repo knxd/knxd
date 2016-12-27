@@ -582,6 +582,7 @@ EIBNetIPTunnel::timeout_cb(ev::timer &w, int revents)
       drop++;
       if (drop >= 3)
 	{
+	  TRACEPRINTF (t, 1, this, "Too many drops, disconnecting");
 	  EIBnet_DisconnectRequest dreq;
 	  dreq.caddr = saddr;
 	  dreq.channel = channel;
@@ -591,6 +592,8 @@ EIBNetIPTunnel::timeout_cb(ev::timer &w, int revents)
 	  mod = 0;
 	  return;
 	}
+      else
+	TRACEPRINTF (t, 1, this, "Drop");
     }
   else
     TRACEPRINTF (t, 1, this, "Retry");
