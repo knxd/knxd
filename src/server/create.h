@@ -17,37 +17,19 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifndef LAYER2COMMON_H
-#define LAYER2COMMON_H
+#ifndef CREATE_H
+#define CREATE_H
 
-#include <memory>
-#include "trace.h"
+#include "layer2.h"
 
-class Layer2shim;
-typedef std::shared_ptr<Layer2shim> Layer2Ptr;
+/** determines the right backend for the url and creates it.
+ *
+ * Note that init() has not yet been called.
+ */
+Layer2Ptr CreateLayer2 (const char *conf, L2options *opt);
+Layer2Ptr AddLayer2Filter (const char *conf, L2options *opt, Layer2Ptr l2);
 
-/** Bus modes. The enum is designed to allow bitwise tests
- * (& BUSMODE_UP and * & BUSMODE_MONITOR) */
-typedef enum {
-  BUSMODE_DOWN = 0,
-  BUSMODE_UP,
-  BUSMODE_MONITOR,
-  BUSMODE_VMONITOR,
-} busmode_t;
-
-typedef struct {
-  unsigned int flags;
-  unsigned int send_delay;
-  TracePtr t;
-} L2options;
-
-class Layer3;
-
-#define FLAG_B_TUNNEL_NOQUEUE (1<<0)
-#define FLAG_B_TPUARTS_ACKGROUP (1<<1)
-#define FLAG_B_TPUARTS_ACKINDIVIDUAL (1<<2)
-#define FLAG_B_TPUARTS_DISCH_RESET (1<<3)
-#define FLAG_B_EMI_NOQUEUE (1<<4)
-#define FLAG_B_NO_MONITOR (1<<5)
+typedef Layer2Ptr (*Layer2_Create_Func) (const char *conf, L2options *opt);
+typedef Layer2Ptr (*Layer2_Filter_Func) (const char *conf, L2options *opt, Layer2Ptr l2);
 
 #endif

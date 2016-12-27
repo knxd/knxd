@@ -27,6 +27,9 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <ev++.h>
+#include "create.h"
+#include "layer2conf.h"
+#include "filterconf.h"
 #include "layer3.h"
 #include "layer2.h"
 #include "localserver.h"
@@ -92,11 +95,12 @@ public:
   bool force_broadcast;
 private:
   /** our L3 instance (singleton (so far!)) */
-  Layer3 *layer3;
+  Layer3real *layer3;
 
 public:
   /** The current tracer */
   Trace t;
+  Array < const char * > filters;
 
   arguments (): t("main") {
     addr = 0x0001;
@@ -105,12 +109,12 @@ public:
   }
 
   /** get the L3 instance */
-  Layer3 *l3()
+  Layer3real *l3()
     {
       if (layer3 == 0) 
         {
           TracePtr tr = tracer("layer3", false);
-          layer3 = new Layer3 (addr, tr, force_broadcast);
+          layer3 = new Layer3real (addr, tr, force_broadcast);
           addr = 0;
           if (alloc_addrs_len)
             {
@@ -169,46 +173,6 @@ die (const char *msg, ...)
   exit (1);
 }
 
-
-#include "layer2conf.h"
-
-/** structure to store layer 2 backends */
-struct urldef
-{
-  /** URL-prefix */
-  const char *prefix;
-  /** factory function */
-  Layer2_Create_Func Create;
-};
-
-/** list of URLs */
-struct urldef URLs[] = {
-#undef L2_NAME
-#define L2_NAME(a) { a##_PREFIX, a##_CREATE },
-#include "layer2create.h"
-  {0, 0}
-};
-
-/** determines the right backend for the url and creates it */
-Layer2Ptr 
-Create (const char *url, L2options *opt)
-{
-  unsigned int p = 0;
-  struct urldef *u = URLs;
-  while (url[p] && url[p] != ':')
-    p++;
-  if (url[p] != ':')
-    die ("not a valid url");
-  while (u->prefix)
-    {
-      if (strlen (u->prefix) == p && !memcmp (u->prefix, url, p))
-        return u->Create (url + p + 1, opt);
-      u++;
-    }
-  die ("url not supported");
-  return 0;
-}
-
 /** parses an EIB individual address */
 eibaddr_t
 readaddr (const char *addr)
@@ -234,7 +198,7 @@ const char *argp_program_version = "knxd " VERSION;
 static char doc[] =
   "knxd -- a commonication stack for EIB/KNX\n"
   "(C) 2005-2015 Martin Koegler <mkoegler@auto.tuwien.ac.at> et al.\n"
-  "Supported Layer-2 URLs are:\n"
+  "Supported Layer-2 drivers are:\n"
 #undef L2_NAME
 #define L2_NAME(a) a##_URL
 #include "layer2create.h"
@@ -242,6 +206,14 @@ static char doc[] =
 #undef L2_NAME
 #define L2_NAME(a) a##_DOC
 #include "layer2create.h"
+  "Supported Layer-2 filters are:\n"
+#undef L2_NAME
+#define L2_NAME(a) a##_URL
+#include "filtercreate.h"
+  "\n"
+#undef L2_NAME
+#define L2_NAME(a) a##_DOC
+#include "filtercreate.h"
   "Arguments are processed in order.\n"
   "Modifiers affect the device mentioned afterwards.\n"
   ;
@@ -280,6 +252,8 @@ static struct argp_option options[] = {
 #endif
   {"layer2", 'b', "driver:[arg]", 0,
    "a Layer-2 driver to use (knxd supports more than one)"},
+  {"filter", 'B', "filter:[arg]", 0,
+   "a Layer-2 filter to use in front of the next driver"},
 #ifdef HAVE_GROUPCACHE
   {"GroupCache", 'c', 0, 0,
    "enable caching of group communication network state"},
@@ -474,18 +448,31 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'b':
       {
 	arguments->l2opts.t = arguments->tracer(arg);
-        Layer2Ptr l2 = Create (arg, &arguments->l2opts);
-        if (!l2 || !l2->init (arguments->l3 ()))
+        Layer2Ptr l2 = CreateLayer2 (arg, &arguments->l2opts);
+        if (!l2)
+          die ("initialisation of backend '%s' failed", arg);
+        unsigned i = arguments->filters.size();
+        while(i--)
+          l2 = AddLayer2Filter(arguments->filters[i], &arguments->l2opts, l2);
+        if (!l2->init (arguments->l3 ()))
           die ("initialisation of backend '%s' failed", arg);
 	if (arguments->l2opts.flags || arguments->l2opts.send_delay)
           die ("You provided options which '%s' does not recognize", arg);
         arguments->l2opts = L2options();
         arguments->has_work++;
+        arguments->filters.clear();
+        break;
+      }
+    case 'B':
+      {
+        arguments->filters.push_back(arg);
         break;
       }
     case ARGP_KEY_FINI:
       if (arguments->l2opts.flags)
         die ("You need to use backend flags in front of the affected backend");
+      if (arguments->filters.size())
+        die ("You need to use filters in front of the affected backend");
 
 #ifdef HAVE_SYSTEMD
       {

@@ -1,0 +1,86 @@
+/*
+    EIBD eib bus access and management daemon
+    Copyright (C) 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
+#ifndef LAYER23_H
+#define LAYER23_H
+
+#include "layer2.h"
+#include "layer3.h"
+
+/** generic interface for an Layer 2 driver */
+class Layer23 : public Layer2shim, public Layer3
+{
+public:
+  Layer23 (Layer2Ptr l2);
+  bool init (Layer3 *l3);
+
+private:
+  Layer2Ptr l2;
+  Layer3 *l3;
+
+public:
+
+  /** implement all of layer2shim */
+
+  void Send_L_Data (LPDU * l);
+  void Send_L_Data (L_Data_PDU * l);
+
+  bool addAddress (eibaddr_t addr);
+  bool addReverseAddress (eibaddr_t addr);
+  bool addGroupAddress (eibaddr_t addr);
+  bool removeAddress (eibaddr_t addr);
+  bool removeReverseAddress (eibaddr_t addr);
+  bool removeGroupAddress (eibaddr_t addr);
+  bool hasAddress (eibaddr_t addr);
+  bool hasReverseAddress (eibaddr_t addr);
+  bool hasGroupAddress (eibaddr_t addr);
+  eibaddr_t getRemoteAddr();
+
+  bool enterBusmonitor ();
+  bool leaveBusmonitor ();
+
+  bool Open ();
+  bool Close ();
+  bool Send_Queue_Empty ();
+
+  /** implement all of layer3 */
+
+  TracePtr tr();
+  eibaddr_t getDefaultAddr();
+  std::shared_ptr<GroupCache> getCache();
+
+  bool registerLayer2 (Layer2Ptr l2);
+  bool deregisterLayer2 (Layer2Ptr l2);
+
+  bool registerBusmonitor (L_Busmonitor_CallBack * c);
+  bool registerVBusmonitor (L_Busmonitor_CallBack * c);
+
+  bool deregisterBusmonitor (L_Busmonitor_CallBack * c);
+  bool deregisterVBusmonitor (L_Busmonitor_CallBack * c);
+
+  void recv_L_Data (LPDU * l);
+  bool hasAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr);
+  bool hasGroupAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr);
+  void registerServer (BaseServer *s);
+  void deregisterServer (BaseServer *s);
+
+  eibaddr_t get_client_addr ();
+};
+
+#endif

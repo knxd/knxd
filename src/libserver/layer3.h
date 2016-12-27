@@ -45,14 +45,64 @@ typedef struct
 {
   CArray data;
   timestamp_t end;
-
 } IgnoreInfo;
 
-class Layer3;
+class Layer3 {
+public:
+  Layer3();
+  virtual ~Layer3();
 
-/** Layer 3 frame dispatches */
-class Layer3
+  /** debug output */
+  virtual TracePtr tr() = 0;
+  /** our default address */
+  virtual eibaddr_t getDefaultAddr() = 0;
+  /** group cache */
+  virtual std::shared_ptr<GroupCache> getCache() = 0;
+
+  /** register a layer2 interface, return true if successful*/
+  virtual bool registerLayer2 (Layer2Ptr l2) = 0;
+  /** deregister a layer2 interface, return true if successful*/
+  virtual bool deregisterLayer2 (Layer2Ptr l2) = 0;
+
+  /** register a busmonitor callback, return true, if successful*/
+  virtual bool registerBusmonitor (L_Busmonitor_CallBack * c) = 0;
+  /** register a vbusmonitor callback, return true, if successful*/
+  virtual bool registerVBusmonitor (L_Busmonitor_CallBack * c) = 0;
+  /** register a broadcast callback, return true, if successful*/
+
+  /** deregister a busmonitor callback, return true, if successful*/
+  virtual bool deregisterBusmonitor (L_Busmonitor_CallBack * c) = 0;
+  /** deregister a vbusmonitor callback, return true, if successful*/
+  virtual bool deregisterVBusmonitor (L_Busmonitor_CallBack * c) = 0;
+  /** register a broadcast callback, return true, if successful*/
+
+  /** accept a L_Data frame from L2 */
+  virtual void recv_L_Data (LPDU * l) = 0;
+
+  /** check if any interface accepts this address.
+      'l2' says which interface NOT to check. */
+  virtual bool hasAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr) = 0;
+  /** check if any interface accepts this group address.
+      'l2' says which interface NOT to check. */
+  virtual bool hasGroupAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr) = 0;
+  /** remember this server, for deallocation with the L3 */
+  virtual void registerServer (BaseServer *s) = 0;
+  /** remember this server, for deallocation with the L3 */
+  virtual void deregisterServer (BaseServer *s) = 0;
+
+  /** Get a free dynamic address */
+  virtual eibaddr_t get_client_addr () = 0;
+};
+
+class Layer3real : public Layer3
 {
+public:
+  Layer3real (eibaddr_t addr, TracePtr tr, bool force_broadcast = false);
+  virtual ~Layer3real ();
+private:
+  TracePtr _tr = 0;
+  eibaddr_t defaultAddr = 0;
+
   // libev
   ev::async trigger;
   void trigger_cb (ev::async &w, int revents);
@@ -91,54 +141,32 @@ class Layer3
   /** to-be-closed client connections*/
   Queue <Layer2Ptr> cleanup_q;
 
-public:
-  /** debug output */
-  TracePtr t;
-  /** our default address */
-  eibaddr_t defaultAddr;
-
   /** group cache */
   std::shared_ptr<GroupCache> cache;
 
-  Layer3 (eibaddr_t addr, TracePtr tr, bool force_broadcast = false);
-  virtual ~Layer3 ();
+public:
+  /** implement all of Layer3 */
+  TracePtr tr() { return _tr; }
+  eibaddr_t getDefaultAddr() { return defaultAddr; }
+  std::shared_ptr<GroupCache> getCache() { return cache; }
 
-  /** register a layer2 interface, return true if successful*/
   bool registerLayer2 (Layer2Ptr l2);
-  /** deregister a layer2 interface, return true if successful*/
   bool deregisterLayer2 (Layer2Ptr l2);
 
-  /** register a busmonitor callback, return true, if successful*/
   bool registerBusmonitor (L_Busmonitor_CallBack * c);
-  /** register a vbusmonitor callback, return true, if successful*/
   bool registerVBusmonitor (L_Busmonitor_CallBack * c);
-  /** register a broadcast callback, return true, if successful*/
 
-  /** deregister a busmonitor callback, return true, if successful*/
   bool deregisterBusmonitor (L_Busmonitor_CallBack * c);
-  /** deregister a vbusmonitor callback, return true, if successful*/
   bool deregisterVBusmonitor (L_Busmonitor_CallBack * c);
-  /** register a broadcast callback, return true, if successful*/
 
-  /** accept a L_Data frame from L2 */
   void recv_L_Data (LPDU * l);
-
-  /** check if any interface accepts this address.
-      'l2' says which interface NOT to check. */
   bool hasAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr);
-  /** check if any interface accepts this group address.
-      'l2' says which interface NOT to check. */
   bool hasGroupAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr);
-  /** remember this server, for deallocation with the L3 */
   void registerServer (BaseServer *s) { servers.push_back (s); }
-  /** remember this server, for deallocation with the L3 */
   void deregisterServer (BaseServer *s);
 
-  /** Tell this Layer3 that it may allocate dynamic client addresses from this range */
   void set_client_block (eibaddr_t r_start, int r_len);
-  /** Get a free dynamic address */
   eibaddr_t get_client_addr ();
 };
-
 
 #endif

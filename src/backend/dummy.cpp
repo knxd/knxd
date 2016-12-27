@@ -48,3 +48,12 @@ DummyL2Driver::Send_L_Data (LPDU * l)
   delete l;
 }
 
+DummyL2Filter::DummyL2Filter (L2options *opt, Layer2Ptr l2) : Layer23 (l2)
+{
+  TRACEPRINTF (t, 2, this, "OpenFilter");
+}
+
+DummyL2Filter::~DummyL2Filter ()
+{
+  TRACEPRINTF (t, 2, this, "CloseFilter");
+}

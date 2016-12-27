@@ -19,12 +19,10 @@
 
 #ifndef DUMMY_H
 #define DUMMY_H
-#include <termios.h>
-#include "lowlatency.h"
 #include "layer2.h"
-#include "lpdu.h"
+#include "layer23.h"
 
-/** TPUART user mode driver */
+/** dummy L2 driver, does nothing */
 class DummyL2Driver:public Layer2
 {
   const char *Name() { return "Dummy"; }
@@ -33,7 +31,15 @@ public:
   ~DummyL2Driver ();
 
   void Send_L_Data (LPDU * l);
+};
 
+/** dummy L2 filter, is transparent */
+class DummyL2Filter:public Layer23
+{
+  const char *Name() { return "Dummy"; }
+public:
+  DummyL2Filter (L2options *opt, Layer2Ptr l2);
+  ~DummyL2Filter ();
 };
 
 #endif

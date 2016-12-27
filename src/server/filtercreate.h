@@ -17,37 +17,7 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifndef LAYER2COMMON_H
-#define LAYER2COMMON_H
-
-#include <memory>
-#include "trace.h"
-
-class Layer2shim;
-typedef std::shared_ptr<Layer2shim> Layer2Ptr;
-
-/** Bus modes. The enum is designed to allow bitwise tests
- * (& BUSMODE_UP and * & BUSMODE_MONITOR) */
-typedef enum {
-  BUSMODE_DOWN = 0,
-  BUSMODE_UP,
-  BUSMODE_MONITOR,
-  BUSMODE_VMONITOR,
-} busmode_t;
-
-typedef struct {
-  unsigned int flags;
-  unsigned int send_delay;
-  TracePtr t;
-} L2options;
-
-class Layer3;
-
-#define FLAG_B_TUNNEL_NOQUEUE (1<<0)
-#define FLAG_B_TPUARTS_ACKGROUP (1<<1)
-#define FLAG_B_TPUARTS_ACKINDIVIDUAL (1<<2)
-#define FLAG_B_TPUARTS_DISCH_RESET (1<<3)
-#define FLAG_B_EMI_NOQUEUE (1<<4)
-#define FLAG_B_NO_MONITOR (1<<5)
-
+#ifdef HAVE_DUMMY
+  L2_NAME(DUMMY_F)
 #endif
+

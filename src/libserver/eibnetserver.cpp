@@ -448,7 +448,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       TRACEPRINTF (t, 8, this, "SEARCH");
       r2.KNXmedium = 2;
       r2.devicestatus = 0;
-      r2.individual_addr = l3->defaultAddr;
+      r2.individual_addr = l3->getDefaultAddr();
       r2.installid = 0;
       r2.multicastaddr = mcast->maddr.sin_addr;
       r2.serial[0]=1;
@@ -488,7 +488,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       TRACEPRINTF (t, 8, this, "DESCRIBE");
       r2.KNXmedium = 2;
       r2.devicestatus = 0;
-      r2.individual_addr = l3->defaultAddr;
+      r2.individual_addr = l3->getDefaultAddr();
       r2.installid = 0;
       r2.multicastaddr = mcast->maddr.sin_addr;
       memcpy(r2.MAC, mac_address, sizeof(r2.MAC));

@@ -20,19 +20,25 @@
 #include "layer2.h"
 #include "layer3.h"
 
-Layer2::Layer2 (L2options *opt, TracePtr tr)
+Layer2shim::~Layer2shim () {}
+
+Layer2shim::Layer2shim (L2options *opt, TracePtr tr)
 {
   l3 = 0;
   t = opt ? opt->t : 0;
   if (! t)
     t = tr;
+}
+
+Layer2::Layer2 (L2options *opt, TracePtr tr) : Layer2shim (opt, tr)
+{
   mode = BUSMODE_DOWN;
   allow_monitor = !(opt && (opt->flags & FLAG_B_NO_MONITOR));
   if (opt) opt->flags &=~ FLAG_B_NO_MONITOR;
 }
 
 bool
-Layer2::init (Layer3 *layer3)
+Layer2shim::init (Layer3 *layer3)
 {
   l3 = layer3;
   if (! l3)
