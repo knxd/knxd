@@ -49,8 +49,6 @@ eibnetiptunnel_Create (const char *dev, L2options *opt)
   int sport = 3672;;
   Layer2Ptr iface;
 
-  if (!a)
-    die ("out of memory");
   c = d = e = NULL;
   b = strchr(a,':');
   if (b) {
@@ -88,8 +86,6 @@ eibnetiptunnelnat_Create (const char *dev, L2options *opt)
   int dport = 3671;
   int sport = 3672;
   Layer2Ptr iface;
-  if (!a)
-    die ("out of memory");
   c = NULL;
   b = strchr(a,':');
   if (b) {

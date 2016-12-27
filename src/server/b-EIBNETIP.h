@@ -38,8 +38,6 @@ eibnetip_Create (const char *dev, L2options *opt)
   char *b;
   int port;
   Layer2Ptr c;
-  if (!a)
-    die ("out of memory");
   for (b = a; *b; b++)
     if (*b == ':')
       break;
