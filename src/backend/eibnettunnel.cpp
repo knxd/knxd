@@ -314,9 +314,6 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
 	    TRACEPRINTF (t, 1, this, "Recv %s", c->Decode ().c_str());
 	    if (mode != BUSMODE_MONITOR)
 	      {
-		if (c->AddrType == IndividualAddress
-		    && hasAddress(c->dest))
-		  c->dest = 0;
 		l3->recv_L_Data (c);
 		break;
 	      }

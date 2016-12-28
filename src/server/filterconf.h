@@ -26,4 +26,6 @@
 #include "f-DUMMY.h"
 #endif
 
+#include "f-NAT.h"
+
 #endif

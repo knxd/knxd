@@ -17,8 +17,21 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifdef HAVE_DUMMY
-  L2_NAME(DUMMY_F)
-#endif
-  L2_NAME(NAT)
+#ifndef F_NAT_H
+#define F_NAT_H
 
+#include "nat.h"
+#include "layer23.h"
+
+#define NAT_URL "nat\n"
+#define NAT_DOC "nat zeroes the source address, for talking to single-node gateways\n\n"
+#define NAT_PREFIX "nat"
+#define NAT_FILTER nat_Filter
+
+inline Layer2Ptr
+nat_Filter (const char *dev UNUSED, L2options *opt, Layer2Ptr l2)
+{
+  return std::shared_ptr<NatL2Filter>(new NatL2Filter (opt, l2));
+}
+
+#endif

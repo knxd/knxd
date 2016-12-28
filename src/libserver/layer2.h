@@ -32,6 +32,7 @@ class Layer2shim : public std::enable_shared_from_this<Layer2shim>
 public:
   Layer2shim(L2options *opt, TracePtr tr);
   virtual ~Layer2shim();
+  virtual const char *Name() { return "?-L2"; }
 
   /** debug output */
   TracePtr t;
@@ -40,26 +41,19 @@ public:
   /** connect to the "real" layer3 */
   virtual bool init (Layer3 *l3);
 
-  /** sends a Layer 2 frame asynchronouse */
+  /** sends a Layer 2 frame to this interface */
   virtual void Send_L_Data (LPDU * l) = 0;
-  virtual void Send_L_Data (L_Data_PDU * l) = 0;
 
   /** try to add the individual addr to the device, return true if successful */
   virtual bool addAddress (eibaddr_t addr) = 0;
-  /** add the reverse addr to the device, return true if successful */
-  virtual bool addReverseAddress (eibaddr_t addr) = 0;
   /** try to add the group address addr to the device, return true if successful */
   virtual bool addGroupAddress (eibaddr_t addr) = 0;
   /** try to remove the individual address addr to the device, return true if successful */
   virtual bool removeAddress (eibaddr_t addr) = 0;
-  /** try to remove the individual address addr to the device, return true if successful */
-  virtual bool removeReverseAddress (eibaddr_t addr) = 0;
   /** try to remove the group address addr to the device, return true if successful */
   virtual bool removeGroupAddress (eibaddr_t addr) = 0;
   /** individual address known? */
   virtual bool hasAddress (eibaddr_t addr) = 0;
-  /** reverse address known? */
-  virtual bool hasReverseAddress (eibaddr_t addr) = 0;
   /** group address known? */
   virtual bool hasGroupAddress (eibaddr_t addr) = 0;
   /** my remote address, if any? */
@@ -87,8 +81,6 @@ public:
 protected:
   /** my individual addresses */
   Array < eibaddr_t > indaddr;
-  /** source addresses when the destination is my own */
-  Array < eibaddr_t > revaddr;
   /** my group addresses */
   Array < eibaddr_t > groupaddr;
 
@@ -105,16 +97,12 @@ protected:
 public:
   /** implement all of Layer2shim */
   virtual void Send_L_Data (LPDU * l) = 0;
-  virtual void Send_L_Data (L_Data_PDU * l) { Send_L_Data((LPDU *)l); }
 
   virtual bool addAddress (eibaddr_t addr);
-  virtual bool addReverseAddress (eibaddr_t addr);
   virtual bool addGroupAddress (eibaddr_t addr);
   virtual bool removeAddress (eibaddr_t addr);
-  virtual bool removeReverseAddress (eibaddr_t addr);
   virtual bool removeGroupAddress (eibaddr_t addr);
   virtual bool hasAddress (eibaddr_t addr);
-  virtual bool hasReverseAddress (eibaddr_t addr);
   virtual bool hasGroupAddress (eibaddr_t addr);
   eibaddr_t getRemoteAddr() { return remoteAddr; };
 

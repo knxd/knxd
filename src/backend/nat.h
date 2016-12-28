@@ -1,6 +1,6 @@
 /*
     EIBD eib bus access and management daemon
-    Copyright (C) 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
+    Copyright (C) 2015 Matthias Urlichs <matthias@urlichs.de>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,8 +17,37 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifdef HAVE_DUMMY
-  L2_NAME(DUMMY_F)
-#endif
-  L2_NAME(NAT)
+#ifndef NAT_H
+#define NAT_H
+#include "layer2.h"
+#include "layer23.h"
 
+/** NAT filter
+ * outgoing packets: remember src/dest combination, zero src
+ * incoming: restore dest
+ */
+typedef struct {
+  eibaddr_t src;
+  eibaddr_t dest;
+} phys_comm;
+
+class NatL2Filter:public Layer23
+{
+  /** source addresses when the destination is my own */
+  Array < phys_comm > revaddr;
+
+public:
+  NatL2Filter (L2options *opt, Layer2Ptr l2);
+  ~NatL2Filter ();
+  virtual const char *Name() override { return "NAT"; }
+
+  Layer2Ptr clone(Layer2Ptr l2);
+
+  void recv_L_Data (LPDU * l);
+  void Send_L_Data (LPDU * l);
+
+  void addReverseAddress (eibaddr_t src, eibaddr_t dest);
+  eibaddr_t getDestinationAddress (eibaddr_t src);
+};
+
+#endif

@@ -159,9 +159,6 @@ T_TPDU::T_TPDU (TracePtr tr, eibaddr_t d)
 {
   TRACEPRINTF (tr, 4, this, "OpenTPDU %s", FormatEIBAddr (d).c_str());
   src = d;
-  init_ok = false;
-  if (!addReverseAddress (src))
-    return;
   init_ok = true;
 }
 

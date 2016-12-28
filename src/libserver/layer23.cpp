@@ -22,7 +22,7 @@
 Layer23::Layer23 (Layer2Ptr l2) : Layer2shim(NULL, l2->t)
 {
     this->l2 = l2;
-    this->t = TracePtr(new Trace(*(l2->t.get()), "shim:"+l2->t->name));
+    this->t = TracePtr(new Trace(*(l2->t.get()), std::string(Name())+":"+l2->t->name));
 }
 
 bool Layer23::init (Layer3 *l3)
@@ -39,22 +39,10 @@ Layer23::Send_L_Data (LPDU * l)
   l2->Send_L_Data (l);
 }
 
-void
-Layer23::Send_L_Data (L_Data_PDU * l)
-{
-  l2->Send_L_Data (l);
-}
-
 bool
 Layer23::addAddress (eibaddr_t addr)
 {
   return l2->addAddress (addr);
-}
-
-bool
-Layer23::addReverseAddress (eibaddr_t addr)
-{
-  return l2->addReverseAddress (addr);
 }
 
 bool
@@ -70,12 +58,6 @@ Layer23::removeAddress (eibaddr_t addr)
 }
 
 bool
-Layer23::removeReverseAddress (eibaddr_t addr)
-{
-  return l2->removeReverseAddress (addr);
-}
-
-bool
 Layer23::removeGroupAddress (eibaddr_t addr)
 {
   return l2->removeGroupAddress (addr);
@@ -85,12 +67,6 @@ bool
 Layer23::hasAddress (eibaddr_t addr)
 {
   return l2->hasAddress (addr);
-}
-
-bool
-Layer23::hasReverseAddress (eibaddr_t addr)
-{
-  return l2->hasReverseAddress (addr);
 }
 
 bool

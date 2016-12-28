@@ -29,12 +29,13 @@ class Layer23 : public Layer2shim, public Layer3
 public:
   Layer23 (Layer2Ptr l2);
   virtual bool init (Layer3 *l3);
+  virtual const char *Name() { return "?-F"; }
 
   // You must override this, and return an instance of yourself,
   // with l2 set to the given l2.
   virtual Layer2Ptr clone (Layer2Ptr l2) = 0;
 
-private:
+protected:
   Layer2Ptr l2;
   Layer3 *l3;
 
@@ -43,16 +44,12 @@ public:
   /** implement all of layer2shim */
 
   void Send_L_Data (LPDU * l);
-  void Send_L_Data (L_Data_PDU * l);
 
   bool addAddress (eibaddr_t addr);
-  bool addReverseAddress (eibaddr_t addr);
   bool addGroupAddress (eibaddr_t addr);
   bool removeAddress (eibaddr_t addr);
-  bool removeReverseAddress (eibaddr_t addr);
   bool removeGroupAddress (eibaddr_t addr);
   bool hasAddress (eibaddr_t addr);
-  bool hasReverseAddress (eibaddr_t addr);
   bool hasGroupAddress (eibaddr_t addr);
   eibaddr_t getRemoteAddr();
 

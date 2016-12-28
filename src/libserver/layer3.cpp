@@ -284,6 +284,13 @@ Layer3real::trigger_cb (ev::async &w, int revents)
                 }
               delete l2;
             }
+          if (!l1->dest)
+            {
+              // I have no idea what to do with this.
+              TRACEPRINTF (tr(), 3, this, "Destination zero: %s", l1->Decode ().c_str());
+              delete l;
+              continue;
+            }
           if (!l1->hopcount)
             {
               TRACEPRINTF (tr(), 3, this, "Hopcount zero: %s", l1->Decode ().c_str());
@@ -316,8 +323,6 @@ Layer3real::trigger_cb (ev::async &w, int revents)
               l1->source = defaultAddr;
             if (l1->source != defaultAddr)
               l2->addAddress (l1->source);
-            if (l1->AddrType == IndividualAddress && !l2->hasAddress(l1->dest))
-              l2->addReverseAddress (l1->dest);
           }
 
 	  if (l1->AddrType == IndividualAddress
@@ -344,15 +349,14 @@ Layer3real::trigger_cb (ev::async &w, int revents)
 	      // This is not so easy: we want to send to whichever
 	      // interface on which the address has appeared. If it hasn't
 	      // been seen yet, we send to all interfaces which are buses.
-	      // which get marked by accepting the otherwise-illegal physical
+	      // which are defined by accepting the otherwise-illegal physical
 	      // address 0.
 	      bool found = false;
 	      ITER(i, layer2)
                 {
                   if (*i == l1->l2)
 		    continue;
-                  if (l1->dest ? (*i)->hasAddress (l1->dest)
-		               : (*i)->hasReverseAddress (l1->source))
+                  if ((*i)->hasAddress (l1->dest))
 		    {
 		      found = true;
 		      break;
@@ -361,8 +365,7 @@ Layer3real::trigger_cb (ev::async &w, int revents)
 	      ITER (i, layer2)
 		if ((l1->hopcount == 7)
                     || (*i != l1->l2
-		     && l1->dest ? (*i)->hasAddress (found ? l1->dest : 0)
-		                 : (*i)->hasReverseAddress (l1->source)))
+		     && (*i)->hasAddress (found ? l1->dest : 0)))
 		  (*i)->Send_L_Data (new L_Data_PDU (*l1));
 	    }
 	}

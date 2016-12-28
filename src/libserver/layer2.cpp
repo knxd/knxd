@@ -68,18 +68,6 @@ Layer2::addAddress (eibaddr_t addr)
 }
 
 bool
-Layer2::addReverseAddress (eibaddr_t addr)
-{
-  if (addr == 0)
-    return false;
-  ITER(i, revaddr)
-    if (*i == addr)
-      return false;
-  revaddr.push_back (addr);
-  return true;
-}
-
-bool
 Layer2::addGroupAddress (eibaddr_t addr)
 {
   ITER(i, groupaddr)
@@ -102,18 +90,6 @@ Layer2::removeAddress (eibaddr_t addr)
 }
 
 bool
-Layer2::removeReverseAddress (eibaddr_t addr)
-{
-  ITER(i, revaddr)
-    if (*i == addr)
-      {
-        revaddr.erase (i);
-        return true;
-      }
-  return false;
-}
-
-bool
 Layer2::removeGroupAddress (eibaddr_t addr)
 {
   ITER(i, groupaddr)
@@ -129,15 +105,6 @@ bool
 Layer2::hasAddress (eibaddr_t addr)
 {
   ITER(i, indaddr)
-    if (*i == addr)
-      return true;
-  return false;
-}
-
-bool
-Layer2::hasReverseAddress (eibaddr_t addr)
-{
-  ITER(i, revaddr)
     if (*i == addr)
       return true;
   return false;
