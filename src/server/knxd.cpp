@@ -162,6 +162,7 @@ public:
         l3()->registerLayer2(l2);
         if (clear)
             reset();
+        return l2;
     }
     void reset()
     {
