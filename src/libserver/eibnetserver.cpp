@@ -346,14 +346,15 @@ void ConnState::timeout_cb(ev::timer &w, int revents)
   stop();
 }
 
-void ConnState::stop(void)
+void ConnState::stop(bool drop)
 {
   if (type == CT_BUSMONITOR)
     l3->deregisterVBusmonitor(this);
   timeout.stop();
   sendtimeout.stop();
   send_trigger.stop();
-  parent->drop_state (std::static_pointer_cast<ConnState>(shared_from_this()));
+  if (drop)
+    parent->drop_state (std::static_pointer_cast<ConnState>(shared_from_this()));
 }
 
 void EIBnetServer::drop_state (ConnStatePtr s)
@@ -379,7 +380,7 @@ void EIBnetServer::drop_trigger_cb(ev::async &w, int revents)
 ConnState::~ConnState()
 {
   TRACEPRINTF (parent->t, 8, this, "CloseS");
-  stop();
+  stop(false);
 }
 
 void ConnState::reset_timer()

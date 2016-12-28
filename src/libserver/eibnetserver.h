@@ -42,7 +42,7 @@ class ConnState: public Layer2mixin, public L_Busmonitor_CallBack
 public:
   ConnState (EIBnetServer *p, eibaddr_t addr);
   ~ConnState ();
-  void stop();
+  void stop(bool drop = true); // false when called from destructor
 
   EIBnetServer *parent;
   bool init();
