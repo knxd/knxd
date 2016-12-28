@@ -159,6 +159,7 @@ public:
             die ("initialisation of backend '%s' failed", arg);
         if (l2opts.flags || l2opts.send_delay)
             die ("You provided options which '%s' does not recognize", arg);
+        l3()->registerLayer2(l2);
         if (clear)
             reset();
     }

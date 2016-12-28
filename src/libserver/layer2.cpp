@@ -42,7 +42,7 @@ Layer2shim::init (Layer3 *layer3)
 {
   if (! layer3)
     return false;
-  l3 = layer3->registerLayer2 (shared_from_this());
+  l3 = layer3;
   return true;
 }
 
