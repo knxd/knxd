@@ -42,6 +42,9 @@
 #include "systemdserver.h"
 #endif
 
+/** aborts program with a printf like message */
+void die (const char *msg, ...);
+
 // The NOQUEUE options are deprecated
 #define OPT_BACK_TUNNEL_NOQUEUE 1
 #define OPT_BACK_TPUARTS_ACKGROUP 2
@@ -146,6 +149,23 @@ public:
     {
       TracePtr tr = TracePtr(new Trace(t, name));
       return tr;
+    }
+    Layer2Ptr stack(Layer2Ptr l2, const char *arg, bool clear = true)
+    {
+        unsigned i = filters.size();
+        while(i--)
+            l2 = AddLayer2Filter(filters[i], &l2opts, l2);
+        if (!l2->init (l3 ()))
+            die ("initialisation of backend '%s' failed", arg);
+        if (l2opts.flags || l2opts.send_delay)
+            die ("You provided options which '%s' does not recognize", arg);
+        if (clear)
+            reset();
+    }
+    void reset()
+    {
+        filters.clear();
+        l2opts = L2options();
     }
 };
 
@@ -308,7 +328,6 @@ parse_opt (int key, char *arg, struct argp_state *state)
         const char *name = arguments->eibnetname;
         std::string tracename;
 
-        EIBnetServerPtr c;
         int port = 0;
         char *a = strdup (OPT_ARG(arg, state, ""));
         char *b;
@@ -334,8 +353,12 @@ parse_opt (int key, char *arg, struct argp_state *state)
             tracename += name;
         }
 
-        c = EIBnetServerPtr(new EIBnetServer (arguments->tracer(tracename), name));
-        if (!c->init (arguments->l3(), serverip, port, arguments->tunnel, arguments->route, arguments->discover))
+        EIBnetServerPtr s = EIBnetServerPtr(new EIBnetServer (arguments->tracer(tracename), name));
+        if (!s->setup (serverip, port, arguments->tunnel, arguments->route, arguments->discover))
+          die ("initialization of the EIBnet/IP server failed");
+
+        Layer2Ptr c = arguments->stack(s,"multicast");
+        if (!c->init (arguments->l3()))
         {
           free(a);
           die ("initialization of the EIBnet/IP server failed");
@@ -357,10 +380,10 @@ parse_opt (int key, char *arg, struct argp_state *state)
 #endif
     case 'u':
       {
-        BaseServerPtr s;
         const char *name = OPT_ARG(arg,state,"/run/knx");
-        s = BaseServerPtr(new LocalServer (arguments->tracer(name), name));
-        if (!s->init (arguments->l3()))
+        BaseServerPtr s = BaseServerPtr(new LocalServer (arguments->tracer(name), name));
+        Layer2Ptr c = arguments->stack(s,"unix");
+        if (!c->init (arguments->l3()))
           die ("initialisation of the knxd unix protocol failed");
         arguments->has_work++;
       }
@@ -368,10 +391,13 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'i':
       {
         BaseServerPtr s = nullptr;
+        Layer2Ptr c = nullptr;
         int port = atoi(OPT_ARG(arg,state,"6720"));
         if (port > 0)
           s = BaseServerPtr(new InetServer (arguments->tracer("inet"), port));
-        if (!s || !s->init (arguments->l3()))
+        if (s)
+          c = arguments->stack(s,"tcp");
+        if (!c || !c->init (arguments->l3()))
           die ("initialisation of the knxd inet protocol failed");
         arguments->has_work++;
       }
@@ -451,16 +477,8 @@ parse_opt (int key, char *arg, struct argp_state *state)
         Layer2Ptr l2 = CreateLayer2 (arg, &arguments->l2opts);
         if (!l2)
           die ("initialisation of backend '%s' failed", arg);
-        unsigned i = arguments->filters.size();
-        while(i--)
-          l2 = AddLayer2Filter(arguments->filters[i], &arguments->l2opts, l2);
-        if (!l2->init (arguments->l3 ()))
-          die ("initialisation of backend '%s' failed", arg);
-	if (arguments->l2opts.flags || arguments->l2opts.send_delay)
-          die ("You provided options which '%s' does not recognize", arg);
-        arguments->l2opts = L2options();
+        l2 = arguments->stack(l2,arg);
         arguments->has_work++;
-        arguments->filters.clear();
         break;
       }
     case 'B':
@@ -469,15 +487,12 @@ parse_opt (int key, char *arg, struct argp_state *state)
         break;
       }
     case ARGP_KEY_FINI:
-      if (arguments->l2opts.flags)
-        die ("You need to use backend flags in front of the affected backend");
-      if (arguments->filters.size())
-        die ("You need to use filters in front of the affected backend");
 
 #ifdef HAVE_SYSTEMD
       {
         BaseServerPtr s = nullptr;
         const int num_fds = sd_listen_fds(0);
+        int hw = arguments->has_work;
 
         if( num_fds < 0 )
           die("Error getting fds from systemd.");
@@ -489,14 +504,17 @@ parse_opt (int key, char *arg, struct argp_state *state)
               die("Error: socket not of expected type.");
 
             s = BaseServerPtr(new SystemdServer(arguments->tracer("systemd"), fd));
-            if (!s->init (arguments->l3()))
+            Layer2Ptr c = arguments->stack(s,"systemd",false);
+            if (!c->init (arguments->l3()))
               die ("initialisation of the systemd socket failed");
             arguments->has_work++;
           }
+        if (hw != arguments->has_work)
+          arguments->reset();
       }
 #endif
-
-	  errno = 0;
+      if (arguments->filters.size())
+        die ("You need to use filters in front of the affected backend");
       if (arguments->tunnel || arguments->route || arguments->discover || 
           arguments->eibnetname)
         die ("Option '-S' starts the multicast server.\n"
