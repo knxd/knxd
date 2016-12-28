@@ -40,10 +40,9 @@ Layer2::Layer2 (L2options *opt, TracePtr tr) : Layer2shim (opt, tr)
 bool
 Layer2shim::init (Layer3 *layer3)
 {
-  l3 = layer3;
-  if (! l3)
+  if (! layer3)
     return false;
-  l3->registerLayer2 (shared_from_this());
+  l3 = layer3->registerLayer2 (shared_from_this());
   return true;
 }
 

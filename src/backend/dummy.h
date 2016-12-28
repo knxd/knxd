@@ -40,6 +40,7 @@ class DummyL2Filter:public Layer23
 public:
   DummyL2Filter (L2options *opt, Layer2Ptr l2);
   ~DummyL2Filter ();
+  Layer2Ptr clone(Layer2Ptr l2);
 };
 
 #endif

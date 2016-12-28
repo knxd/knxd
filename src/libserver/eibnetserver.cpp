@@ -118,19 +118,10 @@ EIBnetDiscover::~EIBnetDiscover ()
     delete sock;
 }
 
-// we can't just not define this function
 bool
-EIBnetServer::init (Layer3 *l3)
-{
-  ERRORPRINTF (t, E_ERROR | 43, this, "Code error: missing parameters");
-  return false;
-}
-
-bool
-EIBnetServer::init (Layer3 *l3,
-                    const char *multicastaddr, const int port,
-                    const bool tunnel, const bool route,
-                    const bool discover)
+EIBnetServer::setup (const char *multicastaddr, const int port,
+                     const bool tunnel, const bool route,
+                     const bool discover)
 {
   struct sockaddr_in baddr;
 
@@ -181,13 +172,10 @@ EIBnetServer::init (Layer3 *l3,
 
   TRACEPRINTF (t, 8, this, "Opened");
 
-  if (!Layer2mixin::init(l3))
-    goto err_out3;
-
   return true;
 
 err_out4:
-  Layer2mixin::RunStop();
+  RunStop();
 err_out3:
   delete mcast;
   mcast = NULL;

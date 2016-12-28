@@ -28,7 +28,11 @@ class Layer23 : public Layer2shim, public Layer3
 {
 public:
   Layer23 (Layer2Ptr l2);
-  bool init (Layer3 *l3);
+  virtual bool init (Layer3 *l3);
+
+  // You must override this, and return an instance of yourself,
+  // with l2 set to the given l2.
+  virtual Layer2Ptr clone (Layer2Ptr l2) = 0;
 
 private:
   Layer2Ptr l2;
@@ -65,7 +69,7 @@ public:
   eibaddr_t getDefaultAddr();
   std::shared_ptr<GroupCache> getCache();
 
-  bool registerLayer2 (Layer2Ptr l2);
+  Layer3 * registerLayer2 (Layer2Ptr l2);
   bool deregisterLayer2 (Layer2Ptr l2);
 
   bool registerBusmonitor (L_Busmonitor_CallBack * c);

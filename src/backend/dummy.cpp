@@ -57,3 +57,12 @@ DummyL2Filter::~DummyL2Filter ()
 {
   TRACEPRINTF (t, 2, this, "CloseFilter");
 }
+
+Layer2Ptr
+DummyL2Filter::clone (Layer2Ptr l2)
+{
+    Layer2Ptr c = Layer2Ptr(new DummyL2Filter(NULL, l2));
+    // now copy our settings to c. In this case there's nothing to copy.
+    return c;
+}
+

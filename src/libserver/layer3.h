@@ -59,8 +59,11 @@ public:
   /** group cache */
   virtual std::shared_ptr<GroupCache> getCache() = 0;
 
-  /** register a layer2 interface, return true if successful*/
-  virtual bool registerLayer2 (Layer2Ptr l2) = 0;
+  /** register a layer2 interface, return the L3 registered-to if successful.
+   * Registration may shift the caller to a different L3 if intermediate
+   * layer23 modules are present
+   */
+  virtual Layer3 * registerLayer2 (Layer2Ptr l2) = 0;
   /** deregister a layer2 interface, return true if successful*/
   virtual bool deregisterLayer2 (Layer2Ptr l2) = 0;
 
@@ -150,7 +153,7 @@ public:
   eibaddr_t getDefaultAddr() { return defaultAddr; }
   std::shared_ptr<GroupCache> getCache() { return cache; }
 
-  bool registerLayer2 (Layer2Ptr l2);
+  Layer3 * registerLayer2 (Layer2Ptr l2);
   bool deregisterLayer2 (Layer2Ptr l2);
 
   bool registerBusmonitor (L_Busmonitor_CallBack * c);

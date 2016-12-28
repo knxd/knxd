@@ -186,7 +186,7 @@ Layer3real::registerVBusmonitor (L_Busmonitor_CallBack * c)
   return true;
 }
 
-bool
+Layer3 *
 Layer3real::registerLayer2 (Layer2Ptr l2)
 {
   TRACEPRINTF (tr(), 3, this, "registerLayer2 %d:%s", l2->t->seq, l2->t->name.c_str());
@@ -194,11 +194,11 @@ Layer3real::registerLayer2 (Layer2Ptr l2)
     if (! l2->Open ())
       {
         TRACEPRINTF (tr(), 3, this, "registerLayer2 %d:%s = 0", l2->t->seq, l2->t->name.c_str());
-        return false;
+        return nullptr;
       }
   layer2.push_back(l2);
   TRACEPRINTF (tr(), 3, this, "registerLayer2 %d:%s = 1", l2->t->seq, l2->t->name.c_str());
-  return true;
+  return this;
 }
 
 bool

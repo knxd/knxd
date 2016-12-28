@@ -126,10 +126,8 @@ class EIBnetServer: public Layer2mixin
 public:
   EIBnetServer (TracePtr tr, const String serverName);
   virtual ~EIBnetServer ();
-  bool init (Layer3 *l3); // __attribute__((deprecated));
-  bool init (Layer3 *l3,
-             const char *multicastaddr, const int port,
-             const bool tunnel, const bool route, const bool discover);
+  bool setup (const char *multicastaddr, const int port,
+              const bool tunnel, const bool route, const bool discover);
   void stop();
   void handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock);
 

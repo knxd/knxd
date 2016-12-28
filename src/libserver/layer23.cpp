@@ -158,17 +158,17 @@ Layer23::getCache()
   return l3->getCache();
 }
 
-
-bool
+Layer3 *
 Layer23::registerLayer2 (Layer2Ptr l2)
 {
-  return l3->registerLayer2 (l2);
+  Layer2Ptr c = clone(l2);
+  return l3->registerLayer2 (c);
 }
 
 bool
 Layer23::deregisterLayer2 (Layer2Ptr l2)
 {
-  return l3->deregisterLayer2 (l2);
+  return l3->deregisterLayer2 (shared_from_this());
 }
 
 
