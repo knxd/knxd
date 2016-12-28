@@ -29,6 +29,7 @@ class DummyL2Driver:public Layer2
 public:
   DummyL2Driver (L2options *opt);
   ~DummyL2Driver ();
+  bool init (Layer3 *l3);
 
   void Send_L_Data (LPDU * l);
 };
@@ -41,6 +42,8 @@ public:
   DummyL2Filter (L2options *opt, Layer2Ptr l2);
   ~DummyL2Filter ();
   Layer2Ptr clone(Layer2Ptr l2);
+
+  void Send_L_Data (LPDU * l);
 };
 
 #endif

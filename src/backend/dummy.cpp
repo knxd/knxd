@@ -30,6 +30,14 @@ DummyL2Driver::DummyL2Driver (L2options *opt) : Layer2 (opt)
   TRACEPRINTF (t, 2, this, "Open");
 }
 
+bool
+DummyL2Driver::init (Layer3 *l3)
+{
+    addGroupAddress(0);
+    return Layer2::init(l3);
+}
+
+
 DummyL2Driver::~DummyL2Driver ()
 {
   TRACEPRINTF (t, 2, this, "Close");
@@ -51,6 +59,13 @@ DummyL2Driver::Send_L_Data (LPDU * l)
 DummyL2Filter::DummyL2Filter (L2options *opt, Layer2Ptr l2) : Layer23 (l2)
 {
   TRACEPRINTF (t, 2, this, "OpenFilter");
+}
+
+void
+DummyL2Filter::Send_L_Data (LPDU * l)
+{
+  TRACEPRINTF (t, 2, this, "Passing %s", l->Decode ().c_str());
+  Layer23::Send_L_Data (l);
 }
 
 DummyL2Filter::~DummyL2Filter ()
