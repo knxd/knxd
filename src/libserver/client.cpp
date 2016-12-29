@@ -21,7 +21,9 @@
 #include <unistd.h>
 #include "server.h"
 #include "client.h"
+#ifdef HAVE_BUSMONITOR
 #include "busmonitor.h"
+#endif
 #include "connection.h"
 #include "config.h"
 #ifdef HAVE_MANAGEMENT
@@ -114,6 +116,7 @@ ClientConnection::read_cb (uint8_t *buf, size_t len)
 
   switch (msg)
     {
+#ifdef HAVE_BUSMONITOR
     case EIB_OPEN_BUSMONITOR:
       a_conn = new A_Busmonitor (shared_from_this(), false, false, buf,xlen);
       goto new_a_conn;
@@ -137,7 +140,7 @@ ClientConnection::read_cb (uint8_t *buf, size_t len)
     case EIB_OPEN_VBUSMONITOR_TS:
       a_conn = new A_Busmonitor (shared_from_this(), true, true, buf,xlen);
       goto new_a_conn;
-
+#endif
     case EIB_OPEN_T_BROADCAST:
       a_conn = new A_Broadcast (shared_from_this(), buf,xlen);
       goto new_a_conn;

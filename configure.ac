@@ -79,6 +79,23 @@ AC_DEFUN([NEED_PTH], [dnl
  need_pthsem=yes
  AC_MSG_RESULT([PTH because of $1])
 ])
+AC_DEFUN([NEED_EMI], [dnl
+ need_emi=yes
+ AC_MSG_RESULT([EMI because of $1])
+])
+
+AC_ARG_ENABLE(busmonitor,
+[  --enable-busmonitor		enable bus monitoring],
+[case "${enableval}" in
+ yes) busmonitor=true ;;
+  no)  busmonitor=false ;;
+   *) AC_MSG_ERROR(bad value ${enableval} for --enable-busmonitor) ;;
+ esac],[busmonitor=false])
+AM_CONDITIONAL(HAVE_BUSMONITOR, test x$busmonitor = xtrue)
+if test x$busmonitor = xtrue ; then
+ AC_DEFINE(HAVE_BUSMONITOR, 1 , [bus monitoring enabled])
+ NEED_PTH(busmonitor)
+fi
 
 AC_ARG_ENABLE(management,
 [  --enable-management		enable management connections],
@@ -90,6 +107,7 @@ AC_ARG_ENABLE(management,
 AM_CONDITIONAL(HAVE_MANAGEMENT, test x$management = xtrue)
 if test x$management = xtrue ; then
  AC_DEFINE(HAVE_MANAGEMENT, 1 , [management connections enabled])
+ NEED_PTH(management)
 fi
 
 AC_ARG_ENABLE(ft12,
@@ -103,6 +121,7 @@ AM_CONDITIONAL(HAVE_FT12, test x$ft12 = xtrue)
 if test x$ft12 = xtrue ; then
  AC_DEFINE(HAVE_FT12, 1 , [FT1.2 enabled])
  NEED_PTH(ft12)
+ NEED_EMI(ft12)
 fi
 
 AC_ARG_ENABLE(dummy,
@@ -128,6 +147,7 @@ AM_CONDITIONAL(HAVE_PEI16s, test x$pei16s = xtrue)
 if test x$pei16s = xtrue ; then
  AC_DEFINE(HAVE_PEI16s, 1 , [PEI16s enabled])
  NEED_PTH(pei16s)
+ NEED_EMI(pei16s)
 fi
 
 AC_ARG_ENABLE(tpuarts,
@@ -208,6 +228,7 @@ if test x$usb = xtrue ; then
  fi
  AC_DEFINE(HAVE_USB, 1 , [USB backend enabled])
  NEED_PTH(usb)
+ NEED_EMI(usb)
 else
  AM_CONDITIONAL(HAVE_USB, test x$usb = xtrue)
 fi
@@ -250,6 +271,11 @@ AM_CONDITIONAL(HAVE_GROUPCACHE, test x$groupcache = xtrue)
 if test x$groupcache = xtrue ; then
  AC_DEFINE(HAVE_GROUPCACHE, 1 , [Group Cache enabled])
 fi
+
+if test x$need_emi = xyes ; then
+ NEED_PTH(emi)
+fi
+AM_CONDITIONAL(HAVE_EMI, test x$need_emi = xyes)
 
 EV_LIBS=
 if test x$need_pthsem = xyes ; then

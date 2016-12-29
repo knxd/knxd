@@ -19,6 +19,7 @@
 
 #include <unistd.h>
 #include <errno.h>
+#include <sys/socket.h>
 #include "systemdserver.h"
 
 SystemdServer::SystemdServer (TracePtr tr, int systemd_fd):

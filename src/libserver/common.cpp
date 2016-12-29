@@ -23,7 +23,9 @@
 #include <sys/time.h>
 #endif
 
+#if HAVE_PTHSEM
 pth_time_t pth_null_time = { 0L, 0L };
+#endif
 
 timestamp_t
 getTime ()

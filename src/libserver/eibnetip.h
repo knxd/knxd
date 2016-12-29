@@ -372,7 +372,6 @@ public:
   void Send (EIBNetIPPacket p) {
     Send (p, sendaddr);
   }
-  EIBNetIPPacket *Get (pth_event_t stop);
 
   /** get the port this socket is bound to (network byte order) */
   int port ();

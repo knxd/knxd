@@ -18,6 +18,8 @@
 */
 
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 #include <ev++.h>
 #include "server.h"
 #include "client.h"

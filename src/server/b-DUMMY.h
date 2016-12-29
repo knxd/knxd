@@ -21,7 +21,6 @@
 #define C_DUMMY_H
 
 #include "dummy.h"
-#include "emi2.h"
 #include "layer3.h"
 
 #define DUMMY_URL "dummy:\n"

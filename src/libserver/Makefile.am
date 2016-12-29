@@ -7,7 +7,7 @@ else
 SYSTEMD_SERVER=
 endif
 
-COMMON=exception.h common.h common.cpp trace.h trace.cpp ipsupport.h ipsupport.cpp
+COMMON=exception.h common.h common.cpp trace.h trace.cpp ipsupport.h ipsupport.cpp emi.h emi.cpp
 if HAVE_PTHSEM
 THREADS=threads.h threads.cpp
 else
@@ -27,14 +27,27 @@ else
 MANAGEMENT=
 MANAGEMENT_C=
 endif
-FRONTEND_C=client.h client.cpp busmonitor.h busmonitor.cpp connection.h connection.cpp
+FRONTEND_C=client.h client.cpp connection.h connection.cpp
 FRONTEND=server.h server.cpp localserver.h localserver.cpp inetserver.h inetserver.cpp $(SYSTEMD_SERVER) $(FRONTEND_C) $(MANAGEMENT_C)
-EMI=emi1.h emi1.cpp emi2.h emi2.cpp cemi.h cemi.cpp emi.h emi.cpp
+if HAVE_EMI
+EMI=emi1.h emi1.cpp emi2.h emi2.cpp cemi.h cemi.cpp
+else
+EMI=
+endif
+if HAVE_BUSMONITOR
+BUSMON=busmonitor.h busmonitor.cpp 
+else
+BUSMON=
+endif
 if HAVE_EIBNETSERVER
 EIBNETIP=eibnetip.cpp eibnetip.h eibnetserver.cpp eibnetserver.h
 else
 EIBNETIP=
 endif
+if HAVE_USB
 USB=eibusb.cpp eibusb.h
+else
+USB=
+endif
 
 libeibstack_a_SOURCES =$(COMMON) $(CORE) $(THREADS) $(PDUs) $(MANAGEMENT) $(FRONTEND) $(EMI) $(EIBNETIP) $(USB) $(CACHE)
