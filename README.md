@@ -27,6 +27,27 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 
   * local clients may talk to each other
 
+* 0.12 (``libev`` branch -- getting rid of the pthsem library)
+
+## libev vs. pthsem
+
+knxd traditionally depended on the pthsem library, which has major issues:
+
+* stops valgrind from working
+
+* is an unmaintained fork of libpth, which
+
+  * is not maintained any more either
+
+  * does a lot of unnecessary busy-work when processing events
+
+* is not and will never be included in Debian 
+
+Therfore, version 0.12 does no longer use libpth. Instead, processing is
+based on libev. The default configuration will skip all features which
+still use pthsem. For the transition, a modified libev is included (via
+"git submodule") which is able to run alongside pthsem.
+
 ## Building
 
 On Debian:
@@ -42,7 +63,8 @@ On Debian:
     sudo apt-get install git-core build-essential
     git clone https://github.com/knxd/knxd.git
 
-    # knxd requires libpthsem which unfortunately isn't part of Debian
+    # This section is only necessary if your configuration requires pthsem.
+    # The configuration options in ``debian/rules`` do not.
     wget https://www.auto.tuwien.ac.at/~mkoegler/pth/pthsem_2.0.8.tar.gz
     tar xzf pthsem_2.0.8.tar.gz
     cd pthsem-2.0.8
