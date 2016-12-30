@@ -32,7 +32,6 @@ class A_Busmonitor:public L_Busmonitor_CallBack, public A_Base
   /** should provide timestamps */
   bool ts;
 
-  void Run (pth_sem_t * stop);
   const char *Name() { return "busmonitor"; }
 protected:
   /** Layer 3 Interface*/

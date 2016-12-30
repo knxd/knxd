@@ -50,4 +50,4 @@ else
 USB=
 endif
 
-libeibstack_a_SOURCES =$(COMMON) $(CORE) $(THREADS) $(PDUs) $(MANAGEMENT) $(FRONTEND) $(EMI) $(EIBNETIP) $(USB) $(CACHE)
+libeibstack_a_SOURCES =$(COMMON) $(CORE) $(THREADS) $(PDUs) $(MANAGEMENT) $(FRONTEND) $(EMI) $(EIBNETIP) $(USB) $(CACHE) $(BUSMON)

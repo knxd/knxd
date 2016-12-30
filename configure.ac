@@ -90,11 +90,10 @@ AC_ARG_ENABLE(busmonitor,
  yes) busmonitor=true ;;
   no)  busmonitor=false ;;
    *) AC_MSG_ERROR(bad value ${enableval} for --enable-busmonitor) ;;
- esac],[busmonitor=false])
+ esac],[busmonitor=true])
 AM_CONDITIONAL(HAVE_BUSMONITOR, test x$busmonitor = xtrue)
 if test x$busmonitor = xtrue ; then
  AC_DEFINE(HAVE_BUSMONITOR, 1 , [bus monitoring enabled])
- NEED_PTH(busmonitor)
 fi
 
 AC_ARG_ENABLE(management,
