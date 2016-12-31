@@ -17,9 +17,11 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include "emi_common.h"
 #include "emi.h"
+#include "emi_common.h"
 #include "layer3.h"
+
+unsigned int maxPacketLen() { return 0x10; }
 
 EMI_Common::EMI_Common (LowLevelDriver * i, 
                         L2options *opt) : Layer2(opt)
@@ -153,9 +155,11 @@ EMI_Common::Send_L_Data (LPDU * l)
   L_Data_PDU *l1 = (L_Data_PDU *) l;
   assert (l1->data.size() >= 1);
   /* discard long frames, as they are not supported by EMI 1 */
-  if (l1->data.size() > 0x10)
-    return;
-  assert (l1->data.size() <= 0x10);
+  if (l1->data.size() > maxPacketLen())
+    {
+      TRACEPRINTF (t, 2, this, "Oversize (%d), discarded", l1->data.size());
+      return;
+    }
   assert ((l1->hopcount & 0xf8) == 0);
 
   inqueue.put (l);
@@ -168,7 +172,7 @@ EMI_Common::Send (LPDU * l)
   TRACEPRINTF (t, 1, this, "Send %s", l->Decode ().c_str());
   L_Data_PDU *l1 = (L_Data_PDU *) l;
 
-  CArray pdu = L_Data_ToEMI (0x11, *l1);
+  CArray pdu = lData2EMI (0x11, *l1);
   iface->Send_Packet (pdu);
   delete l;
 }
@@ -222,7 +226,7 @@ EMI_Common::Run (pth_sem_t * stop1)
 	wait_confirm = false;
       if (c->size() && (*c)[0] == ind[I_DATA] && (mode & BUSMODE_UP))
 	{
-	  L_Data_PDU *p = EMI_to_L_Data (*c, shared_from_this());
+	  L_Data_PDU *p = EMI2lData (*c, shared_from_this());
 	  if (p)
 	    {
 	      delete c;

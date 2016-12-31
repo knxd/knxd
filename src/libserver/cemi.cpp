@@ -24,178 +24,32 @@
 #include "emi.h"
 #include "layer3.h"
 
-CEMILayer2::CEMILayer2 (LowLevelDriver * i,
-                        L2options *opt) : Layer2 (opt)
+unsigned int
+CEMILayer2::maxPacketLen()
 {
-  TRACEPRINTF (t, 2, this, "Open");
-  iface = i;
-  if (opt && opt->send_delay) {
-    send_delay = pth_time(opt->send_delay / 1000, (opt->send_delay % 1000) * 1000);
-    opt->send_delay = 0;
-  } else
-    send_delay = pth_null_time;
-  
-  pth_sem_init (&in_signal);
-  if (!iface->init ())
-    {
-      delete iface;
-      iface = 0;
-      return;
-    }
-  Start ();
-  TRACEPRINTF (t, 2, this, "Opened");
+  return 50;
 }
 
-bool
-CEMILayer2::init (Layer3 *l3)
+CEMILayer2::~CEMILayer2()
 {
-  if (iface == 0)
-    return false;
-  if (! addGroupAddress(0))
-    return false;
-  return Layer2::init (l3);
-}
-
-CEMILayer2::~CEMILayer2 ()
-{
-  TRACEPRINTF (t, 2, this, "Destroy");
-  Stop ();
-  while (!inqueue.isempty ())
-    delete inqueue.get ();
-  if (iface)
-    delete iface;
 }
 
 bool
 CEMILayer2::enterBusmonitor ()
 {
-  if (!Layer2::enterBusmonitor ())
-    return false;
   TRACEPRINTF (t, 2, this, "(CEMILayer2)  OpenBusmon not implemented");
-  iface->SendReset ();
-
-  return true;
+  return false;
 }
 
-bool
-CEMILayer2::Open ()
-{
-  if (!Layer2::Open ())
-    return false;
-  TRACEPRINTF (t, 2, this, "(CEMILayer2) Open");
-  iface->SendReset ();
-  
-  return true;
-}
+void CEMILayer2::cmdEnterMonitor() {}
+void CEMILayer2::cmdLeaveMonitor() {}
+void CEMILayer2::cmdOpen() {}
+void CEMILayer2::cmdClose() {}
 
-bool
-CEMILayer2::Send_Queue_Empty ()
-{
-  return iface->Send_Queue_Empty () && inqueue.isempty();
-}
+const uint8_t *
+CEMILayer2::getIndTypes()
+{ 
+  static const uint8_t indTypes[] = { 0x2E, 0x29, 0x2B };
+  return indTypes;
+}   
 
-void
-CEMILayer2::Send_L_Data (LPDU * l)
-{
-  TRACEPRINTF (t, 2, this, "Send (CEMILayer2) Send_L_Data %s", l->Decode ().c_str());
-  if (l->getType () != L_Data)
-    {
-      delete l;
-      return;
-    }
-  L_Data_PDU *l1 = (L_Data_PDU *) l;
-  assert (l1->data.size() >= 1);
-  /* discard long frames */
-  /* actually cEMI supports long frames and splits long payload into multiple frames */
-  /* but this is not implemented!! */
-  if (l1->data.size() > 50)
-    {
-      TRACEPRINTF (t, 2, this, "Send (CEMILayer2) long_data! (%d)", l1->data.size());
-      delete l;
-      return;
-    }
-  assert ((l1->hopcount & 0xf8) == 0);
-
-  inqueue.put (l);
-  pth_sem_inc (&in_signal, 1);
-}
-
-void
-CEMILayer2::Send (LPDU * l)
-{
-  TRACEPRINTF (t, 1, this, "(CEMILayer2) Send %s", l->Decode ().c_str());
-  L_Data_PDU *l1 = (L_Data_PDU *) l;
-
-  CArray pdu = L_Data_ToCEMI (0x11, *l1);
-  iface->Send_Packet (pdu);
-  delete l;
-}
-
-void
-CEMILayer2::Run (pth_sem_t * stop1)
-{
-  pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
-  pth_event_t input = pth_event (PTH_EVENT_SEM, &in_signal);
-  pth_event_t timeout = pth_event (PTH_EVENT_RTIME, pth_time (0, 0));
-  bool wait_confirm = false;
-  while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
-    {
-      if (!wait_confirm)
-	pth_event_concat (stop, input, NULL);
-      if (wait_confirm)
-	pth_event_concat (stop, timeout, NULL);
-      CArray *c = iface->Get_Packet (stop);
-      pth_event_isolate(input);
-      pth_event_isolate(timeout);
-      if (!wait_confirm && !inqueue.isempty())
-	{
-	  pth_sem_dec (&in_signal);
-	  Send(inqueue.get());
-	  if (send_delay != pth_null_time)
-	    {
-	      pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE, timeout, send_delay);
-	      wait_confirm = true;
-	    }
-	}
-      if (wait_confirm && pth_event_status(timeout) == PTH_STATUS_OCCURRED)
-	wait_confirm = false;
-      if (!c)
-	continue;
-      if (c->size() == 1 && (*c)[0] == 0xA0 && mode != BUSMODE_DOWN)
-	{
-	  TRACEPRINTF (t, 2, this, "ReInit");
-	  iface->SendReset ();
-	}
-      if (c->size() && (*c)[0] == 0x2E)  /* 2Eh = L_Data.con */
-	wait_confirm = false;
-      if (c->size() && (*c)[0] == 0x29 && (mode & BUSMODE_UP)) /* 29h = L_Data.ind */
-	{
-	  L_Data_PDU *p = CEMI_to_L_Data (*c, shared_from_this());
-	  if (p)
-	    {
-	      delete c;
-	      if (p->AddrType == IndividualAddress)
-		p->dest = 0;
-	      TRACEPRINTF (t, 2, this, "Recv %s", p->Decode ().c_str());
-	      l3->recv_L_Data (p);
-	      continue;
-	    }
-	}
-      if (c->size() > 4 && (*c)[0] == 0x2B && mode == BUSMODE_MONITOR) /* 2Bh = L_Busmon.ind */
-	{
-	  /* untested for cEMI !! */
-	  L_Busmonitor_PDU *p = new L_Busmonitor_PDU (shared_from_this());
-	  p->status = (*c)[1];
-	  p->timestamp = ((*c)[2] << 24) | ((*c)[3] << 16);
-	  p->pdu.set (c->data() + 4, c->size() - 4);
-	  delete c;
-	  TRACEPRINTF (t, 2, this, "Recv %s", p->Decode ().c_str());
-	  l3->recv_L_Data (p);
-	  continue;
-	}
-      delete c;
-    }
-  pth_event_free (stop, PTH_FREE_THIS);
-  pth_event_free (input, PTH_FREE_THIS);
-  pth_event_free (timeout, PTH_FREE_THIS);
-}

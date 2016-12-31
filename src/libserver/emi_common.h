@@ -22,6 +22,7 @@
 
 #include "layer2.h"
 #include "lowlevel.h"
+#include "emi.h"
 
 typedef enum {
     I_CONFIRM = 0,
@@ -57,9 +58,15 @@ public:
 
   void Send_L_Data (LPDU * l);
 
-  bool enterBusmonitor ();
+  virtual bool enterBusmonitor ();
   bool leaveBusmonitor ();
 
+  virtual CArray lData2EMI (uchar code, const L_Data_PDU & p)
+  { return L_Data_ToEMI(code, p); }
+  virtual L_Data_PDU *EMI2lData (const CArray & data, Layer2Ptr l2)
+  { return EMI_to_L_Data(data,l2); }
+
+  virtual unsigned int maxPacketLen() { return 0x10; }
   bool Open ();
   bool Close ();
   bool Send_Queue_Empty ();
