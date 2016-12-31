@@ -30,7 +30,7 @@ endif
 FRONTEND_C=client.h client.cpp connection.h connection.cpp
 FRONTEND=server.h server.cpp localserver.h localserver.cpp inetserver.h inetserver.cpp $(SYSTEMD_SERVER) $(FRONTEND_C) $(MANAGEMENT_C)
 if HAVE_EMI
-EMI=emi1.h emi1.cpp emi2.h emi2.cpp cemi.h cemi.cpp
+EMI=emi_common.h emi_common.cpp emi1.h emi1.cpp emi2.h emi2.cpp cemi.h cemi.cpp
 else
 EMI=
 endif
