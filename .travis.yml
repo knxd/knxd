@@ -20,4 +20,4 @@ addons:
     - gcc-4.8
     - g++-4.8
     - libev-dev
-    - libusb-dev
+    - libusb-1.0-0-dev
