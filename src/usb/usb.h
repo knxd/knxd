@@ -22,7 +22,6 @@
 
 #include <ev++.h>
 #include "trace.h"
-#include "threads.h"
 #include "libusb.h"
 
 class USBLoop

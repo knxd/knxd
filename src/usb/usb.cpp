@@ -19,6 +19,7 @@
 
 #include <stdlib.h>
 #include <errno.h>
+#include <sys/poll.h>
 #include "usb.h"
 
 static void pollfd_added_cb (int fd, short events, void *user_data)
