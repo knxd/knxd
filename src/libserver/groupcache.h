@@ -24,38 +24,58 @@
 
 #include "layer3.h"
 #include "layer2.h"
+#include "client.h"
 
-typedef struct
+class GroupCache;
+
+struct GroupCacheEntry
 {
+  GroupCacheEntry(eibaddr_t dst) { this->dst = dst; }
   /** Layer 4 data */
   CArray data;
   /** source address */
-  eibaddr_t src;
+  eibaddr_t src = 0;
   /** destination address */
   eibaddr_t dst;
   /** receive time */
   time_t recvtime;
-} GroupCacheEntry;
+};
+
+typedef void (*GCReadCallback)(const GroupCacheEntry &foo, bool nowait, ClientConnPtr c);
+typedef void (*GCLastCallback)(const Array<eibaddr_t> &foo, uint16_t end, ClientConnPtr c);
+
+class GroupCacheReader
+{
+public:
+  GroupCacheReader(GroupCache *); 
+  ~GroupCacheReader();
+
+  bool stopped = false;
+  GroupCache *gc;
+  virtual void updated(GroupCacheEntry *) = 0;
+protected:
+  virtual void stop();
+};
 
 class GroupCache:public Layer2mixin
 {
+  Array < GroupCacheReader * > reader;
   /** output queue */
   Array < GroupCacheEntry * > cache;
   /** controlled by .Start/Stop; if false, the whole code does nothing */
   bool enable;
-  /** signal for .Read and .LastUpdates that the cache has been updated */
-  pth_cond_t cond;
-  /** serialize access to .cond */
-  pth_mutex_t mutex;
+public: // but only for GroupCacheReader
   /** current position in 'updates' array */
   uint16_t pos;
   /** circular buffer of last-updated group addresses */
   eibaddr_t updates[0x100];
-
+private:
   /** find this group */
   GroupCacheEntry *find (eibaddr_t dst);
   /** add this entry */
   void add (GroupCacheEntry * entry);
+  /** signal that this entry has been updated */
+  virtual void updated(GroupCacheEntry *);
 
 public:
   /** constructor */
@@ -65,6 +85,10 @@ public:
   /** Feed data to the cache */
   void Send_L_Data (L_Data_PDU * l);
 
+  /** add a reader which gets triggered on updates */
+  void add (GroupCacheReader *r);
+  void remove (GroupCacheReader *r);
+
   /** Turn on caching, calls l3.registerGroupCallBack(ANY) */
   bool Start ();
   /** drop the whole cache */
@@ -73,10 +97,12 @@ public:
   void Stop ();
 
   /** read, and optionally wait for, a cache entry for this address */
-  GroupCacheEntry Read (eibaddr_t addr, unsigned timeout, uint16_t age);
+  void Read (eibaddr_t addr, unsigned timeout, uint16_t age,
+             GCReadCallback cb, ClientConnPtr c);
   /** incrementally monitor group cache updates */
-  Array < eibaddr_t > LastUpdates (uint16_t start, uint8_t timeout,
-                                   uint16_t & end);
+  void LastUpdates (uint16_t start, uint8_t timeout,
+                    GCLastCallback cb, ClientConnPtr c);
+
   // remove this group
   void remove (eibaddr_t addr);
 };

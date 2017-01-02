@@ -57,7 +57,8 @@ public:
   /** our default address */
   virtual eibaddr_t getDefaultAddr() = 0;
   /** group cache */
-  virtual std::shared_ptr<GroupCache> getCache() = 0;
+  virtual std::shared_ptr<GroupCache> getCache() { return nullptr; }
+  virtual void setCache(std::shared_ptr<GroupCache> cache) { }
 
   /** register a layer2 interface, return the L3 registered-to if successful.
    * Registration may shift the caller to a different L3 if intermediate
@@ -152,6 +153,7 @@ public:
   TracePtr tr() { return _tr; }
   eibaddr_t getDefaultAddr() { return defaultAddr; }
   std::shared_ptr<GroupCache> getCache() { return cache; }
+  void setCache(std::shared_ptr<GroupCache> cache) { this->cache = cache; }
 
   Layer3 * registerLayer2 (Layer2Ptr l2);
   bool deregisterLayer2 (Layer2Ptr l2);

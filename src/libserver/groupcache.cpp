@@ -28,8 +28,6 @@ GroupCache::GroupCache (TracePtr t)
   enable = 0;
   pos = 0;
   memset (updates, 0, sizeof (updates));
-  pth_mutex_init (&mutex);
-  pth_cond_init (&cond);
 }
 
 GroupCache::~GroupCache ()
@@ -92,7 +90,6 @@ GroupCache::add (GroupCacheEntry * entry)
   cache[p] = entry;
 }
 
-
 void
 GroupCache::Send_L_Data (L_Data_PDU * l)
 {
@@ -109,24 +106,15 @@ GroupCache::Send_L_Data (L_Data_PDU * l)
 	      c = find (l->dest);
 	      updates[pos & 0xff] = l->dest;
 	      pos++;
-	      if (c)
+	      if (! c)
 		{
-		  c->data = t1->data;
-		  c->src = l->source;
-		  c->dst = l->dest;
-		  c->recvtime = time (0);
-		  pth_cond_notify (&cond, 1);
-		}
-	      else
-		{
-		  c = new GroupCacheEntry;
-		  c->data = t1->data;
-		  c->src = l->source;
-		  c->dst = l->dest;
-		  c->recvtime = time (0);
+		  c = new GroupCacheEntry(l->dest);
 		  add (c);
-		  pth_cond_notify (&cond, 1);
 		}
+              c->src = l->source;
+              c->data = t1->data;
+              c->recvtime = time (0);
+              updated(c);
 	    }
 	}
       delete t;
@@ -165,46 +153,144 @@ GroupCache::Stop ()
   enable = 0;
 }
 
-GroupCacheEntry
-  GroupCache::Read (eibaddr_t addr, unsigned Timeout, uint16_t age)
+GroupCacheReader::GroupCacheReader(GroupCache *gc)
+{
+  this->gc = gc;
+  gc->add(this);
+}
+
+GroupCacheReader::~GroupCacheReader()
+{
+}
+
+void
+GroupCacheReader::stop()
+{
+  if (stopped)
+    return;
+  stopped = true;
+  gc->remove(this);
+}
+
+void
+GroupCache::add (GroupCacheReader * entry)
+{
+  reader.push_back(entry);
+}
+
+void
+GroupCache::updated(GroupCacheEntry *c)
+{
+  // do this in reverse so that the update handler can safely remove itself
+  unsigned int i = reader.size();
+  while(i--)
+    reader[i]->updated(c);
+}
+
+void
+GroupCache::remove (GroupCacheReader * entry)
+{
+  ITER(i,reader)
+    if (*i == entry)
+      {
+        reader.erase(i);
+        return;
+      }
+}
+
+class GCReader : protected GroupCacheReader
+{
+  GCReadCallback cb;
+  ClientConnPtr cc;
+  eibaddr_t addr;
+  uint16_t age;
+  ev::timer timeout;
+public:
+  bool stopped = false;
+
+  GCReader(GroupCache *gc, eibaddr_t addr, int Timeout, uint16_t age,
+           GCReadCallback cb, ClientConnPtr cc) : GroupCacheReader(gc)
+  {
+    this->cb = cb;
+    this->cc = cc;
+    this->addr = addr;
+    this->age = age;
+    timeout.set<GCReader,&GCReader::timeout_cb>(this);
+    timeout.start(Timeout,0);
+  }
+  ~GCReader() {}
+  void stop() {
+    stopped = true;
+    GroupCacheReader::stop();
+  }
+private:
+  void updated(GroupCacheEntry *c)
+  {
+    if (stopped)
+      return;
+    if (c->dst != addr)
+      return;
+
+    TRACEPRINTF (gc->t, 4, this, "GroupCache found: %s",
+                  FormatEIBAddr (c->src).c_str());
+    cb(*c,false,cc);
+    stop();
+  }
+
+  void timeout_cb(ev::timer &w, int revents)
+  {
+    if (stopped)
+      return;
+
+    GroupCacheEntry f(addr);
+    TRACEPRINTF (gc->t, 4, this, "GroupCache reread timeout");
+    cb(f,false,cc);
+    stop();
+    return;
+  }
+};
+
+void
+GroupCache::Read (eibaddr_t addr, unsigned Timeout, uint16_t age,
+  GCReadCallback cb, ClientConnPtr cc)
 {
   TRACEPRINTF (t, 4, this, "GroupCacheRead %s %d %d",
 	       FormatGroupAddr (addr).c_str(), Timeout, age);
-  bool rm = false;
   GroupCacheEntry *c;
+
   if (!enable)
     {
-      GroupCacheEntry f;
-      f.src = 0;
-      f.dst = 0;
+      GroupCacheEntry f(0);
       TRACEPRINTF (t, 4, this, "GroupCache not enabled");
-      return f;
+      cb(f, Timeout == 0, cc);
+      return;
     }
 
   c = find (addr);
   if (c && age && c->recvtime + age < time (0))
-    rm = true;
-
-  if (c && !rm)
+    c = nullptr;
+  if (c)
     {
       TRACEPRINTF (t, 4, this, "GroupCache found: %s",
 		   FormatEIBAddr (c->src).c_str());
-      return *c;
+      cb(*c, Timeout == 0, cc);
+      return;
     }
 
   if (!Timeout)
     {
-      GroupCacheEntry f;
-      f.src = 0;
-      f.dst = addr;
+      GroupCacheEntry f(addr);
       TRACEPRINTF (t, 4, this, "GroupCache no entry");
-      return f;
+      cb(f, true, cc);
+      return;
     }
 
+  // No data fond. Send a Read request.
   A_GroupValue_Read_PDU apdu;
   T_DATA_XXX_REQ_PDU tpdu;
   L_Data_PDU *l;
-  pth_event_t timeout = pth_event (PTH_EVENT_RTIME, pth_time (Timeout, 0));
+
+  GCReader *gcr = new GCReader(this,addr,Timeout,age, cb,cc);
 
   tpdu.data = apdu.ToPacket ();
   l = new L_Data_PDU (shared_from_this());
@@ -213,95 +299,85 @@ GroupCacheEntry
   l->dest = addr;
   l->AddrType = GroupAddress;
   l3->recv_L_Data (l);
-
-  do
-    {
-      c = find (addr);
-      rm = false;
-      if (c && age && c->recvtime + age < time (0))
-	rm = true;
-
-      if (c && !rm)
-	{
-	  TRACEPRINTF (t, 4, this, "GroupCache found: %s",
-		       FormatEIBAddr (c->src).c_str());
-	  pth_event_free (timeout, PTH_FREE_THIS);
-	  return *c;
-	}
-
-      if (pth_event_status (timeout) == PTH_STATUS_OCCURRED && c)
-	{
-	  GroupCacheEntry gc;
-	  gc.src = 0;
-	  gc.dst = addr;
-	  TRACEPRINTF (t, 4, this, "GroupCache reread timeout");
-	  pth_event_free (timeout, PTH_FREE_THIS);
-	  return gc;
-	}
-
-      if (pth_event_status (timeout) == PTH_STATUS_OCCURRED)
-	{
-	  c = new GroupCacheEntry;
-	  c->src = 0;
-	  c->dst = addr;
-	  c->recvtime = time (0);
-	  add (c);
-	  TRACEPRINTF (t, 4, this, "GroupCache timeout");
-	  pth_event_free (timeout, PTH_FREE_THIS);
-	  return *c;
-	}
-
-      pth_mutex_acquire (&mutex, 0, 0);
-      pth_cond_await (&cond, &mutex, timeout);
-      pth_mutex_release (&mutex);
-    }
-  while (1);
 }
 
-Array < eibaddr_t > GroupCache::LastUpdates (uint16_t start, uint8_t Timeout,
-					     uint16_t & end)
+class GCTracker : protected GroupCacheReader
 {
+  GCLastCallback cb;
+  ClientConnPtr cc;
+  ev::timer timeout;
   Array < eibaddr_t > a;
-  pth_event_t timeout = pth_event (PTH_EVENT_RTIME, pth_time (Timeout, 0));
+  uint16_t start;
+public:
+  bool stopped = false;
 
-  do
-    {
-      if (pos < 0x100)
-	{
-	  if (pos < start && start < ((pos - 0x100) & 0xffff))
-	    start = (pos - 0x100) & 0xffff;
-	}
-      else
-	{
-	  if (start < ((pos - 0x100) & 0xffff) || start > pos)
-	    start = (pos - 0x100) & 0xffff;
-	}
-      TRACEPRINTF (t, 8, this, "LastUpdates start: %d pos: %d", start, pos);
-      while (start != pos && !updates[start & 0xff])
-	start++;
-      if (start != pos)
-	{
-	  while (start != pos)
-	    {
-	      if (updates[start & 0xff])
-		a.push_back (updates[start & 0xff]);
-	      start++;
-	    }
-	  end = pos;
-	  pth_event_free (timeout, PTH_FREE_THIS);
-	  return a;
-	}
-      if (pth_event_status (timeout) == PTH_STATUS_OCCURRED)
-	{
-	  end = pos;
-	  pth_event_free (timeout, PTH_FREE_THIS);
-	  return a;
-	}
-      pth_event_concat (timeout, stop, NULL);
-      pth_mutex_acquire (&mutex, 0, 0);
-      pth_cond_await (&cond, &mutex, timeout);
-      pth_mutex_release (&mutex);
-      pth_event_isolate (timeout);
-    }
-  while (1);
+  GCTracker(GroupCache *gc, uint16_t start, int Timeout,
+           GCLastCallback cb, ClientConnPtr cc) : GroupCacheReader(gc)
+  {
+    this->cb = cb;
+    this->cc = cc;
+    this->start = start;
+    timeout.set<GCTracker,&GCTracker::timeout_cb>(this);
+    timeout.start(Timeout,0);
+  }
+  ~GCTracker() {}
+  void stop() {
+    stopped = true;
+    GroupCacheReader::stop();
+  }
+private:
+  void updated(GroupCacheEntry *c)
+  {
+    if (stopped)
+      return;
+
+    handler();
+  }
+
+  void timeout_cb(ev::timer &w, int revents)
+  {
+    if (stopped)
+      return;
+
+    handler();
+    if (stopped)
+      return;
+    cb(a,gc->pos,cc);
+    stop();
+  }
+
+  void handler()
+  {
+    if (gc->pos < 0x100)
+      {
+        if (gc->pos < start && start < ((gc->pos - 0x100) & 0xffff))
+          start = (gc->pos - 0x100) & 0xffff;
+      }
+    else
+      {
+        if (start < ((gc->pos - 0x100) & 0xffff) || start > gc->pos)
+          start = (gc->pos - 0x100) & 0xffff;
+      }
+    TRACEPRINTF (gc->t, 8, this, "LastUpdates start: %d pos: %d", start, gc->pos);
+    while (start != gc->pos && !gc->updates[start & 0xff])
+      start++;
+    if (start != gc->pos)
+      {
+        while (start != gc->pos)
+          {
+            if (gc->updates[start & 0xff])
+              a.push_back (gc->updates[start & 0xff]);
+            start++;
+          }
+        cb(a,gc->pos,cc);
+        stop();
+      }
+  }
+};
+
+void
+GroupCache::LastUpdates (uint16_t start, uint8_t Timeout,
+    GCLastCallback cb, ClientConnPtr cc)
+{
+  new GCTracker(this, start, Timeout, cb,cc);
 }
