@@ -212,7 +212,7 @@ L_Data_PDU::L_Data_PDU (Layer2Ptr layer2) : LPDU(layer2)
   AddrType = IndividualAddress;
   source = 0;
   dest = 0;
-  hopcount = 0x07;
+  hopcount = 0x06;
 }
 
 bool
