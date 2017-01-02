@@ -22,17 +22,21 @@
 
 #include <termios.h>
 
-#include "threads.h"
+#include "iobuf.h"
 #include "lowlevel.h"
 #include "lowlatency.h"
 
 /** FT1.2 lowlevel driver*/
-class FT12LowLevelDriver:public LowLevelDriver, private Thread
+class FT12LowLevelDriver:public LowLevelDriver
 {
   /** old serial config */
   low_latency_save sold;
   /** file descriptor */
   int fd;
+  RecvBuf recvbuf;
+  SendBuf sendbuf;
+  size_t read_cb(uint8_t *buf, size_t len);
+  void error_cb();
   /** saved termios */
   struct termios old;
   /** send state */
@@ -41,34 +45,36 @@ class FT12LowLevelDriver:public LowLevelDriver, private Thread
   int recvflag;
   /** debug output */
   TracePtr t;
-  /** semaphore for inqueue */
-  pth_sem_t in_signal;
-  /** semaphore for outqueue */
-  pth_sem_t out_signal;
   /** input queue */
-  Queue < CArray > inqueue;
+  Queue < CArray > send_q;
   /** output queue */
   Queue < CArray * >outqueue;
   /** frame in receiving */
   CArray akt;
+  /** last received frame */
+  CArray last;
   /** repeatcount of the transmitting frame */
   int repeatcount;
   /** state */
-  int mode;
-  /** event for waiting on outqueue */
-  pth_event_t getwait;
-  /** semaphore to signal that inqueu is empty */
-  pth_sem_t send_empty;
+  bool send_wait;
 
-  void Run (pth_sem_t * stop);
   const char *Name() { return "ft12"; }
+  /** set up send and recv buffers, timers, etc. */
+  void setup_buffers();
+
+  ev::async trigger; void trigger_cb (ev::async &w, int revents);
+  ev::timer timer; void timer_cb (ev::timer &w, int revents);
+  ev::timer sendtimer; void sendtimer_cb (ev::timer &w, int revents);
+  /** process incoming data */
+  void process_read(bool is_timeout);
+
 public:
   FT12LowLevelDriver (const char *device, TracePtr tr);
   ~FT12LowLevelDriver ();
   bool init ();
+  void stop();
 
   void Send_Packet (CArray l);
-  CArray *Get_Packet (pth_event_t stop);
   void SendReset ();
   EMIVer getEMIVer ();
 };

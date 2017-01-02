@@ -115,11 +115,10 @@ AC_ARG_ENABLE(ft12,
  yes) ft12=true ;;
   no)  ft12=false ;;
    *) AC_MSG_ERROR(bad value ${enableval} for --enable-ft12) ;;
- esac],[ft12=false])
+ esac],[ft12=true])
 AM_CONDITIONAL(HAVE_FT12, test x$ft12 = xtrue)
 if test x$ft12 = xtrue ; then
  AC_DEFINE(HAVE_FT12, 1 , [FT1.2 enabled])
- NEED_PTH(ft12)
  NEED_EMI(ft12)
 fi
 
