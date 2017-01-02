@@ -20,11 +20,12 @@
 #ifndef SNCN5120_SERIAL_H
 #define SNCN5120_SERIAL_H
 #include <termios.h>
+#include "iobuf.h"
 #include "lowlatency.h"
 #include "layer2.h"
 
 /** TPUART user mode driver */
-class NCN5120SerialLayer2Driver : public Layer2, private Thread
+class NCN5120SerialLayer2Driver : public Layer2
 {
   /** old serial config */
   low_latency_save sold;
@@ -32,18 +33,42 @@ class NCN5120SerialLayer2Driver : public Layer2, private Thread
   struct termios old;
   /** file descriptor */
   int fd;
-  /** semaphore for inqueue */
-  pth_sem_t in_signal;
+  RecvBuf recvbuf;
+  SendBuf sendbuf;
+  size_t read_cb(uint8_t *buf, size_t len);
+  void error_cb();
+
+  void stop();
+
   /** input queue */
-  Queue < LPDU * >inqueue;
+  Queue < LPDU * >send_q;
+
   bool ackallgroup;
   bool ackallindividual;
   bool dischreset;
 
-  /** process a recevied frame */
+  /** process a received frame */
   void RecvLPDU (const uchar * data, int len);
-  void Run (pth_sem_t * stop);
   const char *Name() { return "ncn5120"; }
+
+  /** set up send and recv buffers, timers, etc. */
+  void setup_buffers();
+
+  ev::async trigger; void trigger_cb (ev::async &w, int revents);
+  ev::timer timer; void timer_cb (ev::timer &w, int revents);
+  ev::timer sendtimer; void sendtimer_cb (ev::timer &w, int revents);
+  ev::timer watchdogtimer; void watchdogtimer_cb (ev::timer &w, int revents);
+  /** process incoming data */
+  void process_read(bool is_timeout);
+
+  CArray in;
+  bool to = false;
+  bool waitconfirm = false;
+  bool acked = false;
+  int retry = 0;
+  int watch = 0;
+  bool rmn = false;
+
 public:
   NCN5120SerialLayer2Driver (const char *dev, L2options *opt);
   ~NCN5120SerialLayer2Driver ();

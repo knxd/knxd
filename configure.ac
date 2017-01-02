@@ -236,11 +236,10 @@ AC_ARG_ENABLE(ncn5120,
  yes) ncn5120=true ;;
   no)  ncn5120=false ;;
    *) AC_MSG_ERROR(bad value ${enableval} for --enable-ncn5120) ;;
- esac],[ncn5120=false])
+ esac],[ncn5120=true])
 AM_CONDITIONAL(HAVE_NCN5120, test x$ncn5120 = xtrue)
 if test x$ncn5120 = xtrue ; then
  AC_DEFINE(HAVE_NCN5120, 1 , [NCN5120 backend enabled])
- NEED_PTH(ncn5120)
 fi
 
 AC_ARG_ENABLE(eibnetipserver,
