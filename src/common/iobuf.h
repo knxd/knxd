@@ -18,7 +18,7 @@
 */
 
 /**
- * This 
+ * This code implements "streaming" read and write buffers.
  */
 
 #ifndef IOBUF_H
