@@ -107,12 +107,6 @@ Layer23::Close ()
   return l2->Close ();
 }
 
-bool
-Layer23::Send_Queue_Empty ()
-{
-  return l2->Send_Queue_Empty ();
-}
-
 
 /** implement all of layer3 */
 

@@ -36,13 +36,16 @@ public:
   bool init ();
 
   void Send_Packet (CArray l);
-  bool Send_Queue_Empty ();
-  pth_sem_t *Send_Queue_Empty_Cond ();
-  CArray *Get_Packet (pth_event_t stop);
 
   void SendReset ();
 
   EMIVer getEMIVer ();
+  c_recv_cb on_recv;
+
+private:
+  void recv_discard(CArray *p);
+  void on_recv_cb(CArray *p);
+
 };
 
 LowLevelDriver *initUSBDriver (LowLevelDriver * i,
@@ -65,7 +68,6 @@ public:
 
   bool Open ();
   bool Close ();
-  bool Send_Queue_Empty ();
 };
 
 #endif

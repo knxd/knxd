@@ -39,42 +39,9 @@ BCU1SerialLowLevelDriver::Send_Packet (CArray l)
   pth_sem_inc (&in_signal, TRUE);
 }
 
-bool
-BCU1SerialLowLevelDriver::Send_Queue_Empty ()
-{
-  return inqueue.isempty ();
-}
-
-pth_sem_t *
-BCU1SerialLowLevelDriver::Send_Queue_Empty_Cond ()
-{
-  return &send_empty;
-}
-
-CArray *
-BCU1SerialLowLevelDriver::Get_Packet (pth_event_t stop)
-{
-  if (stop != NULL)
-    pth_event_concat (getwait, stop, NULL);
-
-  pth_wait (getwait);
-
-  if (stop)
-    pth_event_isolate (getwait);
-
-  if (pth_event_status (getwait) == PTH_STATUS_OCCURRED)
-    {
-      pth_sem_dec (&out_signal);
-      CArray *c = outqueue.get ();
-      t->TracePacket (1, this, "Recv", *c);
-      return c;
-    }
-  else
-    return 0;
-}
-
 BCU1SerialLowLevelDriver::BCU1SerialLowLevelDriver (const char *dev,
 						    TracePtr tr)
+    : LowLevelDriver()
 {
   struct termios ti;
 
@@ -343,7 +310,7 @@ BCU1SerialLowLevelDriver::Run (pth_sem_t * stop1)
 		}
 	    }
 	  TRACEPRINTF (t, 0, this, "Recv");
-	  outqueue.put (new CArray (r));
+	  on_recv(new CArray (r));
 	  pth_sem_inc (&out_signal, 1);
 	}
       gettimeofday (&v2, 0);

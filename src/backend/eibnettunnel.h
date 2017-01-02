@@ -78,8 +78,6 @@ public:
   bool leaveBusmonitor ();
 
   void Send_L_Data (LPDU * l);
-
-  bool Send_Queue_Empty ();
 };
 
 

@@ -134,12 +134,6 @@ bool NCN5120SerialLayer2Driver::init (Layer3 *l3)
   return Layer2::init (l3);
 }
 
-bool
-NCN5120SerialLayer2Driver::Send_Queue_Empty ()
-{
-  return inqueue.isempty ();
-}
-
 void
 NCN5120SerialLayer2Driver::Send_L_Data (LPDU * l)
 {

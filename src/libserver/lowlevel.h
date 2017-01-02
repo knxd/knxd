@@ -22,34 +22,82 @@
 
 #include "common.h"
 
+typedef void (*c_recv_cb_t)(void *data, CArray *p);
+
+class c_recv_cb {
+    c_recv_cb_t cb_code = 0;
+    void *cb_data = 0;
+
+    void set_ (const void *data, c_recv_cb_t cb)
+    {
+      this->cb_data = (void *)data;
+      this->cb_code = cb;
+    }
+
+public:
+    // function callback
+    template<void (*function)(CArray *p)>
+    void set (void *data = 0) throw ()
+    {
+      set_ (data, function_thunk<function>);
+    }
+
+    template<void (*function)(CArray *p)>
+    static void function_thunk (void *arg, CArray *p)
+    {
+      function(p);
+    }
+
+    // method callback
+    template<class K, void (K::*method)(CArray *p)>
+    void set (K *object)
+    {
+      set_ (object, method_thunk<K, method>);
+    }
+
+    template<class K, void (K::*method)(CArray *p)>
+    static void method_thunk (void *arg, CArray *p)
+    {
+      (static_cast<K *>(arg)->*method) (p);
+    }
+
+    void operator()(CArray *p) {
+        (*cb_code)(cb_data, p);
+    }
+};
+
+
+typedef enum
+{ vERROR, vEMI1 = 1, vEMI2 = 2, vCEMI = 3, vRaw, vDiscovery } EMIVer;
+
 /** implements interface for a Driver to send packets for the EMI1/2 driver */
 class LowLevelDriver
 {
+private:
+  void recv_discard(CArray *p);
 public:
-  typedef enum
-  { vEMI1, vEMI2, vCEMI, vRaw } EMIVer;
-
-  virtual ~LowLevelDriver ()
+  LowLevelDriver ()
   {
+    reset();
   }
+  void reset() {
+    on_recv.set<LowLevelDriver, &LowLevelDriver::recv_discard>(this);
+  }
+
+  ~LowLevelDriver ();
+
   virtual bool init () = 0;
 
   /** sends a EMI frame asynchronous */
   virtual void Send_Packet (CArray l) = 0;
-  /** all frames sent ? */
-  virtual bool Send_Queue_Empty () = 0;
-  /** returns semaphore, which becomes 1, if all frames are sent */
-  virtual pth_sem_t *Send_Queue_Empty_Cond () = 0;
-  /** waits for the next EMI frame
-   * @param stop return NULL, if stop occurs
-   * @return returns EMI frame or NULL
-   */
-  virtual CArray *Get_Packet (pth_event_t stop) = 0;
 
   /** resets the connection */
   virtual void SendReset () = 0;
 
   virtual EMIVer getEMIVer () = 0;
+
+  c_recv_cb on_recv;
+
 };
 
 /** pointer to a functions, which creates a Low Level interface

@@ -138,12 +138,6 @@ EIBNetIPTunnel::Send_L_Data (LPDU * l)
 }
 
 bool
-EIBNetIPTunnel::Send_Queue_Empty ()
-{
-  return send_q.isempty ();
-}
-
-bool
 EIBNetIPTunnel::enterBusmonitor ()
 {
   if (!Layer2::enterBusmonitor ())

@@ -17,32 +17,12 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifndef USB_H
-#define USB_H
+#include "lowlevel.h"
 
-#include <ev++.h>
-#include "trace.h"
-#include "threads.h"
-#include "libusb.h"
+LowLevelDriver::~LowLevelDriver() {}
 
-class USBLoop
+void LowLevelDriver::recv_discard(CArray *p)
 {
-  TracePtr t;
+  delete p;
+}
 
-  Array < ev::io * > fds;
-  ev::timer tm;
-  void timer();
-
-  void timer_cb (ev::timer &w, int revents);
-  void io_cb (ev::io &w, int revents);
-
-public:
-  libusb_context *context;
-
-  USBLoop (TracePtr tr);
-  ~USBLoop ();
-
-  void setup();
-};
-
-#endif

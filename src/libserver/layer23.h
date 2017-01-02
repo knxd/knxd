@@ -58,7 +58,6 @@ public:
 
   bool Open ();
   bool Close ();
-  bool Send_Queue_Empty ();
 
   /** implement all of layer3 */
 

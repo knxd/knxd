@@ -157,9 +157,3 @@ Layer2::Close ()
   return true;
 }
 
-bool
-Layer2::Send_Queue_Empty ()
-{
-  return true;
-}
-

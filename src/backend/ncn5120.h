@@ -55,7 +55,6 @@ public:
   bool leaveBusmonitor ();
 
   bool Open ();
-  bool Send_Queue_Empty ();
 };
 
 #endif

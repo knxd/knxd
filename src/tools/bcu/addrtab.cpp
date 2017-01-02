@@ -26,19 +26,6 @@ const uchar EMI2_LDIS[] = { 0x44, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
 const uchar EMI1_READ[] = { 0x4C, 0x01, 0x01, 0x16 };
 
-
-static void
-llwait (LowLevelDriver * iface)
-{
-  if (!iface->Send_Queue_Empty ())
-    {
-      pth_event_t
-	e = pth_event (PTH_EVENT_SEM, iface->Send_Queue_Empty_Cond ());
-      pth_wait (e);
-      pth_event_free (e, PTH_FREE_THIS);
-    }
-}
-
 int
 readEMI1Mem (LowLevelDriver * iface, memaddr_t addr, uchar len,
 	     CArray & result)
@@ -50,7 +37,6 @@ readEMI1Mem (LowLevelDriver * iface, memaddr_t addr, uchar len,
   d[2] = (addr >> 8) & 0xff;
   d[3] = (addr) & 0xff;
   iface->Send_Packet (d);
-  llwait (iface);
   d1 = iface->Get_Packet (0);
   if (!d1)
     return 0;
@@ -82,7 +68,6 @@ writeEMI1Mem (LowLevelDriver * iface, memaddr_t addr, CArray data)
   d[3] = (addr) & 0xff;
   d.setpart (data, 4);
   iface->Send_Packet (d);
-  llwait (iface);
   if (!readEMI1Mem (iface, addr, data.size(), d))
     return 0;
   return d == data;
@@ -184,7 +169,6 @@ readEMI2Mem (LowLevelDriver * iface, memaddr_t addr, uchar len,
 	return 0;
     }
   iface->Send_Packet (CArray (EMI2_NORM, sizeof (EMI2_NORM)));
-  llwait (iface);
   return 1;
 }
 
@@ -254,7 +238,6 @@ writeEMI2Mem (LowLevelDriver * iface, memaddr_t addr, CArray data)
     }
 
   iface->Send_Packet (CArray (EMI2_NORM, sizeof (EMI2_NORM)));
-  llwait (iface);
 
   if (!readEMI2Mem (iface, addr, data.size(), d))
     return 0;

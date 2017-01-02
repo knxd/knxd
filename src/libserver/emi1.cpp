@@ -29,7 +29,7 @@ void
 EMI1Layer2::cmdEnterMonitor()
 {
   const uchar t[] = { 0x46, 0x01, 0x00, 0x60, 0x90 };
-  pth_usleep (1000000);
+  // pth_usleep (1000000);
   iface->Send_Packet (CArray (t, sizeof (t)));
 }
 
@@ -38,7 +38,7 @@ EMI1Layer2::cmdLeaveMonitor()
 {
   uchar t[] = { 0x46, 0x01, 0x00, 0x60, 0xc0 };
   iface->Send_Packet (CArray (t, sizeof (t)));
-  pth_usleep (1000000);
+  // pth_usleep (1000000);
 }
 
 void

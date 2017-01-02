@@ -24,6 +24,7 @@
 #include "ft12.h"
 
 FT12LowLevelDriver::FT12LowLevelDriver (const char *dev, TracePtr tr)
+    : LowLevelDriver()
 {
   struct termios t1;
   t = tr;
@@ -88,9 +89,6 @@ FT12LowLevelDriver::~FT12LowLevelDriver ()
   Stop ();
   pth_event_free (getwait, PTH_FREE_THIS);
 
-  while (!outqueue.isempty ())
-    delete outqueue.get ();
-
   TRACEPRINTF (t, 1, this, "Close");
   if (fd != -1)
     {
@@ -152,40 +150,6 @@ FT12LowLevelDriver::SendReset ()
   inqueue.put (pdu);
   pth_sem_set_value (&send_empty, 0);
   pth_sem_inc (&in_signal, TRUE);
-}
-
-bool
-FT12LowLevelDriver::Send_Queue_Empty ()
-{
-  return inqueue.isempty ();
-}
-
-pth_sem_t *
-FT12LowLevelDriver::Send_Queue_Empty_Cond ()
-{
-  return &send_empty;
-}
-
-CArray *
-FT12LowLevelDriver::Get_Packet (pth_event_t stop)
-{
-  if (stop != NULL)
-    pth_event_concat (getwait, stop, NULL);
-
-  pth_wait (getwait);
-
-  if (stop)
-    pth_event_isolate (getwait);
-
-  if (pth_event_status (getwait) == PTH_STATUS_OCCURRED)
-    {
-      pth_sem_dec (&out_signal);
-      CArray *c = outqueue.get ();
-      t->TracePacket (1, this, "Recv", *c);
-      return c;
-    }
-  else
-    return 0;
 }
 
 void
@@ -250,7 +214,7 @@ FT12LowLevelDriver::Run (pth_sem_t * stop1)
 		      const uchar reset[1] = { 0xA0 };
 		      CArray *c = new CArray (reset, sizeof (reset));
 		      t->TracePacket (0, this, "RecvReset", *c);
-		      outqueue.put (c);
+		      on_recv (c);
 		      pth_sem_inc (&out_signal, TRUE);
 		    }
 		}
@@ -306,7 +270,7 @@ FT12LowLevelDriver::Run (pth_sem_t * stop1)
 		  len = akt[1] + 6;
 		  c->setpart (akt.data() + 5, 0, len - 7);
 		  last = *c;
-		  outqueue.put (c);
+		  on_recv (c);
 		  pth_sem_inc (&out_signal, TRUE);
 		}
               // XXX TODO otherwise set 'len' to what? Or continue?

@@ -226,7 +226,6 @@ if test x$usb = xtrue ; then
   AC_MSG_ERROR(not all needed functions for USB backend available)
  fi
  AC_DEFINE(HAVE_USB, 1 , [USB backend enabled])
- NEED_PTH(usb)
  NEED_EMI(usb)
 else
  AM_CONDITIONAL(HAVE_USB, test x$usb = xtrue)
@@ -271,9 +270,6 @@ if test x$groupcache = xtrue ; then
  AC_DEFINE(HAVE_GROUPCACHE, 1 , [Group Cache enabled])
 fi
 
-if test x$need_emi = xyes ; then
- NEED_PTH(emi)
-fi
 AM_CONDITIONAL(HAVE_EMI, test x$need_emi = xyes)
 
 EV_LIBS=

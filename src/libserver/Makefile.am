@@ -14,7 +14,7 @@ else
 THREADS=
 endif
 PDUs=lpdu.h lpdu.cpp tpdu.h tpdu.cpp apdu.h apdu.cpp 
-CORE=lowlevel.h layer2.h layer2.cpp layer3.h layer3.cpp layer4.h layer4.cpp layer23.h layer23.cpp
+CORE=lowlevel.h lowlevel.cpp layer2.h layer2.cpp layer3.h layer3.cpp layer4.h layer4.cpp layer23.h layer23.cpp
 if HAVE_GROUPCACHE
 CACHE=groupcache.h groupcache.cpp groupcacheclient.h groupcacheclient.cpp 
 else

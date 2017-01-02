@@ -68,8 +68,6 @@ public:
   virtual bool Open () = 0;
   /** try to leave the normal operation mode, return true if successful */
   virtual bool Close () = 0;
-  /** return true, if all frames have been sent */
-  virtual bool Send_Queue_Empty () = 0;
 };
 
 /** generic interface for an Layer 2 driver */
@@ -111,7 +109,6 @@ public:
 
   virtual bool Open ();
   virtual bool Close ();
-  virtual bool Send_Queue_Empty ();
 };
 
 
@@ -132,7 +129,6 @@ public:
   bool leaveBusmonitor () { return 0; }
   bool Open () { return 1; }
   bool Close () { return 1; }
-  bool Send_Queue_Empty () { return 1; }
 };
 
 /** Layer2 mix-in class for interfaces

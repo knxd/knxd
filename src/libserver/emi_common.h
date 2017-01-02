@@ -23,6 +23,7 @@
 #include "layer2.h"
 #include "lowlevel.h"
 #include "emi.h"
+#include "ev++.h"
 
 typedef enum {
     I_CONFIRM = 0,
@@ -31,19 +32,16 @@ typedef enum {
 } indTypes;
 
 /** EMI common backend code */
-class EMI_Common:public Layer2, protected Thread
+class EMI_Common:public Layer2
 {
 protected:
   /** driver to send/receive */
   LowLevelDriver *iface;
-  /** semaphore for inqueue */
-  pth_sem_t in_signal;
   /** input queue */
-  Queue < LPDU * >inqueue;
-  pth_time_t send_delay;
+  Queue < LPDU * >send_q;
+  float send_delay;
 
   void Send (LPDU * l);
-  void Run (pth_sem_t * stop);
   virtual const char *Name() = 0;
 
   virtual void cmdEnterMonitor() = 0;
@@ -51,6 +49,17 @@ protected:
   virtual void cmdOpen() = 0;
   virtual void cmdClose() = 0;
   virtual const uint8_t * getIndTypes() = 0;
+private:
+  bool wait_confirm = false;
+
+  ev::async trigger;
+  void trigger_cb (ev::async &w, int revents);
+
+  ev::timer timeout;
+  void timeout_cb(ev::timer &w, int revents);
+
+  void on_recv_cb(CArray *p);
+
 public:
   EMI_Common (LowLevelDriver * i, L2options *opt);
   ~EMI_Common ();
@@ -69,7 +78,6 @@ public:
   virtual unsigned int maxPacketLen() { return 0x10; }
   bool Open ();
   bool Close ();
-  bool Send_Queue_Empty ();
 };
 
 #endif

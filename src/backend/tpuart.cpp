@@ -98,12 +98,6 @@ bool TPUART_Base::init (Layer3 *l3)
   return true;
 }
 
-bool
-TPUART_Base::Send_Queue_Empty ()
-{
-  return !l && send_q.isempty ();
-}
-
 void
 TPUART_Base::Send_L_Data (LPDU * l)
 {
