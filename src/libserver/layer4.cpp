@@ -83,6 +83,7 @@ T_Broadcast::Send (const CArray & c)
   l->dest = 0;
   l->AddrType = GroupAddress;
   l->data = t.ToPacket ();
+  l->hopcount = 0x07;
   l3->recv_L_Data (l);
 }
 
