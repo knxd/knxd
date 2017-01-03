@@ -134,19 +134,19 @@ if test x$dummy = xtrue ; then
  AC_DEFINE(HAVE_DUMMY, 1 , [FT1.2 enabled])
 fi
 
-AC_ARG_ENABLE(pei16s,
-[  --enable-pei16s     enable BCU1 user driver backend (very experimental)],
-[case "${enableval}" in
- yes) pei16s=true ;;
-  no)  pei16s=false ;;
-   *) AC_MSG_ERROR(bad value ${enableval} for --enable-pei16s) ;;
- esac],[pei16s=false])
-AM_CONDITIONAL(HAVE_PEI16s, test x$pei16s = xtrue)
-if test x$pei16s = xtrue ; then
- AC_DEFINE(HAVE_PEI16s, 1 , [PEI16s enabled])
- NEED_PTH(pei16s)
- NEED_EMI(pei16s)
-fi
+dnl AC_ARG_ENABLE(pei16s,
+dnl [  --enable-pei16s     enable BCU1 user driver backend (very experimental)],
+dnl [case "${enableval}" in
+dnl  yes) pei16s=true ;;
+dnl   no)  pei16s=false ;;
+dnl    *) AC_MSG_ERROR(bad value ${enableval} for --enable-pei16s) ;;
+dnl  esac],[pei16s=false])
+dnl AM_CONDITIONAL(HAVE_PEI16s, test x$pei16s = xtrue)
+dnl if test x$pei16s = xtrue ; then
+dnl  AC_DEFINE(HAVE_PEI16s, 1 , [PEI16s enabled])
+dnl  NEED_PTH(pei16s)
+dnl  NEED_EMI(pei16s)
+dnl fi
 
 AC_ARG_ENABLE(tpuarts,
 [  --enable-tpuarts	enable serial TPUART user driver backend],

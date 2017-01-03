@@ -1,3 +1,12 @@
+knxd (0.12.0~4-1) experimental; urgency=medium
+
+  * Removed experimental PEI16 driver.
+    Porting it to libev is nontrivial and it's not being used.
+  * Ported the other drivers to libev.
+  * Ditto group cache. TODO: device management code.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Tue, 03 Jan 2017 05:38:05 +0100
+
 knxd (0.12.0~3-1) experimental; urgency=medium
 
   * multicast server code works.
