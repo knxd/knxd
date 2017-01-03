@@ -111,11 +111,14 @@ private:
   // libev
   ev::async trigger;
   void trigger_cb (ev::async &w, int revents);
+  ev::async mtrigger;
+  void mtrigger_cb (ev::async &w, int revents);
 
   /** Layer 2 interfaces */
   Array < Layer2Ptr > layer2;
-  /** buffer queue for receiving from L2 */
-  Queue < LPDU * >buf;
+  /** buffer queues for receiving from L2 */
+  Queue < L_Data_PDU * >buf;
+  Queue < L_Busmonitor_PDU * >mbuf;
   /** buffer for packets to ignore when repeat flag is set */
   Array < IgnoreInfo > ignore;
 

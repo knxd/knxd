@@ -35,6 +35,8 @@ Layer3real::Layer3real (eibaddr_t addr, TracePtr tr, bool force_broadcast)
   running = true;
   trigger.set<Layer3real, &Layer3real::trigger_cb>(this);
   trigger.start();
+  mtrigger.set<Layer3real, &Layer3real::mtrigger_cb>(this);
+  mtrigger.start();
   cleanup.set<Layer3real, &Layer3real::cleanup_cb>(this);
   cleanup.start();
 
@@ -45,6 +47,12 @@ Layer3real::~Layer3real ()
 {
   TRACEPRINTF (tr(), 3, this, "L3 stopping");
   running = false;
+  trigger.stop();
+  mtrigger.stop();
+  while (!buf.isempty())
+    delete buf.get();
+  while (!mbuf.isempty())
+    delete mbuf.get();
 
   R_ITER(i,layer2)
     (*i)->stop();
@@ -88,8 +96,8 @@ Layer3real::recv_L_Busmonitor (L_Busmonitor_PDU * l)
   if (running)
     {
       TRACEPRINTF (tr(), 3, this, "Enqueue %s", l->Decode ().c_str());
-      buf.put (l);
-      trigger.send();
+      mbuf.put (l);
+      mtrigger.send();
     }
   else
     {
@@ -273,6 +281,7 @@ Layer3real::get_client_addr ()
   return 0;
 }
 
+
 void
 Layer3real::trigger_cb (ev::async &w, int revents)
 {
@@ -280,127 +289,126 @@ Layer3real::trigger_cb (ev::async &w, int revents)
 
   while (!buf.isempty())
     {
-      LPDU *l = buf.get ();
+      L_Data_PDU *l1 = buf.get ();
 
-      if (l->getType () == L_Data)
-	{
-	  L_Data_PDU *l1 = dynamic_cast<L_Data_PDU *>(l);
+      {
+        Layer2Ptr l2 = l1->l2;
 
-          {
-            Layer2Ptr l2 = l1->l2;
+        if (l1->source == 0)
+          l1->source = l2->getRemoteAddr();
+        if (l1->source == 0)
+          l1->source = defaultAddr;
+        if (l1->source != defaultAddr)
+          l2->addAddress (l1->source);
+      }
 
-            if (l1->source == 0)
-              l1->source = l2->getRemoteAddr();
-            if (l1->source == 0)
-              l1->source = defaultAddr;
-            if (l1->source != defaultAddr)
-              l2->addAddress (l1->source);
-          }
+      if (vbusmonitor.size())
+        {
+          L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (l1->l2);
+          l2->pdu.set (l1->ToPacket ());
 
-          if (vbusmonitor.size())
+          ITER(i,vbusmonitor)
             {
-              L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (l->l2);
-              l2->pdu.set (l->ToPacket ());
+              L_Busmonitor_PDU *l2x = new L_Busmonitor_PDU (*l2);
+              i->cb->send_L_Busmonitor (l2x);
+            }
+          delete l2;
+        }
+      if (!l1->dest)
+        {
+          // I have no idea what to do with this.
+          TRACEPRINTF (tr(), 3, this, "Destination zero: %s", l1->Decode ().c_str());
+          delete l1;
+          continue;
+        }
+      if (!l1->hopcount)
+        {
+          TRACEPRINTF (tr(), 3, this, "Hopcount zero: %s", l1->Decode ().c_str());
+          delete l1;
+          continue;
+        }
+      if (l1->hopcount < 7 || !force_broadcast)
+        l1->hopcount--;
 
-              ITER(i,vbusmonitor)
+      if (l1->repeated)
+        {
+          CArray d1 = l1->ToPacket ();
+          ITER (i,ignore)
+            if (d1 == i->data)
+              {
+                TRACEPRINTF (tr(), 3, this, "Repeated discareded");
+                delete l1;
+                continue;
+              }
+        }
+      l1->repeated = 1;
+      ignore.push_back((IgnoreInfo){.data = l1->ToPacket (), .end = getTime () + 1000000});
+      l1->repeated = 0;
+
+      if (l1->AddrType == IndividualAddress
+          && l1->dest == defaultAddr)
+        l1->dest = 0;
+      TRACEPRINTF (tr(), 3, this, "RecvData %s", l1->Decode ().c_str());
+
+      if (l1->AddrType == GroupAddress)
+        {
+          // This is easy: send to all other L2 which subscribe to the
+          // group.
+          ITER(i, layer2)
+            {
+              if ((l1->hopcount == 7)
+                  || ((*i != l1->l2) && (*i)->hasGroupAddress(l1->dest)))
+                (*i)->send_L_Data (new L_Data_PDU (*l1));
+            }
+        }
+      if (l1->AddrType == IndividualAddress)
+        {
+          // This is not so easy: we want to send to whichever
+          // interface on which the address has appeared. If it hasn't
+          // been seen yet, we send to all interfaces which are buses.
+          // which are defined by accepting the otherwise-illegal physical
+          // address 0.
+          bool found = false;
+          ITER(i, layer2)
+            {
+              if (*i == l1->l2)
+                continue;
+              if ((*i)->hasAddress (l1->dest))
                 {
-                  L_Busmonitor_PDU *l2x = new L_Busmonitor_PDU (*l2);
-                  i->cb->send_L_Busmonitor (l2x);
+                  found = true;
+                  break;
                 }
-              delete l2;
             }
-          if (!l1->dest)
-            {
-              // I have no idea what to do with this.
-              TRACEPRINTF (tr(), 3, this, "Destination zero: %s", l1->Decode ().c_str());
-              delete l;
-              continue;
-            }
-          if (!l1->hopcount)
-            {
-              TRACEPRINTF (tr(), 3, this, "Hopcount zero: %s", l1->Decode ().c_str());
-              delete l;
-              continue;
-            }
-          if (l1->hopcount < 7 || !force_broadcast)
-            l1->hopcount--;
+          ITER (i, layer2)
+            if ((l1->hopcount == 7)
+                || (*i != l1->l2
+                  && (*i)->hasAddress (found ? l1->dest : 0)))
+              (*i)->send_L_Data (new L_Data_PDU (*l1));
+        }
+    }
 
-	  if (l1->repeated)
-	    {
-	      CArray d1 = l1->ToPacket ();
-	      ITER (i,ignore)
-		if (d1 == i->data)
-		  {
-		    TRACEPRINTF (tr(), 3, this, "Repeated discareded");
-		    goto wt;
-		  }
-	    }
-	  l1->repeated = 1;
-	  ignore.push_back((IgnoreInfo){.data = l1->ToPacket (), .end = getTime () + 1000000});
-	  l1->repeated = 0;
+  // Timestamps are ordered, so we scan for the first 
+  timestamp_t tm = getTime ();
+  ITER (i, ignore)
+    if (i->end >= tm)
+      {
+        ignore.erase (ignore.begin(), i);
+        break;
+      }
+}
 
-	  if (l1->AddrType == IndividualAddress
-	      && l1->dest == defaultAddr)
-	    l1->dest = 0;
-	  TRACEPRINTF (tr(), 3, this, "RecvData %s", l1->Decode ().c_str());
+void
+Layer3real::mtrigger_cb (ev::async &w, int revents)
+{
+  unsigned i;
 
-	  if (l1->AddrType == GroupAddress)
-	    {
-	      // This is easy: send to all other L2 which subscribe to the
-	      // group.
-	      ITER(i, layer2)
-                {
-		  if ((l1->hopcount == 7)
-		      || ((*i != l1->l2) && (*i)->hasGroupAddress(l1->dest)))
-		    (*i)->send_L_Data (new L_Data_PDU (*l1));
-                }
-	    }
-	  if (l1->AddrType == IndividualAddress)
-	    {
-	      // This is not so easy: we want to send to whichever
-	      // interface on which the address has appeared. If it hasn't
-	      // been seen yet, we send to all interfaces which are buses.
-	      // which are defined by accepting the otherwise-illegal physical
-	      // address 0.
-	      bool found = false;
-	      ITER(i, layer2)
-                {
-                  if (*i == l1->l2)
-		    continue;
-                  if ((*i)->hasAddress (l1->dest))
-		    {
-		      found = true;
-		      break;
-		    }
-		}
-	      ITER (i, layer2)
-		if ((l1->hopcount == 7)
-                    || (*i != l1->l2
-		     && (*i)->hasAddress (found ? l1->dest : 0)))
-		  (*i)->send_L_Data (new L_Data_PDU (*l1));
-	    }
-	}
-      else if (l->getType () == L_Busmonitor)
-	{
-	  L_Busmonitor_PDU *l1, *l2;
-	  l1 = dynamic_cast<L_Busmonitor_PDU *>(l);
+  while (!mbuf.isempty())
+    {
+      L_Busmonitor_PDU *l1 = mbuf.get ();
 
-	  TRACEPRINTF (tr(), 3, this, "RecvMon %s", l1->Decode ().c_str());
-	  ITER (i, busmonitor)
-	    {
-	      l2 = new L_Busmonitor_PDU (*l1);
-	      i->cb->send_L_Busmonitor (l2);
-	    }
-	}
-      // ignore[] is ordered, any timed-out items are at the front
-      ITER (i, ignore)
-	if (i->end >= getTime ())
-          {
-            ignore.erase (ignore.begin(), i);
-            break;
-          }
-    wt:
-      delete l;
-
+      TRACEPRINTF (tr(), 3, this, "RecvMon %s", l1->Decode ().c_str());
+      ITER (i, busmonitor)
+        i->cb->send_L_Busmonitor (new L_Busmonitor_PDU (*l1));
+      delete l1;
     }
 }
