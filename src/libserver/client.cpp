@@ -71,10 +71,10 @@ ClientConnection::stop(bool no_server)
   if (no_server)
     s = nullptr;
   if (a_conn)
-  {
-    delete a_conn;
-    a_conn = nullptr;
-  }
+    {
+      delete a_conn;
+      a_conn = nullptr;
+    }
   if (fd == -1)
     return;
   if (! no_server)
