@@ -217,6 +217,7 @@ bool ConnState::init()
     return false;
   if (type == CT_BUSMONITOR && ! l3->registerVBusmonitor(this))
     return false;
+  l3 = parent->l3->registerLayer2(shared_from_this());
   return true;
 }
 
