@@ -344,9 +344,6 @@ Layer3real::trigger_cb (ev::async &w, int revents)
 	    l1->dest = 0;
 	  TRACEPRINTF (tr(), 3, this, "RecvData %s", l1->Decode ().c_str());
 
-	  if (l1->source == 0)
-	    l1->source = defaultAddr;
-
 	  if (l1->AddrType == GroupAddress)
 	    {
 	      // This is easy: send to all other L2 which subscribe to the
