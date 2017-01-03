@@ -114,23 +114,17 @@ EMI_Common::Close ()
 }
 
 void
-EMI_Common::Send_L_Data (LPDU * l)
+EMI_Common::Send_L_Data (L_Data_PDU * l)
 {
   TRACEPRINTF (t, 2, this, "Send %s", l->Decode ().c_str());
-  if (l->getType () != L_Data)
-    {
-      delete l;
-      return;
-    }
-  L_Data_PDU *l1 = (L_Data_PDU *) l;
-  assert (l1->data.size() >= 1);
+  assert (l->data.size() >= 1);
   /* discard long frames, as they are not supported by EMI 1 */
-  if (l1->data.size() > maxPacketLen())
+  if (l->data.size() > maxPacketLen())
     {
-      TRACEPRINTF (t, 2, this, "Oversize (%d), discarded", l1->data.size());
+      TRACEPRINTF (t, 2, this, "Oversize (%d), discarded", l->data.size());
       return;
     }
-  assert ((l1->hopcount & 0xf8) == 0);
+  assert ((l->hopcount & 0xf8) == 0);
 
   send_q.put (l);
   if (!wait_confirm)
@@ -146,12 +140,11 @@ EMI_Common::timeout_cb(ev::timer &w, int revents)
 }
 void
 
-EMI_Common::Send (LPDU * l)
+EMI_Common::Send (L_Data_PDU * l)
 {
   TRACEPRINTF (t, 1, this, "Send %s", l->Decode ().c_str());
-  L_Data_PDU *l1 = (L_Data_PDU *) l;
 
-  CArray pdu = lData2EMI (0x11, *l1);
+  CArray pdu = lData2EMI (0x11, *l);
   iface->Send_Packet (pdu);
   delete l;
 }

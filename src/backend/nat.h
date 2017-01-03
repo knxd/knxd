@@ -44,7 +44,7 @@ public:
   Layer2Ptr clone(Layer2Ptr l2);
 
   void recv_L_Data (LPDU * l);
-  void Send_L_Data (LPDU * l);
+  void Send_L_Data (L_Data_PDU * l);
 
   void addReverseAddress (eibaddr_t src, eibaddr_t dest);
   eibaddr_t getDestinationAddress (eibaddr_t src);

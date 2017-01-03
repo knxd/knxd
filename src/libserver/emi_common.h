@@ -41,7 +41,7 @@ protected:
   Queue < LPDU * >send_q;
   float send_delay;
 
-  void Send (LPDU * l);
+  void Send (L_Data_PDU * l);
   virtual const char *Name() = 0;
 
   virtual void cmdEnterMonitor() = 0;
@@ -65,7 +65,7 @@ public:
   ~EMI_Common ();
   bool init (Layer3 *l3);
 
-  void Send_L_Data (LPDU * l);
+  void Send_L_Data (L_Data_PDU * l);
 
   virtual bool enterBusmonitor ();
   bool leaveBusmonitor ();

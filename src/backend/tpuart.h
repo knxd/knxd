@@ -66,7 +66,7 @@ public:
   ~TPUART_Base ();
   bool init (Layer3 *l3);
 
-  void Send_L_Data (LPDU * l);
+  void Send_L_Data (L_Data_PDU * l);
 
   bool enterBusmonitor ();
   bool leaveBusmonitor ();

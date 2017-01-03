@@ -78,17 +78,11 @@ EIBNetIPRouter::init (Layer3 *l3)
 }
 
 void
-EIBNetIPRouter::Send_L_Data (LPDU * l)
+EIBNetIPRouter::Send_L_Data (L_Data_PDU * l)
 {
   TRACEPRINTF (t, 2, this, "Send %s", l->Decode ().c_str());
-  if (l->getType () != L_Data)
-    {
-      delete l;
-      return;
-    }
-  L_Data_PDU *l1 = (L_Data_PDU *) l;
   EIBNetIPPacket p;
-  p.data = L_Data_ToCEMI (0x29, *l1);
+  p.data = L_Data_ToCEMI (0x29, *l);
   p.service = ROUTING_INDICATION;
   sock->Send (p);
   delete l;

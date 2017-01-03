@@ -48,7 +48,7 @@ public:
 
   /** implement all of layer2shim */
 
-  void Send_L_Data (LPDU * l);
+  void Send_L_Data (L_Data_PDU * l);
 
   bool addAddress (eibaddr_t addr);
   bool addGroupAddress (eibaddr_t addr);

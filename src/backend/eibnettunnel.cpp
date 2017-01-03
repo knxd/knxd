@@ -116,15 +116,9 @@ bool EIBNetIPTunnel::init (Layer3 *l3)
 }
 
 void
-EIBNetIPTunnel::Send_L_Data (LPDU * l)
+EIBNetIPTunnel::Send_L_Data (L_Data_PDU * l)
 {
   TRACEPRINTF (t, 2, this, "Send %s", l->Decode ().c_str());
-
-  if (l->getType () != L_Data)
-    {
-      delete l;
-      return;
-    }
 
   L_Data_PDU l1 = *(L_Data_PDU *)l;
   send_q.put (L_Data_ToCEMI (0x11, l1));

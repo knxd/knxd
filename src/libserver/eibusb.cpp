@@ -342,7 +342,7 @@ bool USBLayer2::Close ()
 }
 
 void
-USBLayer2::Send_L_Data (LPDU * l)
+USBLayer2::Send_L_Data (L_Data_PDU * l)
 {
   emi->Send_L_Data (l);
 }

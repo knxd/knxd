@@ -44,7 +44,7 @@ public:
   virtual void stop ();
 
   /** sends a Layer 2 frame to this interface */
-  virtual void Send_L_Data (LPDU * l) = 0;
+  virtual void Send_L_Data (L_Data_PDU * l) = 0;
 
   /** try to add the individual addr to the device, return true if successful */
   virtual bool addAddress (eibaddr_t addr) = 0;
@@ -93,8 +93,6 @@ protected:
 
 public:
   /** implement all of Layer2shim */
-  virtual void Send_L_Data (LPDU * l) = 0;
-
   virtual bool addAddress (eibaddr_t addr);
   virtual bool addGroupAddress (eibaddr_t addr);
   virtual bool removeAddress (eibaddr_t addr);

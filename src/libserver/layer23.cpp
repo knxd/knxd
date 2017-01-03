@@ -41,7 +41,7 @@ Layer23::stop ()
 /** implement all of layer2shim */
 
 void
-Layer23::Send_L_Data (LPDU * l)
+Layer23::Send_L_Data (L_Data_PDU * l)
 {
   l2->Send_L_Data (l);
 }
@@ -176,7 +176,7 @@ Layer23::deregisterVBusmonitor (L_Busmonitor_CallBack * c)
 
 
 void
-Layer23::recv_L_Data (LPDU * l)
+Layer23::recv_L_Data (L_Data_PDU * l)
 {
   l3->recv_L_Data (l);
 }
