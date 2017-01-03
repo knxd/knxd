@@ -46,19 +46,22 @@ Layer3real::~Layer3real ()
   TRACEPRINTF (tr(), 3, this, "L3 stopping");
   running = false;
 
+  R_ITER(i,layer2)
+    (*i)->stop();
   ITER(i,layer2)
-    {
-      Layer2Ptr l2 = *i;
-      // TODO create a common stop() method and call that
-    }
+    ERRORPRINTF (tr(), E_WARNING | 54, this, "Layer2 '%s' didn't de-register!", (*i)->Name());
 
+  layer2.resize(0);
   servers.resize(0);
 
-  // the next loops should do exactly nothing
-  while (vbusmonitor.size())
-    deregisterVBusmonitor (vbusmonitor[0].cb);
+  R_ITER(i,vbusmonitor)
+    ERRORPRINTF (tr(), E_WARNING | 55, this, "VBusmonitor '%s' didn't de-register!", i->cb->Name());
+  vbusmonitor.resize(0);
 
-  layer2.resize (0);
+  R_ITER(i,busmonitor)
+    ERRORPRINTF (tr(), E_WARNING | 56, this, "Busmonitor '%s' didn't de-register!", i->cb->Name());
+  busmonitor.resize(0);
+
   cleanup.stop();
   TRACEPRINTF (tr(), 3, this, "Closed");
 }

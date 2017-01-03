@@ -28,7 +28,13 @@ class Layer23 : public Layer2shim, public Layer3
 {
 public:
   Layer23 (Layer2Ptr l2);
+
+  // If you override: need to call Layer23::init last!
   virtual bool init (Layer3 *l3);
+
+  // If you override: need to call Layer23::stop last!
+  // Do not deregister here, the driver will call your deregisterLayer2().
+  virtual void stop ();
   virtual const char *Name() { return "?-F"; }
 
   // You must override this, and return an instance of yourself,
@@ -37,7 +43,6 @@ public:
 
 protected:
   Layer2Ptr l2;
-  Layer3 *l3;
 
 public:
 
@@ -66,6 +71,9 @@ public:
   std::shared_ptr<GroupCache> getCache();
 
   Layer3 * registerLayer2 (Layer2Ptr l2);
+
+  // Your stop() may or may not have been called already.
+  // Do not call Layer23::stop() from here.
   bool deregisterLayer2 (Layer2Ptr l2);
 
   bool registerBusmonitor (L_Busmonitor_CallBack * c);

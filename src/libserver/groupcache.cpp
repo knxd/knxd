@@ -182,9 +182,8 @@ void
 GroupCache::updated(GroupCacheEntry *c)
 {
   // do this in reverse so that the update handler can safely remove itself
-  unsigned int i = reader.size();
-  while(i--)
-    reader[i]->updated(c);
+  R_ITER(i,reader)
+    (*i)->updated(c);
 }
 
 void

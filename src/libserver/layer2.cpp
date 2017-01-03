@@ -47,7 +47,7 @@ Layer2shim::init (Layer3 *layer3)
 }
 
 void
-Layer2::RunStop()
+Layer2shim::stop()
 {
   if (l3) {
     l3->deregisterLayer2 (shared_from_this());

@@ -67,7 +67,7 @@ void
 TPUART_Base::error_cb()
 {
   TRACEPRINTF (t, 2, this, "ERROR");
-  RunStop();
+  stop();
 }
 
 TPUART_Base::~TPUART_Base ()

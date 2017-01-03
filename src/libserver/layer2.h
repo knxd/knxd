@@ -40,6 +40,8 @@ public:
   Layer3 *l3;
   /** connect to the "real" layer3 */
   virtual bool init (Layer3 *l3);
+  /** disconnect from L3, shutdown, whatever */
+  virtual void stop ();
 
   /** sends a Layer 2 frame to this interface */
   virtual void Send_L_Data (LPDU * l) = 0;
@@ -83,9 +85,6 @@ protected:
   Array < eibaddr_t > groupaddr;
 
   bool allow_monitor;
-
-  /** auto-deregister for "tasked" layer2 objects */
-  virtual void RunStop();
 
   /** auto-assigned. NON-bus connections only! */
   eibaddr_t remoteAddr;

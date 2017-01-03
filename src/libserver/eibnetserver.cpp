@@ -175,7 +175,7 @@ EIBnetServer::setup (const char *multicastaddr, const int port,
   return true;
 
 err_out4:
-  RunStop();
+  stop();
 err_out3:
   delete mcast;
   mcast = NULL;
@@ -346,15 +346,14 @@ void ConnState::timeout_cb(ev::timer &w, int revents)
   stop();
 }
 
-void ConnState::stop(bool drop)
+void ConnState::stop()
 {
   if (type == CT_BUSMONITOR)
     l3->deregisterVBusmonitor(this);
   timeout.stop();
   sendtimeout.stop();
   send_trigger.stop();
-  if (drop)
-    parent->drop_state (std::static_pointer_cast<ConnState>(shared_from_this()));
+  parent->drop_state (std::static_pointer_cast<ConnState>(shared_from_this()));
 }
 
 void EIBnetServer::drop_state (ConnStatePtr s)
@@ -380,7 +379,6 @@ void EIBnetServer::drop_trigger_cb(ev::async &w, int revents)
 ConnState::~ConnState()
 {
   TRACEPRINTF (parent->t, 8, this, "CloseS");
-  stop(false);
 }
 
 void ConnState::reset_timer()
@@ -671,9 +669,11 @@ EIBnetServer::on_recv_cb (EIBNetIPPacket *p)
 void
 EIBnetServer::stop()
 {
-  ITER(i, state)
-    (*i)->stop();
   drop_trigger.stop();
+
+  R_ITER(i,state)
+    (*i)->stop();
+
   if (sock)
   {
     delete sock;
@@ -689,6 +689,7 @@ EIBnetServer::stop()
     close (sock_mac);
     sock_mac = -1;
   }
+  Layer2mixin::stop();
 }
 
 void

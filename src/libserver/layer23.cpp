@@ -25,10 +25,17 @@ Layer23::Layer23 (Layer2Ptr l2) : Layer2shim(NULL, l2->t)
     this->t = TracePtr(new Trace(*(l2->t.get()), std::string(Name())+":"+l2->t->name));
 }
 
-bool Layer23::init (Layer3 *l3)
+bool
+Layer23::init (Layer3 *l3)
 {
     this->l3 = l3;
     return l2->init(this);
+}
+
+void
+Layer23::stop ()
+{
+  l2->stop();
 }
 
 /** implement all of layer2shim */

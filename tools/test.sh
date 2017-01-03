@@ -58,7 +58,7 @@ E3=$(tempfile)
 
 PORT=$((9999 + $$))
 
-knxd -t 0xfffc -f 9 -e 3.2.1 -E 4.3.2:10 -u$S1 -u$S2 -DTR --Server=:$PORT -bdummy: &
+knxd -t 0xfffc -f 9 -e 3.2.1 -E 4.3.2:3 -u$S1 -u$S2 -DTR --Server=:$PORT -bdummy: &
 KNX1=$!
 trap 'rm -f $L1 $L2 $E1 $E2 $EF; kill $KNX1' 0 1 2
 
@@ -79,6 +79,15 @@ knxtool vbusmonitor1 local:$S3 >$L3 2>$E3 &
 PL3=$!
 # will die by itself when the server terminates
 
+# test that addresses get recycled
+sleep 1
+knxtool groupswrite local:$S1 1/2/3 4
+sleep 1
+knxtool groupswrite local:$S1 1/2/3 4
+sleep 1
+knxtool groupswrite local:$S1 1/2/3 4
+sleep 1
+knxtool groupswrite local:$S1 1/2/3 4
 sleep 1
 knxtool groupswrite local:$S1 1/2/3 4
 sleep 1

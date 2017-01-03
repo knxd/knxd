@@ -41,6 +41,7 @@ typedef uint32_t eibkey_type;
 typedef std::string String;
 
 #define ITER(_i,_t) for(decltype(_t)::iterator _i = _t.begin(); _i != _t.end(); _i++)
+#define R_ITER(_i,_t) for(decltype(_t)::reverse_iterator _i = _t.rbegin(); _i != _t.rend(); _i++)
 
 /** generic arrays don't need any new code */
 #define Array std::vector
