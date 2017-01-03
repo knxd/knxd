@@ -270,6 +270,17 @@ Layer3real::trigger_cb (ev::async &w, int revents)
 	{
 	  L_Data_PDU *l1 = dynamic_cast<L_Data_PDU *>(l);
 
+          {
+            Layer2Ptr l2 = l1->l2;
+
+            if (l1->source == 0)
+              l1->source = l2->getRemoteAddr();
+            if (l1->source == 0)
+              l1->source = defaultAddr;
+            if (l1->source != defaultAddr)
+              l2->addAddress (l1->source);
+          }
+
           if (vbusmonitor.size())
             {
               L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (l->l2);
@@ -311,17 +322,6 @@ Layer3real::trigger_cb (ev::async &w, int revents)
 	  l1->repeated = 1;
 	  ignore.push_back((IgnoreInfo){.data = l1->ToPacket (), .end = getTime () + 1000000});
 	  l1->repeated = 0;
-
-          {
-            Layer2Ptr l2 = l1->l2;
-
-            if (l1->source == 0)
-              l1->source = l2->getRemoteAddr();
-            if (l1->source == 0)
-              l1->source = defaultAddr;
-            if (l1->source != defaultAddr)
-              l2->addAddress (l1->source);
-          }
 
 	  if (l1->AddrType == IndividualAddress
 	      && l1->dest == defaultAddr)
