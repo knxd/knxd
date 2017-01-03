@@ -207,7 +207,7 @@ EMI_Common::on_recv_cb(CArray *c)
       p->pdu.set (c->data() + 4, c->size() - 4);
       delete c;
       TRACEPRINTF (t, 2, this, "Recv %s", p->Decode ().c_str());
-      l3->recv_L_Data (p);
+      l3->recv_L_Busmonitor (p);
       return;
     }
   delete c;

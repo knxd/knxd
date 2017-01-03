@@ -38,7 +38,7 @@ protected:
   /** driver to send/receive */
   LowLevelDriver *iface;
   /** input queue */
-  Queue < LPDU * >send_q;
+  Queue < L_Data_PDU * >send_q;
   float send_delay;
 
   void Send (L_Data_PDU * l);
