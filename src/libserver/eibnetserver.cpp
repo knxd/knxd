@@ -722,27 +722,18 @@ void ConnState::tunnel_request(EIBnet_TunnelRequest &r1, EIBNetIPSocket *isock)
       if (c)
 	{
 	  r2.status = 0;
-	  if (c->hopcount)
-	    {
-	      c->hopcount--;
-              if (c->source == 0)
-                c->source = remoteAddr;
-	      if (r1.CEMI[0] == 0x11)
-		{
-		  out.put (L_Data_ToCEMI (0x2E, *c));
-		  if (! state)
-                    send_trigger.send();
-		}
-	      if (r1.CEMI[0] == 0x11 || r1.CEMI[0] == 0x29)
-		l3->recv_L_Data (c);
-	      else
-		delete c;
-	    }
-	  else
-	    {
-	      TRACEPRINTF (t, 8, this, "RecvDrop");
-	      delete c;
-	    }
+          if (c->source == 0)
+            c->source = remoteAddr;
+          if (r1.CEMI[0] == 0x11)
+            {
+              out.put (L_Data_ToCEMI (0x2E, *c));
+              if (! state)
+                send_trigger.send();
+            }
+          if (r1.CEMI[0] == 0x11 || r1.CEMI[0] == 0x29)
+            l3->recv_L_Data (c);
+          else
+            delete c;
 	}
       else
 	r2.status = 0x29;
