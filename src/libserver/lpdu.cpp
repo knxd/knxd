@@ -166,7 +166,9 @@ L_Unknown_PDU::Decode ()
 
 L_Busmonitor_PDU::L_Busmonitor_PDU (Layer2Ptr layer2) : LPDU(layer2)
 {
-  timestamp = 0;
+  struct timeval tv;
+  gettimeofday(&tv,NULL);
+  timestamp = tv.tv_sec*65536 + tv.tv_usec/(1000000/65536+1);
   status = 0;
 }
 

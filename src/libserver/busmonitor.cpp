@@ -50,10 +50,14 @@ A_Busmonitor::A_Busmonitor (ClientConnPtr c, bool virt, bool TS, uint8_t *buf,si
   if (ts)
     {
       resp.resize (6);
-      resp[2] = 0;
-      resp[3] = 0;
-      resp[4] = 0;
-      resp[5] = 0;
+      uint32_t tt;
+      struct timeval tv;
+      gettimeofday(&tv,NULL);
+      tt = tv.tv_sec*65536 + tv.tv_usec/(1000000/65536+1);
+      resp[2] = tt>>24;
+      resp[3] = tt>>16;
+      resp[4] = tt>>8;
+      resp[5] = tt;
     }
 
   con->sendmessage (resp.size(), resp.data());
