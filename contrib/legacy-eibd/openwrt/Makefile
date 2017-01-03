@@ -67,7 +67,6 @@ CONFIGURE_ARGS += \
 	--enable-tpuarts \
 	--enable-ft12 \
 	--disable-usb \
-	--disable-pei16s \
 	--enable-groupcache \
 	--without-libstdc 
 

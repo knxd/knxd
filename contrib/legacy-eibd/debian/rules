@@ -6,7 +6,6 @@ include /usr/share/cdbs/1/rules/utils.mk
 
 DEB_CONFIGURE_EXTRA_FLAGS := \
 	--enable-ft12 \
-	--enable-pei16s \
 	--enable-tpuarts \
 	--enable-eibnetip \
 	--enable-eibnetipserver \
