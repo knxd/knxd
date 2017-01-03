@@ -1,3 +1,9 @@
+knxd (0.11.16-1) unstable; urgency=medium
+
+  * Merge from stable.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Tue, 03 Jan 2017 05:34:28 +0100
+
 knxd (0.11.15-1) unstable; urgency=medium
 
   * Merge from stable
@@ -117,6 +123,15 @@ knxd (0.11.1-1) unstable; urgency=medium
   * Refactor multicast to use a separate port for sending
 
  -- Matthias Urlichs <matthias@urlichs.de>  Sun, 28 Jun 2015 06:53:31 +0000
+
+knxd (0.10.16-1) unstable; urgency=medium
+
+  * Fixed the hop count=7 problem.
+    Thanks to Thomas Dallmair.
+  * Enhance low-latency code to work on more systems, hopefully.
+  * Added a workaround for the TPUART ACK problem.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Tue, 03 Jan 2017 05:30:15 +0100
 
 knxd (0.10.15-1) unstable; urgency=medium
 
