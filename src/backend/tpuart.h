@@ -52,7 +52,7 @@ protected:
   ev::timer timer; void timer_cb(ev::timer &w, int revents);
   ev::timer sendtimer; void sendtimer_cb(ev::timer &w, int revents);
   ev::timer watchdogtimer; void watchdogtimer_cb(ev::timer &w, int revents);
-  LPDU *l;
+  LPDU *l = nullptr;
   Queue <LPDU *> send_q;
 
   CArray in, sendheader;
