@@ -31,7 +31,7 @@ public:
   ~DummyL2Driver ();
   bool init (Layer3 *l3);
 
-  void Send_L_Data (L_Data_PDU * l);
+  void send_L_Data (L_Data_PDU * l);
 };
 
 /** dummy L2 filter, is transparent */
@@ -43,7 +43,7 @@ public:
   ~DummyL2Filter ();
   Layer2Ptr clone(Layer2Ptr l2);
 
-  void Send_L_Data (L_Data_PDU * l);
+  void send_L_Data (L_Data_PDU * l);
 };
 
 #endif

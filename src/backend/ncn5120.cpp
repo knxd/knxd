@@ -153,7 +153,7 @@ NCN5120SerialLayer2Driver::setup_buffers()
 }
 
 void
-NCN5120SerialLayer2Driver::Send_L_Data (L_Data_PDU * l)
+NCN5120SerialLayer2Driver::send_L_Data (L_Data_PDU * l)
 {
   TRACEPRINTF (t, 2, this, "Send %s", l->Decode ().c_str());
   send_q.put (l);

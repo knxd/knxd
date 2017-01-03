@@ -99,7 +99,7 @@ bool TPUART_Base::init (Layer3 *l3)
 }
 
 void
-TPUART_Base::Send_L_Data (L_Data_PDU * l)
+TPUART_Base::send_L_Data (L_Data_PDU * l)
 {
   TRACEPRINTF (t, 2, this, "Send %s", l->Decode ().c_str());
   send_q.put(l);

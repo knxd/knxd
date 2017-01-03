@@ -114,7 +114,7 @@ EMI_Common::Close ()
 }
 
 void
-EMI_Common::Send_L_Data (L_Data_PDU * l)
+EMI_Common::send_L_Data (L_Data_PDU * l)
 {
   TRACEPRINTF (t, 2, this, "Send %s", l->Decode ().c_str());
   assert (l->data.size() >= 1);

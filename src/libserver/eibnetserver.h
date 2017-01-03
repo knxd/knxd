@@ -70,8 +70,8 @@ public:
   void config_request(EIBnet_ConfigRequest &r1, EIBNetIPSocket *isock);
   void config_response (EIBnet_ConfigACK &r1);
 
-  void Send_L_Data (L_Data_PDU * l);
-  void Send_L_Busmonitor (L_Busmonitor_PDU * l);
+  void send_L_Data (L_Data_PDU * l);
+  void send_L_Busmonitor (L_Busmonitor_PDU * l);
   const char * Name () { return "EIBnetConn"; } // TODO add a sequence number
 };
 typedef std::shared_ptr<ConnState> ConnStatePtr;
@@ -115,8 +115,8 @@ class EIBnetServer: public Layer2mixin
   Queue < ConnStatePtr > drop_q;
   String name;
 
-  void Send_L_Data (L_Data_PDU * l);
-  void Send_L_Busmonitor (L_Busmonitor_PDU * l);
+  void send_L_Data (L_Data_PDU * l);
+  void send_L_Busmonitor (L_Busmonitor_PDU * l);
   int addClient (ConnType type, const EIBnet_ConnectRequest & r1,
                  eibaddr_t addr = 0);
   void addNAT (const L_Data_PDU & l);

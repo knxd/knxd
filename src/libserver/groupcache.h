@@ -83,7 +83,7 @@ public:
   /** destructor */
   virtual ~GroupCache ();
   /** Feed data to the cache */
-  void Send_L_Data (L_Data_PDU * l);
+  void send_L_Data (L_Data_PDU * l);
 
   /** add a reader which gets triggered on updates */
   void add (GroupCacheReader *r);

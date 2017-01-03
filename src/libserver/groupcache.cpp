@@ -91,7 +91,7 @@ GroupCache::add (GroupCacheEntry * entry)
 }
 
 void
-GroupCache::Send_L_Data (L_Data_PDU * l)
+GroupCache::send_L_Data (L_Data_PDU * l)
 {
   GroupCacheEntry *c;
   if (enable)

@@ -74,7 +74,7 @@ public:
   ~NCN5120SerialLayer2Driver ();
   bool init (Layer3 *l3);
 
-  void Send_L_Data (L_Data_PDU * l);
+  void send_L_Data (L_Data_PDU * l);
 
   bool enterBusmonitor ();
   bool leaveBusmonitor ();

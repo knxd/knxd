@@ -305,7 +305,7 @@ Layer3real::trigger_cb (ev::async &w, int revents)
               ITER(i,vbusmonitor)
                 {
                   L_Busmonitor_PDU *l2x = new L_Busmonitor_PDU (*l2);
-                  i->cb->Send_L_Busmonitor (l2x);
+                  i->cb->send_L_Busmonitor (l2x);
                 }
               delete l2;
             }
@@ -355,7 +355,7 @@ Layer3real::trigger_cb (ev::async &w, int revents)
                 {
 		  if ((l1->hopcount == 7)
 		      || ((*i != l1->l2) && (*i)->hasGroupAddress(l1->dest)))
-		    (*i)->Send_L_Data (new L_Data_PDU (*l1));
+		    (*i)->send_L_Data (new L_Data_PDU (*l1));
                 }
 	    }
 	  if (l1->AddrType == IndividualAddress)
@@ -380,7 +380,7 @@ Layer3real::trigger_cb (ev::async &w, int revents)
 		if ((l1->hopcount == 7)
                     || (*i != l1->l2
 		     && (*i)->hasAddress (found ? l1->dest : 0)))
-		  (*i)->Send_L_Data (new L_Data_PDU (*l1));
+		  (*i)->send_L_Data (new L_Data_PDU (*l1));
 	    }
 	}
       else if (l->getType () == L_Busmonitor)
@@ -392,7 +392,7 @@ Layer3real::trigger_cb (ev::async &w, int revents)
 	  ITER (i, busmonitor)
 	    {
 	      l2 = new L_Busmonitor_PDU (*l1);
-	      i->cb->Send_L_Busmonitor (l2);
+	      i->cb->send_L_Busmonitor (l2);
 	    }
 	}
       // ignore[] is ordered, any timed-out items are at the front

@@ -193,7 +193,7 @@ class L_Busmonitor_CallBack
 {
 public:
   /** callback: a bus monitor frame has been received */
-  virtual void Send_L_Busmonitor (L_Busmonitor_PDU * l) = 0;
+  virtual void send_L_Busmonitor (L_Busmonitor_PDU * l) = 0;
 
   virtual const char *Name() = 0;
 };

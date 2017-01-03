@@ -50,7 +50,7 @@ public:
                 bool virt, bool ts,
                 uint8_t *buf,size_t len);
   virtual ~A_Busmonitor ();
-  void Send_L_Busmonitor (L_Busmonitor_PDU * l);
+  void send_L_Busmonitor (L_Busmonitor_PDU * l);
 };
 
 /** implements text busmonitor functions for a client */
@@ -67,7 +67,7 @@ public:
                    : A_Busmonitor (c, virt, false, buf,len)
   {
   }
-  void Send_L_Busmonitor (L_Busmonitor_PDU * l);
+  void send_L_Busmonitor (L_Busmonitor_PDU * l);
 };
 
 #endif

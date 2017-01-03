@@ -88,7 +88,7 @@ public:
   bool init (T_Reader<BroadcastComm> *app, Layer3 *l3);
 
   /** enqueues a packet */
-  void Send_L_Data (L_Data_PDU * l);
+  void send_L_Data (L_Data_PDU * l);
   /** send APDU c */
   void Send (const CArray & c);
 };
@@ -106,7 +106,7 @@ public:
   bool init (T_Reader<GroupAPDU> *app, Layer3 *l3);
 
   /** enqueues a packet from L3 */
-  void Send_L_Data (L_Data_PDU * l);
+  void send_L_Data (L_Data_PDU * l);
   /** send APDU to L3 */
   void Send (const GroupAPDU & c);
 };
@@ -126,7 +126,7 @@ public:
   bool init (T_Reader<GroupComm> *app, Layer3 *l3);
 
   /** enqueues a packet from L3 */
-  void Send_L_Data (L_Data_PDU * l);
+  void send_L_Data (L_Data_PDU * l);
   /** send APDU to L3 */
   void Send (const CArray & c);
 };
@@ -146,7 +146,7 @@ public:
   bool init (T_Reader<TpduComm> *app, Layer3 *l3);
 
   /** enqueues a packet from L3 */
-  void Send_L_Data (L_Data_PDU * l);
+  void send_L_Data (L_Data_PDU * l);
   /** send APDU to L3 */
   void Send (const TpduComm & c);
 };
@@ -167,7 +167,7 @@ public:
   bool init (T_Reader<CArray> *app, Layer3 *l3);
 
   /** enqueues a packet from L3 */
-  void Send_L_Data (L_Data_PDU * l);
+  void send_L_Data (L_Data_PDU * l);
   /** send APDU to L3 */
   void Send (const CArray & c);
 };
@@ -215,7 +215,7 @@ public:
   bool init (T_Reader<CArray> *app, Layer3 *l3);
 
   /** enqueues a packet from L3 */
-  void Send_L_Data (L_Data_PDU * l);
+  void send_L_Data (L_Data_PDU * l);
   /** send APDU to L3 */
   void Send (const CArray & c);
 

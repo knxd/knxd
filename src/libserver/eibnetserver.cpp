@@ -196,7 +196,7 @@ void EIBnetDiscover::Send (EIBNetIPPacket p, struct sockaddr_in addr)
 }
 
 void
-EIBnetServer::Send_L_Data (L_Data_PDU * l)
+EIBnetServer::send_L_Data (L_Data_PDU * l)
 {
   if (route)
     {
@@ -220,7 +220,7 @@ bool ConnState::init()
   return true;
 }
 
-void ConnState::Send_L_Busmonitor (L_Busmonitor_PDU * l)
+void ConnState::send_L_Busmonitor (L_Busmonitor_PDU * l)
 {
   if (type == CT_BUSMONITOR)
     {
@@ -230,7 +230,7 @@ void ConnState::Send_L_Busmonitor (L_Busmonitor_PDU * l)
     }
 }
 
-void ConnState::Send_L_Data (L_Data_PDU * l)
+void ConnState::send_L_Data (L_Data_PDU * l)
 {
   if (type == CT_STANDARD)
     {

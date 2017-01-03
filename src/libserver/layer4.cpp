@@ -64,7 +64,7 @@ T_Broadcast::~T_Broadcast ()
 }
 
 void
-T_Broadcast::Send_L_Data (L_Data_PDU * l)
+T_Broadcast::send_L_Data (L_Data_PDU * l)
 {
   BroadcastComm c;
   TPDU *t = TPDU::fromPacket (l->data, this->t);
@@ -119,7 +119,7 @@ T_Group::init (T_Reader<GroupComm> *app, Layer3 *l3)
 }
 
 void
-T_Group::Send_L_Data (L_Data_PDU * l)
+T_Group::send_L_Data (L_Data_PDU * l)
 {
   GroupComm c;
   TPDU *t = TPDU::fromPacket (l->data, this->t);
@@ -172,7 +172,7 @@ T_TPDU::init (T_Reader<TpduComm> *app, Layer3 *l3)
 }
 
 void
-T_TPDU::Send_L_Data (L_Data_PDU * l)
+T_TPDU::send_L_Data (L_Data_PDU * l)
 {
   TpduComm t;
   t.data = l->data;
@@ -222,7 +222,7 @@ T_Individual::init (T_Reader<CArray> *app, Layer3 *l3)
 }
 
 void
-T_Individual::Send_L_Data (L_Data_PDU * l)
+T_Individual::send_L_Data (L_Data_PDU * l)
 {
   CArray c;
   TPDU *t = TPDU::fromPacket (l->data, this->t);
@@ -290,7 +290,7 @@ T_Connection::~T_Connection ()
 }
 
 void
-T_Connection::Send_L_Data (L_Data_PDU * l)
+T_Connection::send_L_Data (L_Data_PDU * l)
 {
   TPDU *t = TPDU::fromPacket (l->data, this->t);
   switch (t->getType ())
@@ -495,7 +495,7 @@ GroupSocket::~GroupSocket ()
 }
 
 void
-GroupSocket::Send_L_Data (L_Data_PDU * l)
+GroupSocket::send_L_Data (L_Data_PDU * l)
 {
   GroupAPDU c;
   TPDU *t = TPDU::fromPacket (l->data, this->t);

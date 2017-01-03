@@ -44,7 +44,7 @@ DummyL2Driver::~DummyL2Driver ()
 }
 
 void
-DummyL2Driver::Send_L_Data (L_Data_PDU * l)
+DummyL2Driver::send_L_Data (L_Data_PDU * l)
 {
   TRACEPRINTF (t, 2, this, "Send %s", l->Decode ().c_str());
   if ((mode & BUSMODE_MONITOR) && l->getType () == L_Data)
@@ -63,10 +63,10 @@ DummyL2Filter::DummyL2Filter (L2options *opt, Layer2Ptr l2) : Layer23 (l2)
 }
 
 void
-DummyL2Filter::Send_L_Data (L_Data_PDU * l)
+DummyL2Filter::send_L_Data (L_Data_PDU * l)
 {
   TRACEPRINTF (t, 2, this, "Passing %s", l->Decode ().c_str());
-  Layer23::Send_L_Data (l);
+  Layer23::send_L_Data (l);
 }
 
 DummyL2Filter::~DummyL2Filter ()

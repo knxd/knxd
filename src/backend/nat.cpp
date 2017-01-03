@@ -45,7 +45,7 @@ NatL2Filter::clone (Layer2Ptr l2)
 }
 
 void
-NatL2Filter::Send_L_Data (L_Data_PDU * l)
+NatL2Filter::send_L_Data (L_Data_PDU * l)
 {
   /* Sending a packet to this interface: record address pair, clear source */
   if (l->getType () == L_Data)
@@ -55,7 +55,7 @@ NatL2Filter::Send_L_Data (L_Data_PDU * l)
         addReverseAddress (l1->source, l1->dest);
       l1->source = 0;
     }
-  l2->Send_L_Data (l);
+  l2->send_L_Data (l);
 }
 
 

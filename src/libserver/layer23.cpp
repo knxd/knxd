@@ -41,9 +41,9 @@ Layer23::stop ()
 /** implement all of layer2shim */
 
 void
-Layer23::Send_L_Data (L_Data_PDU * l)
+Layer23::send_L_Data (L_Data_PDU * l)
 {
-  l2->Send_L_Data (l);
+  l2->send_L_Data (l);
 }
 
 bool

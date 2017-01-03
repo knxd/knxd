@@ -116,7 +116,7 @@ bool EIBNetIPTunnel::init (Layer3 *l3)
 }
 
 void
-EIBNetIPTunnel::Send_L_Data (L_Data_PDU * l)
+EIBNetIPTunnel::send_L_Data (L_Data_PDU * l)
 {
   TRACEPRINTF (t, 2, this, "Send %s", l->Decode ().c_str());
 

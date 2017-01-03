@@ -60,7 +60,7 @@ A_Busmonitor::A_Busmonitor (ClientConnPtr c, bool virt, bool TS, uint8_t *buf,si
 }
 
 void
-A_Busmonitor::Send_L_Busmonitor (L_Busmonitor_PDU * p)
+A_Busmonitor::send_L_Busmonitor (L_Busmonitor_PDU * p)
 {
   CArray buf;
   if (ts)
@@ -85,7 +85,7 @@ A_Busmonitor::Send_L_Busmonitor (L_Busmonitor_PDU * p)
 }
 
 void
-A_Text_Busmonitor::Send_L_Busmonitor (L_Busmonitor_PDU * p)
+A_Text_Busmonitor::send_L_Busmonitor (L_Busmonitor_PDU * p)
 {
   CArray buf;
   String s = p->Decode ();
