@@ -1,3 +1,0 @@
-[submodule "libev"]
-	path = libev
-	url = https://github.com/smurfix/libev.git

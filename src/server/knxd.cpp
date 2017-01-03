@@ -585,9 +585,6 @@ int
 main (int ac, char *ag[])
 {
   int index;
-#ifdef HAVE_PTHSEM
-  pth_init ();
-#endif
   setlinebuf(stdout);
 
 // set up libev
@@ -596,11 +593,7 @@ main (int ac, char *ag[])
 #else
   typedef int LOOP_RESULT;
 #endif
-#ifdef HAVE_PTHSEM
-  LOOP_RESULT loop = ev_default_loop(EVFLAG_AUTO | EVFLAG_NOSIGMASK | EVBACKEND_PTHSEM);
-#else
   LOOP_RESULT loop = ev_default_loop(EVFLAG_AUTO | EVFLAG_NOSIGMASK | EVBACKEND_SELECT);
-#endif
   assert (loop);
 
 #ifdef EV_TRACE
@@ -686,12 +679,5 @@ main (int ac, char *ag[])
   if (arg.pidfile)
     unlink (arg.pidfile);
 
-#ifdef HAVE_PTHSEM
-  pth_yield (0);
-  pth_yield (0);
-  pth_yield (0);
-  pth_yield (0);
-  pth_exit (0);
-#endif
   return 0;
 }

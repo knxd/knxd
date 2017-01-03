@@ -3,13 +3,8 @@ ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST=SubmittingPatches .gitignore tools/version.sh
 
 BUILDDIRS = 
-if HAVE_PTHSEM
-LIBEVDIR=libev
-else
-LIBEVDIR=
-endif
 
-SUBDIRS=. $(LIBEVDIR) src systemd
+SUBDIRS=. src systemd
 DIST_SUBDIRS    = $(SUBDIRS) rpm
 
 BUILT_SOURCES=path.h

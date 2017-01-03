@@ -4,7 +4,6 @@ Priority: optional
 Maintainer: Timo <knxd@timo-wingender.de>
 Build-Depends: debhelper (>= 7.0.0),
   autotools-dev, autoconf, automake, libtool,
-  libpthsem-dev, libpthsem20,
   libusb-1.0-0-dev (>= 1.0.9),
   pkg-config,
   libsystemd-dev (>= 228) | libsystemd-daemon-dev (>= 200) | base-files (<< 8),
@@ -19,7 +18,7 @@ Vcs-Git: https://github.com/Makki1/knxd.git
 
 Package: knxd
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libpthsem20, libusb-1.0-0 (>= 1.0.10), lsb-base
+Depends: ${shlibs:Depends}, ${misc:Depends}, libusb-1.0-0 (>= 1.0.10), lsb-base
 Replaces: eibd, eibd-server
 Conflicts: eibd, eibd-server
 Description: A daemon to access the KNX bus
@@ -30,7 +29,7 @@ Description: A daemon to access the KNX bus
 
 Package: knxd-tools
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libpthsem20, libusb-1.0-0
+Depends: ${shlibs:Depends}, ${misc:Depends}, libusb-1.0-0
 Recommends: knxd
 Replaces: eibd-clients, eibd-server, libeibclient0
 Conflicts: eibd-clients, eibd-server, libeibclient0

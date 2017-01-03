@@ -17,7 +17,7 @@ SLOT="0"
 KEYWORDS=""
 IUSE="eibd ft12 pei16s tpuarts eibnetip eibnetiptunnel eibnetipserver usb groupcache java ncn5120 dummy"
 
-DEPEND="dev-libs/pthsem"
+DEPEND=""
 
 EGIT_REPO_URI="https://github.com/Makki1/knxd.git"
 #EGIT_COMMIT="v${PV}"
@@ -28,8 +28,6 @@ src_prepare() {
 }
 
 src_configure() {
-#  works for me with the pth tests
-#        --without-pth-test \
     econf \
         $(use_enable ft12) \
         $(use_enable pei16s) \

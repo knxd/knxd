@@ -1,5 +1,5 @@
 noinst_LIBRARIES = libeibstack.a
-AM_CPPFLAGS=-I$(top_srcdir)/src/include -I$(top_srcdir)/src/common $(PTH_CFLAGS)
+AM_CPPFLAGS=-I$(top_srcdir)/src/include -I$(top_srcdir)/src/common
 
 if HAVE_SYSTEMD
 SYSTEMD_SERVER=systemdserver.cpp systemdserver.h
@@ -8,11 +8,6 @@ SYSTEMD_SERVER=
 endif
 
 COMMON=exception.h common.h common.cpp trace.h trace.cpp ipsupport.h ipsupport.cpp emi.h emi.cpp
-if HAVE_PTHSEM
-THREADS=threads.h threads.cpp
-else
-THREADS=
-endif
 PDUs=lpdu.h lpdu.cpp tpdu.h tpdu.cpp apdu.h apdu.cpp 
 CORE=lowlevel.h lowlevel.cpp layer2.h layer2.cpp layer3.h layer3.cpp layer4.h layer4.cpp layer23.h layer23.cpp
 if HAVE_GROUPCACHE
@@ -50,4 +45,4 @@ else
 USB=
 endif
 
-libeibstack_a_SOURCES =$(COMMON) $(CORE) $(THREADS) $(PDUs) $(MANAGEMENT) $(FRONTEND) $(EMI) $(EIBNETIP) $(USB) $(CACHE) $(BUSMON)
+libeibstack_a_SOURCES =$(COMMON) $(CORE) $(PDUs) $(MANAGEMENT) $(FRONTEND) $(EMI) $(EIBNETIP) $(USB) $(CACHE) $(BUSMON)

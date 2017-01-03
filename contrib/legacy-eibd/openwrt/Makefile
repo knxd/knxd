@@ -12,9 +12,9 @@ PKG_MD5SUM:=d92f34a703d79421d90fa4e1258ca235
 PKG_FIXUP:=libtool
 PKG_INSTALL:=1
 
-#PKG_BUILD_DEPENDS:=pthsem argp-standalone
-#PKG_BUILD_DEPENDS:=pthsem uClibc++ libxml2 libusb argp-standalone
-PKG_BUILD_DEPENDS:=pthsem uClibc++ argp-standalone
+#PKG_BUILD_DEPENDS:=argp-standalone
+#PKG_BUILD_DEPENDS:=uClibc++ libxml2 libusb argp-standalone
+PKG_BUILD_DEPENDS:=uClibc++ argp-standalone
 
 #PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 PKG_BUILD_DIR:=$(BUILD_DIR)/bcusdk
@@ -30,34 +30,32 @@ endef
 
 define Package/libeibclient
   $(call Package/eibd/Default)
-  DEPENDS:=+pthsem +uclibcxx
+  DEPENDS:=+uclibcxx
   TITLE+= libeibclient
 endef
 define Package/eibd-server
   $(call Package/eibd/Default)
-  DEPENDS:=+pthsem uclibcxx
+  DEPENDS:=+uclibcxx
   TITLE+= server daemon
 endef
 define Package/eibd-bcuaddrtab
   $(call Package/eibd/Default)
-  DEPENDS:=+pthsem uclibcxx
+  DEPENDS:=+uclibcxx
   TITLE+= bcuaddrtab
 endef
 define Package/eibd-knxtool
   $(call Package/eibd/Default)
-  DEPENDS:=+pthsem uclibcxx libeibclient
+  DEPENDS:=+uclibcxx libeibclient
   TITLE+= knxtool
 endef
 define Package/eibd-cgi
   $(call Package/eibd/Default)
-  DEPENDS:=+pthsem uclibcxx libeibclient lighttpd lighttpd-mod-setenv lighttpd-mod-cgi
+  DEPENDS:=+uclibcxx libeibclient lighttpd lighttpd-mod-setenv lighttpd-mod-cgi
   TITLE+= cgi-clients
 endef
 
 define Build/Prepare
-#markstaller@v1520-mm:~/openwrt/trunk$ cp build_dir/target-mips_r2_uClibc-0.9.32/pthsem-2.0.8/pthsem.m4 /home/markstaller/openwrt/trunk/staging_dir/#target-mips_r2_uClibc-0.9.32/usr/share/aclocal/
 # dirty hack for useless libtool:
-	$(CP) $(PKG_BUILD_DIR)/../pthsem-2.0.8/pthsem.m4 $(STAGING_DIR)/usr/share/aclocal/
 	$(call Build/Prepare/Default)
 endef
 
@@ -71,20 +69,18 @@ CONFIGURE_ARGS += \
 	--disable-usb \
 	--disable-pei16s \
 	--enable-groupcache \
-	--with-pth=yes \
-	--without-pth-test \
 	--without-libstdc 
 
 #define Build/Compile
 #	$(MAKE) -C $(PKG_BUILD_DIR) \
 #		CC=$(TARGET_CC) \
-#		LIBS="-L$(STAGING_DIR)/usr/lib -fno-builtin -nostdinc++ -nodefaultlibs -luClibc++ -lc -lm -lgcc -largp -lpthsem" \
+#		LIBS="-L$(STAGING_DIR)/usr/lib -fno-builtin -nostdinc++ -nodefaultlibs -luClibc++ -lc -lm -lgcc -largp" \
 #		CPPFLAGS="-I$(STAGING_DIR)/include -I$(STAGING_DIR)/usr/include"
 #		# -I$(LINUX_DIR)/include"
 #endef
 MAKE_FLAGS += \
 	CFLAGS="$(TARGET_CFLAGS) -Wall -D_REENTRANT" \
-	LIBS="-L$(STAGING_DIR)/usr/lib -fno-builtin -nostdinc++ -nodefaultlibs -luClibc++ -lc -lm -lgcc -largp -lpthsem" \
+	LIBS="-L$(STAGING_DIR)/usr/lib -fno-builtin -nostdinc++ -nodefaultlibs -luClibc++ -lc -lm -lgcc -largp" \
 	CPPFLAGS="-I$(STAGING_DIR)/include -I$(STAGING_DIR)/usr/include" \
 	all
 

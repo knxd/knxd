@@ -1,4 +1,4 @@
-AM_CPPFLAGS=-I$(top_srcdir)/src/libserver -I$(top_srcdir)/src/include -I$(top_srcdir)/src/common $(PTH_CFLAGS)
+AM_CPPFLAGS=-I$(top_srcdir)/src/libserver -I$(top_srcdir)/src/include -I$(top_srcdir)/src/common
 
 bin_PROGRAMS=$(EIBNET)
 
@@ -12,8 +12,8 @@ else
 EIBNET=
 endif
 eibnetdescribe_SOURCES=eibnetdescribe.cpp
-eibnetdescribe_LDADD=../../libserver/libeibstack.a ../../common/libcommon.a $(EV_LIBS) $(PTHSEM_LIB)
+eibnetdescribe_LDADD=../../libserver/libeibstack.a ../../common/libcommon.a $(EV_LIBS)
 
 eibnetsearch_SOURCES=eibnetsearch.cpp
-eibnetsearch_LDADD=../../libserver/libeibstack.a ../../common/libcommon.a $(EV_LIBS) $(PTHSEM_LIB)
+eibnetsearch_LDADD=../../libserver/libeibstack.a ../../common/libcommon.a $(EV_LIBS)
 

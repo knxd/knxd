@@ -2,7 +2,7 @@ language: cpp
 compiler: gcc
 script:
   - sh -x bootstrap.sh
-  - env CFLAGS="-Wall -Wextra" CPPFLAGS="-Wall -Wextra" ./configure --without-pth-test --disable-systemd
+  - env CFLAGS="-Wall -Wextra" CPPFLAGS="-Wall -Wextra" ./configure --disable-systemd
   - make
   - sh tools/test.sh
 notifications:

@@ -57,7 +57,7 @@ DUMMY =
 endif
 
 noinst_LIBRARIES = libbackend.a
-AM_CPPFLAGS=-I$(top_srcdir)/src/libserver -I$(top_srcdir)/src/common -I$(top_srcdir)/src/usb $(PTH_CFLAGS) $(LIBUSB_CFLAGS)
+AM_CPPFLAGS=-I$(top_srcdir)/src/libserver -I$(top_srcdir)/src/common -I$(top_srcdir)/src/usb $(LIBUSB_CFLAGS)
 
 libbackend_a_SOURCES= $(FT12) $(PEI16s) $(TPUARTs) $(TPUARTs_TCP) $(TPUART_COMMON) $(EIBNETIP) $(EIBNETIPTUNNEL) $(USB) $(NCN5120) $(DUMMY) dummy.cpp nat.cpp
 

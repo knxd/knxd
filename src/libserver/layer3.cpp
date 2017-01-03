@@ -49,12 +49,7 @@ Layer3real::~Layer3real ()
   ITER(i,layer2)
     {
       Layer2Ptr l2 = *i;
-#ifdef HAVE_PTHSEM
-      // TODO: This depends on runtime typing. Ugh. Fix me.
-      std::shared_ptr<Thread> l2t = std::dynamic_pointer_cast<Thread>(l2);
-      if (l2t)
-        l2t->Stop();
-#endif
+      // TODO create a common stop() method and call that
     }
 
   servers.resize(0);

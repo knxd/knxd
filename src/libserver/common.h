@@ -54,9 +54,6 @@ typedef enum
 
 #include "queue.h"
 #include "exception.h"
-#ifdef HAVE_PTHSEM
-#include "threads.h"
-#endif
 
 /** add c to s as hex value
  * @param s string
@@ -88,10 +85,6 @@ inline T ignore_result(T x __attribute__((unused)))
 {
     return x;
 }
-
-#ifdef HAVE_PTHSEM
-extern pth_time_t pth_null_time;
-#endif
 
 #define CONST const
 #ifdef __GNUC__

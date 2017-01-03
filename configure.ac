@@ -75,10 +75,6 @@ AC_CHECK_FUNCS(gethostbyname_r,,[AC_MSG_WARN([knxd client library not thread saf
 
 AM_CONDITIONAL(LINUX_API, test x$have_linux_api = xyes)
 
-AC_DEFUN([NEED_PTH], [dnl
- need_pthsem=yes
- AC_MSG_RESULT([PTH because of $1])
-])
 AC_DEFUN([NEED_EMI], [dnl
  need_emi=yes
  AC_MSG_RESULT([EMI because of $1])
@@ -106,7 +102,6 @@ AC_ARG_ENABLE(management,
 AM_CONDITIONAL(HAVE_MANAGEMENT, test x$management = xtrue)
 if test x$management = xtrue ; then
  AC_DEFINE(HAVE_MANAGEMENT, 1 , [management connections enabled])
- NEED_PTH(management)
 fi
 
 AC_ARG_ENABLE(ft12,
@@ -144,7 +139,6 @@ dnl  esac],[pei16s=false])
 dnl AM_CONDITIONAL(HAVE_PEI16s, test x$pei16s = xtrue)
 dnl if test x$pei16s = xtrue ; then
 dnl  AC_DEFINE(HAVE_PEI16s, 1 , [PEI16s enabled])
-dnl  NEED_PTH(pei16s)
 dnl  NEED_EMI(pei16s)
 dnl fi
 
@@ -270,26 +264,8 @@ fi
 
 AM_CONDITIONAL(HAVE_EMI, test x$need_emi = xyes)
 
-EV_LIBS=
-if test x$need_pthsem = xyes ; then
-  AC_CHECK_PTHSEM(2.0.8,yes,yes,no)
-  PTHSEM_LIB="$PTH_LDFLAGS $PTH_LIBS"
-  AC_SUBST(PTHSEM_LIB)
-else
-  with_pth=no
-fi
-if test ".$with_pth" != .no ; then
- AC_DEFINE(HAVE_PTHSEM, 1, [libpthsem present])
- dnl force linking to the embedded libev
- CFLAGS="$CFLAGS -I$(pwd)/libev -DEV_USE_PTHSEM"
- CXXFLAGS="$CXXFLAGS -I$(pwd)/libev"
- EV_LIBS="$(pwd)/libev/.libs/libev.a"
-else
- dnl nope. Use the system libev
- AC_CHECK_LIB([ev], [ev_run],,[AC_MSG_ERROR([libev not found])])
- EV_LIBS="-lev"
-fi
-AM_CONDITIONAL(HAVE_PTHSEM, test x$need_pthsem = xyes)
+AC_CHECK_LIB([ev], [ev_run],,[AC_MSG_ERROR([libev not found])])
+EV_LIBS="-lev"
 AC_SUBST([EV_LIBS])
 
 AM_CONDITIONAL(HAVE_SOURCE_INFO, test x$have_source_info = xyes )
