@@ -119,20 +119,14 @@ void
 EIBNetIPTunnel::Send_L_Data (LPDU * l)
 {
   TRACEPRINTF (t, 2, this, "Send %s", l->Decode ().c_str());
+
   if (l->getType () != L_Data)
     {
       delete l;
       return;
     }
 
-  /* when tunneling physical requests, replies must be sent
-   * back to tunnel address instead of the real address  otherwise
-   * they will not be sent up
-   * the tunnling connection  */
   L_Data_PDU l1 = *(L_Data_PDU *)l;
-  if (l1.AddrType == IndividualAddress)
-    l1.source = 0;
-
   send_q.put (L_Data_ToCEMI (0x11, l1));
   delete l;
 }
