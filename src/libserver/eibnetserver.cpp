@@ -355,6 +355,7 @@ void ConnState::stop()
   sendtimeout.stop();
   send_trigger.stop();
   parent->drop_state (std::static_pointer_cast<ConnState>(shared_from_this()));
+  Layer2::stop();
 }
 
 void EIBnetServer::drop_state (ConnStatePtr s)
