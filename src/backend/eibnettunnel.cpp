@@ -281,7 +281,7 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
 	if (treq.CEMI[0] == 0x2B)
 	  {
 	    L_Busmonitor_PDU *l2 = CEMI_to_Busmonitor (treq.CEMI, shared_from_this());
-	    l3->recv_L_Data (l2);
+	    l3->recv_L_Busmonitor (l2);
 	    break;
 	  }
 	if (treq.CEMI[0] != 0x29)
@@ -302,7 +302,7 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
 	    L_Busmonitor_PDU *p1 = new L_Busmonitor_PDU (shared_from_this());
 	    p1->pdu = c->ToPacket ();
 	    delete c;
-	    l3->recv_L_Data (p1);
+	    l3->recv_L_Busmonitor (p1);
 	    break;
 	  }
 	TRACEPRINTF (t, 1, this, "Unknown CEMI");

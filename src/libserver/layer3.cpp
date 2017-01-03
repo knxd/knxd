@@ -67,7 +67,23 @@ Layer3real::~Layer3real ()
 }
 
 void
-Layer3real::recv_L_Data (LPDU * l)
+Layer3real::recv_L_Data (L_Data_PDU * l)
+{
+  if (running)
+    {
+      TRACEPRINTF (tr(), 3, this, "Enqueue %s", l->Decode ().c_str());
+      buf.put (l);
+      trigger.send();
+    }
+  else
+    {
+      TRACEPRINTF (tr(), 3, this, "Discard(not running) %s", l->Decode ().c_str());
+      delete l;
+    }
+}
+
+void
+Layer3real::recv_L_Busmonitor (L_Busmonitor_PDU * l)
 {
   if (running)
     {

@@ -60,15 +60,12 @@ NatL2Filter::Send_L_Data (L_Data_PDU * l)
 
 
 void
-NatL2Filter::recv_L_Data (LPDU * l)
+NatL2Filter::recv_L_Data (L_Data_PDU * l)
 {
   /* Receiving a packet from this interface: reverse-lookup real destination from source */
-  if (l->getType () == L_Data)
-    {
-      L_Data_PDU *l1 = dynamic_cast<L_Data_PDU *>(l);
-      if (l1->AddrType == IndividualAddress)
-        l1->dest = getDestinationAddress (l1->source);
-    }
+  L_Data_PDU *l1 = dynamic_cast<L_Data_PDU *>(l);
+  if (l1->AddrType == IndividualAddress)
+    l1->dest = getDestinationAddress (l1->source);
   l3->recv_L_Data (l);
 }
 

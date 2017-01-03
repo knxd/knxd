@@ -52,7 +52,7 @@ DummyL2Driver::Send_L_Data (L_Data_PDU * l)
     {
       L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (shared_from_this());
       l2->pdu.set (l->ToPacket ());
-      l3->recv_L_Data (l2);
+      l3->recv_L_Busmonitor (l2);
     }
   delete l;
 }

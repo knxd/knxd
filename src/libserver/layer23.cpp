@@ -181,6 +181,12 @@ Layer23::recv_L_Data (L_Data_PDU * l)
   l3->recv_L_Data (l);
 }
 
+void
+Layer23::recv_L_Busmonitor (L_Busmonitor_PDU * l)
+{
+  l3->recv_L_Busmonitor (l);
+}
+
 bool
 Layer23::hasAddress (eibaddr_t addr, Layer2Ptr l2)
 {

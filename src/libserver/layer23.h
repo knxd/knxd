@@ -82,7 +82,8 @@ public:
   bool deregisterBusmonitor (L_Busmonitor_CallBack * c);
   bool deregisterVBusmonitor (L_Busmonitor_CallBack * c);
 
-  void recv_L_Data (LPDU * l);
+  void recv_L_Data (L_Data_PDU * l);
+  void recv_L_Busmonitor (L_Busmonitor_PDU * l);
   bool hasAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr);
   bool hasGroupAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr);
   void registerServer (BaseServer *s);

@@ -124,7 +124,7 @@ EIBNetIPRouter::on_recv_cb(EIBNetIPPacket *p)
       L_Busmonitor_PDU *p1 = new L_Busmonitor_PDU (shared_from_this());
       p1->pdu = c->ToPacket ();
       delete c;
-      l3->recv_L_Data (p1);
+      l3->recv_L_Busmonitor (p1);
       return;
     }
 }
