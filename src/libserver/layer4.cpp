@@ -34,6 +34,7 @@ bool Layer4common::init (Layer3 *l3)
     return false;
 
   remoteAddr = l3->get_client_addr ();
+  l3 = l3->registerLayer2(shared_from_this());
   return Layer2mixin::init(l3);
 }
 
