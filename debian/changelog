@@ -1,3 +1,11 @@
+knxd (0.12.0~5-1) experimental; urgency=medium
+
+  * group cache: fixed, tested.
+    TODO: add tests to the script.
+  * (v)busmonitor3: Now sending somewhat-reasonable timestamps.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 04 Jan 2017 01:26:24 +0100
+
 knxd (0.12.0~4-1) experimental; urgency=medium
 
   * Removed experimental PEI16 driver.
