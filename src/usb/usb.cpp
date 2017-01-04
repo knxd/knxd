@@ -62,7 +62,7 @@ void USBLoop::setup()
 {
   ITER(i,fds)
     delete *i;
-  fds.resize(0);
+  fds.clear();
   const struct libusb_pollfd **usb_fds = libusb_get_pollfds(context);
   for(const struct libusb_pollfd *it = *usb_fds; it != NULL; ++it)
     {

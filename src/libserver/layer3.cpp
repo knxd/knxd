@@ -60,16 +60,16 @@ Layer3real::~Layer3real ()
   ITER(i,layer2)
     ERRORPRINTF (tr(), E_WARNING | 54, this, "Layer2 '%s' didn't de-register!", (*i)->Name());
 
-  layer2.resize(0);
-  servers.resize(0);
+  layer2.clear();
+  servers.clear();
 
   R_ITER(i,vbusmonitor)
     ERRORPRINTF (tr(), E_WARNING | 55, this, "VBusmonitor '%s' didn't de-register!", i->cb->Name());
-  vbusmonitor.resize(0);
+  vbusmonitor.clear();
 
   R_ITER(i,busmonitor)
     ERRORPRINTF (tr(), E_WARNING | 56, this, "Busmonitor '%s' didn't de-register!", i->cb->Name());
-  busmonitor.resize(0);
+  busmonitor.clear();
 
   cleanup.stop();
   TRACEPRINTF (tr(), 3, this, "Closed");
