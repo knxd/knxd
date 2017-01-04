@@ -50,6 +50,7 @@ On Debian:
 
     # now build+install knxd itself
     cd knxd
+    git checkout libev ## this branch
     dpkg-buildpackage -b -uc
     # To repeat: if this fails because of missing dependencies,
     # fix them instead of using dpkg-buildpackage's "-d" option.
