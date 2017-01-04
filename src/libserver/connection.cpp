@@ -188,6 +188,8 @@ A_Connection::~A_Connection ()
 A_GroupSocket::~A_GroupSocket ()
 {
   TRACEPRINTF (con->t, 7, this, "CloseGroupSocket");
+  if (c)
+    c->stop();
 }
 
 void
