@@ -385,6 +385,7 @@ Layer3real::trigger_cb (ev::async &w, int revents)
                   && (*i)->hasAddress (found ? l1->dest : 0)))
               (*i)->send_L_Data (new L_Data_PDU (*l1));
         }
+      delete l1;
     }
 
   // Timestamps are ordered, so we scan for the first 
