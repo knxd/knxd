@@ -49,7 +49,7 @@ ReadCallback(const GroupCacheEntry &gce, bool nowait, ClientConnPtr c)
   CArray erg;
 
   erg.resize (6 + gce.data.size());
-  EIBSETTYPE (erg, nowait ? EIB_CACHE_READ : EIB_CACHE_READ_NOWAIT);
+  EIBSETTYPE (erg, nowait ? EIB_CACHE_READ_NOWAIT : EIB_CACHE_READ);
   erg[2] = (gce.src >> 8) & 0xff;
   erg[3] = (gce.src >> 0) & 0xff;
   erg[4] = (gce.dst >> 8) & 0xff;
