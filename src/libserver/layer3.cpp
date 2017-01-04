@@ -47,6 +47,7 @@ Layer3real::~Layer3real ()
 {
   TRACEPRINTF (tr(), 3, this, "L3 stopping");
   running = false;
+  cache = nullptr;
   trigger.stop();
   mtrigger.stop();
   while (!buf.isempty())
