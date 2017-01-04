@@ -110,9 +110,8 @@ EIBNetIPRouter::on_recv_cb(EIBNetIPPacket *p)
       return;
     }
 
-  const CArray data = p->data;
+  L_Data_PDU *c = CEMI_to_L_Data (p->data, shared_from_this());
   delete p;
-  L_Data_PDU *c = CEMI_to_L_Data (data, shared_from_this());
   if (c)
     {
       TRACEPRINTF (t, 2, this, "Recv %s", c->Decode ().c_str());
