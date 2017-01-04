@@ -1,3 +1,9 @@
+knxd (0.11.17-1) unstable; urgency=medium
+
+  * Plugged a memory leak.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 04 Jan 2017 10:16:51 +0100
+
 knxd (0.11.16-1) unstable; urgency=medium
 
   * Merge from stable.
