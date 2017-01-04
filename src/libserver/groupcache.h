@@ -48,12 +48,11 @@ class GroupCacheReader
 {
 public:
   GroupCacheReader(GroupCache *); 
-  ~GroupCacheReader();
+  virtual ~GroupCacheReader();
 
   bool stopped = false;
   GroupCache *gc;
   virtual void updated(GroupCacheEntry *) = 0;
-protected:
   virtual void stop();
 };
 
@@ -73,6 +72,7 @@ public: // but only for GroupCacheReader
   /** circular buffer of last-updated group addresses */
   eibaddr_t updates[0x100];
 private:
+  ev::async remtrigger; void remtrigger_cb(ev::async &w, int revents);
   /** find this group */
   GroupCacheEntry *find (eibaddr_t dst);
   /** add this entry */

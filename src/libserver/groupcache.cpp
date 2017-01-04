@@ -28,10 +28,17 @@ GroupCache::GroupCache (TracePtr t)
   enable = 0;
   pos = 0;
   memset (updates, 0, sizeof (updates));
+  remtrigger.set<GroupCache, &GroupCache::remtrigger_cb>(this);
 }
 
 GroupCache::~GroupCache ()
 {
+  remtrigger.stop();
+  R_ITER(i,reader)
+    {
+      (*i)->stop();
+      delete *i;
+    }
   TRACEPRINTF (t, 4, this, "GroupCacheDestroy");
   Clear ();
 }
@@ -42,6 +49,7 @@ GroupCache::init(Layer3 *l3)
   if (!Layer2::init(l3))
     return false;
   l3 = l3->registerLayer2(shared_from_this());
+  remtrigger.start();
   return true;
 }
 
@@ -198,12 +206,23 @@ GroupCache::updated(GroupCacheEntry *c)
 void
 GroupCache::remove (GroupCacheReader * entry)
 {
-  ITER(i,reader)
-    if (*i == entry)
-      {
-        reader.erase(i);
-        return;
-      }
+  remtrigger.send();
+}
+
+void
+GroupCache::remtrigger_cb(ev::async &w, int revents)
+{
+  // erase() doesn't do reverse iterators
+  //R_ITER(i,reader)
+  unsigned int i = reader.size();
+  while(i--)
+    {
+      GroupCacheReader *r = reader[i];
+      if (!r->stopped)
+        continue;
+      delete r;
+      reader.erase(reader.begin()+i);
+    }
 }
 
 class GCReader : protected GroupCacheReader
@@ -214,8 +233,6 @@ class GCReader : protected GroupCacheReader
   uint16_t age;
   ev::timer timeout;
 public:
-  bool stopped = false;
-
   GCReader(GroupCache *gc, eibaddr_t addr, int Timeout, uint16_t age,
            GCReadCallback cb, ClientConnPtr cc) : GroupCacheReader(gc)
   {
@@ -226,11 +243,13 @@ public:
     timeout.set<GCReader,&GCReader::timeout_cb>(this);
     timeout.start(Timeout,0);
   }
-  ~GCReader() {}
-  void stop() {
-    stopped = true;
-    GroupCacheReader::stop();
-  }
+  ~GCReader()
+    {
+      if (stopped)
+        return;
+      timeout.stop();
+      GroupCacheReader::stop();
+    }
 private:
   void updated(GroupCacheEntry *c)
   {
@@ -328,10 +347,15 @@ public:
     timeout.set<GCTracker,&GCTracker::timeout_cb>(this);
     timeout.start(Timeout,0);
   }
-  ~GCTracker() {}
-  void stop() {
-    stopped = true;
-    GroupCacheReader::stop();
+  ~GCTracker() {
+      a.clear();
+  }
+  void stop()
+  {
+      if (stopped)
+        return;
+      timeout.stop();
+      GroupCacheReader::stop();
   }
 private:
   void updated(GroupCacheEntry *c)
