@@ -76,10 +76,10 @@ struct _EIBConnection
 /** extracts TYPE code of an eibd packet */
 #define EIBTYPE(con) (((con)->buf[0]<<8)|((con)->buf[1]))
 /** sets TYPE code for an eibd packet*/
-#define EIBSETTYPE(buf,type) do{(buf)[0]=(type>>8)&0xff;(buf)[1]=(type)&0xff;}while(0)
+#define EIBSETTYPE(buf,type) do{(buf)[0]=((type)>>8)&0xff;(buf)[1]=(type)&0xff;}while(0)
 
 /** set EIB address */
-#define EIBSETADDR(buf,type) do{(buf)[0]=(type>>8)&0xff;(buf)[1]=(type)&0xff;}while(0)
+#define EIBSETADDR(buf,type) do{(buf)[0]=((type)>>8)&0xff;(buf)[1]=(type)&0xff;}while(0)
 
 int _EIB_SendRequest (EIBConnection * con, unsigned int size, uchar * data);
 int _EIB_CheckRequest (EIBConnection * con, int block);

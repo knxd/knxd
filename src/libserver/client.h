@@ -27,7 +27,7 @@
 /** reads the type of a eibd packet */
 #define EIBTYPE(buf) (((buf)[0]<<8)|((buf)[1]))
 /** sets the type of a eibd packet*/
-#define EIBSETTYPE(buf,type) do{(buf)[0]=(type>>8)&0xff;(buf)[1]=(type)&0xff;}while(0)
+#define EIBSETTYPE(buf,type) do{(buf)[0]=((type)>>8)&0xff;(buf)[1]=(type)&0xff;}while(0)
 
 class Server;
 class Layer3;
