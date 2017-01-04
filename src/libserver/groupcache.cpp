@@ -346,15 +346,13 @@ private:
   {
     if (stopped)
       return;
-
-    handler();
-    if (stopped)
+    if (handler())
       return;
     cb(a,gc->pos,cc);
     stop();
   }
 
-  void handler()
+  bool handler()
   {
     if (gc->pos < 0x100)
       {
@@ -369,17 +367,18 @@ private:
     TRACEPRINTF (gc->t, 8, this, "LastUpdates start: %d pos: %d", start, gc->pos);
     while (start != gc->pos && !gc->updates[start & 0xff])
       start++;
-    if (start != gc->pos)
+    if (start == gc->pos)
+      return false;
+    do
       {
-        while (start != gc->pos)
-          {
-            if (gc->updates[start & 0xff])
-              a.push_back (gc->updates[start & 0xff]);
-            start++;
-          }
-        cb(a,gc->pos,cc);
-        stop();
+        if (gc->updates[start & 0xff])
+          a.push_back (gc->updates[start & 0xff]);
+        start++;
       }
+    while (start != gc->pos);
+    cb(a,gc->pos,cc);
+    stop();
+    return true;
   }
 };
 
