@@ -36,6 +36,15 @@ GroupCache::~GroupCache ()
   Clear ();
 }
 
+bool
+GroupCache::init(Layer3 *l3)
+{
+  if (!Layer2::init(l3))
+    return false;
+  l3 = l3->registerLayer2(shared_from_this());
+  return true;
+}
+
 GroupCacheEntry *
 GroupCache::find (eibaddr_t dst)
 {

@@ -63,8 +63,11 @@ class GroupCache:public Layer2mixin
   /** output queue */
   Array < GroupCacheEntry * > cache;
   /** controlled by .Start/Stop; if false, the whole code does nothing */
-  bool enable;
+  bool enable = false;
+
 public: // but only for GroupCacheReader
+  bool init(Layer3 *l3);
+
   /** current position in 'updates' array */
   uint16_t pos;
   /** circular buffer of last-updated group addresses */
