@@ -1,3 +1,9 @@
+knxd (0.10.17-1) stable; urgency=medium
+
+  * fix eibread-cgi. I was stupid.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 05 Jan 2017 18:13:18 +0100
+
 knxd (0.10.16-1) unstable; urgency=medium
 
   * Fixed the hop count=7 problem.

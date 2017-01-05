@@ -38,6 +38,7 @@ char *eiburl[256];
 int lastpos = 0;
 int timeout = 300;
 int subscribedGA[UINT16 >>3];
+int seenGA[UINT16 >>3];
 //int gaDPT[UINT16];
 
 //struct gaconfig_s {
@@ -277,8 +278,8 @@ main ()
   char outbuf[10000];
   char *outptr = outbuf;
 #define OPL ({ int opl = sizeof(outbuf)-(outptr-outbuf); if (opl < 3) opl=0; opl;})
-  char tmpbuf[50];
   time_t tstart;
+  char seen = 0;
   tstart = time(NULL);
   //strcat(outbuf,"Content-Type: application/json\n\n");
   //printf("Content-Type: application/json\n\n");
@@ -334,54 +335,61 @@ main ()
     }
   }
 
-  while ((outptr == outbuf || lastpos <1) &&  difftime(time(NULL), tstart) < timeout)
-  {
-  len = EIB_Cache_LastUpdates (con, lastpos, timeout, sizeof (buf), buf, &end);
-  if (len == -1)
-    cgidie ("Read failed");
+  memset(seenGA,0,sizeof(seenGA));
 
-  if (end < lastpos) //counter wrap
-    lastpos = 1;
-  else
-    lastpos = end;
+  while ((!seen || lastpos <1) && difftime(time(NULL), tstart) < timeout) {
+    len = EIB_Cache_LastUpdates (con, lastpos, timeout, sizeof (buf), buf, &end);
+    if (len == -1)
+      cgidie ("Read failed");
 
-  for (i = 0; i < len; i += 2)
-    {
-      dest = (buf[i] << 8) | buf[i + 1];
-      // and output only one if changed multiple times to save the planet
-      sprintf(tmpbuf,"\"%d/%d/%d\":",(dest >> 11) & 0x1f, (dest >> 8) & 0x07, dest & 0xff);
-      if (((subscribedGA[dest>>3]&(1<<((dest&7)))) || (subscribedGA[0] | 1)) && !strstr(outbuf,tmpbuf))
+    if (end < lastpos) //counter wrap
+      lastpos = 1;
+    else
+      lastpos = end;
+
+    for (i = 0; i < len; i += 2)
       {
-        if (outptr != outbuf)
-          strcat(outbuf,",");
-        // read value from cache
-        len_gread = EIB_Cache_Read (con, dest, &src, sizeof(buf_gread), buf_gread);
-        if (len_gread != -1)
+        dest = (buf[i] << 8) | buf[i + 1];
+        // and output only one if changed multiple times to save the planet
+        if (seenGA[dest>>3]&(1<<((dest&7))))
+          continue;
+        seenGA[dest>>3] |= 1<<((dest&7));
+
+        if ((subscribedGA[dest>>3]&(1<<((dest&7)))) || (subscribedGA[0] | 1))
         {
-          if (buf_gread[1] & 0xC0)
+          // read value from cache
+          len_gread = EIB_Cache_Read (con, dest, &src, sizeof(buf_gread), buf_gread);
+          if (len_gread != -1)
           {
-              //sprintf (tmpbuf,"%d,\"%s",dest, decodeDPT(buf_gread[j+2],gaDPT[dest]));
-              //sprintf (tmpbuf,"%d,\"YES %02X", dest, buf_gread[1] & 0x3F);
-            if (len_gread == 2)
+            if (buf_gread[1] & 0xC0)
             {
-              outptr += snprintf (outptr,OPL, "\"%d/%d/%d\":\"%02X", (dest >> 11) & 0x1f, (dest >> 8) & 0x07, dest & 0xff, buf_gread[1] & 0x3F);
-            }
-            else
-            {
-              outptr += snprintf (outptr,OPL, "\"%d/%d/%d\":\"", (dest >> 11) & 0x1f, (dest >> 8) & 0x07, dest & 0xff);
-              for (j = 0; j < len_gread-2; j++)
+              if (seen)
+                *outptr++ = ',';
+              else
+                seen=1;
+
+                //sprintf (tmpbuf,"%d,\"%s",dest, decodeDPT(buf_gread[j+2],gaDPT[dest]));
+                //sprintf (tmpbuf,"%d,\"YES %02X", dest, buf_gread[1] & 0x3F);
+              if (len_gread == 2)
               {
-                outptr += snprintf (outptr,OPL, "%02X", buf_gread[j+2]);
+                outptr += snprintf (outptr,OPL, "\"%d/%d/%d\":\"%02X", (dest >> 11) & 0x1f, (dest >> 8) & 0x07, dest & 0xff, buf_gread[1] & 0x3F);
               }
-              //printHex (len_gread - 2, buf_gread + 2);
+              else
+              {
+                outptr += snprintf (outptr,OPL, "\"%d/%d/%d\":\"", (dest >> 11) & 0x1f, (dest >> 8) & 0x07, dest & 0xff);
+                for (j = 0; j < len_gread-2; j++)
+                {
+                  outptr += snprintf (outptr,OPL, "%02X", buf_gread[j+2]);
+                }
+                //printHex (len_gread - 2, buf_gread + 2);
+              }
+              *outptr++ = '"';
             }
-            *outptr++ = '"';
           }
         }
       }
-    }
-  if (outptr != outbuf)
-    printf ("%s},\"i\":%d}\n",outbuf,end);
+    if (outptr != outbuf)
+      printf ("%s},\"i\":%d}\n",outbuf,end);
   }
   EIBClose (con);
   return 0;
