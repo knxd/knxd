@@ -1,3 +1,9 @@
+knxd (0.11.18-1) unstable; urgency=medium
+
+  * merge CGI fix
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 05 Jan 2017 18:15:10 +0100
+
 knxd (0.11.17-1) unstable; urgency=medium
 
   * Plugged a memory leak.
@@ -129,6 +135,12 @@ knxd (0.11.1-1) unstable; urgency=medium
   * Refactor multicast to use a separate port for sending
 
  -- Matthias Urlichs <matthias@urlichs.de>  Sun, 28 Jun 2015 06:53:31 +0000
+
+knxd (0.10.17-1) stable; urgency=medium
+
+  * fix eibread-cgi. I was stupid.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 05 Jan 2017 18:13:18 +0100
 
 knxd (0.10.16-1) unstable; urgency=medium
 
