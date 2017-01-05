@@ -67,7 +67,10 @@ protected:
   bool init_ok;
 public:
   bool init (Layer3 *l3);
-  void stop();
+
+  bool hasAddress(eibaddr_t addr);
+  bool addAddress(eibaddr_t addr);
+  bool removeAddress(eibaddr_t addr);
 };
 
 template<class T>
@@ -75,6 +78,7 @@ class T_Reader
 {
 public:
   virtual void send(T &) = 0;
+  eibaddr_t addr; // phys address of this client
 };
 
 /** Broadcast Layer 4 connection */

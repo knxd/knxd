@@ -35,16 +35,28 @@ Layer4common::init (Layer3 *l3)
     return false;
 
   l3 = l3->registerLayer2(shared_from_this());
-  remoteAddr = l3->get_client_addr ();
   return Layer2mixin::init(l3);
 }
 
-void
-Layer4common::stop()
+bool
+Layer4common::addAddress(eibaddr_t addr)
 {
-  if (l3)
-    l3->release_client_addr(remoteAddr);
-  Layer2mixin::stop();
+  remoteAddr = addr;
+}
+
+bool
+Layer4common::hasAddress(eibaddr_t addr)
+{
+  return (remoteAddr == addr);
+}
+
+bool
+Layer4common::removeAddress(eibaddr_t addr)
+{
+  if (remoteAddr != addr)
+    return false;
+  remoteAddr = 0;
+  return true;
 }
 
 /***************** T_Brodcast *****************/
@@ -64,6 +76,7 @@ bool
 T_Broadcast::init (T_Reader<BroadcastComm> *app, Layer3 *l3)
 {
     this->app = app;
+    addAddress(app->addr);
     return Layer4common::init(l3);
 }
 
@@ -124,6 +137,7 @@ bool
 T_Group::init (T_Reader<GroupComm> *app, Layer3 *l3)
 {
     this->app = app;
+    addAddress(app->addr);
     return Layer4common::init(l3);
 }
 
@@ -177,6 +191,7 @@ bool
 T_TPDU::init (T_Reader<TpduComm> *app, Layer3 *l3)
 {
     this->app = app;
+    addAddress(app->addr);
     return Layer4common::init(l3);
 }
 
@@ -227,6 +242,7 @@ bool
 T_Individual::init (T_Reader<CArray> *app, Layer3 *l3)
 {
     this->app = app;
+    addAddress(app->addr);
     return Layer4common::init(l3);
 }
 
@@ -287,6 +303,7 @@ bool
 T_Connection::init (T_Reader<CArray> *app, Layer3 *l3)
 {
     this->app = app;
+    addAddress(app->addr);
     return Layer4common::init(l3);
 }
 
@@ -495,6 +512,7 @@ bool
 GroupSocket::init (T_Reader<GroupAPDU> *app, Layer3 *l3)
 {
     this->app = app;
+    addAddress(app->addr);
     return Layer4common::init(l3);
 }
 

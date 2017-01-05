@@ -73,6 +73,7 @@ ClientConnection::stop(bool no_server)
 {
   if (addr)
     {
+      TRACEPRINTF (t, 8, this, "ClientConnection %s closing", FormatEIBAddr (addr).c_str());
       l3->release_client_addr(addr);
       addr = 0;
     }
@@ -88,7 +89,6 @@ ClientConnection::stop(bool no_server)
     return;
   if (! no_server)
     s->deregister (shared_from_this());
-  TRACEPRINTF (t, 8, this, "ClientConnection %s closed", FormatEIBAddr (addr).c_str());
   sendbuf.stop();
   recvbuf.stop();
   close (fd);
