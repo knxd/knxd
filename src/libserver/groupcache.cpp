@@ -143,9 +143,6 @@ bool
 GroupCache::Start ()
 {
   TRACEPRINTF (t, 4, this, "GroupCacheEnable");
-  if (!enable)
-    if (!addGroupAddress (0))
-      return false;
   enable = 1;
   return true;
 }
@@ -165,8 +162,6 @@ GroupCache::Stop ()
 {
   Clear ();
   TRACEPRINTF (t, 4, this, "GroupCacheStop");
-  if (enable)
-    removeGroupAddress (0);
   enable = 0;
 }
 
