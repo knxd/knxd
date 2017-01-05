@@ -157,3 +157,24 @@ Layer2::Close ()
   return true;
 }
 
+bool
+Layer2single::addAddress(eibaddr_t addr)
+{
+  remoteAddr = addr;
+}
+
+bool
+Layer2single::hasAddress(eibaddr_t addr)
+{
+  return (remoteAddr == addr);
+}
+
+bool
+Layer2single::removeAddress(eibaddr_t addr)
+{
+  if (remoteAddr != addr)
+    return false;
+  remoteAddr = 0;
+  return true;
+}
+

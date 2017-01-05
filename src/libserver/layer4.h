@@ -60,17 +60,13 @@ typedef struct
   eibaddr_t dst;
 } GroupAPDU;
 
-class Layer4common:public Layer2mixin
+class Layer4common:public Layer2single
 {
 protected:
   Layer4common(TracePtr tr);
   bool init_ok;
 public:
   bool init (Layer3 *l3);
-
-  bool hasAddress(eibaddr_t addr);
-  bool addAddress(eibaddr_t addr);
-  bool removeAddress(eibaddr_t addr);
 };
 
 template<class T>

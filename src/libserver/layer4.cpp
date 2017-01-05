@@ -23,7 +23,7 @@
 /***************** Layer4Common *****************/
 
 Layer4common::Layer4common(TracePtr tr)
-	: Layer2mixin (tr)
+	: Layer2single (tr)
 {
   init_ok = false;
 }
@@ -36,27 +36,6 @@ Layer4common::init (Layer3 *l3)
 
   l3 = l3->registerLayer2(shared_from_this());
   return Layer2mixin::init(l3);
-}
-
-bool
-Layer4common::addAddress(eibaddr_t addr)
-{
-  remoteAddr = addr;
-}
-
-bool
-Layer4common::hasAddress(eibaddr_t addr)
-{
-  return (remoteAddr == addr);
-}
-
-bool
-Layer4common::removeAddress(eibaddr_t addr)
-{
-  if (remoteAddr != addr)
-    return false;
-  remoteAddr = 0;
-  return true;
 }
 
 /***************** T_Brodcast *****************/

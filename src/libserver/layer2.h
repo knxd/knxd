@@ -110,7 +110,7 @@ public:
 
 
 
-/** Layer2 mix-in class for network interfaces
+/** Layer2 class for network interfaces
  * without "real" hardware behind them
  */
 class Layer2mixin:public Layer2
@@ -128,7 +128,16 @@ public:
   bool Close () { return 1; }
 };
 
-/** Layer2 mix-in class for interfaces
+class Layer2single:public Layer2mixin
+{
+public:
+  Layer2single (TracePtr tr) : Layer2mixin (tr) {};
+  bool hasAddress(eibaddr_t addr);
+  bool addAddress(eibaddr_t addr);
+  bool removeAddress(eibaddr_t addr);
+};
+
+/** Layer2 class for interfaces
  * which don't ever do anything,
  * e.g. server sockets used to accept() connections
  *
@@ -140,10 +149,12 @@ public:
   Layer2virtual (TracePtr tr) : Layer2mixin (tr) { }
   void send_L_Data (LPDU * l) { delete l; }
   void send_L_Data (L_Data_PDU * l) { delete l; }
-  bool addAddress (eibaddr_t addr UNUSED) { return 1; }
-  bool addGroupAddress (eibaddr_t addr UNUSED) { return 1; }
-  bool removeAddress (eibaddr_t addr UNUSED) { return 1; }
-  bool removeGroupAddress (eibaddr_t addr UNUSED) { return 1; }
+  bool hasAddress (eibaddr_t addr UNUSED) { return false; }
+  bool addAddress (eibaddr_t addr UNUSED) { return false; }
+  bool hasGroupAddress (eibaddr_t addr UNUSED) { return false; }
+  bool addGroupAddress (eibaddr_t addr UNUSED) { return false; }
+  bool removeAddress (eibaddr_t addr UNUSED) { return false; }
+  bool removeGroupAddress (eibaddr_t addr UNUSED) { return false; }
 };
 
 #endif
