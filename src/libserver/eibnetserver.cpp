@@ -735,7 +735,10 @@ void ConnState::tunnel_request(EIBnet_TunnelRequest &r1, EIBNetIPSocket *isock)
           if (r1.CEMI[0] == 0x11 || r1.CEMI[0] == 0x29)
             l3->recv_L_Data (c);
           else
-            delete c;
+            {
+              TRACEPRINTF (t, 8, this, "Wrong leader x%02x", r1.CEMI[0]);
+              delete c;
+            }
 	}
       else
 	r2.status = 0x29;
