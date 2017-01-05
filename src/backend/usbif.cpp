@@ -514,11 +514,13 @@ USBLowLevelDriver::Run (pth_sem_t * stop1)
   if (sendh)
     {
       libusb_cancel_transfer (sendh);
+      pth_wait (sende);
       libusb_free_transfer (sendh);
     }
   if (recvh)
     {
       libusb_cancel_transfer (recvh);
+      pth_wait (recve);
       libusb_free_transfer (recvh);
     }
   pth_event_free (stop, PTH_FREE_THIS);
