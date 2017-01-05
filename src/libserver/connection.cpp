@@ -197,7 +197,7 @@ A_Broadcast::recv(uint8_t *buf, size_t len)
       return;
     }
   con->t->TracePacket (7, this, "recv", len - 2, buf + 2);
-  c->Send (CArray (buf + 2, len - 2));
+  c->recv (CArray (buf + 2, len - 2));
 }
 
 void
@@ -209,7 +209,7 @@ A_Group::recv(uint8_t *buf, size_t len)
       return;
     }
   con->t->TracePacket (7, this, "recv", len - 2, buf + 2);
-  c->Send (CArray (buf + 2, len - 2));
+  c->recv (CArray (buf + 2, len - 2));
 }
 
 void
@@ -224,7 +224,7 @@ A_TPDU::recv(uint8_t *buf, size_t len)
   TpduComm p;
   p.data = CArray (buf + 4, len - 4);
   p.addr = (buf[2] << 8) | (buf[3]);
-  c->Send (p);
+  c->recv (p);
 }
 
 void
@@ -236,7 +236,7 @@ A_Individual::recv(uint8_t *buf, size_t len)
       return;
     }
   con->t->TracePacket (7, this, "recv", len - 2, buf + 2);
-  c->Send (CArray (buf + 2, len - 2));
+  c->recv (CArray (buf + 2, len - 2));
 }
 
 void
@@ -248,7 +248,7 @@ A_Connection::recv(uint8_t *buf, size_t len)
       return;
     }
   con->t->TracePacket (7, this, "recv", len - 2, buf + 2);
-  c->Send (CArray (buf + 2, len - 2));
+  c->recv (CArray (buf + 2, len - 2));
 }
 
 void
@@ -263,7 +263,7 @@ A_GroupSocket::recv(uint8_t *buf, size_t len)
   GroupAPDU p;
   p.data = CArray (buf + 4, len - 4);
   p.dst = (buf[2] << 8) | (buf[3]);
-  c->Send (p);
+  c->recv (p);
 }
 
 void

@@ -47,7 +47,7 @@ Layer7_Broadcast::A_IndividualAddress_Write (eibaddr_t addr)
 {
   A_IndividualAddress_Write_PDU a;
   a.addr = addr;
-  l4->Send (a.ToPacket ());
+  l4->recv (a.ToPacket ());
 }
 
 Array < eibaddr_t >
@@ -56,7 +56,7 @@ Array < eibaddr_t >
   Array < eibaddr_t > addrs;
   A_IndividualAddress_Read_PDU r;
   APDU *a;
-  l4->Send (r.ToPacket ());
+  l4->recv (r.ToPacket ());
   pth_event_t t = pth_event (PTH_EVENT_RTIME, pth_time (timeout, 0));
   while (pth_event_status (t) != PTH_STATUS_OCCURRED)
     {
@@ -100,7 +100,7 @@ void
 Layer7_Connection::A_Restart ()
 {
   A_Restart_PDU a;
-  l4->Send (a.ToPacket ());
+  l4->recv (a.ToPacket ());
 }
 
 APDU *
@@ -108,7 +108,7 @@ Layer7_Connection::Request_Response (APDU * r)
 {
   APDU *a;
   CArray *c;
-  l4->Send (r->ToPacket ());
+  l4->recv (r->ToPacket ());
   pth_event_t t = pth_event (PTH_EVENT_RTIME, pth_time (6, 100));
   while (pth_event_status (t) != PTH_STATUS_OCCURRED)
     {
@@ -246,7 +246,7 @@ Layer7_Connection::A_Memory_Write (memaddr_t addr, const CArray & data)
   r.addr = addr;
   r.count = data.size() & 0x0f;
   r.data.set (data.data(), data.size() & 0x0f);
-  l4->Send (r.ToPacket ());
+  l4->recv (r.ToPacket ());
   return 0;
 }
 
@@ -406,7 +406,7 @@ Layer7_Individual::Request_Response (APDU * r)
 {
   APDU *a;
   CArray *c;
-  l4->Send (r->ToPacket ());
+  l4->recv (r->ToPacket ());
   pth_event_t t = pth_event (PTH_EVENT_RTIME, pth_time (6, 100));
   while (pth_event_status (t) != PTH_STATUS_OCCURRED)
     {

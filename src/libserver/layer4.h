@@ -90,7 +90,7 @@ public:
   /** enqueues a packet */
   void send_L_Data (L_Data_PDU * l);
   /** send APDU c */
-  void Send (const CArray & c);
+  void recv (const CArray & c);
 };
 typedef std::shared_ptr<T_Broadcast> T_BroadcastPtr;
 
@@ -108,7 +108,7 @@ public:
   /** enqueues a packet from L3 */
   void send_L_Data (L_Data_PDU * l);
   /** send APDU to L3 */
-  void Send (const GroupAPDU & c);
+  void recv (const GroupAPDU & c);
 };
 typedef std::shared_ptr<GroupSocket> GroupSocketPtr;
 
@@ -128,7 +128,7 @@ public:
   /** enqueues a packet from L3 */
   void send_L_Data (L_Data_PDU * l);
   /** send APDU to L3 */
-  void Send (const CArray & c);
+  void recv (const CArray & c);
 };
 typedef std::shared_ptr<T_Group> T_GroupPtr;
 
@@ -148,7 +148,7 @@ public:
   /** enqueues a packet from L3 */
   void send_L_Data (L_Data_PDU * l);
   /** send APDU to L3 */
-  void Send (const TpduComm & c);
+  void recv (const TpduComm & c);
 };
 typedef std::shared_ptr<T_TPDU> T_TPDUPtr;
 
@@ -169,7 +169,7 @@ public:
   /** enqueues a packet from L3 */
   void send_L_Data (L_Data_PDU * l);
   /** send APDU to L3 */
-  void Send (const CArray & c);
+  void recv (const CArray & c);
 };
 typedef std::shared_ptr<T_Individual> T_IndividualPtr;
 
@@ -217,7 +217,7 @@ public:
   /** enqueues a packet from L3 */
   void send_L_Data (L_Data_PDU * l);
   /** send APDU to L3 */
-  void Send (const CArray & c);
+  void recv (const CArray & c);
 
   void stop();
 };

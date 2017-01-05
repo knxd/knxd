@@ -80,7 +80,7 @@ T_Broadcast::send_L_Data (L_Data_PDU * l)
 }
 
 void
-T_Broadcast::Send (const CArray & c)
+T_Broadcast::recv (const CArray & c)
 {
   T_DATA_XXX_REQ_PDU t;
   t.data = c;
@@ -135,7 +135,7 @@ T_Group::send_L_Data (L_Data_PDU * l)
 }
 
 void
-T_Group::Send (const CArray & c)
+T_Group::recv (const CArray & c)
 {
   T_DATA_XXX_REQ_PDU t;
   t.data = c;
@@ -182,7 +182,7 @@ T_TPDU::send_L_Data (L_Data_PDU * l)
 }
 
 void
-T_TPDU::Send (const TpduComm & c)
+T_TPDU::recv (const TpduComm & c)
 {
   t->TracePacket (4, this, "Send TPDU", c.data);
   L_Data_PDU *l = new L_Data_PDU (shared_from_this());
@@ -237,7 +237,7 @@ T_Individual::send_L_Data (L_Data_PDU * l)
 }
 
 void
-T_Individual::Send (const CArray & c)
+T_Individual::recv (const CArray & c)
 {
   T_DATA_XXX_REQ_PDU t;
   t.data = c;
@@ -355,7 +355,7 @@ T_Connection::send_L_Data (L_Data_PDU * l)
 }
 
 void
-T_Connection::Send (const CArray & c)
+T_Connection::recv (const CArray & c)
 {
   t->TracePacket (4, this, "Send", c);
   in.put (c);
@@ -512,7 +512,7 @@ GroupSocket::send_L_Data (L_Data_PDU * l)
 }
 
 void
-GroupSocket::Send (const GroupAPDU & c)
+GroupSocket::recv (const GroupAPDU & c)
 {
   T_DATA_XXX_REQ_PDU t;
   t.data = c.data;
