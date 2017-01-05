@@ -22,7 +22,7 @@
 #include "apdu.h"
 
 GroupCache::GroupCache (TracePtr t)
-	: Layer2mixin(t)
+	: Layer2virtual(t)
 {
   TRACEPRINTF (t, 4, this, "GroupCacheInit");
   enable = 0;

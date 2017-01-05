@@ -56,7 +56,7 @@ public:
   virtual void stop();
 };
 
-class GroupCache:public Layer2mixin
+class GroupCache:public Layer2virtual
 {
   Array < GroupCacheReader * > reader;
   /** output queue */
@@ -66,6 +66,7 @@ class GroupCache:public Layer2mixin
 
 public: // but only for GroupCacheReader
   bool init(Layer3 *l3);
+  bool hasGroupAddress (eibaddr_t addr UNUSED) { return true; }
 
   /** current position in 'updates' array */
   uint16_t pos;
