@@ -34,9 +34,9 @@ public:
   A_Base() {
     on_error_cb.set<A_Base,&A_Base::on_error>(this);
   }
-  virtual ~A_Base() { }
+  virtual ~A_Base();
   inline bool is_connected() { return con != 0; }
-  virtual void recv(uint8_t *buf, size_t len); // to socket
+  virtual void recv(uint8_t *buf, size_t len) = 0; // to socket
 };
 
 /** implements client interface to a broadcast connection */

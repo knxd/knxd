@@ -51,6 +51,8 @@ public:
                 uint8_t *buf,size_t len);
   virtual ~A_Busmonitor ();
   void send_L_Busmonitor (L_Busmonitor_PDU * l);
+  // dummy method
+  void recv(uint8_t *buf, size_t len) {}
 };
 
 /** implements text busmonitor functions for a client */

@@ -19,12 +19,8 @@
 
 #include "connection.h"
 
-// used to create the vtable
-void
-A_Base::recv(uint8_t *buf, size_t len)
+A_Base::~A_Base()
 {
-  con->t->TracePacket (7, this, "Unprocessed", len, buf);
-  on_error_cb();
 }
 
 A_Broadcast::A_Broadcast (ClientConnPtr cc, uint8_t *buf,size_t len)
