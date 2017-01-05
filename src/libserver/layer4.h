@@ -67,6 +67,7 @@ protected:
   bool init_ok;
 public:
   bool init (Layer3 *l3);
+  void stop();
 };
 
 template<class T>

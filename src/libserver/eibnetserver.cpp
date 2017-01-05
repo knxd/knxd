@@ -218,6 +218,11 @@ bool ConnState::init()
   if (type == CT_BUSMONITOR && ! l3->registerVBusmonitor(this))
     return false;
   l3 = parent->l3->registerLayer2(shared_from_this());
+
+  if (!remoteAddr)
+    remoteAddr = l3->get_client_addr ();
+  if (remoteAddr)
+    addAddress(remoteAddr);
   return true;
 }
 
@@ -283,13 +288,7 @@ ConnState::ConnState (EIBnetServer *p, eibaddr_t addr)
   sendtimeout.set <ConnState,&ConnState::sendtimeout_cb> (this);
   send_trigger.set<ConnState,&ConnState::send_trigger_cb>(this);
   send_trigger.start();
-
-  if (!addr)
-    remoteAddr = p->l3->get_client_addr ();
-  else
-    remoteAddr = addr;
-  if (remoteAddr)
-    addAddress(remoteAddr);
+  remoteAddr = addr;
 }
 
 void ConnState::sendtimeout_cb(ev::timer &w, int revents)
@@ -356,6 +355,8 @@ void ConnState::stop()
   send_trigger.stop();
   parent->drop_state (std::static_pointer_cast<ConnState>(shared_from_this()));
   Layer2::stop();
+  if (remoteAddr && l3)
+    l3->release_client_addr(remoteAddr);
 }
 
 void EIBnetServer::drop_state (ConnStatePtr s)

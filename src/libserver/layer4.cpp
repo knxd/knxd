@@ -28,14 +28,23 @@ Layer4common::Layer4common(TracePtr tr)
   init_ok = false;
 }
 
-bool Layer4common::init (Layer3 *l3)
+bool
+Layer4common::init (Layer3 *l3)
 {
   if (!init_ok)
     return false;
 
-  remoteAddr = l3->get_client_addr ();
   l3 = l3->registerLayer2(shared_from_this());
+  remoteAddr = l3->get_client_addr ();
   return Layer2mixin::init(l3);
+}
+
+void
+Layer4common::stop()
+{
+  if (l3)
+    l3->release_client_addr(remoteAddr);
+  Layer2mixin::stop();
 }
 
 /***************** T_Brodcast *****************/

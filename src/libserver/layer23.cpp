@@ -218,3 +218,9 @@ Layer23::get_client_addr ()
   return l3->get_client_addr ();
 }
 
+void
+Layer23::release_client_addr (eibaddr_t addr)
+{
+  l3->release_client_addr (addr);
+}
+

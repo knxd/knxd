@@ -41,6 +41,8 @@ class ClientConnection : public std::enable_shared_from_this<ClientConnection>
 public:
   /** Layer 3 interface */
   Layer3 *l3;
+  /** my address */
+  eibaddr_t addr;
   /** debug output */
   TracePtr t;
 protected:

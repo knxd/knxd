@@ -97,6 +97,8 @@ public:
 
   /** Get a free dynamic address */
   virtual eibaddr_t get_client_addr () = 0;
+  /** … and release it */
+  virtual void release_client_addr (eibaddr_t addr) = 0;
 };
 
 class Layer3real : public Layer3
@@ -127,6 +129,7 @@ private:
   /** Length of address block to assign dynamically to clients */
   int client_addrs_len = 0;
   int client_addrs_pos;
+  std::vector<bool> client_addrs;
 
   /** busmonitor callbacks */
   Array < Busmonitor_Info > busmonitor;
@@ -176,7 +179,9 @@ public:
   void deregisterServer (BaseServer *s);
 
   void set_client_block (eibaddr_t r_start, int r_len);
+  /** allocate client address */
   eibaddr_t get_client_addr ();
+  void release_client_addr (eibaddr_t addr);
 };
 
 #endif

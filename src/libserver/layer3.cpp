@@ -255,6 +255,10 @@ Layer3real::set_client_block (eibaddr_t r_start, int r_len)
 {
   client_addrs_start = r_start;
   client_addrs_len = r_len;
+  client_addrs_pos = r_len-1;
+  client_addrs.resize(r_len);
+  ITER(i,client_addrs)
+    *i = false;
 }
 
 eibaddr_t
@@ -267,12 +271,16 @@ Layer3real::get_client_addr ()
    */
   for (int i = 1; i <= client_addrs_len; i++)
     {
-      eibaddr_t a = client_addrs_start + (client_addrs_pos + i) % client_addrs_len;
+      unsigned int pos = (client_addrs_pos + i) % client_addrs_len;
+      if (client_addrs[pos])
+        continue;
+      eibaddr_t a = client_addrs_start + pos;
       if (! hasAddress (a))
         {
           TRACEPRINTF (tr(), 3, this, "Allocate %s", FormatEIBAddr (a).c_str());
           /* remember for next pass */
-          client_addrs_pos = a - client_addrs_start;
+          client_addrs_pos = pos;
+          client_addrs[pos] = true;
           return a;
         }
     }
@@ -282,6 +290,17 @@ Layer3real::get_client_addr ()
   return 0;
 }
 
+void
+Layer3real::release_client_addr(eibaddr_t addr)
+{
+  TRACEPRINTF (tr(), 3, this, "Release %s", FormatEIBAddr (addr).c_str());
+  if (addr < client_addrs_start)
+    return;
+  unsigned int pos = addr - client_addrs_start;
+  if (pos >= client_addrs_len)
+    return;
+  client_addrs[pos] = false;
+}
 
 void
 Layer3real::trigger_cb (ev::async &w, int revents)

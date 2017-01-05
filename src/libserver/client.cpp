@@ -38,6 +38,7 @@ ClientConnection::ClientConnection (Server *s, int fd) : sendbuf(fd),recvbuf(fd)
   TRACEPRINTF (s->t, 8, this, "ClientConnection Init");
   this->t = TracePtr(new Trace(*s->t, s->t->name));
   this->l3 = s->l3;
+  this->addr = l3->get_client_addr();
 
   this->fd = fd;
   this->s = s;
@@ -49,7 +50,9 @@ ClientConnection::ClientConnection (Server *s, int fd) : sendbuf(fd),recvbuf(fd)
 
 ClientConnection::~ClientConnection ()
 {
-  stop();
+  /* make sure that stop() has been called */
+  assert(addr == 0);
+  assert(fd == -1);
 }
 
 void
@@ -68,6 +71,12 @@ ClientConnection::start()
 void
 ClientConnection::stop(bool no_server)
 {
+  if (addr)
+    {
+      l3->release_client_addr(addr);
+      addr = 0;
+    }
+
   if (no_server)
     s = nullptr;
   if (a_conn)
@@ -79,7 +88,7 @@ ClientConnection::stop(bool no_server)
     return;
   if (! no_server)
     s->deregister (shared_from_this());
-  TRACEPRINTF (t, 8, this, "ClientConnection closed");
+  TRACEPRINTF (t, 8, this, "ClientConnection %s closed", FormatEIBAddr (addr).c_str());
   sendbuf.stop();
   recvbuf.stop();
   close (fd);

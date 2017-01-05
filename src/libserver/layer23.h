@@ -90,6 +90,7 @@ public:
   void deregisterServer (BaseServer *s);
 
   eibaddr_t get_client_addr ();
+  void release_client_addr (eibaddr_t addr);
 };
 
 #endif
