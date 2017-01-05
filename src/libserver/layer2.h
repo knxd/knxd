@@ -120,7 +120,6 @@ public:
     {
       t = tr;
     }
-  void send_L_Data (LPDU * l) { delete l; }
   virtual void send_L_Data (L_Data_PDU * l) = 0;
   bool enterBusmonitor () { return 0; }
   bool leaveBusmonitor () { return 0; }
@@ -147,7 +146,6 @@ class Layer2virtual:public Layer2mixin
 {
 public:
   Layer2virtual (TracePtr tr) : Layer2mixin (tr) { }
-  void send_L_Data (LPDU * l) { delete l; }
   void send_L_Data (L_Data_PDU * l) { delete l; }
   bool hasAddress (eibaddr_t addr UNUSED) { return false; }
   bool addAddress (eibaddr_t addr UNUSED) { return false; }
