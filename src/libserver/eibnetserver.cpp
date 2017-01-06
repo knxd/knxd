@@ -232,7 +232,10 @@ void ConnState::send_L_Busmonitor (L_Busmonitor_PDU * l)
     {
       out.put (Busmonitor_to_CEMI (0x2B, *l, no++));
       if (! state)
-        send_trigger.send();
+	{
+	  state = 1;
+	  send_trigger.send();
+	}
     }
 }
 
@@ -242,7 +245,10 @@ void ConnState::send_L_Data (L_Data_PDU * l)
     {
       out.put (L_Data_ToCEMI (0x29, *l));
       if (! state)
-        send_trigger.send();
+	{
+	  send_trigger.send();
+	  state = 1;
+	}
     }
   delete l;
 }
@@ -293,8 +299,8 @@ ConnState::ConnState (EIBnetServer *p, eibaddr_t addr)
 
 void ConnState::sendtimeout_cb(ev::timer &w, int revents)
 {
-  state++;
-  if (state <= 10)
+  assert(state);
+  if (++state <= 10)
     {
       send_trigger.send();
       return;
@@ -307,6 +313,7 @@ void ConnState::sendtimeout_cb(ev::timer &w, int revents)
 
 void ConnState::send_trigger_cb(ev::async &w, int revents)
 {
+  assert (state > 0);
   if (out.isempty ())
     return;
   EIBNetIPPacket p;
@@ -326,6 +333,7 @@ void ConnState::send_trigger_cb(ev::async &w, int revents)
       r.CEMI = out.top ();
       p = r.ToPacket ();
     }
+  state++;
   sendtimeout.start(1,0);
   parent->mcast->Send (p, daddr);
 }
@@ -353,6 +361,7 @@ void ConnState::stop()
   timeout.stop();
   sendtimeout.stop();
   send_trigger.stop();
+  state = 0;
   parent->drop_state (std::static_pointer_cast<ConnState>(shared_from_this()));
   Layer2::stop();
   if (remoteAddr && l3)
@@ -731,7 +740,10 @@ void ConnState::tunnel_request(EIBnet_TunnelRequest &r1, EIBNetIPSocket *isock)
             {
               out.put (L_Data_ToCEMI (0x2E, *c));
               if (! state)
-                send_trigger.send();
+		{
+		  state = 1;
+		  send_trigger.send();
+		}
             }
           if (r1.CEMI[0] == 0x11 || r1.CEMI[0] == 0x29)
             l3->recv_L_Data (c);
@@ -768,7 +780,7 @@ void ConnState::tunnel_response (EIBnet_TunnelACK &r1)
     }
   if (!state)
     {
-      TRACEPRINTF (t, 8, this, "Unexpected ACK");
+      TRACEPRINTF (t, 8, this, "Unexpected ACK 1");
       return;
     }
   if (type != CT_STANDARD && type != CT_BUSMONITOR)
@@ -778,10 +790,15 @@ void ConnState::tunnel_response (EIBnet_TunnelACK &r1)
     }
   sno++;
 
-  state = 0;
   out.get ();
+  sendtimeout.stop();
   if (!out.isempty())
-    send_trigger.send();
+    {
+      state = 1;
+      send_trigger.send();
+    }
+  else
+    state = 0;
 }
 
 void ConnState::config_request(EIBnet_ConfigRequest &r1, EIBNetIPSocket *isock)
@@ -876,7 +893,7 @@ void ConnState::config_response (EIBnet_ConfigACK &r1)
     }
   if (!state)
     {
-      TRACEPRINTF (t, 8, this, "Unexpected ACK");
+      TRACEPRINTF (t, 8, this, "Unexpected ACK 2");
       return;
     }
   if (type != CT_CONFIG)
@@ -886,9 +903,13 @@ void ConnState::config_response (EIBnet_ConfigACK &r1)
     }
   sno++;
 
-  state = 0;
   out.get ();
   if (!out.isempty())
-    send_trigger.send();
+    {
+      state = 1;
+      send_trigger.send();
+    }
+  else
+    state = 0;
 }
 

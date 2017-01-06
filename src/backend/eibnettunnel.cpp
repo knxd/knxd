@@ -356,7 +356,7 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
 	    retry = 0;
 	  }
 	else
-	  TRACEPRINTF (t, 1, this, "Unexpected ACK");
+	  TRACEPRINTF (t, 1, this, "Unexpected ACK mod=%d",mod);
 	break;
       }
     case CONNECTIONSTATE_RESPONSE:
