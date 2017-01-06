@@ -326,11 +326,11 @@ usb_complete_recv (struct libusb_transfer *transfer)
 void 
 USBLowLevelDriver::CompleteReceive(struct libusb_transfer *transfer)
 {
-  assert (tansfer == recvh);
+  assert (transfer == recvh);
   FinishUsbRecvTransfer();
   if (running)
     StartUsbRecvTransfer();
-  else if (recv)
+  else if (recvh)
     {
       libusb_free_transfer (recvh);
       recvh = nullptr;
