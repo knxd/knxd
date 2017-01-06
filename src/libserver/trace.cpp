@@ -94,6 +94,8 @@ Trace::ErrorPrintfUncond (unsigned int msgid, const char *msg, ...)
     default:
       c = '?';
     }
+  if (servername.length())
+    fprintf(stderr, "%s: ",servername.c_str());
   fprintf (stderr, "%c%08d: ", c, (msgid & 0xffffff));
   va_start (ap, msg);
   vfprintf (stderr, msg, ap);
