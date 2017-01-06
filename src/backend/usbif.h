@@ -54,6 +54,7 @@ class USBLowLevelDriver:public LowLevelDriver
   USBDevice d;
   /** debug output */
   TracePtr t;
+  bool running;
 
   ev::async trigger;
   void trigger_cb(ev::async &w, int revents);

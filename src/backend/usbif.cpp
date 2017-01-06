@@ -235,16 +235,13 @@ USBLowLevelDriver::USBLowLevelDriver (const char *Dev, TracePtr tr) : LowLevelDr
 USBLowLevelDriver::~USBLowLevelDriver ()
 {
   TRACEPRINTF (t, 1, this, "Close");
+  running = false;
   if (sendh)
-    {
-      libusb_cancel_transfer (sendh);
-      libusb_free_transfer (sendh);
-    } 
+    libusb_cancel_transfer (sendh);
   if (recvh)
-    {
-      libusb_cancel_transfer (recvh);
-      libusb_free_transfer (recvh);
-    } 
+    libusb_cancel_transfer (recvh);
+  while (sendh || recvh)
+    ev_run(EV_DEFAULT_ EVRUN_ONCE);
 
   TRACEPRINTF (t, 1, this, "Release");
   if (state > 0)
@@ -302,8 +299,9 @@ usb_complete_send (struct libusb_transfer *transfer)
 }
 
 void
-USBLowLevelDriver::CompleteSend(struct libusb_transfer *recvh)
+USBLowLevelDriver::CompleteSend(struct libusb_transfer *transfer)
 {
+  assert(transfer == sendh);
   if (sendh->status != LIBUSB_TRANSFER_COMPLETED)
     ERRORPRINTF (t, E_WARNING | 35, this, "SendError %d", sendh->status);
   else
@@ -313,7 +311,7 @@ USBLowLevelDriver::CompleteSend(struct libusb_transfer *recvh)
       send_q.get ();
     }
   libusb_free_transfer (sendh);
-  sendh = 0;
+  sendh = nullptr;
   trigger.send();
 }
 
@@ -326,10 +324,17 @@ usb_complete_recv (struct libusb_transfer *transfer)
 }
 
 void 
-USBLowLevelDriver::CompleteReceive(struct libusb_transfer *recvh)
+USBLowLevelDriver::CompleteReceive(struct libusb_transfer *transfer)
 {
+  assert (tansfer == recvh);
   FinishUsbRecvTransfer();
-  StartUsbRecvTransfer();
+  if (running)
+    StartUsbRecvTransfer();
+  else if (recv)
+    {
+      libusb_free_transfer (recvh);
+      recvh = nullptr;
+    }
 }
 
 
