@@ -65,11 +65,12 @@ class Trace
   void TraceHeader (int layer);
 
 public:
-  /** name and number of this tracer */
+  /** name(s) and number of this tracer */
+  std::string &servername;
   std::string name;
   unsigned int seq;
 
-  Trace (const char *name)
+  Trace (std::string &server, const char *name) : servername(server)
   {
     layers = 0;
     level = 0;
@@ -80,7 +81,7 @@ public:
     gettimeofday(&started, NULL);
   }
 
-  Trace (Trace &orig, std::string name)
+  Trace (Trace &orig, std::string name) : servername(orig.servername)
   {
     this->layers = orig.layers;
     this->level = orig.level;

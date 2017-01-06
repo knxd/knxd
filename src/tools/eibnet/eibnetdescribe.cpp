@@ -114,7 +114,8 @@ main (int ac, char *ag[])
   else
     dport = 3671;
 
-  Trace t = Trace("main");
+  std::string edesc = "eibnetdescribe";
+  Trace t = Trace(edesc, "main");
   t.SetTraceLevel (tracelevel);
 
   printf ("Asking %s at port %d from port %d\n", a, dport, sport);

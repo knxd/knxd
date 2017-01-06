@@ -92,7 +92,7 @@ public:
 
   L2options l2opts;
   const char *serverip;
-  const char *eibnetname;
+  std::string servername = "init";
 
   bool stop_now;
   bool force_broadcast;
@@ -105,7 +105,7 @@ public:
   Trace t;
   Array < const char * > filters;
 
-  arguments (): t("main") {
+  arguments (): t(servername, "main") {
     addr = 0x0001;
   }
   ~arguments () {
@@ -327,7 +327,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'S':
       {
         const char *serverip;
-        const char *name = arguments->eibnetname;
+        const char *name = arguments->servername.c_str();
         std::string tracename;
 
         int port = 0;
@@ -369,15 +369,14 @@ parse_opt (int key, char *arg, struct argp_state *state)
         arguments->tunnel = false;
         arguments->route = false;
         arguments->discover = false;
-        arguments->eibnetname = 0;
       }
       break;
     case 'n':
-      arguments->eibnetname = (char *)arg;
-      if(arguments->eibnetname[0] == '=')
-        arguments->eibnetname++;
-      if(strlen(arguments->eibnetname) >= 30)
-        die("EIBnetServer/IP name must be shorter than 30 bytes");
+      if (*arg == '=')
+	arg++;
+      if(strlen(arg) >= 30)
+        die("Server name must be shorter than 30 bytes");
+      arguments->servername = arg;
       break;
 #endif
     case 'u':
@@ -517,10 +516,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
 #endif
       if (arguments->filters.size())
         die ("You need to use filters in front of the affected backend");
-      if (arguments->tunnel || arguments->route || arguments->discover || 
-          arguments->eibnetname)
+      if (arguments->tunnel || arguments->route || arguments->discover)
         die ("Option '-S' starts the multicast server.\n"
-             "-T/-R/-D/-n after or without that option are useless.");
+             "-T/-R/-D after or without that option are useless.");
       if (arguments->l2opts.flags)
 	die ("You provided L2 flags after specifying an L2 interface.");
       if (arguments->has_work == 0)

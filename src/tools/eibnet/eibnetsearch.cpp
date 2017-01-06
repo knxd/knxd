@@ -137,7 +137,8 @@ main (int ac, char *ag[])
   else
     dport = 3671;
 
-  TracePtr t = TracePtr(new Trace("main"));
+  std::string eibs = "eibnetsearch";
+  TracePtr t = TracePtr(new Trace(eibs, "main"));
   t->SetTraceLevel (tracelevel);
   if (!strcmp (a, "-"))
     a = (char *) "224.0.23.12";
