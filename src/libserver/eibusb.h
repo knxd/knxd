@@ -39,7 +39,6 @@ public:
   void SendReset ();
 
   EMIVer getEMIVer ();
-  c_recv_cb on_recv;
 
 private:
   void on_recv_cb(CArray *p);
