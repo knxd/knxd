@@ -44,7 +44,7 @@ private:
         if (++cnt < 5)
             xmit();
         else
-            emiver = vERROR;
+            emiver = vTIMEOUT;
     }
     void xmit() {
         const uchar ask[64] = {
@@ -132,8 +132,15 @@ initUSBDriver (LowLevelDriver * i, TracePtr tr)
       i->Send_Packet (CArray (init, sizeof (init)));
       iface = new USBConverterInterface (i, tr, emiver);
       break;
+    case vTIMEOUT:
+      TRACEPRINTF (tr, 1, i, "Timeout reading EMI version");
+      goto ex;
+    case vERROR:
+      TRACEPRINTF (tr, 1, i, "Error reading EMI version");
+      goto ex;
     default:
-      TRACEPRINTF (tr, 1, i, "Unsupported EMI %02x %02x", r1[12], r1[13]);
+      TRACEPRINTF (tr, 1, i, "Unsupported EMI %d", emiver);
+    ex:
       delete i;
       return 0;
     }

@@ -68,7 +68,7 @@ public:
 
 
 typedef enum
-{ vERROR, vEMI1 = 1, vEMI2 = 2, vCEMI = 3, vRaw, vDiscovery } EMIVer;
+{ vERROR, vEMI1 = 1, vEMI2 = 2, vCEMI = 3, vRaw, vDiscovery, vTIMEOUT } EMIVer;
 
 /** implements interface for a Driver to send packets for the EMI1/2 driver */
 class LowLevelDriver
