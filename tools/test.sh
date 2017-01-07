@@ -49,6 +49,7 @@ fi
 S1=$(tempfile); rm $S1
 S2=$(tempfile); rm $S2
 S3=$(tempfile); rm $S3
+S4=$(tempfile); rm $S4
 L1=$(tempfile)
 L2=$(tempfile)
 L3=$(tempfile)
@@ -59,18 +60,19 @@ E3=$(tempfile)
 E4=$(tempfile)
 
 PORT=$((9999 + $$))
+PORT2=$((9998 + $$))
 
 knxd -n K1 -t 0xfffc -f 9 -e 3.2.1 -E 4.3.2:5 -c -u$S1 -u$S2 -DTR --Server=:$PORT -bdummy: &
 KNX1=$!
 trap 'echo T1; rm -f $L1 $L2 $E1 $E2 $EF; kill $KNX1; wait' 0 1 2
 
 sleep 1
-#echo knxd -t 0xfffc -f 9 -e 3.2.2 -E 4.5.6:10 -i$((10002 + $$)) -u$S3 -b ipt:localhost:$PORT:$((10000 + $$)) 
-#sleep 1000 &
-knxd -n K2 -t 0xffff -f 9 -e 3.2.2 -E 4.5.6:5 -i$((10002 + $$)) -u$S3 -b ipt:localhost:$PORT:$((10000 + $$)) &
+knxd -n K2 -t 0xffff -f 9 -e 3.2.2 -E 4.5.6:5 -DTR --Server=:$PORT2 -u$S3 -b ipt:localhost:$PORT:$((10000 + $$)) &
 KNX2=$!
+knxd -n K3 -t 0xffff -f 9 -e 3.2.3 -E 4.6.7:5 -DTR --Server=:$PORT3 -u$S3 -b ipt:localhost:$PORT2:$((10001 + $$)) &
+KNX3=$!
 #read RETURN
-trap 'echo T2; rm -f $L1 $L2 $E1 $E2 $EF; kill $KNX1 $KNX2; wait' 0 1 2
+trap 'echo T2; rm -f $L1 $L2 $E1 $E2 $EF; kill $KNX1 $KNX2 $KNX3; wait' 0 1 2
 sleep 1
 
 knxtool grouplisten local:$S2 1/2/3 >$L1 2>$E1 &
@@ -87,7 +89,7 @@ PL4=$!
 sleep 1
 if ! knxtool groupswrite local:$S1 1/2/3 4 ; then echo X1; exit 1; fi
 sleep 1
-if ! knxtool groupswrite local:$S1 1/2/3 5 ; then echo X2; exit 1; fi
+if ! knxtool groupswrite local:$S2 1/2/3 5 ; then echo X2; exit 1; fi
 sleep 1
 if ! knxtool groupswrite local:$S1 1/2/3 6 ; then echo X3; exit 1; fi
 sleep 1
@@ -103,7 +105,7 @@ fi
 if ! knxtool groupcachelastupdates local:$S1 3 1 >>$L4 2>>$E4 ; then echo X7; exit 1; fi
 
 #read RETURN
-kill $KNX1 $KNX2
+kill $KNX1 $KNX2 $KNX3
 sleep 1
 kill $PL1 $PL2 $PL3 || true
 trap 'echo T3; rm -f $L1 $L2 $L3 $L4 $E1 $E2 $E3 $E4 $EF' 0 1 2
