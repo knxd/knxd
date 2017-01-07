@@ -142,9 +142,8 @@ initUSBDriver (LowLevelDriver * i, TracePtr tr)
 
 USBConverterInterface::USBConverterInterface (LowLevelDriver * iface,
 					      TracePtr tr, EMIVer ver)
-    : LowLevelDriver()
+    : LowLevelDriver(tr)
 {
-  t = tr;
   i = iface;
   v = ver;
 

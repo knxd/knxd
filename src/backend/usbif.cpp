@@ -184,9 +184,8 @@ detectUSBEndpoint (libusb_context *context, USBEndpoint e)
   return e2;
 }
 
-USBLowLevelDriver::USBLowLevelDriver (const char *Dev, TracePtr tr) : LowLevelDriver()
+USBLowLevelDriver::USBLowLevelDriver (const char *Dev, TracePtr tr) : LowLevelDriver(tr)
 {
-  t = tr;
   loop = new USBLoop (tr);
 
   if (!loop->context)

@@ -75,9 +75,13 @@ class LowLevelDriver
 {
 private:
   void recv_discard(CArray *p);
+  /** debug output */
+protected:
+  TracePtr t;
 public:
-  LowLevelDriver ()
+  LowLevelDriver (TracePtr tr)
   {
+    t = tr;
     reset();
   }
   void reset() {

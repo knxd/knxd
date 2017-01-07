@@ -52,8 +52,6 @@ class USBLowLevelDriver:public LowLevelDriver
   /* libusb event loop */
   USBLoop *loop;
   USBDevice d;
-  /** debug output */
-  TracePtr t;
   bool running;
 
   ev::async trigger;

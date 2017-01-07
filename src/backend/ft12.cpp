@@ -24,10 +24,9 @@
 #include "ft12.h"
 
 FT12LowLevelDriver::FT12LowLevelDriver (const char *dev, TracePtr tr)
-    : LowLevelDriver()
+    : LowLevelDriver(tr)
 {
   struct termios t1;
-  t = tr;
   TRACEPRINTF (t, 1, this, "Open");
 
   fd = open (dev, O_RDWR | O_NOCTTY | O_NDELAY | O_SYNC);

@@ -26,7 +26,6 @@
 /** USBConverterInterface */
 class USBConverterInterface:public LowLevelDriver
 {
-  TracePtr t;
   LowLevelDriver *i;
   EMIVer v;
 public:
@@ -43,7 +42,6 @@ public:
   c_recv_cb on_recv;
 
 private:
-  void recv_discard(CArray *p);
   void on_recv_cb(CArray *p);
 
 };
