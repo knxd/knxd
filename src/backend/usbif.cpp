@@ -267,6 +267,7 @@ USBLowLevelDriver::init ()
       return false;
     } 
   StartUsbRecvTransfer();
+  return true;
 }
 
 void
