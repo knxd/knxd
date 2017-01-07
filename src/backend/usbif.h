@@ -60,8 +60,8 @@ class USBLowLevelDriver:public LowLevelDriver
   Queue < CArray > send_q;
   int state;
   bool connection_state = false;
-  uchar sendbuf[64];
-  uchar recvbuf[64];
+  uint8_t sendbuf[64];
+  uint8_t recvbuf[64];
   bool startUsbRecvTransferFailed = false;
 
   struct libusb_transfer *sendh = 0;
