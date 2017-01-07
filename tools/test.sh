@@ -127,3 +127,6 @@ set +ex
 #sed -e 's/^/O grouplisten: /' <$L1
 #sed -e 's/^/O vbusmonitor1: /' <$L2
 
+rm -f $L1 $L2 $L3 $L4 $E1 $E2 $E3 $E4 $EF
+trap '' 0 1 2 
+echo DONE OK
