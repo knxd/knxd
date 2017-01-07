@@ -368,18 +368,8 @@ USBLowLevelDriver::FinishUsbRecvTransfer()
 
 bool is_connection_state(uchar *recvbuf)
 {
-  return recvbuf[0] == 0x01 &&
-         recvbuf[1] == 0x13 &&
-         recvbuf[2] == 0x0A &&
-         recvbuf[3] == 0x00 &&
-	 recvbuf[4] == 0x08 &&
-	 recvbuf[5] == 0x00 &&
-	 recvbuf[6] == 0x02 &&
-	 recvbuf[7] == 0x0F &&
-	 recvbuf[8] == 0x04 &&
-	 recvbuf[9] == 0x00 &&
-	 recvbuf[10] == 0x00 &&
-         recvbuf[11] == 0x03;
+  uint8_t wanted[] = { 0x01,0x13,0x0A,0x00,0x08,0x00,0x02,0x0F,0x04,0x00,0x00,0x03 };
+  return !memcmp(recvbuf, wanted, sizeof(wanted));
 }
 
 bool get_connection_state(uchar *recvbuf)
