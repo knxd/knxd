@@ -366,13 +366,13 @@ USBLowLevelDriver::FinishUsbRecvTransfer()
     }
 }
 
-bool is_connection_state(uchar *recvbuf)
+inline bool is_connection_state(uint8_t *recvbuf)
 {
   uint8_t wanted[] = { 0x01,0x13,0x0A,0x00,0x08,0x00,0x02,0x0F,0x04,0x00,0x00,0x03 };
   return !memcmp(recvbuf, wanted, sizeof(wanted));
 }
 
-bool get_connection_state(uchar *recvbuf)
+bool get_connection_state(uint8_t *recvbuf)
 {
   return recvbuf[12] & 0x1;
 }
