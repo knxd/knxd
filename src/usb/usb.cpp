@@ -64,7 +64,8 @@ void USBLoop::setup()
     delete *i;
   fds.clear();
   const struct libusb_pollfd **usb_fds = libusb_get_pollfds(context);
-  for(const struct libusb_pollfd *it = *usb_fds; it != NULL; ++it)
+  const struct libusb_pollfd **orig_usb_fds = usb_fds;
+  for(const struct libusb_pollfd *it = *usb_fds; it != NULL; it = *++usb_fds)
     {
       if (it->events & POLLIN)
         {
@@ -81,7 +82,7 @@ void USBLoop::setup()
           fds.push_back(io);
         }
     }
-  free(usb_fds);
+  free(orig_usb_fds);
 }
 
 USBLoop::~USBLoop ()
