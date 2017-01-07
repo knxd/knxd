@@ -190,6 +190,9 @@ USBLowLevelDriver::USBLowLevelDriver (const char *Dev, TracePtr tr) : LowLevelDr
 
   if (!loop->context)
     return;
+
+  trigger.set<USBLowLevelDriver,&USBLowLevelDriver::trigger_cb>(this);
+  trigger.start();
   TRACEPRINTF (t, 1, this, "Detect");
   USBEndpoint e = parseUSBEndpoint (Dev);
   d = detectUSBEndpoint (loop->context, e);
