@@ -1,6 +1,6 @@
-LPDU: BC 43 05 0A 03 E1 00 84 69 :L_Data low from 4.3.5 to 1/2/3 hops: 06 T_DATA_XXX_REQ A_GroupValue_Write (small) 04 
+LPDU: BC 43 06 0A 03 E1 00 84 6A :L_Data low from 4.3.6 to 1/2/3 hops: 06 T_DATA_XXX_REQ A_GroupValue_Write (small) 04 
 LPDU: BC 43 06 0A 03 E1 00 85 6B :L_Data low from 4.3.6 to 1/2/3 hops: 06 T_DATA_XXX_REQ A_GroupValue_Write (small) 05 
-LPDU: BC 43 05 0A 03 E1 00 86 6B :L_Data low from 4.3.5 to 1/2/3 hops: 06 T_DATA_XXX_REQ A_GroupValue_Write (small) 06 
+LPDU: BC 45 08 0A 03 D1 00 86 50 :L_Data low from 4.5.8 to 1/2/3 hops: 05 T_DATA_XXX_REQ A_GroupValue_Write (small) 06 
 LPDU: BC 43 06 0A 03 E1 00 87 69 :L_Data low from 4.3.6 to 1/2/3 hops: 06 T_DATA_XXX_REQ A_GroupValue_Write (small) 07 
-LPDU: BC 43 05 0A 03 E1 00 88 65 :L_Data low from 4.3.5 to 1/2/3 hops: 06 T_DATA_XXX_REQ A_GroupValue_Write (small) 08 
+LPDU: BC 45 09 0A 03 D1 00 88 5F :L_Data low from 4.5.9 to 1/2/3 hops: 05 T_DATA_XXX_REQ A_GroupValue_Write (small) 08 
 LPDU: BC 43 06 0A 03 E4 00 80 04 05 06 6C :L_Data low from 4.3.6 to 1/2/3 hops: 06 T_DATA_XXX_REQ A_GroupValue_Write 04 05 06 
