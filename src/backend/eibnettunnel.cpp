@@ -122,6 +122,7 @@ EIBNetIPTunnel::send_L_Data (L_Data_PDU * l)
 
   L_Data_PDU l1 = *(L_Data_PDU *)l;
   send_q.put (L_Data_ToCEMI (0x11, l1));
+  trigger.send();
   delete l;
 }
 
@@ -132,7 +133,6 @@ EIBNetIPTunnel::enterBusmonitor ()
     return false;
   if (support_busmonitor)
     connect_busmonitor = true;
-  send_q.put (CArray ());
   return 1;
 }
 
@@ -142,7 +142,6 @@ EIBNetIPTunnel::leaveBusmonitor ()
   if (!Layer2::leaveBusmonitor ())
     return false;
   connect_busmonitor = false;
-  send_q.put (CArray ());
   return 1;
 }
 
@@ -466,31 +465,15 @@ void EIBNetIPTunnel::trigger_cb(ev::async &w, int revents)
   if (mod != 1 || send_q.isempty ())
     return;
 
-  if (send_q.top().size() == 0)
-    {
-      send_q.get ();
-      if (support_busmonitor)
-	{
-	  EIBnet_DisconnectRequest dreq;
-	  dreq.nat = saddr.sin_addr.s_addr == 0;
-	  dreq.caddr = saddr;
-	  dreq.channel = channel;
-	  EIBNetIPPacket p = dreq.ToPacket ();
-	  sock->Send (p, caddr);
-	}
-    }
-  else
-    {
-      EIBnet_TunnelRequest treq;
-      treq.channel = channel;
-      treq.seqno = sno;
-      treq.CEMI = send_q.top ();
+  EIBnet_TunnelRequest treq;
+  treq.channel = channel;
+  treq.seqno = sno;
+  treq.CEMI = send_q.top ();
 
-      EIBNetIPPacket p = treq.ToPacket ();
-      t->TracePacket (1, this, "SendTunnel", p.data);
-      sock->Send (p, daddr);
-      mod = 2; timeout.start(1,0);
-    }
+  EIBNetIPPacket p = treq.ToPacket ();
+  t->TracePacket (1, this, "SendTunnel", p.data);
+  sock->Send (p, daddr);
+  mod = 2; timeout.start(1,0);
 }
 
 void EIBNetIPTunnel::conntimeout_cb(ev::timer &w, int revents)
