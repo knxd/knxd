@@ -1,3 +1,9 @@
+knxd (0.10.18-1) stable; urgency=medium
+
+  * fix USB shutdown bug
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 08 Jan 2017 12:13:50 +0100
+
 knxd (0.10.17-1) stable; urgency=medium
 
   * fix eibread-cgi. I was stupid.
