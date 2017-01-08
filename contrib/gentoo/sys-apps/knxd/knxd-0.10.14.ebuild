@@ -7,7 +7,7 @@
 
 EAPI="5"
 
-inherit eutils autotools git-r3
+inherit eutils autotools git-r3 user
 
 DESCRIPTION="Provides an interface to the EIB / KNX bus"
 HOMEPAGE="https://github.com/Makki1/knxd"
@@ -17,7 +17,9 @@ SLOT="0"
 KEYWORDS=""
 IUSE="eibd ft12 pei16s tpuarts eibnetip eibnetiptunnel eibnetipserver usb groupcache java ncn5120 dummy"
 
-DEPEND="dev-libs/pthsem"
+DEPEND="dev-libs/pthsem
+	usb? ( dev-libs/libusb )
+	"
 
 EGIT_REPO_URI="https://github.com/knxd/knxd.git"
 EGIT_COMMIT="v${PV}"
@@ -57,4 +59,9 @@ src_install() {
 
     sed -e "s|@SLOT@|${SLOT}|g" \
            "${FILESDIR}/${PN}.confd" | newconfd - ${PN}-${SLOT}
+}
+
+pkg_setup() {
+	enewgroup knxd
+	enewuser knxd -1 -1 -1 "knxd"
 }
