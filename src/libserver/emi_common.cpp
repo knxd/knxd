@@ -169,6 +169,7 @@ EMI_Common::trigger_cb (ev::async &w, int revents)
 void
 EMI_Common::on_recv_cb(CArray *c)
 {
+  t->TracePacket (1, this, "RecvEMI", *c);
   const uint8_t *ind = getIndTypes();
   if (c->size() == 1 && (*c)[0] == 0xA0 && (mode & BUSMODE_UP))
     {
