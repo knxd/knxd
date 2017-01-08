@@ -73,8 +73,8 @@ EIBNetIPTunnel::EIBNetIPTunnel (const char *dest, int port, int sport,
   sock->sendaddr = caddr;
   sock->recvaddr = caddr;
   sock->recvall = 0;
-  support_busmonitor = 1;
-  connect_busmonitor = 0;
+  support_busmonitor = true;
+  connect_busmonitor = false;
   TRACEPRINTF (t, 2, this, "Opened");
 }
 
@@ -131,7 +131,7 @@ EIBNetIPTunnel::enterBusmonitor ()
   if (!Layer2::enterBusmonitor ())
     return false;
   if (support_busmonitor)
-    connect_busmonitor = 1;
+    connect_busmonitor = true;
   send_q.put (CArray ());
   return 1;
 }
@@ -141,7 +141,7 @@ EIBNetIPTunnel::leaveBusmonitor ()
 {
   if (!Layer2::leaveBusmonitor ())
     return false;
-  connect_busmonitor = 0;
+  connect_busmonitor = false;
   send_q.put (CArray ());
   return 1;
 }
@@ -167,12 +167,11 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
 	  {
 	    TRACEPRINTF (t, 1, this, "Connect failed with error %02X",
 			  cresp.status);
-	    if (cresp.status == 0x23 && support_busmonitor == 1
-		&& connect_busmonitor == 1)
+	    if (cresp.status == 0x23 && support_busmonitor && connect_busmonitor)
 	      {
 		TRACEPRINTF (t, 1, this, "Disable busmonitor support");
-		support_busmonitor = 0;
-		connect_busmonitor = 0;
+		support_busmonitor = false;
+		connect_busmonitor = false;
 
 		EIBnet_ConnectRequest creq = get_creq();
 		creq.CRI[1] = 0x02;

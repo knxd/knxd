@@ -49,8 +49,8 @@ class EIBNetIPTunnel:public Layer2
   ev::timer conntimeout; void conntimeout_cb(ev::timer &w, int revents);
   ev::async trigger; void trigger_cb(ev::async &w, int revents);
   
-  int support_busmonitor;
-  int connect_busmonitor;
+  bool support_busmonitor;
+  bool connect_busmonitor;
   void on_recv_cb(EIBNetIPPacket *p);
 
   const char *Name() { return "eibnettunnel"; }
