@@ -113,6 +113,7 @@ class EIBnetServer: protected Thread, public L_Busmonitor_CallBack, public Layer
   bool tunnel;
   bool route;
   bool discover;
+  bool single_port;
 
   int busmoncount;
   Array < ConnStatePtr > state;
@@ -133,7 +134,8 @@ public:
   bool init (Layer3 *l3); // __attribute__((deprecated));
   bool init (Layer3 *l3,
              const char *multicastaddr, const int port,
-             const bool tunnel, const bool route, const bool discover);
+             const bool tunnel, const bool route, const bool discover,
+             const bool single_port);
   void handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock);
 
   const char * Name () { return "EIBnet"; }
