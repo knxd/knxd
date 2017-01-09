@@ -110,6 +110,7 @@ class EIBnetServer: public Layer2mixin
   bool tunnel;
   bool route;
   bool discover;
+  bool single_port;
 
   Array < ConnStatePtr > state;
   Queue < ConnStatePtr > drop_q;
@@ -127,7 +128,8 @@ public:
   EIBnetServer (TracePtr tr, const String serverName);
   virtual ~EIBnetServer ();
   bool setup (const char *multicastaddr, const int port,
-              const bool tunnel, const bool route, const bool discover);
+              const bool tunnel, const bool route, const bool discover,
+              const bool single_port);
   void stop();
   void handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock);
 

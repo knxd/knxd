@@ -54,6 +54,8 @@ void die (const char *msg, ...);
 #define OPT_STOP_NOW 6
 #define OPT_FORCE_BROADCAST 7
 #define OPT_BACK_SEND_DELAY 8
+#define OPT_SINGLE_PORT 9
+#define OPT_MULTI_PORT 10
 
 #define OPT_ARG(_arg,_state,_default) (arg ? arg : \
         (state->argv[state->next] && state->argv[state->next][0] && (state->argv[state->next][0] != '-')) ?  \
@@ -89,6 +91,7 @@ public:
   bool tunnel;
   bool route;
   bool discover;
+  bool single_port = true;
 
   L2options l2opts;
   const char *serverip;
@@ -271,6 +274,10 @@ static struct argp_option options[] = {
    "starts an EIBnet/IP multicast server"},
   {"Name", 'n', "SERVERNAME", 0,
    "name of the EIBnet/IP server (default is 'knxd')"},
+  {"single-port", OPT_SINGLE_PORT, 0, 0,
+   "Use one common port for multicast. This is an ETS4/ETS5 bug workaround."},
+  {"multi-port", OPT_MULTI_PORT, 0, 0,
+   "Use two ports for multicast. This lets you run multiple KNX processes."},
 #endif
   {"layer2", 'b', "driver:[arg]", 0,
    "a Layer-2 driver to use (knxd supports more than one)"},
@@ -314,15 +321,21 @@ parse_opt (int key, char *arg, struct argp_state *state)
     {
 #ifdef HAVE_EIBNETIPSERVER
     case 'T':
-      arguments->tunnel = 1;
+      arguments->tunnel = true;
       arguments->has_work++;
       break;
     case 'R':
-      arguments->route = 1;
+      arguments->route = true;
       arguments->has_work++;
       break;
     case 'D':
-      arguments->discover = 1;
+      arguments->discover = true;
+      break;
+    case OPT_SINGLE_PORT:
+      arguments->single_port = true;
+      break;
+    case OPT_MULTI_PORT:
+      arguments->single_port = false;
       break;
     case 'S':
       {
@@ -356,7 +369,8 @@ parse_opt (int key, char *arg, struct argp_state *state)
         }
 
         EIBnetServerPtr s = EIBnetServerPtr(new EIBnetServer (arguments->tracer(tracename), name));
-        if (!s->setup (serverip, port, arguments->tunnel, arguments->route, arguments->discover))
+        if (!s->setup (serverip, port,
+                       arguments->tunnel, arguments->route, arguments->discover, arguments->single_port))
           die ("initialization of the EIBnet/IP server failed");
 
         Layer2Ptr c = arguments->stack(s,"multicast");
@@ -369,6 +383,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
         arguments->tunnel = false;
         arguments->route = false;
         arguments->discover = false;
+        arguments->single_port = false;
       }
       break;
     case 'n':

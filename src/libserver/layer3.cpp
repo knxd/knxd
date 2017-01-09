@@ -80,7 +80,7 @@ Layer3real::recv_L_Data (L_Data_PDU * l)
 {
   if (running)
     {
-      TRACEPRINTF (tr(), 3, this, "Enqueue %s", l->Decode ().c_str());
+      TRACEPRINTF (tr(), 9, this, "Enqueue %s", l->Decode ().c_str());
       buf.put (l);
       trigger.send();
     }
@@ -356,7 +356,7 @@ Layer3real::trigger_cb (ev::async &w, int revents)
           ITER (i,ignore)
             if (d1 == i->data)
               {
-                TRACEPRINTF (tr(), 3, this, "Repeated discareded");
+                TRACEPRINTF (tr(), 9, this, "Repeated, discarded");
                 delete l1;
                 continue;
               }
