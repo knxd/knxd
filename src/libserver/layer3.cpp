@@ -385,9 +385,7 @@ Layer3real::trigger_cb (ev::async &w, int revents)
         {
           // This is not so easy: we want to send to whichever
           // interface on which the address has appeared. If it hasn't
-          // been seen yet, we send to all interfaces which are buses.
-          // which are defined by accepting the otherwise-illegal physical
-          // address 0.
+          // been seen yet, we send to all interfaces.
           bool found = false;
           ITER(i, layer2)
             {
@@ -400,9 +398,9 @@ Layer3real::trigger_cb (ev::async &w, int revents)
                 }
             }
           ITER (i, layer2)
-            if ((l1->hopcount == 7)
+            if (l1->hopcount == 7
                 || (*i != l1->l2
-                  && (*i)->hasAddress (found ? l1->dest : 0)))
+                  && (!found || (*i)->hasAddress (l1->dest))))
               (*i)->send_L_Data (new L_Data_PDU (*l1));
         }
       delete l1;
