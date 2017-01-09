@@ -64,14 +64,14 @@ E5=$(tempfile)
 PORT=$((9999 + $$))
 PORT2=$((9998 + $$))
 
-knxd -n K1 -t 0xfffc -f 9 -e 3.2.1 -E 4.3.2:5 -c -u$S1 -u$S2 --multi-port -DTR --Server=:$PORT -bdummy: &
+knxd -n K1 -t 0xfffc -f 9 -e 4.1.0 -E 4.1.1:5 -c -u$S1 --multi-port -DTR --Server=:$PORT -bdummy: &
 KNX1=$!
 trap 'echo T1; rm -f $L1 $L2 $E1 $E2 $EF; kill $KNX1; wait' 0 1 2
 
 sleep 1
-knxd -n K2 -t 0xffff -f 9 -e 3.2.2 -E 4.5.6:5 -DTR --Server=:$PORT2 -u$S3 -b ipt:localhost:$PORT:$((10000 + $$)) &
+knxd -n K2 -t 0xffff -f 9 -e 4.2.0 -E 4.2.1:5 -DTR --Server=:$PORT2 -u$S2 -b ipt:localhost:$PORT:$((10000 + $$)) &
 KNX2=$!
-knxd -n K3 -t 0xffff -f 9 -e 3.2.3 -E 4.6.7:5 -u$S3 -b ipt:localhost:$PORT2:$((10001 + $$)) &
+knxd -n K3 -t 0xffff -f 9 -e 4.3.0 -E 4.3.1:5 -u$S3 -b ipt:localhost:$PORT2:$((10001 + $$)) &
 KNX3=$!
 #read RETURN
 trap 'echo T2; rm -f $L1 $L2 $E1 $E2 $EF; kill $KNX1 $KNX2 $KNX3; wait' 0 1 2
