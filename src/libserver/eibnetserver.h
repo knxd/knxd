@@ -50,7 +50,7 @@ public:
   uchar channel;
   uchar sno;
   uchar rno;
-  int state;
+  int retries;
   ConnType type;
   int no;
   bool nat;
@@ -112,7 +112,7 @@ class EIBnetServer: public Layer2mixin
   bool discover;
   bool single_port;
 
-  Array < ConnStatePtr > state;
+  Array < ConnStatePtr > connections;
   Queue < ConnStatePtr > drop_q;
   String name;
 
@@ -134,7 +134,7 @@ public:
   void handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock);
 
   const char * Name () { return "EIBnet:"; }
-  void drop_state (ConnStatePtr s);
+  void drop_connection (ConnStatePtr s);
   ev::async drop_trigger; void drop_trigger_cb(ev::async &w, int revents);
 
   inline void Send (EIBNetIPPacket p) {

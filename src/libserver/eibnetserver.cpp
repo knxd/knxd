@@ -236,11 +236,8 @@ void ConnState::send_L_Busmonitor (L_Busmonitor_PDU * l)
   if (type == CT_BUSMONITOR)
     {
       out.put (Busmonitor_to_CEMI (0x2B, *l, no++));
-      if (! state)
-	{
-	  state = 1;
-	  send_trigger.send();
-	}
+      if (! retries)
+	send_trigger.send();
     }
 }
 
@@ -249,11 +246,8 @@ void ConnState::send_L_Data (L_Data_PDU * l)
   if (type == CT_STANDARD)
     {
       out.put (L_Data_ToCEMI (0x29, *l));
-      if (! state)
-	{
-	  send_trigger.send();
-	  state = 1;
-	}
+      if (! retries)
+	send_trigger.send();
     }
   delete l;
 }
@@ -265,7 +259,7 @@ EIBnetServer::addClient (ConnType type, const EIBnet_ConnectRequest & r1,
   unsigned int i;
   int id = 1;
 rt:
-  ITER(i, state)
+  ITER(i, connections)
     if ((*i)->channel == id)
       {
 	id++;
@@ -277,7 +271,7 @@ rt:
       s->channel = id;
       s->daddr = r1.daddr;
       s->caddr = r1.caddr;
-      s->state = 0;
+      s->retries = 0;
       s->sno = 0;
       s->rno = 0;
       s->no = 1;
@@ -286,7 +280,7 @@ rt:
       if(!s->init())
         return -1;
 
-      state.push_back(s);
+      connections.push_back(s);
     }
   return id;
 }
@@ -304,8 +298,7 @@ ConnState::ConnState (EIBnetServer *p, eibaddr_t addr)
 
 void ConnState::sendtimeout_cb(ev::timer &w, int revents)
 {
-  assert(state);
-  if (++state <= 10)
+  if (++retries <= 10)
     {
       send_trigger.send();
       return;
@@ -313,14 +306,13 @@ void ConnState::sendtimeout_cb(ev::timer &w, int revents)
   CArray p = out.get ();
   t->TracePacket (2, this, "dropped", p.size(), p.data());
 
-  state = 0;
+  retries = 0;
   if (!out.isempty())
     send_trigger.send();
 }
 
 void ConnState::send_trigger_cb(ev::async &w, int revents)
 {
-  assert (state > 0);
   if (out.isempty ())
     return;
   EIBNetIPPacket p;
@@ -340,7 +332,7 @@ void ConnState::send_trigger_cb(ev::async &w, int revents)
       r.CEMI = out.top ();
       p = r.ToPacket ();
     }
-  state++;
+  retries ++;
   sendtimeout.start(1,0);
   parent->mcast->Send (p, daddr);
 }
@@ -369,14 +361,14 @@ void ConnState::stop()
   timeout.stop();
   sendtimeout.stop();
   send_trigger.stop();
-  state = 0;
-  parent->drop_state (std::static_pointer_cast<ConnState>(shared_from_this()));
+  retries = 0;
+  parent->drop_connection (std::static_pointer_cast<ConnState>(shared_from_this()));
   Layer2::stop();
   if (remoteAddr && l3)
     l3->release_client_addr(remoteAddr);
 }
 
-void EIBnetServer::drop_state (ConnStatePtr s)
+void EIBnetServer::drop_connection (ConnStatePtr s)
 {
   drop_q.put(s);
   drop_trigger.send();
@@ -387,10 +379,10 @@ void EIBnetServer::drop_trigger_cb(ev::async &w, int revents)
   while (!drop_q.isempty())
     {
       ConnStatePtr s = drop_q.get();
-      ITER(i,state)
+      ITER(i,connections)
         if (*i == s)
           {
-            state.erase (i);
+            connections.erase (i);
             break;
           }
     }
@@ -537,7 +529,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
 	goto out;
       r2.channel = r1.channel;
       r2.status = 0x21;
-      ITER(i, state)
+      ITER(i, connections)
 	if ((*i)->channel == r1.channel)
 	  {
             r2.status = 0;
@@ -555,12 +547,12 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       r2.channel = r1.channel;
       if (parseEIBnet_DisconnectRequest (*p1, r1))
 	goto out;
-      ITER(i,state)
+      ITER(i,connections)
 	if ((*i)->channel == r1.channel)
 	  {
             r2.status = 0;
             (*i)->channel = 0;
-            drop_state(*i);
+            drop_connection(*i);
             break;
 	  }
       isock->Send (r2.ToPacket (), r1.caddr);
@@ -617,7 +609,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       if (parseEIBnet_TunnelRequest (*p1, r1))
 	goto out;
       TRACEPRINTF (t, 8, this, "TUNNEL_REQ");
-      ITER(i,state)
+      ITER(i,connections)
 	if ((*i)->channel == r1.channel)
 	  {
 	    (*i)->tunnel_request(r1, isock);
@@ -631,7 +623,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       if (parseEIBnet_TunnelACK (*p1, r1))
 	goto out;
       TRACEPRINTF (t, 8, this, "TUNNEL_ACK");
-      ITER(i, state)
+      ITER(i, connections)
 	if ((*i)->channel == r1.channel)
 	  {
 	    (*i)->tunnel_response (r1);
@@ -646,7 +638,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       if (parseEIBnet_ConfigRequest (*p1, r1))
 	goto out;
       TRACEPRINTF (t, 8, this, "CONFIG_REQ");
-      ITER(i, state)
+      ITER(i, connections)
 	if ((*i)->channel == r1.channel)
 	  {
 	    (*i)->config_request (r1, isock);
@@ -660,7 +652,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       if (parseEIBnet_ConfigACK (*p1, r1))
 	goto out;
       TRACEPRINTF (t, 8, this, "CONFIG_ACK");
-      ITER(i, state)
+      ITER(i, connections)
 	if ((*i)->channel == r1.channel)
 	  {
 	    (*i)->config_response (r1);
@@ -691,7 +683,7 @@ EIBnetServer::stop()
 {
   drop_trigger.stop();
 
-  R_ITER(i,state)
+  R_ITER(i,connections)
     (*i)->stop();
 
   if (mcast)
@@ -747,11 +739,8 @@ void ConnState::tunnel_request(EIBnet_TunnelRequest &r1, EIBNetIPSocket *isock)
           if (r1.CEMI[0] == 0x11)
             {
               out.put (L_Data_ToCEMI (0x2E, *c));
-              if (! state)
-		{
-		  state = 1;
-		  send_trigger.send();
-		}
+              if (! retries)
+		send_trigger.send();
             }
           if (r1.CEMI[0] == 0x11 || r1.CEMI[0] == 0x29)
             l3->recv_L_Data (c);
@@ -786,7 +775,7 @@ void ConnState::tunnel_response (EIBnet_TunnelACK &r1)
       TRACEPRINTF (t, 8, this, "Wrong status %d", r1.status);
       return;
     }
-  if (!state)
+  if (! retries)
     {
       TRACEPRINTF (t, 8, this, "Unexpected ACK 1");
       return;
@@ -800,13 +789,9 @@ void ConnState::tunnel_response (EIBnet_TunnelACK &r1)
 
   out.get ();
   sendtimeout.stop();
+  retries = 0;
   if (!out.isempty())
-    {
-      state = 1;
-      send_trigger.send();
-    }
-  else
-    state = 0;
+    send_trigger.send();
 }
 
 void ConnState::config_request(EIBnet_ConfigRequest &r1, EIBNetIPSocket *isock)
@@ -867,11 +852,8 @@ void ConnState::config_request(EIBnet_ConfigRequest &r1, EIBNetIPSocket *isock)
 	      r2.status = 0x00;
 
 	      out.put (CEMI);
-              if (! state)
-                {
-                  state = 1;
-                  send_trigger.send();
-                }
+              if (! retries)
+		send_trigger.send();
 	    }
 	  else
 	    r2.status = 0x26;
@@ -899,7 +881,7 @@ void ConnState::config_response (EIBnet_ConfigACK &r1)
       TRACEPRINTF (t, 8, this, "Wrong status %d", r1.status);
       return;
     }
-  if (!state)
+  if (!retries)
     {
       TRACEPRINTF (t, 8, this, "Unexpected ACK 2");
       return;
@@ -913,12 +895,8 @@ void ConnState::config_response (EIBnet_ConfigACK &r1)
   sendtimeout.stop();
 
   out.get ();
+  retries = 0;
   if (!out.isempty())
-    {
-      state = 1;
-      send_trigger.send();
-    }
-  else
-    state = 0;
+    send_trigger.send();
 }
 
