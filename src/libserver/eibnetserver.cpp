@@ -529,7 +529,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
     }
   if (p1->service == CONNECTIONSTATE_REQUEST)
     {
-      uchar res = 21;
+      uchar res = 0x21;
       EIBnet_ConnectionStateRequest r1;
       EIBnet_ConnectionStateResponse r2;
       if (parseEIBnet_ConnectionStateRequest (*p1, r1))
