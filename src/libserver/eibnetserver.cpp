@@ -117,7 +117,7 @@ EIBnetServer::~EIBnetServer ()
 EIBnetDiscover::~EIBnetDiscover ()
 {
   TRACEPRINTF (parent->t, 8, this, "CloseD");
-  if (sock && parent->sock != sock)
+  if (sock && parent->sock && parent->sock != sock)
     delete sock;
 }
 
@@ -691,15 +691,15 @@ EIBnetServer::stop()
   R_ITER(i,state)
     (*i)->stop();
 
-  if (sock)
-  {
-    delete sock;
-    sock = 0;
-  }
   if (mcast)
   {
     delete mcast;
     mcast = 0;
+  }
+  if (sock)
+  {
+    delete sock;
+    sock = 0;
   }
   if (sock_mac >= 0)
   {
