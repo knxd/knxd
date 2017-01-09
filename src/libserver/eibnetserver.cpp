@@ -227,6 +227,7 @@ bool ConnState::init()
     remoteAddr = l3->get_client_addr ();
   if (remoteAddr)
     addAddress(remoteAddr);
+  TRACEPRINTF (parent->t, 8, this, "Start Conn %d", channel);
   return true;
 }
 
@@ -362,6 +363,7 @@ void ConnState::timeout_cb(ev::timer &w, int revents)
 
 void ConnState::stop()
 {
+  TRACEPRINTF (parent->t, 8, this, "Stop Conn %d", channel);
   if (type == CT_BUSMONITOR)
     l3->deregisterVBusmonitor(this);
   timeout.stop();
