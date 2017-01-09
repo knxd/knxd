@@ -121,10 +121,10 @@ EIBnetServer::~EIBnetServer ()
   Stop ();
   for (i = 0; i < natstate (); i++)
     pth_event_free (natstate[i].timeout, PTH_FREE_THIS);
-  if (sock)
-    delete sock;
   if (mcast)
     delete mcast;
+  if (sock)
+    delete sock;
   if (sock_mac >= 0)
     close (sock_mac);
 }
@@ -132,7 +132,7 @@ EIBnetServer::~EIBnetServer ()
 EIBnetDiscover::~EIBnetDiscover ()
 {
   TRACEPRINTF (parent->t, 8, this, "CloseD");
-  if (sock && parent->sock != sock)
+  if (sock && parent->sock && parent->sock != sock)
     {
       Stop ();
       delete sock;
