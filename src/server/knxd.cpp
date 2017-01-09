@@ -95,7 +95,7 @@ public:
 
   L2options l2opts;
   const char *serverip;
-  std::string servername = "init";
+  std::string servername = "knxd";
 
   bool stop_now;
   bool force_broadcast;
