@@ -552,6 +552,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       EIBnet_DisconnectRequest r1;
       EIBnet_DisconnectResponse r2;
       r2.status = 0x21;
+      r2.channel = r1.channel;
       if (parseEIBnet_DisconnectRequest (*p1, r1))
 	goto out;
       ITER(i,state)
@@ -562,8 +563,6 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
             drop_state(*i);
             break;
 	  }
-      r2.channel = r1.channel;
-      r2.status = res;
       isock->Send (r2.ToPacket (), r1.caddr);
       goto out;
     }
