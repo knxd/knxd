@@ -313,6 +313,8 @@ void ConnState::sendtimeout_cb(ev::timer &w, int revents)
   t->TracePacket (2, this, "dropped", p.size(), p.data());
 
   state = 0;
+  if (!out.isempty())
+    send_trigger.send();
 }
 
 void ConnState::send_trigger_cb(ev::async &w, int revents)
@@ -907,6 +909,7 @@ void ConnState::config_response (EIBnet_ConfigACK &r1)
       return;
     }
   sno++;
+  sendtimeout.stop();
 
   out.get ();
   if (!out.isempty())
