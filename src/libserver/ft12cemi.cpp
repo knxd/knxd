@@ -1,6 +1,9 @@
 /*
     EIBD eib bus access and management daemon
     Copyright (C) 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
+ 
+    cEMI support for USB
+    Copyright (C) 2013 Meik Felser <felser@cs.fau.de>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,32 +20,20 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifdef HAVE_FT12
-  L2_NAME (FT12)
-  L2_NAME (FT12CEMI)
-#endif
-#ifdef HAVE_EIBNETIP
-  L2_NAME (EIBNETIP)
-#endif
-#ifdef HAVE_EIBNETIPTUNNEL
-  L2_NAME (EIBNETIPTUNNEL)
-  L2_NAME (EIBNETIPTUNNELNAT)
-#endif
-#ifdef HAVE_TPUARTs
-  L2_NAME (TPUARTs)
-#endif
-#ifdef HAVE_TPUARTs_TCP
-  L2_NAME (TPUARTs_TCP)
-#endif
-#ifdef HAVE_USB
-  L2_NAME (USB)
-#endif
+#include "ft12cemi.h"
+#include "emi.h"
+#include "layer3.h"
 
-#ifdef HAVE_NCN5120
-  L2_NAME(NCN5120)
-#endif
+FT12CEMILayer2::~FT12CEMILayer2()
+{
+}
 
-#ifdef HAVE_DUMMY
-  L2_NAME(DUMMY)
-#endif
+void
+FT12CEMILayer2::cmdOpen()
+{
+  const uchar t1[] = { 0xF6, 0x00, 0x08, 0x01, 0x34, 0x10, 0x01, 0x00 };
+  iface->Send_Packet (CArray (t1, sizeof (t1)));
+}
+
+
 

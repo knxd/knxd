@@ -268,7 +268,7 @@ public:
   uchar MAC[6];
   uchar name[30];
   struct sockaddr_in caddr;
-  bool nat;
+  bool nat = false;
   EIBNetIPPacket ToPacket () const;
 };
 

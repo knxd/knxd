@@ -1,6 +1,9 @@
 /*
     EIBD eib bus access and management daemon
     Copyright (C) 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
+ 
+    cEMI support for USB
+    Copyright (C) 2013 Meik Felser <felser@cs.fau.de>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,32 +20,18 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifdef HAVE_FT12
-  L2_NAME (FT12)
-  L2_NAME (FT12CEMI)
-#endif
-#ifdef HAVE_EIBNETIP
-  L2_NAME (EIBNETIP)
-#endif
-#ifdef HAVE_EIBNETIPTUNNEL
-  L2_NAME (EIBNETIPTUNNEL)
-  L2_NAME (EIBNETIPTUNNELNAT)
-#endif
-#ifdef HAVE_TPUARTs
-  L2_NAME (TPUARTs)
-#endif
-#ifdef HAVE_TPUARTs_TCP
-  L2_NAME (TPUARTs_TCP)
-#endif
-#ifdef HAVE_USB
-  L2_NAME (USB)
-#endif
+#ifndef EIB_FT12CEMI_H
+#define EIB_FT12CEMI_H
 
-#ifdef HAVE_NCN5120
-  L2_NAME(NCN5120)
-#endif
+#include "cemi.h"
 
-#ifdef HAVE_DUMMY
-  L2_NAME(DUMMY)
-#endif
+/** CEMI backend */
+class FT12CEMILayer2 : public CEMILayer2
+{
+  void cmdOpen(); 
+public:
+  FT12CEMILayer2 (LowLevelDriver * i, L2options *opt) : CEMILayer2(i,opt) {}
+  ~FT12CEMILayer2 ();
+};
 
+#endif  /* EIB_CEMI_H */
