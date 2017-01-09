@@ -529,33 +529,33 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
     }
   if (p1->service == CONNECTIONSTATE_REQUEST)
     {
-      uchar res = 0x21;
       EIBnet_ConnectionStateRequest r1;
       EIBnet_ConnectionStateResponse r2;
       if (parseEIBnet_ConnectionStateRequest (*p1, r1))
 	goto out;
+      r2.channel = r1.channel;
+      r2.status = 0x21;
       ITER(i, state)
 	if ((*i)->channel == r1.channel)
 	  {
-            res = 0;
+            r2.status = 0;
             (*i)->reset_timer();
+	    break;
 	  }
-      r2.channel = r1.channel;
-      r2.status = res;
       isock->Send (r2.ToPacket (), r1.caddr);
       goto out;
     }
   if (p1->service == DISCONNECT_REQUEST)
     {
-      uchar res = 0x21;
       EIBnet_DisconnectRequest r1;
       EIBnet_DisconnectResponse r2;
+      r2.status = 0x21;
       if (parseEIBnet_DisconnectRequest (*p1, r1))
 	goto out;
       ITER(i,state)
 	if ((*i)->channel == r1.channel)
 	  {
-            res = 0;
+            r2.status = 0;
             (*i)->channel = 0;
             drop_state(*i);
             break;
