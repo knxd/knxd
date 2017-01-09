@@ -691,6 +691,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
 	{
 	  r2.CRD.resize (1);
 	  r2.CRD[0] = 0x03;
+	  TRACEPRINTF (t, 8, this, "Tunnel CONNECTION_REQ");
 	  int id = addClient (CT_CONFIG, r1, 0);
 	  if (id <= 0xff)
 	    {

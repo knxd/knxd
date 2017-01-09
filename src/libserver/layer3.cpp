@@ -51,7 +51,7 @@ Layer3::recv_L_Data (LPDU * l)
 {
   if (running)
     {
-      TRACEPRINTF (t, 3, this, "Enqueue %s", l->Decode ()());
+      TRACEPRINTF (t, 9, this, "Enqueue %s", l->Decode ()());
       buf.put (l);
       pth_sem_inc (&bufsem, 0);
     }
@@ -297,7 +297,7 @@ Layer3::Run (pth_sem_t * stop1)
 	      for (i = 0; i < ignore (); i++)
 		if (d1 == ignore[i].data)
 		  {
-		    TRACEPRINTF (t, 3, this, "Repeated discareded");
+		    TRACEPRINTF (t, 9, this, "Repeated, discarded");
 		    goto wt;
 		  }
 	    }
