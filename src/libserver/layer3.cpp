@@ -386,17 +386,20 @@ Layer3real::trigger_cb (ev::async &w, int revents)
           // This is not so easy: we want to send to whichever
           // interface on which the address has appeared. If it hasn't
           // been seen yet, we send to all interfaces.
+          // Addresses 0 and ~0 are special; they're used for programming
+          // so they can be on different interfaces. Always broadcast these.
           bool found = false;
-          ITER(i, layer2)
-            {
-              if (*i == l1->l2)
-                continue;
-              if ((*i)->hasAddress (l1->dest))
-                {
-                  found = true;
-                  break;
-                }
-            }
+          if (l1->dest != 0 && l1->dest != 0xFFFF)
+            ITER(i, layer2)
+              {
+                if (*i == l1->l2)
+                  continue;
+                if ((*i)->hasAddress (l1->dest))
+                  {
+                    found = true;
+                    break;
+                  }
+              }
           ITER (i, layer2)
             if (l1->hopcount == 7
                 || (*i != l1->l2
