@@ -527,19 +527,19 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
     }
   if (p1->service == CONNECTIONSTATE_REQUEST)
     {
-      uchar res = 21;
       EIBnet_ConnectionStateRequest r1;
       EIBnet_ConnectionStateResponse r2;
       if (parseEIBnet_ConnectionStateRequest (*p1, r1))
 	goto out;
+      r2.channel = r1.channel;
+      r2.status = 21;
       ITER(i, state)
 	if ((*i)->channel == r1.channel)
 	  {
-            res = 0;
+            r2.status = 0;
             (*i)->reset_timer();
+	    break;
 	  }
-      r2.channel = r1.channel;
-      r2.status = res;
       isock->Send (r2.ToPacket (), r1.caddr);
       goto out;
     }
