@@ -111,6 +111,7 @@ bool EIBNetIPTunnel::init (Layer3 *l3)
   EIBNetIPPacket p = creq.ToPacket ();
   sock->sendaddr = caddr;
   sock->Send (p);
+  conntimeout.start(10,0);
 
   return true;
 }
@@ -178,7 +179,7 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
 		EIBNetIPPacket p = creq.ToPacket ();
 		TRACEPRINTF (t, 1, this, "Connectretry");
 		sock->Send (p, caddr);
-		sendtimeout.start(10,0);
+		conntimeout.start(10,0);
 	      }
 	    break;
 	  }
@@ -202,7 +203,7 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
 	rno = 0;
 	sock->recvaddr2 = daddr;
 	sock->recvall = 3;
-	sendtimeout.start(30,0);
+	conntimeout.start(30,0);
 	heartbeat = 0;
 	break;
       }
@@ -449,7 +450,7 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
 	mod = 0;
 	sock->recvall = 0;
 	TRACEPRINTF (t, 1, this, "Disconnected");
-	sendtimeout.start(0.1,0);
+	conntimeout.start(0.1,0);
 	break;
       }
     default:
@@ -480,7 +481,6 @@ void EIBNetIPTunnel::conntimeout_cb(ev::timer &w, int revents)
 {
   if (mod)
     {
-      conntimeout.start(30,0);
       if (heartbeat < 5)
 	{
 	  EIBnet_ConnectionStateRequest csreq;
@@ -492,6 +492,7 @@ void EIBNetIPTunnel::conntimeout_cb(ev::timer &w, int revents)
 	  TRACEPRINTF (t, 1, this, "Heartbeat");
 	  sock->Send (p, caddr);
 	  heartbeat++;
+          conntimeout.start(30,0);
 	}
       else
 	{
