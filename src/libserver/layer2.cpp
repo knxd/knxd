@@ -58,8 +58,6 @@ Layer2shim::stop()
 bool
 Layer2::addAddress (eibaddr_t addr)
 {
-  if (addr == 0)
-    return false;
   ITER(i, indaddr)
     if (*i == addr)
       return false;
