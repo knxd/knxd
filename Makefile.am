@@ -5,7 +5,7 @@ EXTRA_DIST=SubmittingPatches .gitignore version.sh
 BUILDDIRS = 
 
 SUBDIRS=. src systemd
-DIST_SUBDIRS    = $(SUBDIRS) rpm
+DIST_SUBDIRS    = $(SUBDIRS)
 
 BUILT_SOURCES=path.h
 CLEANFILES=path.h
@@ -13,14 +13,6 @@ CLEANFILES=path.h
 path.h : Makefile
 	echo "#define PKGDATADIR \"${pkgdatadir}\"" >$@
 	echo "#define PKGLIBDIR \"${pkglibdir}\"" >>$@
-
-# source and binary RPMs
-#
-.PHONY:	RPM
-RPM:	all dist
-	rm -f rpm/rpm-tmp.*
-	make -C rpm $@
-
 
 .PHONY: help HELP
 help HELP:
