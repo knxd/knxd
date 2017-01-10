@@ -60,6 +60,8 @@ class Trace
   unsigned int level;
   /** when did we start up? */
   struct timeval started;
+  /** print timestamps when tracing */
+  bool timestamps = true;
 
   /** print the common header */
   void TraceHeader (int layer);
@@ -87,6 +89,7 @@ public:
     this->level = orig.level;
     this->name = name;
     this->started = orig.started;
+    this->timestamps = orig.timestamps;
     this->seq = ++trace_seq;
     if (trace_namelen < this->name.length())
       trace_namelen = this->name.length();
@@ -99,6 +102,11 @@ public:
   virtual void SetTraceLevel (int l)
   {
     layers = l;
+  }
+
+  virtual void SetTimestamps (bool l)
+  {
+    timestamps = l;
   }
 
   /** sets error level */

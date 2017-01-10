@@ -40,7 +40,10 @@ Trace::TraceHeader (int layer)
 
   if (servername.length())
     printf("%s: ",servername.c_str());
-  printf ("Layer %d [%2d:%-*s %u.%03u] ", layer, seq, trace_namelen, name.c_str(), (unsigned int)tv.tv_sec,(unsigned int)tv.tv_usec/1000);
+  if (timestamps)
+    printf ("Layer %d [%2d:%-*s %u.%03u] ", layer, seq, trace_namelen, name.c_str(), (unsigned int)tv.tv_sec,(unsigned int)tv.tv_usec/1000);
+  else
+    printf ("Layer %d [%2d:%s] ", layer, seq, name.c_str());
 }
 
 void

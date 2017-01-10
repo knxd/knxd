@@ -56,6 +56,7 @@ void die (const char *msg, ...);
 #define OPT_BACK_SEND_DELAY 8
 #define OPT_SINGLE_PORT 9
 #define OPT_MULTI_PORT 10
+#define OPT_NO_TIMESTAMP 11
 
 #define OPT_ARG(_arg,_state,_default) (arg ? arg : \
         (state->argv[state->next] && state->argv[state->next][0] && (state->argv[state->next][0] != '-')) ?  \
@@ -252,6 +253,8 @@ static struct argp_option options[] = {
    "listen at TCP port PORT (default 6720)"},
   {"listen-local", 'u', "FILE", OPTION_ARG_OPTIONAL,
    "listen at Unix domain socket FILE (default /run/knx)"},
+  {"no-timestamp", OPT_NO_TIMESTAMP, 0, 0,
+   "don't print timestamps when logging"},
   {"trace", 't', "MASK", 0,
    "set trace flags (bitmask)"},
   {"error", 'f', "LEVEL", 0,
@@ -429,6 +432,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
         }
       else
         arguments->t.SetTraceLevel (0);
+      break;
+    case OPT_NO_TIMESTAMP:
+      arguments->t.SetTimestamps(false);
       break;
     case 'f':
       arguments->t.SetErrorLevel (arg ? atoi (arg) : 0);
