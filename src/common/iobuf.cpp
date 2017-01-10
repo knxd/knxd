@@ -75,15 +75,17 @@ SendBuf::io_cb (ev::io &w, int revents)
 void
 RecvBuf::io_cb (ev::io &w, int revents)
 {
-    int i = ::read(fd, recvbuf+recvpos, quick ? 1 : (sizeof(recvbuf)-recvpos));
-    if (i <= 0) {
-        if (i == 0 || errno != EAGAIN && errno != EWOULDBLOCK) {
-            io.stop();
-            on_error_cb();
-        }
-        return;
+    while(true) {
+	int i = ::read(fd, recvbuf+recvpos, quick ? 1 : (sizeof(recvbuf)-recvpos));
+	if (i <= 0) {
+	    if (i == 0 || errno != EAGAIN && errno != EWOULDBLOCK) {
+		io.stop();
+		on_error_cb();
+	    }
+	    return;
+	}
+	recvpos += i;
     }
-    recvpos += i;
     feed_out();
 }
 
