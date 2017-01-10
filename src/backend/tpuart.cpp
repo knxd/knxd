@@ -161,7 +161,10 @@ TPUART_Base::RecvLPDU (const uchar * data, int len)
       if (l->getType () == L_Data && ((L_Data_PDU *) l)->valid_checksum)
 	l3->recv_L_Data ((L_Data_PDU *)l);
       else
-	delete l;
+        {
+          TRACEPRINTF (t, 0, this, "dropping packet: type %d %d, valid %d", l->getType (), L_Data && ((L_Data_PDU *) l)->valid_checksum);
+          delete l;
+        }
     }
 }
 
