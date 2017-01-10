@@ -648,7 +648,7 @@ main (int ac, char *ag[])
 
   // if you ever want this to be fatal, doing it here would be too late
   if (getuid () == 0)
-    ERRORPRINTF (&arg.t, E_WARNING | 20, 0, "EIBD should not run as root");
+    ERRORPRINTF (&arg.t, E_WARNING | 20, 0, "knxd should not run as root");
 
   signal (SIGPIPE, SIG_IGN);
 
