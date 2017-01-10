@@ -317,7 +317,7 @@ TPUART_Base::process_read(bool timed_out)
       else
         {
           acked = false;
-          TRACEPRINTF (t, 0, this, "Remove %02X", c);
+          TRACEPRINTF (t, 0, this, "unknown %02X", c);
           in.deletepart (0, 1);
         }
       timer.stop();
@@ -326,7 +326,7 @@ TPUART_Base::process_read(bool timed_out)
     do_timer:
       if (!timed_out)
         break;
-      TRACEPRINTF (t, 0, this, "Remove1 %02X", c);
+      TRACEPRINTF (t, 0, this, "timeout %02X", c);
       in.deletepart (0, 1);
       continue;
     }
