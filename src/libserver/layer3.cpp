@@ -336,8 +336,8 @@ Layer3real::trigger_cb (ev::async &w, int revents)
         }
       if (!l1->dest)
         {
-          // I have no idea what to do with this.
-          TRACEPRINTF (tr(), 3, this, "Destination zero: %s", l1->Decode ().c_str());
+          // Common problem with things that are not true gateways
+          ERRORPRINTF (l1->l2->t, E_WARNING | 57, this, "Message without destination. Use the NAT filter ('-B nat')?");
           goto next;
         }
       if (!l1->hopcount)
