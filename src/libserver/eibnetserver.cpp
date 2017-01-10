@@ -58,13 +58,6 @@ EIBnetDiscover::EIBnetDiscover (EIBnetServer *parent, const char *multicastaddr,
 
   this->parent = parent;
   TRACEPRINTF (parent->t, 8, this, "OpenD");
-  memset (&baddr, 0, sizeof (baddr));
-#ifdef HAVE_SOCKADDR_IN_LEN
-  baddr.sin_len = sizeof (baddr);
-#endif
-  baddr.sin_family = AF_INET;
-  baddr.sin_addr.s_addr = htonl (INADDR_ANY);
-  baddr.sin_port = htons (port);
 
   if (GetHostIP (parent->t, &maddr, multicastaddr) == 0)
     {
@@ -73,9 +66,22 @@ EIBnetDiscover::EIBnetDiscover (EIBnetServer *parent, const char *multicastaddr,
     }
   maddr.sin_port = htons (port);
 
-  sock = new EIBNetIPSocket (baddr, 1, parent->t);
-  if (!sock->init ())
-    goto err_out;
+  if (port)
+    {
+      memset (&baddr, 0, sizeof (baddr));
+#ifdef HAVE_SOCKADDR_IN_LEN
+      baddr.sin_len = sizeof (baddr);
+#endif
+      baddr.sin_family = AF_INET;
+      baddr.sin_addr.s_addr = htonl (INADDR_ANY);
+      baddr.sin_port = htons (port);
+
+      sock = new EIBNetIPSocket (baddr, 1, parent->t);
+      if (!sock->init ())
+        goto err_out;
+    }
+  else
+    sock = parent->sock;
 
   mcfg.imr_multiaddr = maddr.sin_addr;
   mcfg.imr_interface.s_addr = htonl (INADDR_ANY);
@@ -88,16 +94,15 @@ EIBnetDiscover::EIBnetDiscover (EIBnetServer *parent, const char *multicastaddr,
   sock->localaddr.sin_port = parent->Port;
   sock->recvall = 2;
 
-  Start ();
+  if (port)
+    Start ();
   TRACEPRINTF (parent->t, 8, this, "OpenedD");
   return;
 
 err_out:
-  if (sock)
-    {
-      delete (sock);
-      sock = 0;
-    }
+  if (sock && port)
+    delete (sock);
+  sock = 0;
   return;
 }
 
@@ -116,10 +121,10 @@ EIBnetServer::~EIBnetServer ()
   Stop ();
   for (i = 0; i < natstate (); i++)
     pth_event_free (natstate[i].timeout, PTH_FREE_THIS);
-  if (sock)
-    delete sock;
   if (mcast)
     delete mcast;
+  if (sock)
+    delete sock;
   if (sock_mac >= 0)
     close (sock_mac);
 }
@@ -127,9 +132,11 @@ EIBnetServer::~EIBnetServer ()
 EIBnetDiscover::~EIBnetDiscover ()
 {
   TRACEPRINTF (parent->t, 8, this, "CloseD");
-  Stop ();
-  if (sock)
-    delete sock;
+  if (sock && parent->sock && parent->sock != sock)
+    {
+      Stop ();
+      delete sock;
+    }
 }
 
 // we can't just not define this function
@@ -144,7 +151,7 @@ bool
 EIBnetServer::init (Layer3 *l3,
                     const char *multicastaddr, const int port,
                     const bool tunnel, const bool route,
-                    const bool discover)
+                    const bool discover, const bool single_port)
 {
   struct sockaddr_in baddr;
 
@@ -161,7 +168,7 @@ EIBnetServer::init (Layer3 *l3,
 #endif
   baddr.sin_family = AF_INET;
   baddr.sin_addr.s_addr = htonl (INADDR_ANY);
-  baddr.sin_port = 0;
+  baddr.sin_port = single_port ? htons(port) : 0;
 
   sock = new EIBNetIPSocket (baddr, 1, t);
   if (!sock)
@@ -174,7 +181,7 @@ EIBnetServer::init (Layer3 *l3,
   sock->recvall = 1;
   Port = sock->port ();
 
-  mcast = new EIBnetDiscover (this, multicastaddr, port);
+  mcast = new EIBnetDiscover (this, multicastaddr, single_port ? 0 : port);
   if (!mcast)
   {
     ERRORPRINTF (t, E_ERROR | 42, this, "EIBnetDiscover creation failed");
@@ -186,6 +193,7 @@ EIBnetServer::init (Layer3 *l3,
   this->tunnel = tunnel;
   this->route = route;
   this->discover = discover;
+  this->single_port = single_port;
   if (this->route || this->tunnel)
     addGroupAddress(0);
 
@@ -608,18 +616,9 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       if (c)
 	{
 	  TRACEPRINTF (t, 8, this, "Recv_Route %s", c->Decode ()());
-	  if (c->hopcount)
-	    {
-	      c->hopcount--;
-	      addNAT (*c);
-	      c->object = this;
-	      l3->recv_L_Data (c);
-	    }
-	  else
-	    {
-	      TRACEPRINTF (t, 8, this, "RecvDrop");
-	      delete c;
-	    }
+          addNAT (*c);
+          c->object = this;
+          l3->recv_L_Data (c);
 	}
       goto out;
     }
@@ -692,6 +691,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
 	{
 	  r2.CRD.resize (1);
 	  r2.CRD[0] = 0x03;
+	  TRACEPRINTF (t, 8, this, "Tunnel CONNECTION_REQ");
 	  int id = addClient (CT_CONFIG, r1, 0);
 	  if (id <= 0xff)
 	    {
@@ -841,28 +841,19 @@ void ConnState::tunnel_request(EIBnet_TunnelRequest &r1, EIBNetIPSocket *isock)
       if (c)
 	{
 	  r2.status = 0;
-	  if (c->hopcount)
-	    {
-	      c->hopcount--;
-              if (c->source == 0)
-                c->source = remoteAddr;
-	      if (r1.CEMI[0] == 0x11)
-		{
-		  out.put (L_Data_ToCEMI (0x2E, *c));
-		  pth_sem_inc (outsignal, 0);
-		}
-	      c->object = this;
-	      if (r1.CEMI[0] == 0x11 || r1.CEMI[0] == 0x29)
-		l3->recv_L_Data (c);
-	      else
-		delete c;
-	    }
-	  else
-	    {
-	      TRACEPRINTF (t, 8, this, "RecvDrop");
-	      delete c;
-	    }
-	}
+          if (c->source == 0)
+            c->source = remoteAddr;
+          if (r1.CEMI[0] == 0x11)
+            {
+              out.put (L_Data_ToCEMI (0x2E, *c));
+              pth_sem_inc (outsignal, 0);
+            }
+          c->object = this;
+          if (r1.CEMI[0] == 0x11 || r1.CEMI[0] == 0x29)
+            l3->recv_L_Data (c);
+          else
+            delete c;
+        }
       else
 	r2.status = 0x29;
     }

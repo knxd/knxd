@@ -52,6 +52,7 @@ On Debian:
 
     # now build+install knxd itself
     cd knxd
+    git checkout master ## this branch
     dpkg-buildpackage -b -uc
     cd ..
     sudo dpkg -i knxd_*.deb knxd-tools_*.deb
