@@ -1,3 +1,10 @@
+knxd (0.12.0~8-1) experimental; urgency=medium
+
+  * ETS5 with USB host adapters in tunnel mode works.
+    Router mode and TPUART: not yet.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Tue, 10 Jan 2017 04:51:24 +0100
+
 knxd (0.12.0~7-1) experimental; urgency=medium
 
   * eibnettunnel now works, with the probable exception of bus monitoring.
