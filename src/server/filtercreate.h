@@ -20,5 +20,5 @@
 #ifdef HAVE_DUMMY
   L2_NAME(DUMMY_F)
 #endif
-  L2_NAME(NAT)
+  L2_NAME(NAT_S)
 

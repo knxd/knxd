@@ -337,7 +337,7 @@ Layer3real::trigger_cb (ev::async &w, int revents)
       if (!l1->dest)
         {
           // Common problem with things that are not true gateways
-          ERRORPRINTF (l1->l2->t, E_WARNING | 57, this, "Message without destination. Use the NAT filter ('-B nat')?");
+          ERRORPRINTF (l1->l2->t, E_WARNING | 57, this, "Message without destination. Use the single-node filter ('-B single')?");
           goto next;
         }
       if (!l1->hopcount)

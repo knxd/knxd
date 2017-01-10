@@ -23,10 +23,11 @@
 #include "nat.h"
 #include "layer23.h"
 
-#define NAT_URL "nat\n"
-#define NAT_DOC "nat zeroes the source address, for talking to single-node gateways\n\n"
-#define NAT_PREFIX "nat"
-#define NAT_FILTER nat_Filter
+#define NAT_S_URL "single\n"
+#define NAT_S_DOC "The 'single' filter is used for talking to single-node gateways.\n" \
+	"It zeroes the source address when sending, and restores the (physical) destination address when receiving.\n\n"
+#define NAT_S_PREFIX "single"
+#define NAT_S_FILTER nat_Filter
 
 inline Layer2Ptr
 nat_Filter (const char *dev UNUSED, L2options *opt, Layer2Ptr l2)
