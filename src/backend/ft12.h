@@ -43,10 +43,8 @@ class FT12LowLevelDriver:public LowLevelDriver
   int sendflag;
   /** recevie state */
   int recvflag;
-  /** input queue */
+  /** send queue */
   Queue < CArray > send_q;
-  /** output queue */
-  Queue < CArray * >outqueue;
   /** frame in receiving */
   CArray akt;
   /** last received frame */
