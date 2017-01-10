@@ -88,6 +88,7 @@ class RecvBuf
 {
   ev::io io;
   void io_cb (ev::io &w, int revents);
+  bool quick = false;
 
 public:
   error_cb on_error_cb;
@@ -121,6 +122,7 @@ public:
     on_error_cb.set<RecvBuf,&RecvBuf::on_error>(this);
     on_recv_cb.set<RecvBuf,&RecvBuf::on_data>(this);
   };
+  void low_latency() { quick = true; }
   virtual ~RecvBuf() {};
 
   void start();

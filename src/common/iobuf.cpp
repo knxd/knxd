@@ -75,7 +75,7 @@ SendBuf::io_cb (ev::io &w, int revents)
 void
 RecvBuf::io_cb (ev::io &w, int revents)
 {
-    int i = ::read(fd,recvbuf+recvpos, sizeof(recvbuf)-recvpos);
+    int i = ::read(fd, recvbuf+recvpos, quick ? 1 : (sizeof(recvbuf)-recvpos));
     if (i <= 0) {
         if (i == 0 || errno != EAGAIN && errno != EWOULDBLOCK) {
             io.stop();
