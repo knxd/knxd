@@ -338,14 +338,12 @@ Layer3real::trigger_cb (ev::async &w, int revents)
         {
           // I have no idea what to do with this.
           TRACEPRINTF (tr(), 3, this, "Destination zero: %s", l1->Decode ().c_str());
-          delete l1;
-          continue;
+          goto next;
         }
       if (!l1->hopcount)
         {
           TRACEPRINTF (tr(), 3, this, "Hopcount zero: %s", l1->Decode ().c_str());
-          delete l1;
-          continue;
+          goto next;
         }
       if (l1->hopcount < 7 || !force_broadcast)
         l1->hopcount--;
@@ -357,8 +355,7 @@ Layer3real::trigger_cb (ev::async &w, int revents)
             if (d1 == i->data)
               {
                 TRACEPRINTF (tr(), 9, this, "Repeated, discarded");
-                delete l1;
-                continue;
+                goto next;
               }
         }
       l1->repeated = 1;
@@ -406,6 +403,7 @@ Layer3real::trigger_cb (ev::async &w, int revents)
                   && (!found || (*i)->hasAddress (l1->dest))))
               (*i)->send_L_Data (new L_Data_PDU (*l1));
         }
+    next:
       delete l1;
     }
 
