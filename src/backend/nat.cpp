@@ -71,6 +71,7 @@ NatL2Filter::recv_L_Data (L_Data_PDU * l)
 
 void NatL2Filter::addReverseAddress (eibaddr_t src, eibaddr_t dest)
 {
+  TRACEPRINTF (t, 5, this, "from %s to %s", FormatEIBAddr (src).c_str(), FormatEIBAddr (dest).c_str());
   ITER(i,revaddr)
     if (i->dest == dest)
       {
