@@ -259,7 +259,7 @@ TPUART_Base::process_read(bool timed_out)
 *  often gets connected to) has an 8-byte buffer which we can do nothing
 *  about, and two bytes is the latency that's mostly-acceptable.
 */
-          if (in.size() < len-9)
+          if (in.size()+9 < len)
             goto do_timer;
 
           if (!recvecho && sendtimer.is_active())
