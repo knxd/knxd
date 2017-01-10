@@ -304,7 +304,7 @@ void ConnState::sendtimeout_cb(ev::timer &w, int revents)
       return;
     }
   CArray p = out.get ();
-  t->TracePacket (2, this, "dropped", p.size(), p.data());
+  t->TracePacket (2, this, "dropped no-ACK", p.size(), p.data());
 
   retries = 0;
   if (!out.isempty())
