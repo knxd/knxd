@@ -269,6 +269,7 @@ USBLowLevelDriver::init ()
       ERRORPRINTF (t, E_ERROR | 34, this, "Error AllocRecv: %s", strerror(errno));
       return false;
     } 
+  running = true;
   StartUsbRecvTransfer();
   return true;
 }

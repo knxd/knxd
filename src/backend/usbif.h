@@ -52,7 +52,7 @@ class USBLowLevelDriver:public LowLevelDriver
   /* libusb event loop */
   USBLoop *loop;
   USBDevice d;
-  bool running;
+  bool running = false;
 
   ev::async trigger;
   void trigger_cb(ev::async &w, int revents);
