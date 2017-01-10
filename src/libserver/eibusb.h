@@ -22,6 +22,7 @@
 
 #include "layer2.h"
 #include "lowlevel.h"
+#include "emi_common.h"
 
 /** USBConverterInterface */
 class USBConverterInterface:public LowLevelDriver
@@ -52,7 +53,7 @@ LowLevelDriver *initUSBDriver (LowLevelDriver * i,
 class USBLayer2:public Layer2
 {
   /** EMI */
-  Layer2Ptr emi;
+  EMIPtr emi;
 
 public:
   USBLayer2 (LowLevelDriver * i, L2options *opt);

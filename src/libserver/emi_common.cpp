@@ -189,12 +189,10 @@ EMI_Common::on_recv_cb(CArray *c)
     wait_confirm = false;
   if (c->size() && (*c)[0] == ind[I_DATA] && (mode & BUSMODE_UP))
     {
-      L_Data_PDU *p = EMI2lData (*c, shared_from_this());
+      L_Data_PDU *p = EMI2lData (*c, real_l2 ? real_l2 : shared_from_this());
       if (p)
         {
           delete c;
-          if (p->AddrType == IndividualAddress)
-            p->dest = 0;
           TRACEPRINTF (t, 2, this, "Recv %s", p->Decode ().c_str());
           l3->recv_L_Data (p);
           return;
@@ -202,7 +200,7 @@ EMI_Common::on_recv_cb(CArray *c)
     }
   if (c->size() > 4 && (*c)[0] == ind[I_BUSMON] && mode == BUSMODE_MONITOR)
     {
-      L_Busmonitor_PDU *p = new L_Busmonitor_PDU (shared_from_this());
+      L_Busmonitor_PDU *p = new L_Busmonitor_PDU (real_l2 ? real_l2 : shared_from_this());
       p->status = (*c)[1];
       p->timestamp = ((*c)[2] << 24) | ((*c)[3] << 16);
       p->pdu.set (c->data() + 4, c->size() - 4);

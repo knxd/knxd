@@ -316,6 +316,7 @@ bool USBLayer2::init (Layer3 *l3)
     return false;
   if (! emi->init(l3))
     return false;
+  emi->real_l2 = shared_from_this();
   return Layer2::init(l3);
 }
 

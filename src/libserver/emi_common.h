@@ -64,6 +64,7 @@ public:
   EMI_Common (LowLevelDriver * i, L2options *opt);
   ~EMI_Common ();
   bool init (Layer3 *l3);
+  Layer2Ptr real_l2 = nullptr;
 
   void send_L_Data (L_Data_PDU * l);
 
@@ -79,5 +80,7 @@ public:
   bool Open ();
   bool Close ();
 };
+
+typedef std::shared_ptr<EMI_Common> EMIPtr;
 
 #endif
