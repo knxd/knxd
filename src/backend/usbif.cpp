@@ -262,6 +262,9 @@ USBLowLevelDriver::init ()
 {
   if (state != 2)
     return false;
+  // may be called a second time
+  if (running)
+    return true;
 
   recvh = libusb_alloc_transfer (0);
   if (!recvh)
