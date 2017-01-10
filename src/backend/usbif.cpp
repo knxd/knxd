@@ -350,7 +350,7 @@ USBLowLevelDriver::StartUsbRecvTransfer()
 {
   libusb_fill_interrupt_transfer (recvh, dev, d.recvep, recvbuf,
                                   sizeof (recvbuf), usb_complete_recv,
-                                  this, 30000);
+                                  this, 0);
   if (libusb_submit_transfer (recvh))
     {
       ERRORPRINTF (t, E_ERROR | 32, this, "Error StartRecv: %s", strerror(errno));
