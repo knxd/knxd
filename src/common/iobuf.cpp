@@ -23,6 +23,24 @@
 #include <fcntl.h>
 #include "iobuf.h"
 
+void SendBuf::write(const CArray *data)
+{
+  if (!sendbuf && sendqueue.isempty())
+    {
+      ssize_t len = ::write(fd, data->data(), data->size());
+      if (len == data->size())
+	return;
+      sendbuf = data;
+      sendpos = (len>0) ? len : 0;
+    }
+  else
+    sendqueue.put(data);
+  if (!ready) {
+      ready = true;
+      io.start();
+  }
+}
+
 void
 SendBuf::io_cb (ev::io &w, int revents)
 {

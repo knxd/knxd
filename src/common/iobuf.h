@@ -71,13 +71,7 @@ public:
     write(data);
   }
 
-  void write(const CArray *data) {
-    sendqueue.put(data);
-    if (!ready) {
-        ready = true;
-        io.start();
-    }
-  }
+  void write(const CArray *data);
 
 protected:
   /** client connection */
