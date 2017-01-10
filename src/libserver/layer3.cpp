@@ -334,12 +334,6 @@ Layer3real::trigger_cb (ev::async &w, int revents)
             }
           delete l2;
         }
-      if (!l1->dest)
-        {
-          // Common problem with things that are not true gateways
-          ERRORPRINTF (l1->l2->t, E_WARNING | 57, this, "Message without destination. Use the single-node filter ('-B single')?");
-          goto next;
-        }
       if (!l1->hopcount)
         {
           TRACEPRINTF (tr(), 3, this, "Hopcount zero: %s", l1->Decode ().c_str());
@@ -380,13 +374,20 @@ Layer3real::trigger_cb (ev::async &w, int revents)
         }
       if (l1->AddrType == IndividualAddress)
         {
+	  if (!l1->dest)
+	    {
+	      // Common problem with things that are not true gateways
+	      ERRORPRINTF (l1->l2->t, E_WARNING | 57, this, "Message without destination. Use the single-node filter ('-B single')?");
+	      goto next;
+	    }
+
           // This is not so easy: we want to send to whichever
           // interface on which the address has appeared. If it hasn't
           // been seen yet, we send to all interfaces.
-          // Addresses 0 and ~0 are special; they're used for programming
-          // so they can be on different interfaces. Always broadcast these.
+          // Addresses ~0 is special; it's used for programming
+          // so can be on different interfaces. Always broadcast these.
           bool found = false;
-          if (l1->dest != 0 && l1->dest != 0xFFFF)
+          if (l1->dest != 0xFFFF)
             ITER(i, layer2)
               {
                 if (*i == l1->l2)
