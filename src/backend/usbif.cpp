@@ -398,7 +398,7 @@ USBLowLevelDriver::ReceiveUsb()
 void
 USBLowLevelDriver::trigger_cb(ev::async &w, int revents)
 {
-  if (!connection_state || send_q.isempty())
+  if (sendh || !connection_state || send_q.isempty())
     return;
 
   const CArray & c = send_q.top ();
