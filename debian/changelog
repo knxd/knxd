@@ -1,3 +1,9 @@
+knxd (0.12.0-1) unstable; urgency=medium
+
+  * libev conversion considered complete.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 11 Jan 2017 15:36:07 +0100
+
 knxd (0.12.0~8-1) experimental; urgency=medium
 
   * ETS5 with USB host adapters in tunnel mode works.

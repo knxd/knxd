@@ -163,6 +163,10 @@ rebooting. The TPUART module is not back on ``ttyAMA0``.
 * You need "-E" if you want to allow clients to connect (options -u -i -T).
   As that's almost always the case, knxd will print a warning.
 
+* If you use knxtool's management tools (any command with "progmode" or
+  whose name starts with 'm'), please [open an issue](https://github.com/knxd/knxd/issues)
+  because knxd currently does not support these commands.
+
 ## Migrating from ``eibd``
 
 * Before you build knxd: remove *any* traces of the old eibd installation from ``/usr/local``, or wherever you installed it.
