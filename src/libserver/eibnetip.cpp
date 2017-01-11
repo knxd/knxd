@@ -295,11 +295,18 @@ EIBNetIPSocket::io_send_cb (ev::io &w, int revents)
       send_q.get ();
       send_error = 0;
     }
-  else if (send_error++ > 5)
+  else
     {
-      t->TracePacket (0, this, "Drop EIBnetSocket", p);
-      send_q.get ();
-      send_error = 0;
+      if (i == 0 || (errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR))
+        {
+          TRACEPRINTF (t, 0, this, "Send: %s", strerror(errno));
+          if (send_error++ > 5)
+            {
+              t->TracePacket (0, this, "EIBnetSocket:drop", p);
+              send_q.get ();
+              send_error = 0;
+            }
+        }
     }
 }
 
