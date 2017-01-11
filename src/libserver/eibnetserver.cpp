@@ -548,12 +548,12 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
           t->TracePacket (2, this, "unparseable CONNECTIONSTATE_REQUEST", p1->data);
           goto out;
         }
-      TRACEPRINTF (t, 8, this, "CONNECTIONSTATE_REQUEST on %d", r1.channel);
       r2.channel = r1.channel;
       r2.status = 0x21;
       ITER(i, connections)
 	if ((*i)->channel == r1.channel)
 	  {
+            TRACEPRINTF ((*i)->t, 8, this, "CONNECTIONSTATE_REQUEST on %d", r1.channel);
             r2.status = 0;
             (*i)->reset_timer();
 	    break;
@@ -575,17 +575,17 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
           t->TracePacket (2, this, "unparseable DISCONNECT_REQUEST", p1->data);
           goto out;
         }
-      TRACEPRINTF (t, 8, this, "DISCONNECT_REQUEST on %d", r1.channel);
       ITER(i,connections)
 	if ((*i)->channel == r1.channel)
 	  {
             r2.status = 0;
+            TRACEPRINTF ((*i)->t, 8, this, "DISCONNECT_REQUEST");
             (*i)->channel = 0;
             drop_connection(*i);
             break;
 	  }
       if (r2.status)
-        TRACEPRINTF (t, 2, this, "Unknown connection %d", r2.channel);
+        TRACEPRINTF (t, 8, this, "DISCONNECT_REQUEST on %d", r1.channel);
       isock->Send (r2.ToPacket (), r1.caddr);
       goto out;
     }
@@ -659,14 +659,14 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
           t->TracePacket (2, this, "unparseable TUNNEL_REQUEST", p1->data);
           goto out;
         }
-      TRACEPRINTF (t, 8, this, "TUNNEL_REQ on %d", r1.channel);
       if (tunnel)
         ITER(i,connections)
           if ((*i)->channel == r1.channel)
             {
               (*i)->tunnel_request(r1, isock);
-              break;
+              goto out;
             }
+      TRACEPRINTF (t, 8, this, "TUNNEL_REQ on %d", r1.channel);
       goto out;
     }
   if (p1->service == TUNNEL_RESPONSE)
@@ -677,14 +677,14 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
           t->TracePacket (2, this, "unparseable TUNNEL_RESPONSE", p1->data);
           goto out;
         }
-      TRACEPRINTF (t, 8, this, "TUNNEL_ACK on %d",r1.channel);
       if (tunnel)
         ITER(i, connections)
           if ((*i)->channel == r1.channel)
             {
               (*i)->tunnel_response (r1);
-              break;
+              goto out;
             }
+      TRACEPRINTF (t, 8, this, "TUNNEL_ACK on unknown %d",r1.channel);
       goto out;
     }
   if (p1->service == DEVICE_CONFIGURATION_REQUEST)
@@ -713,13 +713,13 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
           t->TracePacket (2, this, "unparseable DEVICE_CONFIGURATION_ACK", p1->data);
           goto out;
         }
-      TRACEPRINTF (t, 8, this, "CONFIG_ACK on %d",r1.channel);
       ITER(i, connections)
 	if ((*i)->channel == r1.channel)
 	  {
 	    (*i)->config_response (r1);
-	    break;
+	    goto out;
 	  }
+      TRACEPRINTF (t, 8, this, "CONFIG_ACK on unknown channel %d",r1.channel);
       goto out;
     }
   TRACEPRINTF (t, 8, this, "Unexpected service type: %04x", p1->service);
@@ -792,6 +792,7 @@ void ConnState::tunnel_request(EIBnet_TunnelRequest &r1, EIBNetIPSocket *isock)
     }
   if (type == CT_STANDARD)
     {
+      TRACEPRINTF (t, 8, this, "TUNNEL_REQ");
       L_Data_PDU *c = CEMI_to_L_Data (r1.CEMI, shared_from_this());
       if (c)
 	{
@@ -826,6 +827,7 @@ void ConnState::tunnel_request(EIBnet_TunnelRequest &r1, EIBNetIPSocket *isock)
 
 void ConnState::tunnel_response (EIBnet_TunnelACK &r1)
 {
+  TRACEPRINTF (t, 8, this, "TUNNEL_ACK");
   if (sno != r1.seqno)
     {
       TRACEPRINTF (t, 8, this, "Wrong sequence %d<->%d",
