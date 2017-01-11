@@ -29,7 +29,10 @@ void SendBuf::write(const CArray *data)
     {
       ssize_t len = ::write(fd, data->data(), data->size());
       if (len == data->size())
-	return;
+        {
+          delete data;
+          return;
+        }
       sendbuf = data;
       sendpos = (len>0) ? len : 0;
     }
