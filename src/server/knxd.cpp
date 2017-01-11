@@ -109,11 +109,8 @@ public:
   Trace t;
   Array < const char * > filters;
 
-  arguments (): t(servername, "main") {
-    addr = 0x0001;
-  }
-  ~arguments () {
-  }
+  arguments (): t(servername, "main") { }
+  ~arguments () { }
 
   /** get the L3 instance */
   Layer3real *l3()
