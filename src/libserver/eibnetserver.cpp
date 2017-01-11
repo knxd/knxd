@@ -298,17 +298,14 @@ ConnState::ConnState (EIBnetServer *p, eibaddr_t addr)
 
 void ConnState::sendtimeout_cb(ev::timer &w, int revents)
 {
-  if (++retries <= 10)
+  if (++retries <= 5)
     {
       send_trigger.send();
       return;
     }
   CArray p = out.get ();
   t->TracePacket (2, this, "dropped no-ACK", p.size(), p.data());
-
-  retries = 0;
-  if (!out.isempty())
-    send_trigger.send();
+  stop();
 }
 
 void ConnState::send_trigger_cb(ev::async &w, int revents)
@@ -355,7 +352,7 @@ void ConnState::timeout_cb(ev::timer &w, int revents)
 
 void ConnState::stop()
 {
-  TRACEPRINTF (parent->t, 8, this, "Stop Conn %d", channel);
+  TRACEPRINTF (t, 8, this, "Stop Conn %d", channel);
   if (type == CT_BUSMONITOR)
     l3->deregisterVBusmonitor(this);
   timeout.stop();
@@ -583,8 +580,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
 	  {
             r2.status = 0;
             TRACEPRINTF ((*i)->t, 8, this, "DISCONNECT_REQUEST");
-            (*i)->channel = 0;
-            drop_connection(*i);
+            (*i)->stop();
             break;
 	  }
       if (r2.status)
@@ -826,6 +822,8 @@ void ConnState::tunnel_request(EIBnet_TunnelRequest &r1, EIBNetIPSocket *isock)
     }
   rno++;
   isock->Send (r2.ToPacket (), daddr);
+
+  reset_timer(); // presumably the client is alive if it can send
 }
 
 void ConnState::tunnel_response (EIBnet_TunnelACK &r1)
@@ -856,6 +854,7 @@ void ConnState::tunnel_response (EIBnet_TunnelACK &r1)
 
   out.get ();
   sendtimeout.stop();
+  reset_timer(); // presumably the client is alive if it can ack
   retries = 0;
   if (!out.isempty())
     send_trigger.send();
