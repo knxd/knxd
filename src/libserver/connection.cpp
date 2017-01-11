@@ -18,6 +18,7 @@
 */
 
 #include "connection.h"
+#include "trace.h"
 
 A_Base::~A_Base()
 {
@@ -25,131 +26,137 @@ A_Base::~A_Base()
 
 A_Broadcast::A_Broadcast (ClientConnPtr cc, uint8_t *buf,size_t len)
 {
-  TRACEPRINTF (cc->t, 7, this, "OpenBroadcast");
+  TracePtr t = TracePtr(new Trace(*cc->t, cc->t->name+":"+FormatEIBAddr(cc->addr)));
+  TRACEPRINTF (t, 7, this, "OpenBroadcast");
   c = nullptr;
   addr = cc->addr;
   if (len != 5)
     {
-      TRACEPRINTF (cc->t, 7, this, "OpenBroadcast size bad %d", len);
+      TRACEPRINTF (t, 7, this, "OpenBroadcast size bad %d", len);
       return;
     }
-  c = T_BroadcastPtr(new T_Broadcast (cc->t, buf[4] != 0));
+  c = T_BroadcastPtr(new T_Broadcast (t, buf[4] != 0));
   if (!c->init (this, cc->l3))
     {
-      TRACEPRINTF (cc->t, 7, this, "OpenBroadcast init bad");
+      TRACEPRINTF (t, 7, this, "OpenBroadcast init bad");
       return;
     }
   cc->sendmessage (2, buf);
   con = cc;
-  TRACEPRINTF (cc->t, 7, this, "OpenBroadcast complete");
+  TRACEPRINTF (t, 7, this, "OpenBroadcast complete");
 }
 
 A_Group::A_Group (ClientConnPtr cc, uint8_t *buf,size_t len)
 {
-  TRACEPRINTF (cc->t, 7, this, "OpenGroup");
+  TracePtr t = TracePtr(new Trace(*cc->t, cc->t->name+":"+FormatEIBAddr(cc->addr)));
+  TRACEPRINTF (t, 7, this, "OpenGroup");
   c = nullptr;
   addr = cc->addr;
   if (len != 5)
     {
-      TRACEPRINTF (cc->t, 7, this, "OpenGroup size bad %d", len);
+      TRACEPRINTF (t, 7, this, "OpenGroup size bad %d", len);
       return;
     }
-  c = T_GroupPtr(new T_Group (cc->t, (buf[2] << 8) | (buf[3]),
+  c = T_GroupPtr(new T_Group (t, (buf[2] << 8) | (buf[3]),
 		 buf[4] != 0));
   if (!c->init (this, cc->l3))
     {
-      TRACEPRINTF (cc->t, 7, this, "OpenGroup init bad");
+      TRACEPRINTF (t, 7, this, "OpenGroup init bad");
       return;
     }
   cc->sendmessage (2, buf);
   con = cc;
-  TRACEPRINTF (cc->t, 7, this, "OpenGroup complete");
+  TRACEPRINTF (t, 7, this, "OpenGroup complete");
 }
 
 A_TPDU::A_TPDU (ClientConnPtr cc, uint8_t *buf,size_t len)
 {
-  TRACEPRINTF (cc->t, 7, this, "OpenTPDU");
+  TracePtr t = TracePtr(new Trace(*cc->t, cc->t->name+":"+FormatEIBAddr(cc->addr)));
+  TRACEPRINTF (t, 7, this, "OpenTPDU");
   c = nullptr;
   addr = cc->addr;
   if (len != 5)
     {
-      TRACEPRINTF (cc->t, 7, this, "OpenTPDU size bad %d", len);
+      TRACEPRINTF (t, 7, this, "OpenTPDU size bad %d", len);
       return;
     }
-  c = T_TPDUPtr(new T_TPDU (cc->t, (buf[2] << 8) | (buf[3])));
+  c = T_TPDUPtr(new T_TPDU (t, (buf[2] << 8) | (buf[3])));
   if (!c->init (this, cc->l3))
     {
-      TRACEPRINTF (cc->t, 7, this, "OpenTPDU init bad");
+      TRACEPRINTF (t, 7, this, "OpenTPDU init bad");
       return;
     }
   cc->sendmessage (2, buf);
   con = cc;
-  TRACEPRINTF (cc->t, 7, this, "OpenTPDU complete");
+  TRACEPRINTF (t, 7, this, "OpenTPDU complete");
 }
 
 A_Individual::A_Individual (ClientConnPtr cc, uint8_t *buf,size_t len)
 {
-  TRACEPRINTF (cc->t, 7, this, "OpenIndividual");
+  TracePtr t = TracePtr(new Trace(*cc->t, cc->t->name+":"+FormatEIBAddr(cc->addr)));
+  TRACEPRINTF (t, 7, this, "OpenIndividual");
   c = nullptr;
   addr = cc->addr;
   if (len != 5)
     {
-      TRACEPRINTF (cc->t, 7, this, "OpenIndividual size bad %d", len);
+      TRACEPRINTF (t, 7, this, "OpenIndividual size bad %d", len);
       return;
     }
   c = T_IndividualPtr(
-    new T_Individual (cc->t, (buf[2] << 8) | (buf[3]),
+    new T_Individual (t, (buf[2] << 8) | (buf[3]),
 		      buf[4] != 0));
   if (!c->init (this, cc->l3))
     {
-      TRACEPRINTF (cc->t, 7, this, "OpenIndividual init bad");
+      TRACEPRINTF (t, 7, this, "OpenIndividual init bad");
       return;
     }
   cc->sendmessage (2, buf);
   con = cc;
-  TRACEPRINTF (cc->t, 7, this, "OpenIndividual complete");
+  TRACEPRINTF (t, 7, this, "OpenIndividual complete");
 }
 
 A_Connection::A_Connection (ClientConnPtr cc, uint8_t *buf,size_t len)
 {
-  TRACEPRINTF (cc->t, 7, this, "OpenConnection");
+  TracePtr t = TracePtr(new Trace(*cc->t, cc->t->name+":"+FormatEIBAddr(cc->addr)));
+  TRACEPRINTF (t, 7, this, "OpenConnection");
   c = nullptr;
   addr = cc->addr;
   if (len != 5)
     {
-      TRACEPRINTF (cc->t, 7, this, "OpenConnection size bad %d", len);
+      TRACEPRINTF (t, 7, this, "OpenConnection size bad %d", len);
       return;
     }
-  c = T_ConnectionPtr(new T_Connection (cc->t, (buf[2] << 8) | (buf[3])));
+  c = T_ConnectionPtr(new T_Connection (t, (buf[2] << 8) | (buf[3])));
   if (!c->init (this, cc->l3))
     {
-      TRACEPRINTF (cc->t, 7, this, "OpenConnection init bad");
+      TRACEPRINTF (t, 7, this, "OpenConnection init bad");
       return;
     }
   cc->sendmessage (2, buf);
   con = cc;
-  TRACEPRINTF (cc->t, 7, this, "OpenConnection complete");
+  TRACEPRINTF (t, 7, this, "OpenConnection complete");
 }
 
 A_GroupSocket::A_GroupSocket (ClientConnPtr cc, uint8_t *buf,size_t len)
 {
-  TRACEPRINTF (cc->t, 7, this, "OpenGroupSocket");
+  TracePtr t = TracePtr(new Trace(*cc->t, cc->t->name+":"+FormatEIBAddr(cc->addr)));
+  TRACEPRINTF (t, 7, this, "OpenGroupSocket");
   c = nullptr;
   addr = cc->addr;
   if (len != 5)
     {
-      TRACEPRINTF (cc->t, 7, this, "OpenGroupSocket size bad %d", len);
+      TRACEPRINTF (t, 7, this, "OpenGroupSocket size bad %d", len);
       return;
     }
-  c = GroupSocketPtr(new GroupSocket (cc->t, buf[4] != 0));
+  c = GroupSocketPtr(new GroupSocket (t, buf[4] != 0));
   if (!c->init (this, cc->l3))
     {
-      TRACEPRINTF (cc->t, 7, this, "OpenGroupSocket init bad");
+      TRACEPRINTF (t, 7, this, "OpenGroupSocket init bad");
       return;
     }
   cc->sendmessage (2, buf);
   con = cc;
-  TRACEPRINTF (cc->t, 7, this, "OpenGroupSocket complete");
+  TRACEPRINTF (t, 7, this, "OpenGroupSocket complete");
 }
 
 A_Broadcast::~A_Broadcast ()

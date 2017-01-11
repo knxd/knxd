@@ -32,9 +32,9 @@ A_Busmonitor::A_Busmonitor (ClientConnPtr c, bool virt, bool TS, uint8_t *buf,si
 {
   CArray resp;
 
-  TRACEPRINTF (c->t, 7, this, "Open A_Busmonitor");
+  t = TracePtr(new Trace(*c->t, c->t->name+":monitor"));
+  TRACEPRINTF (t, 7, this, "Open A_Busmonitor");
   this->l3 = c->l3;
-  t = c->t;
   con = c;
   v = virt;
   ts = TS;

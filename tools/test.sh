@@ -10,37 +10,37 @@ export PATH="$(pwd)/src/examples/.libs:$(pwd)/src/examples:$(pwd)/src/server/.li
 EF=$(tempfile)
 
 # first test argument handling
-if knxd --stop-right-now >$EF 2>&1; then
+if knxd -e 1.2.3 --stop-right-now >$EF 2>&1; then
 	echo "Bad argument A" >&2
 	cat $EF 2>&1
 	exit 1
 fi
 
-if knxd --stop-right-now -b dummy: >$EF 2>&1; then
+if knxd -e 1.2.3 --stop-right-now -b dummy: >$EF 2>&1; then
 	echo "Bad argument B" >&2
 	cat $EF 2>&1
 	exit 1
 fi
 
-if ! knxd --stop-right-now -b dummy: -b dummy: >$EF 2>&1; then
+if ! knxd -e 1.2.3 --stop-right-now -b dummy: -b dummy: >$EF 2>&1; then
 	echo "Bad argument C" >&2
 	cat $EF 2>&1
 	exit 1
 fi
 
-if knxd --stop-right-now -b dummy: -b dummy: --tpuarts-disch-reset >$EF 2>&1; then
+if knxd -e 1.2.3 --stop-right-now -b dummy: -b dummy: --tpuarts-disch-reset >$EF 2>&1; then
 	echo "Bad argument D" >&2
 	cat $EF 2>&1
 	exit 1
 fi
 
-if knxd --stop-right-now -b dummy: --tpuarts-disch-reset -b dummy: >$EF 2>&1; then
+if knxd -e 1.2.3 --stop-right-now -b dummy: --tpuarts-disch-reset -b dummy: >$EF 2>&1; then
 	echo "Bad argument E" >&2
 	cat $EF 2>&1
 	exit 1
 fi
 
-if knxd --stop-right-now -T -b dummy: -b dummy: >$EF 2>&1; then
+if knxd -e 1.2.3 --stop-right-now -T -b dummy: -b dummy: >$EF 2>&1; then
 	echo "Bad argument F" >&2
 	cat $EF 2>&1
 	exit 1
