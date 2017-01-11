@@ -61,11 +61,19 @@ ClientConnection::error_cb ()
   stop();
 }
 
-void
+bool
 ClientConnection::start()
 {
-  recvbuf.start();
   sendbuf.start();
+  recvbuf.start();
+
+  if (!addr)
+    {
+      sendreject (EIB_RESET_CONNECTION);
+      stop();
+      return false;
+    }
+  return true;
 }
 
 void

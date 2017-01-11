@@ -61,7 +61,7 @@ protected:
 public:
   ClientConnection (Server * s, int fd);
   virtual ~ClientConnection ();
-  void start();
+  bool start();
   void stop(bool no_server=false);
 
   size_t read_cb(uint8_t *buf, size_t len);

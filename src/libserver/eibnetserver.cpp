@@ -608,6 +608,8 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
 	  r2.CRD[2] = (a >> 0) & 0xFF;
           if (!tunnel)
             TRACEPRINTF (t, 8, this, "Tunnel CONNECTION_REQ, ignored, not tunneling");
+          else if (!a)
+            TRACEPRINTF (t, 8, this, "Tunnel CONNECTION_REQ, ignored, no free addresses");
           else if (r1.CRI[1] == 0x02 || r1.CRI[1] == 0x80)
 	    {
 	      int id = addClient ((r1.CRI[1] == 0x80) ? CT_BUSMONITOR : CT_STANDARD, r1, a);
