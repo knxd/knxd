@@ -58,10 +58,10 @@ EIBnetDiscover::EIBnetDiscover (EIBnetServer *parent, const char *multicastaddr,
       ERRORPRINTF (parent->t, E_ERROR | 11, this, "Addr '%s' not resolvable", multicastaddr);
       goto err_out;
     }
-  maddr.sin_port = htons (port);
 
   if (port)
     {
+      maddr.sin_port = htons (port);
       memset (&baddr, 0, sizeof (baddr));
 #ifdef HAVE_SOCKADDR_IN_LEN
       baddr.sin_len = sizeof (baddr);
@@ -76,7 +76,10 @@ EIBnetDiscover::EIBnetDiscover (EIBnetServer *parent, const char *multicastaddr,
       sock->on_recv.set<EIBnetDiscover,&EIBnetDiscover::on_recv_cb>(this);
     }
   else
-    sock = parent->sock;
+    {
+      maddr.sin_port = parent->Port;
+      sock = parent->sock;
+    }
 
   mcfg.imr_multiaddr = maddr.sin_addr;
   mcfg.imr_interface.s_addr = htonl (INADDR_ANY);
@@ -666,7 +669,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
               (*i)->tunnel_request(r1, isock);
               goto out;
             }
-      TRACEPRINTF (t, 8, this, "TUNNEL_REQ on %d", r1.channel);
+      TRACEPRINTF (t, 8, this, "TUNNEL_REQ on unknown %d", r1.channel);
       goto out;
     }
   if (p1->service == TUNNEL_RESPONSE)
