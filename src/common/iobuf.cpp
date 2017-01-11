@@ -55,7 +55,7 @@ SendBuf::io_cb (ev::io &w, int revents)
                 if (sendpos < sendbuf->size())
                     return;
             } else {
-                if (i == 0 || errno != EAGAIN && errno != EWOULDBLOCK) {
+                if (i == 0 || (errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR)) {
                     io.stop();
                     on_error_cb();
                 }
@@ -81,7 +81,7 @@ RecvBuf::io_cb (ev::io &w, int revents)
     while(sizeof(recvbuf) > recvpos) {
 	int i = ::read(fd, recvbuf+recvpos, quick ? 1 : (sizeof(recvbuf)-recvpos));
 	if (i <= 0) {
-	    if (i == 0 || errno != EAGAIN && errno != EWOULDBLOCK) {
+	    if (i == 0 || (errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR)) {
 		io.stop();
 		on_error_cb();
 	    }
