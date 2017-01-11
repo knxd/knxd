@@ -252,16 +252,29 @@ TPUART_Base::process_read(bool timed_out)
           unsigned len = ext ? in[6] : (in[5] & 0x0f);
           len += 6 + ext + 2;
 
-/** This test is broken. However, waiting for the whole packet to
-*  arrive does not work because the ack gets sent to the TPUART
-*  too late to be of any use. Thus we need to send it early.
-*
-*  9 chars, because the Raspberry Pi serial console (which tpuart serial
-*  often gets connected to) has an 8-byte buffer which we can do nothing
-*  about, and two bytes is the latency that's mostly-acceptable.
-*/
-          if (in.size()+9 < len)
+/*
+ * This test is broken. However, waiting for the whole packet to
+ * arrive does not work because the ack gets sent to the TPUART
+ * too late to be of any use. Thus we need to send it early.
+ * 
+ * Various experiments to send the ack "as late as possible but still
+ * somewhat early" have essentially failed and made esp. programming less
+ * reliable instead of more so.
+ * 
+ * Worse, the Raspberry Pi hardware serial handler does 4-character
+ * buffering. We're very lucky that the minimum is 8 bytes, which we can
+ * ack in time – more often than not.
+ * 
+ * The right way to mostly-fix this is to run the receiver in a separate thread.
+ * "Mostly" because there's still the Pi problem, which is a major user of
+ * this code. Also, TCP latency means that it won't help for tpuarttcp –
+ * you'd need to hook up a microcontroller at the remote end which can do
+ * the ACKs.
+ */
+#if 0
+          if (in.size() < len)
             goto do_timer;
+#endif
 
           if (!recvecho && sendtimer.is_active())
             {
