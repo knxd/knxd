@@ -535,6 +535,8 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
 	  TRACEPRINTF (t, 8, this, "Recv_Route %s", c->Decode ().c_str());
           l3->recv_L_Data (c);
 	}
+      else
+        delete c;
       goto out;
     }
   if (p1->service == CONNECTIONSTATE_REQUEST)
