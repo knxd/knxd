@@ -80,13 +80,13 @@ Layer3real::recv_L_Data (L_Data_PDU * l)
 {
   if (running)
     {
-      TRACEPRINTF (tr(), 9, this, "Enqueue %s", l->Decode ().c_str());
+      TRACEPRINTF (l->l2->t, 9, this, "Enqueue %s", l->Decode ().c_str());
       buf.put (l);
       trigger.send();
     }
   else
     {
-      TRACEPRINTF (tr(), 3, this, "Discard(not running) %s", l->Decode ().c_str());
+      TRACEPRINTF (l->l2->t, 3, this, "Discard(not running) %s", l->Decode ().c_str());
       delete l;
     }
 }
