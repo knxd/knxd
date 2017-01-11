@@ -85,7 +85,7 @@ RecvBuf::io_cb (ev::io &w, int revents)
 		io.stop();
 		on_error_cb();
 	    }
-	    return;
+	    break;
 	}
 	recvpos += i;
     }
