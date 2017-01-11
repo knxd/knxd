@@ -25,7 +25,7 @@
 
 void SendBuf::write(const CArray *data)
 {
-  if (!sendbuf && sendqueue.isempty())
+  if (!ready)
     {
       ssize_t len = ::write(fd, data->data(), data->size());
       if (len == data->size())
