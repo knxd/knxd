@@ -660,7 +660,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
           goto out;
         }
       TRACEPRINTF (t, 8, this, "TUNNEL_REQ on %d", r1.channel);
-      if (!tunnel)
+      if (tunnel)
         ITER(i,connections)
           if ((*i)->channel == r1.channel)
             {
