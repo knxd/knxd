@@ -437,14 +437,20 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
     }
   /* End MAC Address */
 
-  if (p1->service == SEARCH_REQUEST && discover)
+  if (p1->service == SEARCH_REQUEST)
     {
       EIBnet_SearchRequest r1;
       EIBnet_SearchResponse r2;
       DIB_service_Entry d;
       if (parseEIBnet_SearchRequest (*p1, r1))
-	goto out;
-      TRACEPRINTF (t, 8, this, "SEARCH");
+        {
+          t->TracePacket (2, this, "unparseable SEARCH_REQUEST", p1->data);
+          goto out;
+        }
+      TRACEPRINTF (t, 8, this, "SEARCH_REQ");
+      if (!discover)
+        goto out;
+
       r2.KNXmedium = 2;
       r2.devicestatus = 0;
       r2.individual_addr = l3->getDefaultAddr();
@@ -477,13 +483,19 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       isock->Send (r2.ToPacket (), r1.caddr);
       goto out;
     }
-  if (p1->service == DESCRIPTION_REQUEST && discover)
+
+  if (p1->service == DESCRIPTION_REQUEST)
     {
       EIBnet_DescriptionRequest r1;
       EIBnet_DescriptionResponse r2;
       DIB_service_Entry d;
       if (parseEIBnet_DescriptionRequest (*p1, r1))
-	goto out;
+        {
+          t->TracePacket (2, this, "unparseable DESCRIPTION_REQUEST", p1->data);
+          goto out;
+        }
+      if (!discover)
+        goto out;
       TRACEPRINTF (t, 8, this, "DESCRIBE");
       r2.KNXmedium = 2;
       r2.devicestatus = 0;
@@ -508,13 +520,17 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       isock->Send (r2.ToPacket (), r1.caddr);
       goto out;
     }
-  if (p1->service == ROUTING_INDICATION && route)
+  if (p1->service == ROUTING_INDICATION)
     {
       if (p1->data.size() < 2 || p1->data[0] != 0x29)
-	goto out;
-      const CArray data = p1->data;
-      L_Data_PDU *c = CEMI_to_L_Data (data, shared_from_this());
-      if (c)
+        {
+          t->TracePacket (2, this, "unparseable ROUTING_INDICATION", p1->data);
+          goto out;
+        }
+      L_Data_PDU *c = CEMI_to_L_Data (p1->data, shared_from_this());
+      if (!c)
+        t->TracePacket (2, this, "unCEMIable ROUTING_INDICATION", p1->data);
+      else if (route)
 	{
 	  TRACEPRINTF (t, 8, this, "Recv_Route %s", c->Decode ().c_str());
           l3->recv_L_Data (c);
@@ -526,7 +542,11 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       EIBnet_ConnectionStateRequest r1;
       EIBnet_ConnectionStateResponse r2;
       if (parseEIBnet_ConnectionStateRequest (*p1, r1))
-	goto out;
+        {
+          t->TracePacket (2, this, "unparseable CONNECTIONSTATE_REQUEST", p1->data);
+          goto out;
+        }
+      TRACEPRINTF (t, 8, this, "CONNECTIONSTATE_REQUEST on %d", r1.channel);
       r2.channel = r1.channel;
       r2.status = 0x21;
       ITER(i, connections)
@@ -536,6 +556,9 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
             (*i)->reset_timer();
 	    break;
 	  }
+      if (r2.status)
+        TRACEPRINTF (t, 2, this, "Unknown connection %d", r2.channel);
+        
       isock->Send (r2.ToPacket (), r1.caddr);
       goto out;
     }
@@ -546,7 +569,11 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       r2.status = 0x21;
       r2.channel = r1.channel;
       if (parseEIBnet_DisconnectRequest (*p1, r1))
-	goto out;
+        {
+          t->TracePacket (2, this, "unparseable DISCONNECT_REQUEST", p1->data);
+          goto out;
+        }
+      TRACEPRINTF (t, 8, this, "DISCONNECT_REQUEST on %d", r1.channel);
       ITER(i,connections)
 	if ((*i)->channel == r1.channel)
 	  {
@@ -555,6 +582,8 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
             drop_connection(*i);
             break;
 	  }
+      if (r2.status)
+        TRACEPRINTF (t, 2, this, "Unknown connection %d", r2.channel);
       isock->Send (r2.ToPacket (), r1.caddr);
       goto out;
     }
@@ -563,17 +592,23 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       EIBnet_ConnectRequest r1;
       EIBnet_ConnectResponse r2;
       if (parseEIBnet_ConnectRequest (*p1, r1))
-	goto out;
+        {
+          t->TracePacket (2, this, "unparseable CONNECTION_REQUEST", p1->data);
+          goto out;
+        }
       r2.status = 0x22;
-      if (r1.CRI.size() == 3 && r1.CRI[0] == 4 && tunnel)
+      if (r1.CRI.size() == 3 && r1.CRI[0] == 4)
 	{
-	  eibaddr_t a = l3->get_client_addr ();
+	  eibaddr_t a = tunnel ? l3->get_client_addr () : 0;
 	  r2.CRD.resize (3);
 	  r2.CRD[0] = 0x04;
-	  TRACEPRINTF (t, 8, this, "Tunnel CONNECTION_REQ with %s", FormatEIBAddr(a).c_str());
+          if (tunnel)
+            TRACEPRINTF (t, 8, this, "Tunnel CONNECTION_REQ with %s", FormatEIBAddr(a).c_str());
 	  r2.CRD[1] = (a >> 8) & 0xFF;
 	  r2.CRD[2] = (a >> 0) & 0xFF;
-	  if (r1.CRI[1] == 0x02 || r1.CRI[1] == 0x80)
+          if (!tunnel)
+            TRACEPRINTF (t, 8, this, "Tunnel CONNECTION_REQ, ignored, not tunneling");
+          else if (r1.CRI[1] == 0x02 || r1.CRI[1] == 0x80)
 	    {
 	      int id = addClient ((r1.CRI[1] == 0x80) ? CT_BUSMONITOR : CT_STANDARD, r1, a);
 	      if (id <= 0xff)
@@ -582,6 +617,8 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
 		  r2.status = 0;
 		}
 	    }
+          else
+            TRACEPRINTF (t, 8, this, "bad CONNECTION_REQ: [1] x%02x", r1.CRI[1]);
 	}
       else if (r1.CRI.size() == 1 && r1.CRI[0] == 3)
 	{
@@ -595,40 +632,55 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
 	      r2.status = 0;
 	    }
 	}
+      else
+        {
+          TRACEPRINTF (t, 8, this, "bad CONNECTION_REQ: size %d, [0] x%02x", r1.CRI.size(), r1.CRI[0]);
+          // XXX set status to something more reasonable
+        }
       if (!GetSourceAddress (&r1.caddr, &r2.daddr))
 	goto out;
+      if (tunnel && r2.status)
+        TRACEPRINTF (t, 8, this, "CONNECTION_REQ: no free channel");
       r2.daddr.sin_port = Port;
       r2.nat = r1.nat;
       isock->Send (r2.ToPacket (), r1.caddr);
       goto out;
     }
-  if (p1->service == TUNNEL_REQUEST && tunnel)
+  if (p1->service == TUNNEL_REQUEST)
     {
       EIBnet_TunnelRequest r1;
       EIBnet_TunnelACK r2;
       if (parseEIBnet_TunnelRequest (*p1, r1))
-	goto out;
-      TRACEPRINTF (t, 8, this, "TUNNEL_REQ");
-      ITER(i,connections)
-	if ((*i)->channel == r1.channel)
-	  {
-	    (*i)->tunnel_request(r1, isock);
-	    break;
-	  }
+        {
+          t->TracePacket (2, this, "unparseable TUNNEL_REQUEST", p1->data);
+          goto out;
+        }
+      TRACEPRINTF (t, 8, this, "TUNNEL_REQ on %d", r1.channel);
+      if (!tunnel)
+        ITER(i,connections)
+          if ((*i)->channel == r1.channel)
+            {
+              (*i)->tunnel_request(r1, isock);
+              break;
+            }
       goto out;
     }
-  if (p1->service == TUNNEL_RESPONSE && tunnel)
+  if (p1->service == TUNNEL_RESPONSE)
     {
       EIBnet_TunnelACK r1;
       if (parseEIBnet_TunnelACK (*p1, r1))
-	goto out;
-      TRACEPRINTF (t, 8, this, "TUNNEL_ACK");
-      ITER(i, connections)
-	if ((*i)->channel == r1.channel)
-	  {
-	    (*i)->tunnel_response (r1);
-	    break;
-	  }
+        {
+          t->TracePacket (2, this, "unparseable TUNNEL_RESPONSE", p1->data);
+          goto out;
+        }
+      TRACEPRINTF (t, 8, this, "TUNNEL_ACK on %d",r1.channel);
+      if (tunnel)
+        ITER(i, connections)
+          if ((*i)->channel == r1.channel)
+            {
+              (*i)->tunnel_response (r1);
+              break;
+            }
       goto out;
     }
   if (p1->service == DEVICE_CONFIGURATION_REQUEST)
@@ -636,8 +688,11 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       EIBnet_ConfigRequest r1;
       EIBnet_ConfigACK r2;
       if (parseEIBnet_ConfigRequest (*p1, r1))
-	goto out;
-      TRACEPRINTF (t, 8, this, "CONFIG_REQ");
+        {
+          t->TracePacket (2, this, "unparseable DEVICE_CONFIGURATION_REQUEST", p1->data);
+          goto out;
+        }
+      TRACEPRINTF (t, 8, this, "CONFIG_REQ on %d",r1.channel);
       ITER(i, connections)
 	if ((*i)->channel == r1.channel)
 	  {
@@ -650,8 +705,11 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
     {
       EIBnet_ConfigACK r1;
       if (parseEIBnet_ConfigACK (*p1, r1))
-	goto out;
-      TRACEPRINTF (t, 8, this, "CONFIG_ACK");
+        {
+          t->TracePacket (2, this, "unparseable DEVICE_CONFIGURATION_ACK", p1->data);
+          goto out;
+        }
+      TRACEPRINTF (t, 8, this, "CONFIG_ACK on %d",r1.channel);
       ITER(i, connections)
 	if ((*i)->channel == r1.channel)
 	  {
