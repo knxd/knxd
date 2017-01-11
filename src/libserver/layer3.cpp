@@ -367,8 +367,9 @@ Layer3real::trigger_cb (ev::async &w, int revents)
           // group.
           ITER(i, layer2)
             {
-              if ((l1->hopcount == 7)
-                  || ((*i != l1->l2) && (*i)->hasGroupAddress(l1->dest)))
+              if (*i == l1->l2)
+                continue;
+              if (l1->hopcount == 7 || (*i)->hasGroupAddress(l1->dest))
                 (*i)->send_L_Data (new L_Data_PDU (*l1));
             }
         }
@@ -399,10 +400,12 @@ Layer3real::trigger_cb (ev::async &w, int revents)
                   }
               }
           ITER (i, layer2)
-            if (l1->hopcount == 7
-                || (*i != l1->l2
-                  && (!found || (*i)->hasAddress (l1->dest))))
-              (*i)->send_L_Data (new L_Data_PDU (*l1));
+            {
+              if (*i == l1->l2)
+                continue;
+              if (l1->hopcount == 7 || !found || (*i)->hasAddress (l1->dest))
+                (*i)->send_L_Data (new L_Data_PDU (*l1));
+            }
         }
     next:
       delete l1;
