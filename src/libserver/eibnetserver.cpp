@@ -667,7 +667,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
               (*i)->tunnel_request(r1, isock);
               goto out;
             }
-      TRACEPRINTF (t, 8, this, "TUNNEL_REQ on %d", r1.channel);
+      TRACEPRINTF (t, 8, this, "TUNNEL_REQ on unknown %d", r1.channel);
       goto out;
     }
   if (p1->service == TUNNEL_RESPONSE)
