@@ -223,10 +223,7 @@ bool ConnState::init()
     return false;
   l3 = parent->l3->registerLayer2(shared_from_this());
 
-  if (!remoteAddr)
-    remoteAddr = l3->get_client_addr ();
-  if (remoteAddr)
-    addAddress(remoteAddr);
+  addAddress(remoteAddr);
   TRACEPRINTF (parent->t, 8, this, "Start Conn %d", channel);
   return true;
 }
@@ -365,7 +362,10 @@ void ConnState::stop()
   parent->drop_connection (std::static_pointer_cast<ConnState>(shared_from_this()));
   Layer2::stop();
   if (remoteAddr && l3)
-    l3->release_client_addr(remoteAddr);
+    {
+      l3->release_client_addr(remoteAddr);
+      remoteAddr = 0;
+    }
 }
 
 void EIBnetServer::drop_connection (ConnStatePtr s)
