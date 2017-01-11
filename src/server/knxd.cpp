@@ -120,6 +120,8 @@ public:
     {
       if (layer3 == 0) 
         {
+          if (!addr)
+            die ("knxd requires a bus address (option -e)!");
           TracePtr tr = tracer("layer3", false);
           layer3 = new Layer3real (addr, tr, force_broadcast);
           addr = 0;
@@ -128,6 +130,8 @@ public:
               layer3->set_client_block (alloc_addrs, alloc_addrs_len);
               alloc_addrs_len = 0;
             }
+          else
+            ERRORPRINTF (tr, E_WARNING | 44, 0, "knxd is unable to assign addresses to clients (option -E).");
         }
       return layer3;
     }

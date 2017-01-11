@@ -43,6 +43,8 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 
   * (temporarily) drop support for device management with knxtool
 
+  * now requires -e/-E arguments
+
 ## Building
 
 On Debian:
@@ -155,6 +157,11 @@ rebooting. The TPUART module is not back on ``ttyAMA0``.
 ## Migrating to 0.12
 
 * You may need "-B single" in front of any "-b ipt:" or "-b usb:".
+
+* You need "-e"; knxd no longer defaults to address 0.0.1.
+
+* You need "-E" if you want to allow clients to connect (options -u -i -T).
+  As that's almost always the case, knxd will print a warning.
 
 ## Migrating from ``eibd``
 
