@@ -9,3 +9,5 @@ libtoolize --copy --force --install && \
 	autoheader && \
 	automake --add-missing --copy --force-missing && \
 	autoconf
+# setting current version in spec files
+sed -i "s/@VERSION@/$(sh ./version.sh)/g" rpm/*.spec
