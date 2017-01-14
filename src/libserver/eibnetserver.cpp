@@ -71,7 +71,7 @@ EIBnetDiscover::EIBnetDiscover (EIBnetServer *parent, const char *multicastaddr,
       baddr.sin_port = htons (port);
 
       sock = new EIBNetIPSocket (baddr, 1, parent->t);
-      if (!sock->SetInterface(intf))
+      if (intf && !sock->SetInterface(intf))
         goto err_out;
       if (!sock->init ())
         goto err_out;
