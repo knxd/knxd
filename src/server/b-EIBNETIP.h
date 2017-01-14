@@ -48,7 +48,7 @@ eibnetip_Create (const char *dev, L2options *opt)
     }
   else
     port = 3671;
-  c = std::shared_ptr<EIBNetIPRouter>(new EIBNetIPRouter (a, port, opt));
+  c = std::shared_ptr<EIBNetIPRouter>(new EIBNetIPRouter (*a ? a : "224.0.23.12", port, opt));
   free (a);
   return c;
 }
