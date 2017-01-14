@@ -22,7 +22,8 @@
 #include "config.h"
 #include "layer3.h"
 
-EIBNetIPRouter::EIBNetIPRouter (const char *multicastaddr, int port, L2options *opt) : Layer2 (opt)
+EIBNetIPRouter::EIBNetIPRouter (const char *multicastaddr, int port,
+                                const char *iface, L2options *opt) : Layer2 (opt)
 {
   struct sockaddr_in baddr;
   struct ip_mreq mcfg;
@@ -38,6 +39,9 @@ EIBNetIPRouter::EIBNetIPRouter (const char *multicastaddr, int port, L2options *
   if (!sock->init ())
     goto err_out;
   sock->on_recv.set<EIBNetIPRouter,&EIBNetIPRouter::on_recv_cb>(this);
+
+  if (iface)
+    sock->SetInterface(iface);
 
   sock->recvall = 2;
   if (GetHostIP (t, &sock->sendaddr, multicastaddr) == 0)

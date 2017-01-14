@@ -85,7 +85,7 @@ class EIBnetDiscover
   p_recv_cb on_recv;
 
 public:
-  EIBnetDiscover (EIBnetServer *parent, const char *multicastaddr, int port);
+  EIBnetDiscover (EIBnetServer *parent, const char *multicastaddr, int port, const char *intf);
   virtual ~EIBnetDiscover ();
   struct sockaddr_in maddr;
 
@@ -127,7 +127,7 @@ class EIBnetServer: public Layer2mixin
 public:
   EIBnetServer (TracePtr tr, const String serverName);
   virtual ~EIBnetServer ();
-  bool setup (const char *multicastaddr, const int port,
+  bool setup (const char *multicastaddr, const int port, const char *intf,
               const bool tunnel, const bool route, const bool discover,
               const bool single_port);
   void stop();

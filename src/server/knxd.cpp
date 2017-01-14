@@ -93,6 +93,7 @@ public:
   bool route;
   bool discover;
   bool single_port = true;
+  const char *intf = nullptr;
 
   L2options l2opts;
   const char *serverip;
@@ -276,6 +277,8 @@ static struct argp_option options[] = {
    "enable the EIBnet/IP server to answer discovery and description requests (SEARCH, DESCRIPTION)"},
   {"Server", 'S', "ip[:port]", OPTION_ARG_OPTIONAL,
    "starts an EIBnet/IP multicast server"},
+  {"Interface", 'I', "intf", 0,
+   "Interface to use"},
   {"Name", 'n', "SERVERNAME", 0,
    "name of the EIBnet/IP server (default is 'knxd')"},
   {"single-port", OPT_SINGLE_PORT, 0, 0,
@@ -341,6 +344,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case OPT_MULTI_PORT:
       arguments->single_port = false;
       break;
+    case 'I':
+      arguments->intf = arg;
+      break;
     case 'S':
       {
         const char *serverip;
@@ -373,7 +379,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
         }
 
         EIBnetServerPtr s = EIBnetServerPtr(new EIBnetServer (arguments->tracer(tracename), name));
-        if (!s->setup (serverip, port,
+        if (!s->setup (serverip, port, arguments->intf,
                        arguments->tunnel, arguments->route, arguments->discover, arguments->single_port))
           die ("initialization of the EIBnet/IP server failed");
 
@@ -388,6 +394,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
         arguments->route = false;
         arguments->discover = false;
         arguments->single_port = false;
+        arguments->intf = nullptr;
       }
       break;
     case 'n':

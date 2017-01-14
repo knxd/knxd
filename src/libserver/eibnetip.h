@@ -376,6 +376,8 @@ public:
   /** get the port this socket is bound to (network byte order) */
   int port ();
 
+  bool SetInterface(const char *iface);
+
   /** default send address */
   struct sockaddr_in sendaddr;
 

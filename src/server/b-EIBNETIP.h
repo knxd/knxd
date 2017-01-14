@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include "eibnetrouter.h"
 
-#define EIBNETIP_URL "ip:[multicast_addr[:port]]\n"
+#define EIBNETIP_URL "ip:[multicast_addr[:port[:interface]]]\n"
 #define EIBNETIP_DOC "ip uses multicast to talk to an EIBnet/IP gateway. The gateway must be configured to route your addresses to multicast.\n\n"
 
 #define EIBNETIP_PREFIX "ip"
@@ -33,24 +33,35 @@ inline Layer2Ptr
 eibnetip_Create (const char *dev, L2options *opt)
 {
   if (!*dev)
-    return std::shared_ptr<EIBNetIPRouter>(new EIBNetIPRouter ("224.0.23.12", 3671, opt));
+    return std::shared_ptr<EIBNetIPRouter>(new EIBNetIPRouter ("224.0.23.12", 3671, nullptr, opt));
   char *a = strdup (dev);
   char *b;
+  char *c = nullptr;
   int port;
-  Layer2Ptr c;
+  Layer2Ptr cl;
   for (b = a; *b; b++)
     if (*b == ':')
       break;
   if (*b == ':')
     {
-      *b = 0;
-      port = atoi (b + 1);
+      *b++ = 0;
+      if (!*b || *b == ':')
+        {
+          port = 3671;
+          c = b;
+        }
+      else
+        port = strtoul (b, &c, 0);
+      if (*c == ':')
+        c++;
+      else 
+        c = nullptr;
     }
   else
     port = 3671;
-  c = std::shared_ptr<EIBNetIPRouter>(new EIBNetIPRouter (*a ? a : "224.0.23.12", port, opt));
+  cl = std::shared_ptr<EIBNetIPRouter>(new EIBNetIPRouter (*a ? a : "224.0.23.12", port, c, opt));
   free (a);
-  return c;
+  return cl;
 }
 
 #endif

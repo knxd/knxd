@@ -44,7 +44,7 @@ EIBnetServer::EIBnetServer (TracePtr tr, String serverName)
   drop_trigger.start();
 }
 
-EIBnetDiscover::EIBnetDiscover (EIBnetServer *parent, const char *multicastaddr, int port)
+EIBnetDiscover::EIBnetDiscover (EIBnetServer *parent, const char *multicastaddr, int port, const char *intf)
 {
   struct sockaddr_in baddr;
   struct ip_mreq mcfg;
@@ -71,6 +71,8 @@ EIBnetDiscover::EIBnetDiscover (EIBnetServer *parent, const char *multicastaddr,
       baddr.sin_port = htons (port);
 
       sock = new EIBNetIPSocket (baddr, 1, parent->t);
+      if (!sock->SetInterface(intf))
+        goto err_out;
       if (!sock->init ())
         goto err_out;
       sock->on_recv.set<EIBnetDiscover,&EIBnetDiscover::on_recv_cb>(this);
@@ -125,7 +127,7 @@ EIBnetDiscover::~EIBnetDiscover ()
 }
 
 bool
-EIBnetServer::setup (const char *multicastaddr, const int port,
+EIBnetServer::setup (const char *multicastaddr, const int port, const char *intf,
                      const bool tunnel, const bool route,
                      const bool discover, const bool single_port)
 {
@@ -152,6 +154,8 @@ EIBnetServer::setup (const char *multicastaddr, const int port,
     ERRORPRINTF (t, E_ERROR | 41, this, "EIBNetIPSocket creation failed");
     goto err_out1;
   }
+  if (intf)
+    sock->SetInterface(intf);
 
   if (!sock->init ())
     goto err_out2;
@@ -161,7 +165,7 @@ EIBnetServer::setup (const char *multicastaddr, const int port,
   sock->recvall = 1;
   Port = sock->port ();
 
-  mcast = new EIBnetDiscover (this, multicastaddr, single_port ? 0 : port);
+  mcast = new EIBnetDiscover (this, multicastaddr, single_port ? 0 : port, intf);
   if (!mcast)
   {
     ERRORPRINTF (t, E_ERROR | 42, this, "EIBnetDiscover creation failed");

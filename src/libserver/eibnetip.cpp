@@ -19,6 +19,7 @@
 
 #include <string.h>
 #include <netdb.h>
+#include <net/if.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <errno.h>
@@ -335,6 +336,17 @@ EIBNetIPSocket::io_recv_cb (ev::io &w, int revents)
       else
         t->TracePacket (0, this, "Dropped", i, buf);
     }
+}
+
+bool
+EIBNetIPSocket::SetInterface(const char *iface)
+{
+  struct sockaddr_in sa = {0};
+  struct ip_mreqn addr = {{0}};
+
+  addr.imr_ifindex = if_nametoindex(iface);
+  return
+    setsockopt(fd, IPPROTO_IP, IP_MULTICAST_IF, &addr, sizeof(addr)) >= 0;
 }
 
 EIBnet_ConnectRequest::EIBnet_ConnectRequest ()

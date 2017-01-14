@@ -1,3 +1,9 @@
+knxd (0.12.1-1) unstable; urgency=medium
+
+  * Allow specifying the interface to use for multicast.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sat, 14 Jan 2017 17:54:17 +0100
+
 knxd (0.12.0-2) unstable; urgency=medium
 
   * Check for c++11 compliance.
