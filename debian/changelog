@@ -1,3 +1,9 @@
+knxd (0.12.0-2) unstable; urgency=medium
+
+  * Check for c++11 compliance.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 13 Jan 2017 10:11:12 +0100
+
 knxd (0.12.0-1) unstable; urgency=medium
 
   * libev conversion considered complete.
