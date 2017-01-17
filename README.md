@@ -19,7 +19,7 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 
   * ETS5 compatibility
 
-* 0.11 (``master`` branch -- new features here)
+* 0.11 (old ``master`` branch)
 
   * Major refactoring
 
@@ -27,7 +27,7 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 
   * local clients may talk to each other
 
-* 0.12 (``libev`` branch -- getting rid of the pthsem library)
+* 0.12 (current ``master`` branch -- getting rid of the pthsem library)
 
   * moved from pthsem (threads) to libev (events)
 
@@ -62,7 +62,6 @@ On Debian:
 
     # now build+install knxd
     cd knxd
-    git checkout libev ## this branch
     dpkg-buildpackage -b -uc
     # To repeat: if this fails because of missing dependencies,
     # fix them instead of using dpkg-buildpackage's "-d" option.
@@ -70,12 +69,9 @@ On Debian:
     sudo dpkg -i knxd_*.deb knxd-tools_*.deb
 
     # … and if you'd like to update knxd:
-    rm knxd*deb
+    rm knxd*.deb
     cd knxd
     git pull
-    # if the previous step breaks, the libev branch has been moved to master.
-    # Do this once:
-    ## git checkout master; git pull
     dpkg-buildpackage -b -uc
     cd ..
     sudo dpkg -i knxd_*.deb knxd-tools_*.deb
