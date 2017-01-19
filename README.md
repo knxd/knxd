@@ -45,6 +45,8 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 
   * now requires -e/-E arguments
 
+  * eibread.cgi will no longer enumerate the whole bus
+
 ## Building
 
 On Debian:

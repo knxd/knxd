@@ -297,6 +297,7 @@ main ()
   strcpy(outptr,"{\"d\": {");
   outptr += strlen(outptr);
 
+#if 0 // bus enumeration takes much too long and is most likely a client bug
   if (lastpos==0) //initial read
   {
     for (i = 0; i < UINT16; i++)
@@ -334,6 +335,7 @@ main ()
       }
     }
   }
+#endif
 
   memset(seenGA,0,sizeof(seenGA));
 
