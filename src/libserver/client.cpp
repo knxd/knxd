@@ -125,7 +125,10 @@ ClientConnection::read_cb (uint8_t *buf, size_t len)
   int msg = EIBTYPE (buf);
   if (a_conn) {
     if (msg == EIB_RESET_CONNECTION)
-      exit_conn();
+      {
+        exit_conn();
+        sendreject (EIB_RESET_CONNECTION);
+      }
     else
       a_conn->recv(buf,xlen);
     return xlen+2;
