@@ -143,6 +143,9 @@ TPUART_Base::Open ()
   t->TracePacket (2, this, "open-reset", 1, &c);
   if (write (fd, &c, 1) != 1)
     return 0;
+
+  watchdogtimer.start(10,0);
+  watch = 1;
   return 1;
 }
 
@@ -345,7 +348,7 @@ TPUART_Base::process_read(bool timed_out)
     }
   if (in.size())
     timer.start(0.3,0);
-  if (!sendtimer.is_active() && !in.size() && !send_q.isempty())
+  else if (!sendtimer.is_active())
     trigger.send();
 }
 
@@ -379,6 +382,7 @@ TPUART_Base::trigger_cb(ev::async &w, int revents)
   else if (!watch && mode != BUSMODE_MONITOR && !timer.is_active())
     {
       watchdogtimer.start(10,0);
+      watch = 1;
       uchar c = 0x02;
       t->TracePacket (2, this, "Watchdog Status", 1, &c);
       sendbuf.write(&c, 1);
@@ -391,7 +395,8 @@ TPUART_Base::send_reset()
   uchar c = 0x01;
   t->TracePacket (2, this, "Watchdog Reset", 1, &c);
   sendbuf.write(&c,1);
-  watch = 0;
+  watch = 1;
+  watchdogtimer.start(10,0);
   trigger.send();
 }
 
