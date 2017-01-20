@@ -203,6 +203,23 @@ rebooting. The TPUART module is not back on ``ttyAMA0``.
 * Please see SubmittingPatches to correctly Sign-Off your code and add yourself to AUTHORS (`tools/list_AUTHORS > AUTHORS`)
 * Adhere to our [coding conventions](https://github.com/knxd/knxd/wiki/CodingConventions). The git archive includes a helpful .vimrc file if you use VIM.
 
+### Compensation – personal statement
+
+KNX development is not a simple matter and requires both time and dedicated
+hardware for tests. The ETS software isn't exactly cheap, either, and
+there is no free replacement. (I'd like to change that.)
+
+Thus, wearing my hat as the (current) main author, I (Matthias Urlichs)
+would like to ask you to consider contributing to knxd's development.
+
+* paypal: matthias@urlichs.de
+* bitcoin: 1G2NKavCVt2adxEUZVG437J2tHvM931aYd
+* SEPA: DE25760400610535260401 @ COBADEFFXXX
+
+I can issue a commercial invoice if required.
+
+If you'd rather gift some hardware, please ask.
+
 ## Community
 
 * Code-related issues (aka "bugs") are on GitHub: https://github.com/knxd/knxd/issues
