@@ -1,4 +1,4 @@
-knxd (0.12.2-1) UNRELEASED; urgency=medium
+knxd (0.12.2-1) unstable; urgency=medium
 
   * Forward-ported the merge_tpuart branch:
     common code for tpuart and ncn5120 back-ends
