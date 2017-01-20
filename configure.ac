@@ -171,6 +171,18 @@ AM_CONDITIONAL(HAVE_TPUART, test x$tpuarts = xtrue -o x$tpuarts_tcp = xtrue -o x
 AM_CONDITIONAL(HAVE_TPUARTs, test x$tpuarts = xtrue -o x$ncn5120 = xtrue)
 AM_CONDITIONAL(HAVE_TPUARTs_TCP, test x$tpuarts_tcp = xtrue)
 AM_CONDITIONAL(HAVE_NCN5120, test x$ncn5120 = xtrue)
+if test x$tpuarts = xtrue -o x$tpuarts_tcp = xtrue -o x$ncn5120 = xtrue ; then
+ AC_DEFINE(HAVE_TPUART, 1 , [common TPUART code enabled])
+fi
+if test x$tpuarts = xtrue ; then
+ AC_DEFINE(HAVE_TPUARTs, 1 , [TPUART (serial port) enabled])
+fi
+if test x$tpuarts_tcp = xtrue ; then
+ AC_DEFINE(HAVE_TPUARTs_TCP, 1 , [TPUART-over-TCP enabled])
+fi
+if test x$ncn5120 = xtrue ; then
+ AC_DEFINE(HAVE_NCN5120, 1 , [NCN5120 backend enabled])
+fi
 
 AC_ARG_ENABLE(eibnetip,
 [  --enable-eibnetip	enable simple multicast EIBnet/IP backend],

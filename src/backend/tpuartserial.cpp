@@ -157,7 +157,7 @@ TPUARTSerialLayer2Driver::~TPUARTSerialLayer2Driver ()
 }
 
 void
-termios_settings (struct termios &t1)
+TPUARTSerialLayer2Driver::termios_settings (struct termios &t1)
 {
   t1.c_cflag = CS8 | CLOCAL | CREAD;
   t1.c_iflag = IGNBRK | INPCK | ISIG;
