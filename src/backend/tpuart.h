@@ -40,11 +40,12 @@ protected:
   bool ackallindividual;
 
   /** process a received frame */
-  void RecvLPDU (const uchar * data, int len);
+  virtual void RecvLPDU (const uchar * data, int len);
   void process_read(bool timed_out);
 
   virtual const char *Name() = 0;
   virtual void send_reset();
+  virtual void after_lpdu_received() {}
   void setup_buffers();
 
   /** main loop state */
@@ -60,6 +61,7 @@ protected:
   int retry = 0;
   bool acked = false;
   bool recvecho = false;
+  bool skip_char = false;
 
 public:
   TPUART_Base (L2options *opt);
