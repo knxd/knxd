@@ -1,3 +1,10 @@
+knxd (0.12.2-1) UNRELEASED; urgency=medium
+
+  * Forward-ported the merge_tpuart branch:
+    common code for tpuart and ncn5120 back-ends
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 20 Jan 2017 10:26:38 +0100
+
 knxd (0.12.1-3) unstable; urgency=medium
 
   * Merge libev branch into master.

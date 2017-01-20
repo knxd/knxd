@@ -63,7 +63,7 @@ TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
   TRACEPRINTF (t, 2, this, "Open");
 
   char *pch;
-  int baudrate = 19200;
+  int baudrate = default_baudrate();
   int term_baudrate;
   pch = strtok((char*)dev, ":");
   int i = 0;
@@ -122,13 +122,7 @@ TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
       return;
     }
 
-  t1.c_cflag = CS8 | CLOCAL | CREAD | PARENB;
-  t1.c_iflag = IGNBRK | INPCK | ISIG;
-  t1.c_oflag = 0;
-  t1.c_lflag = 0;
-  t1.c_cc[VTIME] = 1;
-  t1.c_cc[VMIN] = 0;
-
+  termios_settings(t1);
   term_baudrate = getbaud(baudrate);
   if (term_baudrate == -1)
     {
@@ -161,6 +155,18 @@ TPUARTSerialLayer2Driver::~TPUARTSerialLayer2Driver ()
 {
   resettimer.stop();
 }
+
+void
+termios_settings (struct termios &t1)
+{
+  t1.c_cflag = CS8 | CLOCAL | CREAD;
+  t1.c_iflag = IGNBRK | INPCK | ISIG;
+  t1.c_oflag = 0;
+  t1.c_lflag = 0;
+  t1.c_cc[VTIME] = 1;
+  t1.c_cc[VMIN] = 0;
+}
+
 
 void
 TPUARTSerialLayer2Driver::resettimer_cb(ev::timer &w, int revents)

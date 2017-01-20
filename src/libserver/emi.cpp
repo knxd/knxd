@@ -128,17 +128,26 @@ CEMI_to_Busmonitor (const CArray & data, Layer2Ptr l2)
   return new L_Busmonitor_PDU (c);
 }
 
+#define CEMI_ADD_HEADER_TYPE_STATUS 0x03
+#define CEMI_ADD_HEADER_TYPE_TIMESTAMP 0x04
+#define CEMI_ADD_HEADER_TYPE_EXTTIMESTAMP 0x06
+
 CArray
 Busmonitor_to_CEMI (uchar code, const L_Busmonitor_PDU & p, int no)
 {
   CArray pdu;
-  pdu.resize (p.pdu.size() + 5);
+  pdu.resize (p.pdu.size() + 9);
   pdu[0] = code;
-  pdu[1] = 3;        /* AddIL */
-  pdu[2] = 3;        /* Type ID = L_Busmon.ind */
+  pdu[1] = 7;        /* AddIL */
+  pdu[2] = CEMI_ADD_HEADER_TYPE_STATUS;        /* Type ID = L_Busmon.ind */
   pdu[3] = 1;        /* Len */
   pdu[4] = no & 0x7; /* Status */
-  pdu.setpart (p.pdu, 5);
+  pdu[5] = CEMI_ADD_HEADER_TYPE_TIMESTAMP;
+  pdu[6] = 2;        // Length of data for TIMESTAMP
+  pdu[7] = (p.timestamp & 0x0000ff00) >> 8;
+  pdu[8] = (p.timestamp & 0x000000ff);
+
+  pdu.setpart (p.pdu, 9);
   return pdu;
 }
 

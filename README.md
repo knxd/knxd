@@ -154,12 +154,22 @@ rebooting. The TPUART module is not back on ``ttyAMA0``.
 
 ## Migrating to 0.12
 
-* You may need "-B single" in front of any "-b ipt:" or "-b usb:".
+* If you build knxd yourself: install the ``libev-dev`` package.
+  You no longer need the ``pthsem`` packages.
+
+* You may need "-B single" in front of any "-b ipt:" or "-b usb:", esp.
+  when you need to program a device; normal use is often not affected.
+  knxd emits a warning
+  
+    Message without destination. Use the single-node filter ('-B single')?
+
+  if it detects mis-addressed packets.
 
 * You need "-e"; knxd no longer defaults to address 0.0.1.
 
 * You need "-E" if you want to allow clients to connect (options -u -i -T).
-  As that's almost always the case, knxd will print a warning.
+  As that's almost always the case, knxd will print a warning if this
+  option is missing.
 
 * If you use knxtool's management tools (any command with "progmode" or
   whose name starts with 'm'), please [open an issue](https://github.com/knxd/knxd/issues)
@@ -167,11 +177,26 @@ rebooting. The TPUART module is not back on ``ttyAMA0``.
 
 ## Migrating from ``eibd``
 
-* Before you build knxd: remove *any* traces of the old eibd installation from ``/usr/local``, or wherever you installed it.
+* Before you build knxd: remove *any* traces of the old eibd installation
+  from ``/usr/local``, or wherever you installed it.
+
 * The order of arguments is now significant. Among the "-D -T -R -S" arguments, ``-S`` must occur *last*.
-* The 'groupswrite' etc. aliases are no longer installed by default. To workaround, you can either add ``/usr/lib/knxd`` to your ``$PATH``, or use ``knxtool groupswrite``.
-* If you use Debian Jessie or another systemd-based distribution, ``/lib/systemd/system/knxd.socket`` is used to open the sockets on which knxd listens to clients. You no longer need your old ``-i`` or ``-u`` options.
-* knxd's Unix socket should never have been located in ``/tmp``; the default is now ``/run/knx``. You can add a "-u /tmp/eib" (or whatever) option if necessary, but it's better to fix the clients.
+  Arguments which modify the behavior of an interface must be in front
+  of that interface. Global arguments (e.g. tracing the datagram router)
+  must be in front of the "-e" option.
+
+* The 'groupswrite' etc. aliases are no longer installed by default. To
+  workaround, you can either add ``/usr/lib/knxd`` to your ``$PATH``, or
+  use ``knxtool groupswrite``.
+
+* If you use Debian Jessie or another systemd-based distribution,
+  ``/lib/systemd/system/knxd.socket`` is used to open the "standard"
+  sockets on which knxd listens to clients. You no longer need your old
+  ``-i`` or ``-u`` options.
+
+* knxd's Unix socket should never have been located in ``/tmp``; the
+  default is now ``/run/knx``. You can add a "-u /tmp/eib" (or whatever)
+  option if necessary, but it's better to fix the clients.
 
 ## Contributions
 
@@ -179,6 +204,23 @@ rebooting. The TPUART module is not back on ``ttyAMA0``.
 * Please use Github and create a pull request with your patches
 * Please see SubmittingPatches to correctly Sign-Off your code and add yourself to AUTHORS (`tools/list_AUTHORS > AUTHORS`)
 * Adhere to our [coding conventions](https://github.com/knxd/knxd/wiki/CodingConventions). The git archive includes a helpful .vimrc file if you use VIM.
+
+### Compensation – personal statement
+
+KNX development is not a simple matter and requires both time and dedicated
+hardware for tests. The ETS software isn't exactly cheap, either, and
+there is no free replacement. (I'd like to change that.)
+
+Thus, wearing my hat as the (current) main author, I (Matthias Urlichs)
+would like to ask you to consider contributing to knxd's development.
+
+* paypal: matthias@urlichs.de
+* bitcoin: 1G2NKavCVt2adxEUZVG437J2tHvM931aYd
+* SEPA: DE25760400610535260401 @ COBADEFFXXX
+
+I can issue a commercial invoice if required.
+
+If you'd rather gift some hardware, please ask.
 
 ## Community
 

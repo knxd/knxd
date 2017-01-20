@@ -150,10 +150,6 @@ AC_ARG_ENABLE(tpuarts,
   no)  tpuarts=false ;;
    *) AC_MSG_ERROR(bad value ${enableval} for --enable-tpuarts) ;;
  esac],[tpuarts=true])
-AM_CONDITIONAL(HAVE_TPUARTs, test x$tpuarts = xtrue)
-if test x$tpuarts = xtrue ; then
- AC_DEFINE(HAVE_TPUARTs, 1 , [TPUARTs enabled])
-fi
 
 AC_ARG_ENABLE(tpuarts-tcp,
 [  --enable-tpuarts-tcp	enable TPUART-over-TCP user driver backend],
@@ -162,10 +158,19 @@ AC_ARG_ENABLE(tpuarts-tcp,
   no)  tpuarts_tcp=false ;;
    *) AC_MSG_ERROR(bad value ${enableval} for --enable-tpuarts-tcp) ;;
  esac],[tpuarts=true])
+
+AC_ARG_ENABLE(ncn5120,
+[  --enable-ncn5120                 enable NCN5120 backend],
+[case "${enableval}" in
+ yes) ncn5120=true ;;
+  no)  ncn5120=false ;;
+   *) AC_MSG_ERROR(bad value ${enableval} for --enable-ncn5120) ;;
+ esac],[ncn5120=true])
+
+AM_CONDITIONAL(HAVE_TPUART, test x$tpuarts = xtrue -o x$tpuarts_tcp = xtrue -o x$ncn5120 = xtrue)
+AM_CONDITIONAL(HAVE_TPUARTs, test x$tpuarts = xtrue -o x$ncn5120 = xtrue)
 AM_CONDITIONAL(HAVE_TPUARTs_TCP, test x$tpuarts_tcp = xtrue)
-if test x$tpuarts_tcp = xtrue ; then
- AC_DEFINE(HAVE_TPUARTs_TCP, 1 , [TPUART-over-TCP enabled])
-fi
+AM_CONDITIONAL(HAVE_NCN5120, test x$ncn5120 = xtrue)
 
 AC_ARG_ENABLE(eibnetip,
 [  --enable-eibnetip	enable simple multicast EIBnet/IP backend],
@@ -223,18 +228,6 @@ if test x$usb = xtrue ; then
  NEED_EMI(usb)
 else
  AM_CONDITIONAL(HAVE_USB, test x$usb = xtrue)
-fi
-
-AC_ARG_ENABLE(ncn5120,
-[  --enable-ncn5120                 enable NCN5120 backend],
-[case "${enableval}" in
- yes) ncn5120=true ;;
-  no)  ncn5120=false ;;
-   *) AC_MSG_ERROR(bad value ${enableval} for --enable-ncn5120) ;;
- esac],[ncn5120=true])
-AM_CONDITIONAL(HAVE_NCN5120, test x$ncn5120 = xtrue)
-if test x$ncn5120 = xtrue ; then
- AC_DEFINE(HAVE_NCN5120, 1 , [NCN5120 backend enabled])
 fi
 
 AC_ARG_ENABLE(eibnetipserver,

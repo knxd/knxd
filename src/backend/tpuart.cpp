@@ -196,6 +196,12 @@ TPUART_Base::process_read(bool timed_out)
 
   while (in.size() > 0)
     {
+      if (skip_char)
+        {
+          in.deletepart (0, 1);
+          skip_char = false;
+          continue;
+        }
       uint8_t c = in[0];
 
       if (c == 0x8B) // L_DataConfirm positive

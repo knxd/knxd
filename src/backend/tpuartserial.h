@@ -34,6 +34,8 @@ class TPUARTSerialLayer2Driver:public TPUART_Base
 
   const char *Name() { return "tpuarts"; }
   void send_reset();
+  virtual void termios_settings (struct termios &t);
+  virtual unsigned int default_baudrate () { return 19200; }
 
   ev::timer resettimer; void resettimer_cb(ev::timer &w, int revents);
 

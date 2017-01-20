@@ -18,7 +18,7 @@ override_dh_clean:
 	rm -f debian/knxd.install
 
 override_dh_auto_configure: configure install-sh
-	dh_auto_configure -- --enable-usb --enable-groupcache --enable-ft12 --enable-ncn5120 --enable-tpuarts --enable-tpuarts-tcp --enable-dummy --libexecdir=/usr/lib --enable-dependency-tracking --enable-silent-rules CFLAGS=-g\ -O0 CXXFLAGS=-g\ -O0
+	dh_auto_configure -- --enable-usb --enable-groupcache --enable-ft12 --enable-ncn5120 --enable-tpuarts --enable-tpuarts-tcp --enable-dummy --libexecdir=/usr/lib --enable-dependency-tracking --enable-silent-rules
 
 configure install-sh: configure.ac
 	sh bootstrap.sh
