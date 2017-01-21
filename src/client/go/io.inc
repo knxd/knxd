@@ -35,6 +35,63 @@ import (
   "time"
 )
 
+
+type DevAddr EIBAddr
+
+func DevAddrFromString(addr string) (DevAddr,error) {
+  var a,b,c uint8
+  if n,err := fmt.Sscanf(addr, "%d.%d.%d", &a, &b, &c); n<3 {
+    return 0,err
+  }
+  return (DevAddr(a&0x0f)<<12) | (DevAddr(b&0x0f)<<8) | DevAddr(c&0xff),nil
+}
+
+func (addr DevAddr) String() string {
+  return fmt.Sprintf("%d.%d.%d", uint8(addr>>12)&0x0F,
+                                 uint8(addr>>8)&0x0F,
+                                 uint8(addr)&0xFF)
+}
+
+
+
+type GroupAddr EIBAddr
+
+func GroupAddrFromString(addr string) (GroupAddr,error) {
+  var a,b,c uint
+  var af,bf,cf GroupAddr
+  n,_ := fmt.Sscanf(addr, "%d/%d/%d", &a, &b, &c)
+
+  if n == 3 && a <= 0x1F && b <= 0x07 && c <= 0xFF {
+    af = GroupAddr(a)
+    bf = GroupAddr(b)
+    cf = GroupAddr(c)
+    return (af<<11) | (bf<<8) | cf, nil
+  }
+  if n == 2 && a <= 0x1F && b <= 0x7FF {
+    af = GroupAddr(a)
+    bf = GroupAddr((b>>8)&0x07)
+    cf = GroupAddr(b&0xFF)
+    return (af<<11) | (bf<<8) | cf, nil
+  }
+
+  n,_ = fmt.Sscanf (addr, "%x", &a)
+  if n == 1 && a <= 0xFFFF {
+    af = GroupAddr((a>>11)&0x1F)
+    bf = GroupAddr((a>>8)&0x07)
+    cf = GroupAddr(a&0xFF)
+    return (af<<11) | (bf<<8) | cf, nil
+  }
+
+  return 0,fmt.Errorf("Invalid Group Address")
+}
+
+func (addr GroupAddr) String() string {
+  return fmt.Sprintf("%d/%d/%d", uint8(addr>>11)&0x1F,
+                                 uint8(addr>>8)&0x07,
+                                 uint8(addr)&0xFF)
+}
+
+
 type CompleteFunc func() (int,error)
 
 type EIBAddr uint16
