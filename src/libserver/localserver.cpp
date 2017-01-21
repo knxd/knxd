@@ -38,13 +38,35 @@ Server (tr)
       return;
     }
 
-  unlink (path);
   if (bind (fd, (struct sockaddr *) &addr, sizeof (addr)) == -1)
     {
-      ERRORPRINTF (tr, E_ERROR | 16, this, "OpenLocalSocket %s: bind: %s", path, strerror(errno));
-      close (fd);
-      fd = -1;
-      return;
+      /* 
+       * dead file? 
+       */
+      if (errno == EADDRINUSE)
+        {
+          if (connect(fd, (struct sockaddr *) &addr, sizeof (addr)) == 0)
+            {
+          ex:
+              ERRORPRINTF (tr, E_ERROR | 16, this, "OpenLocalSocket %s: bind: %s", path, strerror(errno));
+              close (fd);
+              fd = -1;
+              return;
+            }
+          else if (errno == ECONNREFUSED)
+            {
+              unlink (path);
+              if (bind (fd, (struct sockaddr *) &addr, sizeof (addr)) == -1)
+                goto ex;
+            }
+          else
+            {
+              ERRORPRINTF (tr, E_ERROR | 18, this, "Existing socket %s: connect: %s", path, strerror(errno));
+              close (fd);
+              fd = -1;
+              return;
+            }
+        }
     }
 
   if (listen (fd, 10) == -1)

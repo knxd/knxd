@@ -180,6 +180,13 @@ public:
 /** storage for the arguments*/
 arguments arg;
 
+/** number of file descriptors passed in by systemd */
+#ifdef HAVE_SYSTEMD
+int num_fds;
+#else
+const int num_fds = 0;
+#endif
+
 /** aborts program with a printf like message */
 void
 die (const char *msg, ...)
@@ -411,7 +418,12 @@ parse_opt (int key, char *arg, struct argp_state *state)
         BaseServerPtr s = BaseServerPtr(new LocalServer (arguments->tracer(name), name));
         Layer2Ptr c = arguments->stack(s,"unix");
         if (!c->init (arguments->l3()))
-          die ("initialisation of the knxd unix protocol failed");
+          {
+            if ((errno == EADDRINUSE) && !arg && num_fds)
+              ERRORPRINTF (&arguments->t, E_NOTICE | 41, 0, "Option '-u' ignored (busy; systemd)");
+            else
+              die ("initialisation of the knxd unix protocol failed");
+          }
         arguments->has_work++;
       }
       break;
@@ -425,7 +437,12 @@ parse_opt (int key, char *arg, struct argp_state *state)
         if (s)
           c = arguments->stack(s,"tcp");
         if (!c || !c->init (arguments->l3()))
-          die ("initialisation of the knxd inet protocol failed");
+          {
+            if ((errno == EADDRINUSE) && !arg && num_fds)
+              ERRORPRINTF (&arguments->t, E_NOTICE | 41, 0, "Option '-i' ignored (busy; systemd)");
+            else
+              die ("initialisation of the knxd inet protocol failed");
+          }
         arguments->has_work++;
       }
       break;
@@ -521,13 +538,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
 #ifdef HAVE_SYSTEMD
       {
         BaseServerPtr s = nullptr;
-        const int num_fds = sd_listen_fds(0);
         int hw = arguments->has_work;
 
-        if( num_fds < 0 )
-          die("Error getting fds from systemd.");
         // zero FDs from systemd is not a bug
-
         for( int fd = SD_LISTEN_FDS_START; fd < SD_LISTEN_FDS_START+num_fds; ++fd )
           {
             if( sd_is_socket(fd, AF_UNSPEC, SOCK_STREAM, 1) <= 0 )
@@ -634,6 +647,11 @@ main (int ac, char *ag[])
   printf("LIBEV starting up\n");
 #endif
 
+#ifdef HAVE_SYSTEMD
+  num_fds = sd_listen_fds(0);
+  if( num_fds < 0 )
+    die("Error getting fds from systemd.");
+#endif
 #ifdef EV_TRACE
   ev_timer_init (&timer, timeout_cb, 1., 10.);
   ev_timer_again (EV_A_ &timer);

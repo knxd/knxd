@@ -1,3 +1,10 @@
+knxd (0.12.3-2) unstable; urgency=medium
+
+  * The options -u and -i (without optional argument) are now ignored
+    if they fail and sockets are passed in by systemd.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sat, 21 Jan 2017 15:23:20 +0100
+
 knxd (0.12.3-1) unstable; urgency=medium
 
   * Forward-ported the merge_tpuart branch:
