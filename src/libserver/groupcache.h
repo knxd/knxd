@@ -22,6 +22,9 @@
 
 #include <time.h>
 
+#include <map>
+#include <unordered_map>
+
 #include "layer3.h"
 #include "layer2.h"
 #include "client.h"
@@ -39,6 +42,8 @@ struct GroupCacheEntry
   eibaddr_t dst;
   /** receive time */
   time_t recvtime;
+  /** seqnum */
+  uint32_t seq;
 };
 
 typedef void (*GCReadCallback)(const GroupCacheEntry &foo, bool nowait, ClientConnPtr c);
@@ -52,38 +57,38 @@ public:
 
   bool stopped = false;
   GroupCache *gc;
-  virtual void updated(GroupCacheEntry *) = 0;
+  virtual void updated(GroupCacheEntry &) = 0;
   virtual void stop();
 };
+
+/** map last-updated sequence numbers to group addresses */
+typedef std::map<uint32_t, eibaddr_t> SeqMap;
+
+/** map group addresses to cache entries */
+typedef std::unordered_map<eibaddr_t, GroupCacheEntry> CacheMap;
 
 class GroupCache:public Layer2virtual
 {
   Array < GroupCacheReader * > reader;
-  /** output queue */
-  Array < GroupCacheEntry * > cache;
+  /** The Cache */
+  CacheMap cache;
   /** controlled by .Start/Stop; if false, the whole code does nothing */
   bool enable = false;
+  /** max size of cache */
+  uint16_t maxsize;
 
 public: // but only for GroupCacheReader
   bool init(Layer3 *l3);
   bool hasGroupAddress (eibaddr_t addr UNUSED) { return true; }
 
-  /** current position in 'updates' array */
-  uint16_t pos;
-  /** circular buffer of last-updated group addresses */
-  eibaddr_t updates[0x100];
 private:
   ev::async remtrigger; void remtrigger_cb(ev::async &w, int revents);
-  /** find this group */
-  GroupCacheEntry *find (eibaddr_t dst);
-  /** add this entry */
-  void add (GroupCacheEntry * entry);
   /** signal that this entry has been updated */
-  virtual void updated(GroupCacheEntry *);
+  virtual void updated(GroupCacheEntry &);
 
 public:
   /** constructor */
-  GroupCache (TracePtr t);
+  GroupCache (TracePtr t, uint16_t maxsize = 256);
   /** destructor */
   virtual ~GroupCache ();
   /** Feed data to the cache */
@@ -92,6 +97,14 @@ public:
   /** add a reader which gets triggered on updates */
   void add (GroupCacheReader *r);
   void remove (GroupCacheReader *r);
+
+  /** remove an address from the cache */
+  void remove (eibaddr_t ga);
+
+  /** seqnum of last entry */
+  uint32_t seq = 0;
+  /** map seqnum to group address */
+  SeqMap cache_seq;
 
   /** Turn on caching, calls l3.registerGroupCallBack(ANY) */
   bool Start ();
@@ -106,9 +119,6 @@ public:
   /** incrementally monitor group cache updates */
   void LastUpdates (uint16_t start, uint8_t timeout,
                     GCLastCallback cb, ClientConnPtr c);
-
-  // remove this group
-  void remove (eibaddr_t addr);
 };
 
 typedef std::shared_ptr<GroupCache> GroupCachePtr;
