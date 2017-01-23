@@ -47,6 +47,8 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 
   * eibread.cgi will no longer enumerate the whole bus
 
+  * Group cache is no longer limited to 256 most-recent messages
+
 ## Building
 
 On Debian:

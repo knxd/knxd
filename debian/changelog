@@ -1,3 +1,10 @@
+knxd (0.12.4-1) unstable; urgency=medium
+
+  * Rewrite group cache, add optional cache-size argument
+    (default: no limit).
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 23 Jan 2017 10:19:26 +0100
+
 knxd (0.12.3-2) unstable; urgency=medium
 
   * The options -u and -i (without optional argument) are now ignored

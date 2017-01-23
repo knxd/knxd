@@ -298,7 +298,7 @@ static struct argp_option options[] = {
   {"filter", 'B', "filter:[arg]", 0,
    "a Layer-2 filter to use in front of the next driver"},
 #ifdef HAVE_GROUPCACHE
-  {"GroupCache", 'c', 0, 0,
+  {"GroupCache", 'c', "SIZE", OPTION_ARG_OPTIONAL,
    "enable caching of group communication network state"},
 #endif
 #ifdef HAVE_EIBNETIPTUNNEL
@@ -482,7 +482,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
 #if HAVE_GROUPCACHE
     case 'c':
-      if (!CreateGroupCache (arguments->l3(), arguments->tracer("cache"), true))
+      if (!CreateGroupCache (arguments->l3(), arguments->tracer("cache"), true, arg ? atoi(arg) : 0))
         die ("initialisation of the group cache failed");
       break;
 #endif

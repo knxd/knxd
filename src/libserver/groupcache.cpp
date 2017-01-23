@@ -26,7 +26,7 @@ GroupCache::GroupCache (TracePtr t, uint16_t maxsize)
 {
   TRACEPRINTF (t, 4, this, "GroupCacheInit");
   enable = 0;
-  this->maxsize = maxsize;
+  this->maxsize = maxsize ? maxsize : 0xFFFF;
   remtrigger.set<GroupCache, &GroupCache::remtrigger_cb>(this);
 }
 

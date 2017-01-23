@@ -22,12 +22,12 @@
 #include "client.h"
 
 bool
-CreateGroupCache (Layer3 * l3, TracePtr t, bool enable)
+CreateGroupCache (Layer3 * l3, TracePtr t, bool enable, uint16_t maxsize)
 {
   GroupCachePtr cache;
   if (l3->getCache())
     return false;
-  cache = GroupCachePtr(new GroupCache (t));
+  cache = GroupCachePtr(new GroupCache (t, maxsize));
   if (!cache->init (l3))
     return false;
   if (enable)
