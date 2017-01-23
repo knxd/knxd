@@ -47,7 +47,7 @@ struct GroupCacheEntry
 };
 
 typedef void (*GCReadCallback)(const GroupCacheEntry &foo, bool nowait, ClientConnPtr c);
-typedef void (*GCLastCallback)(const Array<eibaddr_t> &foo, uint16_t end, ClientConnPtr c);
+typedef void (*GCLastCallback)(const Array<eibaddr_t> &foo, uint32_t end, ClientConnPtr c);
 
 class GroupCacheReader
 {
@@ -119,6 +119,8 @@ public:
   /** incrementally monitor group cache updates */
   void LastUpdates (uint16_t start, uint8_t timeout,
                     GCLastCallback cb, ClientConnPtr c);
+  void LastUpdates2 (uint32_t start, uint8_t timeout,
+                     GCLastCallback cb, ClientConnPtr c);
 };
 
 typedef std::shared_ptr<GroupCache> GroupCachePtr;

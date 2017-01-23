@@ -1,3 +1,10 @@
+knxd (0.12.4-2) UNRELEASED; urgency=medium
+
+  * Group cache: add a LastUpdate2 method with a 32-bit pointer
+    and use that in eibread CGI
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 23 Jan 2017 18:19:58 +0100
+
 knxd (0.12.4-1) unstable; urgency=medium
 
   * Rewrite group cache, add optional cache-size argument

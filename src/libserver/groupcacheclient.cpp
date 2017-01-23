@@ -59,7 +59,7 @@ ReadCallback(const GroupCacheEntry &gce, bool nowait, ClientConnPtr c)
 }
 
 void
-LastUpdatesCallback(const Array<eibaddr_t> &addrs, uint16_t end, ClientConnPtr c)
+LastUpdatesCallback(const Array<eibaddr_t> &addrs, uint32_t end, ClientConnPtr c)
 {
   CArray erg;
 
@@ -67,6 +67,25 @@ LastUpdatesCallback(const Array<eibaddr_t> &addrs, uint16_t end, ClientConnPtr c
   EIBSETTYPE (erg, EIB_CACHE_LAST_UPDATES);
   erg[2] = (end >> 8) & 0xff;
   erg[3] = (end >> 0) & 0xff;
+  for (unsigned int i = 0; i < addrs.size(); i++)
+    {
+      erg[4 + i * 2] = (addrs[i] >> 8) & 0xff;
+      erg[4 + i * 2 + 1] = (addrs[i]) & 0xff;
+    }
+  c->sendmessage (erg.size(), erg.data());
+}
+
+void
+LastUpdates2Callback(const Array<eibaddr_t> &addrs, uint32_t end, ClientConnPtr c)
+{
+  CArray erg;
+
+  erg.resize (addrs.size() * 2 + 6);
+  EIBSETTYPE (erg, EIB_CACHE_LAST_UPDATES_2);
+  erg[2] = (end >> 24) & 0xff;
+  erg[3] = (end >> 16) & 0xff;
+  erg[4] = (end >> 8) & 0xff;
+  erg[5] = (end >> 0) & 0xff;
   for (unsigned int i = 0; i < addrs.size(); i++)
     {
       erg[4 + i * 2] = (addrs[i] >> 8) & 0xff;
@@ -145,6 +164,19 @@ GroupCacheRequest (ClientConnPtr c, uint8_t *buf, size_t len)
         uint16_t start = (buf[2] << 8) | buf[3];
         uint8_t timeout = buf[4];
         cache->LastUpdates (start, timeout, &LastUpdatesCallback, c);
+        break;
+      }
+
+    case EIB_CACHE_LAST_UPDATES_2:
+      {
+        if (len < 7)
+          {
+            c->sendreject ();
+            return;
+          }
+        uint32_t start = (buf[2] << 24) | (buf[3] << 16) | (buf[4] << 8) | buf[5];
+        uint8_t timeout = buf[6];
+        cache->LastUpdates2 (start, timeout, &LastUpdates2Callback, c);
         break;
       }
 

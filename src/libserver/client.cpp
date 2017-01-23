@@ -223,6 +223,7 @@ ClientConnection::read_cb (uint8_t *buf, size_t len)
     case EIB_CACHE_READ:
     case EIB_CACHE_READ_NOWAIT:
     case EIB_CACHE_LAST_UPDATES:
+    case EIB_CACHE_LAST_UPDATES_2:
       GroupCacheRequest (shared_from_this(), buf,xlen);
       break;
 #endif

@@ -362,3 +362,11 @@ GroupCache::LastUpdates (uint16_t start, uint8_t Timeout,
     st = start;
   new GCTracker(this, st, Timeout, cb,cc);
 }
+
+void
+GroupCache::LastUpdates2 (uint32_t start, uint8_t Timeout,
+    GCLastCallback cb, ClientConnPtr cc)
+{
+  new GCTracker(this, start, Timeout, cb,cc);
+}
+

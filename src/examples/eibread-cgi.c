@@ -35,7 +35,7 @@
 #define UINT16 65536
 
 char *eiburl[256];
-int lastpos = 0;
+uint32_t lastpos = 0;
 int timeout = 300;
 int subscribedGA[UINT16 >>3];
 int seenGA[UINT16 >>3];
@@ -272,7 +272,7 @@ main ()
   int i,j;
   eibaddr_t dest;
   eibaddr_t src;
-  uint16_t end;
+  uint32_t end;
   uchar buf[300];
   uchar buf_gread[200];
   char outbuf[10000];
@@ -340,7 +340,7 @@ main ()
   memset(seenGA,0,sizeof(seenGA));
 
   while ((!seen || lastpos <1) && difftime(time(NULL), tstart) < timeout) {
-    len = EIB_Cache_LastUpdates (con, lastpos, timeout, sizeof (buf), buf, &end);
+    len = EIB_Cache_LastUpdates2 (con, lastpos, timeout, sizeof (buf), buf, &end);
     if (len == -1)
       cgidie ("Read failed");
 
