@@ -88,8 +88,8 @@ LastUpdates2Callback(const Array<eibaddr_t> &addrs, uint32_t end, ClientConnPtr 
   erg[5] = (end >> 0) & 0xff;
   for (unsigned int i = 0; i < addrs.size(); i++)
     {
-      erg[4 + i * 2] = (addrs[i] >> 8) & 0xff;
-      erg[4 + i * 2 + 1] = (addrs[i]) & 0xff;
+      erg[6 + i * 2] = (addrs[i] >> 8) & 0xff;
+      erg[6 + i * 2 + 1] = (addrs[i]) & 0xff;
     }
   c->sendmessage (erg.size(), erg.data());
 }
