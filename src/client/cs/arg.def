@@ -31,6 +31,7 @@
 #define AGARG_UINT8a(name, args) byte name KAG ## args
 #define AGARG_UINT8b(name, args) byte name KAG ## args
 #define AGARG_UINT16(name, args) ushort name KAG ## args
+#define AGARG_UINT32(name, args) ulong name KAG ## args
 #define AGARG_OUTUINT8(name, args) UInt8 name KAG ## args
 #define AGARG_OUTUINT8a(name, args) UInt8 name KAG ## args
 #define AGARG_OUTUINT16(name, args) UInt16 name KAG ## args
@@ -50,6 +51,7 @@
 #define ALARG_UINT8a(name, args) name KAL ## args
 #define ALARG_UINT8b(name, args) name KAL ## args
 #define ALARG_UINT16(name, args) name KAL ## args
+#define ALARG_UINT32(name, args) name KAL ## args
 #define ALARG_OUTUINT8(name, args) name KAL ## args
 #define ALARG_OUTUINT8a(name, args) name KAL ## args
 #define ALARG_OUTUINT16(name, args) name KAL ## args

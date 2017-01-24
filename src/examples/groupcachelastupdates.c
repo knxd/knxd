@@ -26,7 +26,7 @@ main (int ac, char *ag[])
   int i;
   int start;
   int timeout;
-  uint16_t end;
+  uint32_t end;
   uchar buf[300];
 
   if (ac != 4)
@@ -37,7 +37,7 @@ main (int ac, char *ag[])
   start = atoi (ag[2]);
   timeout = atoi (ag[3]);
 
-  len = EIB_Cache_LastUpdates (con, start, timeout, sizeof (buf), buf, &end);
+  len = EIB_Cache_LastUpdates2 (con, start, timeout, sizeof (buf), buf, &end);
   if (len == -1)
     die ("Read failed");
 

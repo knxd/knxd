@@ -313,6 +313,7 @@ int _EIB_GetRequest (EIBConnection * con);
 #define AGARG_UINT8a(name, args) uint8_t name KAG ## args
 #define AGARG_UINT8b(name, args) uint8_t name KAG ## args
 #define AGARG_UINT16(name, args) uint16_t name KAG ## args
+#define AGARG_UINT32(name, args) uint32_t name KAG ## args
 #define AGARG_OUTUINT8(name, args) uint8_t *name KAG ## args
 #define AGARG_OUTUINT8a(name, args) uint8_t *name KAG ## args
 #define AGARG_OUTUINT16(name, args) uint16_t *name KAG ## args
@@ -332,6 +333,7 @@ int _EIB_GetRequest (EIBConnection * con);
 #define ALARG_UINT8a(name, args) name KAL ## args
 #define ALARG_UINT8b(name, args) name KAL ## args
 #define ALARG_UINT16(name, args) name KAL ## args
+#define ALARG_UINT32(name, args) name KAL ## args
 #define ALARG_OUTUINT8(name, args) name KAL ## args
 #define ALARG_OUTUINT8a(name, args) name KAL ## args
 #define ALARG_OUTUINT16(name, args) name KAL ## args

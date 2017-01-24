@@ -507,7 +507,7 @@ vbusmonitor1time\n");
       int i;
       int start;
       int timeout;
-      uint16_t end;
+      uint32_t end;
 
       if (ac != 4)
 	die ("usage: %s url start-position timeout", prog);
@@ -515,7 +515,7 @@ vbusmonitor1time\n");
       start = atoi (ag[2]);
       timeout = atoi (ag[3]);
 
-      len = EIB_Cache_LastUpdates (con, start, timeout, sizeof (buf), buf, &end);
+      len = EIB_Cache_LastUpdates2 (con, start, timeout, sizeof (buf), buf, &end);
       if (len == -1)
 	die ("Read failed");
 
