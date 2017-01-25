@@ -322,7 +322,7 @@ void ConnState::send_trigger_cb(ev::async &w, int revents)
       EIBnet_ConfigRequest r;
       r.channel = channel;
       r.seqno = sno;
-      r.CEMI = out.top ();
+      r.CEMI = out.front ();
       p = r.ToPacket ();
     }
   else
@@ -330,7 +330,7 @@ void ConnState::send_trigger_cb(ev::async &w, int revents)
       EIBnet_TunnelRequest r;
       r.channel = channel;
       r.seqno = sno;
-      r.CEMI = out.top ();
+      r.CEMI = out.front ();
       p = r.ToPacket ();
     }
   retries ++;

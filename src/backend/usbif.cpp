@@ -401,7 +401,7 @@ USBLowLevelDriver::trigger_cb(ev::async &w, int revents)
   if (sendh || !connection_state || send_q.isempty())
     return;
 
-  const CArray & c = send_q.top ();
+  const CArray & c = send_q.front ();
   t->TracePacket (0, this, "Send", c);
   memset (sendbuf, 0, sizeof (sendbuf));
   memcpy (sendbuf, c.data(),

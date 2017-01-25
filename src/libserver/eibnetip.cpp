@@ -286,7 +286,7 @@ EIBNetIPSocket::io_send_cb (ev::io &w, int revents)
       io_send.stop();
       return;
     }
-  const struct _EIBNetIP_Send s = send_q.top ();
+  const struct _EIBNetIP_Send s = send_q.front ();
   CArray p = s.data.ToPacket ();
   t->TracePacket (0, this, "Send", p);
   int i = sendto (fd, p.data(), p.size(), 0,

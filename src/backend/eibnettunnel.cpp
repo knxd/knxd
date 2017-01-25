@@ -469,7 +469,7 @@ void EIBNetIPTunnel::trigger_cb(ev::async &w, int revents)
   EIBnet_TunnelRequest treq;
   treq.channel = channel;
   treq.seqno = sno;
-  treq.CEMI = send_q.top ();
+  treq.CEMI = send_q.front ();
 
   EIBNetIPPacket p = treq.ToPacket ();
   t->TracePacket (1, this, "SendTunnel", p.data);

@@ -21,102 +21,40 @@
 #define QUEUE_H
 
 #include <assert.h>
+#include <queue>
 
 /** implement a generic FIFO queue*/
-template < class T > class Queue
+template < typename _T >
+class Queue : std::queue<_T>
 {
-protected:
-  /** element in the queue */
-  typedef struct _Entry
-  {
-    /** value */
-    T entry;
-    /** next element */
-    struct _Entry *Next;
-  } Entry;
-
-  /** list head */
-  Entry *akt;
-  /** pointer where to store the pointer to the next element */
-  Entry **head;
-
+  typedef typename std::queue<_T>::value_type value_type;
 public:
-
   /** initialize queue */
-  Queue ()
-  {
-    akt = 0;
-    head = &akt;
-  }
-
-  /** copy constructer */
-  Queue (const Queue < T > &c)
-  {
-    Entry *a = c->akt;
-    akt = 0;
-    head = &akt;
-    while (a)
-      {
-	put (a->entry);
-	a = a->Next;
-      }
-  }
+  Queue () : std::queue<_T>() {};
 
   /** destructor */
-  virtual ~Queue ()
-  {
-    while (akt)
-      get ();
-  }
+  virtual ~Queue () {}
 
-  /** assignment operator */
-  const Queue < T > &operator = (const Queue < T > &c)
-  {
-    while (akt)
-      get ();
-    Entry *a = c.akt;
-    while (a)
-      {
-	put (a->entry);
-	a = a->Next;
-      }
-    return *this;
-  }
+  using std::queue<_T>::front;
+  using std::queue<_T>::pop;
 
   /** adds a element to the queue end */
-  void put (const T & el)
+  inline void put (const _T & el)
   {
-    Entry *elem = new Entry;
-    elem->Next = 0;
-    elem->entry = el;
-    *head = elem;
-    head = &elem->Next;
+    std::queue<_T>::push(el);
   }
 
-  /** remove the element from the queue head and returns it */
-  T get ()
+  inline _T get ()
   {
-    assert (akt != 0);
-    Entry *e = akt;
-    T a = akt->entry;
-    akt = akt->Next;
-    delete e;
-    if (!akt)
-      head = &akt;
-    return a;
-  }
-
-  /** returns the element from the queue head */
-  const T & top () const
-  {
-    assert (akt != 0);
-    return akt->entry;
+    value_type v = std::move(std::queue<_T>::front());
+    std::queue<_T>::pop();
+    return v;
   }
 
   /** return true, if the queue is empty */
-  int isempty () const
+  inline bool isempty () const
   {
-    return akt == 0;
+    return std::queue<_T>::empty();
   }
 
 };
