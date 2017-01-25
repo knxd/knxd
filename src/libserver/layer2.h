@@ -87,7 +87,7 @@ protected:
   bool allow_monitor;
 
   /** auto-assigned. NON-bus connections only! */
-  eibaddr_t remoteAddr;
+  eibaddr_t remoteAddr = 0;
 
   busmode_t mode;
 
