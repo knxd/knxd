@@ -38,9 +38,9 @@ class CEMILayer2:public EMI_Common
   bool enterBusmonitor();
   unsigned int maxPacketLen();
 
-  CArray lData2EMI (uchar code, const L_Data_PDU & p) 
+  CArray lData2EMI (uchar code, const LDataPtr & p) 
   { return L_Data_ToCEMI(code, p); }
-  L_Data_PDU *EMI2lData (const CArray & data, Layer2Ptr l2) 
+  LDataPtr EMI2lData (const CArray & data, Layer2Ptr l2) 
   { return CEMI_to_L_Data(data,l2); }
 public:
   CEMILayer2 (LowLevelDriver * i, L2options *opt) : EMI_Common(i,opt) {}

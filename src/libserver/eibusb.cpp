@@ -349,8 +349,8 @@ bool USBLayer2::Close ()
 }
 
 void
-USBLayer2::send_L_Data (L_Data_PDU * l)
+USBLayer2::send_L_Data (LDataPtr l)
 {
-  emi->send_L_Data (l);
+  emi->send_L_Data (std::move(l));
 }
 

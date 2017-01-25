@@ -37,7 +37,7 @@ void SendBuf::write(const CArray *data)
       sendpos = (len>0) ? len : 0;
     }
   else
-    sendqueue.put(data);
+    sendqueue.push(data);
   if (!ready) {
       ready = true;
       io.start();

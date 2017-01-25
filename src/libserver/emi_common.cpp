@@ -61,8 +61,6 @@ EMI_Common::~EMI_Common ()
 {
   TRACEPRINTF (t, 2, this, "Destroy");
   trigger.stop();
-  while (!send_q.isempty ())
-    delete send_q.get ();
   if (iface)
     delete iface;
 }
@@ -114,7 +112,7 @@ EMI_Common::Close ()
 }
 
 void
-EMI_Common::send_L_Data (L_Data_PDU * l)
+EMI_Common::send_L_Data (LDataPtr l)
 {
   TRACEPRINTF (t, 2, this, "Send %s", l->Decode ().c_str());
   assert (l->data.size() >= 1);
@@ -126,7 +124,7 @@ EMI_Common::send_L_Data (L_Data_PDU * l)
     }
   assert ((l->hopcount & 0xf8) == 0);
 
-  send_q.put (l);
+  send_q.push (std::move(l));
   if (!wait_confirm)
     trigger.send();
 }
@@ -140,13 +138,12 @@ EMI_Common::timeout_cb(ev::timer &w, int revents)
 }
 void
 
-EMI_Common::Send (L_Data_PDU * l)
+EMI_Common::Send (LDataPtr l)
 {
   TRACEPRINTF (t, 1, this, "Send %s", l->Decode ().c_str());
 
-  CArray pdu = lData2EMI (0x11, *l);
+  CArray pdu = lData2EMI (0x11, l);
   iface->Send_Packet (pdu);
-  delete l;
 }
 
 void
@@ -189,24 +186,24 @@ EMI_Common::on_recv_cb(CArray *c)
     wait_confirm = false;
   if (c->size() && (*c)[0] == ind[I_DATA] && (mode & BUSMODE_UP))
     {
-      L_Data_PDU *p = EMI2lData (*c, real_l2 ? real_l2 : shared_from_this());
+      LDataPtr p = EMI2lData (*c, real_l2 ? real_l2 : shared_from_this());
       if (p)
         {
           delete c;
           TRACEPRINTF (t, 2, this, "Recv %s", p->Decode ().c_str());
-          l3->recv_L_Data (p);
+          l3->recv_L_Data (std::move(p));
           return;
         }
     }
   if (c->size() > 4 && (*c)[0] == ind[I_BUSMON] && mode == BUSMODE_MONITOR)
     {
-      L_Busmonitor_PDU *p = new L_Busmonitor_PDU (real_l2 ? real_l2 : shared_from_this());
+      LBusmonPtr p = LBusmonPtr(new L_Busmonitor_PDU (real_l2 ? real_l2 : shared_from_this()));
       p->status = (*c)[1];
       p->timestamp = ((*c)[2] << 24) | ((*c)[3] << 16);
       p->pdu.set (c->data() + 4, c->size() - 4);
       delete c;
       TRACEPRINTF (t, 2, this, "Recv %s", p->Decode ().c_str());
-      l3->recv_L_Busmonitor (p);
+      l3->recv_L_Busmonitor (std::move(p));
       return;
     }
   delete c;

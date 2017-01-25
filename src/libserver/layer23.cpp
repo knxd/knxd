@@ -41,9 +41,9 @@ Layer23::stop ()
 /** implement all of layer2shim */
 
 void
-Layer23::send_L_Data (L_Data_PDU * l)
+Layer23::send_L_Data (LDataPtr l)
 {
-  l2->send_L_Data (l);
+  l2->send_L_Data (std::move(l));
 }
 
 bool
@@ -176,15 +176,15 @@ Layer23::deregisterVBusmonitor (L_Busmonitor_CallBack * c)
 
 
 void
-Layer23::recv_L_Data (L_Data_PDU * l)
+Layer23::recv_L_Data (LDataPtr l)
 {
-  l3->recv_L_Data (l);
+  l3->recv_L_Data (std::move(l));
 }
 
 void
-Layer23::recv_L_Busmonitor (L_Busmonitor_PDU * l)
+Layer23::recv_L_Busmonitor (LBusmonPtr l)
 {
-  l3->recv_L_Busmonitor (l);
+  l3->recv_L_Busmonitor (std::move(l));
 }
 
 bool

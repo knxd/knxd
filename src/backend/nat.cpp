@@ -45,28 +45,26 @@ NatL2Filter::clone (Layer2Ptr l2)
 }
 
 void
-NatL2Filter::send_L_Data (L_Data_PDU * l)
+NatL2Filter::send_L_Data (LDataPtr  l)
 {
   /* Sending a packet to this interface: record address pair, clear source */
   if (l->getType () == L_Data)
     {
-      L_Data_PDU *l1 = dynamic_cast<L_Data_PDU *>(l);
-      if (l1->AddrType == IndividualAddress)
-        addReverseAddress (l1->source, l1->dest);
-      l1->source = 0;
+      if (l->AddrType == IndividualAddress)
+        addReverseAddress (l->source, l->dest);
+      l->source = 0;
     }
-  l2->send_L_Data (l);
+  l2->send_L_Data (std::move(l));
 }
 
 
 void
-NatL2Filter::recv_L_Data (L_Data_PDU * l)
+NatL2Filter::recv_L_Data (LDataPtr  l)
 {
   /* Receiving a packet from this interface: reverse-lookup real destination from source */
-  L_Data_PDU *l1 = dynamic_cast<L_Data_PDU *>(l);
-  if (l1->AddrType == IndividualAddress)
-    l1->dest = getDestinationAddress (l1->source);
-  l3->recv_L_Data (l);
+  if (l->AddrType == IndividualAddress)
+    l->dest = getDestinationAddress (l->source);
+  l3->recv_L_Data (std::move(l));
 }
 
 void NatL2Filter::addReverseAddress (eibaddr_t src, eibaddr_t dest)

@@ -52,7 +52,7 @@ Server::~Server ()
 void
 Server::deregister (ClientConnPtr con)
 {
-  cleanup_q.put(con);
+  cleanup_q.push(con);
   cleanup.send();
 }
 

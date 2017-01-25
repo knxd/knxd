@@ -65,7 +65,7 @@ T_Broadcast::~T_Broadcast ()
 }
 
 void
-T_Broadcast::send_L_Data (L_Data_PDU * l)
+T_Broadcast::send_L_Data (LDataPtr l)
 {
   BroadcastComm c;
   TPDU *t = TPDU::fromPacket (l->data, this->t);
@@ -77,7 +77,6 @@ T_Broadcast::send_L_Data (L_Data_PDU * l)
       app->send(c);
     }
   delete t;
-  delete l;
 }
 
 void
@@ -87,13 +86,13 @@ T_Broadcast::recv (const CArray & c)
   t.data = c;
   String s = t.Decode (this->t);
   TRACEPRINTF (this->t, 4, this, "Send Broadcast %s", s.c_str());
-  L_Data_PDU *l = new L_Data_PDU (shared_from_this());
+  LDataPtr l = LDataPtr(new L_Data_PDU (shared_from_this()));
   l->source = 0;
   l->dest = 0;
   l->AddrType = GroupAddress;
   l->data = t.ToPacket ();
   l->hopcount = 0x07;
-  l3->recv_L_Data (l);
+  l3->recv_L_Data (std::move(l));
 }
 
 /***************** T_Group *****************/
@@ -121,7 +120,7 @@ T_Group::init (T_Reader<GroupComm> *app, Layer3 *l3)
 }
 
 void
-T_Group::send_L_Data (L_Data_PDU * l)
+T_Group::send_L_Data (LDataPtr l)
 {
   GroupComm c;
   TPDU *t = TPDU::fromPacket (l->data, this->t);
@@ -133,7 +132,6 @@ T_Group::send_L_Data (L_Data_PDU * l)
       app->send(c);
     }
   delete t;
-  delete l;
 }
 
 void
@@ -143,12 +141,12 @@ T_Group::recv (const CArray & c)
   t.data = c;
   String s = t.Decode (this->t);
   TRACEPRINTF (this->t, 4, this, "Send Group %s", s.c_str());
-  L_Data_PDU *l = new L_Data_PDU (shared_from_this());
+  LDataPtr l = LDataPtr(new L_Data_PDU (shared_from_this()));
   l->source = 0;
   l->dest = groupaddr;
   l->AddrType = GroupAddress;
   l->data = t.ToPacket ();
-  l3->recv_L_Data (l);
+  l3->recv_L_Data (std::move(l));
 }
 
 T_Group::~T_Group ()
@@ -175,25 +173,24 @@ T_TPDU::init (T_Reader<TpduComm> *app, Layer3 *l3)
 }
 
 void
-T_TPDU::send_L_Data (L_Data_PDU * l)
+T_TPDU::send_L_Data (LDataPtr l)
 {
   TpduComm t;
   t.data = l->data;
   t.addr = l->source;
   app->send(t);
-  delete l;
 }
 
 void
 T_TPDU::recv (const TpduComm & c)
 {
   t->TracePacket (4, this, "Send TPDU", c.data);
-  L_Data_PDU *l = new L_Data_PDU (shared_from_this());
+  LDataPtr l = LDataPtr(new L_Data_PDU (shared_from_this()));
   l->source = src;
   l->dest = c.addr;
   l->AddrType = IndividualAddress;
   l->data = c.data;
-  l3->recv_L_Data (l);
+  l3->recv_L_Data (std::move(l));
 }
 
 T_TPDU::~T_TPDU ()
@@ -226,7 +223,7 @@ T_Individual::init (T_Reader<CArray> *app, Layer3 *l3)
 }
 
 void
-T_Individual::send_L_Data (L_Data_PDU * l)
+T_Individual::send_L_Data (LDataPtr l)
 {
   CArray c;
   TPDU *t = TPDU::fromPacket (l->data, this->t);
@@ -237,7 +234,6 @@ T_Individual::send_L_Data (L_Data_PDU * l)
       app->send(c);
     }
   delete t;
-  delete l;
 }
 
 void
@@ -247,12 +243,12 @@ T_Individual::recv (const CArray & c)
   t.data = c;
   String s = t.Decode (this->t);
   TRACEPRINTF (this->t, 4, this, "Send Individual %s", s.c_str());
-  L_Data_PDU *l = new L_Data_PDU (shared_from_this());
+  LDataPtr l = LDataPtr(new L_Data_PDU (shared_from_this()));
   l->source = 0;
   l->dest = dest;
   l->AddrType = IndividualAddress;
   l->data = t.ToPacket ();
-  l3->recv_L_Data (l);
+  l3->recv_L_Data (std::move(l));
 }
 
 T_Individual::~T_Individual ()
@@ -295,7 +291,7 @@ T_Connection::~T_Connection ()
 }
 
 void
-T_Connection::send_L_Data (L_Data_PDU * l)
+T_Connection::send_L_Data (LDataPtr l)
 {
   TPDU *t = TPDU::fromPacket (l->data, this->t);
   switch (t->getType ())
@@ -356,14 +352,13 @@ T_Connection::send_L_Data (L_Data_PDU * l)
       /* ignore */ ;
     }
   delete t;
-  delete l;
 }
 
 void
 T_Connection::recv (const CArray & c)
 {
   t->TracePacket (4, this, "Send", c);
-  in.put (c);
+  in.push (c);
   SendCheck();
 }
 
@@ -386,13 +381,13 @@ T_Connection::SendConnect ()
 {
   TRACEPRINTF (t, 4, this, "SendConnect");
   T_CONNECT_REQ_PDU p;
-  L_Data_PDU *l = new L_Data_PDU (shared_from_this());
+  LDataPtr l = LDataPtr(new L_Data_PDU (shared_from_this()));
   l->source = 0;
   l->dest = dest;
   l->AddrType = IndividualAddress;
   l->data = p.ToPacket ();
   l->prio = PRIO_SYSTEM;
-  l3->recv_L_Data (l);
+  l3->recv_L_Data (std::move(l));
 
   mode = 1;
   sendno = 0;
@@ -405,13 +400,13 @@ T_Connection::SendDisconnect ()
 {
   TRACEPRINTF (t, 4, this, "SendDisconnect");
   T_DISCONNECT_REQ_PDU p;
-  L_Data_PDU *l = new L_Data_PDU (shared_from_this());
+  LDataPtr l = LDataPtr(new L_Data_PDU (shared_from_this()));
   l->source = 0;
   l->dest = dest;
   l->AddrType = IndividualAddress;
   l->data = p.ToPacket ();
   l->prio = PRIO_SYSTEM;
-  l3->recv_L_Data (l);
+  l3->recv_L_Data (std::move(l));
 }
 
 void
@@ -420,12 +415,12 @@ T_Connection::SendAck (int serno)
   TRACEPRINTF (t, 4, this, "SendACK %d", serno);
   T_ACK_PDU p;
   p.serno = serno;
-  L_Data_PDU *l = new L_Data_PDU (shared_from_this());
+  LDataPtr l = LDataPtr(new L_Data_PDU (shared_from_this()));
   l->source = 0;
   l->dest = dest;
   l->AddrType = IndividualAddress;
   l->data = p.ToPacket ();
-  l3->recv_L_Data (l);
+  l3->recv_L_Data (std::move(l));
 }
 
 void
@@ -435,12 +430,12 @@ T_Connection::SendData (int serno, const CArray & c)
   p.data = c;
   p.serno = serno;
   TRACEPRINTF (t, 4, this, "SendData %s", p.Decode (t).c_str());
-  L_Data_PDU *l = new L_Data_PDU (shared_from_this());
+  LDataPtr l = LDataPtr(new L_Data_PDU (shared_from_this()));
   l->source = 0;
   l->dest = dest;
   l->AddrType = IndividualAddress;
   l->data = p.ToPacket ();
-  l3->recv_L_Data (l);
+  l3->recv_L_Data (std::move(l));
 }
 
 /*
@@ -501,7 +496,7 @@ GroupSocket::~GroupSocket ()
 }
 
 void
-GroupSocket::send_L_Data (L_Data_PDU * l)
+GroupSocket::send_L_Data (LDataPtr l)
 {
   GroupAPDU c;
   TPDU *t = TPDU::fromPacket (l->data, this->t);
@@ -514,7 +509,6 @@ GroupSocket::send_L_Data (L_Data_PDU * l)
       app->send(c);
     }
   delete t;
-  delete l;
 }
 
 void
@@ -524,11 +518,11 @@ GroupSocket::recv (const GroupAPDU & c)
   t.data = c.data;
   String s = t.Decode (this->t);
   TRACEPRINTF (this->t, 4, this, "Send GroupSocket %s", s.c_str());
-  L_Data_PDU *l = new L_Data_PDU (shared_from_this());
+  LDataPtr l = LDataPtr(new L_Data_PDU (shared_from_this()));
   l->source = 0;
   l->dest = c.dst;
   l->AddrType = GroupAddress;
   l->data = t.ToPacket ();
-  l3->recv_L_Data (l);
+  l3->recv_L_Data (std::move(l));
 }
 

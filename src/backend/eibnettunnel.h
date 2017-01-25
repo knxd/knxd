@@ -77,7 +77,7 @@ public:
   bool enterBusmonitor ();
   bool leaveBusmonitor ();
 
-  void send_L_Data (L_Data_PDU * l);
+  void send_L_Data (LDataPtr  l);
 };
 
 

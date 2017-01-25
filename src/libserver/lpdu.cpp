@@ -22,29 +22,27 @@
 #include "tpdu.h"
 #include "layer2.h"
 
-LPDU *
+LPDUPtr
 LPDU::fromPacket (const CArray & c, Layer2Ptr layer2)
 {
-  LPDU *l = 0;
+  LPDUPtr l = nullptr;
   if (c.size() >= 1)
     {
       if (c[0] == 0xCC)
-	l = new L_ACK_PDU (layer2);
+	l = LPDUPtr(new L_ACK_PDU (layer2));
       else if (c[0] == 0xC0)
-	l = new L_BUSY_PDU (layer2);
+	l = LPDUPtr(new L_BUSY_PDU (layer2));
       else if (c[0] == 0x0C)
-	l = new L_NACK_PDU (layer2);
+	l = LPDUPtr(new L_NACK_PDU (layer2));
       else if ((c[0] & 0x53) == 0x10)
-	l = new L_Data_PDU (layer2);
+	l = LPDUPtr(new L_Data_PDU (layer2));
     }
   if (l && l->init (c))
     {
       l->l2 = layer2;
       return l;
     }
-  if (l)
-    delete l;
-  l = new L_Unknown_PDU (layer2);
+  l = LPDUPtr(new L_Unknown_PDU (layer2));
   l->init (c);
   l->l2 = layer2;
   return l;
@@ -197,9 +195,8 @@ L_Busmonitor_PDU::Decode ()
   ITER (i,pdu)
     addHex (s, *i);
   s += ":";
-  LPDU *l = LPDU::fromPacket (pdu, l2);
+  LPDUPtr l = LPDU::fromPacket (pdu, l2);
   s += l->Decode ();
-  delete l;
   return s;
 }
 

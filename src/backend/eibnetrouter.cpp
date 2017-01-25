@@ -82,14 +82,13 @@ EIBNetIPRouter::init (Layer3 *l3)
 }
 
 void
-EIBNetIPRouter::send_L_Data (L_Data_PDU * l)
+EIBNetIPRouter::send_L_Data (LDataPtr l)
 {
   TRACEPRINTF (t, 2, this, "Send %s", l->Decode ().c_str());
   EIBNetIPPacket p;
-  p.data = L_Data_ToCEMI (0x29, *l);
+  p.data = L_Data_ToCEMI (0x29, l);
   p.service = ROUTING_INDICATION;
   sock->Send (p);
-  delete l;
 }
 
 void
@@ -114,20 +113,19 @@ EIBNetIPRouter::on_recv_cb(EIBNetIPPacket *p)
       return;
     }
 
-  L_Data_PDU *c = CEMI_to_L_Data (p->data, shared_from_this());
+  LDataPtr c = CEMI_to_L_Data (p->data, shared_from_this());
   delete p;
   if (c)
     {
       TRACEPRINTF (t, 2, this, "Recv %s", c->Decode ().c_str());
       if (mode & BUSMODE_UP)
         {
-          l3->recv_L_Data (c);
+          l3->recv_L_Data (std::move(c));
           return;
         }
-      L_Busmonitor_PDU *p1 = new L_Busmonitor_PDU (shared_from_this());
+      LBusmonPtr p1 = LBusmonPtr(new L_Busmonitor_PDU (shared_from_this()));
       p1->pdu = c->ToPacket ();
-      delete c;
-      l3->recv_L_Busmonitor (p1);
+      l3->recv_L_Busmonitor (std::move(p1));
       return;
     }
 }

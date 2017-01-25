@@ -64,7 +64,7 @@ A_Busmonitor::A_Busmonitor (ClientConnPtr c, bool virt, bool TS, uint8_t *buf,si
 }
 
 void
-A_Busmonitor::send_L_Busmonitor (L_Busmonitor_PDU * p)
+A_Busmonitor::send_L_Busmonitor (LBusmonPtr p)
 {
   CArray buf;
   if (ts)
@@ -83,20 +83,18 @@ A_Busmonitor::send_L_Busmonitor (L_Busmonitor_PDU * p)
       EIBSETTYPE (buf, EIB_BUSMONITOR_PACKET);
     }
   buf += p->pdu;
-  delete p;
 
   con->sendmessage (buf.size(), buf.data());
 }
 
 void
-A_Text_Busmonitor::send_L_Busmonitor (L_Busmonitor_PDU * p)
+A_Text_Busmonitor::send_L_Busmonitor (LBusmonPtr p)
 {
   CArray buf;
   String s = p->Decode ();
   buf.resize (2 + s.length() + 1);
   EIBSETTYPE (buf, EIB_BUSMONITOR_PACKET);
   buf.setpart ((uint8_t *)s.c_str(), 2, s.length()+1);
-  delete p;
 
   con->sendmessage (buf.size(), buf.data());
 }

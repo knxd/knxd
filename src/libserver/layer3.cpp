@@ -50,10 +50,6 @@ Layer3real::~Layer3real ()
   cache = nullptr;
   trigger.stop();
   mtrigger.stop();
-  while (!buf.isempty())
-    delete buf.get();
-  while (!mbuf.isempty())
-    delete mbuf.get();
 
   R_ITER(i,layer2)
     (*i)->stop();
@@ -76,35 +72,31 @@ Layer3real::~Layer3real ()
 }
 
 void
-Layer3real::recv_L_Data (L_Data_PDU * l)
+Layer3real::recv_L_Data (LDataPtr l)
 {
   if (running)
     {
       TRACEPRINTF (l->l2->t, 9, this, "Enqueue %s", l->Decode ().c_str());
-      buf.put (l);
+      buf.push (std::move(l));
       trigger.send();
     }
   else
     {
       TRACEPRINTF (l->l2->t, 3, this, "Discard(not running) %s", l->Decode ().c_str());
-      delete l;
     }
 }
 
 void
-Layer3real::recv_L_Busmonitor (L_Busmonitor_PDU * l)
+Layer3real::recv_L_Busmonitor (LBusmonPtr l)
 {
   if (running)
     {
       TRACEPRINTF (tr(), 3, this, "Enqueue %s", l->Decode ().c_str());
-      mbuf.put (l);
+      mbuf.push (std::move(l));
       mtrigger.send();
     }
   else
-    {
-      TRACEPRINTF (tr(), 3, this, "Discard(not running) %s", l->Decode ().c_str());
-      delete l;
-    }
+    TRACEPRINTF (tr(), 3, this, "Discard(not running) %s", l->Decode ().c_str());
 }
 
 bool
@@ -156,7 +148,7 @@ Layer3real::deregisterVBusmonitor (L_Busmonitor_CallBack * c)
 bool
 Layer3real::deregisterLayer2 (Layer2Ptr l2)
 {
-  cleanup_q.put(l2);
+  cleanup_q.push(l2);
   cleanup.send();
 }
 
@@ -309,7 +301,7 @@ Layer3real::trigger_cb (ev::async &w, int revents)
 
   while (!buf.isempty())
     {
-      L_Data_PDU *l1 = buf.get ();
+      LDataPtr l1 = buf.get ();
 
       {
         Layer2Ptr l2 = l1->l2;
@@ -324,15 +316,11 @@ Layer3real::trigger_cb (ev::async &w, int revents)
 
       if (vbusmonitor.size())
         {
-          L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (l1->l2);
+          LBusmonPtr l2 = LBusmonPtr(new L_Busmonitor_PDU (l1->l2));
           l2->pdu.set (l1->ToPacket ());
 
           ITER(i,vbusmonitor)
-            {
-              L_Busmonitor_PDU *l2x = new L_Busmonitor_PDU (*l2);
-              i->cb->send_L_Busmonitor (l2x);
-            }
-          delete l2;
+            i->cb->send_L_Busmonitor (LBusmonPtr(new L_Busmonitor_PDU (*l2)));
         }
       if (!l1->hopcount)
         {
@@ -370,7 +358,7 @@ Layer3real::trigger_cb (ev::async &w, int revents)
               if (*i == l1->l2)
                 continue;
               if (l1->hopcount == 7 || (*i)->hasGroupAddress(l1->dest))
-                (*i)->send_L_Data (new L_Data_PDU (*l1));
+                (*i)->send_L_Data (LDataPtr(new L_Data_PDU (*l1)));
             }
         }
       if (l1->AddrType == IndividualAddress)
@@ -404,11 +392,10 @@ Layer3real::trigger_cb (ev::async &w, int revents)
               if (*i == l1->l2)
                 continue;
               if (l1->hopcount == 7 || !found || (*i)->hasAddress (l1->dest))
-                (*i)->send_L_Data (new L_Data_PDU (*l1));
+                (*i)->send_L_Data (LDataPtr(new L_Data_PDU (*l1)));
             }
         }
-    next:
-      delete l1;
+    next:;
     }
 
   // Timestamps are ordered, so we scan for the first 
@@ -428,11 +415,10 @@ Layer3real::mtrigger_cb (ev::async &w, int revents)
 
   while (!mbuf.isempty())
     {
-      L_Busmonitor_PDU *l1 = mbuf.get ();
+      LBusmonPtr l1 = mbuf.get ();
 
       TRACEPRINTF (tr(), 3, this, "RecvMon %s", l1->Decode ().c_str());
       ITER (i, busmonitor)
-        i->cb->send_L_Busmonitor (new L_Busmonitor_PDU (*l1));
-      delete l1;
+        i->cb->send_L_Busmonitor (LBusmonPtr(new L_Busmonitor_PDU (*l1)));
     }
 }

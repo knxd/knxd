@@ -275,7 +275,7 @@ EIBNetIPSocket::Send (EIBNetIPPacket p, struct sockaddr_in addr)
 
   if (send_q.isempty())
     io_send.start(fd, ev::WRITE);
-  send_q.put (s);
+  send_q.put (std::move(s));
 }
 
 void

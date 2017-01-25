@@ -53,7 +53,7 @@ GroupCache::init(Layer3 *l3)
 }
 
 void
-GroupCache::send_L_Data (L_Data_PDU * l)
+GroupCache::send_L_Data (LDataPtr l)
 {
   if (enable)
     {
@@ -91,7 +91,6 @@ GroupCache::send_L_Data (L_Data_PDU * l)
 	}
       delete t;
     }
-  delete l;
 }
 
 bool
@@ -273,17 +272,17 @@ GroupCache::Read (eibaddr_t addr, unsigned Timeout, uint16_t age,
   // No data fond. Send a Read request.
   A_GroupValue_Read_PDU apdu;
   T_DATA_XXX_REQ_PDU tpdu;
-  L_Data_PDU *l;
+  LDataPtr l;
 
   GCReader *gcr = new GCReader(this,addr,Timeout,age, cb,cc);
 
   tpdu.data = apdu.ToPacket ();
-  l = new L_Data_PDU (shared_from_this());
+  l = LDataPtr(new L_Data_PDU (shared_from_this()));
   l->data = tpdu.ToPacket ();
   l->source = 0;
   l->dest = addr;
   l->AddrType = GroupAddress;
-  l3->recv_L_Data (l);
+  l3->recv_L_Data (std::move(l));
 }
 
 class GCTracker : protected GroupCacheReader

@@ -20,8 +20,14 @@
 #ifndef LPDU_H
 #define LPDU_H
 
+#include <memory>
+
 class LPDU;
 class L_Data_PDU;
+class L_Busmonitor_PDU;
+typedef std::unique_ptr<LPDU> LPDUPtr;
+typedef std::unique_ptr<L_Data_PDU> LDataPtr;
+typedef std::unique_ptr<L_Busmonitor_PDU> LBusmonPtr;
 
 #include "common.h"
 #include "layer2common.h"
@@ -69,7 +75,7 @@ public:
   /** get frame type */
   virtual LPDU_Type getType () const = 0;
   /** converts a character array to a Layer 2 frame */
-  static LPDU *fromPacket (const CArray & c, Layer2Ptr layer2);
+  static LPDUPtr fromPacket (const CArray & c, Layer2Ptr layer2);
 };
 
 /* L_Unknown */
@@ -193,7 +199,7 @@ class L_Busmonitor_CallBack
 {
 public:
   /** callback: a bus monitor frame has been received */
-  virtual void send_L_Busmonitor (L_Busmonitor_PDU * l) = 0;
+  virtual void send_L_Busmonitor (LBusmonPtr l) = 0;
 
   virtual const char *Name() = 0;
 };

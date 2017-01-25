@@ -38,10 +38,10 @@ protected:
   /** driver to send/receive */
   LowLevelDriver *iface;
   /** input queue */
-  Queue < L_Data_PDU * >send_q;
+  Queue < LDataPtr >send_q;
   float send_delay;
 
-  void Send (L_Data_PDU * l);
+  void Send (LDataPtr l);
   virtual const char *Name() = 0;
 
   virtual void cmdEnterMonitor() = 0;
@@ -66,14 +66,14 @@ public:
   bool init (Layer3 *l3);
   Layer2Ptr real_l2 = nullptr;
 
-  void send_L_Data (L_Data_PDU * l);
+  void send_L_Data (LDataPtr l);
 
   virtual bool enterBusmonitor ();
   bool leaveBusmonitor ();
 
-  virtual CArray lData2EMI (uchar code, const L_Data_PDU & p)
+  virtual CArray lData2EMI (uchar code, const LDataPtr &p)
   { return L_Data_ToEMI(code, p); }
-  virtual L_Data_PDU *EMI2lData (const CArray & data, Layer2Ptr l2)
+  virtual LDataPtr EMI2lData (const CArray & data, Layer2Ptr l2)
   { return EMI_to_L_Data(data,l2); }
 
   virtual unsigned int maxPacketLen() { return 0x10; }

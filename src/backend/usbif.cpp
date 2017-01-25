@@ -283,7 +283,7 @@ USBLowLevelDriver::Send_Packet (CArray l)
   CArray pdu;
   t->TracePacket (1, this, "Send", l);
 
-  send_q.put (l);
+  send_q.put (std::move(l));
   trigger.send();
 }
 

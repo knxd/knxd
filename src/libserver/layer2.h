@@ -44,7 +44,7 @@ public:
   virtual void stop ();
 
   /** sends a Layer 2 frame to this interface */
-  virtual void send_L_Data (L_Data_PDU * l) = 0;
+  virtual void send_L_Data (LDataPtr l) = 0;
 
   /** try to add the individual addr to the device, return true if successful */
   virtual bool addAddress (eibaddr_t addr) = 0;
@@ -120,7 +120,7 @@ public:
     {
       t = tr;
     }
-  virtual void send_L_Data (L_Data_PDU * l) = 0;
+  virtual void send_L_Data (LDataPtr l) = 0;
   bool enterBusmonitor () { return 0; }
   bool leaveBusmonitor () { return 0; }
   bool Open () { return 1; }
@@ -146,7 +146,7 @@ class Layer2virtual:public Layer2mixin
 {
 public:
   Layer2virtual (TracePtr tr) : Layer2mixin (tr) { }
-  void send_L_Data (L_Data_PDU * l) { delete l; }
+  void send_L_Data (LDataPtr l) { }
   bool hasAddress (eibaddr_t addr UNUSED) { return false; }
   bool addAddress (eibaddr_t addr UNUSED) { return false; }
   bool hasGroupAddress (eibaddr_t addr UNUSED) { return false; }

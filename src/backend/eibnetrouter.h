@@ -37,7 +37,7 @@ public:
   virtual ~EIBNetIPRouter ();
   bool init (Layer3 *l3);
 
-  void send_L_Data (L_Data_PDU * l);
+  void send_L_Data (LDataPtr l);
 
 };
 

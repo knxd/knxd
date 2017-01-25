@@ -100,10 +100,10 @@ bool TPUART_Base::init (Layer3 *l3)
 }
 
 void
-TPUART_Base::send_L_Data (L_Data_PDU * l)
+TPUART_Base::send_L_Data (LDataPtr l)
 {
   TRACEPRINTF (t, 2, this, "Send %s", l->Decode ().c_str());
-  send_q.put(l);
+  send_q.push(std::move(l));
   if (!sendtimer.is_active())
     trigger.send();
 }
@@ -155,19 +155,21 @@ TPUART_Base::RecvLPDU (const uchar * data, int len)
   t->TracePacket (1, this, "RecvLP", len, data);
   if (mode & BUSMODE_MONITOR)
     {
-      L_Busmonitor_PDU *l = new L_Busmonitor_PDU (shared_from_this());
+      LBusmonPtr l = LBusmonPtr(new L_Busmonitor_PDU (shared_from_this()));
       l->pdu.set (data, len);
-      l3->recv_L_Busmonitor (l);
+      l3->recv_L_Busmonitor (std::move(l));
     }
   if (mode == BUSMODE_UP)
     {
-      LPDU *l = LPDU::fromPacket (CArray (data, len), shared_from_this());
-      if (l->getType () == L_Data && ((L_Data_PDU *) l)->valid_checksum)
-	l3->recv_L_Data ((L_Data_PDU *)l);
+      LPDUPtr l = LPDU::fromPacket (CArray (data, len), shared_from_this());
+      if (l->getType () != L_Data)
+        TRACEPRINTF (t, 1, this, "dropping packet: type %d", l->getType ());
       else
         {
-          TRACEPRINTF (t, 1, this, "dropping packet: type %d %d, valid %d", l->getType (), L_Data && ((L_Data_PDU *) l)->valid_checksum);
-          delete l;
+          if (((L_Data_PDU *)(&*l))->valid_checksum)
+            l3->recv_L_Data (dynamic_unique_cast<L_Data_PDU>(std::move(l)));
+          else
+            TRACEPRINTF (t, 1, this, "dropping packet: invalid");
         }
     }
 }
@@ -209,7 +211,7 @@ TPUART_Base::process_read(bool timed_out)
           if (sendtimer.is_active())
             {
               sendtimer.stop();
-              delete l; l = nullptr;
+              l.reset();
               retry = 0;
             }
           in.deletepart (0, 1);
@@ -223,7 +225,7 @@ TPUART_Base::process_read(bool timed_out)
               if (retry > 3)
                 {
                   TRACEPRINTF (t, 0, this, "NACK: dropping packet");
-                  delete l; l = nullptr;
+                  l.reset();
                   retry = 0;
                 }
               else
@@ -424,7 +426,7 @@ TPUART_Base::sendtimer_cb(ev::timer &w, int revents)
   if (retry >= 3)
     {
       TRACEPRINTF (t, 0, this, "Drop Send");
-      delete l; l = nullptr;
+      l.reset();
     }
   trigger.send();
 }

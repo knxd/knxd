@@ -156,7 +156,7 @@ FT12LowLevelDriver::Send_Packet (CArray l)
   pdu[pdu.size() - 2] = c;
   pdu[pdu.size() - 1] = 0x16;
 
-  send_q.put (pdu);
+  send_q.push (pdu);
   if (!send_wait)
     trigger.send();
 }
@@ -173,7 +173,7 @@ FT12LowLevelDriver::SendReset ()
   pdu[3] = 0x16;
   sendflag = 0;
   recvflag = 0;
-  send_q.put (pdu);
+  send_q.push (pdu);
   if (!send_wait)
     trigger.send();
 }

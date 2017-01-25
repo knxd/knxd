@@ -27,8 +27,9 @@
 template < typename _T >
 class Queue : std::queue<_T>
 {
-  typedef typename std::queue<_T>::value_type value_type;
 public:
+  typedef typename std::queue<_T>::value_type value_type;
+
   /** initialize queue */
   Queue () : std::queue<_T>() {};
 
@@ -37,11 +38,12 @@ public:
 
   using std::queue<_T>::front;
   using std::queue<_T>::pop;
+  using std::queue<_T>::push;
 
-  /** adds a element to the queue end */
-  inline void put (const _T & el)
+
+  inline void put (value_type && el)
   {
-    std::queue<_T>::push(el);
+    std::queue<_T>::push(std::move(el));
   }
 
   inline _T get ()

@@ -117,14 +117,12 @@ bool EIBNetIPTunnel::init (Layer3 *l3)
 }
 
 void
-EIBNetIPTunnel::send_L_Data (L_Data_PDU * l)
+EIBNetIPTunnel::send_L_Data (LDataPtr l)
 {
   TRACEPRINTF (t, 2, this, "Send %s", l->Decode ().c_str());
 
-  L_Data_PDU l1 = *(L_Data_PDU *)l;
-  send_q.put (L_Data_ToCEMI (0x11, l1));
+  send_q.put (L_Data_ToCEMI (0x11, l));
   trigger.send();
-  delete l;
 }
 
 bool
@@ -149,7 +147,7 @@ EIBNetIPTunnel::leaveBusmonitor ()
 void
 EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
 {
-  L_Data_PDU *c;
+  LDataPtr c;
 
   switch (p1->service)
     {
@@ -279,8 +277,8 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
 	  }
 	if (treq.CEMI[0] == 0x2B)
 	  {
-	    L_Busmonitor_PDU *l2 = CEMI_to_Busmonitor (treq.CEMI, shared_from_this());
-	    l3->recv_L_Busmonitor (l2);
+	    LBusmonPtr l2 = CEMI_to_Busmonitor (treq.CEMI, shared_from_this());
+	    l3->recv_L_Busmonitor (std::move(l2));
 	    break;
 	  }
 	if (treq.CEMI[0] != 0x29)
@@ -295,13 +293,12 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
 	    TRACEPRINTF (t, 1, this, "Recv %s", c->Decode ().c_str());
 	    if (mode != BUSMODE_MONITOR)
 	      {
-		l3->recv_L_Data (c);
+		l3->recv_L_Data (std::move(c));
 		break;
 	      }
-	    L_Busmonitor_PDU *p1 = new L_Busmonitor_PDU (shared_from_this());
+	    LBusmonPtr p1 = LBusmonPtr(new L_Busmonitor_PDU (shared_from_this()));
 	    p1->pdu = c->ToPacket ();
-	    delete c;
-	    l3->recv_L_Busmonitor (p1);
+	    l3->recv_L_Busmonitor (std::move(p1));
 	    break;
 	  }
 	TRACEPRINTF (t, 1, this, "Unknown CEMI");

@@ -59,7 +59,7 @@ public:
   USBLayer2 (LowLevelDriver * i, L2options *opt);
   bool init (Layer3 * l3);
 
-  void send_L_Data (L_Data_PDU * l);
+  void send_L_Data (LDataPtr l);
 
   bool enterBusmonitor ();
   bool leaveBusmonitor ();

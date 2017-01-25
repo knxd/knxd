@@ -207,17 +207,16 @@ void EIBnetDiscover::Send (EIBNetIPPacket p, struct sockaddr_in addr)
 }
 
 void
-EIBnetServer::send_L_Data (L_Data_PDU * l)
+EIBnetServer::send_L_Data (LDataPtr l)
 {
   if (route)
     {
       TRACEPRINTF (t, 8, this, "Send_Route %s", l->Decode ().c_str());
       EIBNetIPPacket p;
       p.service = ROUTING_INDICATION;
-      p.data = L_Data_ToCEMI (0x29, *l);
+      p.data = L_Data_ToCEMI (0x29, l);
       Send (p);
     }
-  delete l;
 }
 
 bool ConnState::init()
@@ -235,25 +234,24 @@ bool ConnState::init()
   return true;
 }
 
-void ConnState::send_L_Busmonitor (L_Busmonitor_PDU * l)
+void ConnState::send_L_Busmonitor (LBusmonPtr l)
 {
   if (type == CT_BUSMONITOR)
     {
-      out.put (Busmonitor_to_CEMI (0x2B, *l, no++));
+      out.put (Busmonitor_to_CEMI (0x2B, l, no++));
       if (! retries)
 	send_trigger.send();
     }
 }
 
-void ConnState::send_L_Data (L_Data_PDU * l)
+void ConnState::send_L_Data (LDataPtr l)
 {
   if (type == CT_STANDARD)
     {
-      out.put (L_Data_ToCEMI (0x29, *l));
+      out.put (L_Data_ToCEMI (0x29, l));
       if (! retries)
 	send_trigger.send();
     }
-  delete l;
 }
 
 int
@@ -374,7 +372,7 @@ void ConnState::stop()
 
 void EIBnetServer::drop_connection (ConnStatePtr s)
 {
-  drop_q.put(s);
+  drop_q.put(std::move(s));
   drop_trigger.send();
 }
 
@@ -531,16 +529,14 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
           t->TracePacket (2, this, "unparseable ROUTING_INDICATION", p1->data);
           goto out;
         }
-      L_Data_PDU *c = CEMI_to_L_Data (p1->data, shared_from_this());
+      LDataPtr c = CEMI_to_L_Data (p1->data, shared_from_this());
       if (!c)
         t->TracePacket (2, this, "unCEMIable ROUTING_INDICATION", p1->data);
       else if (route)
 	{
 	  TRACEPRINTF (t, 8, this, "Recv_Route %s", c->Decode ().c_str());
-          l3->recv_L_Data (c);
+          l3->recv_L_Data (std::move(c));
 	}
-      else
-        delete c;
       goto out;
     }
   if (p1->service == CONNECTIONSTATE_REQUEST)
@@ -796,7 +792,7 @@ void ConnState::tunnel_request(EIBnet_TunnelRequest &r1, EIBNetIPSocket *isock)
   if (type == CT_STANDARD)
     {
       TRACEPRINTF (t, 8, this, "TUNNEL_REQ");
-      L_Data_PDU *c = CEMI_to_L_Data (r1.CEMI, shared_from_this());
+      LDataPtr c = CEMI_to_L_Data (r1.CEMI, shared_from_this());
       if (c)
 	{
 	  r2.status = 0;
@@ -804,17 +800,14 @@ void ConnState::tunnel_request(EIBnet_TunnelRequest &r1, EIBNetIPSocket *isock)
             c->source = remoteAddr;
           if (r1.CEMI[0] == 0x11)
             {
-              out.put (L_Data_ToCEMI (0x2E, *c));
+              out.put (L_Data_ToCEMI (0x2E, c));
               if (! retries)
 		send_trigger.send();
             }
           if (r1.CEMI[0] == 0x11 || r1.CEMI[0] == 0x29)
-            l3->recv_L_Data (c);
+            l3->recv_L_Data (std::move(c));
           else
-            {
-              TRACEPRINTF (t, 8, this, "Wrong leader x%02x", r1.CEMI[0]);
-              delete c;
-            }
+            TRACEPRINTF (t, 8, this, "Wrong leader x%02x", r1.CEMI[0]);
 	}
       else
 	r2.status = 0x29;
@@ -921,7 +914,7 @@ void ConnState::config_request(EIBnet_ConfigRequest &r1, EIBNetIPSocket *isock)
 	      CEMI.setpart (res, 7);
 	      r2.status = 0x00;
 
-	      out.put (CEMI);
+	      out.push (CEMI);
               if (! retries)
 		send_trigger.send();
 	    }

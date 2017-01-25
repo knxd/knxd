@@ -53,8 +53,8 @@ protected:
   ev::timer timer; void timer_cb(ev::timer &w, int revents);
   ev::timer sendtimer; void sendtimer_cb(ev::timer &w, int revents);
   ev::timer watchdogtimer; void watchdogtimer_cb(ev::timer &w, int revents);
-  LPDU *l = nullptr;
-  Queue <LPDU *> send_q;
+  LPDUPtr l = nullptr;
+  Queue <LPDUPtr> send_q;
 
   CArray in, sendheader;
   int watch = 0;
@@ -68,7 +68,7 @@ public:
   ~TPUART_Base ();
   bool init (Layer3 *l3);
 
-  void send_L_Data (L_Data_PDU * l);
+  void send_L_Data (LDataPtr l);
 
   bool enterBusmonitor ();
   bool leaveBusmonitor ();

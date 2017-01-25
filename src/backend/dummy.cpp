@@ -44,17 +44,16 @@ DummyL2Driver::~DummyL2Driver ()
 }
 
 void
-DummyL2Driver::send_L_Data (L_Data_PDU * l)
+DummyL2Driver::send_L_Data (LDataPtr l)
 {
   TRACEPRINTF (t, 2, this, "Send %s", l->Decode ().c_str());
   if ((mode & BUSMODE_MONITOR) && l->getType () == L_Data)
   if (mode & BUSMODE_MONITOR)
     {
-      L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (shared_from_this());
+      LBusmonPtr l2 = LBusmonPtr(new L_Busmonitor_PDU (shared_from_this()));
       l2->pdu.set (l->ToPacket ());
-      l3->recv_L_Busmonitor (l2);
+      l3->recv_L_Busmonitor (std::move(l2));
     }
-  delete l;
 }
 
 DummyL2Filter::DummyL2Filter (L2options *opt, Layer2Ptr l2) : Layer23 (l2)
@@ -63,10 +62,10 @@ DummyL2Filter::DummyL2Filter (L2options *opt, Layer2Ptr l2) : Layer23 (l2)
 }
 
 void
-DummyL2Filter::send_L_Data (L_Data_PDU * l)
+DummyL2Filter::send_L_Data (LDataPtr l)
 {
   TRACEPRINTF (t, 2, this, "Passing %s", l->Decode ().c_str());
-  Layer23::send_L_Data (l);
+  Layer23::send_L_Data (std::move(l));
 }
 
 DummyL2Filter::~DummyL2Filter ()

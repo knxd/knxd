@@ -81,8 +81,8 @@ public:
   /** register a broadcast callback, return true, if successful*/
 
   /** accept a L_Data frame from L2 */
-  virtual void recv_L_Data (L_Data_PDU * l) = 0;
-  virtual void recv_L_Busmonitor (L_Busmonitor_PDU * l) = 0;
+  virtual void recv_L_Data (LDataPtr l) = 0;
+  virtual void recv_L_Busmonitor (LBusmonPtr l) = 0;
 
   /** check if any interface accepts this address.
       'l2' says which interface NOT to check. */
@@ -119,8 +119,8 @@ private:
   /** Layer 2 interfaces */
   Array < Layer2Ptr > layer2;
   /** buffer queues for receiving from L2 */
-  Queue < L_Data_PDU * >buf;
-  Queue < L_Busmonitor_PDU * >mbuf;
+  Queue < LDataPtr >buf;
+  Queue < LBusmonPtr >mbuf;
   /** buffer for packets to ignore when repeat flag is set */
   Array < IgnoreInfo > ignore;
 
@@ -171,8 +171,8 @@ public:
   bool deregisterBusmonitor (L_Busmonitor_CallBack * c);
   bool deregisterVBusmonitor (L_Busmonitor_CallBack * c);
 
-  void recv_L_Data (L_Data_PDU * l);
-  void recv_L_Busmonitor (L_Busmonitor_PDU * l);
+  void recv_L_Data (LDataPtr l);
+  void recv_L_Busmonitor (LBusmonPtr l);
   bool hasAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr);
   bool hasGroupAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr);
   void registerServer (BaseServer *s) { servers.push_back (s); }

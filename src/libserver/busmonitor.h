@@ -50,7 +50,7 @@ public:
                 bool virt, bool ts,
                 uint8_t *buf,size_t len);
   virtual ~A_Busmonitor ();
-  void send_L_Busmonitor (L_Busmonitor_PDU * l);
+  void send_L_Busmonitor (LBusmonPtr l);
   // dummy method
   void recv(uint8_t *buf, size_t len) {}
 };
@@ -69,7 +69,7 @@ public:
                    : A_Busmonitor (c, virt, false, buf,len)
   {
   }
-  void send_L_Busmonitor (L_Busmonitor_PDU * l);
+  void send_L_Busmonitor (LBusmonPtr l);
 };
 
 #endif
