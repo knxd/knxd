@@ -20,6 +20,8 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
+#include <assert.h>
+
 /** implement a generic FIFO queue*/
 template < class T > class Queue
 {

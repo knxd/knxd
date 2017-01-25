@@ -1,6 +1,6 @@
 /*
     EIBD eib bus access and management daemon
-    Copyright (C) 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
+    Copyright (C) 2015 Matthias Urlichs <matthias@urlichs.de>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,21 +17,37 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifndef C_PEI16s_H
-#define C_PEI16s_H
+#ifndef NAT_H
+#define NAT_H
+#include "layer2.h"
+#include "layer23.h"
 
-#include "bcu1serial.h"
+/** NAT filter
+ * outgoing packets: remember src/dest combination, zero src
+ * incoming: restore dest
+ */
+typedef struct {
+  eibaddr_t src;
+  eibaddr_t dest;
+} phys_comm;
 
-#define PEI16s_URL "bcu1s:/dev/ttySx\n"
-#define PEI16s_DOC "bcu1s connects using the PEI16 Protocol over a BCU to the bus (using an experimental user mode driver)\n\n"
-
-#define PEI16s_PREFIX "bcu1s"
-#define PEI16s_CREATE PEI16s_ll_Create
-
-inline LowLevelDriver *
-PEI16s_ll_Create (const char *dev, Trace * t)
+class NatL2Filter:public Layer23
 {
-  return new BCU1SerialLowLevelDriver (dev, t);
-}
+  /** source addresses when the destination is my own */
+  Array < phys_comm > revaddr;
+
+public:
+  NatL2Filter (L2options *opt, Layer2Ptr l2);
+  ~NatL2Filter ();
+  virtual const char *Name() override { return "NAT"; }
+
+  Layer2Ptr clone(Layer2Ptr l2);
+
+  void recv_L_Data (L_Data_PDU * l);
+  void send_L_Data (L_Data_PDU * l);
+
+  void addReverseAddress (eibaddr_t src, eibaddr_t dest);
+  eibaddr_t getDestinationAddress (eibaddr_t src);
+};
 
 #endif

@@ -21,8 +21,8 @@ endif
 bin_PROGRAMS= $(PROG)
 
 findknxusb_SOURCES= findknxusb.cpp
-findknxusb_LDADD= $(PTHSEM_LIB) $(LIBUSB_LIBS)
+findknxusb_LDADD= $(LIBUSB_LIBS)
 
 noinst_LIBRARIES=libusb.a
 libusb_a_SOURCES=$(LIBUSB) dummy.cpp
-AM_CPPFLAGS=-I$(top_srcdir)/src/libserver -I$(top_srcdir)/src/common $(PTH_CFLAGS) $(LIBUSB_CFLAGS)
+AM_CPPFLAGS=-I$(top_srcdir)/src/libserver -I$(top_srcdir)/src/common $(LIBUSB_CFLAGS)

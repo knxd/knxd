@@ -101,12 +101,12 @@ Management_Connection::X_PropertyScan (Array < PropertyInfo > &p)
 	      CArray a;
 	      if (A_Property_Read (obj, 1, 1, 1, a) == -1)
 		return -1;
-	      if (a () != 2)
+	      if (a.size() != 2)
 		return -1;
 	      p1.count = (a[0] << 8) | (a[1]);
 	    }
 	  if (p1.property != 0)
-	    p.add (p1);
+	    p.push_back (p1);
 	  i++;
 	}
       while (p1.property != 0);

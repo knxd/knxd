@@ -37,11 +37,53 @@ die (const char *msg, ...)
   exit (1);
 }
 
+bool shortlist = false;
+
 void
 HexDump (const uchar * data, int Len)
 {
   for (int i = 0; i < Len; i++)
     printf (" %02X", data[i]);
+  printf ("\n");
+}
+
+static void
+end_me (EV_P_ ev_timer *w, int revents)
+{
+  ev_break(EV_DEFAULT_ EVBREAK_ALL);
+}
+
+static void
+recv_me (EIBNetIPPacket *p1)
+{
+  EIBnet_SearchResponse resp;
+  if (parseEIBnet_SearchResponse (*p1, resp))
+    {
+      printf ("Invalid Search response\n");
+      return;
+    }
+  printf ("Answer from %s at port %d\n",
+          inet_ntoa (resp.caddr.sin_addr),
+          ntohs (resp.caddr.sin_port));
+  if (shortlist)
+    {
+      printf ("Addr: %s\n", FormatEIBAddr (resp.individual_addr).c_str());
+      printf ("Name: %s\n", resp.name);
+    }
+  else
+    {
+      printf
+        ("Medium: %d\nState: %d\nAddr: %s\nInstallID: %d\nSerial:",
+          resp.KNXmedium, resp.devicestatus,
+          FormatEIBAddr (resp.individual_addr).c_str(), resp.installid);
+      HexDump (resp.serial, sizeof (resp.serial));
+      printf ("Multicast-Addr: %s\nMAC:",
+              inet_ntoa (resp.multicastaddr));
+      HexDump (resp.MAC, sizeof (resp.MAC));
+      printf ("Name: %s\n", resp.name);
+      ITER(i, resp.services)
+        printf ("Service %d Version %d\n", i->family, i->version);
+    }
   printf ("\n");
 }
 
@@ -51,7 +93,6 @@ main (int ac, char *ag[])
   int tracelevel;
   int sport;
   int dport;
-  bool shortlist = false;
   char *a, *b, *c;
   if (ac != 2 && ac != 3)
     die
@@ -60,9 +101,11 @@ main (int ac, char *ag[])
   struct sockaddr_in saddr;
   struct sockaddr_in caddr;
   EIBNetIPSocket *sock;
-  pth_event_t timeout = pth_event (PTH_EVENT_RTIME, pth_time (10, 0));
+  ev_timer timeout;
+  ev_timer_init(&timeout, &end_me, 10.,0.);
+  ev_timer_start(EV_DEFAULT_ &timeout);
 
-  pth_init ();
+  
   tracelevel = 0;
   if (ac == 3)
     tracelevel = atoi (ag[2]);
@@ -94,8 +137,9 @@ main (int ac, char *ag[])
   else
     dport = 3671;
 
-  Trace t = Trace("main");
-  t.SetTraceLevel (tracelevel);
+  std::string eibs = "eibnetsearch";
+  TracePtr t = TracePtr(new Trace(eibs, "main"));
+  t->SetTraceLevel (tracelevel);
   if (!strcmp (a, "-"))
     a = (char *) "224.0.23.12";
 
@@ -107,55 +151,20 @@ main (int ac, char *ag[])
   if (!GetSourceAddress (&caddr, &saddr))
     die ("No route found");
   saddr.sin_port = htons (sport);
-  sock = new EIBNetIPSocket (saddr, 0, &t);
+  sock = new EIBNetIPSocket (saddr, 0, t);
   sock->sendaddr = caddr;
   sock->recvaddr = caddr;
   sock->recvall = 1;
   if (!sock->init ())
     die ("IP initialisation failed");
+  sock->on_recv.set<recv_me>();
 
   EIBnet_SearchRequest req;
-  EIBnet_SearchResponse resp;
   EIBNetIPPacket *p1;
   req.caddr = saddr;
   sock->Send (req.ToPacket ());
-  do
-    {
-      p1 = sock->Get (timeout);
-      if (p1)
-	{
-	  if (parseEIBnet_SearchResponse (*p1, resp))
-	    {
-	      printf ("Invalid Search response\n");
-	      continue;
-	    }
-	  printf ("Answer from %s at port %d\n",
-		  inet_ntoa (resp.caddr.sin_addr),
-		  ntohs (resp.caddr.sin_port));
-	  if (shortlist)
-	    {
-	      printf ("Addr: %s\n", FormatEIBAddr (resp.individual_addr) ());
-	      printf ("Name: %s\n", resp.name);
-	    }
-	  else
-	    {
-	      printf
-		("Medium: %d\nState: %d\nAddr: %s\nInstallID: %d\nSerial:",
-		 resp.KNXmedium, resp.devicestatus,
-		 FormatEIBAddr (resp.individual_addr) (), resp.installid);
-	      HexDump (resp.serial, sizeof (resp.serial));
-	      printf ("Multicast-Addr: %s\nMAC:",
-		      inet_ntoa (resp.multicastaddr));
-	      HexDump (resp.MAC, sizeof (resp.MAC));
-	      printf ("Name: %s\n", resp.name);
-	      for (int i = 0; i < resp.services (); i++)
-		printf ("Service %d Version %d\n", resp.services[i].family,
-			resp.services[i].version);
-	    }
-	  printf ("\n");
-	}
-    }
-  while (p1);
+  ev_run (EV_DEFAULT_ 0);
   delete sock;
   return 0;
+
 }

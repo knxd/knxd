@@ -38,7 +38,12 @@ Trace::TraceHeader (int layer)
   tv.tv_usec -= started.tv_usec;
   tv.tv_sec -= started.tv_sec;
 
-  printf ("Layer %d [%d:%-*s %d.%03d] ", layer, seq, trace_namelen, name.c_str(), tv.tv_sec,tv.tv_usec/1000);
+  if (servername.length())
+    printf("%s: ",servername.c_str());
+  if (timestamps)
+    printf ("Layer %d [%2d:%-*s %u.%03u] ", layer, seq, trace_namelen, name.c_str(), (unsigned int)tv.tv_sec,(unsigned int)tv.tv_usec/1000);
+  else
+    printf ("Layer %d [%2d:%s] ", layer, seq, name.c_str());
 }
 
 void
@@ -92,6 +97,8 @@ Trace::ErrorPrintfUncond (unsigned int msgid, const char *msg, ...)
     default:
       c = '?';
     }
+  if (servername.length())
+    fprintf(stderr, "%s: ",servername.c_str());
   fprintf (stderr, "%c%08d: ", c, (msgid & 0xffffff));
   va_start (ap, msg);
   vfprintf (stderr, msg, ap);

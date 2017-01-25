@@ -21,41 +21,20 @@
 #define SNCN5120_SERIAL_H
 #include <termios.h>
 #include "lowlatency.h"
-#include "layer2.h"
+#include "tpuartserial.h"
 
 /** TPUART user mode driver */
-class NCN5120SerialLayer2Driver : public Layer2, private Thread
+class NCN5120SerialLayer2Driver : public TPUARTSerialLayer2Driver
 {
-  /** old serial config */
-  low_latency_save sold;
-  /** old termios state */
-  struct termios old;
-  /** file descriptor */
-  int fd;
-  /** semaphore for inqueue */
-  pth_sem_t in_signal;
-  /** input queue */
-  Queue < LPDU * >inqueue;
-  bool ackallgroup;
-  bool ackallindividual;
-  bool dischreset;
-
-  /** process a recevied frame */
-  void RecvLPDU (const uchar * data, int len);
-  void Run (pth_sem_t * stop);
-  const char *Name() { return "ncn5120"; }
 public:
-  NCN5120SerialLayer2Driver (const char *dev, L2options *opt);
-  ~NCN5120SerialLayer2Driver ();
-  bool init (Layer3 *l3);
+    NCN5120SerialLayer2Driver (const char *dev, L2options *opt);
+   ~NCN5120SerialLayer2Driver ();
 
-  void Send_L_Data (LPDU * l);
+protected:
+  void termios_settings(struct termios &t);
+  unsigned int default_baudrate();
 
-  bool enterBusmonitor ();
-  bool leaveBusmonitor ();
-
-  bool Open ();
-  bool Send_Queue_Empty ();
+  void RecvLPDU (const uchar * data, int len);
 };
 
 #endif

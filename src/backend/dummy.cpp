@@ -28,37 +28,57 @@
 DummyL2Driver::DummyL2Driver (L2options *opt) : Layer2 (opt)
 {
   TRACEPRINTF (t, 2, this, "Open");
-  Start ();
-  TRACEPRINTF (t, 2, this, "Openend");
 }
+
+bool
+DummyL2Driver::init (Layer3 *l3)
+{
+    addGroupAddress(0);
+    return Layer2::init(l3);
+}
+
 
 DummyL2Driver::~DummyL2Driver ()
 {
   TRACEPRINTF (t, 2, this, "Close");
-  Stop ();
 }
 
 void
-DummyL2Driver::Send_L_Data (LPDU * l)
+DummyL2Driver::send_L_Data (L_Data_PDU * l)
 {
-  TRACEPRINTF (t, 2, this, "Send %s", l->Decode ()());
+  TRACEPRINTF (t, 2, this, "Send %s", l->Decode ().c_str());
   if ((mode & BUSMODE_MONITOR) && l->getType () == L_Data)
+  if (mode & BUSMODE_MONITOR)
     {
       L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (shared_from_this());
       l2->pdu.set (l->ToPacket ());
-      l3->recv_L_Data (l2);
+      l3->recv_L_Busmonitor (l2);
     }
   delete l;
 }
 
-//Open
+DummyL2Filter::DummyL2Filter (L2options *opt, Layer2Ptr l2) : Layer23 (l2)
+{
+  TRACEPRINTF (t, 2, this, "OpenFilter");
+}
 
 void
-DummyL2Driver::Run (pth_sem_t * stop1)
+DummyL2Filter::send_L_Data (L_Data_PDU * l)
 {
-  TRACEPRINTF (t, 2, this, "DummyStart");
-  pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
-  pth_wait(stop);
-  pth_event_free (stop, PTH_FREE_THIS);
-  TRACEPRINTF (t, 2, this, "DummyEnd");
+  TRACEPRINTF (t, 2, this, "Passing %s", l->Decode ().c_str());
+  Layer23::send_L_Data (l);
 }
+
+DummyL2Filter::~DummyL2Filter ()
+{
+  TRACEPRINTF (t, 2, this, "CloseFilter");
+}
+
+Layer2Ptr
+DummyL2Filter::clone (Layer2Ptr l2)
+{
+    Layer2Ptr c = Layer2Ptr(new DummyL2Filter(NULL, l2));
+    // now copy our settings to c. In this case there's nothing to copy.
+    return c;
+}
+

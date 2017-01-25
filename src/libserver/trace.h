@@ -22,6 +22,7 @@
 
 #include <stdarg.h>
 #include <sys/time.h>
+#include <memory>
 #include "common.h"
 
 #define TRACE_LEVEL_0 0x01
@@ -59,16 +60,19 @@ class Trace
   unsigned int level;
   /** when did we start up? */
   struct timeval started;
+  /** print timestamps when tracing */
+  bool timestamps = true;
 
   /** print the common header */
   void TraceHeader (int layer);
 
 public:
-  /** name and number of this tracer */
+  /** name(s) and number of this tracer */
+  std::string &servername;
   std::string name;
   unsigned int seq;
 
-  Trace (const char *name)
+  Trace (std::string &server, const char *name) : servername(server)
   {
     layers = 0;
     level = 0;
@@ -79,12 +83,13 @@ public:
     gettimeofday(&started, NULL);
   }
 
-  Trace (Trace *orig, std::string name)
+  Trace (Trace &orig, std::string name) : servername(orig.servername)
   {
-    this->layers = orig->layers;
-    this->level = orig->level;
+    this->layers = orig.layers;
+    this->level = orig.level;
     this->name = name;
-    this->started = orig->started;
+    this->started = orig.started;
+    this->timestamps = orig.timestamps;
     this->seq = ++trace_seq;
     if (trace_namelen < this->name.length())
       trace_namelen = this->name.length();
@@ -97,6 +102,11 @@ public:
   virtual void SetTraceLevel (int l)
   {
     layers = l;
+  }
+
+  virtual void SetTimestamps (bool l)
+  {
+    timestamps = l;
   }
 
   /** sets error level */
@@ -136,7 +146,7 @@ public:
    */
   void TracePacket (int layer, void *inst, const char *msg, const CArray & c)
   {
-    TracePacket (layer, inst, msg, c (), c.array ());
+    TracePacket (layer, inst, msg, c.size(), c.data());
   }
 
   /** like printf for this trace
@@ -176,6 +186,9 @@ public:
       return 0;
   }
 };
+
+typedef std::shared_ptr<Trace> TracePtr;
+
 
 #define TRACEPRINTF(trace, layer, inst, msg, args...) do { if ((trace)->ShowPrint(layer)) (trace)->TracePrintf(layer, inst, msg, ##args); } while (0)
 #define ERRORPRINTF(trace, msgid, inst, msg, args...) do { \

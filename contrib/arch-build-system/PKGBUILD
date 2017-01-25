@@ -11,7 +11,7 @@ arch=('i686' 'x86_64' 'arm' 'armv6h' 'armv7h')
 conflicts=('knxd' 'eibd')
 provides=('knxd')
 replaces=('eibd')
-depends=('pthsem>=2.0.8' 'gcc-libs')
+depends=('gcc-libs')
 optdepends=('libsystemd' 'libusb')
 makedepends=('git' 'libtool' 'autoconf' 'automake')
 

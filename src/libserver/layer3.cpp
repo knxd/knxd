@@ -20,385 +20,419 @@
 #include "layer3.h"
 #include "layer2.h"
 #include "server.h"
+#include <typeinfo>
 
-Layer3::Layer3 (eibaddr_t addr, Trace * tr, bool force_broadcast)
+Layer3::Layer3() { }
+Layer3::~Layer3() { }
+
+Layer3real::Layer3real (eibaddr_t addr, TracePtr tr, bool force_broadcast)
+    : Layer3()
 {
-  t = tr;
+  _tr = tr;
   defaultAddr = addr;
   this->force_broadcast = force_broadcast;
-  TRACEPRINTF (t, 3, this, "Open");
-  pth_sem_init (&bufsem);
-  running = false;
-  Start ();
+  TRACEPRINTF (_tr, 3, this, "Open");
+  running = true;
+  trigger.set<Layer3real, &Layer3real::trigger_cb>(this);
+  trigger.start();
+  mtrigger.set<Layer3real, &Layer3real::mtrigger_cb>(this);
+  mtrigger.start();
+  cleanup.set<Layer3real, &Layer3real::cleanup_cb>(this);
+  cleanup.start();
+
+  TRACEPRINTF (_tr, 3, this, "L3 started");
 }
 
-Layer3::~Layer3 ()
+Layer3real::~Layer3real ()
 {
-  TRACEPRINTF (t, 3, this, "Close");
-  Stop ();
-  while (servers ())
-    delete servers[0];
-  // the next loops should do exactly nothing
-  while (vbusmonitor ())
-    deregisterVBusmonitor (vbusmonitor[0].cb);
+  TRACEPRINTF (tr(), 3, this, "L3 stopping");
+  running = false;
+  cache = nullptr;
+  trigger.stop();
+  mtrigger.stop();
+  while (!buf.isempty())
+    delete buf.get();
+  while (!mbuf.isempty())
+    delete mbuf.get();
 
-  for (unsigned int i = 0; i < tracers (); i++)
-    delete tracers[i];
+  R_ITER(i,layer2)
+    (*i)->stop();
+  ITER(i,layer2)
+    ERRORPRINTF (tr(), E_WARNING | 54, this, "Layer2 '%s' didn't de-register!", (*i)->Name());
+
+  layer2.clear();
+  servers.clear();
+
+  R_ITER(i,vbusmonitor)
+    ERRORPRINTF (tr(), E_WARNING | 55, this, "VBusmonitor '%s' didn't de-register!", i->cb->Name());
+  vbusmonitor.clear();
+
+  R_ITER(i,busmonitor)
+    ERRORPRINTF (tr(), E_WARNING | 56, this, "Busmonitor '%s' didn't de-register!", i->cb->Name());
+  busmonitor.clear();
+
+  cleanup.stop();
+  TRACEPRINTF (tr(), 3, this, "Closed");
 }
 
 void
-Layer3::recv_L_Data (LPDU * l)
+Layer3real::recv_L_Data (L_Data_PDU * l)
 {
   if (running)
     {
-      TRACEPRINTF (t, 3, this, "Enqueue %s", l->Decode ()());
+      TRACEPRINTF (l->l2->t, 9, this, "Enqueue %s", l->Decode ().c_str());
       buf.put (l);
-      pth_sem_inc (&bufsem, 0);
+      trigger.send();
     }
   else
     {
-      TRACEPRINTF (t, 3, this, "Discard(not running) %s", l->Decode ()());
+      TRACEPRINTF (l->l2->t, 3, this, "Discard(not running) %s", l->Decode ().c_str());
+      delete l;
+    }
+}
+
+void
+Layer3real::recv_L_Busmonitor (L_Busmonitor_PDU * l)
+{
+  if (running)
+    {
+      TRACEPRINTF (tr(), 3, this, "Enqueue %s", l->Decode ().c_str());
+      mbuf.put (l);
+      mtrigger.send();
+    }
+  else
+    {
+      TRACEPRINTF (tr(), 3, this, "Discard(not running) %s", l->Decode ().c_str());
       delete l;
     }
 }
 
 bool
-Layer3::deregisterBusmonitor (L_Busmonitor_CallBack * c)
+Layer3real::deregisterBusmonitor (L_Busmonitor_CallBack * c)
 {
   unsigned i;
-  for (i = 0; i < busmonitor (); i++)
+  for (i = 0; i < busmonitor.size(); i++)
     if (busmonitor[i].cb == c)
       {
-	busmonitor[i] = busmonitor[busmonitor () - 1];
-	busmonitor.resize (busmonitor () - 1);
-	if (busmonitor () == 0)
-          for (unsigned int i = 0; i < layer2 (); i++)
+	busmonitor.erase(busmonitor.begin()+i);
+	if (busmonitor.size() == 0)
+          for (unsigned int i = 0; i < layer2.size(); i++)
             if (layer2[i]->leaveBusmonitor ())
               layer2[i]->Open ();
-	TRACEPRINTF (t, 3, this, "deregisterBusmonitor %08X = 1", c);
+	TRACEPRINTF (tr(), 3, this, "deregisterBusmonitor %08X = 1", c);
 	return true;
       }
-  TRACEPRINTF (t, 3, this, "deregisterBusmonitor %08X = 0", c);
+  TRACEPRINTF (tr(), 3, this, "deregisterBusmonitor %08X = 0", c);
   return false;
 }
 
 void
-Layer3::deregisterServer (BaseServer * s)
+Layer3real::deregisterServer (BaseServer * s)
 {
-  unsigned i;
-  for (i = 0; i < servers (); i++)
-    if (servers[i] == s)
+  ITER(i,servers)
+    if (*i == s)
       {
-	servers[i] = servers[servers () - 1];
-	servers.resize (servers () - 1);
-	TRACEPRINTF (t, 3, this, "deregisterServer %d:%s = 1", s->t->seq, s->t->name.c_str());
+	TRACEPRINTF (tr(), 3, this, "deregisterServer %d:%s = 1", s->t->seq, s->t->name.c_str());
+	servers.erase(i);
 	return;
       }
-  TRACEPRINTF (t, 3, this, "deregisterServer %d:%s = 0", s->t->seq, s->t->name.c_str());
+  TRACEPRINTF (tr(), 3, this, "deregisterServer %d:%s = 0", s->t->seq, s->t->name.c_str());
 }
 
 bool
-Layer3::deregisterVBusmonitor (L_Busmonitor_CallBack * c)
+Layer3real::deregisterVBusmonitor (L_Busmonitor_CallBack * c)
 {
-  unsigned i;
-  for (i = 0; i < vbusmonitor (); i++)
-    if (vbusmonitor[i].cb == c)
+  ITER(i,vbusmonitor)
+    if (i->cb == c)
       {
-	vbusmonitor[i] = vbusmonitor[vbusmonitor () - 1];
-	vbusmonitor.resize (vbusmonitor () - 1);
-	TRACEPRINTF (t, 3, this, "deregisterVBusmonitor %08X = 1", c);
+	TRACEPRINTF (tr(), 3, this, "deregisterVBusmonitor %08X = 1", c);
+	vbusmonitor.erase(i);
 	return true;
       }
-  TRACEPRINTF (t, 3, this, "deregisterVBusmonitor %08X = 0", c);
+  TRACEPRINTF (tr(), 3, this, "deregisterVBusmonitor %08X = 0", c);
   return false;
 }
 
 bool
-Layer3::deregisterLayer2 (Layer2Ptr l2)
+Layer3real::deregisterLayer2 (Layer2Ptr l2)
 {
-  unsigned i;
-  for (i = 0; i < layer2 (); i++)
-    if (layer2[i] == l2)
-      {
-	layer2[i] = layer2[layer2 () - 1];
-	layer2.resize (layer2 () - 1);
-	TRACEPRINTF (t, 3, this, "deregisterLayer2 %d:%s = 1", l2->t->seq, l2->t->name.c_str());
-	return true;
-      }
-  TRACEPRINTF (t, 3, this, "deregisterLayer2 %d:%s = 0", l2->t->seq, l2->t->name.c_str());
-  return false;
+  cleanup_q.put(l2);
+  cleanup.send();
+}
+
+void
+Layer3real::cleanup_cb (ev::async &w, int revents)
+{
+  while (!cleanup_q.isempty())
+    {
+      Layer2Ptr l2 = cleanup_q.get();
+
+      ITER(i,layer2)
+        if (*i == l2)
+          {
+            TRACEPRINTF (tr(), 3, this, "deregisterLayer2 %d:%s = 1", l2->t->seq, l2->t->name.c_str());
+            layer2.erase(i);
+            break;
+          }
+      TRACEPRINTF (tr(), 3, this, "deregisterLayer2 %d:%s = 0", l2->t->seq, l2->t->name.c_str());
+    }
 }
 
 bool
-Layer3::registerBusmonitor (L_Busmonitor_CallBack * c)
+Layer3real::registerBusmonitor (L_Busmonitor_CallBack * c)
 {
-  TRACEPRINTF (t, 3, this, "registerBusmonitor %08X", c);
-  if (!busmonitor()) 
+  TRACEPRINTF (tr(), 3, this, "registerBusmonitor %08X", c);
+  if (!busmonitor.size()) 
     {
       bool have_monitor = false;
-      for (unsigned int i = 0; i < layer2 (); i++)
-        if (layer2[i]->Close ()) 
+      ITER (i, layer2)
+        if (i->get()->Close ()) 
           {
-            if (layer2[i]->enterBusmonitor ())
+            if (i->get()->enterBusmonitor ())
               have_monitor = true;
             else
-              layer2[i]->Open ();
+              i->get()->Open ();
           }
       if (! have_monitor)
         return false;
     }
-  busmonitor.resize (busmonitor () + 1);
-  busmonitor[busmonitor () - 1].cb = c;
-  TRACEPRINTF (t, 3, this, "registerBusmontitr %08X = 1", c);
+  busmonitor.push_back((Busmonitor_Info){.cb=c});
+  TRACEPRINTF (tr(), 3, this, "registerBusmontitr %08X = 1", c);
   return true;
 }
 
 bool
-Layer3::registerVBusmonitor (L_Busmonitor_CallBack * c)
+Layer3real::registerVBusmonitor (L_Busmonitor_CallBack * c)
 {
-  TRACEPRINTF (t, 3, this, "registerVBusmonitor %08X", c);
-  vbusmonitor.resize (vbusmonitor () + 1);
-  vbusmonitor[vbusmonitor () - 1].cb = c;
+  vbusmonitor.push_back((Busmonitor_Info){.cb=c});
+  TRACEPRINTF (tr(), 3, this, "registerVBusmonitor %08X", c);
   return true;
 }
 
-bool
-Layer3::registerLayer2 (Layer2Ptr l2)
+Layer3 *
+Layer3real::registerLayer2 (Layer2Ptr l2)
 {
-  TRACEPRINTF (t, 3, this, "registerLayer2 %d:%s", l2->t->seq, l2->t->name.c_str());
-  if (! busmonitor () || ! l2->enterBusmonitor ())
+  TRACEPRINTF (tr(), 3, this, "registerLayer2 %d:%s", l2->t->seq, l2->t->name.c_str());
+  if (! busmonitor.size() || ! l2->enterBusmonitor ())
     if (! l2->Open ())
       {
-        TRACEPRINTF (t, 3, this, "registerLayer2 %d:%s = 0", l2->t->seq, l2->t->name.c_str());
-        return false;
+        TRACEPRINTF (tr(), 3, this, "registerLayer2 %d:%s = 0", l2->t->seq, l2->t->name.c_str());
+        return nullptr;
       }
-  layer2.resize (layer2() + 1);
-  layer2[layer2 () - 1] = l2;
-  TRACEPRINTF (t, 3, this, "registerLayer2 %d:%s = 1", l2->t->seq, l2->t->name.c_str());
-  return true;
+  layer2.push_back(l2);
+  TRACEPRINTF (tr(), 3, this, "registerLayer2 %d:%s = 1", l2->t->seq, l2->t->name.c_str());
+  return this;
 }
 
 bool
-Layer3::hasAddress (eibaddr_t addr, Layer2Ptr l2)
+Layer3real::hasAddress (eibaddr_t addr, Layer2Ptr l2)
 {
   if (addr == defaultAddr)
     return true;
 
-  for (unsigned i = 0; i < layer2 (); i++)
-    if (layer2[i] != l2 && layer2[i]->hasAddress (addr))
+  ITER(i,layer2)
+    if (*i != l2 && (*i)->hasAddress (addr))
       return true;
 
   return false;
 }
 
 bool
-Layer3::hasGroupAddress (eibaddr_t addr, Layer2Ptr l2 UNUSED)
+Layer3real::hasGroupAddress (eibaddr_t addr, Layer2Ptr l2 UNUSED)
 {
   if (addr == 0) // always accept broadcast
     return true;
 
-  for (unsigned i = 0; i < layer2 (); i++)
-    if (layer2[i]->hasGroupAddress (addr))
+  ITER(i, layer2)
+    if ((*i)->hasGroupAddress (addr))
       return true;
 
   return false;
 }
 
 void
-Layer3::set_client_block (eibaddr_t r_start, int r_len)
+Layer3real::set_client_block (eibaddr_t r_start, int r_len)
 {
   client_addrs_start = r_start;
   client_addrs_len = r_len;
+  client_addrs_pos = r_len-1;
+  client_addrs.resize(r_len);
+  ITER(i,client_addrs)
+    *i = false;
 }
 
 eibaddr_t
-Layer3::get_client_addr ()
+Layer3real::get_client_addr ()
 {
   /*
    * Start allocating after the last request.
    * Otherwise we'd need locking to protect concurrent requests
    * This is less bug-prone
    */
-  if (client_addrs_len)
-    for (int i = 1; i <= client_addrs_len; i++)
-      {
-        eibaddr_t a = client_addrs_start + (client_addrs_pos + i) % client_addrs_len;
-        if (! hasAddress (a))
-          {
-            TRACEPRINTF (t, 3, this, "Allocate %s", FormatEIBAddr (a)());
-            /* remember for next pass */
-            client_addrs_pos = a - client_addrs_start;
-            return a;
-          }
-      }
+  for (int i = 1; i <= client_addrs_len; i++)
+    {
+      unsigned int pos = (client_addrs_pos + i) % client_addrs_len;
+      if (client_addrs[pos])
+        continue;
+      eibaddr_t a = client_addrs_start + pos;
+      if (! hasAddress (a))
+        {
+          TRACEPRINTF (tr(), 3, this, "Allocate %s", FormatEIBAddr (a).c_str());
+          /* remember for next pass */
+          client_addrs_pos = pos;
+          client_addrs[pos] = true;
+          return a;
+        }
+    }
 
   /* Fall back to our own address */
-  TRACEPRINTF (t, 3, this, "Allocate: falling back to %s", FormatEIBAddr (defaultAddr)());
+  TRACEPRINTF (tr(), 3, this, "Allocate: falling back to %s", FormatEIBAddr (defaultAddr).c_str());
   return 0;
 }
 
 void
-Layer3::Run (pth_sem_t * stop1)
+Layer3real::release_client_addr(eibaddr_t addr)
 {
-  pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
+  TRACEPRINTF (tr(), 3, this, "Release %s", FormatEIBAddr (addr).c_str());
+  if (addr < client_addrs_start)
+    return;
+  unsigned int pos = addr - client_addrs_start;
+  if (pos >= client_addrs_len)
+    return;
+  client_addrs[pos] = false;
+}
+
+void
+Layer3real::trigger_cb (ev::async &w, int revents)
+{
   unsigned i;
 
-  running = true;
-
-  TRACEPRINTF (t, 3, this, "L3 started");
-  while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
+  while (!buf.isempty())
     {
-      pth_event_t bufev = pth_event (PTH_EVENT_SEM, &bufsem);
-      pth_event_concat (bufev, stop, NULL);
-      pth_wait (bufev);
-      pth_event_isolate (bufev);
+      L_Data_PDU *l1 = buf.get ();
 
-      if (pth_event_status (bufev) != PTH_STATUS_OCCURRED)
+      {
+        Layer2Ptr l2 = l1->l2;
+
+        if (l1->source == 0)
+          l1->source = l2->getRemoteAddr();
+        if (l1->source == 0)
+          l1->source = defaultAddr;
+        if (l1->source != defaultAddr)
+          l2->addAddress (l1->source);
+      }
+
+      if (vbusmonitor.size())
         {
-          pth_event_free (bufev, PTH_FREE_THIS);
-          continue;
+          L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (l1->l2);
+          l2->pdu.set (l1->ToPacket ());
+
+          ITER(i,vbusmonitor)
+            {
+              L_Busmonitor_PDU *l2x = new L_Busmonitor_PDU (*l2);
+              i->cb->send_L_Busmonitor (l2x);
+            }
+          delete l2;
         }
-      pth_event_free (bufev, PTH_FREE_THIS);
+      if (!l1->hopcount)
+        {
+          TRACEPRINTF (tr(), 3, this, "Hopcount zero: %s", l1->Decode ().c_str());
+          goto next;
+        }
+      if (l1->hopcount < 7 || !force_broadcast)
+        l1->hopcount--;
 
-      pth_sem_dec (&bufsem);
-      LPDU *l = buf.get ();
+      if (l1->repeated)
+        {
+          CArray d1 = l1->ToPacket ();
+          ITER (i,ignore)
+            if (d1 == i->data)
+              {
+                TRACEPRINTF (tr(), 9, this, "Repeated, discarded");
+                goto next;
+              }
+        }
+      l1->repeated = 1;
+      ignore.push_back((IgnoreInfo){.data = l1->ToPacket (), .end = getTime () + 1000000});
+      l1->repeated = 0;
 
-      if (!l)
-	continue;
+      if (l1->AddrType == IndividualAddress
+          && l1->dest == defaultAddr)
+        l1->dest = 0;
+      TRACEPRINTF (tr(), 3, this, "RecvData %s", l1->Decode ().c_str());
 
-      if (l->getType () == L_Data)
-	{
-	  L_Data_PDU *l1 = dynamic_cast<L_Data_PDU *>(l);
-
-          if (vbusmonitor ())
+      if (l1->AddrType == GroupAddress)
+        {
+          // This is easy: send to all other L2 which subscribe to the
+          // group.
+          ITER(i, layer2)
             {
-              L_Busmonitor_PDU *l2 = new L_Busmonitor_PDU (l->l2);
-              l2->pdu.set (l->ToPacket ());
-
-              for (i = 0; i < vbusmonitor (); i++)
-                {
-                  L_Busmonitor_PDU *l2x = new L_Busmonitor_PDU (*l2);
-                  vbusmonitor[i].cb->Send_L_Busmonitor (l2x);
-                }
-              delete l2;
+              if (*i == l1->l2)
+                continue;
+              if (l1->hopcount == 7 || (*i)->hasGroupAddress(l1->dest))
+                (*i)->send_L_Data (new L_Data_PDU (*l1));
             }
-          if (!l1->hopcount)
+        }
+      if (l1->AddrType == IndividualAddress)
+        {
+	  if (!l1->dest)
+	    {
+	      // Common problem with things that are not true gateways
+	      ERRORPRINTF (l1->l2->t, E_WARNING | 57, this, "Message without destination. Use the single-node filter ('-B single')?");
+	      goto next;
+	    }
+
+          // This is not so easy: we want to send to whichever
+          // interface on which the address has appeared. If it hasn't
+          // been seen yet, we send to all interfaces.
+          // Addresses ~0 is special; it's used for programming
+          // so can be on different interfaces. Always broadcast these.
+          bool found = false;
+          if (l1->dest != 0xFFFF)
+            ITER(i, layer2)
+              {
+                if (*i == l1->l2)
+                  continue;
+                if ((*i)->hasAddress (l1->dest))
+                  {
+                    found = true;
+                    break;
+                  }
+              }
+          ITER (i, layer2)
             {
-              TRACEPRINTF (t, 3, this, "Hopcount zero: %s", l1->Decode ()());
-              delete l;
-              continue;
+              if (*i == l1->l2)
+                continue;
+              if (l1->hopcount == 7 || !found || (*i)->hasAddress (l1->dest))
+                (*i)->send_L_Data (new L_Data_PDU (*l1));
             }
-          if (l1->hopcount < 7 || !force_broadcast)
-            l1->hopcount--;
-
-	  if (l1->repeated)
-	    {
-	      CArray d1 = l1->ToPacket ();
-	      for (i = 0; i < ignore (); i++)
-		if (d1 == ignore[i].data)
-		  {
-		    TRACEPRINTF (t, 3, this, "Repeated discareded");
-		    goto wt;
-		  }
-	    }
-	  l1->repeated = 1;
-	  ignore.resize (ignore () + 1);
-	  ignore[ignore () - 1].data = l1->ToPacket ();
-	  ignore[ignore () - 1].end = getTime () + 1000000;
-	  l1->repeated = 0;
-
-          {
-            Layer2Ptr l2 = l1->l2;
-
-            if (l1->source == 0)
-              l1->source = l2->remoteAddr ? l2->remoteAddr : defaultAddr;
-            if (l1->source != defaultAddr)
-              l2->addAddress (l1->source);
-            else if (l1->AddrType == IndividualAddress && l1->dest != defaultAddr)
-              l2->addReverseAddress (l1->dest);
-          }
-
-	  if (l1->AddrType == IndividualAddress
-	      && l1->dest == defaultAddr)
-	    l1->dest = 0;
-	  TRACEPRINTF (t, 3, this, "RecvData %s", l1->Decode ()());
-
-	  if (l1->source == 0)
-	    l1->source = defaultAddr;
-
-	  if (l1->AddrType == GroupAddress)
-	    {
-	      // This is easy: send to all other L2 which subscribe to the
-	      // group.
-	      for (i = 0; i < layer2 (); i++)
-                {
-		  if ((l1->hopcount == 7)
-		      || ((layer2[i] != l1->l2) && layer2[i]->hasGroupAddress(l1->dest)))
-		    layer2[i]->Send_L_Data (new L_Data_PDU (*l1));
-                }
-	    }
-	  if (l1->AddrType == IndividualAddress)
-	    {
-	      // This is not so easy: we want to send to whichever
-	      // interface on which the address has appeared. If it hasn't
-	      // been seen yet, we send to all interfaces which are buses.
-	      // which get marked by accepting the otherwise-illegal physical
-	      // address 0.
-	      bool found = false;
-	      for (i = 0; i < layer2 (); i++)
-                {
-                  if (layer2[i] == l1->l2)
-		    continue;
-                  if (l1->dest ? layer2[i]->hasAddress (l1->dest)
-		               : layer2[i]->hasReverseAddress (l1->source))
-		    {
-		      found = true;
-		      break;
-		    }
-		}
-	      for (i = 0; i < layer2 (); i++)
-		if ((l1->hopcount == 7)
-                    || (layer2[i] != l1->l2
-		     && l1->dest ? layer2[i]->hasAddress (found ? l1->dest : 0)
-		                 : layer2[i]->hasReverseAddress (l1->source)))
-		  layer2[i]->Send_L_Data (new L_Data_PDU (*l1));
-	    }
-	}
-      else if (l->getType () == L_Busmonitor)
-	{
-	  L_Busmonitor_PDU *l1, *l2;
-	  l1 = dynamic_cast<L_Busmonitor_PDU *>(l);
-
-	  TRACEPRINTF (t, 3, this, "RecvMon %s", l1->Decode ()());
-	  for (i = 0; i < busmonitor (); i++)
-	    {
-	      l2 = new L_Busmonitor_PDU (*l1);
-	      busmonitor[i].cb->Send_L_Busmonitor (l2);
-	    }
-	}
-      // ignore[] is ordered, any timed-out items are at the front
-      for (i = 0; i < ignore (); i++)
-	if (ignore[i].end >= getTime ())
-          break;
-      if (i)
-        ignore.deletepart (0, i);
-    wt:
-      delete l;
-
+        }
+    next:
+      delete l1;
     }
-  TRACEPRINTF (t, 3, this, "L3 stopping");
 
-  running = false;
-  while (layer2 ())
+  // Timestamps are ordered, so we scan for the first 
+  timestamp_t tm = getTime ();
+  ITER (i, ignore)
+    if (i->end >= tm)
+      {
+        ignore.erase (ignore.begin(), i);
+        break;
+      }
+}
+
+void
+Layer3real::mtrigger_cb (ev::async &w, int revents)
+{
+  unsigned i;
+
+  while (!mbuf.isempty())
     {
-      Layer2Ptr l2 = layer2[layer2() - 1];
-      layer2.resize (layer2 () - 1);
+      L_Busmonitor_PDU *l1 = mbuf.get ();
 
-      // TODO: This depends on runtime typing. Ugh. Fix me.
-      std::shared_ptr<Thread> l2t = std::dynamic_pointer_cast<Thread>(l2);
-      if (l2t)
-        l2t->Stop();
+      TRACEPRINTF (tr(), 3, this, "RecvMon %s", l1->Decode ().c_str());
+      ITER (i, busmonitor)
+        i->cb->send_L_Busmonitor (new L_Busmonitor_PDU (*l1));
+      delete l1;
     }
-
-  pth_event_free (stop, PTH_FREE_THIS);
 }

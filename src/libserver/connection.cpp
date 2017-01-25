@@ -18,460 +18,340 @@
 */
 
 #include "connection.h"
+#include "trace.h"
 
-A_Broadcast::A_Broadcast (ClientConnection * cc)
+A_Base::~A_Base()
 {
-  con = cc;
-  TRACEPRINTF (con->t, 7, this, "OpenBroadcast");
-  c = nullptr;
-  if (con->size != 5)
-    {
-      TRACEPRINTF (con->t, 7, this, "OpenBroadcast size bad %d", con->size);
-      return;
-    }
-  c = T_BroadcastPtr(new T_Broadcast (con->t, con->buf[4] != 0));
-  if (!c->init (con->l3))
-    {
-      TRACEPRINTF (con->t, 7, this, "OpenBroadcast init bad");
-      return;
-    }
-  Start ();
-  TRACEPRINTF (con->t, 7, this, "OpenBroadcast complete");
 }
 
-A_Group::A_Group (ClientConnection * cc)
+A_Broadcast::A_Broadcast (ClientConnPtr cc, uint8_t *buf,size_t len)
 {
-  con = cc;
-  TRACEPRINTF (con->t, 7, this, "OpenGroup");
+  TracePtr t = TracePtr(new Trace(*cc->t, cc->t->name+":"+FormatEIBAddr(cc->addr)));
+  TRACEPRINTF (t, 7, this, "OpenBroadcast");
   c = nullptr;
-  if (con->size != 5)
+  addr = cc->addr;
+  if (len != 5)
     {
-      TRACEPRINTF (con->t, 7, this, "OpenGroup size bad %d", con->size);
+      TRACEPRINTF (t, 7, this, "OpenBroadcast size bad %d", len);
       return;
     }
-  c = T_GroupPtr(new T_Group (cc->t, (con->buf[2] << 8) | (con->buf[3]),
-		 con->buf[4] != 0));
-  if (!c->init (con->l3))
+  c = T_BroadcastPtr(new T_Broadcast (t, buf[4] != 0));
+  if (!c->init (this, cc->l3))
     {
-      TRACEPRINTF (con->t, 7, this, "OpenGroup init bad");
+      TRACEPRINTF (t, 7, this, "OpenBroadcast init bad");
       return;
     }
-  Start ();
-  TRACEPRINTF (con->t, 7, this, "OpenGroup complete");
+  cc->sendmessage (2, buf);
+  con = cc;
+  TRACEPRINTF (t, 7, this, "OpenBroadcast complete");
 }
 
-A_TPDU::A_TPDU (ClientConnection * cc)
+A_Group::A_Group (ClientConnPtr cc, uint8_t *buf,size_t len)
 {
-  con = cc;
-  TRACEPRINTF (con->t, 7, this, "OpenTPDU");
+  TracePtr t = TracePtr(new Trace(*cc->t, cc->t->name+":"+FormatEIBAddr(cc->addr)));
+  TRACEPRINTF (t, 7, this, "OpenGroup");
   c = nullptr;
-  if (con->size != 5)
+  addr = cc->addr;
+  if (len != 5)
     {
-      TRACEPRINTF (con->t, 7, this, "OpenTPDU size bad %d", con->size);
+      TRACEPRINTF (t, 7, this, "OpenGroup size bad %d", len);
       return;
     }
-  c = T_TPDUPtr(new T_TPDU (con->t, (con->buf[2] << 8) | (con->buf[3])));
-  if (!c->init (con->l3))
+  c = T_GroupPtr(new T_Group (t, (buf[2] << 8) | (buf[3]),
+		 buf[4] != 0));
+  if (!c->init (this, cc->l3))
     {
-      TRACEPRINTF (con->t, 7, this, "OpenTPDU init bad");
+      TRACEPRINTF (t, 7, this, "OpenGroup init bad");
       return;
     }
-  Start ();
-  TRACEPRINTF (con->t, 7, this, "OpenTPDU complete");
+  cc->sendmessage (2, buf);
+  con = cc;
+  TRACEPRINTF (t, 7, this, "OpenGroup complete");
 }
 
-A_Individual::A_Individual (ClientConnection * cc)
+A_TPDU::A_TPDU (ClientConnPtr cc, uint8_t *buf,size_t len)
 {
-  con = cc;
-  TRACEPRINTF (con->t, 7, this, "OpenIndividual");
+  TracePtr t = TracePtr(new Trace(*cc->t, cc->t->name+":"+FormatEIBAddr(cc->addr)));
+  TRACEPRINTF (t, 7, this, "OpenTPDU");
   c = nullptr;
-  if (con->size != 5)
+  addr = cc->addr;
+  if (len != 5)
     {
-      TRACEPRINTF (con->t, 7, this, "OpenIndividual size bad %d", con->size);
+      TRACEPRINTF (t, 7, this, "OpenTPDU size bad %d", len);
+      return;
+    }
+  c = T_TPDUPtr(new T_TPDU (t, (buf[2] << 8) | (buf[3])));
+  if (!c->init (this, cc->l3))
+    {
+      TRACEPRINTF (t, 7, this, "OpenTPDU init bad");
+      return;
+    }
+  cc->sendmessage (2, buf);
+  con = cc;
+  TRACEPRINTF (t, 7, this, "OpenTPDU complete");
+}
+
+A_Individual::A_Individual (ClientConnPtr cc, uint8_t *buf,size_t len)
+{
+  TracePtr t = TracePtr(new Trace(*cc->t, cc->t->name+":"+FormatEIBAddr(cc->addr)));
+  TRACEPRINTF (t, 7, this, "OpenIndividual");
+  c = nullptr;
+  addr = cc->addr;
+  if (len != 5)
+    {
+      TRACEPRINTF (t, 7, this, "OpenIndividual size bad %d", len);
       return;
     }
   c = T_IndividualPtr(
-    new T_Individual (con->t, (con->buf[2] << 8) | (con->buf[3]),
-		      con->buf[4] != 0));
-  if (!c->init (con->l3))
+    new T_Individual (t, (buf[2] << 8) | (buf[3]),
+		      buf[4] != 0));
+  if (!c->init (this, cc->l3))
     {
-      TRACEPRINTF (con->t, 7, this, "OpenIndividual init bad");
+      TRACEPRINTF (t, 7, this, "OpenIndividual init bad");
       return;
     }
-  Start ();
-  TRACEPRINTF (con->t, 7, this, "OpenIndividual complete");
+  cc->sendmessage (2, buf);
+  con = cc;
+  TRACEPRINTF (t, 7, this, "OpenIndividual complete");
 }
 
-A_Connection::A_Connection (ClientConnection * cc)
+A_Connection::A_Connection (ClientConnPtr cc, uint8_t *buf,size_t len)
 {
-  con = cc;
-  TRACEPRINTF (con->t, 7, this, "OpenConnection");
+  TracePtr t = TracePtr(new Trace(*cc->t, cc->t->name+":"+FormatEIBAddr(cc->addr)));
+  TRACEPRINTF (t, 7, this, "OpenConnection");
   c = nullptr;
-  if (con->size != 5)
+  addr = cc->addr;
+  if (len != 5)
     {
-      TRACEPRINTF (con->t, 7, this, "OpenConnection size bad %d", con->size);
+      TRACEPRINTF (t, 7, this, "OpenConnection size bad %d", len);
       return;
     }
-  c = T_ConnectionPtr(new T_Connection (con->t, (con->buf[2] << 8) | (con->buf[3])));
-  if (!c->init (con->l3))
+  c = T_ConnectionPtr(new T_Connection (t, (buf[2] << 8) | (buf[3])));
+  if (!c->init (this, cc->l3))
     {
-      TRACEPRINTF (con->t, 7, this, "OpenConnection init bad");
+      TRACEPRINTF (t, 7, this, "OpenConnection init bad");
       return;
     }
-  Start ();
-  TRACEPRINTF (con->t, 7, this, "OpenConnection complete");
+  cc->sendmessage (2, buf);
+  con = cc;
+  TRACEPRINTF (t, 7, this, "OpenConnection complete");
 }
 
-A_GroupSocket::A_GroupSocket (ClientConnection * cc)
+A_GroupSocket::A_GroupSocket (ClientConnPtr cc, uint8_t *buf,size_t len)
 {
-  con = cc;
-  TRACEPRINTF (con->t, 7, this, "OpenGroupSocket");
+  TracePtr t = TracePtr(new Trace(*cc->t, cc->t->name+":"+FormatEIBAddr(cc->addr)));
+  TRACEPRINTF (t, 7, this, "OpenGroupSocket");
   c = nullptr;
-  if (con->size != 5)
+  addr = cc->addr;
+  if (len != 5)
     {
-      TRACEPRINTF (con->t, 7, this, "OpenGroupSocket size bad %d", con->size);
+      TRACEPRINTF (t, 7, this, "OpenGroupSocket size bad %d", len);
       return;
     }
-  c = GroupSocketPtr(new GroupSocket (con->t, con->buf[4] != 0));
-  if (!c->init (con->l3))
+  c = GroupSocketPtr(new GroupSocket (t, buf[4] != 0));
+  if (!c->init (this, cc->l3))
     {
-      TRACEPRINTF (con->t, 7, this, "OpenGroupSocket init bad");
+      TRACEPRINTF (t, 7, this, "OpenGroupSocket init bad");
       return;
     }
-  Start ();
-  TRACEPRINTF (con->t, 7, this, "OpenGroupSocket complete");
+  cc->sendmessage (2, buf);
+  con = cc;
+  TRACEPRINTF (t, 7, this, "OpenGroupSocket complete");
 }
 
 A_Broadcast::~A_Broadcast ()
 {
   TRACEPRINTF (con->t, 7, this, "CloseBroadcast");
-  Stop ();
+  if (c)
+    c->stop();
 }
 
 A_Group::~A_Group ()
 {
   TRACEPRINTF (con->t, 7, this, "CloseGroup");
-  Stop ();
+  if (c)
+    c->stop();
 }
 
 A_TPDU::~A_TPDU ()
 {
   TRACEPRINTF (con->t, 7, this, "CloseTPDU");
-  Stop ();
+  if (c)
+    c->stop();
 }
 
 A_Individual::~A_Individual ()
 {
   TRACEPRINTF (con->t, 7, this, "CloseIndividual");
-  Stop ();
+  if (c)
+    c->stop();
 }
 
 A_Connection::~A_Connection ()
 {
   TRACEPRINTF (con->t, 7, this, "CloseConnection");
-  Stop ();
+  if (c)
+    c->stop();
 }
 
 A_GroupSocket::~A_GroupSocket ()
 {
   TRACEPRINTF (con->t, 7, this, "CloseGroupSocket");
-  Stop ();
+  if (c)
+    c->stop();
 }
 
 void
-A_Broadcast::Do (pth_event_t stop)
+A_Broadcast::recv(uint8_t *buf, size_t len)
 {
-  if (!c)
+  if (len < 2 || EIBTYPE (buf) != EIB_APDU_PACKET)
     {
-      con->sendreject (stop, EIB_PROCESSING_ERROR);
+      on_error_cb();
       return;
     }
-  if (con->sendmessage (2, con->buf, stop) == -1)
-    return;
-  while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
-    {
-      if (con->readmessage (stop) == -1)
-	break;
-      if (EIBTYPE (con->buf) == EIB_RESET_CONNECTION)
-	break;
-      if (con->size >= 2)
-	{
-	  if (EIBTYPE (con->buf) != EIB_APDU_PACKET)
-	    break;
-	  con->t->TracePacket (7, this, "Send", con->size - 2, con->buf + 2);
-	  c->Send (CArray (con->buf + 2, con->size - 2));
-	}
-    }
+  con->t->TracePacket (7, this, "recv", len - 2, buf + 2);
+  c->recv (CArray (buf + 2, len - 2));
 }
 
 void
-A_Group::Do (pth_event_t stop)
+A_Group::recv(uint8_t *buf, size_t len)
 {
-  if (!c)
+  if (len < 2 || EIBTYPE (buf) != EIB_APDU_PACKET)
     {
-      con->sendreject (stop, EIB_PROCESSING_ERROR);
+      on_error_cb();
       return;
     }
-  if (con->sendmessage (2, con->buf, stop) == -1)
-    return;
-  while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
-    {
-      if (con->readmessage (stop) == -1)
-	break;
-      if (EIBTYPE (con->buf) == EIB_RESET_CONNECTION)
-	break;
-      if (con->size >= 2)
-	{
-	  if (EIBTYPE (con->buf) != EIB_APDU_PACKET)
-	    break;
-	  con->t->TracePacket (7, this, "Send", con->size - 2, con->buf + 2);
-	  c->Send (CArray (con->buf + 2, con->size - 2));
-	}
-    }
+  con->t->TracePacket (7, this, "recv", len - 2, buf + 2);
+  c->recv (CArray (buf + 2, len - 2));
 }
 
 void
-A_TPDU::Do (pth_event_t stop)
+A_TPDU::recv(uint8_t *buf, size_t len)
 {
-  if (!c)
+  if (len < 4 || EIBTYPE (buf) != EIB_APDU_PACKET)
     {
-      con->sendreject (stop, EIB_PROCESSING_ERROR);
+      on_error_cb();
       return;
     }
-  if (con->sendmessage (2, con->buf, stop) == -1)
-    return;
-  while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
-    {
-      if (con->readmessage (stop) == -1)
-	break;
-      if (EIBTYPE (con->buf) == EIB_RESET_CONNECTION)
-	break;
-      if (con->size >= 4)
-	{
-	  if (EIBTYPE (con->buf) != EIB_APDU_PACKET)
-	    break;
-	  con->t->TracePacket (7, this, "Send", con->size - 4, con->buf + 4);
-	  TpduComm p;
-	  p.data = CArray (con->buf + 4, con->size - 4);
-	  p.addr = (con->buf[2] << 8) | (con->buf[3]);
-	  c->Send (p);
-	}
-    }
+  con->t->TracePacket (7, this, "recv", len - 4, buf + 4);
+  TpduComm p;
+  p.data = CArray (buf + 4, len - 4);
+  p.addr = (buf[2] << 8) | (buf[3]);
+  c->recv (p);
 }
 
 void
-A_Individual::Do (pth_event_t stop)
+A_Individual::recv(uint8_t *buf, size_t len)
 {
-  if (!c)
+  if (len < 2 || EIBTYPE (buf) != EIB_APDU_PACKET)
     {
-      con->sendreject (stop, EIB_PROCESSING_ERROR);
+      on_error_cb();
       return;
     }
-  if (con->sendmessage (2, con->buf, stop) == -1)
-    return;
-  while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
-    {
-      if (con->readmessage (stop) == -1)
-	break;
-      if (EIBTYPE (con->buf) == EIB_RESET_CONNECTION)
-	break;
-      if (con->size >= 2)
-	{
-	  if (EIBTYPE (con->buf) != EIB_APDU_PACKET)
-	    break;
-	  con->t->TracePacket (7, this, "Send", con->size - 2, con->buf + 2);
-	  c->Send (CArray (con->buf + 2, con->size - 2));
-	}
-    }
+  con->t->TracePacket (7, this, "recv", len - 2, buf + 2);
+  c->recv (CArray (buf + 2, len - 2));
 }
 
 void
-A_Connection::Do (pth_event_t stop)
+A_Connection::recv(uint8_t *buf, size_t len)
 {
-  if (!c)
+  if (len < 2 || EIBTYPE (buf) != EIB_APDU_PACKET)
     {
-      con->sendreject (stop, EIB_PROCESSING_ERROR);
+      on_error_cb();
       return;
     }
-  if (con->sendmessage (2, con->buf, stop) == -1)
-    return;
-  while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
-    {
-      if (con->readmessage (stop) == -1)
-	break;
-      if (EIBTYPE (con->buf) == EIB_RESET_CONNECTION)
-	break;
-      if (con->size >= 2)
-	{
-	  if (EIBTYPE (con->buf) != EIB_APDU_PACKET)
-	    break;
-	  con->t->TracePacket (7, this, "Send", con->size - 2, con->buf + 2);
-	  c->Send (CArray (con->buf + 2, con->size - 2));
-	}
-    }
+  con->t->TracePacket (7, this, "recv", len - 2, buf + 2);
+  c->recv (CArray (buf + 2, len - 2));
 }
 
 void
-A_GroupSocket::Do (pth_event_t stop)
+A_GroupSocket::recv(uint8_t *buf, size_t len)
 {
-  if (!c)
+  if (len < 4 || EIBTYPE (buf) != EIB_GROUP_PACKET)
     {
-      con->sendreject (stop, EIB_PROCESSING_ERROR);
+      on_error_cb();
       return;
     }
-  if (con->sendmessage (2, con->buf, stop) == -1)
-    return;
-  while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
-    {
-      if (con->readmessage (stop) == -1)
-	break;
-      if (EIBTYPE (con->buf) == EIB_RESET_CONNECTION)
-	break;
-      if (con->size >= 4)
-	{
-	  if (EIBTYPE (con->buf) != EIB_GROUP_PACKET)
-	    break;
-	  con->t->TracePacket (7, this, "Send", con->size - 4, con->buf + 4);
-	  GroupAPDU p;
-	  p.data = CArray (con->buf + 4, con->size - 4);
-	  p.dst = (con->buf[2] << 8) | (con->buf[3]);
-	  c->Send (p);
-	}
-    }
+  con->t->TracePacket (7, this, "recv", len - 4, buf + 4);
+  GroupAPDU p;
+  p.data = CArray (buf + 4, len - 4);
+  p.dst = (buf[2] << 8) | (buf[3]);
+  c->recv (p);
 }
 
 void
-A_Broadcast::Run (pth_sem_t * stop1)
+A_Broadcast::send (BroadcastComm &e)
 {
-  pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
-  while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
-    {
-      BroadcastComm *e = c->Get (stop);
-      if (e)
-	{
-	  CArray res;
-	  res.resize (4 + e->data ());
-	  EIBSETTYPE (res, EIB_APDU_PACKET);
-	  res[2] = (e->src >> 8) & 0xff;
-	  res[3] = (e->src) & 0xff;
-	  res.setpart (e->data.array (), 4, e->data ());
-	  con->t->TracePacket (7, this, "Recv", e->data);
-	  con->sendmessage (res (), res.array (), stop);
-	  delete e;
-	}
-    }
-  pth_event_free (stop, PTH_FREE_THIS);
+  CArray res;
+  res.resize (4 + e.data.size());
+  EIBSETTYPE (res, EIB_APDU_PACKET);
+  res[2] = (e.src >> 8) & 0xff;
+  res[3] = (e.src) & 0xff;
+  res.setpart (e.data.data(), 4, e.data.size());
+  con->t->TracePacket (7, this, "Recv", e.data);
+  con->sendmessage (res.size(), res.data());
 }
 
 void
-A_Group::Run (pth_sem_t * stop1)
+A_Group::send (GroupComm &e)
 {
-  pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
-  while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
-    {
-      GroupComm *e = c->Get (stop);
-      if (e)
-	{
-	  CArray res;
-	  res.resize (4 + e->data ());
-	  EIBSETTYPE (res, EIB_APDU_PACKET);
-	  res[2] = (e->src >> 8) & 0xff;
-	  res[3] = (e->src) & 0xff;
-	  res.setpart (e->data.array (), 4, e->data ());
-	  con->t->TracePacket (7, this, "Recv", e->data);
-	  con->sendmessage (res (), res.array (), stop);
-	  delete e;
-	}
-    }
-  pth_event_free (stop, PTH_FREE_THIS);
+  CArray res;
+  res.resize (4 + e.data.size());
+  EIBSETTYPE (res, EIB_APDU_PACKET);
+  res[2] = (e.src >> 8) & 0xff;
+  res[3] = (e.src) & 0xff;
+  res.setpart (e.data.data(), 4, e.data.size());
+  con->t->TracePacket (7, this, "Recv", e.data);
+  con->sendmessage (res.size(), res.data());
 }
 
 void
-A_TPDU::Run (pth_sem_t * stop1)
+A_TPDU::send (TpduComm &e)
 {
-  pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
-  while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
-    {
-      TpduComm *e = c->Get (stop);
-      if (e)
-	{
-	  CArray res;
-	  res.resize (4 + e->data ());
-	  EIBSETTYPE (res, EIB_APDU_PACKET);
-	  res[2] = (e->addr >> 8) & 0xff;
-	  res[3] = (e->addr) & 0xff;
-	  res.setpart (e->data.array (), 4, e->data ());
-	  con->t->TracePacket (7, this, "Recv", e->data);
-	  con->sendmessage (res (), res.array (), stop);
-	  delete e;
-	}
-    }
-  pth_event_free (stop, PTH_FREE_THIS);
+  CArray res;
+  res.resize (4 + e.data.size());
+  EIBSETTYPE (res, EIB_APDU_PACKET);
+  res[2] = (e.addr >> 8) & 0xff;
+  res[3] = (e.addr) & 0xff;
+  res.setpart (e.data.data(), 4, e.data.size());
+  con->t->TracePacket (7, this, "Recv", e.data);
+  con->sendmessage (res.size(), res.data());
 }
 
 void
-A_Individual::Run (pth_sem_t * stop1)
+A_Individual::send (CArray &e)
 {
-  pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
-  while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
-    {
-      CArray *e = c->Get (stop);
-      if (e)
-	{
-	  CArray res;
-	  res.resize (2 + e->len ());
-	  EIBSETTYPE (res, EIB_APDU_PACKET);
-	  res.setpart (e->array (), 2, e->len ());
-	  con->t->TracePacket (7, this, "Recv", *e);
-	  con->sendmessage (res (), res.array (), stop);
-	  delete e;
-	}
-    }
-  pth_event_free (stop, PTH_FREE_THIS);
+  CArray res;
+  res.resize (2 + e.size());
+  EIBSETTYPE (res, EIB_APDU_PACKET);
+  res.setpart (e.data(), 2, e.size());
+  con->t->TracePacket (7, this, "Recv", e);
+  con->sendmessage (res.size(), res.data());
 }
 
 void
-A_Connection::Run (pth_sem_t * stop1)
+A_Connection::send (CArray &e)
 {
-  pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
-  while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
-    {
-      CArray *e = c->Get (stop);
-      if (e)
-	{
-	  CArray res;
-	  res.resize (2 + e->len ());
-	  EIBSETTYPE (res, EIB_APDU_PACKET);
-	  res.setpart (e->array (), 2, e->len ());
-	  con->t->TracePacket (7, this, "Recv", *e);
-	  con->sendmessage (res (), res.array (), stop);
-	  delete e;
-	}
-    }
-  pth_event_free (stop, PTH_FREE_THIS);
+  CArray res;
+  res.resize (2 + e.size());
+  EIBSETTYPE (res, EIB_APDU_PACKET);
+  res.setpart (e.data(), 2, e.size());
+  con->t->TracePacket (7, this, "Recv", e);
+  con->sendmessage (res.size(), res.data());
 }
 
 void
-A_GroupSocket::Run (pth_sem_t * stop1)
+A_GroupSocket::send (GroupAPDU &e)
 {
-  pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
-  while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
-    {
-      GroupAPDU *e = c->Get (stop);
-      if (e)
-	{
-	  CArray res;
-	  res.resize (6 + e->data ());
-	  EIBSETTYPE (res, EIB_GROUP_PACKET);
-	  res[2] = (e->src >> 8) & 0xff;
-	  res[3] = (e->src) & 0xff;
-	  res[4] = (e->dst >> 8) & 0xff;
-	  res[5] = (e->dst) & 0xff;
-	  res.setpart (e->data.array (), 6, e->data ());
-	  con->t->TracePacket (7, this, "Recv", e->data);
-	  con->sendmessage (res (), res.array (), stop);
-	  delete e;
-	}
-    }
-  pth_event_free (stop, PTH_FREE_THIS);
+  CArray res;
+  res.resize (6 + e.data.size());
+  EIBSETTYPE (res, EIB_GROUP_PACKET);
+  res[2] = (e.src >> 8) & 0xff;
+  res[3] = (e.src) & 0xff;
+  res[4] = (e.dst >> 8) & 0xff;
+  res[5] = (e.dst) & 0xff;
+  res.setpart (e.data.data(), 6, e.data.size());
+  con->t->TracePacket (7, this, "Recv", e.data);
+  con->sendmessage (res.size(), res.data());
 }
+

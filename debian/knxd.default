@@ -13,9 +13,23 @@ START_KNXD=NO
 # Additional options that are passed to the Daemon.
 #
 # sane default: route between local KNX clients and multicast
-DAEMON_ARGS="-u /tmp/eib -u /var/run/knx -i -b ip:"
+DAEMON_ARGS="-e 0.0.1 -E 0.0.2:8 -u /tmp/eib -u /var/run/knx -i -b ip:"
 
-# Run `knxd --help` to get a complete list of available options and drivers.
+# The default options are "-e 0.0.1 -E 0.0.2:8 -u /tmp/eib -b ip:"
+# which tell knxd to route between all of
+#  /tmp/eib (legacy socket (-u))
+#  multicast client (-b ip:).
+# knxd's own bus address is 0.0.1; it will assign 0.0.2…0.0.9 to clients.
+# The knxd.socket file also tells knxd to listen to
+#  /run/eib (socket activation via systemd)
+#  TCP port 6720 (socket activation via systemd)
+
+# You *need* the -e option. Clients cannot connect without "-E".
+# *** DO NOT use "-u" / "-u /run/knx" or "-i" / "-i 6720" here.
+# Systemd already does that on behalf of knxd, via 'knx.socket'.
+
+# DO NOT use "-RS" and "-b ip:" at the same time (unless you specify a
+# different multicast address on one of them). You'd create a loop.
 
 # If you have KNX hardware on a serial port or USB, add the appropriate
 # "-b TYPE:…" option. In this case, you probably want to set up a multicast
@@ -32,4 +46,11 @@ DAEMON_ARGS="-u /tmp/eib -u /var/run/knx -i -b ip:"
 # The default bus address of knxd is 0.0.1. If that's in use in your KNX
 # network (or if you run more than one knxd on your network), set a
 # different address (-e 15.0.99).
+
+
+# Run `knxd --help` to get a complete list of available options and drivers.
+
+## DO NOT use the following options:
+## -d           -- /etc/rc.d/knxd aleady does that for us
+## -p PIDFILE   -- /etc/rc.d/knxd aleady does that for us
 

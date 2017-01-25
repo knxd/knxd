@@ -22,123 +22,134 @@
 #include "client.h"
 
 bool
-CreateGroupCache (Layer3 * l3, Trace * t, bool enable)
+CreateGroupCache (Layer3 * l3, TracePtr t, bool enable, uint16_t maxsize)
 {
   GroupCachePtr cache;
-  if (l3->cache)
+  if (l3->getCache())
     return false;
-  cache = GroupCachePtr(new GroupCache (t));
+  cache = GroupCachePtr(new GroupCache (t, maxsize));
   if (!cache->init (l3))
     return false;
   if (enable)
     if (!cache->Start ())
       return false;
-  l3->cache = cache;
+  l3->setCache(cache);
   return true;
 }
 
 void
 DeleteGroupCache (Layer3 * l3)
 {
-  l3->cache = 0;
+  l3->setCache(nullptr);
 }
 
 void
-GroupCacheRequest (ClientConnection * c, pth_event_t stop)
+ReadCallback(const GroupCacheEntry &gce, bool nowait, ClientConnPtr c)
 {
-  GroupCacheEntry gc;
   CArray erg;
+
+  erg.resize (6 + gce.data.size());
+  EIBSETTYPE (erg, nowait ? EIB_CACHE_READ_NOWAIT : EIB_CACHE_READ);
+  erg[2] = (gce.src >> 8) & 0xff;
+  erg[3] = (gce.src >> 0) & 0xff;
+  erg[4] = (gce.dst >> 8) & 0xff;
+  erg[5] = (gce.dst >> 0) & 0xff;
+  erg.setpart (gce.data, 6);
+  c->sendmessage (erg.size(), erg.data());
+}
+
+void
+LastUpdatesCallback(const Array<eibaddr_t> &addrs, uint16_t end, ClientConnPtr c)
+{
+  CArray erg;
+
+  erg.resize (addrs.size() * 2 + 4);
+  EIBSETTYPE (erg, EIB_CACHE_LAST_UPDATES);
+  erg[2] = (end >> 8) & 0xff;
+  erg[3] = (end >> 0) & 0xff;
+  for (unsigned int i = 0; i < addrs.size(); i++)
+    {
+      erg[4 + i * 2] = (addrs[i] >> 8) & 0xff;
+      erg[4 + i * 2 + 1] = (addrs[i]) & 0xff;
+    }
+  c->sendmessage (erg.size(), erg.data());
+}
+
+void
+GroupCacheRequest (ClientConnPtr c, uint8_t *buf, size_t len)
+{
   eibaddr_t dst;
   uint16_t age = 0;
-  GroupCachePtr cache = c->l3 ? c->l3->cache : 0;
+  GroupCachePtr cache = c->l3 ? c->l3->getCache() : 0;
 
   if (!cache)
     {
-      c->sendreject (stop);
+      c->sendreject ();
       return;
     }
-  switch (EIBTYPE (c->buf))
+  switch (EIBTYPE (buf))
     {
     case EIB_CACHE_ENABLE:
       if (cache->Start ())
-	c->sendreject (stop, EIB_CACHE_ENABLE);
+	c->sendreject (EIB_CACHE_ENABLE);
       else
-	c->sendreject (stop, EIB_CONNECTION_INUSE);
+	c->sendreject (EIB_CONNECTION_INUSE);
       break;
     case EIB_CACHE_DISABLE:
       cache->Stop ();
-      c->sendreject (stop, EIB_CACHE_DISABLE);
+      c->sendreject (EIB_CACHE_DISABLE);
       break;
     case EIB_CACHE_CLEAR:
       cache->Clear ();
-      c->sendreject (stop, EIB_CACHE_CLEAR);
+      c->sendreject (EIB_CACHE_CLEAR);
       break;
     case EIB_CACHE_REMOVE:
-      if (c->size < 4)
+      if (len < 4)
 	{
-	  c->sendreject (stop);
+	  c->sendreject ();
 	  return;
 	}
-      dst = (c->buf[2] << 8) | (c->buf[3]);
+      dst = (buf[2] << 8) | (buf[3]);
       cache->remove (dst);
-      c->sendreject (stop, EIB_CACHE_REMOVE);
+      c->sendreject (EIB_CACHE_REMOVE);
       break;
 
     case EIB_CACHE_READ:
     case EIB_CACHE_READ_NOWAIT:
-      if (c->size < 4)
+      if (len < 4)
 	{
-	  c->sendreject (stop);
+	  c->sendreject ();
 	  return;
 	}
-      dst = (c->buf[2] << 8) | (c->buf[3]);
-      if (EIBTYPE (c->buf) == EIB_CACHE_READ)
+      dst = (buf[2] << 8) | (buf[3]);
+      if (EIBTYPE (buf) == EIB_CACHE_READ)
 	{
-	  if (c->size < 6)
+	  if (len < 6)
 	    {
-	      c->sendreject (stop);
+	      c->sendreject ();
 	      return;
 	    }
-	  age = (c->buf[4] << 8) | (c->buf[5]);
+	  age = (buf[4] << 8) | (buf[5]);
 	}
-      gc =
-	cache->Read (dst, EIBTYPE (c->buf) == EIB_CACHE_READ_NOWAIT ? 0 : 1,
-		     age);
-      erg.resize (6 + gc.data ());
-      EIBSETTYPE (erg, EIBTYPE (c->buf));
-      erg[2] = (gc.src >> 8) & 0xff;
-      erg[3] = (gc.src >> 0) & 0xff;
-      erg[4] = (gc.dst >> 8) & 0xff;
-      erg[5] = (gc.dst >> 0) & 0xff;
-      erg.setpart (gc.data, 6);
-      c->sendmessage (erg (), erg.array (), stop);
+      cache->Read (dst, EIBTYPE (buf) == EIB_CACHE_READ_NOWAIT ? 0 : 1,
+		     age, ReadCallback, c);
       break;
 
     case EIB_CACHE_LAST_UPDATES:
-      if (c->size < 5)
-	{
-	  c->sendreject (stop);
-	  return;
-	}
       {
-	uint16_t end, start = (c->buf[2] << 8) | c->buf[3];
-	uint8_t timeout = c->buf[4];
-	Array < eibaddr_t > addrs =
-	  cache->LastUpdates (start, timeout, end, stop);
-	erg.resize (addrs () * 2 + 4);
-	EIBSETTYPE (erg, EIBTYPE (c->buf));
-	erg[2] = (end >> 8) & 0xff;
-	erg[3] = (end >> 0) & 0xff;
-	for (unsigned int i = 0; i < addrs (); i++)
-	  {
-	    erg[4 + i * 2] = (addrs[i] >> 8) & 0xff;
-	    erg[4 + i * 2 + 1] = (addrs[i]) & 0xff;
-	  }
-	c->sendmessage (erg (), erg.array (), stop);
+        if (len < 5)
+          {
+            c->sendreject ();
+            return;
+          }
+        uint16_t start = (buf[2] << 8) | buf[3];
+        uint8_t timeout = buf[4];
+        cache->LastUpdates (start, timeout, &LastUpdatesCallback, c);
+        break;
       }
-      break;
 
     default:
-      c->sendreject (stop);
+      c->sendreject ();
     }
 }
+

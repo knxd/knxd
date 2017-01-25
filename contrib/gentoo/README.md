@@ -22,7 +22,6 @@
    in our case it looks like this:
 
         sys-apps/knxd splitdebug.conf
-        dev-libs/pthsem splitdebug.conf
 
-4. emerge pthsem knxd
+4. emerge knxd
 5. check if it worked, there should exist many files in ```/usr/lib/debug``` for example: ```/usr/lib/debug/usr/bin/knxd.debug```

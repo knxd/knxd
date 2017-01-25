@@ -17,23 +17,19 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifndef C_PEI16s_H
-#define C_PEI16s_H
+#ifndef CREATE_H
+#define CREATE_H
 
-#include "emi1.h"
-#include "bcu1serial.h"
-#include "layer3.h"
+#include "layer2.h"
 
-#define PEI16s_URL "bcu1s:/dev/ttySx\n"
-#define PEI16s_DOC "bcu1s connects using the PEI16 Protocol over a BCU to the bus (using an experimental user mode driver)\n\n"
+/** determines the right backend for the url and creates it.
+ *
+ * Note that init() has not yet been called.
+ */
+Layer2Ptr CreateLayer2 (const char *conf, L2options *opt);
+Layer2Ptr AddLayer2Filter (const char *conf, L2options *opt, Layer2Ptr l2);
 
-#define PEI16s_PREFIX "bcu1s"
-#define PEI16s_CREATE PEI16s_Create
-
-inline Layer2Ptr 
-PEI16s_Create (const char *dev, L2options *opt)
-{
-  return std::shared_ptr<EMI1Layer2>(new EMI1Layer2 (new BCU1SerialLowLevelDriver (dev, opt->t), opt));
-}
+typedef Layer2Ptr (*Layer2_Create_Func) (const char *conf, L2options *opt);
+typedef Layer2Ptr (*Layer2_Filter_Func) (const char *conf, L2options *opt, Layer2Ptr l2);
 
 #endif

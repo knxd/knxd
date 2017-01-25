@@ -56,7 +56,7 @@ struct urldef URLs[] = {
 
 /** determines the right backend for the url and creates it */
 LowLevelDriver *
-Create (const char *url, Trace * t)
+Create (const char *url, TracePtr t)
 {
   unsigned int p = 0;
   struct urldef *u = URLs;
@@ -160,7 +160,7 @@ main (int ac, char *ag[])
   Trace t = Trace("main");
   t.SetTraceLevel (arg.tracelevel);
 
-  iface = Create (ag[index], &t);
+  iface = Create (ag[index], TracePtr(new Trace(t, ag[index])));
   if (!iface)
     die ("initialisation failed");
   if (!iface->init ())
@@ -176,8 +176,8 @@ main (int ac, char *ag[])
     }
   else
     {
-      for (int i = 0; i < result (); i++)
-	printf ("%02x ", result[i]);
+      ITER(i,result)
+	printf ("%02x ", *i);
       printf ("\n");
     }
 

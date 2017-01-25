@@ -23,34 +23,28 @@
 #ifndef EIB_CEMI_H
 #define EIB_CEMI_H
 
-#include "layer2.h"
-#include "lowlevel.h"
+#include "emi_common.h"
 
 /** CEMI backend */
-class CEMILayer2:public Layer2, private Thread
+class CEMILayer2:public EMI_Common
 {
-  /** driver to send/receive */
-  LowLevelDriver *iface;
-  /** semaphore for inqueue */
-  pth_sem_t in_signal;
-  /** input queue */
-  Queue < LPDU * >inqueue;
-  pth_time_t send_delay;
-
-  void Send (LPDU * l);
-  void Run (pth_sem_t * stop);
   const char *Name() { return "cemi"; }
+  void cmdEnterMonitor();
+  void cmdLeaveMonitor();
+  void cmdOpen(); 
+  void cmdClose();
+  const uint8_t * getIndTypes(); 
+
+  bool enterBusmonitor();
+  unsigned int maxPacketLen();
+
+  CArray lData2EMI (uchar code, const L_Data_PDU & p) 
+  { return L_Data_ToCEMI(code, p); }
+  L_Data_PDU *EMI2lData (const CArray & data, Layer2Ptr l2) 
+  { return CEMI_to_L_Data(data,l2); }
 public:
-  CEMILayer2 (LowLevelDriver * i, L2options *opt);
+  CEMILayer2 (LowLevelDriver * i, L2options *opt) : EMI_Common(i,opt) {}
   ~CEMILayer2 ();
-  bool init (Layer3 *l3);
-
-  void Send_L_Data (LPDU * l);
-
-  bool enterBusmonitor ();
-
-  bool Open ();
-  bool Send_Queue_Empty ();
 };
 
 #endif  /* EIB_CEMI_H */

@@ -28,7 +28,7 @@ class InetServer:public Server
 protected:
   void setupConnection (int cfd);
 public:
-  InetServer (Trace * tr, int port);
+  InetServer (TracePtr tr, int port);
 };
 
 #endif

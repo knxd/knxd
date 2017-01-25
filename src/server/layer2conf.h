@@ -31,9 +31,6 @@
 #ifdef HAVE_EIBNETIPTUNNEL
 #include "b-EIBNETIPTUNNEL.h"
 #endif
-#ifdef HAVE_PEI16s
-#include "b-PEI16s.h"
-#endif
 #ifdef HAVE_TPUARTs
 #include "b-TPUARTs.h"
 #endif
