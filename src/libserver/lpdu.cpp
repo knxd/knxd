@@ -282,10 +282,10 @@ L_Data_PDU::init (const CArray & c)
     }
 
   c1 = 0;
-  for (i = 0; i < c () - 1; i++)
+  for (i = 0; i < c.size () - 1; i++)
     c1 ^= c[i];
   c1 = ~c1;
-  valid_checksum = (c[c () - 1] == c1);
+  valid_checksum = (c[c.size () - 1] == c1);
 
   return true;
 }
