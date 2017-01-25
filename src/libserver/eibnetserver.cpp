@@ -572,13 +572,13 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
     {
       EIBnet_DisconnectRequest r1;
       EIBnet_DisconnectResponse r2;
-      r2.status = 0x21;
-      r2.channel = r1.channel;
       if (parseEIBnet_DisconnectRequest (*p1, r1))
         {
           t->TracePacket (2, this, "unparseable DISCONNECT_REQUEST", p1->data);
           goto out;
         }
+      r2.status = 0x21;
+      r2.channel = r1.channel;
       ITER(i,connections)
 	if ((*i)->channel == r1.channel)
 	  {
