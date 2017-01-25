@@ -68,15 +68,14 @@ void
 T_Broadcast::send_L_Data (LDataPtr l)
 {
   BroadcastComm c;
-  TPDU *t = TPDU::fromPacket (l->data, this->t);
+  TPDUPtr t = TPDU::fromPacket (l->data, this->t);
   if (t->getType () == T_DATA_XXX_REQ)
     {
-      T_DATA_XXX_REQ_PDU *t1 = (T_DATA_XXX_REQ_PDU *) t;
+      T_DATA_XXX_REQ_PDU *t1 = (T_DATA_XXX_REQ_PDU *) &*t;
       c.data = t1->data;
       c.src = l->source;
       app->send(c);
     }
-  delete t;
 }
 
 void
@@ -123,15 +122,14 @@ void
 T_Group::send_L_Data (LDataPtr l)
 {
   GroupComm c;
-  TPDU *t = TPDU::fromPacket (l->data, this->t);
+  TPDUPtr t = TPDU::fromPacket (l->data, this->t);
   if (t->getType () == T_DATA_XXX_REQ)
     {
-      T_DATA_XXX_REQ_PDU *t1 = (T_DATA_XXX_REQ_PDU *) t;
+      T_DATA_XXX_REQ_PDU *t1 = (T_DATA_XXX_REQ_PDU *) &*t;
       c.data = t1->data;
       c.src = l->source;
       app->send(c);
     }
-  delete t;
 }
 
 void
@@ -226,14 +224,13 @@ void
 T_Individual::send_L_Data (LDataPtr l)
 {
   CArray c;
-  TPDU *t = TPDU::fromPacket (l->data, this->t);
+  TPDUPtr t = TPDU::fromPacket (l->data, this->t);
   if (t->getType () == T_DATA_XXX_REQ)
     {
-      T_DATA_XXX_REQ_PDU *t1 = (T_DATA_XXX_REQ_PDU *) t;
+      T_DATA_XXX_REQ_PDU *t1 = (T_DATA_XXX_REQ_PDU *) &*t;
       c = t1->data;
       app->send(c);
     }
-  delete t;
 }
 
 void
@@ -293,7 +290,7 @@ T_Connection::~T_Connection ()
 void
 T_Connection::send_L_Data (LDataPtr l)
 {
-  TPDU *t = TPDU::fromPacket (l->data, this->t);
+  TPDUPtr t = TPDU::fromPacket (l->data, this->t);
   switch (t->getType ())
     {
     case T_DISCONNECT_REQ:
@@ -304,7 +301,7 @@ T_Connection::send_L_Data (LDataPtr l)
       break;
     case T_DATA_CONNECTED_REQ:
       {
-        T_DATA_CONNECTED_REQ_PDU *t1 = (T_DATA_CONNECTED_REQ_PDU *) t;
+        T_DATA_CONNECTED_REQ_PDU *t1 = (T_DATA_CONNECTED_REQ_PDU *) &*t;
         if (t1->serno != recvno && t1->serno != ((recvno - 1) & 0x0f))
           stop();
         else if (t1->serno == recvno)
@@ -320,7 +317,7 @@ T_Connection::send_L_Data (LDataPtr l)
       break;
     case T_NACK:
       {
-        T_NACK_PDU *t1 = (T_NACK_PDU *) t;
+        T_NACK_PDU *t1 = (T_NACK_PDU *) &*t;
         if (t1->serno != sendno)
           stop();
         else if (repcount >= 3 || mode != 2)
@@ -334,7 +331,7 @@ T_Connection::send_L_Data (LDataPtr l)
       break;
     case T_ACK:
       {
-        T_ACK_PDU *t1 = (T_ACK_PDU *) t;
+        T_ACK_PDU *t1 = (T_ACK_PDU *) &*t;
         if (t1->serno != sendno)
           stop();
         else if (mode != 2)
@@ -351,7 +348,6 @@ T_Connection::send_L_Data (LDataPtr l)
     default:
       /* ignore */ ;
     }
-  delete t;
 }
 
 void
@@ -499,16 +495,15 @@ void
 GroupSocket::send_L_Data (LDataPtr l)
 {
   GroupAPDU c;
-  TPDU *t = TPDU::fromPacket (l->data, this->t);
+  TPDUPtr t = TPDU::fromPacket (l->data, this->t);
   if (t->getType () == T_DATA_XXX_REQ)
     {
-      T_DATA_XXX_REQ_PDU *t1 = (T_DATA_XXX_REQ_PDU *) t;
+      T_DATA_XXX_REQ_PDU *t1 = (T_DATA_XXX_REQ_PDU *) &*t;
       c.data = t1->data;
       c.src = l->source;
       c.dst = l->dest;
       app->send(c);
     }
-  delete t;
 }
 
 void

@@ -382,10 +382,7 @@ String L_Data_PDU::Decode ()
                     FormatEIBAddr (dest));
   s += " hops: ";
   addHex (s, hopcount);
-  TPDU *
-    d = TPDU::fromPacket (data, l2->t);
+  TPDUPtr d = TPDU::fromPacket (data, l2->t);
   s += d->Decode (l2->t);
-  delete
-    d;
   return s;
 }

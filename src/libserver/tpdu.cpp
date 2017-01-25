@@ -20,31 +20,29 @@
 #include "tpdu.h"
 #include "apdu.h"
 
-TPDU *
+TPDUPtr
 TPDU::fromPacket (const CArray & c, TracePtr tr)
 {
-  TPDU *t = 0;
+  TPDUPtr t;
   if (c.size() >= 1)
     {
       if ((c[0] & 0xfc) == 0)
-	t = new T_DATA_XXX_REQ_PDU ();
-      if (c[0] == 0x80)
-	t = new T_CONNECT_REQ_PDU ();
-      if (c[0] == 0x81)
-	t = new T_DISCONNECT_REQ_PDU ();
-      if ((c[0] & 0xC3) == 0xC2)
-	t = new T_ACK_PDU ();
-      if ((c[0] & 0xC3) == 0xC3)
-	t = new T_NACK_PDU ();
-      if ((c[0] & 0xC0) == 0x40)
-	t = new T_DATA_CONNECTED_REQ_PDU ();
+	t = TPDUPtr(new T_DATA_XXX_REQ_PDU ());
+      else if (c[0] == 0x80)
+	t = TPDUPtr(new T_CONNECT_REQ_PDU ());
+      else if (c[0] == 0x81)
+	t = TPDUPtr(new T_DISCONNECT_REQ_PDU ());
+      else if ((c[0] & 0xC3) == 0xC2)
+	t = TPDUPtr(new T_ACK_PDU ());
+      else if ((c[0] & 0xC3) == 0xC3)
+	t = TPDUPtr(new T_NACK_PDU ());
+      else if ((c[0] & 0xC0) == 0x40)
+	t = TPDUPtr(new T_DATA_CONNECTED_REQ_PDU ());
     }
   if (t && t->init (c, tr))
     return t;
-  if (t)
-    delete t;
 
-  t = new T_UNKNOWN_PDU ();
+  t = TPDUPtr(new T_UNKNOWN_PDU ());
   t->init (c, tr);
   return t;
 }

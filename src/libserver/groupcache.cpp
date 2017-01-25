@@ -57,10 +57,10 @@ GroupCache::send_L_Data (LDataPtr l)
 {
   if (enable)
     {
-      TPDU *t = TPDU::fromPacket (l->data, this->t);
+      TPDUPtr t = TPDU::fromPacket (l->data, this->t);
       if (t->getType () == T_DATA_XXX_REQ)
 	{
-	  T_DATA_XXX_REQ_PDU *t1 = (T_DATA_XXX_REQ_PDU *) t;
+	  T_DATA_XXX_REQ_PDU *t1 = (T_DATA_XXX_REQ_PDU *) &*t;
 	  if (t1->data.size() >= 2 && !(t1->data[0] & 0x3) &&
 	      ((t1->data[1] & 0xC0) == 0x40 || (t1->data[1] & 0xC0) == 0x80)) // response or write
 	    {
@@ -89,7 +89,6 @@ GroupCache::send_L_Data (LDataPtr l)
               updated(c->second);
 	    }
 	}
-      delete t;
     }
 }
 

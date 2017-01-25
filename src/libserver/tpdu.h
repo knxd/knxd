@@ -42,6 +42,9 @@ typedef enum
 }
 TPDU_Type;
 
+class TPDU;
+typedef std::unique_ptr<TPDU> TPDUPtr;
+
 /** represents a TPDU */
 class TPDU
 {
@@ -58,7 +61,7 @@ public:
   /** gets TPDU type */
   virtual TPDU_Type getType () const = 0;
   /** converts character array to a TPDU */
-  static TPDU *fromPacket (const CArray & c, TracePtr t);
+  static TPDUPtr fromPacket (const CArray & c, TracePtr t);
 };
 
 class T_UNKNOWN_PDU:public TPDU
