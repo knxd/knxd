@@ -51,7 +51,7 @@ class Layer7_Connection : T_Reader<BroadcastComm>
   eibaddr_t dest;
 
   /** sends APDU and waits for respone; return NULL, if it fails */
-  APDU *Request_Response (APDU * r);
+  APDUPtr Request_Response (APDU * r);
 public:
   Layer7_Connection (TracePtr tr, eibaddr_t dest);
   virtual ~Layer7_Connection ();
@@ -106,7 +106,7 @@ class Layer7_Individual
   eibaddr_t dest;
 
   /** sends APDU and waits for respone; return NULL, if it fails */
-  APDU *Request_Response (APDU * r);
+  APDUPtr Request_Response (APDU * r);
 public:
   Layer7_Individual (TracePtr tr, eibaddr_t dest);
   virtual ~Layer7_Individual ();

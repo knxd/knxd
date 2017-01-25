@@ -55,7 +55,7 @@ Array < eibaddr_t >
 {
   Array < eibaddr_t > addrs;
   A_IndividualAddress_Read_PDU r;
-  APDU *a;
+  APDUPtr a;
   l4->recv (r.ToPacket ());
   pth_event_t t = pth_event (PTH_EVENT_RTIME, pth_time (timeout, 0));
   while (pth_event_status (t) != PTH_STATUS_OCCURRED)
@@ -103,10 +103,10 @@ Layer7_Connection::A_Restart ()
   l4->recv (a.ToPacket ());
 }
 
-APDU *
+APDUPtr
 Layer7_Connection::Request_Response (APDU * r)
 {
-  APDU *a;
+  APDUPtr a;
   CArray *c;
   l4->recv (r->ToPacket ());
   pth_event_t t = pth_event (PTH_EVENT_RTIME, pth_time (6, 100));
@@ -127,7 +127,6 @@ Layer7_Connection::Request_Response (APDU * r)
           pth_event_free (t, PTH_FREE_THIS);
           return a;
         }
-      delete a;
     }
   pth_event_free (t, PTH_FREE_THIS);
   return 0;
@@ -135,19 +134,18 @@ Layer7_Connection::Request_Response (APDU * r)
 
 int
 Layer7_Connection::A_Property_Read (uchar obj, uchar propertyid,
-				    uint16_t start, uchar count, CArray & erg)
+				    uint16_t start, uchar count, CArray & result)
 {
   A_PropertyValue_Read_PDU r;
   r.obj = obj;
   r.prop = propertyid;
   r.start = start & 0x0fff;
   r.count = count & 0x0f;
-  APDU *a = Request_Response (&r);
+  APDUPtr a = Request_Response (&r);
   if (!a)
     return -1;
-  A_PropertyValue_Response_PDU *a1 = (A_PropertyValue_Response_PDU *) a;
-  erg = a1->data;
-  delete a;
+  A_PropertyValue_Response_PDU *a1 = (A_PropertyValue_Response_PDU *)&*a;
+  result = a1->data;
   return 0;
 }
 
@@ -162,12 +160,11 @@ Layer7_Connection::A_Property_Write (uchar obj, uchar propertyid,
   r.start = start & 0x0fff;
   r.count = count & 0x0f;
   r.data = data;
-  APDU *a = Request_Response (&r);
+  APDUPtr a = Request_Response (&r);
   if (!a)
     return -1;
   A_PropertyValue_Response_PDU *a1 = (A_PropertyValue_Response_PDU *) a;
   result = a1->data;
-  delete a;
   return 0;
 }
 
@@ -181,7 +178,7 @@ Layer7_Connection::A_Property_Desc (uchar obj, uchar & property,
   r.obj = obj;
   r.prop = property;
   r.property_index = property_index;
-  APDU *a = Request_Response (&r);
+  APDUPtr a = Request_Response (&r);
   if (!a)
     return -1;
   A_PropertyDescription_Response_PDU *a1 =
@@ -199,7 +196,7 @@ Layer7_Connection::A_Device_Descriptor_Read (uint16_t & maskver, uchar type)
 {
   A_DeviceDescriptor_Read_PDU r;
   r.type = type & 0x3f;
-  APDU *a = Request_Response (&r);
+  APDUPtr a = Request_Response (&r);
   if (!a)
     return -1;
   A_DeviceDescriptor_Response_PDU *a1 = (A_DeviceDescriptor_Response_PDU *) a;
@@ -215,7 +212,7 @@ Layer7_Connection::A_ADC_Read (uchar channel, uchar readcount,
   A_ADC_Read_PDU r;
   r.channel = channel & 0x3f;
   r.count = readcount;
-  APDU *a = Request_Response (&r);
+  APDUPtr a = Request_Response (&r);
   if (!a)
     return -1;
   A_ADC_Response_PDU *a1 = (A_ADC_Response_PDU *) a;
@@ -230,7 +227,7 @@ Layer7_Connection::A_Memory_Read (memaddr_t addr, uchar len, CArray & data)
   A_Memory_Read_PDU r;
   r.addr = addr;
   r.count = len & 0x0f;
-  APDU *a = Request_Response (&r);
+  APDUPtr a = Request_Response (&r);
   if (!a)
     return -1;
   A_Memory_Response_PDU *a1 = (A_Memory_Response_PDU *) a;
@@ -255,7 +252,7 @@ Layer7_Connection::A_Authorize (eibkey_type key, uchar & level)
 {
   A_Authorize_Request_PDU r;
   r.key = key;
-  APDU *a = Request_Response (&r);
+  APDUPtr a = Request_Response (&r);
   if (!a)
     return -1;
   A_Authorize_Response_PDU *a1 = (A_Authorize_Response_PDU *) a;
@@ -270,7 +267,7 @@ Layer7_Connection::A_KeyWrite (eibkey_type key, uchar & level)
   A_Key_Write_PDU r;
   r.key = key;
   r.level = level;
-  APDU *a = Request_Response (&r);
+  APDUPtr a = Request_Response (&r);
   if (!a)
     return -1;
   A_Key_Response_PDU *a1 = (A_Key_Response_PDU *) a;
@@ -401,10 +398,10 @@ bool Layer7_Individual::init (Layer3 * l3)
   return l4 != 0;
 }
 
-APDU *
+APDUPtr
 Layer7_Individual::Request_Response (APDU * r)
 {
-  APDU *a;
+  APDUPtr a;
   CArray *c;
   l4->recv (r->ToPacket ());
   pth_event_t t = pth_event (PTH_EVENT_RTIME, pth_time (6, 100));
@@ -426,7 +423,6 @@ Layer7_Individual::Request_Response (APDU * r)
 	      pth_event_free (t, PTH_FREE_THIS);
 	      return a;
 	    }
-	  delete a;
 	  pth_event_free (t, PTH_FREE_THIS);
 	  return 0;
 	}
@@ -444,7 +440,7 @@ Layer7_Individual::A_Property_Read (uchar obj, uchar propertyid,
   r.prop = propertyid;
   r.start = start & 0x0fff;
   r.count = count & 0x0f;
-  APDU *a = Request_Response (&r);
+  APDUPtr a = Request_Response (&r);
   if (!a)
     return -1;
   A_PropertyValue_Response_PDU *a1 = (A_PropertyValue_Response_PDU *) a;
@@ -464,7 +460,7 @@ Layer7_Individual::A_Property_Write (uchar obj, uchar propertyid,
   r.start = start & 0x0fff;
   r.count = count & 0x0f;
   r.data = data;
-  APDU *a = Request_Response (&r);
+  APDUPtr a = Request_Response (&r);
   if (!a)
     return -1;
   A_PropertyValue_Response_PDU *a1 = (A_PropertyValue_Response_PDU *) a;

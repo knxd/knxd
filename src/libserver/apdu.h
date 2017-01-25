@@ -68,6 +68,9 @@ typedef enum
 }
 APDU_type;
 
+class APDU;
+typedef std::unique_ptr<APDU> APDUPtr;
+
 /** represents a TPDU */
 class APDU
 {
@@ -83,7 +86,7 @@ public:
   virtual String Decode (TracePtr t) = 0;
 
   /** converts character array to a APDU */
-  static APDU *fromPacket (const CArray &, TracePtr t);
+  static APDUPtr fromPacket (const CArray &, TracePtr t);
   /** gets APDU type */
   virtual APDU_type getType () const = 0;
   /** returns true, if this is can be an answer of req */
