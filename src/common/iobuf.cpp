@@ -113,7 +113,7 @@ void RecvBuf::feed_out()
             recvpos = 0;
         else {
             recvpos -= i;
-            memcpy(recvbuf,recvbuf+i,recvpos);
+            memmove(recvbuf,recvbuf+i,recvpos);
         }
     }
 
