@@ -568,13 +568,13 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
     {
       EIBnet_DisconnectRequest r1;
       EIBnet_DisconnectResponse r2;
-      r2.status = 0x21;
-      r2.channel = r1.channel;
       if (parseEIBnet_DisconnectRequest (*p1, r1))
         {
           t->TracePacket (2, this, "unparseable DISCONNECT_REQUEST", p1->data);
           goto out;
         }
+      r2.status = 0x21;
+      r2.channel = r1.channel;
       ITER(i,connections)
 	if ((*i)->channel == r1.channel)
 	  {
@@ -796,14 +796,14 @@ void ConnState::tunnel_request(EIBnet_TunnelRequest &r1, EIBNetIPSocket *isock)
       if (c)
 	{
 	  r2.status = 0;
-          if (c->source == 0)
-            c->source = remoteAddr;
           if (r1.CEMI[0] == 0x11)
             {
               out.put (L_Data_ToCEMI (0x2E, c));
               if (! retries)
 		send_trigger.send();
             }
+          if (c->source == 0)
+            c->source = remoteAddr;
           if (r1.CEMI[0] == 0x11 || r1.CEMI[0] == 0x29)
             l3->recv_L_Data (std::move(c));
           else

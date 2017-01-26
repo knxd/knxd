@@ -1,9 +1,13 @@
-knxd (0.12.4-2) UNRELEASED; urgency=medium
+knxd (0.12.5-1) unstable; urgency=medium
 
   * Group cache: add a LastUpdate2 method with a 32-bit pointer
     and use that in eibread CGI
+  * fixed two server responses:
+    - CEMI data confirm: don't set the source address
+    - disconnect response used an incorrect channel
+  * switch xPDU pointers to std::unique_ptr
 
- -- Matthias Urlichs <matthias@urlichs.de>  Mon, 23 Jan 2017 18:19:58 +0100
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 26 Jan 2017 01:17:24 +0100
 
 knxd (0.12.4-1) unstable; urgency=medium
 
