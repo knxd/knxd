@@ -3,10 +3,10 @@
 # rule(s) you need.
 #
 # TPUART:
-# Run "udevadm info --attribute-walk /sys/bus/usb/drivers/cdc_acm/*/tty/ttyACM0", look at the third block (the one with 'ATTRS{manufacturer}=="busware.de"').
-#ACTION=="add", SUBSYSTEM=="tty", ATTRS{idVendor}=="03eb", ATTRS{idProduct}=="204b", KERNELS=="something", SYMLINK+="ttyKNX1", OWNER="knxd"
+# Run "udevadm info --attribute-walk /sys/bus/usb/drivers/cdc_acm/*/tty/ttyACM0", find the block with ATTRS{manufacturer}=="busware.de".
 # You need to replace the 'something' with the USB path of your TPUART interface.
 # (If you're sure that you'll never have more than one, you might delete that condition instead.)
+#ACTION=="add", SUBSYSTEM=="tty", ATTRS{idVendor}=="03eb", ATTRS{idProduct}=="204b", KERNELS=="something", SYMLINK+="ttyKNX1", OWNER="knxd"
 # 
 # For a TPUART on the Raspberry Pi, use this:
 #ACTION=="add", SUBSYSTEM=="tty", KERNEL=="ttyAMA0", SYMLINK+="ttyKNX1", OWNER="knxd"
