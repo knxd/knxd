@@ -148,6 +148,7 @@ Layer3real::deregisterVBusmonitor (L_Busmonitor_CallBack * c)
 bool
 Layer3real::deregisterLayer2 (Layer2Ptr l2)
 {
+  TRACEPRINTF (l2->t, 3, this, "deregisterLayer2 %d", l2->t->seq);
   cleanup_q.push(l2);
   cleanup.send();
 }
@@ -162,11 +163,12 @@ Layer3real::cleanup_cb (ev::async &w, int revents)
       ITER(i,layer2)
         if (*i == l2)
           {
-            TRACEPRINTF (tr(), 3, this, "deregisterLayer2 %d:%s = 1", l2->t->seq, l2->t->name.c_str());
+            TRACEPRINTF (l2->t, 3, this, "deregisterLayer2 %d OK", l2->t->seq);
             layer2.erase(i);
-            break;
+            goto out;
           }
-      TRACEPRINTF (tr(), 3, this, "deregisterLayer2 %d:%s = 0", l2->t->seq, l2->t->name.c_str());
+      ERRORPRINTF (l2->t, E_WARNING | 60, this, "deregisterLayer2 %d: not found", l2->t->seq);
+    out:;
     }
 }
 
