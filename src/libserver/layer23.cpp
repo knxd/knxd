@@ -213,9 +213,9 @@ Layer23::deregisterServer (BaseServer *s)
 
 
 eibaddr_t
-Layer23::get_client_addr ()
+Layer23::get_client_addr (TracePtr t)
 {
-  return l3->get_client_addr ();
+  return l3->get_client_addr (t);
 }
 
 void

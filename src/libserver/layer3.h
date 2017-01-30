@@ -96,7 +96,7 @@ public:
   virtual void deregisterServer (BaseServer *s) = 0;
 
   /** Get a free dynamic address */
-  virtual eibaddr_t get_client_addr () = 0;
+  virtual eibaddr_t get_client_addr (TracePtr t) = 0;
   /** … and release it */
   virtual void release_client_addr (eibaddr_t addr) = 0;
 };
@@ -180,7 +180,7 @@ public:
 
   void set_client_block (eibaddr_t r_start, int r_len);
   /** allocate client address */
-  eibaddr_t get_client_addr ();
+  eibaddr_t get_client_addr (TracePtr t);
   void release_client_addr (eibaddr_t addr);
 };
 

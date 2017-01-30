@@ -221,9 +221,10 @@ Layer3real::registerLayer2 (Layer2Ptr l2)
 bool
 Layer3real::hasAddress (eibaddr_t addr, Layer2Ptr l2)
 {
+  TracePtr t = l2 ? l2->t : tr();
   if (addr == defaultAddr)
     {
-      TRACEPRINTF (l2->t, 8, this, "default addr %s", FormatEIBAddr (addr).c_str());
+      TRACEPRINTF (t, 8, this, "default addr %s", FormatEIBAddr (addr).c_str());
       return true;
     }
 
@@ -234,7 +235,7 @@ Layer3real::hasAddress (eibaddr_t addr, Layer2Ptr l2)
         return true;
       }
 
-  TRACEPRINTF (l2->t, 8, this, "unknown addr %s", FormatEIBAddr (addr).c_str());
+  TRACEPRINTF (t, 8, this, "unknown addr %s", FormatEIBAddr (addr).c_str());
   return false;
 }
 
@@ -256,19 +257,22 @@ Layer3real::set_client_block (eibaddr_t r_start, int r_len)
 {
   client_addrs_start = r_start;
   client_addrs_len = r_len;
-  client_addrs_pos = r_len-1;
+  client_addrs_pos = r_len-1; // starts at the first address
   client_addrs.resize(r_len);
   ITER(i,client_addrs)
     *i = false;
 }
 
 eibaddr_t
-Layer3real::get_client_addr ()
+Layer3real::get_client_addr (TracePtr t)
 {
   /*
-   * Start allocating after the last request.
-   * Otherwise we'd need locking to protect concurrent requests
-   * This is less bug-prone
+   * Start allocating after the last-assigned address.
+   * This leaves a buffer for delayed replies so that they don't get sent
+   * to a new client.
+   *
+   * client_addrs_pos is set to len-1 in set_client_block() so that allocation
+   * still starts at the first free address when starting up.
    */
   for (int i = 1; i <= client_addrs_len; i++)
     {
@@ -278,7 +282,7 @@ Layer3real::get_client_addr ()
       eibaddr_t a = client_addrs_start + pos;
       if (! hasAddress (a))
         {
-          TRACEPRINTF (tr(), 3, this, "Allocate %s", FormatEIBAddr (a).c_str());
+          TRACEPRINTF (t, 3, this, "Allocate %s", FormatEIBAddr (a).c_str());
           /* remember for next pass */
           client_addrs_pos = pos;
           client_addrs[pos] = true;
@@ -287,7 +291,7 @@ Layer3real::get_client_addr ()
     }
 
   /* no more … */
-  ERRORPRINTF (tr(), E_WARNING | 59, this, "Allocate: no more free addresses!");
+  ERRORPRINTF (t, E_WARNING | 59, this, "Allocate: no more free addresses!");
   return 0;
 }
 

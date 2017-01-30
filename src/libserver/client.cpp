@@ -38,7 +38,7 @@ ClientConnection::ClientConnection (Server *s, int fd) : sendbuf(fd),recvbuf(fd)
   TRACEPRINTF (s->t, 8, this, "ClientConnection Init");
   this->t = TracePtr(new Trace(*s->t, s->t->name));
   this->l3 = s->l3;
-  this->addr = l3->get_client_addr();
+  this->addr = l3->get_client_addr(this->t);
 
   this->fd = fd;
   this->s = s;

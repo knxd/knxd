@@ -296,6 +296,7 @@ ConnState::ConnState (EIBnetServer *p, eibaddr_t addr)
   send_trigger.set<ConnState,&ConnState::send_trigger_cb>(this);
   send_trigger.start();
   remoteAddr = addr;
+  TRACEPRINTF (t, 9, this, "has %s", FormatEIBAddr (addr).c_str());
 }
 
 void ConnState::sendtimeout_cb(ev::timer &w, int revents)
@@ -600,7 +601,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       r2.status = 0x22;
       if (r1.CRI.size() == 3 && r1.CRI[0] == 4)
 	{
-	  eibaddr_t a = tunnel ? l3->get_client_addr () : 0;
+	  eibaddr_t a = tunnel ? l3->get_client_addr (t) : 0;
 	  r2.CRD.resize (3);
 	  r2.CRD[0] = 0x04;
           if (tunnel)
