@@ -228,16 +228,23 @@ Layer3real::hasAddress (eibaddr_t addr, Layer2Ptr l2)
       return l2;
     }
 
+  if (l2 && l2->hasAddress(addr))
+    {
+    on_this_interface:
+      TRACEPRINTF (t, 8, this, "own addr %s", FormatEIBAddr (addr).c_str());
+      return nullptr;
+    }
+
   ITER(i,layer2)
     {
       if (*i == l2)
         continue;
-      Layer2Ptr l2x = (*i)->hasAddress (addr);
 
-      if (l2x == l2)
-        return nullptr;
+      Layer2Ptr l2x = (*i)->hasAddress (addr);
       if (l2x)
         {
+          if (l2x == l2) // not redundant because of filters
+            goto on_this_interface;
           TRACEPRINTF (l2x->t, 8, this, "found addr %s", FormatEIBAddr (addr).c_str());
           return l2x;
         }
