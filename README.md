@@ -163,9 +163,9 @@ rebooting. The TPUART module is not back on ``ttyAMA0``.
   when you need to program a device; normal use is often not affected.
   knxd emits a warning
   
-    Message without destination. Use the single-node filter ('-B single')?
+  ``Message without destination. Use the single-node filter ('-B single')?``
 
-  if it detects mis-addressed packets.
+  when it detects mis-addressed packets.
 
 * You need "-e"; knxd no longer defaults to address 0.0.1.
 
