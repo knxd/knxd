@@ -50,7 +50,7 @@ On Debian:
 
     # now build+install knxd itself
     cd knxd
-    git checkout stable ## this branch
+    git checkout v0.10 ## this branch
     dpkg-buildpackage -b -uc
     cd ..
     sudo dpkg -i knxd_*.deb knxd-tools_*.deb
