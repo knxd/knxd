@@ -9,17 +9,17 @@ https://www.auto.tuwien.ac.at/~mkoegler/index.php/bcusdk
 
 For a (german only) history and discussion why knxd emerged please also see: [eibd(war bcusdk) Fork -> knxd](http://knx-user-forum.de/forum/öffentlicher-bereich/knx-eib-forum/39972-eibd-war-bcusdk-fork-knxd)
 
-## New Features
+# This is the current stable version
 
-* 0.10 (``stable`` branch -- please try 0.11 first!)
+Check the "master" branch for new features.
 
-  * Support for more than one KNX interface
+Stability and security fixes will still be applied to this version.
 
-  * Lots of bug fixes
+## New Features since v0.10
 
-  * ETS5 compatibility
+* see https://github.com/knxd/knxd/blob/v0.10/README.md for earlier changes
 
-* 0.11 (old ``master`` branch)
+* 0.11
 
   * Major refactoring
 
@@ -27,7 +27,7 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 
   * local clients may talk to each other
 
-* 0.12 (current ``master`` branch -- getting rid of the pthsem library)
+* 0.12 (current stable version)
 
   * moved from pthsem (threads) to libev (events)
 
@@ -49,8 +49,8 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 
   * Group cache is no longer limited to 256 most-recent messages
 
-  * Address filtering: packets arriving on interface A with a source address
-    from interface B get dropped
+  * Address filtering: packets arriving on interface A, with a source address
+    seen before on interface B, now get dropped
 
 ## Building
 
