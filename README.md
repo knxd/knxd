@@ -9,48 +9,13 @@ https://www.auto.tuwien.ac.at/~mkoegler/index.php/bcusdk
 
 For a (german only) history and discussion why knxd emerged please also see: [eibd(war bcusdk) Fork -> knxd](http://knx-user-forum.de/forum/öffentlicher-bereich/knx-eib-forum/39972-eibd-war-bcusdk-fork-knxd)
 
-## New Features
+## New Features since 0.12
 
-* 0.10 (``stable`` branch -- please try 0.11 first!)
+### see https://github.com/knxd/knxd/blob/v0.12/README.md for earlier changes
 
-  * Support for more than one KNX interface
+* 0.13 (development)
 
-  * Lots of bug fixes
-
-  * ETS5 compatibility
-
-* 0.11 (old ``master`` branch)
-
-  * Major refactoring
-
-  * dynamic KNX address allocation to local clients
-
-  * local clients may talk to each other
-
-* 0.12 (current ``master`` branch -- getting rid of the pthsem library)
-
-  * moved from pthsem (threads) to libev (events)
-
-  * removed PEI16s (alais bcuserial) driver; unused and difficult to port
-
-  * removed duplicate routing code in eibnetserver.cpp
-
-  * added support for filtering/mangling packets, per-interface
-
-  * moved the address translation stuff to the 'single' filter
-
-  * add support for ft12cemi-compatible interfaces
-
-  * (temporarily) drop support for device management with knxtool
-
-  * now requires -e/-E arguments
-
-  * eibread.cgi will no longer enumerate the whole bus
-
-  * Group cache is no longer limited to 256 most-recent messages
-
-  * Address filtering: packets arriving on interface A with a source address
-    from interface B get dropped
+  * TBD
 
 ## Building
 
