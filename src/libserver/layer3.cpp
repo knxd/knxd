@@ -220,12 +220,19 @@ bool
 Layer3real::hasAddress (eibaddr_t addr, Layer2Ptr l2)
 {
   if (addr == defaultAddr)
-    return true;
+    {
+      TRACEPRINTF (l2->t, 8, this, "default addr %s", FormatEIBAddr (addr).c_str());
+      return true;
+    }
 
   ITER(i,layer2)
     if (*i != l2 && (*i)->hasAddress (addr))
-      return true;
+      {
+        TRACEPRINTF ((*i)->t, 8, this, "found addr %s", FormatEIBAddr (addr).c_str());
+        return true;
+      }
 
+  TRACEPRINTF (l2->t, 8, this, "unknown addr %s", FormatEIBAddr (addr).c_str());
   return false;
 }
 
@@ -277,8 +284,8 @@ Layer3real::get_client_addr ()
         }
     }
 
-  /* Fall back to our own address */
-  TRACEPRINTF (tr(), 3, this, "Allocate: falling back to %s", FormatEIBAddr (defaultAddr).c_str());
+  /* no more … */
+  ERRORPRINTF (tr(), E_WARNING | 59, this, "Allocate: no more free addresses!");
   return 0;
 }
 
