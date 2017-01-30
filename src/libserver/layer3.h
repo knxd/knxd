@@ -86,7 +86,7 @@ public:
 
   /** check if any interface accepts this address.
       'l2' says which interface NOT to check. */
-  virtual bool hasAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr) = 0;
+  virtual Layer2Ptr hasAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr) = 0;
   /** check if any interface accepts this group address.
       'l2' says which interface NOT to check. */
   virtual bool hasGroupAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr) = 0;
@@ -173,7 +173,7 @@ public:
 
   void recv_L_Data (LDataPtr l);
   void recv_L_Busmonitor (LBusmonPtr l);
-  bool hasAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr);
+  Layer2Ptr hasAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr);
   bool hasGroupAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr);
   void registerServer (BaseServer *s) { servers.push_back (s); }
   void deregisterServer (BaseServer *s);

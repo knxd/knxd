@@ -218,25 +218,33 @@ Layer3real::registerLayer2 (Layer2Ptr l2)
   return this;
 }
 
-bool
+Layer2Ptr
 Layer3real::hasAddress (eibaddr_t addr, Layer2Ptr l2)
 {
   TracePtr t = l2 ? l2->t : tr();
   if (addr == defaultAddr)
     {
       TRACEPRINTF (t, 8, this, "default addr %s", FormatEIBAddr (addr).c_str());
-      return true;
+      return l2;
     }
 
   ITER(i,layer2)
-    if (*i != l2 && (*i)->hasAddress (addr))
-      {
-        TRACEPRINTF ((*i)->t, 8, this, "found addr %s", FormatEIBAddr (addr).c_str());
-        return true;
-      }
+    {
+      if (*i == l2)
+        continue;
+      Layer2Ptr l2x = (*i)->hasAddress (addr);
+
+      if (l2x == l2)
+        return nullptr;
+      if (l2x)
+        {
+          TRACEPRINTF (l2x->t, 8, this, "found addr %s", FormatEIBAddr (addr).c_str());
+          return l2x;
+        }
+    }
 
   TRACEPRINTF (t, 8, this, "unknown addr %s", FormatEIBAddr (addr).c_str());
-  return false;
+  return nullptr;
 }
 
 bool
@@ -280,7 +288,7 @@ Layer3real::get_client_addr (TracePtr t)
       if (client_addrs[pos])
         continue;
       eibaddr_t a = client_addrs_start + pos;
-      if (! hasAddress (a))
+      if (a != defaultAddr && !hasAddress (a))
         {
           TRACEPRINTF (t, 3, this, "Allocate %s", FormatEIBAddr (a).c_str());
           /* remember for next pass */
@@ -318,12 +326,20 @@ Layer3real::trigger_cb (ev::async &w, int revents)
 
       {
         Layer2Ptr l2 = l1->l2;
+        Layer2Ptr l2x;
 
         if (l1->source == 0)
           l1->source = l2->getRemoteAddr();
         if (l1->source == 0)
           l1->source = defaultAddr;
-        if (l1->source != defaultAddr)
+        if (l1->source != 0 &&
+            l1->source != 0xFFFF &&
+            l1->source != defaultAddr &&
+            (l2x = hasAddress (l1->source, l2)))
+          {
+            TRACEPRINTF (l2->t, 3, this, "Packet not from %d:%s: %s", l2x->t->seq, l2x->t->name.c_str(), l1->Decode ().c_str());
+            goto next;
+          }
           l2->addAddress (l1->source);
       }
 

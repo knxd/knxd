@@ -1,3 +1,10 @@
+knxd (0.12.6-1) unstable; urgency=medium
+
+  * Address filtering: packets arriving on interface A with a source
+    address from interface B get dropped.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 30 Jan 2017 11:24:52 +0100
+
 knxd (0.12.5-1) unstable; urgency=medium
 
   * Group cache: add a LastUpdate2 method with a 32-bit pointer

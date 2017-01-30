@@ -70,7 +70,7 @@ Layer23::removeGroupAddress (eibaddr_t addr)
   return l2->removeGroupAddress (addr);
 }
 
-bool
+Layer2Ptr
 Layer23::hasAddress (eibaddr_t addr)
 {
   return l2->hasAddress (addr);
@@ -187,7 +187,7 @@ Layer23::recv_L_Busmonitor (LBusmonPtr l)
   l3->recv_L_Busmonitor (std::move(l));
 }
 
-bool
+Layer2Ptr
 Layer23::hasAddress (eibaddr_t addr, Layer2Ptr l2)
 {
   return l3->hasAddress (addr, l2);

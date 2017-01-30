@@ -49,6 +49,9 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 
   * Group cache is no longer limited to 256 most-recent messages
 
+  * Address filtering: packets arriving on interface A with a source address
+    from interface B get dropped
+
 ## Building
 
 On Debian:
