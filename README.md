@@ -142,19 +142,23 @@ The console is /dev/ttyAMA0. The udev line is
   ACTION=="add", SUBSYSTEM=="tty", KERNELS="ttyAMA0", SYMLINK+="ttyKNX1", OWNER="knxd"
   ```
 
+This rule creates a symlink /dev/ttyKNX1 which points to the console. The
+knxd configuration will use that symlink.
+
 You need to disable the serial console. Edit ``/boot/cmdline.txt`` and
 remove the ``console=ttyAMA0`` entry. Then reboot.
 
-On the Raspberry Pi 3, use ``ttyAMA1``. However, that is a software-driven serial
-line (the hardware serial interface is used for Bluetooth on the Pi3). If KNX
-messages are sometimes ignored, disable bluetooth by adding
+On the Raspberry Pi 3, the serial console is on ``ttyAMA1`` by default.
+However, that is a software-driven serial port (the hardware serial
+interface is used for Bluetooth on the Pi3). Varying CPU speed causes this
+port to be somewhat unreliable. If this happens, disable bluetooth by adding
 
   ```
   dtoverlay=pi3-disable-bt
   ```
 
 to ``/boot/config.txt``, executing ``systemctl disable hciuart``, and
-rebooting. The TPUART module is not back on ``ttyAMA0``.
+rebooting. The TPUART module is now back on ``ttyAMA0``.
 
 
 ## Migrating to 0.12
