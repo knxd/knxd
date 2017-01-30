@@ -9,23 +9,21 @@ https://www.auto.tuwien.ac.at/~mkoegler/index.php/bcusdk
 
 For a (german only) history and discussion why knxd emerged please also see: [eibd(war bcusdk) Fork -> knxd](http://knx-user-forum.de/forum/öffentlicher-bereich/knx-eib-forum/39972-eibd-war-bcusdk-fork-knxd)
 
+# This version is outdated
+
+Please try the v0.12 branch first!
+
+v0.10 is not maintained any more.
+
 ## New Features
 
-* 0.10 (``stable`` branch -- please try 0.11 first!)
+* 0.10 (this branch)
 
   * Support for more than one KNX interface
 
   * Lots of bug fixes
 
   * ETS5 compatibility
-
-* 0.11 (``master`` branch -- new features here)
-
-  * Major refactoring
-
-  * dynamic KNX address allocation to local clients
-
-  * local clients may talk to each other
 
 ## Building
 
