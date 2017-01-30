@@ -69,6 +69,7 @@ On Debian:
 
     # now build+install knxd
     cd knxd
+    git checkout v0.12
     dpkg-buildpackage -b -uc
     # To repeat: if this fails because of missing dependencies,
     # fix them instead of using dpkg-buildpackage's "-d" option.
