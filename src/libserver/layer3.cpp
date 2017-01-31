@@ -76,14 +76,12 @@ Layer3real::recv_L_Data (LDataPtr l)
 {
   if (running)
     {
-      TRACEPRINTF (l->l2->t, 9, this, "Enqueue %s", l->Decode ().c_str());
+      TRACEPRINTF (l->l2->t, 9, this, "Queue %s", l->Decode ().c_str());
       buf.push (std::move(l));
       trigger.send();
     }
   else
-    {
-      TRACEPRINTF (l->l2->t, 3, this, "Discard(not running) %s", l->Decode ().c_str());
-    }
+    TRACEPRINTF (l->l2->t, 9, this, "Queue: discard (not running) %s", l->Decode ().c_str());
 }
 
 void
@@ -91,12 +89,12 @@ Layer3real::recv_L_Busmonitor (LBusmonPtr l)
 {
   if (running)
     {
-      TRACEPRINTF (tr(), 3, this, "Enqueue %s", l->Decode ().c_str());
+      TRACEPRINTF (tr(), 9, this, "MonQueue %s", l->Decode ().c_str());
       mbuf.push (std::move(l));
       mtrigger.send();
     }
   else
-    TRACEPRINTF (tr(), 3, this, "Discard(not running) %s", l->Decode ().c_str());
+    TRACEPRINTF (tr(), 9, this, "MonQueue: discard (not running) %s", l->Decode ().c_str());
 }
 
 bool
