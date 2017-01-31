@@ -2,6 +2,9 @@ AUTOMAKE_OPTIONS=1.9
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST=SubmittingPatches .gitignore
 
+CONFIGURE_DEPENDENCIES=debian/changelog
+## rebuild when the version changes
+
 BUILDDIRS = 
 
 SUBDIRS=. src systemd
