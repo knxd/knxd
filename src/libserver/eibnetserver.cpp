@@ -137,7 +137,7 @@ EIBnetServer::setup (const char *multicastaddr, const int port, const char *intf
   sock_mac = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
   if (sock_mac < 0)
   {
-    ERRORPRINTF (t, E_ERROR | 11, this, "Lookup socket creation failed");
+    ERRORPRINTF (t, E_ERROR | 27, this, "Lookup socket creation failed");
     goto err_out0;
   }
   memset (&baddr, 0, sizeof (baddr));

@@ -84,7 +84,7 @@ T_Broadcast::recv (const CArray & c)
   T_DATA_XXX_REQ_PDU t;
   t.data = c;
   String s = t.Decode (this->t);
-  TRACEPRINTF (this->t, 4, this, "Send Broadcast %s", s.c_str());
+  TRACEPRINTF (this->t, 4, this, "Recv Broadcast %s", s.c_str());
   LDataPtr l = LDataPtr(new L_Data_PDU (shared_from_this()));
   l->source = 0;
   l->dest = 0;
@@ -138,7 +138,7 @@ T_Group::recv (const CArray & c)
   T_DATA_XXX_REQ_PDU t;
   t.data = c;
   String s = t.Decode (this->t);
-  TRACEPRINTF (this->t, 4, this, "Send Group %s", s.c_str());
+  TRACEPRINTF (this->t, 4, this, "Recv Group %s", s.c_str());
   LDataPtr l = LDataPtr(new L_Data_PDU (shared_from_this()));
   l->source = 0;
   l->dest = groupaddr;
@@ -182,7 +182,7 @@ T_TPDU::send_L_Data (LDataPtr l)
 void
 T_TPDU::recv (const TpduComm & c)
 {
-  t->TracePacket (4, this, "Send TPDU", c.data);
+  t->TracePacket (4, this, "Recv TPDU", c.data);
   LDataPtr l = LDataPtr(new L_Data_PDU (shared_from_this()));
   l->source = src;
   l->dest = c.addr;
@@ -239,7 +239,7 @@ T_Individual::recv (const CArray & c)
   T_DATA_XXX_REQ_PDU t;
   t.data = c;
   String s = t.Decode (this->t);
-  TRACEPRINTF (this->t, 4, this, "Send Individual %s", s.c_str());
+  TRACEPRINTF (this->t, 4, this, "Recv Individual %s", s.c_str());
   LDataPtr l = LDataPtr(new L_Data_PDU (shared_from_this()));
   l->source = 0;
   l->dest = dest;
@@ -353,7 +353,7 @@ T_Connection::send_L_Data (LDataPtr l)
 void
 T_Connection::recv (const CArray & c)
 {
-  t->TracePacket (4, this, "Send", c);
+  t->TracePacket (4, this, "Recv", c);
   in.push (c);
   SendCheck();
 }
@@ -512,7 +512,7 @@ GroupSocket::recv (const GroupAPDU & c)
   T_DATA_XXX_REQ_PDU t;
   t.data = c.data;
   String s = t.Decode (this->t);
-  TRACEPRINTF (this->t, 4, this, "Send GroupSocket %s", s.c_str());
+  TRACEPRINTF (this->t, 4, this, "Recv GroupSocket %s %s", FormatGroupAddr(c.dst).c_str(), s.c_str());
   LDataPtr l = LDataPtr(new L_Data_PDU (shared_from_this()));
   l->source = 0;
   l->dest = c.dst;

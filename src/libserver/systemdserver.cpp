@@ -30,7 +30,7 @@ Server (tr)
   fd = systemd_fd;
   if (listen (fd, 10) == -1)
     {
-      ERRORPRINTF (tr, E_ERROR | 18, this, "OpenSystemdSocket: listen: %s", strerror(errno));
+      ERRORPRINTF (tr, E_ERROR | 19, this, "OpenSystemdSocket: listen: %s", strerror(errno));
       close (fd);
       fd = -1;
       return;
