@@ -267,7 +267,7 @@ static struct argp_option options[] = {
   {"trace", 't', "MASK", 0,
    "set trace flags (bitmask)"},
   {"error", 'f', "LEVEL", 0,
-   "set error level"},
+   "set error level (default 3: warnings)"},
   {"eibaddr", 'e', "EIBADDR", 0,
    "set our EIB address to EIBADDR (default 0.0.1)"},
   {"client-addrs", 'E', "ADDRSTART", 0,
