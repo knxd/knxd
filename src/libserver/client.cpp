@@ -121,7 +121,7 @@ ClientConnection::read_cb (uint8_t *buf, size_t len)
   if (len < xlen+2)
     return 0;
   buf += 2;
-  t->TracePacket (0, this, "ReadMessage", len, buf);
+  t->TracePacket (0, this, "ReadMessage", xlen, buf);
 
   int msg = EIBTYPE (buf);
   if (a_conn) {
@@ -274,7 +274,7 @@ ClientConnection::sendmessage (int size, const uchar * msg)
   head[0] = (size >> 8) & 0xff;
   head[1] = (size) & 0xff;
 
-  t->TracePacket (0, this, "SendMessage", size, msg);
+  t->TracePacket (0, this, "Send", size, msg);
   sendbuf.write(head,2);
   sendbuf.write(msg,size);
 }
