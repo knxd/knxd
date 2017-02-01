@@ -21,9 +21,10 @@ FUNCS= \
 BUILT_SOURCES=$(FUNCS)
 CLEANFILES=$(FUNCS)
 
+gen/.deps/%.Plo :
 gen/%.c : eibclient-int.h
 	mkdir -p gen
-	echo '#include "c/eibclient-int.h"' > $@ 
+	echo '#include "eibclient-int.h"' > $@ 
 	echo '#include "def/'`basename $@|sed -e "s/\.c/.inc/g"`'"' >> $@
 
 lib_LTLIBRARIES=libeibclient.la
