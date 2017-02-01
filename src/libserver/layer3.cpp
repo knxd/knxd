@@ -232,10 +232,13 @@ Layer3real::hasAddress (eibaddr_t addr, Layer2Ptr l2)
         continue;
       Layer2Ptr l2x = (*i)->hasAddress (addr);
 
-      if (l2x == l2)
-        return nullptr;
-      if (l2x)
+      if (l2x != nullptr)
         {
+          if (l2x == l2)
+            {
+              TRACEPRINTF (l2x->t, 8, this, "local addr %s", FormatEIBAddr (addr).c_str());
+              return nullptr;
+            }
           TRACEPRINTF (l2x->t, 8, this, "found addr %s", FormatEIBAddr (addr).c_str());
           return l2x;
         }
@@ -324,7 +327,6 @@ Layer3real::trigger_cb (ev::async &w, int revents)
 
       {
         Layer2Ptr l2 = l1->l2;
-        Layer2Ptr l2x;
 
         if (l1->source == 0)
           l1->source = l2->getRemoteAddr();
@@ -334,19 +336,22 @@ Layer3real::trigger_cb (ev::async &w, int revents)
             l1->source != 0xFFFF &&
             l1->source != defaultAddr)
           {
-            if ((l2x = hasAddress (l1->source, l2)) != nullptr)
+            Layer2Ptr l2x = hasAddress (l1->source);
+            if (l2x)
               {
-                TRACEPRINTF (l2->t, 3, this, "Packet not from %d:%s: %s", l2x->t->seq, l2x->t->name.c_str(), l1->Decode ().c_str());
-                goto next;
+                if (l2x != l2)
+                  {
+                    TRACEPRINTF (l2->t, 3, this, "Packet not from %d:%s: %s", l2x->t->seq, l2x->t->name.c_str(), l1->Decode ().c_str());
+                    goto next;
+                  }
               }
-
-            // late arrival to an already-freed client
-            if (client_addrs_start && (l1->source >= client_addrs_start) &&
+            else if (client_addrs_start && (l1->source >= client_addrs_start) &&
                 (l1->source < client_addrs_start+client_addrs_len))
-              {
+              { // late arrival to an already-freed client
                 TRACEPRINTF (l2->t, 3, this, "Packet from client: %s", l1->Decode ().c_str());
                 goto next;
               }
+
             l2->addAddress (l1->source);
           }
       }

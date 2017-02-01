@@ -44,7 +44,6 @@ T_Broadcast::T_Broadcast (TracePtr tr, int write_only)
 	: Layer4common (tr)
 {
   TRACEPRINTF (tr, 4, this, "OpenBroadcast %s", write_only ? "WO" : "RW");
-  init_ok = false;
   if (!write_only)
     if (!addGroupAddress (0))
       return;
@@ -102,7 +101,6 @@ T_Group::T_Group (TracePtr tr, eibaddr_t group, int write_only)
   TRACEPRINTF (tr, 4, this, "OpenGroup %s %s", FormatGroupAddr (group).c_str(),
 	       write_only ? "WO" : "RW");
   groupaddr = group;
-  init_ok = false;
 
   if (!write_only)
     if (!addGroupAddress (group))
@@ -205,10 +203,6 @@ T_Individual::T_Individual (TracePtr tr, eibaddr_t d,
   TRACEPRINTF (tr, 4, this, "OpenIndividual %s %s",
                FormatEIBAddr (d).c_str(), write_only ? "WO" : "RW");
   dest = d;
-  init_ok = false;
-  if (!write_only)
-    if (!addAddress(dest))
-      return;
   init_ok = true;
 }
 
@@ -265,9 +259,6 @@ T_Connection::T_Connection (TracePtr tr, eibaddr_t d)
   recvno = 0;
   sendno = 0;
   mode = 0;
-  init_ok = false;
-  if (!addAddress (dest))
-    return;
   init_ok = true;
 }
 
@@ -471,7 +462,6 @@ GroupSocket::GroupSocket (TracePtr tr, int write_only)
 	: Layer4common(tr)
 {
   TRACEPRINTF (tr, 4, this, "OpenGroupSocket %s", write_only ? "WO" : "RW");
-  init_ok = false;
   if (!write_only)
     if (!addGroupAddress (0))
       return;

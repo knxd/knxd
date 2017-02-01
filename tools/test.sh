@@ -49,7 +49,6 @@ fi
 S1=$(tempfile); rm $S1
 S2=$(tempfile); rm $S2
 S3=$(tempfile); rm $S3
-S4=$(tempfile); rm $S4
 L1=$(tempfile)
 L2=$(tempfile)
 L3=$(tempfile)
@@ -68,9 +67,10 @@ knxd -n K1 -t 0xfffc -f 9 -e 4.1.0 -E 4.1.1:5 -c -u$S1 --multi-port -DTR --Serve
 KNX1=$!
 trap 'echo T1; rm -f $L1 $L2 $E1 $E2 $EF; kill $KNX1; wait' 0 1 2
 
-sleep 1
+sleep 2
 knxd -n K2 -t 0xffff -f 9 -e 4.2.0 -E 4.2.1:5 -DTR --Server=:$PORT2 -u$S2 -b ip:224.99.98.97:$PORT &
 KNX2=$!
+sleep 2
 knxd -n K3 -t 0xffff -f 9 -e 4.3.0 -E 4.3.1:5 -u$S3 -b ipt:localhost:$PORT2:$((10001 + $$)) &
 KNX3=$!
 #read RETURN
@@ -83,14 +83,14 @@ knxtool vbusmonitor1 local:$S2 >$L2 2>$E2 &
 PL2=$!
 knxtool vbusmonitor1 local:$S3 >$L3 2>$E3 &
 PL3=$!
-knxtool groupcacheread local:$S4 1/2/3 2 >$L4 2>$E4 &
+knxtool groupcachereadsync local:$S1 1/2/3 3 >$L4 2>$E4 &
 PL4=$!
 knxtool grouplisten local:$S2 1/2/3 >$L5 2>$E5 &
 PL5=$!
 # will die by itself when the server terminates
 
 # test that addresses get recycled
-sleep 1
+sleep 2
 echo xmit 1
 if ! knxtool groupswrite local:$S1 1/2/3 4 ; then echo X1; exit 1; fi
 sleep 1

@@ -1,3 +1,9 @@
+knxd (0.12.8-1) unstable; urgency=medium
+
+  * 0.12.7 was broken (address checking had a major bug). Sorry.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 01 Feb 2017 04:12:01 +0100
+
 knxd (0.12.7-1) unstable; urgency=medium
 
   * When an answer arrives after a local client disconnects, the source
