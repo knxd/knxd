@@ -1,3 +1,10 @@
+knxd (0.12.7-1) unstable; urgency=medium
+
+  * When an answer arrives after a local client disconnects, the source
+    address was mistakenly associated with that Layer2.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 01 Feb 2017 02:48:50 +0100
+
 knxd (0.12.6-2) unstable; urgency=medium
 
   * Merge up to v0.10.18-3

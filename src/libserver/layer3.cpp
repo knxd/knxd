@@ -332,13 +332,23 @@ Layer3real::trigger_cb (ev::async &w, int revents)
           l1->source = defaultAddr;
         if (l1->source != 0 &&
             l1->source != 0xFFFF &&
-            l1->source != defaultAddr &&
-            (l2x = hasAddress (l1->source, l2)))
+            l1->source != defaultAddr)
           {
-            TRACEPRINTF (l2->t, 3, this, "Packet not from %d:%s: %s", l2x->t->seq, l2x->t->name.c_str(), l1->Decode ().c_str());
-            goto next;
+            if ((l2x = hasAddress (l1->source, l2)) != nullptr)
+              {
+                TRACEPRINTF (l2->t, 3, this, "Packet not from %d:%s: %s", l2x->t->seq, l2x->t->name.c_str(), l1->Decode ().c_str());
+                goto next;
+              }
+
+            // late arrival to an already-freed client
+            if (client_addrs_start && (l1->source >= client_addrs_start) &&
+                (l1->source < client_addrs_start+client_addrs_len))
+              {
+                TRACEPRINTF (l2->t, 3, this, "Packet from client: %s", l1->Decode ().c_str());
+                goto next;
+              }
+            l2->addAddress (l1->source);
           }
-          l2->addAddress (l1->source);
       }
 
       if (vbusmonitor.size())
