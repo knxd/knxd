@@ -1,3 +1,9 @@
+knxd (0.13.0-1) UNRELEASED; urgency=medium
+
+  * Start master branch
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 01 Feb 2017 01:50:56 +0100
+
 knxd (0.12.6-1) unstable; urgency=medium
 
   * Address filtering: packets arriving on interface A with a source
