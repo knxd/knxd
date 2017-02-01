@@ -27,7 +27,7 @@
 
 DummyL2Driver::DummyL2Driver (L2options *opt) : Layer2 (opt)
 {
-  TRACEPRINTF (t, 2, this, "Open");
+  TRACEPRINTF (t, 2, "Open");
 }
 
 bool
@@ -40,13 +40,13 @@ DummyL2Driver::init (Layer3 *l3)
 
 DummyL2Driver::~DummyL2Driver ()
 {
-  TRACEPRINTF (t, 2, this, "Close");
+  TRACEPRINTF (t, 2, "Close");
 }
 
 void
 DummyL2Driver::send_L_Data (LDataPtr l)
 {
-  TRACEPRINTF (t, 2, this, "Send %s", l->Decode ().c_str());
+  TRACEPRINTF (t, 2, "Send %s", l->Decode ().c_str());
   if ((mode & BUSMODE_MONITOR) && l->getType () == L_Data)
   if (mode & BUSMODE_MONITOR)
     {
@@ -58,19 +58,19 @@ DummyL2Driver::send_L_Data (LDataPtr l)
 
 DummyL2Filter::DummyL2Filter (L2options *opt, Layer2Ptr l2) : Layer23 (l2)
 {
-  TRACEPRINTF (t, 2, this, "OpenFilter");
+  TRACEPRINTF (t, 2, "OpenFilter");
 }
 
 void
 DummyL2Filter::send_L_Data (LDataPtr l)
 {
-  TRACEPRINTF (t, 2, this, "Passing %s", l->Decode ().c_str());
+  TRACEPRINTF (t, 2, "Passing %s", l->Decode ().c_str());
   Layer23::send_L_Data (std::move(l));
 }
 
 DummyL2Filter::~DummyL2Filter ()
 {
-  TRACEPRINTF (t, 2, this, "CloseFilter");
+  TRACEPRINTF (t, 2, "CloseFilter");
 }
 
 Layer2Ptr

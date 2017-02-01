@@ -68,18 +68,18 @@ CEMI_to_L_Data (const CArray & data, Layer2Ptr l2)
 {
   if (data.size() < 2)
     {
-      TRACEPRINTF (l2->t, 7, NULL, "packet too short (%d)", data.size());
+      TRACEPRINTF (l2->t, 7, "packet too short (%d)", data.size());
       return nullptr;
     }
   unsigned start = data[1] + 2;
   if (data.size() < 7 + start)
     {
-      TRACEPRINTF (l2->t, 7, NULL, "start too large (%d/%d)", data.size(),start);
+      TRACEPRINTF (l2->t, 7, "start too large (%d/%d)", data.size(),start);
       return nullptr;
     }
   if (data.size() < 7 + start + data[6 + start] + 1)
     {
-      TRACEPRINTF (l2->t, 7, NULL, "packet too short (%d/%d)", data.size(), 7 + start + data[6 + start] + 1);
+      TRACEPRINTF (l2->t, 7, "packet too short (%d/%d)", data.size(), 7 + start + data[6 + start] + 1);
       return nullptr;
     }
 
@@ -110,7 +110,7 @@ CEMI_to_L_Data (const CArray & data, Layer2Ptr l2)
   c->AddrType = (data[start + 1] & 0x80) ? GroupAddress : IndividualAddress;
   if (!(data[start] & 0x80) && (data[start + 1] & 0x0f))
     {
-      TRACEPRINTF (l2->t, 7, NULL, "Length? invalid (%02x%02x)", data[start],data[start+1]);
+      TRACEPRINTF (l2->t, 7, "Length? invalid (%02x%02x)", data[start],data[start+1]);
       return 0;
     }
   return c;

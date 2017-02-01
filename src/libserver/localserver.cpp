@@ -27,14 +27,14 @@ LocalServer::LocalServer (TracePtr tr, const char *path):
 Server (tr)
 {
   struct sockaddr_un addr;
-  TRACEPRINTF (tr, 8, this, "OpenLocalSocket %s", path);
+  TRACEPRINTF (tr, 8, "OpenLocalSocket %s", path);
   addr.sun_family = AF_LOCAL;
   strncpy (addr.sun_path, path, sizeof (addr.sun_path));
 
   fd = socket (AF_LOCAL, SOCK_STREAM, 0);
   if (fd == -1)
     {
-      ERRORPRINTF (tr, E_ERROR | 15, this, "OpenLocalSocket %s: socket: %s", path, strerror(errno));
+      ERRORPRINTF (tr, E_ERROR | 15, "OpenLocalSocket %s: socket: %s", path, strerror(errno));
       return;
     }
 
@@ -48,7 +48,7 @@ Server (tr)
           if (connect(fd, (struct sockaddr *) &addr, sizeof (addr)) == 0)
             {
           ex:
-              ERRORPRINTF (tr, E_ERROR | 16, this, "OpenLocalSocket %s: bind: %s", path, strerror(errno));
+              ERRORPRINTF (tr, E_ERROR | 16, "OpenLocalSocket %s: bind: %s", path, strerror(errno));
               close (fd);
               fd = -1;
               return;
@@ -61,7 +61,7 @@ Server (tr)
             }
           else
             {
-              ERRORPRINTF (tr, E_ERROR | 18, this, "Existing socket %s: connect: %s", path, strerror(errno));
+              ERRORPRINTF (tr, E_ERROR | 18, "Existing socket %s: connect: %s", path, strerror(errno));
               close (fd);
               fd = -1;
               return;
@@ -71,14 +71,14 @@ Server (tr)
 
   if (listen (fd, 10) == -1)
     {
-      ERRORPRINTF (tr, E_ERROR | 17, this, "OpenLocalSocket %s: listen: %s", path, strerror(errno));
+      ERRORPRINTF (tr, E_ERROR | 17, "OpenLocalSocket %s: listen: %s", path, strerror(errno));
       close (fd);
       fd = -1;
       return;
     }
 
   this->path = path;
-  TRACEPRINTF (tr, 8, this, "LocalSocket opened");
+  TRACEPRINTF (tr, 8, "LocalSocket opened");
 }
 
 LocalServer::~LocalServer ()

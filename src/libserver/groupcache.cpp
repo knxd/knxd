@@ -24,7 +24,7 @@
 GroupCache::GroupCache (TracePtr t, uint16_t maxsize)
 	: Layer2virtual(t)
 {
-  TRACEPRINTF (t, 4, this, "GroupCacheInit");
+  TRACEPRINTF (t, 4, "GroupCacheInit");
   enable = 0;
   this->maxsize = maxsize ? maxsize : 0xFFFF;
   remtrigger.set<GroupCache, &GroupCache::remtrigger_cb>(this);
@@ -38,7 +38,7 @@ GroupCache::~GroupCache ()
       (*i)->stop();
       delete *i;
     }
-  TRACEPRINTF (t, 4, this, "GroupCacheDestroy");
+  TRACEPRINTF (t, 4, "GroupCacheDestroy");
   Clear ();
 }
 
@@ -95,7 +95,7 @@ GroupCache::send_L_Data (LDataPtr l)
 bool
 GroupCache::Start ()
 {
-  TRACEPRINTF (t, 4, this, "GroupCacheEnable");
+  TRACEPRINTF (t, 4, "GroupCacheEnable");
   enable = 1;
   return true;
 }
@@ -104,7 +104,7 @@ void
 GroupCache::Clear ()
 {
   unsigned int i;
-  TRACEPRINTF (t, 4, this, "GroupCacheClear");
+  TRACEPRINTF (t, 4, "GroupCacheClear");
   cache.clear();
 }
 
@@ -112,7 +112,7 @@ void
 GroupCache::Stop ()
 {
   Clear ();
-  TRACEPRINTF (t, 4, this, "GroupCacheStop");
+  TRACEPRINTF (t, 4, "GroupCacheStop");
   enable = 0;
 }
 
@@ -215,7 +215,7 @@ private:
     if (c.dst != addr)
       return;
 
-    TRACEPRINTF (gc->t, 4, this, "GroupCache found: %s",
+    TRACEPRINTF (gc->t, 4, "GroupCache found: %s",
                   FormatEIBAddr (c.src).c_str());
     cb(c,false,cc);
     stop();
@@ -227,7 +227,7 @@ private:
       return;
 
     GroupCacheEntry f(addr);
-    TRACEPRINTF (gc->t, 4, this, "GroupCache reread timeout");
+    TRACEPRINTF (gc->t, 4, "GroupCache reread timeout");
     cb(f,false,cc);
     stop();
     return;
@@ -238,13 +238,13 @@ void
 GroupCache::Read (eibaddr_t addr, unsigned Timeout, uint16_t age,
   GCReadCallback cb, ClientConnPtr cc)
 {
-  TRACEPRINTF (t, 4, this, "GroupCacheRead %s %d %d",
+  TRACEPRINTF (t, 4, "GroupCacheRead %s %d %d",
 	       FormatGroupAddr (addr).c_str(), Timeout, age);
 
   if (!enable)
     {
       GroupCacheEntry f(0);
-      TRACEPRINTF (t, 4, this, "GroupCache not enabled");
+      TRACEPRINTF (t, 4, "GroupCache not enabled");
       cb(f, Timeout == 0, cc);
       return;
     }
@@ -254,7 +254,7 @@ GroupCache::Read (eibaddr_t addr, unsigned Timeout, uint16_t age,
     c = cache.end();
   if (c != cache.end())
     {
-      TRACEPRINTF (t, 4, this, "GroupCache found: %s",
+      TRACEPRINTF (t, 4, "GroupCache found: %s",
 		   FormatEIBAddr (c->second.src).c_str());
       cb(c->second, Timeout == 0, cc);
       return;
@@ -263,7 +263,7 @@ GroupCache::Read (eibaddr_t addr, unsigned Timeout, uint16_t age,
   if (!Timeout)
     {
       GroupCacheEntry f(addr);
-      TRACEPRINTF (t, 4, this, "GroupCache no entry");
+      TRACEPRINTF (t, 4, "GroupCache no entry");
       cb(f, true, cc);
       return;
     }
@@ -334,7 +334,7 @@ private:
 
   bool handler()
   {
-    TRACEPRINTF (gc->t, 8, this, "LastUpdates start: x%x pos: x%x", start, gc->seq);
+    TRACEPRINTF (gc->t, 8, "LastUpdates start: x%x pos: x%x", start, gc->seq);
     SeqMap::const_iterator sa = gc->cache_seq.begin();
     SeqMap::const_iterator sb = gc->cache_seq.end();
     while (sb != sa && (--sb)->first >= start)

@@ -23,12 +23,12 @@
 Layer7_Broadcast::Layer7_Broadcast (TracePtr tr)
 {
   t = tr;
-  TRACEPRINTF (t, 5, this, "L7Broadcast Open");
+  TRACEPRINTF (t, 5, "L7Broadcast Open");
 }
 
 Layer7_Broadcast::~Layer7_Broadcast ()
 {
-  TRACEPRINTF (t, 5, this, "L7Broadcast Close");
+  TRACEPRINTF (t, 5, "L7Broadcast Close");
 }
 
 bool Layer7_Broadcast::init (Layer3 * l3)
@@ -36,7 +36,7 @@ bool Layer7_Broadcast::init (Layer3 * l3)
   l4 = T_BroadcastPtr(new T_Broadcast (t, 0));
   if (!l4->init (this, l3))
     {
-      TRACEPRINTF (t, 5, this, "L7Broadcast init bad");
+      TRACEPRINTF (t, 5, "L7Broadcast init bad");
       l4 = 0;
     }
   return l4 != 0;
@@ -77,7 +77,7 @@ Array < eibaddr_t >
 Layer7_Connection::Layer7_Connection (TracePtr tr, eibaddr_t d)
 {
   t = tr;
-  TRACEPRINTF (t, 5, this, "L7Connection open");
+  TRACEPRINTF (t, 5, "L7Connection open");
   dest = d;
 }
 
@@ -90,7 +90,7 @@ bool Layer7_Connection::init (Layer3 * l3)
   l4 = T_ConnectionPtr(new T_Connection (t, dest));
   if (!l4->init (this, l3))
     {
-      TRACEPRINTF (t, 5, this, "L7Connection init bad");
+      TRACEPRINTF (t, 5, "L7Connection init bad");
       l4 = 0;
     }
   return l4 != 0;
@@ -379,7 +379,7 @@ Layer7_Connection::A_Memory_Write_Block (memaddr_t addr, const CArray & data)
 Layer7_Individual::Layer7_Individual (TracePtr tr, eibaddr_t d)
 {
   t = tr;
-  TRACEPRINTF (t, 5, this, "L7Individual open");
+  TRACEPRINTF (t, 5, "L7Individual open");
   dest = d;
 }
 
@@ -392,7 +392,7 @@ bool Layer7_Individual::init (Layer3 * l3)
   l4 = T_IndividualPtr(new T_Individual (t, dest, false));
   if (!l4->init (l3))
     {
-      TRACEPRINTF (t, 5, this, "L7Individual init bad");
+      TRACEPRINTF (t, 5, "L7Individual init bad");
       l4 = 0;
     }
   return l4 != 0;

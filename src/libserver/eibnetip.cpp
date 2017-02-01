@@ -129,7 +129,7 @@ EIBNetIPSocket::EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr,
 {
   int i;
   t = tr;
-  TRACEPRINTF (t, 0, this, "Open");
+  TRACEPRINTF (t, 0, "Open");
   multicast = false;
   memset (&maddr, 0, sizeof (maddr));
   memset (&sendaddr, 0, sizeof (sendaddr));
@@ -151,7 +151,7 @@ EIBNetIPSocket::EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr,
       i = 1;
       if (setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &i, sizeof (i)) == -1)
 	{
-          ERRORPRINTF (t, E_ERROR | 45, this, "cannot reuse address: %s", strerror(errno));
+          ERRORPRINTF (t, E_ERROR | 45, "cannot reuse address: %s", strerror(errno));
 	  close (fd);
 	  fd = -1;
 	  return;
@@ -159,7 +159,7 @@ EIBNetIPSocket::EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr,
     }
   if (bind (fd, (struct sockaddr *) &bindaddr, sizeof (bindaddr)) == -1)
     {
-      ERRORPRINTF (t, E_ERROR | 38, this, "cannot bind to address: %s", strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 38, "cannot bind to address: %s", strerror(errno));
       close (fd);
       fd = -1;
       return;
@@ -171,7 +171,7 @@ EIBNetIPSocket::EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr,
  
     if (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_LOOP,
                    (char *)&loopch, sizeof(loopch)) < 0) {
-      ERRORPRINTF (t, E_ERROR | 39, this, "cannot turn on multicast loopback: %s", strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 39, "cannot turn on multicast loopback: %s", strerror(errno));
       close(fd);
       fd = -1;
       return;
@@ -186,12 +186,12 @@ EIBNetIPSocket::EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr,
   else
     io_recv.start(fd, ev::READ);
 
-  TRACEPRINTF (t, 0, this, "Openend");
+  TRACEPRINTF (t, 0, "Openend");
 }
 
 EIBNetIPSocket::~EIBNetIPSocket ()
 {
-  TRACEPRINTF (t, 0, this, "Close");
+  TRACEPRINTF (t, 0, "Close");
   stop();
 }
 
@@ -269,7 +269,7 @@ void
 EIBNetIPSocket::Send (EIBNetIPPacket p, struct sockaddr_in addr)
 {
   struct _EIBNetIP_Send s;
-  t->TracePacket (1, this, "Send", p.data);
+  t->TracePacket (1, "Send", p.data);
   s.data = p;
   s.addr = addr;
 
@@ -288,7 +288,7 @@ EIBNetIPSocket::io_send_cb (ev::io &w, int revents)
     }
   const struct _EIBNetIP_Send s = send_q.front ();
   CArray p = s.data.ToPacket ();
-  t->TracePacket (0, this, "Send", p);
+  t->TracePacket (0, "Send", p);
   int i = sendto (fd, p.data(), p.size(), 0,
                       (const struct sockaddr *) &s.addr, sizeof (s.addr));
   if (i > 0)
@@ -300,10 +300,10 @@ EIBNetIPSocket::io_send_cb (ev::io &w, int revents)
     {
       if (i == 0 || (errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR))
         {
-          TRACEPRINTF (t, 0, this, "Send: %s", strerror(errno));
+          TRACEPRINTF (t, 0, "Send: %s", strerror(errno));
           if (send_error++ > 5)
             {
-              t->TracePacket (0, this, "EIBnetSocket:drop", p);
+              t->TracePacket (0, "EIBnetSocket:drop", p);
               send_q.get ();
               send_error = 0;
             }
@@ -327,14 +327,14 @@ EIBNetIPSocket::io_recv_cb (ev::io &w, int revents)
           (recvall == 2 && memcmp (&r, &localaddr, sizeof (r))) ||
           (recvall == 3 && !memcmp (&r, &recvaddr2, sizeof (r))))
         {
-          t->TracePacket (0, this, "Recv", i, buf);
+          t->TracePacket (0, "Recv", i, buf);
           EIBNetIPPacket *p =
             EIBNetIPPacket::fromPacket (CArray (buf, i), r);
           if (p)
             on_recv(p);
         }
       else
-        t->TracePacket (0, this, "Dropped", i, buf);
+        t->TracePacket (0, "Dropped", i, buf);
     }
 }
 

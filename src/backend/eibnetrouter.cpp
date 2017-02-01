@@ -27,7 +27,7 @@ EIBNetIPRouter::EIBNetIPRouter (const char *multicastaddr, int port,
 {
   struct sockaddr_in baddr;
   struct ip_mreq mcfg;
-  TRACEPRINTF (t, 2, this, "Open");
+  TRACEPRINTF (t, 2, "Open");
   memset (&baddr, 0, sizeof (baddr));
 #ifdef HAVE_SOCKADDR_IN_LEN
   baddr.sin_len = sizeof (baddr);
@@ -55,7 +55,7 @@ EIBNetIPRouter::EIBNetIPRouter (const char *multicastaddr, int port,
   mcfg.imr_interface.s_addr = htonl (INADDR_ANY);
   if (!sock->SetMulticast (mcfg))
     goto err_out;
-  TRACEPRINTF (t, 2, this, "Opened");
+  TRACEPRINTF (t, 2, "Opened");
   return;
 
 err_out:
@@ -66,7 +66,7 @@ err_out:
 
 EIBNetIPRouter::~EIBNetIPRouter ()
 {
-  TRACEPRINTF (t, 2, this, "Destroy");
+  TRACEPRINTF (t, 2, "Destroy");
   if (sock)
     delete sock;
 }
@@ -84,7 +84,7 @@ EIBNetIPRouter::init (Layer3 *l3)
 void
 EIBNetIPRouter::send_L_Data (LDataPtr l)
 {
-  TRACEPRINTF (t, 2, this, "Send %s", l->Decode ().c_str());
+  TRACEPRINTF (t, 2, "Send %s", l->Decode ().c_str());
   EIBNetIPPacket p;
   p.data = L_Data_ToCEMI (0x29, l);
   p.service = ROUTING_INDICATION;
@@ -103,11 +103,11 @@ EIBNetIPRouter::on_recv_cb(EIBNetIPPacket *p)
     {
       if (p->data.size() < 2)
         {
-          TRACEPRINTF (t, 2, this, "No payload (%d)", p->data.size());
+          TRACEPRINTF (t, 2, "No payload (%d)", p->data.size());
         }
       else
         {
-          TRACEPRINTF (t, 2, this, "Payload not L_Data.ind (%02x)", p->data[0]);
+          TRACEPRINTF (t, 2, "Payload not L_Data.ind (%02x)", p->data[0]);
         }
       delete p;
       return;
@@ -117,7 +117,7 @@ EIBNetIPRouter::on_recv_cb(EIBNetIPPacket *p)
   delete p;
   if (c)
     {
-      TRACEPRINTF (t, 2, this, "Recv %s", c->Decode ().c_str());
+      TRACEPRINTF (t, 2, "Recv %s", c->Decode ().c_str());
       if (mode & BUSMODE_UP)
         {
           l3->recv_L_Data (std::move(c));

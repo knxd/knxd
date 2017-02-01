@@ -24,7 +24,7 @@
 EIBNetIPTunnel::EIBNetIPTunnel (const char *dest, int port, int sport,
 				const char *srcip, int Dataport, L2options *opt) : Layer2 (opt)
 {
-  TRACEPRINTF (t, 2, this, "Open");
+  TRACEPRINTF (t, 2, "Open");
 
   timeout.set <EIBNetIPTunnel,&EIBNetIPTunnel::timeout_cb> (this);
   conntimeout.set <EIBNetIPTunnel,&EIBNetIPTunnel::conntimeout_cb> (this);
@@ -75,12 +75,12 @@ EIBNetIPTunnel::EIBNetIPTunnel (const char *dest, int port, int sport,
   sock->recvall = 0;
   support_busmonitor = true;
   connect_busmonitor = false;
-  TRACEPRINTF (t, 2, this, "Opened");
+  TRACEPRINTF (t, 2, "Opened");
 }
 
 EIBNetIPTunnel::~EIBNetIPTunnel ()
 {
-  TRACEPRINTF (t, 2, this, "Close");
+  TRACEPRINTF (t, 2, "Close");
   if (sock && channel >= 0)
     {
       EIBnet_DisconnectRequest dreq;
@@ -119,7 +119,7 @@ bool EIBNetIPTunnel::init (Layer3 *l3)
 void
 EIBNetIPTunnel::send_L_Data (LDataPtr l)
 {
-  TRACEPRINTF (t, 2, this, "Send %s", l->Decode ().c_str());
+  TRACEPRINTF (t, 2, "Send %s", l->Decode ().c_str());
 
   send_q.put (L_Data_ToCEMI (0x11, l));
   trigger.send();
@@ -158,16 +158,16 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
 	  goto err;
 	if (parseEIBnet_ConnectResponse (*p1, cresp))
 	  {
-	    TRACEPRINTF (t, 1, this, "Recv wrong connection response");
+	    TRACEPRINTF (t, 1, "Recv wrong connection response");
 	    break;
 	  }
 	if (cresp.status != 0)
 	  {
-	    TRACEPRINTF (t, 1, this, "Connect failed with error %02X",
+	    TRACEPRINTF (t, 1, "Connect failed with error %02X",
 			  cresp.status);
 	    if (cresp.status == 0x23 && support_busmonitor && connect_busmonitor)
 	      {
-		TRACEPRINTF (t, 1, this, "Disable busmonitor support");
+		TRACEPRINTF (t, 1, "Disable busmonitor support");
 		support_busmonitor = false;
 		connect_busmonitor = false;
 
@@ -175,7 +175,7 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
 		creq.CRI[1] = 0x02;
 
 		EIBNetIPPacket p = creq.ToPacket ();
-		TRACEPRINTF (t, 1, this, "Connectretry");
+		TRACEPRINTF (t, 1, "Connectretry");
 		sock->Send (p, caddr);
 		conntimeout.start(10,0);
 	      }
@@ -183,7 +183,7 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
 	  }
 	if (cresp.CRD.size() != 3)
 	  {
-	    TRACEPRINTF (t, 1, this, "Recv wrong connection response");
+	    TRACEPRINTF (t, 1, "Recv wrong connection response");
 	    break;
 	  }
 	addAddress((cresp.CRD[1] << 8) | cresp.CRD[2]);
@@ -210,17 +210,17 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
 	EIBnet_TunnelRequest treq;
 	if (mod == 0)
 	  {
-	    TRACEPRINTF (t, 1, this, "Not connected");
+	    TRACEPRINTF (t, 1, "Not connected");
 	    goto err;
 	  }
 	if (parseEIBnet_TunnelRequest (*p1, treq))
 	  {
-	    TRACEPRINTF (t, 1, this, "Invalid request");
+	    TRACEPRINTF (t, 1, "Invalid request");
 	    break;
 	  }
 	if (treq.channel != channel)
 	  {
-	    TRACEPRINTF (t, 1, this, "Not for us (treq.chan %d != %d)", treq.channel,channel);
+	    TRACEPRINTF (t, 1, "Not for us (treq.chan %d != %d)", treq.channel,channel);
 	    break;
 	  }
 	if (((treq.seqno + 1) & 0xff) == rno)
@@ -237,7 +237,7 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
 	  }
 	if (treq.seqno != rno)
 	  {
-	    TRACEPRINTF (t, 1, this, "Wrong sequence %d<->%d",
+	    TRACEPRINTF (t, 1, "Wrong sequence %d<->%d",
 			  treq.seqno, rno);
 	    if (treq.seqno < rno)
 	      treq.seqno += 0x100;
@@ -283,14 +283,14 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
 	  }
 	if (treq.CEMI[0] != 0x29)
 	  {
-	    TRACEPRINTF (t, 1, this, "Unexpected CEMI Type %02X",
+	    TRACEPRINTF (t, 1, "Unexpected CEMI Type %02X",
 			  treq.CEMI[0]);
 	    break;
 	  }
 	c = CEMI_to_L_Data (treq.CEMI, shared_from_this());
 	if (c)
 	  {
-	    TRACEPRINTF (t, 1, this, "Recv %s", c->Decode ().c_str());
+	    TRACEPRINTF (t, 1, "Recv %s", c->Decode ().c_str());
 	    if (mode != BUSMODE_MONITOR)
 	      {
 		l3->recv_L_Data (std::move(c));
@@ -301,7 +301,7 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
 	    l3->recv_L_Busmonitor (std::move(p1));
 	    break;
 	  }
-	TRACEPRINTF (t, 1, this, "Unknown CEMI");
+	TRACEPRINTF (t, 1, "Unknown CEMI");
 	break;
       }
     case TUNNEL_RESPONSE:
@@ -309,28 +309,28 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
 	EIBnet_TunnelACK tresp;
 	if (mod == 0)
 	  {
-	    TRACEPRINTF (t, 1, this, "Not connected");
+	    TRACEPRINTF (t, 1, "Not connected");
 	    goto err;
 	  }
 	if (parseEIBnet_TunnelACK (*p1, tresp))
 	  {
-	    TRACEPRINTF (t, 1, this, "Invalid response");
+	    TRACEPRINTF (t, 1, "Invalid response");
 	    break;
 	  }
 	if (tresp.channel != channel)
 	  {
-	    TRACEPRINTF (t, 1, this, "Not for us (tresp.chan %d != %d)", tresp.channel,channel);
+	    TRACEPRINTF (t, 1, "Not for us (tresp.chan %d != %d)", tresp.channel,channel);
 	    break;
 	  }
 	if (tresp.seqno != sno)
 	  {
-	    TRACEPRINTF (t, 1, this, "Wrong sequence %d<->%d",
+	    TRACEPRINTF (t, 1, "Wrong sequence %d<->%d",
 			  tresp.seqno, sno);
 	    break;
 	  }
 	if (tresp.status)
 	  {
-	    TRACEPRINTF (t, 1, this, "Error in ACK %d", tresp.status);
+	    TRACEPRINTF (t, 1, "Error in ACK %d", tresp.status);
 	    break;
 	  }
 	if (mod == 2)
@@ -352,7 +352,7 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
 	    retry = 0;
 	  }
 	else
-	  TRACEPRINTF (t, 1, this, "Unexpected ACK mod=%d",mod);
+	  TRACEPRINTF (t, 1, "Unexpected ACK mod=%d",mod);
 	break;
       }
     case CONNECTIONSTATE_RESPONSE:
@@ -360,12 +360,12 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
 	EIBnet_ConnectionStateResponse csresp;
 	if (parseEIBnet_ConnectionStateResponse (*p1, csresp))
 	  {
-	    TRACEPRINTF (t, 1, this, "Invalid response");
+	    TRACEPRINTF (t, 1, "Invalid response");
 	    break;
 	  }
 	if (csresp.channel != channel)
 	  {
-	    TRACEPRINTF (t, 1, this, "Not for us (csresp.chan %d != %d)", csresp.channel,channel);
+	    TRACEPRINTF (t, 1, "Not for us (csresp.chan %d != %d)", csresp.channel,channel);
 	    break;
 	  }
 	if (csresp.status == 0)
@@ -373,12 +373,12 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
 	    if (heartbeat > 0)
 	      heartbeat--;
 	    else
-	      TRACEPRINTF (t, 1, this,
+	      TRACEPRINTF (t, 1,
 			    "Duplicate Connection State Response");
 	  }
 	else if (csresp.status == 0x21)
 	  {
-	    TRACEPRINTF (t, 1, this,
+	    TRACEPRINTF (t, 1,
 			  "Connection State Response not connected");
 	    EIBnet_DisconnectRequest dreq;
 	    dreq.nat = saddr.sin_addr.s_addr == 0;
@@ -391,7 +391,7 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
 	    mod = 0;
 	  }
 	else
-	  TRACEPRINTF (t, 1, this,
+	  TRACEPRINTF (t, 1,
 			"Connection State Response Error %02x",
 			csresp.status);
 	break;
@@ -401,17 +401,17 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
 	EIBnet_DisconnectRequest dreq;
 	if (mod == 0)
 	  {
-	    TRACEPRINTF (t, 1, this, "Not connected");
+	    TRACEPRINTF (t, 1, "Not connected");
 	    goto err;
 	  }
 	if (parseEIBnet_DisconnectRequest (*p1, dreq))
 	  {
-	    TRACEPRINTF (t, 1, this, "Invalid request");
+	    TRACEPRINTF (t, 1, "Invalid request");
 	    break;
 	  }
 	if (dreq.channel != channel)
 	  {
-	    TRACEPRINTF (t, 1, this, "Not for us (dreq.chan %d != %d)", dreq.channel,channel);
+	    TRACEPRINTF (t, 1, "Not for us (dreq.chan %d != %d)", dreq.channel,channel);
 	    break;
 	  }
 
@@ -420,7 +420,7 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
 	dresp.status = 0;
 
 	EIBNetIPPacket p = dresp.ToPacket ();
-	t->TracePacket (1, this, "SendDis", p.data);
+	t->TracePacket (1, "SendDis", p.data);
 	sock->Send (p, caddr);
 	sock->recvall = 0;
 	mod = 0;
@@ -431,28 +431,28 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
 	EIBnet_DisconnectResponse dresp;
 	if (mod == 0)
 	  {
-	    TRACEPRINTF (t, 1, this, "Not connected");
+	    TRACEPRINTF (t, 1, "Not connected");
 	    break;
 	  }
 	if (parseEIBnet_DisconnectResponse (*p1, dresp))
 	  {
-	    TRACEPRINTF (t, 1, this, "Invalid request");
+	    TRACEPRINTF (t, 1, "Invalid request");
 	    break;
 	  }
 	if (dresp.channel != channel)
 	  {
-	    TRACEPRINTF (t, 1, this, "Not for us (dresp.chan %d != %d)", dresp.channel,channel);
+	    TRACEPRINTF (t, 1, "Not for us (dresp.chan %d != %d)", dresp.channel,channel);
 	    break;
 	  }
 	mod = 0;
 	sock->recvall = 0;
-	TRACEPRINTF (t, 1, this, "Disconnected");
+	TRACEPRINTF (t, 1, "Disconnected");
 	conntimeout.start(0.1,0);
 	break;
       }
     default:
     err:
-      TRACEPRINTF (t, 1, this, "Recv unexpected service %04X",
+      TRACEPRINTF (t, 1, "Recv unexpected service %04X",
 		    p1->service);
     }
   delete p1;
@@ -469,7 +469,7 @@ void EIBNetIPTunnel::trigger_cb(ev::async &w, int revents)
   treq.CEMI = send_q.front ();
 
   EIBNetIPPacket p = treq.ToPacket ();
-  t->TracePacket (1, this, "SendTunnel", p.data);
+  t->TracePacket (1, "SendTunnel", p.data);
   sock->Send (p, daddr);
   mod = 2; timeout.start(1,0);
 }
@@ -486,14 +486,14 @@ void EIBNetIPTunnel::conntimeout_cb(ev::timer &w, int revents)
 	  csreq.channel = channel;
 
 	  EIBNetIPPacket p = csreq.ToPacket ();
-	  TRACEPRINTF (t, 1, this, "Heartbeat");
+	  TRACEPRINTF (t, 1, "Heartbeat");
 	  sock->Send (p, caddr);
 	  heartbeat++;
           conntimeout.start(30,0);
 	}
       else
 	{
-	  TRACEPRINTF (t, 1, this, "Disconnection because of errors");
+	  TRACEPRINTF (t, 1, "Disconnection because of errors");
 	  EIBnet_DisconnectRequest dreq;
 	  dreq.caddr = saddr;
 	  dreq.channel = channel;
@@ -513,7 +513,7 @@ void EIBNetIPTunnel::conntimeout_cb(ev::timer &w, int revents)
       creq.CRI[1] =
 	((connect_busmonitor && support_busmonitor) ? 0x80 : 0x02);
 
-      TRACEPRINTF (t, 1, this, "Connectretry");
+      TRACEPRINTF (t, 1, "Connectretry");
       EIBNetIPPacket p = creq.ToPacket ();
       sock->Send (p, caddr);
       conntimeout.start(10,0);
@@ -536,12 +536,12 @@ EIBNetIPTunnel::timeout_cb(ev::timer &w, int revents)
     return;
   if (retry++ > 3)
     {
-      TRACEPRINTF (t, 1, this, "Drop");
+      TRACEPRINTF (t, 1, "Drop");
       send_q.get ();
       drop++;
       if (drop >= 3)
 	{
-	  TRACEPRINTF (t, 1, this, "Too many drops, disconnecting");
+	  TRACEPRINTF (t, 1, "Too many drops, disconnecting");
 	  EIBnet_DisconnectRequest dreq;
 	  dreq.caddr = saddr;
 	  dreq.channel = channel;
@@ -552,10 +552,10 @@ EIBNetIPTunnel::timeout_cb(ev::timer &w, int revents)
 	  return;
 	}
       else
-	TRACEPRINTF (t, 1, this, "Drop");
+	TRACEPRINTF (t, 1, "Drop");
     }
   else
-    TRACEPRINTF (t, 1, this, "Retry");
+    TRACEPRINTF (t, 1, "Retry");
   mod = 1; trigger.send();
 }
 

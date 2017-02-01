@@ -39,7 +39,7 @@ USBLoop::USBLoop (TracePtr tr)
   t = tr;
   if (libusb_init (&context))
     {
-      ERRORPRINTF (t, E_ERROR | 40, this, "USBLoop-Create: %s", strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 40, "USBLoop-Create: %s", strerror(errno));
       context = 0;
       return;
     }
@@ -48,7 +48,7 @@ USBLoop::USBLoop (TracePtr tr)
   libusb_set_pollfd_notifiers 	(context,
   pollfd_added_cb,pollfd_removed_cb, this);
   setup();
-  TRACEPRINTF (t, 10, this, "USBLoop-Create");
+  TRACEPRINTF (t, 10, "USBLoop-Create");
 }
 
 void USBLoop::timer()

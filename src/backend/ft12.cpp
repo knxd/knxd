@@ -27,7 +27,7 @@ FT12LowLevelDriver::FT12LowLevelDriver (const char *dev, TracePtr tr)
     : LowLevelDriver(tr)
 {
   struct termios t1;
-  TRACEPRINTF (t, 1, this, "Open");
+  TRACEPRINTF (t, 1, "Open");
 
   fd = open (dev, O_RDWR | O_NOCTTY | O_NDELAY | O_SYNC);
   if (fd == -1)
@@ -73,7 +73,7 @@ FT12LowLevelDriver::FT12LowLevelDriver (const char *dev, TracePtr tr)
   sendflag = 0;
   recvflag = 0;
   repeatcount = 0;
-  TRACEPRINTF (t, 1, this, "Opened");
+  TRACEPRINTF (t, 1, "Opened");
 }
 
 void
@@ -98,7 +98,7 @@ FT12LowLevelDriver::setup_buffers()
 void
 FT12LowLevelDriver::error_cb()
 {
-  TRACEPRINTF (t, 2, this, "ERROR");
+  TRACEPRINTF (t, 2, "ERROR");
   stop();
 }
 
@@ -112,7 +112,7 @@ FT12LowLevelDriver::~FT12LowLevelDriver ()
 {
   stop ();
 
-  TRACEPRINTF (t, 1, this, "Close");
+  TRACEPRINTF (t, 1, "Close");
   if (fd != -1)
     {
       tcsetattr (fd, TCSAFLUSH, &old);
@@ -135,7 +135,7 @@ FT12LowLevelDriver::Send_Packet (CArray l)
   CArray pdu;
   uchar c;
   unsigned i;
-  t->TracePacket (1, this, "Send", l);
+  t->TracePacket (1, "Send", l);
 
   assert (l.size() <= 32);
   pdu.resize (l.size() + 7);
@@ -165,7 +165,7 @@ void
 FT12LowLevelDriver::SendReset ()
 {
   CArray pdu;
-  TRACEPRINTF (t, 1, this, "SendReset");
+  TRACEPRINTF (t, 1, "SendReset");
   pdu.resize (4);
   pdu[0] = 0x10;
   pdu[1] = 0x40;
@@ -181,7 +181,7 @@ FT12LowLevelDriver::SendReset ()
 size_t
 FT12LowLevelDriver::read_cb(uint8_t *buf, size_t len)
 {
-  t->TracePacket (0, this, "Read", len, buf);
+  t->TracePacket (0, "Read", len, buf);
   akt.setpart (buf, akt.size(), len);
   process_read(false);
   return len;
@@ -215,7 +215,7 @@ FT12LowLevelDriver::process_read(bool is_timeout)
           if (akt[1] == akt[2] && akt[3] == 0x16)
             {
               uchar c1 = 0xE5;
-              t->TracePacket (0, this, "Send Ack", 1, &c1);
+              t->TracePacket (0, "Send Ack", 1, &c1);
               sendbuf.write(&c1,1);
               if ((akt[1] == 0xF3 && !recvflag) ||
                   (akt[1] == 0xD3 && recvflag))
@@ -227,7 +227,7 @@ FT12LowLevelDriver::process_read(bool is_timeout)
                 {
                   const uchar reset[1] = { 0xA0 };
                   CArray *c = new CArray (reset, sizeof (reset));
-                  t->TracePacket (0, this, "RecvReset", *c);
+                  t->TracePacket (0, "RecvReset", *c);
                   on_recv (c);
                 }
             }
@@ -259,7 +259,7 @@ FT12LowLevelDriver::process_read(bool is_timeout)
             }
 
           c1 = 0xE5;
-          t->TracePacket (0, this, "Send Ack", 1, &c1);
+          t->TracePacket (0, "Send Ack", 1, &c1);
           sendbuf.write (&c1, 1);
 
           if ((akt[4] == 0xF3 && recvflag) ||
@@ -267,11 +267,11 @@ FT12LowLevelDriver::process_read(bool is_timeout)
             {
               if (CArray (akt.data() + 5, akt[1] - 1) != last)
                 {
-                  TRACEPRINTF (t, 0, this, "Sequence jump");
+                  TRACEPRINTF (t, 0, "Sequence jump");
                   recvflag = !recvflag;
                 }
               else
-                TRACEPRINTF (t, 0, this, "Wrong Sequence");
+                TRACEPRINTF (t, 0, "Wrong Sequence");
             }
 
           if ((akt[4] == 0xF3 && !recvflag) ||
@@ -318,7 +318,7 @@ FT12LowLevelDriver::trigger_cb (ev::async &w, int revents)
     return;
 
   const CArray &c = send_q.front ();
-  t->TracePacket (0, this, "Send", c);
+  t->TracePacket (0, "Send", c);
   repeatcount++;
   sendbuf.write(c.data(), c.size());
   send_wait = true;

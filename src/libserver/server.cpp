@@ -32,14 +32,14 @@ BaseServer::BaseServer (TracePtr tr)
 
 BaseServer::~BaseServer ()
 {
-  TRACEPRINTF (t, 8, this, "StopBaseServer");
+  TRACEPRINTF (t, 8, "StopBaseServer");
   if (l3)
     l3->deregisterServer (this);
 }
 
 Server::~Server ()
 {
-  TRACEPRINTF (t, 8, this, "StopServer");
+  TRACEPRINTF (t, 8, "StopServer");
   io.stop();
   cleanup.stop();
   ITER(i,connections)
@@ -99,14 +99,14 @@ Server::io_cb (ev::io &w, int revents)
   cfd = accept (fd, NULL,NULL);
   if (cfd != -1)
     {
-      TRACEPRINTF (t, 8, this, "New Connection");
+      TRACEPRINTF (t, 8, "New Connection");
       setupConnection (cfd);
       ClientConnPtr c = std::shared_ptr<ClientConnection>(new ClientConnection (this, cfd));
       if (c->start())
         connections.push_back(c);
     }
   else if (errno != EWOULDBLOCK && errno != EAGAIN && errno != EINTR)
-    ERRORPRINTF (t, E_ERROR | 51, this, "Accept %s: %s", Name(), strerror(errno));
+    ERRORPRINTF (t, E_ERROR | 51, "Accept %s: %s", Name(), strerror(errno));
 }
 
 void

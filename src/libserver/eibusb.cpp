@@ -133,13 +133,13 @@ initUSBDriver (LowLevelDriver * i, TracePtr tr)
       iface = new USBConverterInterface (i, tr, emiver);
       break;
     case vTIMEOUT:
-      TRACEPRINTF (tr, 1, i, "Timeout reading EMI version");
+      TRACEPRINTF (tr, 1, "Timeout reading EMI version");
       goto ex;
     case vERROR:
-      TRACEPRINTF (tr, 1, i, "Error reading EMI version");
+      TRACEPRINTF (tr, 1, "Error reading EMI version");
       goto ex;
     default:
-      TRACEPRINTF (tr, 1, i, "Unsupported EMI %d", emiver);
+      TRACEPRINTF (tr, 1, "Unsupported EMI %d", emiver);
     ex:
       delete i;
       return 0;
@@ -159,16 +159,16 @@ USBConverterInterface::USBConverterInterface (LowLevelDriver * iface,
   switch (v)
     {
     case vEMI1:
-      TRACEPRINTF (t, 1, this, "EMI1");
+      TRACEPRINTF (t, 1, "EMI1");
       break;
     case vEMI2:
-      TRACEPRINTF (t, 1, this, "EMI2");
+      TRACEPRINTF (t, 1, "EMI2");
       break;
     case vCEMI:
-      TRACEPRINTF (t, 1, this, "CEMI");
+      TRACEPRINTF (t, 1, "CEMI");
       break;
     default:
-      TRACEPRINTF (t, 1, this, "Unknown EMI");
+      TRACEPRINTF (t, 1, "Unknown EMI");
     }
 }
 
@@ -185,7 +185,7 @@ bool USBConverterInterface::init ()
 void
 USBConverterInterface::Send_Packet (CArray l)
 {
-  t->TracePacket (0, this, "Send-EMI", l);
+  t->TracePacket (0, "Send-EMI", l);
   CArray out;
   unsigned int j, l1;
   l1 = l.size();
@@ -261,7 +261,7 @@ USBConverterInterface::on_recv_cb(CArray *res1)
       goto out;
     }
   res1->set (res.data() + 11, res[6]);
-  t->TracePacket (0, this, "RecvEMI", *res1);
+  t->TracePacket (0, "RecvEMI", *res1);
   on_recv(res1);
   return;
 
@@ -302,7 +302,7 @@ USBLayer2::USBLayer2 (LowLevelDriver * i,
       emi = std::shared_ptr<CEMILayer2>(new CEMILayer2 (iface, opt));
       break;
     default:
-      TRACEPRINTF (t, 2, this, "Unsupported EMI");
+      TRACEPRINTF (t, 2, "Unsupported EMI");
       delete iface;
       return;
     }

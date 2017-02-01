@@ -37,7 +37,7 @@ CEMILayer2::~CEMILayer2()
 bool
 CEMILayer2::enterBusmonitor ()
 {
-  TRACEPRINTF (t, 2, this, "(CEMILayer2)  OpenBusmon not implemented");
+  TRACEPRINTF (t, 2, "(CEMILayer2)  OpenBusmon not implemented");
   return false;
 }
 

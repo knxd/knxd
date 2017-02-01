@@ -35,7 +35,7 @@ TPUARTTCPLayer2Driver::TPUARTTCPLayer2Driver (const char *dest, int port,
   int nodelay = 1;
   struct sockaddr_in addr;
 
-  TRACEPRINTF (t, 2, this, "Open");
+  TRACEPRINTF (t, 2, "Open");
 
   if (!GetHostIP (t, &addr, dest))
     return;
@@ -44,14 +44,14 @@ TPUARTTCPLayer2Driver::TPUARTTCPLayer2Driver (const char *dest, int port,
   fd = socket (AF_INET, SOCK_STREAM, 0);
   if (fd == -1)
     {
-      ERRORPRINTF (t, E_ERROR | 52, this, "Opening %s:%d failed: %s", dest,port, strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 52, "Opening %s:%d failed: %s", dest,port, strerror(errno));
       return;
     }
   setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof (reuse));
 
   if (connect (fd, (struct sockaddr *) &addr, sizeof (addr)) == -1)
     {
-      ERRORPRINTF (t, E_ERROR | 53, this, "Connect %s:%d: connect: %s", dest,port, strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 53, "Connect %s:%d: connect: %s", dest,port, strerror(errno));
       close (fd);
       fd = -1;
       return;
@@ -59,6 +59,6 @@ TPUARTTCPLayer2Driver::TPUARTTCPLayer2Driver (const char *dest, int port,
   setsockopt (fd, IPPROTO_TCP, TCP_NODELAY, &nodelay, sizeof (nodelay));
 
   setup_buffers ();
-  TRACEPRINTF (t, 2, this, "Openend");
+  TRACEPRINTF (t, 2, "Openend");
 }
 

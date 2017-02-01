@@ -23,7 +23,7 @@ LowLevelDriver::~LowLevelDriver() {}
 
 void LowLevelDriver::recv_discard(CArray *p)
 {
-  t->TracePacket (1, this, "lowlevel discard", *p);
+  t->TracePacket (1, "lowlevel discard", *p);
   delete p;
 }
 

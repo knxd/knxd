@@ -32,7 +32,7 @@ TPUART_Base::TPUART_Base (L2options *opt)
   int nodelay = 1;
   struct sockaddr_in addr;
 
-  TRACEPRINTF (t, 2, this, "Open");
+  TRACEPRINTF (t, 2, "Open");
 
   ackallgroup = opt ? (opt->flags & FLAG_B_TPUARTS_ACKGROUP) : 0;
   ackallindividual = opt ? (opt->flags & FLAG_B_TPUARTS_ACKINDIVIDUAL) : 0;
@@ -67,13 +67,13 @@ TPUART_Base::setup_buffers()
 void
 TPUART_Base::error_cb()
 {
-  TRACEPRINTF (t, 2, this, "ERROR");
+  TRACEPRINTF (t, 2, "ERROR");
   stop();
 }
 
 TPUART_Base::~TPUART_Base ()
 {
-  TRACEPRINTF (t, 2, this, "Close");
+  TRACEPRINTF (t, 2, "Close");
 
   sendbuf.stop();
   recvbuf.stop();
@@ -102,7 +102,7 @@ bool TPUART_Base::init (Layer3 *l3)
 void
 TPUART_Base::send_L_Data (LDataPtr l)
 {
-  TRACEPRINTF (t, 2, this, "Send %s", l->Decode ().c_str());
+  TRACEPRINTF (t, 2, "Send %s", l->Decode ().c_str());
   send_q.push(std::move(l));
   if (!sendtimer.is_active())
     trigger.send();
@@ -116,7 +116,7 @@ TPUART_Base::enterBusmonitor ()
   if (!Layer2::enterBusmonitor ())
     return false;
   uchar c = 0x05;
-  t->TracePacket (2, this, "openBusmonitor", 1, &c);
+  t->TracePacket (2, "openBusmonitor", 1, &c);
   if (write (fd, &c, 1) != 1)
     return 0;
   return 1;
@@ -128,7 +128,7 @@ TPUART_Base::leaveBusmonitor ()
   if (!Layer2::leaveBusmonitor ())
     return false;
   uchar c = 0x01;
-  t->TracePacket (2, this, "leaveBusmonitor", 1, &c);
+  t->TracePacket (2, "leaveBusmonitor", 1, &c);
   if (write (fd, &c, 1) != 1)
     return 0;
   return 1;
@@ -140,7 +140,7 @@ TPUART_Base::Open ()
   if (!Layer2::Open ())
     return false;
   uchar c = 0x01;
-  t->TracePacket (2, this, "open-reset", 1, &c);
+  t->TracePacket (2, "open-reset", 1, &c);
   if (write (fd, &c, 1) != 1)
     return 0;
 
@@ -152,7 +152,7 @@ TPUART_Base::Open ()
 void
 TPUART_Base::RecvLPDU (const uchar * data, int len)
 {
-  t->TracePacket (1, this, "RecvLP", len, data);
+  t->TracePacket (1, "RecvLP", len, data);
   if (mode & BUSMODE_MONITOR)
     {
       LBusmonPtr l = LBusmonPtr(new L_Busmonitor_PDU (shared_from_this()));
@@ -163,13 +163,13 @@ TPUART_Base::RecvLPDU (const uchar * data, int len)
     {
       LPDUPtr l = LPDU::fromPacket (CArray (data, len), shared_from_this());
       if (l->getType () != L_Data)
-        TRACEPRINTF (t, 1, this, "dropping packet: type %d", l->getType ());
+        TRACEPRINTF (t, 1, "dropping packet: type %d", l->getType ());
       else
         {
           if (((L_Data_PDU *)(&*l))->valid_checksum)
             l3->recv_L_Data (dynamic_unique_cast<L_Data_PDU>(std::move(l)));
           else
-            TRACEPRINTF (t, 1, this, "dropping packet: invalid");
+            TRACEPRINTF (t, 1, "dropping packet: invalid");
         }
     }
 }
@@ -177,7 +177,7 @@ TPUART_Base::RecvLPDU (const uchar * data, int len)
 size_t
 TPUART_Base::read_cb(uint8_t *buf, size_t len)
 {
-  t->TracePacket (0, this, "Read", len, buf);
+  t->TracePacket (0, "Read", len, buf);
   if (watch < 4)
     in.setpart (buf, in.size(), len);
   process_read(false);
@@ -224,21 +224,21 @@ TPUART_Base::process_read(bool timed_out)
               sendtimer.stop();
               if (retry > 3)
                 {
-                  TRACEPRINTF (t, 0, this, "NACK: dropping packet");
+                  TRACEPRINTF (t, 0, "NACK: dropping packet");
                   l.reset();
                   retry = 0;
                 }
               else
                 {
                   trigger.send();
-                  TRACEPRINTF (t, 0, this, "NACK");
+                  TRACEPRINTF (t, 0, "NACK");
                 }
             }
           in.deletepart (0, 1);
         }
       else if ((c & 0x07) == 0x07) // Reset-Indication
         {
-          TRACEPRINTF (t, 0, this, "RecvWatchdog: %02X", c);
+          TRACEPRINTF (t, 0, "RecvWatchdog: %02X", c);
           watch = 2;
           watchdogtimer.start(10,0);
           in.deletepart (0, 1);
@@ -294,7 +294,7 @@ TPUART_Base::process_read(bool timed_out)
               recvheader[0] &=~ 0x20; // repeat flag
               if (recvheader == sendheader)
                 {
-                  TRACEPRINTF (t, 0, this, "Ignoring this %d-byte telegram. We sent it.",len-2);
+                  TRACEPRINTF (t, 0, "Ignoring this %d-byte telegram. We sent it.",len-2);
                   recvecho = true;
                 }
             }
@@ -311,7 +311,7 @@ TPUART_Base::process_read(bool timed_out)
                   if (ackallgroup || l3->hasGroupAddress ((in[3+ext] << 8) | in[4+ext], shared_from_this()))
                     c |= 0x1;
                 }
-              TRACEPRINTF (t, 0, this, "SendAck %02X", c);
+              TRACEPRINTF (t, 0, "SendAck %02X", c);
               sendbuf.write(&c,1);
               acked = true;
             }
@@ -330,7 +330,7 @@ TPUART_Base::process_read(bool timed_out)
                   // ignore repeat flag when comparing
                   if (!((in[0]^d[0])&~0x20) && !memcmp(in.data()+1,d.data()+1,d.size()-2))
                     {
-                      TRACEPRINTF (t, 0, this, "Skip retrying");
+                      TRACEPRINTF (t, 0, "Skip retrying");
                       retry = 9; // The TPUART handles retransmitting in hardware. There is no need to do it again.
                     }
                 }
@@ -341,7 +341,7 @@ TPUART_Base::process_read(bool timed_out)
       else
         {
           acked = false;
-          TRACEPRINTF (t, 0, this, "unknown %02X", c);
+          TRACEPRINTF (t, 0, "unknown %02X", c);
           in.deletepart (0, 1);
         }
       timer.stop();
@@ -350,7 +350,7 @@ TPUART_Base::process_read(bool timed_out)
     do_timer:
       if (!timed_out)
         break;
-      TRACEPRINTF (t, 0, this, "timeout %02X", c);
+      TRACEPRINTF (t, 0, "timeout %02X", c);
       in.deletepart (0, 1);
       continue;
     }
@@ -383,7 +383,7 @@ TPUART_Base::trigger_cb(ev::async &w, int revents)
           (*w)[2 * i + 1] = d[i];
         }
       (*w)[(d.size() * 2) - 2] = ((*w)[(d.size() * 2) - 2] & 0x3f) | 0x40;
-      t->TracePacket (0, this, "Write", *w);
+      t->TracePacket (0, "Write", *w);
       sendbuf.write(w);
       sendtimer.start(0.6,0);
     }
@@ -392,7 +392,7 @@ TPUART_Base::trigger_cb(ev::async &w, int revents)
       watchdogtimer.start(10,0);
       watch = 1;
       uchar c = 0x02;
-      t->TracePacket (2, this, "Watchdog Status", 1, &c);
+      t->TracePacket (2, "Watchdog Status", 1, &c);
       sendbuf.write(&c, 1);
     }
 }
@@ -401,7 +401,7 @@ void
 TPUART_Base::send_reset()
 {
   uchar c = 0x01;
-  t->TracePacket (2, this, "Watchdog Reset", 1, &c);
+  t->TracePacket (2, "Watchdog Reset", 1, &c);
   sendbuf.write(&c,1);
   watch = 1;
   watchdogtimer.start(10,0);
@@ -425,7 +425,7 @@ TPUART_Base::sendtimer_cb(ev::timer &w, int revents)
   retry++;
   if (retry >= 3)
     {
-      TRACEPRINTF (t, 0, this, "Drop Send");
+      TRACEPRINTF (t, 0, "Drop Send");
       l.reset();
     }
   trigger.send();

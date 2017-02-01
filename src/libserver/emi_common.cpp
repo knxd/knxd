@@ -26,7 +26,7 @@ unsigned int maxPacketLen() { return 0x10; }
 EMI_Common::EMI_Common (LowLevelDriver * i, 
                         L2options *opt) : Layer2(opt)
 {
-  TRACEPRINTF (t, 2, this, "Open");
+  TRACEPRINTF (t, 2, "Open");
   iface = i;
   if (opt && opt->send_delay) {
     send_delay = opt->send_delay / 1000;
@@ -44,7 +44,7 @@ EMI_Common::EMI_Common (LowLevelDriver * i,
   trigger.start();
   iface->on_recv.set<EMI_Common,&EMI_Common::on_recv_cb>(this);
 
-  TRACEPRINTF (t, 2, this, "Opened");
+  TRACEPRINTF (t, 2, "Opened");
 }
 
 bool
@@ -59,7 +59,7 @@ EMI_Common::init (Layer3 * l3)
 
 EMI_Common::~EMI_Common ()
 {
-  TRACEPRINTF (t, 2, this, "Destroy");
+  TRACEPRINTF (t, 2, "Destroy");
   trigger.stop();
   if (iface)
     delete iface;
@@ -70,7 +70,7 @@ EMI_Common::enterBusmonitor ()
 {
   if (!Layer2::enterBusmonitor ())
     return false;
-  TRACEPRINTF (t, 2, this, "OpenBusmon");
+  TRACEPRINTF (t, 2, "OpenBusmon");
   iface->SendReset ();
   cmdEnterMonitor();
 
@@ -83,7 +83,7 @@ EMI_Common::leaveBusmonitor ()
 {
   if (!Layer2::leaveBusmonitor ())
     return false;
-  TRACEPRINTF (t, 2, this, "CloseBusmon");
+  TRACEPRINTF (t, 2, "CloseBusmon");
   cmdLeaveMonitor();
   // TODO: EMI1/EMI2: wait for queue-empty?
   return true;
@@ -94,7 +94,7 @@ EMI_Common::Open ()
 {
   if (!Layer2::Open ())
     return false;
-  TRACEPRINTF (t, 2, this, "OpenL2");
+  TRACEPRINTF (t, 2, "OpenL2");
   iface->SendReset ();
   cmdOpen();
 
@@ -106,7 +106,7 @@ EMI_Common::Close ()
 {
   if (!Layer2::Close ())
     return false;
-  TRACEPRINTF (t, 2, this, "CloseL2");
+  TRACEPRINTF (t, 2, "CloseL2");
   cmdClose();
   return true;
 }
@@ -114,12 +114,12 @@ EMI_Common::Close ()
 void
 EMI_Common::send_L_Data (LDataPtr l)
 {
-  TRACEPRINTF (t, 2, this, "Send %s", l->Decode ().c_str());
+  TRACEPRINTF (t, 2, "Send %s", l->Decode ().c_str());
   assert (l->data.size() >= 1);
   /* discard long frames, as they are not supported by EMI 1 */
   if (l->data.size() > maxPacketLen())
     {
-      TRACEPRINTF (t, 2, this, "Oversize (%d), discarded", l->data.size());
+      TRACEPRINTF (t, 2, "Oversize (%d), discarded", l->data.size());
       return;
     }
   assert ((l->hopcount & 0xf8) == 0);
@@ -140,7 +140,7 @@ void
 
 EMI_Common::Send (LDataPtr l)
 {
-  TRACEPRINTF (t, 1, this, "Send %s", l->Decode ().c_str());
+  TRACEPRINTF (t, 1, "Send %s", l->Decode ().c_str());
 
   CArray pdu = lData2EMI (0x11, l);
   iface->Send_Packet (pdu);
@@ -166,11 +166,11 @@ EMI_Common::trigger_cb (ev::async &w, int revents)
 void
 EMI_Common::on_recv_cb(CArray *c)
 {
-  t->TracePacket (1, this, "RecvEMI", *c);
+  t->TracePacket (1, "RecvEMI", *c);
   const uint8_t *ind = getIndTypes();
   if (c->size() == 1 && (*c)[0] == 0xA0 && (mode & BUSMODE_UP))
     {
-      TRACEPRINTF (t, 2, this, "Reopen");
+      TRACEPRINTF (t, 2, "Reopen");
       busmode_t old_mode = mode;
       mode = BUSMODE_DOWN;
       if (Open ())
@@ -178,7 +178,7 @@ EMI_Common::on_recv_cb(CArray *c)
     }
   if (c->size() == 1 && (*c)[0] == 0xA0 && mode == BUSMODE_MONITOR)
     {
-      TRACEPRINTF (t, 2, this, "Reopen Busmonitor");
+      TRACEPRINTF (t, 2, "Reopen Busmonitor");
       mode = BUSMODE_DOWN;
       enterBusmonitor ();
     }
@@ -190,7 +190,7 @@ EMI_Common::on_recv_cb(CArray *c)
       if (p)
         {
           delete c;
-          TRACEPRINTF (t, 2, this, "Recv %s", p->Decode ().c_str());
+          TRACEPRINTF (t, 2, "Recv %s", p->Decode ().c_str());
           l3->recv_L_Data (std::move(p));
           return;
         }
@@ -202,7 +202,7 @@ EMI_Common::on_recv_cb(CArray *c)
       p->timestamp = ((*c)[2] << 24) | ((*c)[3] << 16);
       p->pdu.set (c->data() + 4, c->size() - 4);
       delete c;
-      TRACEPRINTF (t, 2, this, "Recv %s", p->Decode ().c_str());
+      TRACEPRINTF (t, 2, "Recv %s", p->Decode ().c_str());
       l3->recv_L_Busmonitor (std::move(p));
       return;
     }

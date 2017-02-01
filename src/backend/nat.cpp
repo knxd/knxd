@@ -27,12 +27,12 @@
 
 NatL2Filter::NatL2Filter (L2options *opt, Layer2Ptr l2) : Layer23 (l2)
 {
-  TRACEPRINTF (t, 2, this, "OpenFilter");
+  TRACEPRINTF (t, 2, "OpenFilter");
 }
 
 NatL2Filter::~NatL2Filter ()
 {
-  TRACEPRINTF (t, 2, this, "CloseFilter");
+  TRACEPRINTF (t, 2, "CloseFilter");
 }
 
 Layer2Ptr
@@ -74,13 +74,13 @@ void NatL2Filter::addReverseAddress (eibaddr_t src, eibaddr_t dest)
       {
         if (i->src != src)
 	  {
-	    TRACEPRINTF (t, 5, this, "from %s to %s", FormatEIBAddr (src).c_str(), FormatEIBAddr (dest).c_str());
+	    TRACEPRINTF (t, 5, "from %s to %s", FormatEIBAddr (src).c_str(), FormatEIBAddr (dest).c_str());
             i->src = src;
 	  }
         return;
       }
 
-  TRACEPRINTF (t, 5, this, "from %s to %s", FormatEIBAddr (src).c_str(), FormatEIBAddr (dest).c_str());
+  TRACEPRINTF (t, 5, "from %s to %s", FormatEIBAddr (src).c_str(), FormatEIBAddr (dest).c_str());
   phys_comm srcdest = (phys_comm) { .src=src, .dest=dest };
   revaddr.push_back(srcdest);
 }

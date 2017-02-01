@@ -35,7 +35,7 @@
 
 ClientConnection::ClientConnection (Server *s, int fd) : sendbuf(fd),recvbuf(fd)
 {
-  TRACEPRINTF (s->t, 8, this, "ClientConnection Init");
+  TRACEPRINTF (s->t, 8, "ClientConnection Init");
   this->t = TracePtr(new Trace(*s->t, s->t->name));
   this->l3 = s->l3;
   this->addr = l3->get_client_addr(this->t);
@@ -81,7 +81,7 @@ ClientConnection::stop(bool no_server)
 {
   if (addr)
     {
-      TRACEPRINTF (t, 8, this, "ClientConnection %s closing", FormatEIBAddr (addr).c_str());
+      TRACEPRINTF (t, 8, "ClientConnection %s closing", FormatEIBAddr (addr).c_str());
       l3->release_client_addr(addr);
       addr = 0;
     }
@@ -121,7 +121,7 @@ ClientConnection::read_cb (uint8_t *buf, size_t len)
   if (len < xlen+2)
     return 0;
   buf += 2;
-  t->TracePacket (0, this, "ReadMessage", xlen, buf);
+  t->TracePacket (0, "ReadMessage", xlen, buf);
 
   int msg = EIBTYPE (buf);
   if (a_conn) {
@@ -274,7 +274,7 @@ ClientConnection::sendmessage (int size, const uchar * msg)
   head[0] = (size >> 8) & 0xff;
   head[1] = (size) & 0xff;
 
-  t->TracePacket (0, this, "Send", size, msg);
+  t->TracePacket (0, "Send", size, msg);
   sendbuf.write(head,2);
   sendbuf.write(msg,size);
 }

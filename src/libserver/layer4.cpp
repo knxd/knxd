@@ -43,7 +43,7 @@ Layer4common::init (Layer3 *l3)
 T_Broadcast::T_Broadcast (TracePtr tr, int write_only)
 	: Layer4common (tr)
 {
-  TRACEPRINTF (tr, 4, this, "OpenBroadcast %s", write_only ? "WO" : "RW");
+  TRACEPRINTF (tr, 4, "OpenBroadcast %s", write_only ? "WO" : "RW");
   init_ok = false;
   if (!write_only)
     if (!addGroupAddress (0))
@@ -61,7 +61,7 @@ T_Broadcast::init (T_Reader<BroadcastComm> *app, Layer3 *l3)
 
 T_Broadcast::~T_Broadcast ()
 {
-  TRACEPRINTF (t, 4, this, "CloseBroadcast");
+  TRACEPRINTF (t, 4, "CloseBroadcast");
 }
 
 void
@@ -84,7 +84,7 @@ T_Broadcast::recv (const CArray & c)
   T_DATA_XXX_REQ_PDU t;
   t.data = c;
   String s = t.Decode (this->t);
-  TRACEPRINTF (this->t, 4, this, "Recv Broadcast %s", s.c_str());
+  TRACEPRINTF (this->t, 4, "Recv Broadcast %s", s.c_str());
   LDataPtr l = LDataPtr(new L_Data_PDU (shared_from_this()));
   l->source = 0;
   l->dest = 0;
@@ -99,7 +99,7 @@ T_Broadcast::recv (const CArray & c)
 T_Group::T_Group (TracePtr tr, eibaddr_t group, int write_only)
 	: Layer4common (tr)
 {
-  TRACEPRINTF (tr, 4, this, "OpenGroup %s %s", FormatGroupAddr (group).c_str(),
+  TRACEPRINTF (tr, 4, "OpenGroup %s %s", FormatGroupAddr (group).c_str(),
 	       write_only ? "WO" : "RW");
   groupaddr = group;
   init_ok = false;
@@ -138,7 +138,7 @@ T_Group::recv (const CArray & c)
   T_DATA_XXX_REQ_PDU t;
   t.data = c;
   String s = t.Decode (this->t);
-  TRACEPRINTF (this->t, 4, this, "Recv Group %s", s.c_str());
+  TRACEPRINTF (this->t, 4, "Recv Group %s", s.c_str());
   LDataPtr l = LDataPtr(new L_Data_PDU (shared_from_this()));
   l->source = 0;
   l->dest = groupaddr;
@@ -149,7 +149,7 @@ T_Group::recv (const CArray & c)
 
 T_Group::~T_Group ()
 {
-  TRACEPRINTF (t, 4, this, "CloseGroup");
+  TRACEPRINTF (t, 4, "CloseGroup");
 }
 
 /***************** T_TPDU *****************/
@@ -157,7 +157,7 @@ T_Group::~T_Group ()
 T_TPDU::T_TPDU (TracePtr tr, eibaddr_t d)
 	: Layer4common (tr)
 {
-  TRACEPRINTF (tr, 4, this, "OpenTPDU %s", FormatEIBAddr (d).c_str());
+  TRACEPRINTF (tr, 4, "OpenTPDU %s", FormatEIBAddr (d).c_str());
   src = d;
   init_ok = true;
 }
@@ -182,7 +182,7 @@ T_TPDU::send_L_Data (LDataPtr l)
 void
 T_TPDU::recv (const TpduComm & c)
 {
-  t->TracePacket (4, this, "Recv TPDU", c.data);
+  t->TracePacket (4, "Recv TPDU", c.data);
   LDataPtr l = LDataPtr(new L_Data_PDU (shared_from_this()));
   l->source = src;
   l->dest = c.addr;
@@ -193,7 +193,7 @@ T_TPDU::recv (const TpduComm & c)
 
 T_TPDU::~T_TPDU ()
 {
-  TRACEPRINTF (t, 4, this, "CloseTPDU");
+  TRACEPRINTF (t, 4, "CloseTPDU");
 }
 
 /***************** T_Individual *****************/
@@ -202,7 +202,7 @@ T_Individual::T_Individual (TracePtr tr, eibaddr_t d,
 			    int write_only)
 	: Layer4common (tr)
 {
-  TRACEPRINTF (tr, 4, this, "OpenIndividual %s %s",
+  TRACEPRINTF (tr, 4, "OpenIndividual %s %s",
                FormatEIBAddr (d).c_str(), write_only ? "WO" : "RW");
   dest = d;
   init_ok = false;
@@ -239,7 +239,7 @@ T_Individual::recv (const CArray & c)
   T_DATA_XXX_REQ_PDU t;
   t.data = c;
   String s = t.Decode (this->t);
-  TRACEPRINTF (this->t, 4, this, "Recv Individual %s", s.c_str());
+  TRACEPRINTF (this->t, 4, "Recv Individual %s", s.c_str());
   LDataPtr l = LDataPtr(new L_Data_PDU (shared_from_this()));
   l->source = 0;
   l->dest = dest;
@@ -250,7 +250,7 @@ T_Individual::recv (const CArray & c)
 
 T_Individual::~T_Individual ()
 {
-  TRACEPRINTF (t, 4, this, "CloseIndividual");
+  TRACEPRINTF (t, 4, "CloseIndividual");
 }
 
 /***************** T_Connection *****************/
@@ -258,7 +258,7 @@ T_Individual::~T_Individual ()
 T_Connection::T_Connection (TracePtr tr, eibaddr_t d)
 	: Layer4common (tr)
 {
-  TRACEPRINTF (tr, 4, this, "OpenConnection %s", FormatEIBAddr (d).c_str());
+  TRACEPRINTF (tr, 4, "OpenConnection %s", FormatEIBAddr (d).c_str());
   timer.set <T_Connection, &T_Connection::timer_cb> (this);
 
   dest = d;
@@ -281,7 +281,7 @@ T_Connection::init (T_Reader<CArray> *app, Layer3 *l3)
 
 T_Connection::~T_Connection ()
 {
-  TRACEPRINTF (t, 4, this, "CloseConnection");
+  TRACEPRINTF (t, 4, "CloseConnection");
   stop ();
   while (!buf.isempty ())
     delete buf.get ();
@@ -353,7 +353,7 @@ T_Connection::send_L_Data (LDataPtr l)
 void
 T_Connection::recv (const CArray & c)
 {
-  t->TracePacket (4, this, "Recv", c);
+  t->TracePacket (4, "Recv", c);
   in.push (c);
   SendCheck();
 }
@@ -375,7 +375,7 @@ T_Connection::SendCheck ()
 void
 T_Connection::SendConnect ()
 {
-  TRACEPRINTF (t, 4, this, "SendConnect");
+  TRACEPRINTF (t, 4, "SendConnect");
   T_CONNECT_REQ_PDU p;
   LDataPtr l = LDataPtr(new L_Data_PDU (shared_from_this()));
   l->source = 0;
@@ -394,7 +394,7 @@ T_Connection::SendConnect ()
 void
 T_Connection::SendDisconnect ()
 {
-  TRACEPRINTF (t, 4, this, "SendDisconnect");
+  TRACEPRINTF (t, 4, "SendDisconnect");
   T_DISCONNECT_REQ_PDU p;
   LDataPtr l = LDataPtr(new L_Data_PDU (shared_from_this()));
   l->source = 0;
@@ -408,7 +408,7 @@ T_Connection::SendDisconnect ()
 void
 T_Connection::SendAck (int serno)
 {
-  TRACEPRINTF (t, 4, this, "SendACK %d", serno);
+  TRACEPRINTF (t, 4, "SendACK %d", serno);
   T_ACK_PDU p;
   p.serno = serno;
   LDataPtr l = LDataPtr(new L_Data_PDU (shared_from_this()));
@@ -425,7 +425,7 @@ T_Connection::SendData (int serno, const CArray & c)
   T_DATA_CONNECTED_REQ_PDU p;
   p.data = c;
   p.serno = serno;
-  TRACEPRINTF (t, 4, this, "SendData %s", p.Decode (t).c_str());
+  TRACEPRINTF (t, 4, "SendData %s", p.Decode (t).c_str());
   LDataPtr l = LDataPtr(new L_Data_PDU (shared_from_this()));
   l->source = 0;
   l->dest = dest;
@@ -470,7 +470,7 @@ T_Connection::stop()
 GroupSocket::GroupSocket (TracePtr tr, int write_only)
 	: Layer4common(tr)
 {
-  TRACEPRINTF (tr, 4, this, "OpenGroupSocket %s", write_only ? "WO" : "RW");
+  TRACEPRINTF (tr, 4, "OpenGroupSocket %s", write_only ? "WO" : "RW");
   init_ok = false;
   if (!write_only)
     if (!addGroupAddress (0))
@@ -488,7 +488,7 @@ GroupSocket::init (T_Reader<GroupAPDU> *app, Layer3 *l3)
 
 GroupSocket::~GroupSocket ()
 {
-  TRACEPRINTF (t, 4, this, "CloseGroupSocket");
+  TRACEPRINTF (t, 4, "CloseGroupSocket");
 }
 
 void
@@ -512,7 +512,7 @@ GroupSocket::recv (const GroupAPDU & c)
   T_DATA_XXX_REQ_PDU t;
   t.data = c.data;
   String s = t.Decode (this->t);
-  TRACEPRINTF (this->t, 4, this, "Recv GroupSocket %s %s", FormatGroupAddr(c.dst).c_str(), s.c_str());
+  TRACEPRINTF (this->t, 4, "Recv GroupSocket %s %s", FormatGroupAddr(c.dst).c_str(), s.c_str());
   LDataPtr l = LDataPtr(new L_Data_PDU (shared_from_this()));
   l->source = 0;
   l->dest = c.dst;

@@ -467,7 +467,7 @@ bool A_IndividualAddress_Response_PDU::init (const CArray & c, TracePtr tr)
 {
   if (c.size() != 2)
     {
-      TRACEPRINTF (tr, 3, this, "BadLen %d",c.size());
+      TRACEPRINTF (tr, 3, "BadLen %d",c.size());
       return false;
     }
   return true;
@@ -1266,7 +1266,7 @@ bool A_DeviceDescriptor_Response_PDU::init (const CArray & c, TracePtr tr)
 {
   if (c.size() != 4)
     {
-      TRACEPRINTF (tr, 3, this, "BadLen %d",c.size());
+      TRACEPRINTF (tr, 3, "BadLen %d",c.size());
       return false;
     }
   type = c[1] & 0x3F;

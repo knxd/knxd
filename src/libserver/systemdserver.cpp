@@ -25,17 +25,17 @@
 SystemdServer::SystemdServer (TracePtr tr, int systemd_fd):
 Server (tr)
 {
-  TRACEPRINTF (tr, 8, this, "OpenSystemdSocket");
+  TRACEPRINTF (tr, 8, "OpenSystemdSocket");
 
   fd = systemd_fd;
   if (listen (fd, 10) == -1)
     {
-      ERRORPRINTF (tr, E_ERROR | 19, this, "OpenSystemdSocket: listen: %s", strerror(errno));
+      ERRORPRINTF (tr, E_ERROR | 19, "OpenSystemdSocket: listen: %s", strerror(errno));
       close (fd);
       fd = -1;
       return;
     }
 
-  TRACEPRINTF (tr, 8, this, "SystemdSocket opened");
+  TRACEPRINTF (tr, 8, "SystemdSocket opened");
 }
 

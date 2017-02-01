@@ -47,7 +47,7 @@ Trace::TraceHeader (int layer)
 }
 
 void
-Trace::TracePacketUncond (int layer, void *inst, const char *msg, int Len,
+Trace::TracePacketUncond (int layer, const char *msg, int Len,
 			  const uchar * data)
 {
   int i;
@@ -59,7 +59,7 @@ Trace::TracePacketUncond (int layer, void *inst, const char *msg, int Len,
 }
 
 void
-Trace::TracePrintf (int layer, void *inst, const char *msg, ...)
+Trace::TracePrintf (int layer, const char *msg, ...)
 {
   va_list ap;
   TraceHeader(layer);

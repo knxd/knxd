@@ -21,7 +21,7 @@
 
 A_Busmonitor::~A_Busmonitor ()
 {
-  TRACEPRINTF (t, 7, this, "Close A_Busmonitor");
+  TRACEPRINTF (t, 7, "Close A_Busmonitor");
   if (v)
     l3->deregisterVBusmonitor (this);
   else
@@ -33,7 +33,7 @@ A_Busmonitor::A_Busmonitor (ClientConnPtr c, bool virt, bool TS, uint8_t *buf,si
   CArray resp;
 
   t = TracePtr(new Trace(*c->t, c->t->name+":monitor"));
-  TRACEPRINTF (t, 7, this, "Open A_Busmonitor");
+  TRACEPRINTF (t, 7, "Open A_Busmonitor");
   this->l3 = c->l3;
   con = c;
   v = virt;
