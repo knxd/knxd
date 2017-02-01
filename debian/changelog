@@ -1,3 +1,9 @@
+knxd (0.12.6-2) unstable; urgency=medium
+
+  * Merge up to v0.10.18-3
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 01 Feb 2017 01:49:53 +0100
+
 knxd (0.12.6-1) unstable; urgency=medium
 
   * Address filtering: packets arriving on interface A with a source
@@ -258,6 +264,18 @@ knxd (0.11.1-1) unstable; urgency=medium
   * Refactor multicast to use a separate port for sending
 
  -- Matthias Urlichs <matthias@urlichs.de>  Sun, 28 Jun 2015 06:53:31 +0000
+
+knxd (0.10.18-3) stable; urgency=medium
+
+  * Fix dependency generation
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 01 Feb 2017 01:48:44 +0100
+
+knxd (0.10.18-2) stable; urgency=medium
+
+  * Fix version reporting
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 01 Feb 2017 01:11:59 +0100
 
 knxd (0.10.18-1) stable; urgency=medium
 
