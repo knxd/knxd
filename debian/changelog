@@ -1,3 +1,9 @@
+knxd (0.10.18-2) stable; urgency=medium
+
+  * Fix version reporting
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 01 Feb 2017 01:11:59 +0100
+
 knxd (0.10.18-1) stable; urgency=medium
 
   * fix USB shutdown bug
