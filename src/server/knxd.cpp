@@ -129,7 +129,7 @@ public:
               alloc_addrs_len = 0;
             }
           else
-            ERRORPRINTF (tr, E_WARNING | 44, 0, "knxd is unable to assign addresses to clients (option -E).");
+            ERRORPRINTF (tr, E_WARNING | 49, 0, "knxd is unable to assign addresses to clients (option -E).");
         }
       return layer3;
     }
@@ -267,7 +267,7 @@ static struct argp_option options[] = {
   {"trace", 't', "MASK", 0,
    "set trace flags (bitmask)"},
   {"error", 'f', "LEVEL", 0,
-   "set error level"},
+   "set error level (default 3: warnings)"},
   {"eibaddr", 'e', "EIBADDR", 0,
    "set our EIB address to EIBADDR (default 0.0.1)"},
   {"client-addrs", 'E', "ADDRSTART", 0,
@@ -420,7 +420,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
         if (!c->init (arguments->l3()))
           {
             if ((errno == EADDRINUSE) && !arg && num_fds)
-              ERRORPRINTF (&arguments->t, E_NOTICE | 41, 0, "Option '-u' ignored (busy; systemd)");
+              ERRORPRINTF (&arguments->t, E_NOTICE | 46, 0, "Option '-u' ignored (busy; systemd)");
             else
               die ("initialisation of the knxd unix protocol failed");
           }
@@ -439,7 +439,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
         if (!c || !c->init (arguments->l3()))
           {
             if ((errno == EADDRINUSE) && !arg && num_fds)
-              ERRORPRINTF (&arguments->t, E_NOTICE | 41, 0, "Option '-i' ignored (busy; systemd)");
+              ERRORPRINTF (&arguments->t, E_NOTICE | 47, 0, "Option '-i' ignored (busy; systemd)");
             else
               die ("initialisation of the knxd inet protocol failed");
           }
@@ -493,7 +493,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       arguments->stop_now = true;
       break;
     case OPT_BACK_TUNNEL_NOQUEUE: // obsolete
-      ERRORPRINTF (&arguments->t, E_WARNING | 41, 0, "The option '--no-tunnel-client-queuing' is obsolete.");
+      ERRORPRINTF (&arguments->t, E_WARNING | 48, 0, "The option '--no-tunnel-client-queuing' is obsolete.");
       ERRORPRINTF (&arguments->t, E_WARNING | 42, 0, "Please use '--send-delay=30'.");
       arguments->l2opts.send_delay = 30; // msec
       break;

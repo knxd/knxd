@@ -151,7 +151,7 @@ EIBNetIPSocket::EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr,
       i = 1;
       if (setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &i, sizeof (i)) == -1)
 	{
-          ERRORPRINTF (t, E_ERROR | 37, this, "cannot reuse address: %s", strerror(errno));
+          ERRORPRINTF (t, E_ERROR | 45, this, "cannot reuse address: %s", strerror(errno));
 	  close (fd);
 	  fd = -1;
 	  return;

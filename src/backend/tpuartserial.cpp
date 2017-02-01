@@ -126,7 +126,7 @@ TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
   term_baudrate = getbaud(baudrate);
   if (term_baudrate == -1)
     {
-      ERRORPRINTF (t, E_ERROR | 56, this, "baudrate %d not recognized", baudrate);
+      ERRORPRINTF (t, E_ERROR | 58, this, "baudrate %d not recognized", baudrate);
       restore_low_latency (fd, &sold);
       close (fd);
       fd = -1;
