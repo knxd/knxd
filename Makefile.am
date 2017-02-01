@@ -39,3 +39,6 @@ help HELP:
 	@echo "additional tools that may not be present on your machine."
 	@echo ""
 
+# update version number
+configure: debian/changelog
+config.h: configure

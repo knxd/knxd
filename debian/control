@@ -31,7 +31,7 @@ Package: knxd-tools
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libusb-1.0-0
 Recommends: knxd
-Replaces: eibd-clients, eibd-server, libeibclient0
+Replaces: eibd-clients, eibd-server, libeibclient0, knxd-examples
 Conflicts: eibd-clients, eibd-server, libeibclient0
 Description: Tools to use knxd
  KNX is a standard prototocol for home and buildin control.
@@ -45,13 +45,4 @@ Description: Development files for knxd
  KNX is a standard prototocol for home and buildin control.
  .
  These are the development files for knxd clients.
-
-Package: knxd-examples
-Architecture: any
-Recommends: knxd-tools
-Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: documentation and examples for knxd
- KNX is a standard prototocol for home and buildin control.
- .
- These are example programs for knxd.
 

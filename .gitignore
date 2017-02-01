@@ -123,6 +123,11 @@ Makefile
 /src/examples/writeaddress
 /src/examples/xpropread
 /src/examples/xpropwrite
+
+/src/tools/eibread-cgi
+/src/tools/eibwrite-cgi
+/src/tools/knxtool
+
 /src/server/knxd
 /src/tools/bcu/bcuaddrtab
 /src/tools/bcu/bcuread
