@@ -83,10 +83,11 @@ knxtool vbusmonitor1 local:$S2 >$L2 2>$E2 &
 PL2=$!
 knxtool vbusmonitor1 local:$S3 >$L3 2>$E3 &
 PL3=$!
-knxtool groupcachereadsync local:$S1 1/2/3 3 >$L4 2>$E4 &
-PL4=$!
 knxtool grouplisten local:$S2 1/2/3 >$L5 2>$E5 &
 PL5=$!
+sleep 1
+knxtool groupcachereadsync local:$S1 1/2/3 3 >$L4 2>$E4 &
+PL4=$!
 # will die by itself when the server terminates
 
 # test that addresses get recycled
