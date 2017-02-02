@@ -320,6 +320,13 @@ bool USBLayer2::init (Layer3 *l3)
   return Layer2::init(l3);
 }
 
+void USBLayer2::stop ()
+{
+  emi->real_l2 = nullptr;
+  emi->stop();
+  Layer2::stop();
+}
+
 bool USBLayer2::enterBusmonitor ()
 {
   if (! Layer2::enterBusmonitor ())

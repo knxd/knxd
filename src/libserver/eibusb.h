@@ -58,6 +58,7 @@ class USBLayer2:public Layer2
 public:
   USBLayer2 (LowLevelDriver * i, L2options *opt);
   bool init (Layer3 * l3);
+  void stop ();
 
   void send_L_Data (L_Data_PDU * l);
 
