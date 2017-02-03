@@ -30,6 +30,13 @@ NatL2Filter::NatL2Filter (L2options *opt, Layer2Ptr l2) : Layer23 (l2)
   TRACEPRINTF (t, 2, this, "OpenFilter");
 }
 
+bool
+NatL2Filter::init (Layer3 *l3)
+{
+  addr = l3->getDefaultAddr();
+  return Layer23::init(l3);
+}
+
 NatL2Filter::~NatL2Filter ()
 {
   TRACEPRINTF (t, 2, this, "CloseFilter");
@@ -52,7 +59,7 @@ NatL2Filter::send_L_Data (LDataPtr  l)
     {
       if (l->AddrType == IndividualAddress)
         addReverseAddress (l->source, l->dest);
-      l->source = 0;
+      l->source = addr;
     }
   l2->send_L_Data (std::move(l));
 }
@@ -62,6 +69,11 @@ void
 NatL2Filter::recv_L_Data (LDataPtr  l)
 {
   /* Receiving a packet from this interface: reverse-lookup real destination from source */
+  if (l->source == addr)
+    {
+      TRACEPRINTF (t, 5, this, "drop packet from %s", FormatEIBAddr (l->source));
+      return;
+    }
   if (l->AddrType == IndividualAddress)
     l->dest = getDestinationAddress (l->source);
   Layer23::recv_L_Data (std::move(l));

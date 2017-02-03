@@ -127,10 +127,9 @@ TPUART_Base::leaveBusmonitor ()
 {
   if (!Layer2::leaveBusmonitor ())
     return false;
-  uchar c = 0x01;
-  t->TracePacket (2, this, "leaveBusmonitor", 1, &c);
-  if (write (fd, &c, 1) != 1)
-    return 0;
+  TRACEPRINTF (t, 2, this, "leaveBusmonitor");
+
+  send_reset();
   return 1;
 }
 
@@ -139,13 +138,8 @@ TPUART_Base::Open ()
 {
   if (!Layer2::Open ())
     return false;
-  uchar c = 0x01;
-  t->TracePacket (2, this, "open-reset", 1, &c);
-  if (write (fd, &c, 1) != 1)
-    return 0;
-
-  watchdogtimer.start(10,0);
-  watch = 1;
+  TRACEPRINTF (t, 2, this, "open");
+  send_reset();
   return 1;
 }
 
@@ -236,7 +230,7 @@ TPUART_Base::process_read(bool timed_out)
             }
           in.deletepart (0, 1);
         }
-      else if ((c & 0x07) == 0x07) // Reset-Indication
+      else if ((c & 0x07) == 0x07) // state indication
         {
           TRACEPRINTF (t, 0, this, "RecvWatchdog: %02X", c);
           watch = 2;
@@ -263,30 +257,6 @@ TPUART_Base::process_read(bool timed_out)
           unsigned len = ext ? in[6] : (in[5] & 0x0f);
           len += 6 + ext + 2;
 
-/*
- * This test is broken. However, waiting for the whole packet to
- * arrive does not work because the ack gets sent to the TPUART
- * too late to be of any use. Thus we need to send it early.
- * 
- * Various experiments to send the ack "as late as possible but still
- * somewhat early" have essentially failed and made esp. programming less
- * reliable instead of more so.
- * 
- * Worse, the Raspberry Pi hardware serial handler does 4-character
- * buffering. We're very lucky that the minimum is 8 bytes, which we can
- * ack in time – more often than not.
- * 
- * The right way to mostly-fix this is to run the receiver in a separate thread.
- * "Mostly" because there's still the Pi problem, which is a major user of
- * this code. Also, TCP latency means that it won't help for tpuarttcp –
- * you'd need to hook up a microcontroller at the remote end which can do
- * the ACKs.
- */
-#if 0
-          if (in.size() < len)
-            goto do_timer;
-#endif
-
           if (!recvecho && sendtimer.is_active())
             {
               CArray recvheader;
@@ -298,7 +268,12 @@ TPUART_Base::process_read(bool timed_out)
                   recvecho = true;
                 }
             }
-          if (!acked && !recvecho)
+/*
+ * Tell the TPUART whether to ack the packet
+ * assuming that the checksum ultimately matches
+ * (the chip verifies it itself)
+ */
+          if (!acked && adr_check && !recvecho)
             {
               uchar c = 0x10;
               if ((in[ext ? 1 : 5] & 0x80) == 0)
@@ -403,6 +378,19 @@ TPUART_Base::send_reset()
   uchar c = 0x01;
   t->TracePacket (2, this, "Watchdog Reset", 1, &c);
   sendbuf.write(&c,1);
+  adr_check = true;
+
+  if (l3->findFilter("single"))
+    {
+      eibaddr_t adr = l3->getDefaultAddr();
+      if (adr != 0)
+        {
+          uint8_t adrbuf[3] = {0x28, (uint8_t)((adr>>8)&0xFF), (uint8_t)(adr&0xFF) };
+          sendbuf.write(adrbuf, sizeof(adrbuf));
+          adr_check = false;
+        }
+    }
+
   watch = 1;
   watchdogtimer.start(10,0);
   trigger.send();

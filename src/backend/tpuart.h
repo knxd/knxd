@@ -62,6 +62,7 @@ protected:
   bool acked = false;
   bool recvecho = false;
   bool skip_char = false;
+  bool adr_check = true;
 
 public:
   TPUART_Base (L2options *opt);

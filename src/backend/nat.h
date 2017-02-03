@@ -35,13 +35,15 @@ class NatL2Filter:public Layer23
 {
   /** source addresses when the destination is my own */
   Array < phys_comm > revaddr;
+  eibaddr_t addr;
 
 public:
   NatL2Filter (L2options *opt, Layer2Ptr l2);
   ~NatL2Filter ();
-  virtual const char *Name() override { return "NAT"; }
+  virtual const char *Name() override { return "single"; }
 
   Layer2Ptr clone(Layer2Ptr l2);
+  bool init(Layer3 *l3);
 
   void recv_L_Data (LDataPtr l);
   void send_L_Data (LDataPtr l);
