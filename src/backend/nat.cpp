@@ -64,7 +64,7 @@ NatL2Filter::recv_L_Data (LDataPtr  l)
   /* Receiving a packet from this interface: reverse-lookup real destination from source */
   if (l->AddrType == IndividualAddress)
     l->dest = getDestinationAddress (l->source);
-  l3->recv_L_Data (std::move(l));
+  Layer23::recv_L_Data (std::move(l));
 }
 
 void NatL2Filter::addReverseAddress (eibaddr_t src, eibaddr_t dest)

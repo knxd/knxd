@@ -216,36 +216,36 @@ Layer3real::registerLayer2 (Layer2Ptr l2)
   return this;
 }
 
-Layer2Ptr
+bool
 Layer3real::hasAddress (eibaddr_t addr, Layer2Ptr l2)
 {
   TracePtr t = l2 ? l2->t : tr();
   if (addr == defaultAddr)
     {
       TRACEPRINTF (t, 8, this, "default addr %s", FormatEIBAddr (addr).c_str());
-      return l2;
+      return l2 != nullptr;
     }
 
   ITER(i,layer2)
     {
       if (*i == l2)
-        continue;
-      Layer2Ptr l2x = (*i)->hasAddress (addr);
-
-      if (l2x != nullptr)
         {
-          if (l2x == l2)
+          continue;
+        }
+      if ((*i)->hasAddress (addr))
+        {
+          if (*i == l2)
             {
-              TRACEPRINTF (l2x->t, 8, this, "local addr %s", FormatEIBAddr (addr).c_str());
-              return nullptr;
+              TRACEPRINTF (l2->t, 8, this, "local addr %s", FormatEIBAddr (addr).c_str());
+              return false;
             }
-          TRACEPRINTF (l2x->t, 8, this, "found addr %s", FormatEIBAddr (addr).c_str());
-          return l2x;
+          TRACEPRINTF ((*i)->t, 8, this, "found addr %s", FormatEIBAddr (addr).c_str());
+          return true;
         }
     }
 
   TRACEPRINTF (t, 8, this, "unknown addr %s", FormatEIBAddr (addr).c_str());
-  return nullptr;
+  return false;
 }
 
 bool
@@ -325,36 +325,37 @@ Layer3real::trigger_cb (ev::async &w, int revents)
     {
       LDataPtr l1 = buf.get ();
 
-      {
-        Layer2Ptr l2 = l1->l2;
+      Layer2Ptr l2 = l1->l2;
 
-        if (l1->source == 0)
-          l1->source = l2->getRemoteAddr();
-        if (l1->source == 0)
-          l1->source = defaultAddr;
-        if (l1->source != 0 &&
-            l1->source != 0xFFFF &&
-            l1->source != defaultAddr)
-          {
-            Layer2Ptr l2x = hasAddress (l1->source);
-            if (l2x)
-              {
-                if (l2x != l2)
-                  {
-                    TRACEPRINTF (l2->t, 3, this, "Packet not from %d:%s: %s", l2x->t->seq, l2x->t->name.c_str(), l1->Decode ().c_str());
-                    goto next;
-                  }
-              }
-            else if (client_addrs_start && (l1->source >= client_addrs_start) &&
-                (l1->source < client_addrs_start+client_addrs_len))
-              { // late arrival to an already-freed client
-                TRACEPRINTF (l2->t, 3, this, "Packet from client: %s", l1->Decode ().c_str());
-                goto next;
-              }
-
-            l2->addAddress (l1->source);
-          }
-      }
+      if (l1->source == 0)
+        l1->source = l2->getRemoteAddr();
+      if (l1->source == 0)
+        l1->source = defaultAddr;
+      if (l1->source == defaultAddr)
+        {
+          TRACEPRINTF (l2->t, 3, this, "Packet not from real addr on %d:%s: %s", l2->t->seq, l2->t->name.c_str(), l1->Decode ().c_str());
+          goto next;
+        }
+      // Cases:
+      // * address is unknown: associate with input IF not from local range and not programming addr
+      // * address is known to input: OK
+      // * address is on another 
+      if (hasAddress (l1->source))
+        {
+          if (! l2->hasAddress (l1->source))
+            {
+              TRACEPRINTF (l2->t, 3, this, "Packet not from %d:%s: %s", l2->t->seq, l2->t->name.c_str(), l1->Decode ().c_str());
+              goto next;
+            }
+        }
+      else if (client_addrs_start && (l1->source >= client_addrs_start) &&
+          (l1->source < client_addrs_start+client_addrs_len))
+        { // late arrival to an already-freed client
+          TRACEPRINTF (l2->t, 3, this, "Packet from client: %s", l1->Decode ().c_str());
+          goto next;
+        }
+      else if (l1->source != 0xFFFF)
+        l2->addAddress (l1->source);
 
       if (vbusmonitor.size())
         {
@@ -412,10 +413,10 @@ Layer3real::trigger_cb (ev::async &w, int revents)
 	      goto next;
 	    }
 
-          // This is not so easy: we want to send to whichever
-          // interface on which the address has appeared. If it hasn't
-          // been seen yet, we send to all interfaces.
-          // Addresses ~0 is special; it's used for programming
+          // we want to send to the interface on which the address
+          // has appeared. If it hasn't been seen yet, we send to all
+          // interfaces.
+          // Address ~0 is special; it's used for programming
           // so can be on different interfaces. Always broadcast these.
           bool found = false;
           if (l1->dest != 0xFFFF)

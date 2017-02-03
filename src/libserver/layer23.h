@@ -54,7 +54,7 @@ public:
   bool addGroupAddress (eibaddr_t addr);
   bool removeAddress (eibaddr_t addr);
   bool removeGroupAddress (eibaddr_t addr);
-  Layer2Ptr hasAddress (eibaddr_t addr);
+  bool hasAddress (eibaddr_t addr);
   bool hasGroupAddress (eibaddr_t addr);
   eibaddr_t getRemoteAddr();
 
@@ -84,7 +84,7 @@ public:
 
   void recv_L_Data (LDataPtr l);
   void recv_L_Busmonitor (LBusmonPtr l);
-  Layer2Ptr hasAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr);
+  bool hasAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr);
   bool hasGroupAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr);
   void registerServer (BaseServer *s);
   void deregisterServer (BaseServer *s);
