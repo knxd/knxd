@@ -225,3 +225,10 @@ Layer23::release_client_addr (eibaddr_t addr)
   l3->release_client_addr (addr);
 }
 
+Layer23 *
+Layer23::findFilter (const char *name)
+{
+  if (!strcmp(name, this->Name()))
+    return this;
+  return l3->findFilter(name);
+}

@@ -41,6 +41,8 @@ public:
   // with l2 set to the given l2.
   virtual Layer2Ptr clone (Layer2Ptr l2) = 0;
 
+  virtual Layer23 * findFilter (const char *name);
+
 protected:
   Layer2Ptr l2;
 

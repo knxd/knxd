@@ -26,6 +26,7 @@
 
 class BaseServer;
 class GroupCache;
+class Layer23;
 
 /** stores a registered busmonitor callback */
 typedef struct
@@ -99,6 +100,8 @@ public:
   virtual eibaddr_t get_client_addr (TracePtr t) = 0;
   /** … and release it */
   virtual void release_client_addr (eibaddr_t addr) = 0;
+
+  virtual Layer23 * findFilter (const char *name) { return nullptr; }
 };
 
 class Layer3real : public Layer3
