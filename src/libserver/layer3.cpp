@@ -414,7 +414,8 @@ Layer3real::trigger_cb (ev::async &w, int revents)
           // interfaces.
           // Address ~0 is special; it's used for programming
           // so can be on different interfaces. Always broadcast these.
-          bool found = false;
+          // Packets to knxd itself aren't forwarded.
+          bool found = (l1->dest == defaultAddr);
           if (l1->dest != 0xFFFF)
             ITER(i, layer2)
               {
