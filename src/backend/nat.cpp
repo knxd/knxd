@@ -71,7 +71,7 @@ NatL2Filter::recv_L_Data (LDataPtr  l)
   /* Receiving a packet from this interface: reverse-lookup real destination from source */
   if (l->source == addr)
     {
-      TRACEPRINTF (t, 5, this, "drop packet from %s", FormatEIBAddr (l->source));
+      TRACEPRINTF (t, 5, this, "drop packet from %s", FormatEIBAddr (l->source).c_str());
       return;
     }
   if (l->AddrType == IndividualAddress)

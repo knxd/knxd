@@ -58,7 +58,29 @@ TPUARTTCPLayer2Driver::TPUARTTCPLayer2Driver (const char *dest, int port,
     }
   setsockopt (fd, IPPROTO_TCP, TCP_NODELAY, &nodelay, sizeof (nodelay));
 
-  setup_buffers ();
   TRACEPRINTF (t, 2, this, "Openend");
 }
 
+bool
+TPUARTTCPLayer2Driver::init(Layer3 *l3)
+{
+  if (!TPUART_Base::init(l3))
+    return false;
+  setup_buffers();
+  return true;
+}
+
+void
+TPUARTTCPLayer2Driver::setstate(enum TSTATE new_state)
+{
+  if (new_state == T_dev_start)
+    new_state = T_is_online;
+
+  TPUART_Base::setstate(new_state);
+}
+
+void
+TPUARTTCPLayer2Driver::dev_timer()
+{
+  ERRORPRINTF (t, E_ERROR | 61, this, "bad timeout in state %d",state);
+}

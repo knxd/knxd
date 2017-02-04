@@ -27,9 +27,14 @@
 class TPUARTTCPLayer2Driver:public TPUART_Base
 {
   const char *Name() { return "tpuarts"; }
+  void setstate(enum TSTATE new_state);
+  void dev_timer();
+
 public:
   TPUARTTCPLayer2Driver (const char *dest, int port, L2options *opt);
   ~TPUARTTCPLayer2Driver () {}
+
+  bool init(Layer3 *l3);
 };
 
 #endif

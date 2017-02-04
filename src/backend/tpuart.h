@@ -24,6 +24,23 @@
 #include "layer2.h"
 #include "lpdu.h"
 
+// also update SN() in tpuart.cpp
+enum TSTATE {
+  T_new = 0,
+  T_error,
+  T_dev_start,
+  T_dev_end = 10,
+  T_start = 11,
+  T_in_reset,
+  T_in_setaddr,
+  T_in_getstate,
+  T_is_online = 19,
+  T_wait = 20,
+  T_wait_more,
+  T_wait_keepalive,
+  T_busmonitor = 30,
+};
+
 /** TPUART user mode driver */
 class TPUART_Base:public Layer2
 {
@@ -44,25 +61,28 @@ protected:
   void process_read(bool timed_out);
 
   virtual const char *Name() = 0;
-  virtual void send_reset();
-  virtual void after_lpdu_received() {}
   void setup_buffers();
+  void send_next(bool done);
+  void in_check();
+
+  virtual void dev_timer() = 0;
 
   /** main loop state */
-  ev::async trigger; void trigger_cb(ev::async &w, int revents);
   ev::timer timer; void timer_cb(ev::timer &w, int revents);
   ev::timer sendtimer; void sendtimer_cb(ev::timer &w, int revents);
-  ev::timer watchdogtimer; void watchdogtimer_cb(ev::timer &w, int revents);
-  LPDUPtr l = nullptr;
   Queue <LPDUPtr> send_q;
 
-  CArray in, sendheader;
-  int watch = 0;
-  int retry = 0;
+  LPDUPtr sending;
+  CArray in, out;
+  unsigned int retry = 0;
+  unsigned int send_retry = 0;
   bool acked = false;
   bool recvecho = false;
   bool skip_char = false;
-  bool adr_check = true;
+  eibaddr_t my_addr = 0;
+
+  enum TSTATE state = T_new;
+  virtual void setstate(enum TSTATE new_state);
 
 public:
   TPUART_Base (L2options *opt);

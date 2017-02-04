@@ -52,6 +52,10 @@ Stability and security fixes will still be applied to this version.
   * Address filtering: packets arriving on interface A, with a source address
     seen before on interface B, now get dropped
 
+  * TPUART support rewritten (single state machine).
+  * Support for TPUART-2 added
+    * auto-ACK mode auto-enabled when "single" filter is used
+
 ## Building
 
 On Debian:

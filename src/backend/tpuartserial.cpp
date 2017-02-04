@@ -48,6 +48,8 @@ static speed_t getbaud(int baud) {
             return B9600;
         case 19200:
             return B19200;
+        case 38400:
+            return B38400;
         case 115200:
             return B115200;
         default:
@@ -59,107 +61,163 @@ TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
 						    L2options *opt)
 	: TPUART_Base (opt)
 {
-  struct termios t1;
   TRACEPRINTF (t, 2, this, "Open");
-
-  char *pch;
-  int baudrate = default_baudrate();
-  int term_baudrate;
-  pch = strtok((char*)dev, ":");
-  int i = 0;
-
-  while(pch != NULL) {
-
-      switch(i) {
-      case 0:
-        break;
-      case 1:
-          baudrate = atoi(pch);
-          break;
-      }
-
-      pch = strtok(NULL, ":");
-      i++;
-  }
 
   dischreset = opt ? (opt->flags & FLAG_B_TPUARTS_DISCH_RESET) : 0;
 
   if (opt)
 	opt->flags &=~ FLAG_B_TPUARTS_DISCH_RESET;
 
-  fd = open (dev, O_RDWR | O_NOCTTY | O_NDELAY | O_SYNC);
-  if (fd == -1)
+  this->dev = dev;
+}
+
+void
+TPUARTSerialLayer2Driver::setstate(enum TSTATE new_state)
+{
+  TRACEPRINTF (t, 8, this, "ser state %d>%d",state,new_state);
+  switch(new_state)
     {
-      ERRORPRINTF (t, E_ERROR | 22, this, "Opening %s failed: %s", dev, strerror(errno));
+    case T_dev_start:
+      {
+        struct termios t1;
+        int term_baudrate;
+
+        char *pch;
+        int baudrate = default_baudrate();
+        pch = strtok((char*)dev, ":");
+        int i = 0;
+
+        while(pch != NULL) {
+
+            switch(i) {
+            case 0:
+              break;
+            case 1:
+                baudrate = atoi(pch);
+                break;
+            }
+
+            pch = strtok(NULL, ":");
+            i++;
+        }
+
+        fd = open (dev, O_RDWR | O_NOCTTY | O_NDELAY | O_SYNC);
+        if (fd == -1)
+          {
+            ERRORPRINTF (t, E_ERROR | 22, this, "Opening %s failed: %s", dev, strerror(errno));
+            return;
+          }
+        set_low_latency (fd, &sold);
+
+        close (fd);
+
+        fd = open (dev, O_RDWR | O_NOCTTY | O_SYNC);
+        if (fd == -1)
+          {
+            ERRORPRINTF (t, E_ERROR | 23, this, "Opening %s failed: %s", dev, strerror(errno));
+            return;
+          }
+
+        if (tcgetattr (fd, &old))
+          {
+            ERRORPRINTF (t, E_ERROR | 24, this, "tcgetattr %s failed: %s", dev, strerror(errno));
+            restore_low_latency (fd, &sold);
+            close (fd);
+            fd = -1;
+            return;
+          }
+
+        if (tcgetattr (fd, &t1))
+          {
+            ERRORPRINTF (t, E_ERROR | 25, this, "tcgetattr %s failed: %s", dev, strerror(errno));
+            restore_low_latency (fd, &sold);
+            close (fd);
+            fd = -1;
+            return;
+          }
+
+        termios_settings(t1);
+        term_baudrate = getbaud(baudrate);
+        if (term_baudrate == -1)
+          {
+            ERRORPRINTF (t, E_ERROR | 58, this, "baudrate %d not recognized", baudrate);
+            restore_low_latency (fd, &sold);
+            close (fd);
+            fd = -1;
+            return;
+          }
+        TRACEPRINTF(t, 0, this, "Opened %s with baud %d", dev, baudrate);
+        cfsetospeed (&t1, term_baudrate);
+        cfsetispeed (&t1, 0);
+
+        if (tcsetattr (fd, TCSAFLUSH, &t1))
+          {
+            ERRORPRINTF (t, E_ERROR | 26, this, "tcsetattr %s failed: %s", dev, strerror(errno));
+            restore_low_latency (fd, &sold);
+            close (fd);
+            fd = -1;
+            return;
+          }
+
+        TRACEPRINTF (t, 2, this, "Openend");
+
+        setup_buffers();
+      }
+      // FALL THRU
+    case T_in_reset:
+      if (state == T_dev_start+3)
+        TPUART_Base::setstate(new_state);
+      else if (dischreset)
+        setstate((enum TSTATE)(T_dev_start+2));
+      else
+        setstate((enum TSTATE)(T_dev_start+3));
+      return;
+
+    case T_dev_start+2: // reset wait
+      setstat (fd, getstat (fd) & ~(TIOCM_RTS | TIOCM_DTR));
+      timer.start(0.002,0);
+      break;
+
+    case T_dev_start+3: // reset wait
+      setstat (fd, (getstat (fd) & ~TIOCM_RTS) | TIOCM_DTR);
+      timer.start(0.1,0);
+      break;
+
+    default:
+      TPUART_Base::setstate(new_state);
       return;
     }
-  set_low_latency (fd, &sold);
-
-  close (fd);
-
-  fd = open (dev, O_RDWR | O_NOCTTY | O_SYNC);
-  if (fd == -1)
-    {
-      ERRORPRINTF (t, E_ERROR | 23, this, "Opening %s failed: %s", dev, strerror(errno));
-      return;
-    }
-
-  if (tcgetattr (fd, &old))
-    {
-      ERRORPRINTF (t, E_ERROR | 24, this, "tcgetattr %s failed: %s", dev, strerror(errno));
-      restore_low_latency (fd, &sold);
-      close (fd);
-      fd = -1;
-      return;
-    }
-
-  if (tcgetattr (fd, &t1))
-    {
-      ERRORPRINTF (t, E_ERROR | 25, this, "tcgetattr %s failed: %s", dev, strerror(errno));
-      restore_low_latency (fd, &sold);
-      close (fd);
-      fd = -1;
-      return;
-    }
-
-  termios_settings(t1);
-  term_baudrate = getbaud(baudrate);
-  if (term_baudrate == -1)
-    {
-      ERRORPRINTF (t, E_ERROR | 58, this, "baudrate %d not recognized", baudrate);
-      restore_low_latency (fd, &sold);
-      close (fd);
-      fd = -1;
-      return;
-    }
-  TRACEPRINTF(t, 0, this, "Opened %s with baud %d", dev, baudrate);
-  cfsetospeed (&t1, term_baudrate);
-  cfsetispeed (&t1, 0);
-
-  if (tcsetattr (fd, TCSAFLUSH, &t1))
-    {
-      ERRORPRINTF (t, E_ERROR | 26, this, "tcsetattr %s failed: %s", dev, strerror(errno));
-      restore_low_latency (fd, &sold);
-      close (fd);
-      fd = -1;
-      return;
-    }
-
-  setstat (fd, (getstat (fd) & ~TIOCM_RTS) | TIOCM_DTR);
-  setup_buffers();
-
-  TRACEPRINTF (t, 2, this, "Openend");
+  state = new_state;
 }
 
 TPUARTSerialLayer2Driver::~TPUARTSerialLayer2Driver ()
 {
-  resettimer.stop();
+}
+
+void
+TPUARTSerialLayer2Driver::dev_timer()
+{
+  switch(state)
+    {
+    case T_dev_start:
+      setstate(T_start);
+      break;
+    case T_dev_start+2:
+      setstate((enum TSTATE)(T_start+3));
+      break;
+    case T_dev_start+3:
+      setstate(T_in_reset);
+      break;
+    default:
+      TRACEPRINTF (t, 8, this, "Unknown state %d",state);
+      break;
+    }
 }
 
 void
 TPUARTSerialLayer2Driver::termios_settings (struct termios &t1)
 {
-  t1.c_cflag = CS8 | CLOCAL | CREAD;
+  t1.c_cflag = CS8 | CLOCAL | CREAD | PARENB;
   t1.c_iflag = IGNBRK | INPCK | ISIG;
   t1.c_oflag = 0;
   t1.c_lflag = 0;
@@ -167,28 +225,3 @@ TPUARTSerialLayer2Driver::termios_settings (struct termios &t1)
   t1.c_cc[VMIN] = 0;
 }
 
-
-void
-TPUARTSerialLayer2Driver::resettimer_cb(ev::timer &w, int revents)
-{
-  if (watch == 5)
-    {
-      watch = 6;
-      setstat (fd, (getstat (fd) & ~TIOCM_RTS) | TIOCM_DTR);
-      resettimer.start(0.001,0);
-    }
-  else
-    TPUART_Base::send_reset();
-}
-
-void TPUARTSerialLayer2Driver::send_reset()
-{
-  if (dischreset)
-    {
-      setstat (fd, (getstat (fd) & ~TIOCM_RTS) & ~TIOCM_DTR);
-      watch = 5;
-      resettimer.start(0.002,0);
-    }
-  else
-    TPUART_Base::send_reset();
-}
