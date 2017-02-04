@@ -331,16 +331,12 @@ Layer3real::trigger_cb (ev::async &w, int revents)
         l1->source = l2->getRemoteAddr();
       if (l1->source == 0)
         l1->source = defaultAddr;
-      if (l1->source == defaultAddr)
-        {
-          TRACEPRINTF (l2->t, 3, this, "Packet not from real addr on %d:%s: %s", l2->t->seq, l2->t->name.c_str(), l1->Decode ().c_str());
-          goto next;
-        }
+      if (l1->source == defaultAddr) { /* locally generated, do nothing */ }
       // Cases:
       // * address is unknown: associate with input IF not from local range and not programming addr
       // * address is known to input: OK
       // * address is on another 
-      if (hasAddress (l1->source))
+      else if (hasAddress (l1->source))
         {
           if (! l2->hasAddress (l1->source))
             {
