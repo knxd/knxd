@@ -388,6 +388,8 @@ TPUART_Base::read_cb(uint8_t *buf, size_t len)
           send_next(true);
           continue;
         }
+      else if (c == 0xCB) // frame end, NCN5120
+        { }
       else if (c == 0x0B) // L_DataConfirm negative
         {
           if (out.size() == 0 || state < T_is_online)
@@ -398,6 +400,8 @@ TPUART_Base::read_cb(uint8_t *buf, size_t len)
           send_next(true);
           continue;
         }
+      else if ((c & 0x17) == 0x13) // frame state indication, NCN5120
+        { }
       else if ((c & 0x07) == 0x07) // state indication
         {
           TRACEPRINTF (t, 8, this, "State: %02X", c);
