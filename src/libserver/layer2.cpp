@@ -99,13 +99,13 @@ Layer2::removeGroupAddress (eibaddr_t addr)
   return false;
 }
 
-Layer2Ptr
+bool
 Layer2::hasAddress (eibaddr_t addr)
 {
   ITER(i, indaddr)
     if (*i == addr)
-      return shared_from_this();
-  return nullptr;
+      return true;
+  return false;
 }
 
 bool
@@ -161,10 +161,10 @@ Layer2single::addAddress(eibaddr_t addr)
   remoteAddr = addr;
 }
 
-Layer2Ptr
+bool
 Layer2single::hasAddress(eibaddr_t addr)
 {
-  return (remoteAddr == addr) ? shared_from_this() : nullptr;
+  return (remoteAddr == addr);
 }
 
 bool

@@ -55,7 +55,7 @@ public:
   /** try to remove the group address addr to the device, return true if successful */
   virtual bool removeGroupAddress (eibaddr_t addr) = 0;
   /** individual address known? */
-  virtual Layer2Ptr hasAddress (eibaddr_t addr) = 0;
+  virtual bool hasAddress (eibaddr_t addr) = 0;
   /** group address known? */
   virtual bool hasGroupAddress (eibaddr_t addr) = 0;
   /** my remote address, if any? */
@@ -97,7 +97,7 @@ public:
   virtual bool addGroupAddress (eibaddr_t addr);
   virtual bool removeAddress (eibaddr_t addr);
   virtual bool removeGroupAddress (eibaddr_t addr);
-  virtual Layer2Ptr hasAddress (eibaddr_t addr);
+  virtual bool hasAddress (eibaddr_t addr);
   virtual bool hasGroupAddress (eibaddr_t addr);
   eibaddr_t getRemoteAddr() { return remoteAddr; };
 
@@ -131,7 +131,7 @@ class Layer2single:public Layer2mixin
 {
 public:
   Layer2single (TracePtr tr) : Layer2mixin (tr) {};
-  Layer2Ptr hasAddress(eibaddr_t addr);
+  bool hasAddress(eibaddr_t addr);
   bool addAddress(eibaddr_t addr);
   bool removeAddress(eibaddr_t addr);
 };
@@ -147,7 +147,7 @@ class Layer2virtual:public Layer2mixin
 public:
   Layer2virtual (TracePtr tr) : Layer2mixin (tr) { }
   void send_L_Data (LDataPtr l) { }
-  Layer2Ptr hasAddress (eibaddr_t addr UNUSED) { return nullptr; }
+  bool hasAddress (eibaddr_t addr UNUSED) { return false; }
   bool addAddress (eibaddr_t addr UNUSED) { return false; }
   bool hasGroupAddress (eibaddr_t addr UNUSED) { return false; }
   bool addGroupAddress (eibaddr_t addr UNUSED) { return false; }

@@ -41,6 +41,8 @@ public:
   // with l2 set to the given l2.
   virtual Layer2Ptr clone (Layer2Ptr l2) = 0;
 
+  virtual Layer23 * findFilter (const char *name);
+
 protected:
   Layer2Ptr l2;
 
@@ -54,7 +56,7 @@ public:
   bool addGroupAddress (eibaddr_t addr);
   bool removeAddress (eibaddr_t addr);
   bool removeGroupAddress (eibaddr_t addr);
-  Layer2Ptr hasAddress (eibaddr_t addr);
+  bool hasAddress (eibaddr_t addr);
   bool hasGroupAddress (eibaddr_t addr);
   eibaddr_t getRemoteAddr();
 
@@ -84,7 +86,7 @@ public:
 
   void recv_L_Data (LDataPtr l);
   void recv_L_Busmonitor (LBusmonPtr l);
-  Layer2Ptr hasAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr);
+  bool hasAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr);
   bool hasGroupAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr);
   void registerServer (BaseServer *s);
   void deregisterServer (BaseServer *s);

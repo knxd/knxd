@@ -216,40 +216,41 @@ Layer3real::registerLayer2 (Layer2Ptr l2)
   return this;
 }
 
-Layer2Ptr
+bool
 Layer3real::hasAddress (eibaddr_t addr, Layer2Ptr l2)
 {
   TracePtr t = l2 ? l2->t : tr();
   if (addr == defaultAddr)
     {
       TRACEPRINTF (t, 8, "default addr %s", FormatEIBAddr (addr).c_str());
-      return l2;
+      return l2 != nullptr;
     }
 
   if (l2 && l2->hasAddress(addr))
     {
     on_this_interface:
       TRACEPRINTF (t, 8, "own addr %s", FormatEIBAddr (addr).c_str());
-      return nullptr;
+      return false;
     }
 
   ITER(i,layer2)
     {
       if (*i == l2)
         continue;
-
-      Layer2Ptr l2x = (*i)->hasAddress (addr);
-      if (l2x)
+      if ((*i)->hasAddress (addr))
         {
-          if (l2x == l2) // not redundant because of filters
-            goto on_this_interface;
-          TRACEPRINTF (l2x->t, 8, "found addr %s", FormatEIBAddr (addr).c_str());
-          return l2x;
+          if (*i == l2)
+            {
+              TRACEPRINTF (l2->t, 8, "local addr %s", FormatEIBAddr (addr).c_str());
+              return false;
+            }
+          TRACEPRINTF ((*i)->t, 8, "found addr %s", FormatEIBAddr (addr).c_str());
+          return true;
         }
     }
 
   TRACEPRINTF (t, 8, "unknown addr %s", FormatEIBAddr (addr).c_str());
-  return nullptr;
+  return false;
 }
 
 bool
@@ -329,24 +330,33 @@ Layer3real::trigger_cb (ev::async &w, int revents)
     {
       LDataPtr l1 = buf.get ();
 
-      {
-        Layer2Ptr l2 = l1->l2;
-        Layer2Ptr l2x;
+      Layer2Ptr l2 = l1->l2;
 
-        if (l1->source == 0)
-          l1->source = l2->getRemoteAddr();
-        if (l1->source == 0)
-          l1->source = defaultAddr;
-        if (l1->source != 0 &&
-            l1->source != 0xFFFF &&
-            l1->source != defaultAddr &&
-            (l2x = hasAddress (l1->source, l2)))
-          {
-            TRACEPRINTF (l2->t, 3, "Packet not from %d:%s: %s", l2x->t->seq, l2x->t->name.c_str(), l1->Decode ().c_str());
-            goto next;
-          }
-          l2->addAddress (l1->source);
-      }
+      if (l1->source == 0)
+        l1->source = l2->getRemoteAddr();
+      if (l1->source == 0)
+        l1->source = defaultAddr;
+      if (l1->source == defaultAddr) { /* locally generated, do nothing */ }
+      // Cases:
+      // * address is unknown: associate with input IF not from local range and not programming addr
+      // * address is known to input: OK
+      // * address is on another 
+      else if (hasAddress (l1->source))
+        {
+          if (! l2->hasAddress (l1->source))
+            {
+              TRACEPRINTF (l2->t, 3, "Packet not from %d:%s: %s", l2->t->seq, l2->t->name.c_str(), l1->Decode ().c_str());
+              goto next;
+            }
+        }
+      else if (client_addrs_start && (l1->source >= client_addrs_start) &&
+          (l1->source < client_addrs_start+client_addrs_len))
+        { // late arrival to an already-freed client
+          TRACEPRINTF (l2->t, 3, "Packet from client: %s", l1->Decode ().c_str());
+          goto next;
+        }
+      else if (l1->source != 0xFFFF)
+        l2->addAddress (l1->source);
 
       if (vbusmonitor.size())
         {
@@ -404,12 +414,13 @@ Layer3real::trigger_cb (ev::async &w, int revents)
 	      goto next;
 	    }
 
-          // This is not so easy: we want to send to whichever
-          // interface on which the address has appeared. If it hasn't
-          // been seen yet, we send to all interfaces.
-          // Addresses ~0 is special; it's used for programming
+          // we want to send to the interface on which the address
+          // has appeared. If it hasn't been seen yet, we send to all
+          // interfaces.
+          // Address ~0 is special; it's used for programming
           // so can be on different interfaces. Always broadcast these.
-          bool found = false;
+          // Packets to knxd itself aren't forwarded.
+          bool found = (l1->dest == defaultAddr);
           if (l1->dest != 0xFFFF)
             ITER(i, layer2)
               {

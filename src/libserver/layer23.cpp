@@ -70,7 +70,7 @@ Layer23::removeGroupAddress (eibaddr_t addr)
   return l2->removeGroupAddress (addr);
 }
 
-Layer2Ptr
+bool
 Layer23::hasAddress (eibaddr_t addr)
 {
   return l2->hasAddress (addr);
@@ -178,6 +178,7 @@ Layer23::deregisterVBusmonitor (L_Busmonitor_CallBack * c)
 void
 Layer23::recv_L_Data (LDataPtr l)
 {
+  l->l2 = shared_from_this();
   l3->recv_L_Data (std::move(l));
 }
 
@@ -187,7 +188,7 @@ Layer23::recv_L_Busmonitor (LBusmonPtr l)
   l3->recv_L_Busmonitor (std::move(l));
 }
 
-Layer2Ptr
+bool
 Layer23::hasAddress (eibaddr_t addr, Layer2Ptr l2)
 {
   return l3->hasAddress (addr, l2);
@@ -224,3 +225,10 @@ Layer23::release_client_addr (eibaddr_t addr)
   l3->release_client_addr (addr);
 }
 
+Layer23 *
+Layer23::findFilter (const char *name)
+{
+  if (!strcmp(name, this->Name()))
+    return this;
+  return l3->findFilter(name);
+}

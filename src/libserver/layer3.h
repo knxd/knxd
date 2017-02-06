@@ -26,6 +26,7 @@
 
 class BaseServer;
 class GroupCache;
+class Layer23;
 
 /** stores a registered busmonitor callback */
 typedef struct
@@ -86,7 +87,7 @@ public:
 
   /** check if any interface accepts this address.
       'l2' says which interface NOT to check. */
-  virtual Layer2Ptr hasAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr) = 0;
+  virtual bool hasAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr) = 0;
   /** check if any interface accepts this group address.
       'l2' says which interface NOT to check. */
   virtual bool hasGroupAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr) = 0;
@@ -99,6 +100,8 @@ public:
   virtual eibaddr_t get_client_addr (TracePtr t) = 0;
   /** … and release it */
   virtual void release_client_addr (eibaddr_t addr) = 0;
+
+  virtual Layer23 * findFilter (const char *name) { return nullptr; }
 };
 
 class Layer3real : public Layer3
@@ -173,7 +176,7 @@ public:
 
   void recv_L_Data (LDataPtr l);
   void recv_L_Busmonitor (LBusmonPtr l);
-  Layer2Ptr hasAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr);
+  bool hasAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr);
   bool hasGroupAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr);
   void registerServer (BaseServer *s) { servers.push_back (s); }
   void deregisterServer (BaseServer *s);

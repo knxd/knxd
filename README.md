@@ -25,6 +25,10 @@ Please switch to the v0.12 branch for productive use.
 
   * TBD
 
+  * TPUART support rewritten (single state machine).
+  * Support for TPUART-2 added
+    * auto-ACK mode auto-enabled when "single" filter is used
+
 ## Building
 
 On Debian:
