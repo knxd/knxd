@@ -7,7 +7,7 @@ CONFIGURE_DEPENDENCIES=debian/changelog
 
 BUILDDIRS = 
 
-SUBDIRS=. src systemd
+SUBDIRS=. src systemd tools
 DIST_SUBDIRS    = $(SUBDIRS) rpm
 
 BUILT_SOURCES=path.h version.h
