@@ -33,6 +33,7 @@ public:
 protected:
   void termios_settings(struct termios &t);
   unsigned int default_baudrate();
+  void NCN5120SerialLayer2Driver::setstate(enum TSTATE state);
 
   void RecvLPDU (const uchar * data, int len);
 };

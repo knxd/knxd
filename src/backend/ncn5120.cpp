@@ -52,3 +52,15 @@ void NCN5120SerialLayer2Driver::RecvLPDU (const uchar * data, int len)
     skip_char = true;
     TPUARTSerialLayer2Driver::RecvLPDU (data, len);
 }
+
+void
+NCN5120SerialLayer2Driver::setstate(enum TSTATE new_state)
+{
+  if (new_state == T_in_setaddr && my_addr != 0)
+    {
+      uint8_t addrbuf[4] = { 0xF1, (uint8_t)((my_addr>>8)&0xFF), (uint8_t)(my_addr&0xFF), 0x00 };
+      TRACEPRINTF (t, 0, "SendAddr %02X%02X%02X", addrbuf[0],addrbuf[1],addrbuf[2]);
+      sendbuf.write(addrbuf, sizeof(addrbuf));
+      new_state = T_in_getstate;
+    }
+  TPUARTSerialLayer2Driver::setstate(new_state);
