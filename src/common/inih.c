@@ -15,7 +15,7 @@ https://github.com/benhoyt/inih
 #include <ctype.h>
 #include <string.h>
 
-#include "ini.h"
+#include "inih.h"
 
 #if !INI_USE_STACK
 #include <stdlib.h>
@@ -135,6 +135,10 @@ int ini_parse_stream(ini_reader reader, void* stream, ini_handler handler,
                 *end = '\0';
                 strncpy0(section, start + 1, sizeof(section));
                 *prev_name = '\0';
+#if INI_HANDLE_SECTION
+                if (!HANDLER(user, section, NULL. NULL) && !error)
+                    error = lineno;
+#endif
             }
             else if (!error) {
                 /* No ']' found on section line */
@@ -161,10 +165,29 @@ int ini_parse_stream(ini_reader reader, void* stream, ini_handler handler,
                 if (!HANDLER(user, section, name, value) && !error)
                     error = lineno;
             }
-            else if (!error) {
+            else
+#if INI_HANDLE_EMPTY
+            {
+#if INI_ALLOW_INLINE_COMMENTS
+                end = find_chars_or_comment(value, NULL);
+                if (*end)
+                    *end = '\0';
+#endif
+                name = rstrip(start);
+                if (*name && !strpbrk(name,"\t ")) {
+                    /* don't allow "named" names with whitespace*/
+                    strncpy0(prev_name, name, sizeof(prev_name));
+                    if (!HANDLER(user, section, name, NULL) && !error)
+                        error = lineno;
+                } else if (!error)
+                      error = lineno;
+            }
+#else
+            if (!error) {
                 /* No '=' or ':' found on name[=:]value line */
                 error = lineno;
             }
+#endif
         }
 
 #if INI_STOP_ON_FIRST_ERROR

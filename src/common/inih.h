@@ -10,6 +10,11 @@ https://github.com/benhoyt/inih
 #ifndef __INI_H__
 #define __INI_H__
 
+#define INI_HANDLER_LINENO 0
+#define INI_INLINE_COMMENT_PREFIXES "#;"
+#define INI_MAX_LINE 300
+#define INI_HANDLE_SECTION 0
+
 /* Make this header file easier to include in C++ code */
 #ifdef __cplusplus
 extern "C" {
@@ -20,6 +25,19 @@ extern "C" {
 /* Nonzero if ini_handler callback should accept lineno parameter. */
 #ifndef INI_HANDLER_LINENO
 #define INI_HANDLER_LINENO 0
+#endif
+
+/* Nonzero if ini_handler callback should be called at the beginning of a
+ * section (with NULL as name+value). */
+#ifndef INI_HANDLE_SECTION
+#define INI_HANDLE_SECTION 0
+#endif
+
+/* Nonzero if ini_handler callback should be called for names
+ * without =value (flags) */
+
+#ifndef INI_HANDLE_EMPTY
+#define INI_HANDLE_EMPTY 0
 #endif
 
 /* Typedef for prototype of handler function. */
