@@ -33,12 +33,14 @@ class TPUARTSerialLayer2Driver:public TPUART_Base
   bool dischreset;
 
   const char *Name() { return "tpuarts"; }
-  void setstate(enum TSTATE state);
   void dev_timer();
   virtual void termios_settings (struct termios &t);
   virtual unsigned int default_baudrate () { return 19200; }
 
   const char *dev;
+
+protected:
+  void setstate(enum TSTATE state);
 
 public:
   TPUARTSerialLayer2Driver (const char *dev, L2options *opt);

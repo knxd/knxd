@@ -59,8 +59,10 @@ NCN5120SerialLayer2Driver::setstate(enum TSTATE new_state)
   if (new_state == T_in_setaddr && my_addr != 0)
     {
       uint8_t addrbuf[4] = { 0xF1, (uint8_t)((my_addr>>8)&0xFF), (uint8_t)(my_addr&0xFF), 0x00 };
-      TRACEPRINTF (t, 0, "SendAddr %02X%02X%02X", addrbuf[0],addrbuf[1],addrbuf[2]);
+      TRACEPRINTF (t, 0, this, "SendAddr %02X%02X%02X", addrbuf[0],addrbuf[1],addrbuf[2]);
       sendbuf.write(addrbuf, sizeof(addrbuf));
       new_state = T_in_getstate;
     }
   TPUARTSerialLayer2Driver::setstate(new_state);
+}
+
