@@ -4,6 +4,21 @@ knxd (0.13.0-1) UNRELEASED; urgency=medium
 
  -- Matthias Urlichs <matthias@urlichs.de>  Wed, 01 Feb 2017 01:50:56 +0100
 
+knxd (0.12.9-2) unstable; urgency=medium
+
+  * Tell the tracer to use line-buffering on stdout/stderr.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 06 Feb 2017 13:02:13 +0100
+
+knxd (0.12.9-1) unstable; urgency=medium
+
+  * Clean up tpuart code
+  * support tpuart-2
+    * including auto-ack mode
+  * fix processing of local packets (for the group cache)
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 06 Feb 2017 00:09:21 +0100
+
 knxd (0.12.8-1) unstable; urgency=medium
 
   * 0.12.7 was broken (address checking had a major bug). Sorry.
