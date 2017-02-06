@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS=1.9
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST=SubmittingPatches .gitignore tools/version.sh
 
-CONFIGURE_DEPENDENCIES=debian/changelog .git/index
+CONFIGURE_DEPENDENCIES=debian/changelog
 ## rebuild when the version changes
 
 BUILDDIRS = 
@@ -10,12 +10,18 @@ BUILDDIRS =
 SUBDIRS=. src systemd
 DIST_SUBDIRS    = $(SUBDIRS) rpm
 
-BUILT_SOURCES=path.h
-CLEANFILES=path.h
+BUILT_SOURCES=path.h version.h
+CLEANFILES=path.h version.h
 
 path.h : Makefile
 	echo "#define PKGDATADIR \"${pkgdatadir}\"" >$@
 	echo "#define PKGLIBDIR \"${pkglibdir}\"" >>$@
+
+.PHONY:	CHECK
+version.h: CHECK
+	echo "#define REAL_VERSION \"${shell tools/version.sh}\"" >>$@.new
+	cmp -s $@.new $@ && rm $@.new || mv $@.new $@
+	
 
 # source and binary RPMs
 #

@@ -23,6 +23,7 @@
 #include <argp.h>
 #include "addrtab.h"
 #include "lowlevelconf.h"
+#include "version.h"
 
 /** aborts program with a printf like message */
 void
@@ -75,7 +76,7 @@ Create (const char *url, TracePtr t)
 }
 
 /** version */
-const char *argp_program_version = "bcuaddrtab " VERSION;
+const char *argp_program_version = "bcuaddrtab " REAL_VERSION;
 /** documentation */
 static char doc[] =
   "bcuaddrtab -- read BCU address table size (or write it with -w)\n"

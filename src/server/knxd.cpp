@@ -36,6 +36,7 @@
 #include "inetserver.h"
 #include "eibnetserver.h"
 #include "groupcacheclient.h"
+#include "version.h"
 
 #ifdef HAVE_SYSTEMD
 #include <systemd/sd-daemon.h>
@@ -228,7 +229,7 @@ readaddrblock (struct arguments *args, const char *addr)
 }
 
 /** version */
-const char *argp_program_version = "knxd " VERSION;
+const char *argp_program_version = "knxd " REAL_VERSION;
 /** documentation */
 static char doc[] =
   "knxd -- a commonication stack for EIB/KNX\n"
