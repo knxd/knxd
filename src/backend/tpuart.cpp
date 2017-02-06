@@ -388,6 +388,8 @@ TPUART_Base::read_cb(uint8_t *buf, size_t len)
           send_next(true);
           continue;
         }
+      else if (c == 0xCB) // frame end, NCN5120
+        { }
       else if (c == 0x0B) // L_DataConfirm negative
         {
           if (out.size() == 0 || state < T_is_online)
@@ -398,6 +400,8 @@ TPUART_Base::read_cb(uint8_t *buf, size_t len)
           send_next(true);
           continue;
         }
+      else if ((c & 0x17) == 0x13) // frame state indication, NCN5120
+        { }
       else if ((c & 0x07) == 0x07) // state indication
         {
           TRACEPRINTF (t, 8, "State: %02X", c);
@@ -433,7 +437,6 @@ TPUART_Base::read_cb(uint8_t *buf, size_t len)
       else if (c == 0xCC || c == 0xC0 || c == 0x0C)
         {
           RecvLPDU (in.data(), 1);
-          in.deletepart (0, 1);
         }
       else if ((c & 0x50) == 0x10) // Matches KNX control byte L_Data_Standard/Extended Frame
         {
