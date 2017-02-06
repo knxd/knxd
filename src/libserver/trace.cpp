@@ -23,6 +23,8 @@
 
 #include "trace.h"
 
+static bool trace_started = false;
+
 unsigned int trace_seq = 0;
 unsigned int trace_namelen = 3;
 
@@ -38,6 +40,11 @@ Trace::TraceHeader (int layer)
   tv.tv_usec -= started.tv_usec;
   tv.tv_sec -= started.tv_sec;
 
+  if (!trace_started) {
+      trace_started = true;
+      setvbuf(stdout, NULL, _IOLBF, 0);
+      setvbuf(stderr, NULL, _IOLBF, 0);
+  }
   if (servername.length())
     printf("%s: ",servername.c_str());
   if (timestamps)

@@ -1,3 +1,9 @@
+knxd (0.12.9-2) unstable; urgency=medium
+
+  * Tell the tracer to use line-buffering on stdout/stderr.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 06 Feb 2017 13:02:13 +0100
+
 knxd (0.12.9-1) unstable; urgency=medium
 
   * Clean up tpuart code
