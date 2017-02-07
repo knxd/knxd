@@ -13,7 +13,8 @@ https://github.com/benhoyt/inih
 #define INI_HANDLER_LINENO 0
 #define INI_INLINE_COMMENT_PREFIXES "#;"
 #define INI_MAX_LINE 300
-#define INI_HANDLE_SECTION 0
+#define INI_HANDLE_SECTION 1
+#define INI_HANDLE_EMPTY 1
 
 /* Make this header file easier to include in C++ code */
 #ifdef __cplusplus

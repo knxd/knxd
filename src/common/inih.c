@@ -136,7 +136,7 @@ int ini_parse_stream(ini_reader reader, void* stream, ini_handler handler,
                 strncpy0(section, start + 1, sizeof(section));
                 *prev_name = '\0';
 #if INI_HANDLE_SECTION
-                if (!HANDLER(user, section, NULL. NULL) && !error)
+                if (!HANDLER(user, section, NULL, NULL) && !error)
                     error = lineno;
 #endif
             }

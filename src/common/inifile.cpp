@@ -41,10 +41,21 @@ IniSection::value(const std::string& name, const std::string& def)
   return v->second;
 }
 
+static const std::string empty = "";
+
+std::string&
+IniSection::operator[](const char *name)
+{
+  auto v = values.find(name);
+  assert (v != values.end());
+  return v->second;
+}
+
 int
 IniSection::value(const std::string& name, int def)
 {
-  const std::string v { value(name, "") };
+  static const std::string empty = "";
+  const std::string v { value(name, empty) };
   if (!v.size())
     return def;
   size_t pos;
@@ -58,32 +69,33 @@ IniSection::value(const std::string& name, int def)
 bool
 IniSection::value(const std::string& name, bool def)
 {
-  const std::string v [ value(name, "") ];
-  if (!v->size())
+  static const std::string empty = "";
+  const std::string& v { value(name, empty) };
+  if (!v.size())
     return def;
-  if (!v->compare("Y"))
+  if (!v.compare("Y"))
     return true;
-  if (!v->compare("N"))
+  if (!v.compare("N"))
     return false;
-  if (!v->compare("y"))
+  if (!v.compare("y"))
     return true;
-  if (!v->compare("n"))
+  if (!v.compare("n"))
     return false;
-  if (!v->compare("1"))
+  if (!v.compare("1"))
     return true;
-  if (!v->compare("0"))
+  if (!v.compare("0"))
     return false;
-  if (!v->compare("true"))
+  if (!v.compare("true"))
     return true;
-  if (!v->compare("false"))
+  if (!v.compare("false"))
     return false;
-  if (!v->compare("True"))
+  if (!v.compare("True"))
     return true;
-  if (!v->compare("False"))
+  if (!v.compare("False"))
     return false;
-  if (!v->compare("TRUE"))
+  if (!v.compare("TRUE"))
     return true;
-  if (!v->compare("FALSE"))
+  if (!v.compare("FALSE"))
     return false;
 
   std::cerr << "Parse error: Not a bool: " << name << "=" << v << std::endl;
@@ -117,6 +129,14 @@ IniData::add(const char *section, const char *name, const char *value)
   return s->add(name,value);
 }
 
+IniSection&
+IniData::operator[](const char *name)
+{
+  auto v = sections.find(name);
+  assert (v != sections.end());
+  return v->second;
+}
+
 int
 IniSection::add(const char *name, const char *value)
 {
@@ -135,16 +155,14 @@ IniSection::add(const char *name, const char *value)
 static char*
 inidata_reader(char* str, int num, void* stream)
 {
-  assert(num <= INI_MAX_LINE);
-  static char buf[INI_MAX_LINE+1];
   std::istream *f = (std::istream *)stream;
 
-  if (f->eofbit)
+  if (f->rdstate() & std::ifstream::eofbit)
     return NULL;
-  f->getline(buf, sizeof(buf)-1);
-  if (f->failbit)
+  f->getline(str, num);
+  if (f->rdstate() & std::ifstream::failbit)
     return NULL;
-  return buf;
+  return str;
 }
 
 int

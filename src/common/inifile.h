@@ -34,6 +34,7 @@ class IniSection {
     ValueMap values;
   public:
     const std::string& value(const std::string& name, const std::string& def);
+    std::string& operator[](const char *name);
     int value(const std::string& name, int def);
     bool value(const std::string& name, bool def);
 
@@ -49,6 +50,7 @@ public:
     // method callback
     IniData();
 
+    IniSection& operator[](const char *name);
     int add(const char *section, const char *name, const char *value);
 
     int parse(const std::string& filename);
