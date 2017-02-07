@@ -174,9 +174,10 @@ void driver_argsv(const char *arg, char *ap, ...)
       char *pa = va_arg(apl, char *);
       if (!pa)
         die ("Too many arguments for %s!", arg);
-      if (*pa == '!')
+      if (*pa == '!') // required-argument flag
         pa++;
-      ini[link][pa] = ap;
+      if (*ap) // skip empty arguments
+        ini[link][pa] = ap;
       ap = p2;
     }
     char *pa = va_arg(apl, char *);
