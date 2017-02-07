@@ -30,16 +30,21 @@
 
 typedef std::unordered_map<std::string,std::string> ValueMap;
 
+class IniData;
+
 class IniSection {
     ValueMap values;
+    IniData& parent;
   public:
     const std::string& value(const std::string& name, const std::string& def);
     std::string& operator[](const char *name);
     int value(const std::string& name, int def);
     bool value(const std::string& name, bool def);
 
-    IniSection();
+    IniSection(IniData& parent);
     int add(const char *name, const char *value);
+
+    void write(std::ostream& file);
 };
 
 typedef std::unordered_map<std::string,IniSection> SectionMap;
@@ -47,14 +52,20 @@ class IniData {
     SectionMap sections;
 
 public:
+    bool read_only = false;
+
     // method callback
     IniData();
 
     IniSection& operator[](const char *name);
+    IniSection& operator[](const std::string& name);
+
     int add(const char *section, const char *name, const char *value);
 
     int parse(const std::string& filename);
     int parse(std::istream& file);
+
+    void write(std::ostream& file);
 };
 
 #endif

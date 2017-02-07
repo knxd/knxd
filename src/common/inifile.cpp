@@ -29,8 +29,9 @@
 #include <string.h>
 
 #include "inifile.h"
+#include "types.h"
 
-IniSection::IniSection() : values() { }
+IniSection::IniSection(IniData &p) : values(), parent(p) { }
 
 const std::string&
 IniSection::value(const std::string& name, const std::string& def)
@@ -46,9 +47,15 @@ static const std::string empty = "";
 std::string&
 IniSection::operator[](const char *name)
 {
-  auto v = values.find(name);
-  assert (v != values.end());
-  return v->second;
+  if (parent.read_only)
+    {
+      auto v = values.find(name);
+      assert (v != values.end());
+      return v->second;
+    } else {
+      auto res = values.emplace(name, "");
+      return res.first->second;
+    }
 }
 
 int
@@ -116,7 +123,7 @@ IniData::add(const char *section, const char *name, const char *value)
 {
   auto res = sections.emplace(std::piecewise_construct,
                 std::forward_as_tuple(section),
-                std::forward_as_tuple());
+                std::forward_as_tuple(*this));
   if (! res.second && name == NULL)
     {
       std::cerr << "Parse error: Duplicate section: " << section << std::endl;
@@ -132,9 +139,25 @@ IniData::add(const char *section, const char *name, const char *value)
 IniSection&
 IniData::operator[](const char *name)
 {
-  auto v = sections.find(name);
-  assert (v != sections.end());
-  return v->second;
+  if (read_only)
+    {
+      auto v = sections.find(name);
+      assert (v != sections.end());
+      return v->second;
+    }
+  else
+    {
+      auto res = sections.emplace(std::piecewise_construct,
+                    std::forward_as_tuple(name),
+                    std::forward_as_tuple(*this));
+      return res.first->second;
+    }
+}
+
+IniSection&
+IniData::operator[](const std::string& name)
+{
+  return (*this)[name.c_str()];
 }
 
 int
@@ -183,7 +206,27 @@ IniData::parse(const std::string& filename)
 int
 IniData::parse(std::istream& file)
 {
-  return ini_parse_stream(&inidata_reader, (void *)&file,
+  int res = ini_parse_stream(&inidata_reader, (void *)&file,
                           &inidata_handler, (void *)this);
+  read_only = true;
+  return res;
 }
+
+void
+IniSection::write(std::ostream& file)
+{
+  ITER(i,values)
+    file << i->first << " = " << i->second << std::endl;
+}
+
+void
+IniData::write(std::ostream& file)
+{
+  ITER(i,sections)
+    {
+      file << '[' << i->first << ']' << std::endl;
+      i->second.write(file);
+    }
+}
+
 

@@ -144,3 +144,4 @@ Makefile
 /src/tools/eibwrite-cgi
 /src/tools/knxtool
 /tools/test_inih
+/src/server/knxd_args
