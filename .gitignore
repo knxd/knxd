@@ -140,3 +140,7 @@ Makefile
 /autom4te.cache
 /rpm/knxd.spec
 /version.h
+/src/tools/eibread-cgi
+/src/tools/eibwrite-cgi
+/src/tools/knxtool
+/tools/test_inih
