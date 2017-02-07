@@ -169,8 +169,9 @@ int
 IniData::parse(const std::string& filename)
 {
   std::filebuf fb;
-  if (fb.open (filename,std::ios::in))
-  {
+  if (filename == "-") {
+    return parse(std::cin);
+  } else if (fb.open (filename,std::ios::in)) {
     std::istream s(&fb);
     return parse(s);
   } else {
