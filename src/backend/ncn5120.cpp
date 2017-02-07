@@ -64,3 +64,5 @@ NCN5120SerialLayer2Driver::setstate(enum TSTATE new_state)
       new_state = T_in_getstate;
     }
   TPUARTSerialLayer2Driver::setstate(new_state);
+}
+

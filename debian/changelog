@@ -4,6 +4,12 @@ knxd (0.13.0-1) UNRELEASED; urgency=medium
 
  -- Matthias Urlichs <matthias@urlichs.de>  Wed, 01 Feb 2017 01:50:56 +0100
 
+knxd (0.12.10-1) unstable; urgency=medium
+
+  * stupid errors in the ncn5120 driver
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 06 Feb 2017 18:48:17 +0100
+
 knxd (0.12.9-2) unstable; urgency=medium
 
   * Tell the tracer to use line-buffering on stdout/stderr.
