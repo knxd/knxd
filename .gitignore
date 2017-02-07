@@ -134,3 +134,4 @@ Makefile
 /stamp-h1
 /autom4te.cache
 /rpm/knxd.spec
+/version.h
