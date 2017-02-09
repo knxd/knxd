@@ -14,43 +14,31 @@ Vendor:       smurf
 License:      GPL
 Packager:     Michael Kefeder <m.kefeder@gmail.com>
 
+%if 0%{?rhel} >= 7
 BuildRequires: systemd
 BuildRequires: systemd-devel
+%endif
 
 ###############################################################################
-#
-# Description.
-#
 %description
-A KNX daemon and tools supporting it. 
+A KNX daemon and tools supporting it.
 
 ###############################################################################
-#
 # preparation for build
-#
 %prep
 %autosetup -n %{name}-%{version}
 
 ###############################################################################
-#
-# build
-#
 %build
 %configure
 %make_build
 
-
 ###############################################################################
-#
-# install
-#
 %install
 %make_install
 
 ###############################################################################
-#
 # what is being installed
-#
 %files
 %defattr(-,root,root,-)
 
@@ -203,30 +191,22 @@ A KNX daemon and tools supporting it.
 %{_datarootdir}/knxd/EIBConnection.pyo
 
 ###############################################################################
-#
 # preinstall
-#
 %pre
 /usr/bin/getent group knxd || /usr/sbin/groupadd -r knxd
 /usr/bin/getent passwd knxd || /usr/sbin/useradd -r -s /sbin/nologin -g knxd knxd
 
 ###############################################################################
-#
 # postinstall
-#
 %post
 
 ###############################################################################
-#
 # pre-remove script
-#
 %preun
 
 
 ###############################################################################
-#
 # post-remove script
-#
 %postun
 if [ "$1" = "1" ]; then
     # this is an upgrade do nothing
@@ -238,9 +218,7 @@ elif [ "$1" = "0" ]; then
 fi
 
 ###############################################################################
-#
 # verify
-#
 %verifyscript
 
 %changelog
