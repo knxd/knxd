@@ -25,9 +25,6 @@
 #ifdef HAVE_FT12
 #include "l-FT12.h"
 #endif
-#ifdef HAVE_PEI16s
-#include "l-PEI16s.h"
-#endif
 #ifdef HAVE_USB
 #include "l-USB.h"
 #endif

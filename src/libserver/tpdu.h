@@ -42,6 +42,9 @@ typedef enum
 }
 TPDU_Type;
 
+class TPDU;
+typedef std::unique_ptr<TPDU> TPDUPtr;
+
 /** represents a TPDU */
 class TPDU
 {
@@ -50,15 +53,15 @@ public:
   {
   }
 
-  virtual bool init (const CArray & c, Trace * t) = 0;
+  virtual bool init (const CArray & c, TracePtr t) = 0;
   /** convert to character array */
   virtual CArray ToPacket () = 0;
   /** decode content as string */
-  virtual String Decode (Trace * t) = 0;
+  virtual String Decode (TracePtr t) = 0;
   /** gets TPDU type */
   virtual TPDU_Type getType () const = 0;
   /** converts character array to a TPDU */
-  static TPDU *fromPacket (const CArray & c, Trace * t);
+  static TPDUPtr fromPacket (const CArray & c, TracePtr t);
 };
 
 class T_UNKNOWN_PDU:public TPDU
@@ -67,9 +70,9 @@ public:
   CArray pdu;
 
   T_UNKNOWN_PDU ();
-  bool init (const CArray & c, Trace * t);
+  bool init (const CArray & c, TracePtr t);
   CArray ToPacket ();
-  String Decode (Trace * t);
+  String Decode (TracePtr t);
   TPDU_Type getType () const
   {
     return T_UNKNOWN;
@@ -82,9 +85,9 @@ public:
   CArray data;
 
   T_DATA_XXX_REQ_PDU ();
-  bool init (const CArray & c, Trace * t);
+  bool init (const CArray & c, TracePtr t);
   CArray ToPacket ();
-  String Decode (Trace * t);
+  String Decode (TracePtr t);
   TPDU_Type getType () const
   {
     return T_DATA_XXX_REQ;
@@ -98,9 +101,9 @@ public:
   CArray data;
 
   T_DATA_CONNECTED_REQ_PDU ();
-  bool init (const CArray & c, Trace * t);
+  bool init (const CArray & c, TracePtr t);
   CArray ToPacket ();
-  String Decode (Trace * t);
+  String Decode (TracePtr t);
   TPDU_Type getType () const
   {
     return T_DATA_CONNECTED_REQ;
@@ -112,9 +115,9 @@ class T_CONNECT_REQ_PDU:public TPDU
 public:
 
   T_CONNECT_REQ_PDU ();
-  bool init (const CArray & c, Trace * t);
+  bool init (const CArray & c, TracePtr t);
   CArray ToPacket ();
-  String Decode (Trace * t);
+  String Decode (TracePtr t);
   TPDU_Type getType () const
   {
     return T_CONNECT_REQ;
@@ -126,9 +129,9 @@ class T_DISCONNECT_REQ_PDU:public TPDU
 public:
 
   T_DISCONNECT_REQ_PDU ();
-  bool init (const CArray & c, Trace * t);
+  bool init (const CArray & c, TracePtr t);
   CArray ToPacket ();
-  String Decode (Trace * t);
+  String Decode (TracePtr t);
   TPDU_Type getType () const
   {
     return T_DISCONNECT_REQ;
@@ -141,9 +144,9 @@ public:
   uchar serno;
 
   T_ACK_PDU ();
-  bool init (const CArray & c, Trace * t);
+  bool init (const CArray & c, TracePtr t);
   CArray ToPacket ();
-  String Decode (Trace * t);
+  String Decode (TracePtr t);
   TPDU_Type getType () const
   {
     return T_ACK;
@@ -156,9 +159,9 @@ public:
   uchar serno;
 
   T_NACK_PDU ();
-  bool init (const CArray & c, Trace * t);
+  bool init (const CArray & c, TracePtr t);
   CArray ToPacket ();
-  String Decode (Trace * t);
+  String Decode (TracePtr t);
   TPDU_Type getType () const
   {
     return T_NACK;

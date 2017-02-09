@@ -24,14 +24,14 @@
 #include "layer3.h"
 
 class ClientConnection;
+typedef std::shared_ptr<ClientConnection> ClientConnPtr;
 
 /** implements the frontend (but opens no connection) */
-class BaseServer:protected Thread, public Layer2virtual
+class BaseServer: public Layer2virtual
 {
-  virtual void Run (pth_sem_t * stop) = 0;
   const char *Name() { return "baseserver"; }
 protected:
-  BaseServer (Trace * tr);
+  BaseServer (TracePtr tr);
 public:
   virtual ~BaseServer ();
 };
@@ -40,10 +40,17 @@ typedef std::shared_ptr<BaseServer> BaseServerPtr;
 /** implements the frontend (but opens no connection) */
 class Server:public BaseServer
 {
-  /** open client connections*/
-  Array < ClientConnection * >connections;
+  ev::io io; void io_cb (ev::io &w, int revents);
 
-  void Run (pth_sem_t * stop);
+  /** open client connections*/
+  Array <std::shared_ptr<ClientConnection>> connections;
+
+  ev::async cleanup;
+  void cleanup_cb (ev::async &w, int revents);
+private:
+  /** to-be-closed client connections*/
+  Queue <ClientConnPtr> cleanup_q;
+
   const char *Name() { return "server"; }
 protected:
   /** server socket */
@@ -51,14 +58,14 @@ protected:
 
   virtual void setupConnection (int cfd);
 
-  Server (Trace * tr);
+  Server (TracePtr tr);
 public:
   virtual ~Server ();
 
   virtual bool init (Layer3 *l3);
 
   /** deregister client connection */
-  bool deregister (ClientConnection * con);
+  void deregister (ClientConnPtr con);
 };
 
 #endif

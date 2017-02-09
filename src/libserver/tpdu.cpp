@@ -20,31 +20,29 @@
 #include "tpdu.h"
 #include "apdu.h"
 
-TPDU *
-TPDU::fromPacket (const CArray & c, Trace * tr)
+TPDUPtr
+TPDU::fromPacket (const CArray & c, TracePtr tr)
 {
-  TPDU *t = 0;
-  if (c () >= 1)
+  TPDUPtr t;
+  if (c.size() >= 1)
     {
       if ((c[0] & 0xfc) == 0)
-	t = new T_DATA_XXX_REQ_PDU ();
-      if (c[0] == 0x80)
-	t = new T_CONNECT_REQ_PDU ();
-      if (c[0] == 0x81)
-	t = new T_DISCONNECT_REQ_PDU ();
-      if ((c[0] & 0xC3) == 0xC2)
-	t = new T_ACK_PDU ();
-      if ((c[0] & 0xC3) == 0xC3)
-	t = new T_NACK_PDU ();
-      if ((c[0] & 0xC0) == 0x40)
-	t = new T_DATA_CONNECTED_REQ_PDU ();
+	t = TPDUPtr(new T_DATA_XXX_REQ_PDU ());
+      else if (c[0] == 0x80)
+	t = TPDUPtr(new T_CONNECT_REQ_PDU ());
+      else if (c[0] == 0x81)
+	t = TPDUPtr(new T_DISCONNECT_REQ_PDU ());
+      else if ((c[0] & 0xC3) == 0xC2)
+	t = TPDUPtr(new T_ACK_PDU ());
+      else if ((c[0] & 0xC3) == 0xC3)
+	t = TPDUPtr(new T_NACK_PDU ());
+      else if ((c[0] & 0xC0) == 0x40)
+	t = TPDUPtr(new T_DATA_CONNECTED_REQ_PDU ());
     }
   if (t && t->init (c, tr))
     return t;
-  if (t)
-    delete t;
 
-  t = new T_UNKNOWN_PDU ();
+  t = TPDUPtr(new T_UNKNOWN_PDU ());
   t->init (c, tr);
   return t;
 }
@@ -57,7 +55,7 @@ T_UNKNOWN_PDU::T_UNKNOWN_PDU ()
 }
 
 bool
-T_UNKNOWN_PDU::init (const CArray & c, Trace * t UNUSED)
+T_UNKNOWN_PDU::init (const CArray & c, TracePtr t UNUSED)
 {
   pdu = c;
   return true;
@@ -68,18 +66,16 @@ CArray T_UNKNOWN_PDU::ToPacket ()
   return pdu;
 }
 
-String T_UNKNOWN_PDU::Decode (Trace * t UNUSED)
+String T_UNKNOWN_PDU::Decode (TracePtr t UNUSED)
 {
-  String
-  s ("Unknown TPDU: ");
-  unsigned
-    i;
+  String s ("Unknown TPDU: ");
+  unsigned i;
 
-  if (pdu () == 0)
+  if (pdu.size() == 0)
     return "empty TPDU";
 
-  for (i = 0; i < pdu (); i++)
-    addHex (s, pdu[i]);
+  ITER (i,pdu)
+    addHex (s, *i);
 
   return s;
 }
@@ -91,9 +87,9 @@ T_DATA_XXX_REQ_PDU::T_DATA_XXX_REQ_PDU ()
 }
 
 bool
-T_DATA_XXX_REQ_PDU::init (const CArray & c, Trace * t UNUSED)
+T_DATA_XXX_REQ_PDU::init (const CArray & c, TracePtr t UNUSED)
 {
-  if (c () < 1)
+  if (c.size() < 1)
     return false;
   data = c;
   return true;
@@ -101,22 +97,17 @@ T_DATA_XXX_REQ_PDU::init (const CArray & c, Trace * t UNUSED)
 
 CArray T_DATA_XXX_REQ_PDU::ToPacket ()
 {
-  assert (data () > 0);
-  CArray
-  pdu (data);
+  assert (data.size() > 0);
+  CArray pdu (data);
   pdu[0] = (pdu[0] & 0x3);
   return pdu;
 }
 
-String T_DATA_XXX_REQ_PDU::Decode (Trace * t)
+String T_DATA_XXX_REQ_PDU::Decode (TracePtr t)
 {
-  APDU *
-    a = APDU::fromPacket (data, t);
-  String
-  s ("T_DATA_XXX_REQ ");
+  APDUPtr a = APDU::fromPacket (data, t);
+  String s ("T_DATA_XXX_REQ ");
   s += a->Decode (t);
-  delete
-    a;
   return s;
 }
 
@@ -128,9 +119,9 @@ T_DATA_CONNECTED_REQ_PDU::T_DATA_CONNECTED_REQ_PDU ()
 }
 
 bool
-T_DATA_CONNECTED_REQ_PDU::init (const CArray & c, Trace * t UNUSED)
+T_DATA_CONNECTED_REQ_PDU::init (const CArray & c, TracePtr t UNUSED)
 {
-  if (c () < 1)
+  if (c.size() < 1)
     return false;
   data = c;
   serno = (c[0] >> 2) & 0x0f;
@@ -139,25 +130,20 @@ T_DATA_CONNECTED_REQ_PDU::init (const CArray & c, Trace * t UNUSED)
 
 CArray T_DATA_CONNECTED_REQ_PDU::ToPacket ()
 {
-  assert (data () > 0);
+  assert (data.size() > 0);
   assert ((serno & 0xf0) == 0);
-  CArray
-  pdu (data);
+  CArray pdu (data);
   pdu[0] = (pdu[0] & 0x3) | 0x40 | ((serno & 0x0f) << 2);
   return pdu;
 }
 
-String T_DATA_CONNECTED_REQ_PDU::Decode (Trace * t)
+String T_DATA_CONNECTED_REQ_PDU::Decode (TracePtr t)
 {
   assert ((serno & 0xf0) == 0);
-  APDU *
-    a = APDU::fromPacket (data, t);
-  String
-  s ("T_DATA_CONNECTED_REQ serno:");
+  APDUPtr a = APDU::fromPacket (data, t);
+  String s ("T_DATA_CONNECTED_REQ serno:");
   addHex (s, serno);
   s += a->Decode (t);
-  delete
-    a;
   return s;
 }
 
@@ -168,21 +154,20 @@ T_CONNECT_REQ_PDU::T_CONNECT_REQ_PDU ()
 }
 
 bool
-T_CONNECT_REQ_PDU::init (const CArray & c, Trace * t UNUSED)
+T_CONNECT_REQ_PDU::init (const CArray & c, TracePtr t UNUSED)
 {
-  if (c () != 1)
+  if (c.size() != 1)
     return false;
   return true;
 }
 
 CArray T_CONNECT_REQ_PDU::ToPacket ()
 {
-  uchar
-    c = 0x80;
+  uchar c = 0x80;
   return CArray (&c, 1);
 }
 
-String T_CONNECT_REQ_PDU::Decode (Trace * t UNUSED)
+String T_CONNECT_REQ_PDU::Decode (TracePtr t UNUSED)
 {
   return "T_CONNECT_REQ";
 }
@@ -194,21 +179,20 @@ T_DISCONNECT_REQ_PDU::T_DISCONNECT_REQ_PDU ()
 }
 
 bool
-T_DISCONNECT_REQ_PDU::init (const CArray & c, Trace * t UNUSED)
+T_DISCONNECT_REQ_PDU::init (const CArray & c, TracePtr t UNUSED)
 {
-  if (c () != 1)
+  if (c.size() != 1)
     return false;
   return true;
 }
 
 CArray T_DISCONNECT_REQ_PDU::ToPacket ()
 {
-  uchar
-    c = 0x81;
+  uchar c = 0x81;
   return CArray (&c, 1);
 }
 
-String T_DISCONNECT_REQ_PDU::Decode (Trace * t UNUSED)
+String T_DISCONNECT_REQ_PDU::Decode (TracePtr t UNUSED)
 {
   return "T_DISCONNECT_REQ";
 }
@@ -221,9 +205,9 @@ T_ACK_PDU::T_ACK_PDU ()
 }
 
 bool
-T_ACK_PDU::init (const CArray & c, Trace * t UNUSED)
+T_ACK_PDU::init (const CArray & c, TracePtr t UNUSED)
 {
-  if (c () != 1)
+  if (c.size() != 1)
     return false;
   serno = (c[0] >> 2) & 0x0f;
   return true;
@@ -232,16 +216,14 @@ T_ACK_PDU::init (const CArray & c, Trace * t UNUSED)
 CArray T_ACK_PDU::ToPacket ()
 {
   assert ((serno & 0xf0) == 0);
-  uchar
-    c = 0xC2 | ((serno & 0x0f) << 2);
+  uchar c = 0xC2 | ((serno & 0x0f) << 2);
   return CArray (&c, 1);
 }
 
-String T_ACK_PDU::Decode (Trace * t UNUSED)
+String T_ACK_PDU::Decode (TracePtr t UNUSED)
 {
   assert ((serno & 0xf0) == 0);
-  String
-  s ("T_ACK Serno:");
+  String s ("T_ACK Serno:");
   addHex (s, serno);
   return s;
 }
@@ -253,9 +235,9 @@ T_NACK_PDU::T_NACK_PDU ()
   serno = 0;
 }
 
-bool T_NACK_PDU::init (const CArray & c, Trace * t UNUSED)
+bool T_NACK_PDU::init (const CArray & c, TracePtr t UNUSED)
 {
-  if (c () != 1)
+  if (c.size() != 1)
     return false;
   serno = (c[0] >> 2) & 0x0f;
   return true;
@@ -264,16 +246,14 @@ bool T_NACK_PDU::init (const CArray & c, Trace * t UNUSED)
 CArray T_NACK_PDU::ToPacket ()
 {
   assert ((serno & 0xf0) == 0);
-  uchar
-    c = 0xC3 | ((serno & 0x0f) << 2);
+  uchar c = 0xC3 | ((serno & 0x0f) << 2);
   return CArray (&c, 1);
 }
 
-String T_NACK_PDU::Decode (Trace * t UNUSED)
+String T_NACK_PDU::Decode (TracePtr t UNUSED)
 {
   assert ((serno & 0xf0) == 0);
-  String
-  s ("T_NACK Serno:");
+  String s ("T_NACK Serno:");
   addHex (s, serno);
   return s;
 }

@@ -199,6 +199,12 @@
 	$ibuf[offset] = (SCALAR(name)>>8)&0xff; \
 	$ibuf[offset+1] = (SCALAR(name))&0xff;
 
+#define EIBC_SETUINT32(name, offset) \
+	$ibuf[offset] = (SCALAR(name)>>24)&0xff; \
+	$ibuf[offset+1] = (SCALAR(name)>>16)&0xff; \
+	$ibuf[offset+2] = (SCALAR(name)>>8)&0xff; \
+	$ibuf[offset+3] = (SCALAR(name))&0xff;
+
 #define EIBC_SETLEN(name, offset) \
 	$ibuf[offset] = ((name)>>8)&0xff; \
 	$ibuf[offset+1] = ((name))&0xff;

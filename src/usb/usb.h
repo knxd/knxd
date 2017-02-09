@@ -20,23 +20,28 @@
 #ifndef USB_H
 #define USB_H
 
+#include <ev++.h>
 #include "trace.h"
-#include "threads.h"
 #include "libusb.h"
 
-class USBLoop:public Thread
+class USBLoop
 {
-  Trace *t;
+  TracePtr t;
 
-  void Run (pth_sem_t * stop);
-  const char *Name() { return "usbloop"; }
+  Array < ev::io * > fds;
+  ev::timer tm;
+  void timer();
+
+  void timer_cb (ev::timer &w, int revents);
+  void io_cb (ev::io &w, int revents);
 
 public:
   libusb_context *context;
 
-  USBLoop (Trace * tr);
+  USBLoop (TracePtr tr);
   ~USBLoop ();
 
+  void setup();
 };
 
 #endif

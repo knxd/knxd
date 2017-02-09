@@ -22,9 +22,11 @@
 
 #include "layer2.h"
 #include "lpdu.h"
+#include <ev++.h>
 
 class BaseServer;
 class GroupCache;
+class Layer23;
 
 /** stores a registered busmonitor callback */
 typedef struct
@@ -44,28 +46,93 @@ typedef struct
 {
   CArray data;
   timestamp_t end;
-
 } IgnoreInfo;
 
-class Layer3;
+class Layer3 {
+public:
+  Layer3();
+  virtual ~Layer3();
 
-/** Layer 3 frame dispatches */
-class Layer3:private Thread
+  /** debug output */
+  virtual TracePtr tr() = 0;
+  /** our default address */
+  virtual eibaddr_t getDefaultAddr() = 0;
+  /** group cache */
+  virtual std::shared_ptr<GroupCache> getCache() { return nullptr; }
+  virtual void setCache(std::shared_ptr<GroupCache> cache) { }
+
+  /** register a layer2 interface, return the L3 registered-to if successful.
+   * Registration may shift the caller to a different L3 if intermediate
+   * layer23 modules are present
+   */
+  virtual Layer3 * registerLayer2 (Layer2Ptr l2) = 0;
+  /** deregister a layer2 interface, return true if successful*/
+  virtual bool deregisterLayer2 (Layer2Ptr l2) = 0;
+
+  /** register a busmonitor callback, return true, if successful*/
+  virtual bool registerBusmonitor (L_Busmonitor_CallBack * c) = 0;
+  /** register a vbusmonitor callback, return true, if successful*/
+  virtual bool registerVBusmonitor (L_Busmonitor_CallBack * c) = 0;
+  /** register a broadcast callback, return true, if successful*/
+
+  /** deregister a busmonitor callback, return true, if successful*/
+  virtual bool deregisterBusmonitor (L_Busmonitor_CallBack * c) = 0;
+  /** deregister a vbusmonitor callback, return true, if successful*/
+  virtual bool deregisterVBusmonitor (L_Busmonitor_CallBack * c) = 0;
+  /** register a broadcast callback, return true, if successful*/
+
+  /** accept a L_Data frame from L2 */
+  virtual void recv_L_Data (LDataPtr l) = 0;
+  virtual void recv_L_Busmonitor (LBusmonPtr l) = 0;
+
+  /** check if any interface accepts this address.
+      'l2' says which interface NOT to check. */
+  virtual bool hasAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr) = 0;
+  /** check if any interface accepts this group address.
+      'l2' says which interface NOT to check. */
+  virtual bool hasGroupAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr) = 0;
+  /** remember this server, for deallocation with the L3 */
+  virtual void registerServer (BaseServer *s) = 0;
+  /** remember this server, for deallocation with the L3 */
+  virtual void deregisterServer (BaseServer *s) = 0;
+
+  /** Get a free dynamic address */
+  virtual eibaddr_t get_client_addr (TracePtr t) = 0;
+  /** … and release it */
+  virtual void release_client_addr (eibaddr_t addr) = 0;
+
+  virtual Layer23 * findFilter (const char *name) { return nullptr; }
+};
+
+class Layer3real : public Layer3
 {
+public:
+  Layer3real (eibaddr_t addr, TracePtr tr, bool force_broadcast = false);
+  virtual ~Layer3real ();
+private:
+  TracePtr _tr = 0;
+  eibaddr_t defaultAddr = 0;
+
+  // libev
+  ev::async trigger;
+  void trigger_cb (ev::async &w, int revents);
+  ev::async mtrigger;
+  void mtrigger_cb (ev::async &w, int revents);
+
   /** Layer 2 interfaces */
   Array < Layer2Ptr > layer2;
-  /** buffer queue for receiving from L2 */
-  Queue < LPDU * >buf;
-  /** semaphre for buffer queue */
-  pth_sem_t bufsem;
+  /** buffer queues for receiving from L2 */
+  Queue < LDataPtr >buf;
+  Queue < LBusmonPtr >mbuf;
   /** buffer for packets to ignore when repeat flag is set */
   Array < IgnoreInfo > ignore;
 
   /** Start of address block to assign dynamically to clients */
   eibaddr_t client_addrs_start;
   /** Length of address block to assign dynamically to clients */
-  int client_addrs_len;
+  int client_addrs_len = 0;
   int client_addrs_pos;
+  std::vector<bool> client_addrs;
 
   /** busmonitor callbacks */
   Array < Busmonitor_Info > busmonitor;
@@ -73,69 +140,51 @@ class Layer3:private Thread
   Array < Busmonitor_Info > vbusmonitor;
 
   /** process incoming data from L2 */
-  void Run (pth_sem_t * stop);
   const char *Name() { return "Layer3"; }
 
   /** flag whether we're in .Run() */
   bool running;
-  /** The trace objects used here */
-  Array < Trace * > tracers;
   /** The servers using this L3 */
   Array < BaseServer * > servers;
 
   /** treat route count 7 as per EIB spec? */
   bool force_broadcast;
 
-public:
-  /** debug output */
-  Trace *t;
-  /** our default address */
-  eibaddr_t defaultAddr;
+  ev::async cleanup;
+  void cleanup_cb (ev::async &w, int revents);
+  /** to-be-closed client connections*/
+  Queue <Layer2Ptr> cleanup_q;
 
   /** group cache */
   std::shared_ptr<GroupCache> cache;
 
-  Layer3 (eibaddr_t addr, Trace * tr, bool force_broadcast = false);
-  virtual ~Layer3 ();
+public:
+  /** implement all of Layer3 */
+  TracePtr tr() { return _tr; }
+  eibaddr_t getDefaultAddr() { return defaultAddr; }
+  std::shared_ptr<GroupCache> getCache() { return cache; }
+  void setCache(std::shared_ptr<GroupCache> cache) { this->cache = cache; }
 
-  /** register a layer2 interface, return true if successful*/
-  bool registerLayer2 (Layer2Ptr l2);
-  /** deregister a layer2 interface, return true if successful*/
+  Layer3 * registerLayer2 (Layer2Ptr l2);
   bool deregisterLayer2 (Layer2Ptr l2);
 
-  /** register a busmonitor callback, return true, if successful*/
   bool registerBusmonitor (L_Busmonitor_CallBack * c);
-  /** register a vbusmonitor callback, return true, if successful*/
   bool registerVBusmonitor (L_Busmonitor_CallBack * c);
-  /** register a broadcast callback, return true, if successful*/
 
-  /** deregister a busmonitor callback, return true, if successful*/
   bool deregisterBusmonitor (L_Busmonitor_CallBack * c);
-  /** deregister a vbusmonitor callback, return true, if successful*/
   bool deregisterVBusmonitor (L_Busmonitor_CallBack * c);
-  /** register a broadcast callback, return true, if successful*/
 
-  /** accept a L_Data frame from L2 */
-  void recv_L_Data (LPDU * l);
-
-  /** check if any interface accepts this address.
-      'l2' says which interface NOT to check. */
+  void recv_L_Data (LDataPtr l);
+  void recv_L_Busmonitor (LBusmonPtr l);
   bool hasAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr);
-  /** check if any interface accepts this group address.
-      'l2' says which interface NOT to check. */
   bool hasGroupAddress (eibaddr_t addr, Layer2Ptr l2 = nullptr);
-  /** save a pointer to this tracer, for deallocation with the L3 */
-  void registerTracer (Trace *t) { tracers.add (t); }
-  /** remember this server, for deallocation with the L3 */
-  void registerServer (BaseServer *s) { servers.add (s); }
-  /** remember this server, for deallocation with the L3 */
+  void registerServer (BaseServer *s) { servers.push_back (s); }
   void deregisterServer (BaseServer *s);
 
-  /** Tell this Layer3 that it may allocate dynamic client addresses from this range */
   void set_client_block (eibaddr_t r_start, int r_len);
-  /** Get a free dynamic address */
-  eibaddr_t get_client_addr ();
+  /** allocate client address */
+  eibaddr_t get_client_addr (TracePtr t);
+  void release_client_addr (eibaddr_t addr);
 };
-
 
 #endif

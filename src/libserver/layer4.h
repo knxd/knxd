@@ -60,131 +60,130 @@ typedef struct
   eibaddr_t dst;
 } GroupAPDU;
 
-class Layer4common:public Layer2mixin
+class Layer4common:public Layer2single
 {
 protected:
-  Layer4common(Trace * tr);
+  Layer4common(TracePtr tr);
   bool init_ok;
 public:
   bool init (Layer3 *l3);
 };
 
+template<class T>
+class T_Reader
+{
+public:
+  virtual void send(T &) = 0;
+  eibaddr_t addr; // phys address of this client
+};
+
 /** Broadcast Layer 4 connection */
 class T_Broadcast:public Layer4common
 {
-  /** output queue */
-  Queue < BroadcastComm > outqueue;
-  /** semaphore for output queue */
-  pth_sem_t sem;
+  T_Reader<BroadcastComm> *app;
 
 public:
-  T_Broadcast (Trace * t, int write_only);
+  T_Broadcast (TracePtr t, int write_only);
   virtual ~T_Broadcast ();
 
+  bool init (T_Reader<BroadcastComm> *app, Layer3 *l3);
+
   /** enqueues a packet */
-  void Send_L_Data (L_Data_PDU * l);
-  /** dequeues APDU of a broadcast; aborts with NULL if stop occurs */
-  BroadcastComm *Get (pth_event_t stop);
+  void send_L_Data (LDataPtr l);
   /** send APDU c */
-  void Send (const CArray & c);
+  void recv (const CArray & c);
 };
 typedef std::shared_ptr<T_Broadcast> T_BroadcastPtr;
 
 /** Group Communication socket */
 class GroupSocket:public Layer4common
 {
-  /** output queue */
-  Queue < GroupAPDU > outqueue;
-  /** semaphore for output queue */
-  pth_sem_t sem;
+  T_Reader<GroupAPDU> *app;
 
 public:
-  GroupSocket (Trace * t, int write_only);
+  GroupSocket (TracePtr t, int write_only);
   virtual ~GroupSocket ();
 
+  bool init (T_Reader<GroupAPDU> *app, Layer3 *l3);
+
   /** enqueues a packet from L3 */
-  void Send_L_Data (L_Data_PDU * l);
-  /** dequeues APDU of a broadcast; aborts with NULL if stop occurs */
-  GroupAPDU *Get (pth_event_t stop);
+  void send_L_Data (LDataPtr l);
   /** send APDU to L3 */
-  void Send (const GroupAPDU & c);
+  void recv (const GroupAPDU & c);
 };
 typedef std::shared_ptr<GroupSocket> GroupSocketPtr;
 
 /** Group Layer 4 connection */
 class T_Group:public Layer4common
 {
-  /** output queue */
-  Queue < GroupComm > outqueue;
-  /** semaphore for output queue */
-  pth_sem_t sem;
+  T_Reader<GroupComm> *app;
   /** group address */
   eibaddr_t groupaddr;
 
 public:
-  T_Group (Trace * t, eibaddr_t dest, int write_only);
+  T_Group (TracePtr t, eibaddr_t dest, int write_only);
   virtual ~T_Group ();
 
+  bool init (T_Reader<GroupComm> *app, Layer3 *l3);
+
   /** enqueues a packet from L3 */
-  void Send_L_Data (L_Data_PDU * l);
-  /** dequeues APDU of a group telegram; aborts with NULL if stop occurs */
-  GroupComm *Get (pth_event_t stop);
+  void send_L_Data (LDataPtr l);
   /** send APDU to L3 */
-  void Send (const CArray & c);
+  void recv (const CArray & c);
 };
 typedef std::shared_ptr<T_Group> T_GroupPtr;
 
 /** Layer 4 raw individual connection */
 class T_TPDU:public Layer4common
 {
-  /** output queue */
-  Queue < TpduComm > outqueue;
-  /** semaphore for output queue */
-  pth_sem_t sem;
+  T_Reader<TpduComm> *app;
   /** source address to use */
   eibaddr_t src;
 
 public:
-  T_TPDU (Trace * t, eibaddr_t src);
+  T_TPDU (TracePtr t, eibaddr_t src);
   virtual ~T_TPDU ();
 
+  bool init (T_Reader<TpduComm> *app, Layer3 *l3);
+
   /** enqueues a packet from L3 */
-  void Send_L_Data (L_Data_PDU * l);
-  /** dequeues TPDU of a telegram; aborts with NULL if stop occurs */
-  TpduComm *Get (pth_event_t stop);
+  void send_L_Data (LDataPtr l);
   /** send APDU to L3 */
-  void Send (const TpduComm & c);
+  void recv (const TpduComm & c);
 };
 typedef std::shared_ptr<T_TPDU> T_TPDUPtr;
 
 /** Layer 4 T_Individual connection */
 class T_Individual:public Layer4common
 {
-  /** output queue */
-  Queue < CArray > outqueue;
-  /** semaphore for output queue */
-  pth_sem_t sem;
+  T_Reader<CArray> *app;
+
   /** destination address */
   eibaddr_t dest;
 
 public:
-  T_Individual (Trace * t, eibaddr_t dest, int write_only);
+  T_Individual (TracePtr t, eibaddr_t dest, int write_only);
   virtual ~T_Individual ();
 
+  bool init (T_Reader<CArray> *app, Layer3 *l3);
+
   /** enqueues a packet from L3 */
-  void Send_L_Data (L_Data_PDU * l);
-  /** dequeues APDU of a telegram; aborts with NULL if stop occurs */
-  CArray *Get (pth_event_t stop);
+  void send_L_Data (LDataPtr l);
   /** send APDU to L3 */
-  void Send (const CArray & c);
+  void recv (const CArray & c);
 };
 typedef std::shared_ptr<T_Individual> T_IndividualPtr;
 
 /** implement a client T_Connection */
-class T_Connection:public Layer4common, private Thread
+class T_Connection:public Layer4common
 {
+  T_Reader<CArray> *app;
+
+  ev::timer timer; void timer_cb(ev::timer &w, int revents);
+
   /** input queue */
   Queue < CArray > in;
+  CArray current;
   /** buffer queue for layer 3 */
   Queue < L_Data_PDU * >buf;
   /** output queue */
@@ -198,12 +197,6 @@ class T_Connection:public Layer4common, private Thread
   /** repeat count of the transmitting frame */
   int repcount;
   eibaddr_t dest;
-  /** semaphore for input queue */
-  pth_sem_t insem;
-  /** semaphre for buffer queue */
-  pth_sem_t bufsem;
-  /** semaphore for output queue */
-  pth_sem_t outsem;
 
   /** sends T_Connect */
   void SendConnect ();
@@ -213,18 +206,21 @@ class T_Connection:public Layer4common, private Thread
   void SendAck (int serno);
   /** Sends T_DataConnected */
   void SendData (int serno, const CArray & c);
-  void Run (pth_sem_t * stop);
+  /** process the next bit from sendq if mode==1 */
+  void SendCheck (); 
   const char *Name() { return "Tconnection"; }
 public:
-  T_Connection (Trace * t, eibaddr_t dest);
+  T_Connection (TracePtr t, eibaddr_t dest);
   virtual ~T_Connection ();
 
+  bool init (T_Reader<CArray> *app, Layer3 *l3);
+
   /** enqueues a packet from L3 */
-  void Send_L_Data (L_Data_PDU * l);
-  /** dequeues APDU of a telegram; aborts with NULL if stop occurs */
-  CArray *Get (pth_event_t stop);
+  void send_L_Data (LDataPtr l);
   /** send APDU to L3 */
-  void Send (const CArray & c);
+  void recv (const CArray & c);
+
+  void stop();
 };
 typedef std::shared_ptr<T_Connection> T_ConnectionPtr;
 

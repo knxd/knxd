@@ -28,7 +28,7 @@
 #define FT12_CREATE ft12_ll_Create
 
 inline LowLevelDriver *
-ft12_ll_Create (const char *dev, Trace * t)
+ft12_ll_Create (const char *dev, TracePtr t)
 {
   return new FT12LowLevelDriver (dev, t);
 }

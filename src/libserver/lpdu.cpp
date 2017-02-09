@@ -22,29 +22,27 @@
 #include "tpdu.h"
 #include "layer2.h"
 
-LPDU *
+LPDUPtr
 LPDU::fromPacket (const CArray & c, Layer2Ptr layer2)
 {
-  LPDU *l = 0;
-  if (c () >= 1)
+  LPDUPtr l = nullptr;
+  if (c.size() >= 1)
     {
       if (c[0] == 0xCC)
-	l = new L_ACK_PDU (layer2);
+	l = LPDUPtr(new L_ACK_PDU (layer2));
       else if (c[0] == 0xC0)
-	l = new L_BUSY_PDU (layer2);
+	l = LPDUPtr(new L_BUSY_PDU (layer2));
       else if (c[0] == 0x0C)
-	l = new L_NACK_PDU (layer2);
+	l = LPDUPtr(new L_NACK_PDU (layer2));
       else if ((c[0] & 0x53) == 0x10)
-	l = new L_Data_PDU (layer2);
+	l = LPDUPtr(new L_Data_PDU (layer2));
     }
   if (l && l->init (c))
     {
       l->l2 = layer2;
       return l;
     }
-  if (l)
-    delete l;
-  l = new L_Unknown_PDU (layer2);
+  l = LPDUPtr(new L_Unknown_PDU (layer2));
   l->init (c);
   l->l2 = layer2;
   return l;
@@ -59,7 +57,7 @@ L_NACK_PDU::L_NACK_PDU (Layer2Ptr layer2) : LPDU(layer2)
 bool
 L_NACK_PDU::init (const CArray & c)
 {
-  if (c () != 1)
+  if (c.size() != 1)
     return false;
   return true;
 }
@@ -85,7 +83,7 @@ L_ACK_PDU::L_ACK_PDU (Layer2Ptr layer2) : LPDU(layer2)
 bool
 L_ACK_PDU::init (const CArray & c)
 {
-  if (c () != 1)
+  if (c.size() != 1)
     return false;
   return true;
 }
@@ -111,7 +109,7 @@ L_BUSY_PDU::L_BUSY_PDU (Layer2Ptr layer2) : LPDU(layer2)
 bool
 L_BUSY_PDU::init (const CArray & c)
 {
-  if (c () != 1)
+  if (c.size() != 1)
     return false;
   return true;
 }
@@ -153,11 +151,11 @@ L_Unknown_PDU::Decode ()
   String s ("Unknown LPDU: ");
   unsigned i;
 
-  if (pdu () == 0)
+  if (pdu.size() == 0)
     return "empty LPDU";
 
-  for (i = 0; i < pdu (); i++)
-    addHex (s, pdu[i]);
+  ITER (i,pdu)
+    addHex (s, *i);
 
   return s;
 }
@@ -166,7 +164,9 @@ L_Unknown_PDU::Decode ()
 
 L_Busmonitor_PDU::L_Busmonitor_PDU (Layer2Ptr layer2) : LPDU(layer2)
 {
-  timestamp = 0;
+  struct timeval tv;
+  gettimeofday(&tv,NULL);
+  timestamp = tv.tv_sec*65536 + tv.tv_usec/(1000000/65536+1);
   status = 0;
 }
 
@@ -189,15 +189,14 @@ L_Busmonitor_PDU::Decode ()
   String s ("LPDU: ");
   unsigned i;
 
-  if (pdu () == 0)
+  if (pdu.size() == 0)
     return "empty LPDU";
 
-  for (i = 0; i < pdu (); i++)
-    addHex (s, pdu[i]);
+  ITER (i,pdu)
+    addHex (s, *i);
   s += ":";
-  LPDU *l = LPDU::fromPacket (pdu, l2);
+  LPDUPtr l = LPDU::fromPacket (pdu, l2);
   s += l->Decode ();
-  delete l;
   return s;
 }
 
@@ -212,7 +211,7 @@ L_Data_PDU::L_Data_PDU (Layer2Ptr layer2) : LPDU(layer2)
   AddrType = IndividualAddress;
   source = 0;
   dest = 0;
-  hopcount = 0x07;
+  hopcount = 0x06;
 }
 
 bool
@@ -220,7 +219,7 @@ L_Data_PDU::init (const CArray & c)
 {
   unsigned len, i;
   uchar c1;
-  if (c () < 6)
+  if (c.size() < 6)
     return false;
   if ((c[0] & 0x53) != 0x10)
     return false;
@@ -249,53 +248,49 @@ L_Data_PDU::init (const CArray & c)
       len = (c[5] & 0x0f) + 1;
       hopcount = (c[5] >> 4) & 0x07;
       AddrType = (c[5] & 0x80) ? GroupAddress : IndividualAddress;
-      if (len + 7 != c ())
+      if (len + 7 != c.size())
 	return false;
-      data.set (c.array () + 6, len);
-      c1 = 0;
-      for (i = 0; i < c () - 1; i++)
-	c1 ^= c[i];
-      c1 = ~c1;
-      valid_checksum = (c[c () - 1] == c1);
+      data.set (c.data() + 6, len);
     }
   else
     {
       /*extended frame */
       if ((c[1] & 0x0f) != 0)
 	return false;
-      if (c () < 7)
+      if (c.size() < 7)
 	return false;
       hopcount = (c[1] >> 4) & 0x07;
       AddrType = (c[1] & 0x80) ? GroupAddress : IndividualAddress;
       source = (c[2] << 8) | (c[3]);
       dest = (c[4] << 8) | (c[5]);
       len = c[6] + 1;
-      if (len + 8 != c ())
+      if (len + 8 != c.size())
 	{
-	  if (c () == 23)
+	  if (c.size() == 23)
 	    {
 	      valid_length = 0;
-	      data.set (c.array () + 7, 8);
+	      data.set (c.data() + 7, 8);
 	    }
 	  else
 	    return false;
 	}
       else
-	data.set (c.array () + 7, len);
-
-      c1 = 0;
-      for (i = 0; i < c () - 1; i++)
-	c1 ^= c[i];
-      c1 = ~c1;
-      valid_checksum = (c[c () - 1] == c1);
+	data.set (c.data() + 7, len);
     }
+
+  c1 = 0;
+  for (i = 0; i < c.size () - 1; i++)
+    c1 ^= c[i];
+  c1 = ~c1;
+  valid_checksum = (c[c.size () - 1] == c1);
+
   return true;
 }
 
 CArray L_Data_PDU::ToPacket ()
 {
-  assert (data () >= 1);
-  assert (data () <= 0xff);
+  assert (data.size() >= 1);
+  assert (data.size() <= 0xff);
   assert ((hopcount & 0xf8) == 0);
   CArray pdu;
   uchar c = 0; // stupid compiler
@@ -315,23 +310,23 @@ CArray L_Data_PDU::ToPacket ()
       c = 0x00;
       break;
     }
-  if (data () - 1 <= 0x0f)
+  if (data.size() - 1 <= 0x0f)
     {
-      pdu.resize (7 + data ());
+      pdu.resize (7 + data.size());
       pdu[0] = 0x90 | (c << 2) | (repeated ? 0x00 : 0x20);
       pdu[1] = (source >> 8) & 0xff;
       pdu[2] = (source) & 0xff;
       pdu[3] = (dest >> 8) & 0xff;
       pdu[4] = (dest) & 0xff;
       pdu[5] =
-	(hopcount & 0x07) << 4 | ((data () - 1) & 0x0f) | (AddrType ==
+	(hopcount & 0x07) << 4 | ((data.size() - 1) & 0x0f) | (AddrType ==
 							   GroupAddress ? 0x80
 							   : 0x00);
-      pdu.setpart (data.array (), 6, 1 + ((data () - 1) & 0x0f));
+      pdu.setpart (data.data(), 6, 1 + ((data.size() - 1) & 0x0f));
     }
   else
     {
-      pdu.resize (8 + data ());
+      pdu.resize (8 + data.size());
       pdu[0] = 0x10 | (c << 2) | (repeated ? 0x00 : 0x20);
       pdu[1] =
 	(hopcount & 0x07) << 4 | (AddrType == GroupAddress ? 0x80 : 0x00);
@@ -339,22 +334,22 @@ CArray L_Data_PDU::ToPacket ()
       pdu[3] = (source) & 0xff;
       pdu[4] = (dest >> 8) & 0xff;
       pdu[5] = (dest) & 0xff;
-      pdu[6] = (data () - 1) & 0xff;
-      pdu.setpart (data.array (), 7, 1 + ((data () - 1) & 0xff));
+      pdu[6] = (data.size() - 1) & 0xff;
+      pdu.setpart (data.data(), 7, 1 + ((data.size() - 1) & 0xff));
     }
   /* checksum */
   c = 0;
-  for (i = 0; i < pdu () - 1; i++)
+  for (i = 0; i < pdu.size() - 1; i++)
     c ^= pdu[i];
-  pdu[pdu () - 1] = ~c;
+  pdu[pdu.size() - 1] = ~c;
 
   return pdu;
 }
 
 String L_Data_PDU::Decode ()
 {
-  assert (data () >= 1);
-  assert (data () <= 0xff);
+  assert (data.size() >= 1);
+  assert (data.size() <= 0xff);
   assert ((hopcount & 0xf8) == 0);
 
   String s ("L_Data");
@@ -387,10 +382,7 @@ String L_Data_PDU::Decode ()
                     FormatEIBAddr (dest));
   s += " hops: ";
   addHex (s, hopcount);
-  TPDU *
-    d = TPDU::fromPacket (data, l2->t);
+  TPDUPtr d = TPDU::fromPacket (data, l2->t);
   s += d->Decode (l2->t);
-  delete
-    d;
   return s;
 }

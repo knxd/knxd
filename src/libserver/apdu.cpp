@@ -21,11 +21,11 @@
 #include <string.h>
 #include "apdu.h"
 
-APDU *
-APDU::fromPacket (const CArray & c, Trace * tr)
+APDUPtr
+APDU::fromPacket (const CArray & c, TracePtr tr)
 {
-  APDU *a = 0;
-  if (c () >= 2)
+  APDUPtr a;
+  if (c.size() >= 2)
     {
       switch (c[0] & 0x03)
 	{
@@ -33,16 +33,16 @@ APDU::fromPacket (const CArray & c, Trace * tr)
 	  switch (c[1] & 0xC0)
 	    {
 	    case 0x00:
-	      a = new A_GroupValue_Read_PDU ();
+	      a = APDUPtr(new A_GroupValue_Read_PDU ());
 	      break;
 	    case 0x40:
-	      a = new A_GroupValue_Response_PDU ();
+	      a = APDUPtr(new A_GroupValue_Response_PDU ());
 	      break;
 	    case 0x80:
-	      a = new A_GroupValue_Write_PDU ();
+	      a = APDUPtr(new A_GroupValue_Write_PDU ());
 	      break;
 	    case 0xC0:
-	      a = new A_IndividualAddress_Write_PDU ();
+	      a = APDUPtr(new A_IndividualAddress_Write_PDU ());
 	      break;
 	    }
 	  break;
@@ -50,16 +50,16 @@ APDU::fromPacket (const CArray & c, Trace * tr)
 	  switch (c[1] & 0xC0)
 	    {
 	    case 0x00:
-	      a = new A_IndividualAddress_Read_PDU ();
+	      a = APDUPtr(new A_IndividualAddress_Read_PDU ());
 	      break;
 	    case 0x40:
-	      a = new A_IndividualAddress_Response_PDU ();
+	      a = APDUPtr(new A_IndividualAddress_Response_PDU ());
 	      break;
 	    case 0x80:
-	      a = new A_ADC_Read_PDU ();
+	      a = APDUPtr(new A_ADC_Read_PDU ());
 	      break;
 	    case 0xC0:
-	      a = new A_ADC_Response_PDU ();
+	      a = APDUPtr(new A_ADC_Response_PDU ());
 	      break;
 	    }
 	  break;
@@ -67,34 +67,34 @@ APDU::fromPacket (const CArray & c, Trace * tr)
 	  switch (c[1] & 0xC0)
 	    {
 	    case 0x00:
-	      a = new A_Memory_Read_PDU ();
+	      a = APDUPtr(new A_Memory_Read_PDU ());
 	      break;
 	    case 0x40:
-	      a = new A_Memory_Response_PDU ();
+	      a = APDUPtr(new A_Memory_Response_PDU ());
 	      break;
 	    case 0x80:
-	      a = new A_Memory_Write_PDU ();
+	      a = APDUPtr(new A_Memory_Write_PDU ());
 	      break;
 	    case 0xC0:
 	      switch (c[1])
 		{
 		case 0xC0:
-		  a = new A_UserMemory_Read_PDU ();
+		  a = APDUPtr(new A_UserMemory_Read_PDU ());
 		  break;
 		case 0xC1:
-		  a = new A_UserMemory_Response_PDU ();
+		  a = APDUPtr(new A_UserMemory_Response_PDU ());
 		  break;
 		case 0xC2:
-		  a = new A_UserMemory_Write_PDU ();
+		  a = APDUPtr(new A_UserMemory_Write_PDU ());
 		  break;
 		case 0xC4:
-		  a = new A_UserMemoryBit_Write_PDU ();
+		  a = APDUPtr(new A_UserMemoryBit_Write_PDU ());
 		  break;
 		case 0xC5:
-		  a = new A_UserManufacturerInfo_Read_PDU ();
+		  a = APDUPtr(new A_UserManufacturerInfo_Read_PDU ());
 		  break;
 		case 0xC6:
-		  a = new A_UserManufacturerInfo_Response_PDU ();
+		  a = APDUPtr(new A_UserManufacturerInfo_Response_PDU ());
 		  break;
 		}
 	    }
@@ -103,70 +103,70 @@ APDU::fromPacket (const CArray & c, Trace * tr)
 	  switch (c[1] & 0xC0)
 	    {
 	    case 0x00:
-	      a = new A_DeviceDescriptor_Read_PDU ();
+	      a = APDUPtr(new A_DeviceDescriptor_Read_PDU ());
 	      break;
 	    case 0x40:
-	      a = new A_DeviceDescriptor_Response_PDU ();
+	      a = APDUPtr(new A_DeviceDescriptor_Response_PDU ());
 	      break;
 	    case 0x80:
-	      a = new A_Restart_PDU ();
+	      a = APDUPtr(new A_Restart_PDU ());
 	      break;
 	    case 0xC0:
 	      switch (c[1])
 		{
 		case 0xD0:
-		  a = new A_MemoryBit_Write_PDU ();
+		  a = APDUPtr(new A_MemoryBit_Write_PDU ());
 		  break;
 		case 0xD1:
-		  a = new A_Authorize_Request_PDU ();
+		  a = APDUPtr(new A_Authorize_Request_PDU ());
 		  break;
 		case 0xD2:
-		  a = new A_Authorize_Response_PDU ();
+		  a = APDUPtr(new A_Authorize_Response_PDU ());
 		  break;
 		case 0xD3:
-		  a = new A_Key_Write_PDU ();
+		  a = APDUPtr(new A_Key_Write_PDU ());
 		  break;
 		case 0xD4:
-		  a = new A_Key_Response_PDU ();
+		  a = APDUPtr(new A_Key_Response_PDU ());
 		  break;
 		case 0xD5:
-		  a = new A_PropertyValue_Read_PDU ();
+		  a = APDUPtr(new A_PropertyValue_Read_PDU ());
 		  break;
 		case 0xD6:
-		  a = new A_PropertyValue_Response_PDU ();
+		  a = APDUPtr(new A_PropertyValue_Response_PDU ());
 		  break;
 		case 0xD7:
-		  a = new A_PropertyValue_Write_PDU ();
+		  a = APDUPtr(new A_PropertyValue_Write_PDU ());
 		  break;
 		case 0xD8:
-		  a = new A_PropertyDescription_Read_PDU ();
+		  a = APDUPtr(new A_PropertyDescription_Read_PDU ());
 		  break;
 		case 0xD9:
-		  a = new A_PropertyDescription_Response_PDU ();
+		  a = APDUPtr(new A_PropertyDescription_Response_PDU ());
 		  break;
 		case 0xDC:
-		  a = new A_IndividualAddressSerialNumber_Read_PDU ();
+		  a = APDUPtr(new A_IndividualAddressSerialNumber_Read_PDU ());
 		  break;
 		case 0xDD:
-		  a = new A_IndividualAddressSerialNumber_Response_PDU ();
+		  a = APDUPtr(new A_IndividualAddressSerialNumber_Response_PDU ());
 		  break;
 		case 0xDE:
-		  a = new A_IndividualAddressSerialNumber_Write_PDU ();
+		  a = APDUPtr(new A_IndividualAddressSerialNumber_Write_PDU ());
 		  break;
 		case 0xDF:
-		  a = new A_ServiceInformation_Indication_Write_PDU ();
+		  a = APDUPtr(new A_ServiceInformation_Indication_Write_PDU ());
 		  break;
 		case 0xE0:
-		  a = new A_DomainAddress_Write_PDU ();
+		  a = APDUPtr(new A_DomainAddress_Write_PDU ());
 		  break;
 		case 0xE1:
-		  a = new A_DomainAddress_Read_PDU ();
+		  a = APDUPtr(new A_DomainAddress_Read_PDU ());
 		  break;
 		case 0xE2:
-		  a = new A_DomainAddress_Response_PDU ();
+		  a = APDUPtr(new A_DomainAddress_Response_PDU ());
 		  break;
 		case 0xE3:
-		  a = new A_DomainAddressSelective_Read_PDU ();
+		  a = APDUPtr(new A_DomainAddressSelective_Read_PDU ());
 		  break;
 		}
 	    }
@@ -175,9 +175,7 @@ APDU::fromPacket (const CArray & c, Trace * tr)
     }
   if (a && a->init (c, tr))
     return a;
-  if (a)
-    delete a;
-  a = new A_Unknown_PDU;
+  a = APDUPtr(new A_Unknown_PDU);
   a->init (c, tr);
   return a;
 }
@@ -189,7 +187,7 @@ A_Unknown_PDU::A_Unknown_PDU ()
 }
 
 bool
-A_Unknown_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_Unknown_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
   pdu = c;
   return true;
@@ -200,19 +198,18 @@ CArray A_Unknown_PDU::ToPacket ()
   return pdu;
 }
 
-String A_Unknown_PDU::Decode (Trace * tr UNUSED)
+String A_Unknown_PDU::Decode (TracePtr tr UNUSED)
 {
-  String
-  s ("Unknown APDU: ");
+  String s ("Unknown APDU: ");
   unsigned
     i;
 
-  if (pdu () == 0)
+  if (pdu.size() == 0)
     return "empty APDU";
   addHex (s, pdu[0] & 0x03);
 
-  for (i = 1; i < pdu (); i++)
-    addHex (s, pdu[i]);
+  ITER (i,pdu)
+    addHex (s, *i);
 
   return s;
 }
@@ -229,9 +226,9 @@ A_GroupValue_Read_PDU::A_GroupValue_Read_PDU ()
 }
 
 bool
-A_GroupValue_Read_PDU::init (const CArray & c, Trace * tr UNUSED UNUSED)
+A_GroupValue_Read_PDU::init (const CArray & c, TracePtr tr UNUSED UNUSED)
 {
-  if (c () != 2)
+  if (c.size() != 2)
     return false;
   return true;
 }
@@ -245,7 +242,7 @@ CArray A_GroupValue_Read_PDU::ToPacket ()
   return CArray (c, 2);
 }
 
-String A_GroupValue_Read_PDU::Decode (Trace * tr UNUSED)
+String A_GroupValue_Read_PDU::Decode (TracePtr tr UNUSED)
 {
   return "A_GroupValue_Read";
 }
@@ -263,11 +260,11 @@ A_GroupValue_Response_PDU::A_GroupValue_Response_PDU ()
 }
 
 bool
-A_GroupValue_Response_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_GroupValue_Response_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () < 2)
+  if (c.size() < 2)
     return false;
-  if (c () == 2)
+  if (c.size() == 2)
     {
       uchar c1 = c[1] & 0x3f;
       data.set (&c1, 1);
@@ -275,7 +272,7 @@ A_GroupValue_Response_PDU::init (const CArray & c, Trace * tr UNUSED)
     }
   else
     {
-      data.set (c.array () + 2, c () - 2);
+      data.set (c.data() + 2, c.size() - 2);
       issmall = 0;
     }
   return true;
@@ -285,7 +282,7 @@ CArray A_GroupValue_Response_PDU::ToPacket ()
 {
   CArray
     pdu;
-  assert (!issmall || (data () == 1 && (data[0] & 0xC0) == 0));
+  assert (!issmall || (data.size() == 1 && (data[0] & 0xC0) == 0));
   if (issmall)
     {
       pdu.resize (2);
@@ -293,25 +290,25 @@ CArray A_GroupValue_Response_PDU::ToPacket ()
       pdu[1] = 0x40 | (data[0] & 0x3f);
       return pdu;
     }
-  pdu.resize (2 + data ());
+  pdu.resize (2 + data.size());
   pdu[0] = 0x00;
   pdu[1] = 0x40;
-  pdu.setpart (data.array (), 2, data ());
+  pdu.setpart (data.data(), 2, data.size());
   return pdu;
 }
 
-String A_GroupValue_Response_PDU::Decode (Trace * tr UNUSED)
+String A_GroupValue_Response_PDU::Decode (TracePtr tr UNUSED)
 {
   unsigned
     i;
-  assert (!issmall || (data () == 1 && (data[0] & 0xC0) == 0));
+  assert (!issmall || (data.size() == 1 && (data[0] & 0xC0) == 0));
   String
   s ("A_GroupValue_Response ");
   if (issmall)
     s += "(small) ";
 
-  for (i = 0; i < data (); i++)
-    addHex (s, data[i]);
+  ITER (i,data)
+    addHex (s, *i);
 
   return s;
 }
@@ -329,11 +326,11 @@ A_GroupValue_Write_PDU::A_GroupValue_Write_PDU ()
 }
 
 bool
-A_GroupValue_Write_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_GroupValue_Write_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () < 2)
+  if (c.size() < 2)
     return false;
-  if (c () == 2)
+  if (c.size() == 2)
     {
       uchar c1 = c[1] & 0x3f;
       data.set (&c1, 1);
@@ -341,7 +338,7 @@ A_GroupValue_Write_PDU::init (const CArray & c, Trace * tr UNUSED)
     }
   else
     {
-      data.set (c.array () + 2, c () - 2);
+      data.set (c.data() + 2, c.size() - 2);
       issmall = 0;
     }
   return true;
@@ -351,7 +348,7 @@ CArray A_GroupValue_Write_PDU::ToPacket ()
 {
   CArray
     pdu;
-  assert (!issmall || (data () == 1 && (data[0] & 0xC0) == 0));
+  assert (!issmall || (data.size() == 1 && (data[0] & 0xC0) == 0));
   if (issmall)
     {
       pdu.resize (2);
@@ -359,24 +356,24 @@ CArray A_GroupValue_Write_PDU::ToPacket ()
       pdu[1] = 0x80 | (data[0] & 0x3F);
       return pdu;
     }
-  pdu.resize (2 + data ());
+  pdu.resize (2 + data.size());
   pdu[0] = 0x00;
   pdu[1] = 0x80;
-  pdu.setpart (data.array (), 2, data ());
+  pdu.setpart (data.data(), 2, data.size());
   return pdu;
 }
 
-String A_GroupValue_Write_PDU::Decode (Trace * tr UNUSED)
+String A_GroupValue_Write_PDU::Decode (TracePtr tr UNUSED)
 {
   unsigned
     i;
-  assert (!issmall || (data () == 1 && (data[0] & 0xC0) == 0));
+  assert (!issmall || (data.size() == 1 && (data[0] & 0xC0) == 0));
   String
   s ("A_GroupValue_Write ");
   if (issmall)
     s += "(small) ";
 
-  for (i = 0; i < data (); i++)
+  for (i = 0; i < data.size(); i++)
     addHex (s, data[i]);
 
   return s;
@@ -395,9 +392,9 @@ A_IndividualAddress_Write_PDU::A_IndividualAddress_Write_PDU ()
 }
 
 bool
-A_IndividualAddress_Write_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_IndividualAddress_Write_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () != 4)
+  if (c.size() != 4)
     return false;
   addr = (c[2] << 8) | (c[3]);
   return true;
@@ -415,7 +412,7 @@ CArray A_IndividualAddress_Write_PDU::ToPacket ()
   return pdu;
 }
 
-String A_IndividualAddress_Write_PDU::Decode (Trace * tr UNUSED)
+String A_IndividualAddress_Write_PDU::Decode (TracePtr tr UNUSED)
 {
   String
   s ("A_IndividualAddress_Write ");
@@ -434,9 +431,9 @@ A_IndividualAddress_Read_PDU::A_IndividualAddress_Read_PDU ()
 }
 
 bool
-A_IndividualAddress_Read_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_IndividualAddress_Read_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () != 2)
+  if (c.size() != 2)
     return false;
   return true;
 }
@@ -450,7 +447,7 @@ CArray A_IndividualAddress_Read_PDU::ToPacket ()
   return CArray (c, 2);
 }
 
-String A_IndividualAddress_Read_PDU::Decode (Trace * tr UNUSED)
+String A_IndividualAddress_Read_PDU::Decode (TracePtr tr UNUSED)
 {
   return "A_IndividualAddress_Read";
 }
@@ -466,11 +463,11 @@ A_IndividualAddress_Response_PDU::A_IndividualAddress_Response_PDU ()
 {
 }
 
-bool A_IndividualAddress_Response_PDU::init (const CArray & c, Trace * tr)
+bool A_IndividualAddress_Response_PDU::init (const CArray & c, TracePtr tr)
 {
-  if (c () != 2)
+  if (c.size() != 2)
     {
-      TRACEPRINTF (tr, 3, this, "BadLen %d",c ());
+      TRACEPRINTF (tr, 3, "BadLen %d",c.size());
       return false;
     }
   return true;
@@ -485,7 +482,7 @@ CArray A_IndividualAddress_Response_PDU::ToPacket ()
   return CArray (c, 2);
 }
 
-String A_IndividualAddress_Response_PDU::Decode (Trace * tr UNUSED)
+String A_IndividualAddress_Response_PDU::Decode (TracePtr tr UNUSED)
 {
   return "A_IndividualAddress_Response";
 }
@@ -504,11 +501,11 @@ A_IndividualAddressSerialNumber_Read_PDU ()
 }
 
 bool
-A_IndividualAddressSerialNumber_Read_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_IndividualAddressSerialNumber_Read_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () != 8)
+  if (c.size() != 8)
     return false;
-  memcpy (serno, c.array () + 2, 6);
+  memcpy (serno, c.data() + 2, 6);
   return true;
 }
 
@@ -523,7 +520,7 @@ CArray A_IndividualAddressSerialNumber_Read_PDU::ToPacket ()
   return pdu;
 }
 
-String A_IndividualAddressSerialNumber_Read_PDU::Decode (Trace * tr UNUSED)
+String A_IndividualAddressSerialNumber_Read_PDU::Decode (TracePtr tr UNUSED)
 {
   String
   s ("A_IndividualAddressSerialNumber_Read ");
@@ -553,11 +550,11 @@ A_IndividualAddressSerialNumber_Response_PDU ()
 }
 
 bool
-A_IndividualAddressSerialNumber_Response_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_IndividualAddressSerialNumber_Response_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () != 12)
+  if (c.size() != 12)
     return false;
-  memcpy (serno, c.array () + 2, 6);
+  memcpy (serno, c.data() + 2, 6);
   addr = (c[8] << 8) | (c[9]);
   return true;
 }
@@ -577,7 +574,7 @@ CArray A_IndividualAddressSerialNumber_Response_PDU::ToPacket ()
   return pdu;
 }
 
-String A_IndividualAddressSerialNumber_Response_PDU::Decode (Trace * tr UNUSED)
+String A_IndividualAddressSerialNumber_Response_PDU::Decode (TracePtr tr UNUSED)
 {
   String
   s ("A_IndividualAddressSerialNumber_Response ");
@@ -614,11 +611,11 @@ A_IndividualAddressSerialNumber_Write_PDU ()
   addr = 0;
 }
 
-bool A_IndividualAddressSerialNumber_Write_PDU::init (const CArray & c, Trace * tr UNUSED)
+bool A_IndividualAddressSerialNumber_Write_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () != 14)
+  if (c.size() != 14)
     return false;
-  memcpy (serno, c.array () + 2, 6);
+  memcpy (serno, c.data() + 2, 6);
   addr = (c[8] << 8) | (c[9]);
   return true;
 }
@@ -640,7 +637,7 @@ CArray A_IndividualAddressSerialNumber_Write_PDU::ToPacket ()
   return pdu;
 }
 
-String A_IndividualAddressSerialNumber_Write_PDU::Decode (Trace * tr UNUSED)
+String A_IndividualAddressSerialNumber_Write_PDU::Decode (TracePtr tr UNUSED)
 {
   String
   s ("A_IndividualAddressSerialNumber_Write ");
@@ -673,9 +670,9 @@ A_ServiceInformation_Indication_Write_PDU ()
 }
 
 bool
-A_ServiceInformation_Indication_Write_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_ServiceInformation_Indication_Write_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () != 5)
+  if (c.size() != 5)
     return false;
   verify_mode = (c[2] & 0x04) ? 1 : 0;
   duplicate_address = (c[3] & 0x02) ? 1 : 0;
@@ -699,7 +696,7 @@ A_ServiceInformation_Indication_Write_PDU::ToPacket ()
 }
 
 String
-A_ServiceInformation_Indication_Write_PDU::Decode (Trace * tr UNUSED)
+A_ServiceInformation_Indication_Write_PDU::Decode (TracePtr tr UNUSED)
 {
   String s ("A_ServiceInformation_Indication_Write ");
   if (verify_mode)
@@ -727,9 +724,9 @@ A_DomainAddress_Write_PDU::A_DomainAddress_Write_PDU ()
 }
 
 bool
-A_DomainAddress_Write_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_DomainAddress_Write_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () != 4)
+  if (c.size() != 4)
     return false;
   addr = (c[2] << 8) | (c[3]);
   return true;
@@ -747,7 +744,7 @@ CArray A_DomainAddress_Write_PDU::ToPacket ()
   return pdu;
 }
 
-String A_DomainAddress_Write_PDU::Decode (Trace * tr UNUSED)
+String A_DomainAddress_Write_PDU::Decode (TracePtr tr UNUSED)
 {
   String
   s ("A_DomainAddress_Write ");
@@ -767,9 +764,9 @@ A_DomainAddress_Read_PDU::A_DomainAddress_Read_PDU ()
 }
 
 bool
-A_DomainAddress_Read_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_DomainAddress_Read_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () != 2)
+  if (c.size() != 2)
     return false;
   return true;
 }
@@ -783,7 +780,7 @@ CArray A_DomainAddress_Read_PDU::ToPacket ()
   return CArray (c, 2);
 }
 
-String A_DomainAddress_Read_PDU::Decode (Trace * tr UNUSED)
+String A_DomainAddress_Read_PDU::Decode (TracePtr tr UNUSED)
 {
   return "A_DomainAddress_Read";
 }
@@ -801,9 +798,9 @@ A_DomainAddress_Response_PDU::A_DomainAddress_Response_PDU ()
 }
 
 bool
-A_DomainAddress_Response_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_DomainAddress_Response_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () != 4)
+  if (c.size() != 4)
     return false;
   addr = (c[2] << 8) | c[3];
   return true;
@@ -821,7 +818,7 @@ CArray A_DomainAddress_Response_PDU::ToPacket ()
   return pdu;
 }
 
-String A_DomainAddress_Response_PDU::Decode (Trace * tr UNUSED)
+String A_DomainAddress_Response_PDU::Decode (TracePtr tr UNUSED)
 {
   String
   s ("A_DomainAddress_Response");
@@ -844,9 +841,9 @@ A_DomainAddressSelective_Read_PDU::A_DomainAddressSelective_Read_PDU ()
 }
 
 bool
-A_DomainAddressSelective_Read_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_DomainAddressSelective_Read_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () != 7)
+  if (c.size() != 7)
     return false;
   domainaddr = (c[2] << 8) | c[3];
   addr = (c[4] << 8) | c[5];
@@ -870,7 +867,7 @@ CArray A_DomainAddressSelective_Read_PDU::ToPacket ()
 }
 
 String
-A_DomainAddressSelective_Read_PDU::Decode (Trace * tr UNUSED)
+A_DomainAddressSelective_Read_PDU::Decode (TracePtr tr UNUSED)
 {
   String s ("A_DomainAddressSelective_Read ");
   s += FormatDomainAddr (domainaddr);
@@ -897,9 +894,9 @@ A_PropertyValue_Read_PDU::A_PropertyValue_Read_PDU ()
 }
 
 bool
-A_PropertyValue_Read_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_PropertyValue_Read_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () != 6)
+  if (c.size() != 6)
     return false;
   obj = c[2];
   prop = c[3];
@@ -925,7 +922,7 @@ A_PropertyValue_Read_PDU::ToPacket ()
 }
 
 String
-A_PropertyValue_Read_PDU::Decode (Trace * tr UNUSED)
+A_PropertyValue_Read_PDU::Decode (TracePtr tr UNUSED)
 {
   assert ((count & 0xf0) == 0);
   assert ((start & 0xf000) == 0);
@@ -956,15 +953,15 @@ A_PropertyValue_Response_PDU::A_PropertyValue_Response_PDU ()
 }
 
 bool
-A_PropertyValue_Response_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_PropertyValue_Response_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () < 6)
+  if (c.size() < 6)
     return false;
   obj = c[2];
   prop = c[3];
   count = (c[4] >> 4) & 0x0f;
   start = (c[4] & 0x0f) << 8 | c[5];
-  data.set (c.array () + 6, c () - 6);
+  data.set (c.data() + 6, c.size() - 6);
   return true;
 }
 
@@ -974,19 +971,19 @@ A_PropertyValue_Response_PDU::ToPacket ()
   CArray pdu;
   assert ((count & 0xf0) == 0);
   assert ((start & 0xf000) == 0);
-  pdu.resize (6 + data ());
+  pdu.resize (6 + data.size());
   pdu[0] = 0x03;
   pdu[1] = 0xD6;
   pdu[2] = obj;
   pdu[3] = prop;
   pdu[4] = ((count & 0x0f) << 4) | ((start >> 8) & 0x0f);
   pdu[5] = start & 0xff;
-  pdu.setpart (data.array (), 6, data ());
+  pdu.setpart (data.data(), 6, data.size());
   return pdu;
 }
 
 String
-A_PropertyValue_Response_PDU::Decode (Trace * tr UNUSED)
+A_PropertyValue_Response_PDU::Decode (TracePtr tr UNUSED)
 {
   assert ((count & 0xf0) == 0);
   assert ((start & 0xf000) == 0);
@@ -999,7 +996,7 @@ A_PropertyValue_Response_PDU::Decode (Trace * tr UNUSED)
   s += " max_nr: ";
   addHex (s, count);
   s += "data: ";
-  for (unsigned i = 0; i < data (); i++)
+  for (unsigned i = 0; i < data.size(); i++)
     addHex (s, data[i]);
   return s;
 }
@@ -1041,15 +1038,15 @@ A_PropertyValue_Write_PDU::A_PropertyValue_Write_PDU ()
 }
 
 bool
-A_PropertyValue_Write_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_PropertyValue_Write_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () < 6)
+  if (c.size() < 6)
     return false;
   obj = c[2];
   prop = c[3];
   count = (c[4] >> 4) & 0x0f;
   start = (c[4] & 0x0f) << 8 | c[5];
-  data.set (c.array () + 6, c () - 6);
+  data.set (c.data() + 6, c.size() - 6);
   return true;
 }
 
@@ -1059,19 +1056,19 @@ A_PropertyValue_Write_PDU::ToPacket ()
   CArray pdu;
   assert ((count & 0xf0) == 0);
   assert ((start & 0xf000) == 0);
-  pdu.resize (6 + data ());
+  pdu.resize (6 + data.size());
   pdu[0] = 0x03;
   pdu[1] = 0xD7;
   pdu[2] = obj;
   pdu[3] = prop;
   pdu[4] = ((count & 0x0f) << 4) | ((start >> 8) & 0x0f);
   pdu[5] = start & 0xff;
-  pdu.setpart (data.array (), 6, data ());
+  pdu.setpart (data.data(), 6, data.size());
   return pdu;
 }
 
 String
-A_PropertyValue_Write_PDU::Decode (Trace * tr UNUSED)
+A_PropertyValue_Write_PDU::Decode (TracePtr tr UNUSED)
 {
   assert ((count & 0xf0) == 0);
   assert ((start & 0xf000) == 0);
@@ -1084,8 +1081,8 @@ A_PropertyValue_Write_PDU::Decode (Trace * tr UNUSED)
   s += " max_nr: ";
   addHex (s, count);
   s += "data: ";
-  for (unsigned i = 0; i < data (); i++)
-    addHex (s, data[i]);
+  ITER (i,data)
+    addHex (s, *i);
   return s;
 }
 
@@ -1104,9 +1101,9 @@ A_PropertyDescription_Read_PDU::A_PropertyDescription_Read_PDU ()
 }
 
 bool
-A_PropertyDescription_Read_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_PropertyDescription_Read_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () != 5)
+  if (c.size() != 5)
     return false;
   obj = c[2];
   prop = c[3];
@@ -1128,7 +1125,7 @@ A_PropertyDescription_Read_PDU::ToPacket ()
 }
 
 String
-A_PropertyDescription_Read_PDU::Decode (Trace * tr UNUSED)
+A_PropertyDescription_Read_PDU::Decode (TracePtr tr UNUSED)
 {
   String s ("A_PropertyDescription_Read Obj: ");
   addHex (s, obj);
@@ -1157,9 +1154,9 @@ A_PropertyDescription_Response_PDU::A_PropertyDescription_Response_PDU ()
 }
 
 bool
-A_PropertyDescription_Response_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_PropertyDescription_Response_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () != 9)
+  if (c.size() != 9)
     return false;
   obj = c[2];
   prop = c[3];
@@ -1188,7 +1185,7 @@ A_PropertyDescription_Response_PDU::ToPacket ()
 }
 
 String
-A_PropertyDescription_Response_PDU::Decode (Trace * tr UNUSED)
+A_PropertyDescription_Response_PDU::Decode (TracePtr tr UNUSED)
 {
   String s ("A_PropertyDescription_Response Obj:");
   addHex (s, obj);
@@ -1224,9 +1221,9 @@ A_DeviceDescriptor_Read_PDU::A_DeviceDescriptor_Read_PDU ()
 }
 
 bool
-A_DeviceDescriptor_Read_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_DeviceDescriptor_Read_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () != 2)
+  if (c.size() != 2)
     return false;
   type = c[1] & 0x3F;
   return true;
@@ -1244,7 +1241,7 @@ A_DeviceDescriptor_Read_PDU::ToPacket ()
 }
 
 String
-A_DeviceDescriptor_Read_PDU::Decode (Trace * tr UNUSED)
+A_DeviceDescriptor_Read_PDU::Decode (TracePtr tr UNUSED)
 {
   assert ((type & 0xC0) == 0);
   String s ("A_DeviceDescriptor_Read Type:");
@@ -1265,11 +1262,11 @@ A_DeviceDescriptor_Response_PDU::A_DeviceDescriptor_Response_PDU ()
   descriptor = 0;
 }
 
-bool A_DeviceDescriptor_Response_PDU::init (const CArray & c, Trace * tr)
+bool A_DeviceDescriptor_Response_PDU::init (const CArray & c, TracePtr tr)
 {
-  if (c () != 4)
+  if (c.size() != 4)
     {
-      TRACEPRINTF (tr, 3, this, "BadLen %d",c ());
+      TRACEPRINTF (tr, 3, "BadLen %d",c.size());
       return false;
     }
   type = c[1] & 0x3F;
@@ -1291,7 +1288,7 @@ A_DeviceDescriptor_Response_PDU::ToPacket ()
 }
 
 String
-A_DeviceDescriptor_Response_PDU::Decode (Trace * tr UNUSED)
+A_DeviceDescriptor_Response_PDU::Decode (TracePtr tr UNUSED)
 {
   assert ((type & 0xC0) == 0);
   String s ("A_DeviceDescriptor_Response Type:");
@@ -1321,9 +1318,9 @@ A_ADC_Read_PDU::A_ADC_Read_PDU ()
 }
 
 bool
-A_ADC_Read_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_ADC_Read_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () != 3)
+  if (c.size() != 3)
     return false;
   channel = c[1] & 0x3F;
   count = c[2];
@@ -1343,7 +1340,7 @@ A_ADC_Read_PDU::ToPacket ()
 }
 
 String
-A_ADC_Read_PDU::Decode (Trace * tr UNUSED)
+A_ADC_Read_PDU::Decode (TracePtr tr UNUSED)
 {
   assert ((channel & 0xC0) == 0);
   String s ("A_ADC_Read Channel:");
@@ -1368,9 +1365,9 @@ A_ADC_Response_PDU::A_ADC_Response_PDU ()
 }
 
 bool
-A_ADC_Response_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_ADC_Response_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () != 5)
+  if (c.size() != 5)
     return false;
   channel = c[1] & 0x3F;
   count = c[2];
@@ -1393,7 +1390,7 @@ A_ADC_Response_PDU::ToPacket ()
 }
 
 String
-A_ADC_Response_PDU::Decode (Trace * tr UNUSED)
+A_ADC_Response_PDU::Decode (TracePtr tr UNUSED)
 {
   assert ((channel & 0xC0) == 0);
   String s ("A_ADC_Response Channel:");
@@ -1427,9 +1424,9 @@ A_Memory_Read_PDU::A_Memory_Read_PDU ()
 }
 
 bool
-A_Memory_Read_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_Memory_Read_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () != 4)
+  if (c.size() != 4)
     return false;
   count = c[1] & 0xf;
   addr = (c[2] << 8) | c[3];
@@ -1450,7 +1447,7 @@ A_Memory_Read_PDU::ToPacket ()
 }
 
 String
-A_Memory_Read_PDU::Decode (Trace * tr UNUSED)
+A_Memory_Read_PDU::Decode (TracePtr tr UNUSED)
 {
   assert ((count & 0xf0) == 0);
   String s ("A_Memory_Read Len: ");
@@ -1474,14 +1471,14 @@ A_Memory_Response_PDU::A_Memory_Response_PDU ()
 }
 
 bool
-A_Memory_Response_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_Memory_Response_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () < 4)
+  if (c.size() < 4)
     return false;
   count = c[1] & 0xf;
   addr = (c[2] << 8) | c[3];
-  data.set (c.array () + 4, c () - 4);
-  if (data () != count)
+  data.set (c.data() + 4, c.size() - 4);
+  if (data.size() != count)
     return false;
   return true;
 }
@@ -1490,29 +1487,29 @@ CArray
 A_Memory_Response_PDU::ToPacket ()
 {
   assert ((count & 0xf0) == 0);
-  assert (data () == count);
+  assert (data.size() == count);
   CArray pdu;
-  pdu.resize (4 + data ());
+  pdu.resize (4 + data.size());
   pdu[0] = 0x02;
   pdu[1] = 0x40 | (count & 0x0f);
   pdu[2] = (addr >> 8) & 0xff;
   pdu[3] = addr & 0xff;
-  pdu.setpart (data.array (), 4, data ());
+  pdu.setpart (data.data(), 4, data.size());
   return pdu;
 }
 
 String
-A_Memory_Response_PDU::Decode (Trace * tr UNUSED)
+A_Memory_Response_PDU::Decode (TracePtr tr UNUSED)
 {
   assert ((count & 0xf0) == 0);
-  assert (data () == count);
+  assert (data.size() == count);
   String s ("A_Memory_Response Len:");
   addHex (s, count);
   s += " Addr: ";
   add16Hex (s, addr);
   s += "Data: ";
-  for (unsigned i = 0; i < data (); i++)
-    addHex (s, data[i]);
+  ITER (i,data)
+    addHex (s, *i);
   return s;
 }
 
@@ -1538,14 +1535,14 @@ A_Memory_Write_PDU::A_Memory_Write_PDU ()
 }
 
 bool
-A_Memory_Write_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_Memory_Write_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () < 4)
+  if (c.size() < 4)
     return false;
   count = c[1] & 0xf;
   addr = (c[2] << 8) | c[3];
-  data.set (c.array () + 4, c () - 4);
-  if (data () != count)
+  data.set (c.data() + 4, c.size() - 4);
+  if (data.size() != count)
     return false;
   return true;
 }
@@ -1554,29 +1551,29 @@ CArray
 A_Memory_Write_PDU::ToPacket ()
 {
   assert ((count & 0xf0) == 0);
-  assert (data () == count);
+  assert (data.size() == count);
   CArray pdu;
-  pdu.resize (4 + data ());
+  pdu.resize (4 + data.size());
   pdu[0] = 0x02;
   pdu[1] = 0x80 | (count & 0x0f);
   pdu[2] = (addr >> 8) & 0xff;
   pdu[3] = addr & 0xff;
-  pdu.setpart (data.array (), 4, data ());
+  pdu.setpart (data.data(), 4, data.size());
   return pdu;
 }
 
 String
-A_Memory_Write_PDU::Decode (Trace * tr UNUSED)
+A_Memory_Write_PDU::Decode (TracePtr tr UNUSED)
 {
   assert ((count & 0xf0) == 0);
-  assert (data () == count);
+  assert (data.size() == count);
   String s ("A_Memory_Write Len:");
   addHex (s, count);
   s += " Addr: ";
   add16Hex (s, addr);
   s += "Data: ";
-  for (unsigned i = 0; i < data (); i++)
-    addHex (s, data[i]);
+  ITER (i,data)
+    addHex (s, *i);
   return s;
 }
 
@@ -1594,24 +1591,24 @@ A_MemoryBit_Write_PDU::A_MemoryBit_Write_PDU ()
 }
 
 bool
-A_MemoryBit_Write_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_MemoryBit_Write_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () < 5)
+  if (c.size() < 5)
     return false;
   count = c[2];
   addr = (c[3] << 8) | c[4];
-  if (c () - 5 != count * 2)
+  if (c.size() - 5 != count * 2)
     return false;
-  andmask.set (c.array () + 5, count);
-  xormask.set (c.array () + 5 + count, count);
+  andmask.set (c.data() + 5, count);
+  xormask.set (c.data() + 5 + count, count);
   return true;
 }
 
 CArray
 A_MemoryBit_Write_PDU::ToPacket ()
 {
-  assert (andmask () == count);
-  assert (xormask () == count);
+  assert (andmask.size() == count);
+  assert (xormask.size() == count);
   CArray pdu;
   pdu.resize (count * 2 + 5);
   pdu[0] = 0x03;
@@ -1619,26 +1616,26 @@ A_MemoryBit_Write_PDU::ToPacket ()
   pdu[2] = count;
   pdu[3] = (addr >> 8) & 0xff;
   pdu[4] = (addr) & 0xff;
-  pdu.setpart (andmask.array (), 5, count);
-  pdu.setpart (xormask.array (), 5 + count, count);
+  pdu.setpart (andmask.data(), 5, count);
+  pdu.setpart (xormask.data(), 5 + count, count);
   return pdu;
 }
 
 String
-A_MemoryBit_Write_PDU::Decode (Trace * tr UNUSED)
+A_MemoryBit_Write_PDU::Decode (TracePtr tr UNUSED)
 {
-  assert (andmask () == count);
-  assert (xormask () == count);
+  assert (andmask.size() == count);
+  assert (xormask.size() == count);
   String s ("A_MemoryBit_Write Len:");
   addHex (s, count);
   s += "Addr: ";
   add16Hex (s, addr);
   s += "And: ";
-  for (unsigned i = 0; i < andmask (); i++)
-    addHex (s, andmask[i]);
+  ITER (i, andmask)
+    addHex (s, *i);
   s += "xor: ";
-  for (unsigned i = 0; i < xormask (); i++)
-    addHex (s, xormask[i]);
+  ITER (i, xormask)
+    addHex (s, *i);
   return s;
 }
 
@@ -1657,9 +1654,9 @@ A_UserMemory_Read_PDU::A_UserMemory_Read_PDU ()
 }
 
 bool
-A_UserMemory_Read_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_UserMemory_Read_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () != 5)
+  if (c.size() != 5)
     return false;
   addr_extension = (c[2] >> 4) & 0xf;
   count = c[2] & 0xf;
@@ -1683,7 +1680,7 @@ A_UserMemory_Read_PDU::ToPacket ()
 }
 
 String
-A_UserMemory_Read_PDU::Decode (Trace * tr UNUSED)
+A_UserMemory_Read_PDU::Decode (TracePtr tr UNUSED)
 {
   assert ((count & 0xf0) == 0);
   assert ((addr_extension & 0xf0) == 0);
@@ -1711,15 +1708,15 @@ A_UserMemory_Response_PDU::A_UserMemory_Response_PDU ()
 }
 
 bool
-A_UserMemory_Response_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_UserMemory_Response_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () < 5)
+  if (c.size() < 5)
     return false;
   addr_extension = (c[2] >> 4) & 0xf;
   count = c[2] & 0xf;
   addr = (c[3] << 8) | c[4];
-  data.set (c.array () + 5, c () - 5);
-  if (data () != count)
+  data.set (c.data() + 5, c.size() - 5);
+  if (data.size() != count)
     return false;
   return true;
 }
@@ -1729,24 +1726,24 @@ A_UserMemory_Response_PDU::ToPacket ()
 {
   assert ((count & 0xf0) == 0);
   assert ((addr_extension & 0xf0) == 0);
-  assert (data () == count);
+  assert (data.size() == count);
   CArray pdu;
-  pdu.resize (5 + data ());
+  pdu.resize (5 + data.size());
   pdu[0] = 0x02;
   pdu[1] = 0xC1;
   pdu[2] = (addr_extension & 0x0f) << 4 | (count & 0x0f);
   pdu[3] = (addr >> 8) & 0xff;
   pdu[4] = (addr) & 0xff;
-  pdu.setpart (data.array (), 5, data ());
+  pdu.setpart (data.data(), 5, data.size());
   return pdu;
 }
 
 String
-A_UserMemory_Response_PDU::Decode (Trace * tr UNUSED)
+A_UserMemory_Response_PDU::Decode (TracePtr tr UNUSED)
 {
   assert ((count & 0xf0) == 0);
   assert ((addr_extension & 0xf0) == 0);
-  assert (data () == count);
+  assert (data.size() == count);
   String s ("A_UserMemory_Response Addr_ext:");
   addHex (s, addr_extension);
   s += " Len: ";
@@ -1754,8 +1751,8 @@ A_UserMemory_Response_PDU::Decode (Trace * tr UNUSED)
   s += " Addr: ";
   add16Hex (s, addr);
   s += " Data: ";
-  for (unsigned i = 0; i < data (); i++)
-    addHex (s, data[i]);
+  ITER(i,data)
+    addHex (s, *i);
   return s;
 }
 
@@ -1784,15 +1781,15 @@ A_UserMemory_Write_PDU::A_UserMemory_Write_PDU ()
 }
 
 bool
-A_UserMemory_Write_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_UserMemory_Write_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () < 5)
+  if (c.size() < 5)
     return false;
   addr_extension = (c[2] >> 4) & 0xf;
   count = c[2] & 0xf;
   addr = (c[3] << 8) | c[4];
-  data.set (c.array () + 5, c () - 5);
-  if (data () != count)
+  data.set (c.data() + 5, c.size() - 5);
+  if (data.size() != count)
     return false;
   return true;
 }
@@ -1802,24 +1799,24 @@ A_UserMemory_Write_PDU::ToPacket ()
 {
   assert ((count & 0xf0) == 0);
   assert ((addr_extension & 0xf0) == 0);
-  assert (data () == count);
+  assert (data.size() == count);
   CArray pdu;
-  pdu.resize (5 + data ());
+  pdu.resize (5 + data.size());
   pdu[0] = 0x02;
   pdu[1] = 0xC2;
   pdu[2] = (addr_extension & 0x0f) << 4 | (count & 0x0f);
   pdu[3] = (addr >> 8) & 0xff;
   pdu[4] = (addr) & 0xff;
-  pdu.setpart (data.array (), 5, data ());
+  pdu.setpart (data.data(), 5, data.size());
   return pdu;
 }
 
 String
-A_UserMemory_Write_PDU::Decode (Trace * tr UNUSED)
+A_UserMemory_Write_PDU::Decode (TracePtr tr UNUSED)
 {
   assert ((count & 0xf0) == 0);
   assert ((addr_extension & 0xf0) == 0);
-  assert (data () == count);
+  assert (data.size() == count);
   String s ("A_UserMemory_Write Addr_ext:");
   addHex (s, addr_extension);
   s += " Len: ";
@@ -1827,8 +1824,8 @@ A_UserMemory_Write_PDU::Decode (Trace * tr UNUSED)
   s += " Addr: ";
   add16Hex (s, addr);
   s += " Data: ";
-  for (unsigned i = 0; i < data (); i++)
-    addHex (s, data[i]);
+  ITER (i,data)
+    addHex (s, *i);
   return s;
 }
 
@@ -1847,24 +1844,24 @@ A_UserMemoryBit_Write_PDU::A_UserMemoryBit_Write_PDU ()
 }
 
 bool
-A_UserMemoryBit_Write_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_UserMemoryBit_Write_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () < 5)
+  if (c.size() < 5)
     return false;
   count = c[2];
   addr = (c[3] << 8) | c[4];
-  if (c () - 5 != count * 2)
+  if (c.size() - 5 != count * 2)
     return false;
-  andmask.set (c.array () + 5, count);
-  xormask.set (c.array () + 5 + count, count);
+  andmask.set (c.data() + 5, count);
+  xormask.set (c.data() + 5 + count, count);
   return true;
 }
 
 CArray
 A_UserMemoryBit_Write_PDU::ToPacket ()
 {
-  assert (andmask () == count);
-  assert (xormask () == count);
+  assert (andmask.size() == count);
+  assert (xormask.size() == count);
   CArray pdu;
   pdu.resize (5 + 2 * count);
   pdu[0] = 0x02;
@@ -1872,26 +1869,26 @@ A_UserMemoryBit_Write_PDU::ToPacket ()
   pdu[2] = count;
   pdu[3] = (addr >> 8) & 0xff;
   pdu[4] = (addr) & 0xff;
-  pdu.setpart (andmask.array (), 5, count);
-  pdu.setpart (xormask.array (), 5 + count, count);
+  pdu.setpart (andmask.data(), 5, count);
+  pdu.setpart (xormask.data(), 5 + count, count);
   return pdu;
 }
 
 String
-A_UserMemoryBit_Write_PDU::Decode (Trace * tr UNUSED)
+A_UserMemoryBit_Write_PDU::Decode (TracePtr tr UNUSED)
 {
-  assert (andmask () == count);
-  assert (xormask () == count);
+  assert (andmask.size() == count);
+  assert (xormask.size() == count);
   String s ("A_UserMemoryBit_Write Len:");
   addHex (s, count);
   s += "Addr: ";
   add16Hex (s, addr);
   s += "And: ";
-  for (unsigned i = 0; i < andmask (); i++)
-    addHex (s, andmask[i]);
+  ITER(i,andmask)
+    addHex (s, *i);
   s += "xor: ";
-  for (unsigned i = 0; i < xormask (); i++)
-    addHex (s, xormask[i]);
+  ITER(i,xormask)
+    addHex (s, *i);
   return s;
 }
 
@@ -1906,9 +1903,9 @@ A_UserManufacturerInfo_Read_PDU::A_UserManufacturerInfo_Read_PDU ()
 {
 }
 
-bool A_UserManufacturerInfo_Read_PDU::init (const CArray & c, Trace * tr UNUSED)
+bool A_UserManufacturerInfo_Read_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () != 2)
+  if (c.size() != 2)
     return false;
   return true;
 }
@@ -1924,7 +1921,7 @@ A_UserManufacturerInfo_Read_PDU::ToPacket ()
 }
 
 String
-A_UserManufacturerInfo_Read_PDU::Decode (Trace * tr UNUSED)
+A_UserManufacturerInfo_Read_PDU::Decode (TracePtr tr UNUSED)
 {
   String s ("A_UserManufacturerInfo_Read");
   return s;
@@ -1944,9 +1941,9 @@ A_UserManufacturerInfo_Response_PDU::A_UserManufacturerInfo_Response_PDU ()
 }
 
 bool
-A_UserManufacturerInfo_Response_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_UserManufacturerInfo_Response_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () != 5)
+  if (c.size() != 5)
     return false;
   manufacturerid = c[2];
   data = (c[3] << 8) | c[4];
@@ -1967,7 +1964,7 @@ A_UserManufacturerInfo_Response_PDU::ToPacket ()
 }
 
 String
-A_UserManufacturerInfo_Response_PDU::Decode (Trace * tr UNUSED)
+A_UserManufacturerInfo_Response_PDU::Decode (TracePtr tr UNUSED)
 {
   String s ("A_UserManufactueerInfo_Response Manufacturer:");
   addHex (s, manufacturerid);
@@ -1988,9 +1985,9 @@ A_Restart_PDU::A_Restart_PDU ()
 }
 
 bool
-A_Restart_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_Restart_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () != 2)
+  if (c.size() != 2)
     return false;
   return true;
 }
@@ -2006,7 +2003,7 @@ A_Restart_PDU::ToPacket ()
 }
 
 String
-A_Restart_PDU::Decode (Trace * tr UNUSED)
+A_Restart_PDU::Decode (TracePtr tr UNUSED)
 {
   String s ("A_Restart");
   return s;
@@ -2025,9 +2022,9 @@ A_Authorize_Request_PDU::A_Authorize_Request_PDU ()
 }
 
 bool
-A_Authorize_Request_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_Authorize_Request_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () != 7)
+  if (c.size() != 7)
     return false;
   key = (c[3] << 24) | (c[4] << 16) | (c[5] << 8) | (c[6]);
   return true;
@@ -2049,7 +2046,7 @@ A_Authorize_Request_PDU::ToPacket ()
 }
 
 String
-A_Authorize_Request_PDU::Decode (Trace * tr UNUSED)
+A_Authorize_Request_PDU::Decode (TracePtr tr UNUSED)
 {
   String s ("A_Authorize_Request Key:");
   return s + FormatEIBKey (key);
@@ -2068,9 +2065,9 @@ A_Authorize_Response_PDU::A_Authorize_Response_PDU ()
 }
 
 bool
-A_Authorize_Response_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_Authorize_Response_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () != 3)
+  if (c.size() != 3)
     return false;
   level = c[2];
   return true;
@@ -2088,7 +2085,7 @@ A_Authorize_Response_PDU::ToPacket ()
 }
 
 String
-A_Authorize_Response_PDU::Decode (Trace * tr UNUSED)
+A_Authorize_Response_PDU::Decode (TracePtr tr UNUSED)
 {
   String s ("A_Authorize_Response Level:");
   addHex (s, level);
@@ -2109,9 +2106,9 @@ A_Key_Write_PDU::A_Key_Write_PDU ()
 }
 
 bool
-A_Key_Write_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_Key_Write_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () != 7)
+  if (c.size() != 7)
     return false;
   level = c[2];
   key = (c[3] << 24) | (c[4] << 16) | (c[5] << 8) | (c[6]);
@@ -2134,7 +2131,7 @@ A_Key_Write_PDU::ToPacket ()
 }
 
 String
-A_Key_Write_PDU::Decode (Trace * tr UNUSED)
+A_Key_Write_PDU::Decode (TracePtr tr UNUSED)
 {
   String s ("A_Key_Write Level:");
   addHex (s, level);
@@ -2155,9 +2152,9 @@ A_Key_Response_PDU::A_Key_Response_PDU ()
 }
 
 bool
-A_Key_Response_PDU::init (const CArray & c, Trace * tr UNUSED)
+A_Key_Response_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
-  if (c () != 3)
+  if (c.size() != 3)
     return false;
   level = c[2];
   return true;
@@ -2175,7 +2172,7 @@ A_Key_Response_PDU::ToPacket ()
 }
 
 String
-A_Key_Response_PDU::Decode (Trace * tr UNUSED)
+A_Key_Response_PDU::Decode (TracePtr tr UNUSED)
 {
   String s ("A_Key_Response Level:");
   addHex (s, level);

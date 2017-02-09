@@ -30,7 +30,7 @@
 #define USB_CREATE usb_ll_Create
 
 inline LowLevelDriver *
-usb_ll_Create (const char *dev, Trace * t)
+usb_ll_Create (const char *dev, TracePtr t)
 {
   return initUSBDriver (new USBLowLevelDriver (dev, t), t);
 }

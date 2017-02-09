@@ -205,6 +205,12 @@
 	printf("    ibuf[%d] = (bit.band(bit.rshift(%s,8), 0xff))\n", offset+1, #name); \
 	printf("    ibuf[%d] = (bit.band(%s, 0xff))\n", offset+2, #name);
 
+#define EIBC_SETUINT32(name, offset) \
+	printf("    ibuf[%d] = (bit.band(bit.rshift(%s,24), 0xff))\n", offset+1, #name); \
+	printf("    ibuf[%d] = (bit.band(bit.rshift(%s,16), 0xff))\n", offset+2, #name); \
+	printf("    ibuf[%d] = (bit.band(bit.rshift(%s,8), 0xff))\n", offset+3, #name); \
+	printf("    ibuf[%d] = (bit.band(%s, 0xff))\n", offset+4, #name);
+
 #define EIBC_SETLEN(name, offset) \
 	printf("    ibuf[%d] = (bit.band(bit.rshift(%s,8), 0xff))\n", offset+1, name); \
 	printf("    ibuf[%d] = (bit.band(%s, 0xff))\n", offset+2, name);

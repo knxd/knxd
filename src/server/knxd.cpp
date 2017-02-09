@@ -26,17 +26,25 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <ev++.h>
+#include "create.h"
+#include "layer2conf.h"
+#include "filterconf.h"
 #include "layer3.h"
 #include "layer2.h"
 #include "localserver.h"
 #include "inetserver.h"
 #include "eibnetserver.h"
 #include "groupcacheclient.h"
+#include "version.h"
 
 #ifdef HAVE_SYSTEMD
 #include <systemd/sd-daemon.h>
 #include "systemdserver.h"
 #endif
+
+/** aborts program with a printf like message */
+void die (const char *msg, ...);
 
 // The NOQUEUE options are deprecated
 #define OPT_BACK_TUNNEL_NOQUEUE 1
@@ -47,6 +55,9 @@
 #define OPT_STOP_NOW 6
 #define OPT_FORCE_BROADCAST 7
 #define OPT_BACK_SEND_DELAY 8
+#define OPT_SINGLE_PORT 9
+#define OPT_MULTI_PORT 10
+#define OPT_NO_TIMESTAMP 11
 
 #define OPT_ARG(_arg,_state,_default) (arg ? arg : \
         (state->argv[state->next] && state->argv[state->next][0] && (state->argv[state->next][0] != '-')) ?  \
@@ -82,41 +93,44 @@ public:
   bool tunnel;
   bool route;
   bool discover;
+  bool single_port = true;
+  const char *intf = nullptr;
 
   L2options l2opts;
   const char *serverip;
-  const char *eibnetname;
+  std::string servername = "knxd";
 
   bool stop_now;
   bool force_broadcast;
 private:
   /** our L3 instance (singleton (so far!)) */
-  Layer3 *layer3;
+  Layer3real *layer3;
 
 public:
   /** The current tracer */
   Trace t;
+  Array < const char * > filters;
 
-  arguments (): t("main") {
-    addr = 0x0001;
-  }
-  ~arguments () {
-  }
+  arguments (): t(servername, "main") { }
+  ~arguments () { }
 
   /** get the L3 instance */
-  Layer3 *l3()
+  Layer3real *l3()
     {
       if (layer3 == 0) 
         {
-          Trace *tr = tracer("layer3", false);
-          layer3 = new Layer3 (addr, tr, force_broadcast);
-          layer3->registerTracer(tr);
+          if (!addr)
+            die ("knxd requires a bus address (option -e)!");
+          TracePtr tr = tracer("layer3", false);
+          layer3 = new Layer3real (addr, tr, force_broadcast);
           addr = 0;
           if (alloc_addrs_len)
             {
               layer3->set_client_block (alloc_addrs, alloc_addrs_len);
               alloc_addrs_len = 0;
             }
+          else
+            ERRORPRINTF (tr, E_WARNING | 49, "knxd is unable to assign addresses to clients (option -E).");
         }
       return layer3;
     }
@@ -138,17 +152,41 @@ public:
    * a new instance.
    */
 
-  Trace *tracer(std::string name, bool reg = true)
+  TracePtr tracer(std::string name, bool reg = true)
     {
-      Trace *tr = new Trace(&t, name);
-      if (reg)
-        l3()->registerTracer(tr);
+      TracePtr tr = TracePtr(new Trace(t, name));
       return tr;
+    }
+    Layer2Ptr stack(Layer2Ptr l2, const char *arg, bool clear = true)
+    {
+        unsigned i = filters.size();
+        while(i--)
+            l2 = AddLayer2Filter(filters[i], &l2opts, l2);
+        if (!l2->init (l3 ()))
+            die ("initialisation of backend '%s' failed", arg);
+        if (l2opts.flags || l2opts.send_delay)
+            die ("You provided options which '%s' does not recognize", arg);
+        l3()->registerLayer2(l2);
+        if (clear)
+            reset();
+        return l2;
+    }
+    void reset()
+    {
+        filters.clear();
+        l2opts = L2options();
     }
 };
 
 /** storage for the arguments*/
 arguments arg;
+
+/** number of file descriptors passed in by systemd */
+#ifdef HAVE_SYSTEMD
+int num_fds;
+#else
+const int num_fds = 0;
+#endif
 
 /** aborts program with a printf like message */
 void
@@ -171,46 +209,6 @@ die (const char *msg, ...)
   exit (1);
 }
 
-
-#include "layer2conf.h"
-
-/** structure to store layer 2 backends */
-struct urldef
-{
-  /** URL-prefix */
-  const char *prefix;
-  /** factory function */
-  Layer2_Create_Func Create;
-};
-
-/** list of URLs */
-struct urldef URLs[] = {
-#undef L2_NAME
-#define L2_NAME(a) { a##_PREFIX, a##_CREATE },
-#include "layer2create.h"
-  {0, 0}
-};
-
-/** determines the right backend for the url and creates it */
-Layer2Ptr 
-Create (const char *url, L2options *opt)
-{
-  unsigned int p = 0;
-  struct urldef *u = URLs;
-  while (url[p] && url[p] != ':')
-    p++;
-  if (url[p] != ':')
-    die ("not a valid url");
-  while (u->prefix)
-    {
-      if (strlen (u->prefix) == p && !memcmp (u->prefix, url, p))
-        return u->Create (url + p + 1, opt);
-      u++;
-    }
-  die ("url not supported");
-  return 0;
-}
-
 /** parses an EIB individual address */
 eibaddr_t
 readaddr (const char *addr)
@@ -231,12 +229,12 @@ readaddrblock (struct arguments *args, const char *addr)
 }
 
 /** version */
-const char *argp_program_version = "knxd " VERSION;
+const char *argp_program_version = "knxd " REAL_VERSION;
 /** documentation */
 static char doc[] =
   "knxd -- a commonication stack for EIB/KNX\n"
   "(C) 2005-2015 Martin Koegler <mkoegler@auto.tuwien.ac.at> et al.\n"
-  "Supported Layer-2 URLs are:\n"
+  "Supported Layer-2 drivers are:\n"
 #undef L2_NAME
 #define L2_NAME(a) a##_URL
 #include "layer2create.h"
@@ -244,6 +242,14 @@ static char doc[] =
 #undef L2_NAME
 #define L2_NAME(a) a##_DOC
 #include "layer2create.h"
+  "Supported Layer-2 filters are:\n"
+#undef L2_NAME
+#define L2_NAME(a) a##_URL
+#include "filtercreate.h"
+  "\n"
+#undef L2_NAME
+#define L2_NAME(a) a##_DOC
+#include "filtercreate.h"
   "Arguments are processed in order.\n"
   "Modifiers affect the device mentioned afterwards.\n"
   ;
@@ -257,10 +263,12 @@ static struct argp_option options[] = {
    "listen at TCP port PORT (default 6720)"},
   {"listen-local", 'u', "FILE", OPTION_ARG_OPTIONAL,
    "listen at Unix domain socket FILE (default /run/knx)"},
+  {"no-timestamp", OPT_NO_TIMESTAMP, 0, 0,
+   "don't print timestamps when logging"},
   {"trace", 't', "MASK", 0,
    "set trace flags (bitmask)"},
   {"error", 'f', "LEVEL", 0,
-   "set error level"},
+   "set error level (default 3: warnings)"},
   {"eibaddr", 'e', "EIBADDR", 0,
    "set our EIB address to EIBADDR (default 0.0.1)"},
   {"client-addrs", 'E', "ADDRSTART", 0,
@@ -277,13 +285,21 @@ static struct argp_option options[] = {
    "enable the EIBnet/IP server to answer discovery and description requests (SEARCH, DESCRIPTION)"},
   {"Server", 'S', "ip[:port]", OPTION_ARG_OPTIONAL,
    "starts an EIBnet/IP multicast server"},
+  {"Interface", 'I', "intf", 0,
+   "Interface to use"},
   {"Name", 'n', "SERVERNAME", 0,
    "name of the EIBnet/IP server (default is 'knxd')"},
+  {"single-port", OPT_SINGLE_PORT, 0, 0,
+   "Use one common port for multicast. This is an ETS4/ETS5 bug workaround."},
+  {"multi-port", OPT_MULTI_PORT, 0, 0,
+   "Use two ports for multicast. This lets you run multiple KNX processes."},
 #endif
   {"layer2", 'b', "driver:[arg]", 0,
    "a Layer-2 driver to use (knxd supports more than one)"},
+  {"filter", 'B', "filter:[arg]", 0,
+   "a Layer-2 filter to use in front of the next driver"},
 #ifdef HAVE_GROUPCACHE
-  {"GroupCache", 'c', 0, 0,
+  {"GroupCache", 'c', "SIZE", OPTION_ARG_OPTIONAL,
    "enable caching of group communication network state"},
 #endif
 #ifdef HAVE_EIBNETIPTUNNEL
@@ -318,24 +334,33 @@ parse_opt (int key, char *arg, struct argp_state *state)
   struct arguments *arguments = (struct arguments *) state->input;
   switch (key)
     {
+#ifdef HAVE_EIBNETIPSERVER
     case 'T':
-      arguments->tunnel = 1;
+      arguments->tunnel = true;
       arguments->has_work++;
       break;
     case 'R':
-      arguments->route = 1;
+      arguments->route = true;
       arguments->has_work++;
       break;
     case 'D':
-      arguments->discover = 1;
+      arguments->discover = true;
+      break;
+    case OPT_SINGLE_PORT:
+      arguments->single_port = true;
+      break;
+    case OPT_MULTI_PORT:
+      arguments->single_port = false;
+      break;
+    case 'I':
+      arguments->intf = arg;
       break;
     case 'S':
       {
         const char *serverip;
-        const char *name = arguments->eibnetname;
+        const char *name = arguments->servername.c_str();
         std::string tracename;
 
-        EIBnetServerPtr c;
         int port = 0;
         char *a = strdup (OPT_ARG(arg, state, ""));
         char *b;
@@ -361,8 +386,13 @@ parse_opt (int key, char *arg, struct argp_state *state)
             tracename += name;
         }
 
-        c = EIBnetServerPtr(new EIBnetServer (arguments->tracer(tracename), name));
-        if (!c->init (arguments->l3(), serverip, port, arguments->tunnel, arguments->route, arguments->discover))
+        EIBnetServerPtr s = EIBnetServerPtr(new EIBnetServer (arguments->tracer(tracename), name));
+        if (!s->setup (serverip, port, arguments->intf,
+                       arguments->tunnel, arguments->route, arguments->discover, arguments->single_port))
+          die ("initialization of the EIBnet/IP server failed");
+
+        Layer2Ptr c = arguments->stack(s,"multicast");
+        if (!c->init (arguments->l3()))
         {
           free(a);
           die ("initialization of the EIBnet/IP server failed");
@@ -371,27 +401,49 @@ parse_opt (int key, char *arg, struct argp_state *state)
         arguments->tunnel = false;
         arguments->route = false;
         arguments->discover = false;
-        arguments->eibnetname = 0;
+        arguments->single_port = false;
+        arguments->intf = nullptr;
       }
       break;
+    case 'n':
+      if (*arg == '=')
+	arg++;
+      if(strlen(arg) >= 30)
+        die("Server name must be shorter than 30 bytes");
+      arguments->servername = arg;
+      break;
+#endif
     case 'u':
       {
-        BaseServerPtr s;
         const char *name = OPT_ARG(arg,state,"/run/knx");
-        s = BaseServerPtr(new LocalServer (arguments->tracer(name), name));
-        if (!s->init (arguments->l3()))
-          die ("initialisation of the knxd unix protocol failed");
+        BaseServerPtr s = BaseServerPtr(new LocalServer (arguments->tracer(name), name));
+        Layer2Ptr c = arguments->stack(s,"unix");
+        if (!c->init (arguments->l3()))
+          {
+            if ((errno == EADDRINUSE) && !arg && num_fds)
+              ERRORPRINTF (&arguments->t, E_NOTICE | 46, "Option '-u' ignored (busy; systemd)");
+            else
+              die ("initialisation of the knxd unix protocol failed");
+          }
         arguments->has_work++;
       }
       break;
     case 'i':
       {
         BaseServerPtr s = nullptr;
+        Layer2Ptr c = nullptr;
         int port = atoi(OPT_ARG(arg,state,"6720"));
         if (port > 0)
           s = BaseServerPtr(new InetServer (arguments->tracer("inet"), port));
-        if (!s || !s->init (arguments->l3()))
-          die ("initialisation of the knxd inet protocol failed");
+        if (s)
+          c = arguments->stack(s,"tcp");
+        if (!c || !c->init (arguments->l3()))
+          {
+            if ((errno == EADDRINUSE) && !arg && num_fds)
+              ERRORPRINTF (&arguments->t, E_NOTICE | 47, "Option '-i' ignored (busy; systemd)");
+            else
+              die ("initialisation of the knxd inet protocol failed");
+          }
         arguments->has_work++;
       }
       break;
@@ -406,6 +458,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
         }
       else
         arguments->t.SetTraceLevel (0);
+      break;
+    case OPT_NO_TIMESTAMP:
+      arguments->t.SetTimestamps(false);
       break;
     case 'f':
       arguments->t.SetErrorLevel (arg ? atoi (arg) : 0);
@@ -426,17 +481,12 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'd':
       arguments->daemon = OPT_ARG(arg,state,"/dev/null");
       break;
+#if HAVE_GROUPCACHE
     case 'c':
-      if (!CreateGroupCache (arguments->l3(), arguments->tracer("cache"), true))
+      if (!CreateGroupCache (arguments->l3(), arguments->tracer("cache"), true, arg ? atoi(arg) : 0))
         die ("initialisation of the group cache failed");
       break;
-    case 'n':
-      arguments->eibnetname = (char *)arg;
-      if(arguments->eibnetname[0] == '=')
-        arguments->eibnetname++;
-      if(strlen(arguments->eibnetname) >= 30)
-        die("EIBnetServer/IP name must be shorter than 30 bytes");
-      break;
+#endif
     case OPT_FORCE_BROADCAST:
       arguments->force_broadcast = true;
       break;
@@ -444,13 +494,13 @@ parse_opt (int key, char *arg, struct argp_state *state)
       arguments->stop_now = true;
       break;
     case OPT_BACK_TUNNEL_NOQUEUE: // obsolete
-      ERRORPRINTF (&arguments->t, E_WARNING | 41, 0, "The option '--no-tunnel-client-queuing' is obsolete.");
-      ERRORPRINTF (&arguments->t, E_WARNING | 42, 0, "Please use '--send-delay=30'.");
+      ERRORPRINTF (&arguments->t, E_WARNING | 48, "The option '--no-tunnel-client-queuing' is obsolete.");
+      ERRORPRINTF (&arguments->t, E_WARNING | 42, "Please use '--send-delay=30'.");
       arguments->l2opts.send_delay = 30; // msec
       break;
     case OPT_BACK_EMI_NOQUEUE: // obsolete
-      ERRORPRINTF (&arguments->t, E_WARNING | 43, 0, "The option '--no-emi-send-queuing' is obsolete.");
-      ERRORPRINTF (&arguments->t, E_WARNING | 44, 0, "Please use '--send-delay=500'.");
+      ERRORPRINTF (&arguments->t, E_WARNING | 43, "The option '--no-emi-send-queuing' is obsolete.");
+      ERRORPRINTF (&arguments->t, E_WARNING | 44, "Please use '--send-delay=500'.");
       arguments->l2opts.send_delay = 500; // msec
       break;
     case OPT_BACK_SEND_DELAY:
@@ -472,46 +522,46 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'b':
       {
 	arguments->l2opts.t = arguments->tracer(arg);
-        Layer2Ptr l2 = Create (arg, &arguments->l2opts);
-        if (!l2 || !l2->init (arguments->l3 ()))
+        Layer2Ptr l2 = CreateLayer2 (arg, &arguments->l2opts);
+        if (!l2)
           die ("initialisation of backend '%s' failed", arg);
-	if (arguments->l2opts.flags || arguments->l2opts.send_delay)
-          die ("You provided options which '%s' does not recognize", arg);
-        memset(&arguments->l2opts, 0, sizeof(arguments->l2opts));
+        l2 = arguments->stack(l2,arg);
         arguments->has_work++;
         break;
       }
+    case 'B':
+      {
+        arguments->filters.push_back(arg);
+        break;
+      }
     case ARGP_KEY_FINI:
-      if (arguments->l2opts.flags)
-        die ("You need to use backend flags in front of the affected backend");
 
 #ifdef HAVE_SYSTEMD
       {
         BaseServerPtr s = nullptr;
-        const int num_fds = sd_listen_fds(0);
+        int hw = arguments->has_work;
 
-        if( num_fds < 0 )
-          die("Error getting fds from systemd.");
         // zero FDs from systemd is not a bug
-
         for( int fd = SD_LISTEN_FDS_START; fd < SD_LISTEN_FDS_START+num_fds; ++fd )
           {
             if( sd_is_socket(fd, AF_UNSPEC, SOCK_STREAM, 1) <= 0 )
               die("Error: socket not of expected type.");
 
             s = BaseServerPtr(new SystemdServer(arguments->tracer("systemd"), fd));
-            if (!s->init (arguments->l3()))
+            Layer2Ptr c = arguments->stack(s,"systemd",false);
+            if (!c->init (arguments->l3()))
               die ("initialisation of the systemd socket failed");
             arguments->has_work++;
           }
+        if (hw != arguments->has_work)
+          arguments->reset();
       }
 #endif
-
-	  errno = 0;
-      if (arguments->tunnel || arguments->route || arguments->discover || 
-          arguments->eibnetname)
+      if (arguments->filters.size())
+        die ("You need to use filters in front of the affected backend");
+      if (arguments->tunnel || arguments->route || arguments->discover)
         die ("Option '-S' starts the multicast server.\n"
-             "-T/-R/-D/-n after or without that option are useless.");
+             "-T/-R/-D after or without that option are useless.");
       if (arguments->l2opts.flags)
 	die ("You provided L2 flags after specifying an L2 interface.");
       if (arguments->has_work == 0)
@@ -531,12 +581,93 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
 
 #define FILE_MODE (S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH)
 
+// #define EV_TRACE
+
+static void
+signal_cb (EV_P_ ev_signal *w, int revents)
+{
+  ev_break (EV_A_ EVBREAK_ALL);
+}
+
+#ifdef EV_TRACE
+static void
+timeout_cb (EV_P_ ev_timer *w, int revents)
+{
+  printf("LIBEV ping\n");
+}
+#endif
+
+struct _hup {
+  struct ev_signal sighup;
+  const char *daemon;
+  TracePtr t;
+} hup;
+
+static void
+sighup_cb (EV_P_ ev_signal *w, int revents)
+{
+  struct _hup *hup = (struct _hup *)w;
+
+  int fd = open (hup->daemon, O_WRONLY | O_APPEND | O_CREAT, FILE_MODE);
+  if (fd == -1)
+  {
+    ERRORPRINTF (hup->t, E_ERROR | 21, "can't open log file %s",
+                hup->daemon);
+    return;
+  }
+  close (1);
+  close (2);
+  dup2 (fd, 1);
+  dup2 (fd, 2);
+  close (fd);
+}
+
 int
 main (int ac, char *ag[])
 {
   int index;
-  pth_init ();
   setlinebuf(stdout);
+
+// set up libev
+#if EV_MULTIPLICITY
+  typedef struct ev_loop *LOOP_RESULT;
+#else
+  typedef int LOOP_RESULT;
+#endif
+  LOOP_RESULT loop = ev_default_loop(EVFLAG_AUTO | EVFLAG_NOSIGMASK | EVBACKEND_SELECT);
+  assert (loop);
+
+#ifdef EV_TRACE
+  struct ev_timer timer;
+#endif
+  struct _hup hup;
+  struct ev_signal sigint;
+  struct ev_signal sigterm;
+
+#ifdef EV_TRACE
+  printf("LIBEV starting up\n");
+#endif
+
+#ifdef HAVE_SYSTEMD
+  num_fds = sd_listen_fds(0);
+  if( num_fds < 0 )
+    die("Error getting fds from systemd.");
+#endif
+#ifdef EV_TRACE
+  ev_timer_init (&timer, timeout_cb, 1., 10.);
+  ev_timer_again (EV_A_ &timer);
+#endif
+  if (arg.daemon) {
+    hup.t = TracePtr(new Trace(arg.t,"reload"));
+    hup.daemon = arg.daemon;
+    ev_signal_init (&hup.sighup, sighup_cb, SIGINT);
+    ev_signal_start (EV_A_ &hup.sighup);
+  }
+
+  ev_signal_init (&sigint, signal_cb, SIGINT);
+  ev_signal_start (EV_A_ &sigint);
+  ev_signal_init (&sigterm, signal_cb, SIGTERM);
+  ev_signal_start (EV_A_ &sigterm);
 
   arg.errorlevel = LEVEL_WARNING;
 
@@ -544,7 +675,7 @@ main (int ac, char *ag[])
 
   // if you ever want this to be fatal, doing it here would be too late
   if (getuid () == 0)
-    ERRORPRINTF (&arg.t, E_WARNING | 20, 0, "EIBD should not run as root");
+    ERRORPRINTF (&arg.t, E_WARNING | 20, "knxd should not run as root");
 
   signal (SIGPIPE, SIG_IGN);
 
@@ -575,58 +706,24 @@ main (int ac, char *ag[])
         fclose (pidf);
       }
 
-  signal (SIGINT, SIG_IGN);
-  signal (SIGTERM, SIG_IGN);
-
   // main loop
 #ifdef HAVE_SYSTEMD
   sd_notify(0,"READY=1");
 #endif
-  int sig;
-  if (! arg.stop_now)
-    do {
-      sigset_t t1;
-      sigemptyset (&t1);
-      sigaddset (&t1, SIGINT);
-      sigaddset (&t1, SIGHUP);
-      sigaddset (&t1, SIGTERM);
 
-      pth_sigwait (&t1, &sig);
+  // now wait for events
+  ev_run (EV_A_ arg.stop_now ? EVRUN_NOWAIT : 0);
 
-      if (sig == SIGHUP && arg.daemon)
-	{
-	  int fd =
-	    open (arg.daemon, O_WRONLY | O_APPEND | O_CREAT, FILE_MODE);
-	  if (fd == -1)
-	    {
-	      ERRORPRINTF (&arg.t, E_ERROR | 21, 0, "can't open log file %s",
-			   arg.daemon);
-	      continue;
-	    }
-	  close (1);
-	  close (2);
-	  dup2 (fd, 1);
-	  dup2 (fd, 2);
-	  close (fd);
-	}
-
-    } while (sig == SIGHUP);
 #ifdef HAVE_SYSTEMD
   sd_notify(0,"STOPPING=1");
 #endif
 
-  signal (SIGINT, SIG_DFL);
-  signal (SIGTERM, SIG_DFL);
+  ev_break(EV_A_ EVBREAK_ALL);
 
   arg.free_l3();
 
   if (arg.pidfile)
     unlink (arg.pidfile);
 
-  pth_yield (0);
-  pth_yield (0);
-  pth_yield (0);
-  pth_yield (0);
-  pth_exit (0);
   return 0;
 }

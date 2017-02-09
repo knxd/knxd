@@ -23,6 +23,7 @@
 #include <argp.h>
 #include "addrtab.h"
 #include "lowlevelconf.h"
+#include "version.h"
 
 /** aborts program with a printf like message */
 void
@@ -56,7 +57,7 @@ struct urldef URLs[] = {
 
 /** determines the right backend for the url and creates it */
 LowLevelDriver *
-Create (const char *url, Trace * t)
+Create (const char *url, TracePtr t)
 {
   unsigned int p = 0;
   struct urldef *u = URLs;
@@ -75,7 +76,7 @@ Create (const char *url, Trace * t)
 }
 
 /** version */
-const char *argp_program_version = "bcuread " VERSION;
+const char *argp_program_version = "bcuread " REAL_VERSION;
 /** documentation */
 static char doc[] =
   "bcuread -- read BCU memory\n"
@@ -160,7 +161,7 @@ main (int ac, char *ag[])
   Trace t = Trace("main");
   t.SetTraceLevel (arg.tracelevel);
 
-  iface = Create (ag[index], &t);
+  iface = Create (ag[index], TracePtr(new Trace(t, ag[index])));
   if (!iface)
     die ("initialisation failed");
   if (!iface->init ())
@@ -176,8 +177,8 @@ main (int ac, char *ag[])
     }
   else
     {
-      for (int i = 0; i < result (); i++)
-	printf ("%02x ", result[i]);
+      ITER(i,result)
+	printf ("%02x ", *i);
       printf ("\n");
     }
 

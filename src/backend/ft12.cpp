@@ -23,17 +23,11 @@
 
 #include "ft12.h"
 
-FT12LowLevelDriver::FT12LowLevelDriver (const char *dev, Trace * tr)
+FT12LowLevelDriver::FT12LowLevelDriver (const char *dev, TracePtr tr)
+    : LowLevelDriver(tr)
 {
   struct termios t1;
-  t = tr;
-  pth_sem_init (&in_signal);
-  pth_sem_init (&out_signal);
-  pth_sem_init (&send_empty);
-  pth_sem_set_value (&send_empty, 1);
-  getwait = pth_event (PTH_EVENT_SEM, &out_signal);
-
-  TRACEPRINTF (t, 1, this, "Open");
+  TRACEPRINTF (t, 1, "Open");
 
   fd = open (dev, O_RDWR | O_NOCTTY | O_NDELAY | O_SYNC);
   if (fd == -1)
@@ -79,19 +73,46 @@ FT12LowLevelDriver::FT12LowLevelDriver (const char *dev, Trace * tr)
   sendflag = 0;
   recvflag = 0;
   repeatcount = 0;
-  Start ();
-  TRACEPRINTF (t, 1, this, "Opened");
+  TRACEPRINTF (t, 1, "Opened");
+}
+
+void
+FT12LowLevelDriver::setup_buffers()
+{
+  sendbuf.init(fd);
+  recvbuf.init(fd);
+
+  recvbuf.on_recv_cb.set<FT12LowLevelDriver,&FT12LowLevelDriver::read_cb>(this);
+  recvbuf.on_error_cb.set<FT12LowLevelDriver,&FT12LowLevelDriver::error_cb>(this);
+  sendbuf.on_error_cb.set<FT12LowLevelDriver,&FT12LowLevelDriver::error_cb>(this);
+  timer.set <FT12LowLevelDriver,&FT12LowLevelDriver::timer_cb> (this);
+  sendtimer.set <FT12LowLevelDriver,&FT12LowLevelDriver::sendtimer_cb> (this);
+
+  trigger.set<FT12LowLevelDriver,&FT12LowLevelDriver::trigger_cb>(this);
+  trigger.start();
+
+  sendbuf.start();
+  recvbuf.start();
+}
+
+void
+FT12LowLevelDriver::error_cb()
+{
+  TRACEPRINTF (t, 2, "ERROR");
+  stop();
+}
+
+void 
+FT12LowLevelDriver::stop()
+{
+  // XXX TODO add de-registration callback
 }
 
 FT12LowLevelDriver::~FT12LowLevelDriver ()
 {
-  Stop ();
-  pth_event_free (getwait, PTH_FREE_THIS);
+  stop ();
 
-  while (!outqueue.isempty ())
-    delete outqueue.get ();
-
-  TRACEPRINTF (t, 1, this, "Close");
+  TRACEPRINTF (t, 1, "Close");
   if (fd != -1)
     {
       tcsetattr (fd, TCSAFLUSH, &old);
@@ -102,7 +123,10 @@ FT12LowLevelDriver::~FT12LowLevelDriver ()
 
 bool FT12LowLevelDriver::init ()
 {
-  return fd != -1;
+  if (fd < 0)
+    return false;
+  setup_buffers();
+  return true;
 }
 
 void
@@ -111,13 +135,13 @@ FT12LowLevelDriver::Send_Packet (CArray l)
   CArray pdu;
   uchar c;
   unsigned i;
-  t->TracePacket (1, this, "Send", l);
+  t->TracePacket (1, "Send", l);
 
-  assert (l () <= 32);
-  pdu.resize (l () + 7);
+  assert (l.size() <= 32);
+  pdu.resize (l.size() + 7);
   pdu[0] = 0x68;
-  pdu[1] = l () + 1;
-  pdu[2] = l () + 1;
+  pdu[1] = l.size() + 1;
+  pdu[2] = l.size() + 1;
   pdu[3] = 0x68;
   if (sendflag)
     pdu[4] = 0x53;
@@ -125,23 +149,23 @@ FT12LowLevelDriver::Send_Packet (CArray l)
     pdu[4] = 0x73;
   sendflag = !sendflag;
 
-  pdu.setpart (l.array (), 5, l ());
+  pdu.setpart (l.data(), 5, l.size());
   c = pdu[4];
-  for (i = 0; i < l (); i++)
+  for (i = 0; i < l.size(); i++)
     c += l[i];
-  pdu[pdu () - 2] = c;
-  pdu[pdu () - 1] = 0x16;
+  pdu[pdu.size() - 2] = c;
+  pdu[pdu.size() - 1] = 0x16;
 
-  inqueue.put (pdu);
-  pth_sem_set_value (&send_empty, 0);
-  pth_sem_inc (&in_signal, TRUE);
+  send_q.push (pdu);
+  if (!send_wait)
+    trigger.send();
 }
 
 void
 FT12LowLevelDriver::SendReset ()
 {
   CArray pdu;
-  TRACEPRINTF (t, 1, this, "SendReset");
+  TRACEPRINTF (t, 1, "SendReset");
   pdu.resize (4);
   pdu[0] = 0x10;
   pdu[1] = 0x40;
@@ -149,198 +173,159 @@ FT12LowLevelDriver::SendReset ()
   pdu[3] = 0x16;
   sendflag = 0;
   recvflag = 0;
-  inqueue.put (pdu);
-  pth_sem_set_value (&send_empty, 0);
-  pth_sem_inc (&in_signal, TRUE);
+  send_q.push (pdu);
+  if (!send_wait)
+    trigger.send();
 }
 
-bool
-FT12LowLevelDriver::Send_Queue_Empty ()
+size_t
+FT12LowLevelDriver::read_cb(uint8_t *buf, size_t len)
 {
-  return inqueue.isempty ();
-}
-
-pth_sem_t *
-FT12LowLevelDriver::Send_Queue_Empty_Cond ()
-{
-  return &send_empty;
-}
-
-CArray *
-FT12LowLevelDriver::Get_Packet (pth_event_t stop)
-{
-  if (stop != NULL)
-    pth_event_concat (getwait, stop, NULL);
-
-  pth_wait (getwait);
-
-  if (stop)
-    pth_event_isolate (getwait);
-
-  if (pth_event_status (getwait) == PTH_STATUS_OCCURRED)
-    {
-      pth_sem_dec (&out_signal);
-      CArray *c = outqueue.get ();
-      t->TracePacket (1, this, "Recv", *c);
-      return c;
-    }
-  else
-    return 0;
+  t->TracePacket (0, "Read", len, buf);
+  akt.setpart (buf, akt.size(), len);
+  process_read(false);
+  return len;
 }
 
 void
-FT12LowLevelDriver::Run (pth_sem_t * stop1)
+FT12LowLevelDriver::timer_cb(ev::timer &w, int revents)
 {
-  CArray last;
-  int i;
-  uchar buf[255];
-
-  pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
-  pth_event_t input = pth_event (PTH_EVENT_SEM, &in_signal);
-  pth_event_t timeout = pth_event (PTH_EVENT_RTIME, pth_time (0, 100000));
-  while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
-    {
-      pth_event_isolate (input);
-      pth_event_isolate (timeout);
-      if (mode == 0)
-	pth_event_concat (stop, input, NULL);
-      if (mode == 1)
-	pth_event_concat (stop, timeout, NULL);
-
-      i = pth_read_ev (fd, buf, sizeof (buf), stop);
-      if (i > 0)
-	{
-	  t->TracePacket (0, this, "Recv", i, buf);
-	  akt.setpart (buf, akt (), i);
-	}
-
-      while (akt.len () > 0)
-	{
-	  if (akt[0] == 0xE5 && mode == 1)
-	    {
-	      pth_sem_dec (&in_signal);
-	      inqueue.get ();
-	      if (inqueue.isempty ())
-		pth_sem_set_value (&send_empty, 1);
-	      akt.deletepart (0, 1);
-	      mode = 0;
-	      repeatcount = 0;
-	    }
-	  else if (akt[0] == 0x10)
-	    {
-	      if (akt () < 4)
-		break;
-	      if (akt[1] == akt[2] && akt[3] == 0x16)
-		{
-		  uchar c1 = 0xE5;
-		  t->TracePacket (0, this, "Send Ack", 1, &c1);
-		  if(write (fd, &c1, 1) != 1)
-		    {
-		      ERRORPRINTF (t, E_ERROR | 10, this, "write error (%s)", strerror(errno));
-		      break;
-		    }
-		  if ((akt[1] == 0xF3 && !recvflag) ||
-		      (akt[1] == 0xD3 && recvflag))
-		    {
-		      //right sequence number
-		      recvflag = !recvflag;
-		    }
-		  if ((akt[1] & 0x0f) == 0)
-		    {
-		      const uchar reset[1] = { 0xA0 };
-		      CArray *c = new CArray (reset, sizeof (reset));
-		      t->TracePacket (0, this, "RecvReset", *c);
-		      outqueue.put (c);
-		      pth_sem_inc (&out_signal, TRUE);
-		    }
-		}
-	      akt.deletepart (0, 4);
-	    }
-	  else if (akt[0] == 0x68)
-	    {
-	      int len;
-	      uchar c1;
-	      if (akt () < 7)
-		break;
-	      if (akt[1] != akt[2] || akt[3] != 0x68)
-		{
-		  //receive error, try to resume
-		  akt.deletepart (0, 1);
-		  continue;
-		}
-	      if (akt () < akt[1] + 6U)
-		break;
-
-	      c1 = 0;
-	      for (i = 4; i < akt[1] + 4U; i++)
-		c1 += akt[i];
-	      if (akt[akt[1] + 4] != c1 || akt[akt[1] + 5] != 0x16)
-		{
-		  len = akt[1] + 6;
-		  //Forget wrong short frame
-		  akt.deletepart (0, len);
-		  continue;
-		}
-
-	      c1 = 0xE5;
-	      t->TracePacket (0, this, "Send Ack", 1, &c1);
-	      i = write (fd, &c1, 1);
-
-	      if ((akt[4] == 0xF3 && recvflag) ||
-		  (akt[4] == 0xD3 && !recvflag))
-		{
-		  if (CArray (akt.array () + 5, akt[1] - 1) != last)
-		    {
-		      TRACEPRINTF (t, 0, this, "Sequence jump");
-		      recvflag = !recvflag;
-		    }
-		  else
-		    TRACEPRINTF (t, 0, this, "Wrong Sequence");
-		}
-
-	      if ((akt[4] == 0xF3 && !recvflag) ||
-		  (akt[4] == 0xD3 && recvflag))
-		{
-		  recvflag = !recvflag;
-		  CArray *c = new CArray;
-		  len = akt[1] + 6;
-		  c->setpart (akt.array () + 5, 0, len - 7);
-		  last = *c;
-		  outqueue.put (c);
-		  pth_sem_inc (&out_signal, TRUE);
-		}
-              // XXX TODO otherwise set 'len' to what? Or continue?
-	      akt.deletepart (0, len);
-	    }
-	  else
-	    //Forget unknown byte
-	    akt.deletepart (0, 1);
-	}
-
-      if (mode == 1 && pth_event_status (timeout) == PTH_STATUS_OCCURRED)
-	mode = 0;
-
-      if (mode == 0 && !inqueue.isempty ())
-	{
-	  const CArray & c = inqueue.top ();
-	  t->TracePacket (0, this, "Send", c);
-	  repeatcount++;
-	  i = pth_write_ev (fd, c.array (), c (), stop);
-	  if (i == c ())
-	    {
-	      mode = 1;
-	      timeout =
-		pth_event (PTH_EVENT_RTIME | PTH_MODE_REUSE, timeout,
-			   pth_time (0, 100000));
-	    }
-	}
-    }
-  pth_event_free (stop, PTH_FREE_THIS);
-  pth_event_free (timeout, PTH_FREE_THIS);
-  pth_event_free (input, PTH_FREE_THIS);
+  process_read(true);
 }
 
-LowLevelDriver::EMIVer FT12LowLevelDriver::getEMIVer ()
+void
+FT12LowLevelDriver::process_read(bool is_timeout)
+{
+  while (akt.size() > 0)
+    {
+      if (akt[0] == 0xE5 && send_wait)
+        {
+          send_q.get ();
+          akt.deletepart (0, 1);
+          timer.stop();
+          send_wait = false;
+          if (!send_q.isempty())
+            trigger.send();
+          repeatcount = 0;
+        }
+      else if (akt[0] == 0x10)
+        {
+          if (akt.size() < 4)
+            break;
+          if (akt[1] == akt[2] && akt[3] == 0x16)
+            {
+              uchar c1 = 0xE5;
+              t->TracePacket (0, "Send Ack", 1, &c1);
+              sendbuf.write(&c1,1);
+              if ((akt[1] == 0xF3 && !recvflag) ||
+                  (akt[1] == 0xD3 && recvflag))
+                {
+                  //correct sequence number
+                  recvflag = !recvflag;
+                }
+              if ((akt[1] & 0x0f) == 0)
+                {
+                  const uchar reset[1] = { 0xA0 };
+                  CArray *c = new CArray (reset, sizeof (reset));
+                  t->TracePacket (0, "RecvReset", *c);
+                  on_recv (c);
+                }
+            }
+          akt.deletepart (0, 4);
+        }
+      else if (akt[0] == 0x68)
+        {
+          int len;
+          uchar c1;
+          if (akt.size() < 7)
+            goto err_out;
+          if (akt[1] != akt[2] || akt[3] != 0x68)
+            {
+              //receive error, try to resume
+              goto err_out;
+            }
+          if (akt.size() < akt[1] + 6U)
+            goto err_out;
+
+          c1 = 0;
+          for (unsigned int i = 4; i < akt[1] + 4U; i++)
+            c1 += akt[i];
+          if (akt[akt[1] + 4] != c1 || akt[akt[1] + 5] != 0x16)
+            {
+              len = akt[1] + 6;
+              //Forget wrong short frame
+              akt.deletepart (0, len);
+              continue;
+            }
+
+          c1 = 0xE5;
+          t->TracePacket (0, "Send Ack", 1, &c1);
+          sendbuf.write (&c1, 1);
+
+          if ((akt[4] == 0xF3 && recvflag) ||
+              (akt[4] == 0xD3 && !recvflag))
+            {
+              if (CArray (akt.data() + 5, akt[1] - 1) != last)
+                {
+                  TRACEPRINTF (t, 0, "Sequence jump");
+                  recvflag = !recvflag;
+                }
+              else
+                TRACEPRINTF (t, 0, "Wrong Sequence");
+            }
+
+          if ((akt[4] == 0xF3 && !recvflag) ||
+              (akt[4] == 0xD3 && recvflag))
+            {
+              recvflag = !recvflag;
+              CArray *c = new CArray;
+              len = akt[1] + 6;
+              c->setpart (akt.data() + 5, 0, len - 7);
+              last = *c;
+              on_recv (c);
+            }
+          // XXX TODO otherwise set 'len' to what? Or continue?
+          akt.deletepart (0, len);
+        }
+      else
+        /* if timeout OR an unknown byte, drop it. */
+        if (false)
+          {
+    err_out:
+            if (!is_timeout)
+              break;
+          }
+        akt.deletepart (0, 1);
+    }
+
+  if (akt.size())
+    timer.start(0.15,0);
+}
+
+void
+FT12LowLevelDriver::sendtimer_cb(ev::timer &w, int revents)
+{
+  send_wait = false;
+  trigger.send();
+}
+
+void
+FT12LowLevelDriver::trigger_cb (ev::async &w, int revents)
+{
+  if (send_wait)
+    return;
+  if (send_q.isempty())
+    return;
+
+  const CArray &c = send_q.front ();
+  t->TracePacket (0, "Send", c);
+  repeatcount++;
+  sendbuf.write(c.data(), c.size());
+  send_wait = true;
+  timer.start(0.2, 0);
+}
+
+EMIVer FT12LowLevelDriver::getEMIVer ()
 {
   return vEMI2;
 }

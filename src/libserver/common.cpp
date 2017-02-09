@@ -23,8 +23,6 @@
 #include <sys/time.h>
 #endif
 
-pth_time_t pth_null_time = { 0L, 0L };
-
 timestamp_t
 getTime ()
 {

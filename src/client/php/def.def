@@ -183,6 +183,12 @@
 	$ibuf[offset] = EIBConnection::packb ((PAR(name)>>8)&0xff); \
 	$ibuf[offset+1] = EIBConnection::packb ((PAR(name))&0xff);
 
+#define EIBC_SETUINT32(name, offset) \
+	$ibuf[offset] = EIBConnection::packb ((PAR(name)>>24)&0xff); \
+	$ibuf[offset+1] = EIBConnection::packb ((PAR(name)>>16)&0xff); \
+	$ibuf[offset+2] = EIBConnection::packb ((PAR(name)>>8)&0xff); \
+	$ibuf[offset+3] = EIBConnection::packb ((PAR(name))&0xff);
+
 #define EIBC_SETLEN(name, offset) \
 	$ibuf[offset] = EIBConnection::packb (((name)>>8)&0xff); \
 	$ibuf[offset+1] = EIBConnection::packb (((name))&0xff);

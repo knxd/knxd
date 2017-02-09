@@ -20,29 +20,34 @@
 #include "layer2.h"
 #include "layer3.h"
 
-Layer2::Layer2 (L2options *opt, Trace *tr)
+Layer2shim::~Layer2shim () {}
+
+Layer2shim::Layer2shim (L2options *opt, TracePtr tr)
 {
   l3 = 0;
   t = opt ? opt->t : 0;
   if (! t)
     t = tr;
+}
+
+Layer2::Layer2 (L2options *opt, TracePtr tr) : Layer2shim (opt, tr)
+{
   mode = BUSMODE_DOWN;
   allow_monitor = !(opt && (opt->flags & FLAG_B_NO_MONITOR));
   if (opt) opt->flags &=~ FLAG_B_NO_MONITOR;
 }
 
 bool
-Layer2::init (Layer3 *layer3)
+Layer2shim::init (Layer3 *layer3)
 {
-  l3 = layer3;
-  if (! l3)
+  if (! layer3)
     return false;
-  l3->registerLayer2 (shared_from_this());
+  l3 = layer3;
   return true;
 }
 
 void
-Layer2::RunStop()
+Layer2shim::stop()
 {
   if (l3) {
     l3->deregisterLayer2 (shared_from_this());
@@ -53,59 +58,30 @@ Layer2::RunStop()
 bool
 Layer2::addAddress (eibaddr_t addr)
 {
-  unsigned i;
-  for (i = 0; i < indaddr (); i++)
-    if (indaddr[i] == addr)
+  ITER(i, indaddr)
+    if (*i == addr)
       return false;
-  indaddr.add (addr);
-  return true;
-}
-
-bool
-Layer2::addReverseAddress (eibaddr_t addr)
-{
-  if (addr == 0)
-    return false;
-  unsigned i;
-  for (i = 0; i < revaddr (); i++)
-    if (revaddr[i] == addr)
-      return false;
-  revaddr.add (addr);
+  indaddr.push_back (addr);
   return true;
 }
 
 bool
 Layer2::addGroupAddress (eibaddr_t addr)
 {
-  unsigned i;
-  for (i = 0; i < groupaddr (); i++)
-    if (groupaddr[i] == addr)
+  ITER(i, groupaddr)
+    if (*i == addr)
       return false;
-  groupaddr.add (addr);
+  groupaddr.push_back (addr);
   return true;
 }
 
 bool
 Layer2::removeAddress (eibaddr_t addr)
 {
-  unsigned i;
-  for (i = 0; i < indaddr (); i++)
-    if (indaddr[i] == addr)
+  ITER(i, indaddr)
+    if (*i == addr)
       {
-        indaddr.deletepart (i, 1);
-        return true;
-      }
-  return false;
-}
-
-bool
-Layer2::removeReverseAddress (eibaddr_t addr)
-{
-  unsigned i;
-  for (i = 0; i < revaddr (); i++)
-    if (revaddr[i] == addr)
-      {
-        revaddr.deletepart (i, 1);
+        indaddr.erase (i);
         return true;
       }
   return false;
@@ -114,11 +90,10 @@ Layer2::removeReverseAddress (eibaddr_t addr)
 bool
 Layer2::removeGroupAddress (eibaddr_t addr)
 {
-  unsigned i;
-  for (i = 0; i < groupaddr (); i++)
-    if (groupaddr[i] == addr)
+  ITER(i, groupaddr)
+    if (*i == addr)
       {
-        groupaddr.deletepart (i, 1);
+        groupaddr.erase (i);
         return true;
       }
   return false;
@@ -127,17 +102,8 @@ Layer2::removeGroupAddress (eibaddr_t addr)
 bool
 Layer2::hasAddress (eibaddr_t addr)
 {
-  for (unsigned int i = 0; i < indaddr (); i++)
-    if (indaddr[i] == addr)
-      return true;
-  return false;
-}
-
-bool
-Layer2::hasReverseAddress (eibaddr_t addr)
-{
-  for (unsigned int i = 0; i < revaddr (); i++)
-    if (revaddr[i] == addr)
+  ITER(i, indaddr)
+    if (*i == addr)
       return true;
   return false;
 }
@@ -145,8 +111,8 @@ Layer2::hasReverseAddress (eibaddr_t addr)
 bool
 Layer2::hasGroupAddress (eibaddr_t addr)
 {
-  for (unsigned int i = 0; i < groupaddr (); i++)
-    if (groupaddr[i] == addr || groupaddr[i] == 0)
+  ITER(i, groupaddr)
+    if (*i == addr || *i == 0)
       return true;
   return false;
 }
@@ -190,8 +156,23 @@ Layer2::Close ()
 }
 
 bool
-Layer2::Send_Queue_Empty ()
+Layer2single::addAddress(eibaddr_t addr)
 {
+  remoteAddr = addr;
+}
+
+bool
+Layer2single::hasAddress(eibaddr_t addr)
+{
+  return (remoteAddr == addr);
+}
+
+bool
+Layer2single::removeAddress(eibaddr_t addr)
+{
+  if (remoteAddr != addr)
+    return false;
+  remoteAddr = 0;
   return true;
 }
 

@@ -186,6 +186,12 @@
 	ibuf[offset] = (byte)((name>>8)&0xff); \
 	ibuf[offset+1] = (byte)((name)&0xff);
 
+#define EIBC_SETUINT32(name, offset) \
+	ibuf[offset] = (byte)((name>>24)&0xff); \
+	ibuf[offset+1] = (byte)((name>16)&0xff);
+	ibuf[offset+2] = (byte)((name>8)&0xff);
+	ibuf[offset+3] = (byte)((name)&0xff);
+
 #define EIBC_SETLEN(name, offset) \
 	ibuf[offset] = (byte)((name>>8)&0xff); \
 	ibuf[offset+1] = (byte)((name)&0xff);

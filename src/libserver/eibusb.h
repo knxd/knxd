@@ -22,50 +22,50 @@
 
 #include "layer2.h"
 #include "lowlevel.h"
+#include "emi_common.h"
 
 /** USBConverterInterface */
 class USBConverterInterface:public LowLevelDriver
 {
-  Trace *t;
   LowLevelDriver *i;
   EMIVer v;
 public:
-  USBConverterInterface (LowLevelDriver * iface, Trace * tr,
+  USBConverterInterface (LowLevelDriver * iface, TracePtr tr,
                           EMIVer ver);
   virtual ~USBConverterInterface ();
   bool init ();
 
   void Send_Packet (CArray l);
-  bool Send_Queue_Empty ();
-  pth_sem_t *Send_Queue_Empty_Cond ();
-  CArray *Get_Packet (pth_event_t stop);
 
   void SendReset ();
 
   EMIVer getEMIVer ();
+
+private:
+  void on_recv_cb(CArray *p);
+
 };
 
 LowLevelDriver *initUSBDriver (LowLevelDriver * i,
-					Trace * tr);
+					TracePtr tr);
 
 /** USB backend */
 class USBLayer2:public Layer2
 {
   /** EMI */
-  Layer2Ptr emi;
+  EMIPtr emi;
 
 public:
   USBLayer2 (LowLevelDriver * i, L2options *opt);
   bool init (Layer3 * l3);
 
-  void Send_L_Data (LPDU * l);
+  void send_L_Data (LDataPtr l);
 
   bool enterBusmonitor ();
   bool leaveBusmonitor ();
 
   bool Open ();
   bool Close ();
-  bool Send_Queue_Empty ();
 };
 
 #endif

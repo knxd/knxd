@@ -21,43 +21,30 @@
 #define TPUART_SERIAL_H
 #include <termios.h>
 #include "lowlatency.h"
-#include "layer2.h"
-#include "lpdu.h"
+#include "tpuart.h"
 
 /** TPUART user mode driver */
-class TPUARTSerialLayer2Driver:public Layer2, private Thread
+class TPUARTSerialLayer2Driver:public TPUART_Base
 {
   /** old serial config */
   low_latency_save sold;
   /** old termios state */
   struct termios old;
-  /** file descriptor */
-  int fd;
-  /** semaphore for inqueue */
-  pth_sem_t in_signal;
-  /** input queue */
-  Queue < LPDU * >inqueue;
-  /** output queue */
-  bool ackallgroup;
-  bool ackallindividual;
   bool dischreset;
 
-  /** process a recevied frame */
-  void RecvLPDU (const uchar * data, int len);
-  void Run (pth_sem_t * stop);
   const char *Name() { return "tpuarts"; }
+  void dev_timer();
+  virtual void termios_settings (struct termios &t);
+  virtual unsigned int default_baudrate () { return 19200; }
+
+  const char *dev;
+
+protected:
+  void setstate(enum TSTATE state);
+
 public:
   TPUARTSerialLayer2Driver (const char *dev, L2options *opt);
-  ~TPUARTSerialLayer2Driver ();
-  bool init (Layer3 *l3);
-
-  void Send_L_Data (LPDU * l);
-
-  bool enterBusmonitor ();
-  bool leaveBusmonitor ();
-
-  bool Open ();
-  bool Send_Queue_Empty ();
+  ~TPUARTSerialLayer2Driver();
 };
 
 #endif

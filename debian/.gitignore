@@ -10,6 +10,6 @@
 /knxd.install
 /knxd.service
 /knxd.socket
-/debhelper-build-stamp
 /autoreconf.after
 /autoreconf.before
+/debhelper-build-stamp

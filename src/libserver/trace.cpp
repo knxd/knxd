@@ -23,6 +23,8 @@
 
 #include "trace.h"
 
+static bool trace_started = false;
+
 unsigned int trace_seq = 0;
 unsigned int trace_namelen = 3;
 
@@ -38,11 +40,21 @@ Trace::TraceHeader (int layer)
   tv.tv_usec -= started.tv_usec;
   tv.tv_sec -= started.tv_sec;
 
-  printf ("Layer %d [%d:%-*s %u.%03u] ", layer, seq, trace_namelen, name.c_str(), (unsigned int)tv.tv_sec,(unsigned int)tv.tv_usec/1000);
+  if (!trace_started) {
+      trace_started = true;
+      setvbuf(stdout, NULL, _IOLBF, 0);
+      setvbuf(stderr, NULL, _IOLBF, 0);
+  }
+  if (servername.length())
+    printf("%s: ",servername.c_str());
+  if (timestamps)
+    printf ("Layer %d [%2d:%-*s %u.%03u] ", layer, seq, trace_namelen, name.c_str(), (unsigned int)tv.tv_sec,(unsigned int)tv.tv_usec/1000);
+  else
+    printf ("Layer %d [%2d:%s] ", layer, seq, name.c_str());
 }
 
 void
-Trace::TracePacketUncond (int layer, void *inst, const char *msg, int Len,
+Trace::TracePacketUncond (int layer, const char *msg, int Len,
 			  const uchar * data)
 {
   int i;
@@ -54,7 +66,7 @@ Trace::TracePacketUncond (int layer, void *inst, const char *msg, int Len,
 }
 
 void
-Trace::TracePrintf (int layer, void *inst, const char *msg, ...)
+Trace::TracePrintf (int layer, const char *msg, ...)
 {
   va_list ap;
   TraceHeader(layer);
@@ -92,6 +104,8 @@ Trace::ErrorPrintfUncond (unsigned int msgid, const char *msg, ...)
     default:
       c = '?';
     }
+  if (servername.length())
+    fprintf(stderr, "%s: ",servername.c_str());
   fprintf (stderr, "%c%08d: ", c, (msgid & 0xffffff));
   va_start (ap, msg);
   vfprintf (stderr, msg, ap);
