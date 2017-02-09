@@ -17,9 +17,7 @@ SLOT="9999"
 KEYWORDS=""
 IUSE="eibd ft12 pei16s tpuarts eibnetip eibnetiptunnel eibnetipserver usb groupcache java ncn5120 dummy"
 
-DEPEND="dev-libs/pthsem
-	usb? ( dev-libs/libusb )
-	"
+DEPEND="usb? ( dev-libs/libusb )"
 
 EGIT_REPO_URI="https://github.com/knxd/knxd.git"
 
