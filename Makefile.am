@@ -8,7 +8,7 @@ CONFIGURE_DEPENDENCIES=debian/changelog
 BUILDDIRS = 
 
 SUBDIRS=. src systemd tools
-DIST_SUBDIRS    = $(SUBDIRS) rpm
+DIST_SUBDIRS    = $(SUBDIRS)
 
 BUILT_SOURCES=path.h version.h
 CLEANFILES=path.h version.h
@@ -23,14 +23,6 @@ version.h: CHECK
 	cmp -s $@.new $@ && rm $@.new || mv $@.new $@
 	
 
-# source and binary RPMs
-#
-.PHONY:	RPM
-RPM:	all dist
-	rm -f rpm/rpm-tmp.*
-	make -C rpm $@
-
-
 .PHONY: help HELP
 help HELP:
 	@echo ""
@@ -39,10 +31,6 @@ help HELP:
 	@echo "the following make targets may be supported (at this level):"
 	@echo ""
 	@echo "    make help    - print this text"
-	@echo "    make RPM     - create (source and binary) RPMs"
-	@echo ""
-	@echo "NOTE: The RPM target may fail because it requires" 
-	@echo "additional tools that may not be present on your machine."
 	@echo ""
 
 # update version number
