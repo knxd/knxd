@@ -42,7 +42,7 @@ class IniSection {
     bool value(const std::string& name, bool def);
 
     IniSection(IniData& parent);
-    int add(const char *name, const char *value);
+    bool add(const char *name, const char *value);
 
     void write(std::ostream& file);
 };
@@ -60,7 +60,7 @@ public:
     IniSection& operator[](const char *name);
     IniSection& operator[](const std::string& name);
 
-    int add(const char *section, const char *name, const char *value);
+    bool add(const char *section, const char *name, const char *value);
 
     int parse(const std::string& filename);
     int parse(std::istream& file);

@@ -118,7 +118,7 @@ inidata_handler(void* user, const char* section, const char* name, const char* v
   return data->add(section, name, value);
 }
 
-int
+bool
 IniData::add(const char *section, const char *name, const char *value)
 {
   auto res = sections.emplace(std::piecewise_construct,
@@ -127,12 +127,12 @@ IniData::add(const char *section, const char *name, const char *value)
   if (! res.second && name == NULL)
     {
       std::cerr << "Parse error: Duplicate section: " << section << std::endl;
-      return 0;
+      return false;
     }
 
   IniSection *s = &(res.first->second);
   if (name == NULL)
-    return 1;
+    return true;
   return s->add(name,value);
 }
 
@@ -160,7 +160,7 @@ IniData::operator[](const std::string& name)
   return (*this)[name.c_str()];
 }
 
-int
+bool
 IniSection::add(const char *name, const char *value)
 {
   if (value == NULL)
@@ -170,9 +170,9 @@ IniSection::add(const char *name, const char *value)
   if (! res2.second)
     {
       std::cerr << "Parse error: Duplicate value: " << name << std::endl;
-      return 0;
+      return false;
     }
-  return 1;
+  return true;
 }
 
 static char*
