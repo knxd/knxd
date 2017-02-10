@@ -48,7 +48,7 @@ class IniSection {
     void write(std::ostream& file);
 };
 
-typedef std::unordered_map<std::string,IniSection> SectionMap;
+typedef std::unordered_map<std::string, IniSection> SectionMap;
 class IniData {
     SectionMap sections;
 
