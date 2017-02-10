@@ -35,14 +35,14 @@ class IniData;
 class IniSection {
     const std::string name; // aliased from the mapping's key
     ValueMap values;
-    IniData& parent;
+    const IniData& parent;
   public:
     const std::string& value(const std::string& name, const std::string& def);
     std::string& operator[](const char *name);
     int value(const std::string& name, int def);
     bool value(const std::string& name, bool def);
 
-    IniSection(IniData& parent, const std::string& n);
+    IniSection(const IniData& parent, const std::string& n);
     bool add(const char *name, const char *value);
 
     void write(std::ostream& file);
