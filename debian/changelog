@@ -1,3 +1,9 @@
+knxd (0.12.12-1) unstable; urgency=medium
+
+  * eibread-cgi: reinstate initial read (but not for all addresses)
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 10 Feb 2017 21:22:47 +0100
+
 knxd (0.12.11-1) unstable; urgency=medium
 
   * eibread-cgi: old last-update reader: wraparound handled wrongly
