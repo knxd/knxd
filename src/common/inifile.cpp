@@ -31,7 +31,7 @@
 #include "inifile.h"
 #include "types.h"
 
-IniSection::IniSection(IniData &p) : values(), parent(p) { }
+IniSection::IniSection(const IniData &p, const std::string& n) : values(), name(n), parent(p) { }
 
 const std::string&
 IniSection::value(const std::string& name, const std::string& def)
@@ -123,7 +123,7 @@ IniData::add(const char *section, const char *name, const char *value)
 {
   auto res = sections.emplace(std::piecewise_construct,
                 std::forward_as_tuple(section),
-                std::forward_as_tuple(*this));
+                std::forward_as_tuple(*this, section));
   if (! res.second && name == NULL)
     {
       std::cerr << "Parse error: Duplicate section: " << section << std::endl;
@@ -149,7 +149,7 @@ IniData::operator[](const char *name)
     {
       auto res = sections.emplace(std::piecewise_construct,
                     std::forward_as_tuple(name),
-                    std::forward_as_tuple(*this));
+                    std::forward_as_tuple(*this, name));
       return res.first->second;
     }
 }

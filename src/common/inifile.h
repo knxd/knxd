@@ -33,6 +33,7 @@ typedef std::unordered_map<std::string,std::string> ValueMap;
 class IniData;
 
 class IniSection {
+    const std::string name; // aliased from the mapping's key
     ValueMap values;
     IniData& parent;
   public:
@@ -41,7 +42,7 @@ class IniSection {
     int value(const std::string& name, int def);
     bool value(const std::string& name, bool def);
 
-    IniSection(IniData& parent);
+    IniSection(IniData& parent, const std::string& n);
     bool add(const char *name, const char *value);
 
     void write(std::ostream& file);
