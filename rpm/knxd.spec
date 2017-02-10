@@ -13,15 +13,33 @@ Distribution: CentOS
 Vendor:       smurf
 License:      GPL
 Packager:     Michael Kefeder <m.kefeder@gmail.com>
-# libusb-1.0 is in libusbx package
-Requires: libusbx
-Requires: libev
 
 %if 0%{?rhel} >= 7
+# libusb-1.0 is in libusbx package on RHEL
+Requires: libusbx
+%endif
+%if %{defined suse_version}
+Requires: libusb-1_0
+%endif
+Requires: systemd
+Requires: libev
+
+%if 0%{?rhel} >= 7 || %{defined suse_version}
 BuildRequires: systemd
 BuildRequires: systemd-devel
-BuildRequires: libusbx-devel
 BuildRequires: libev-devel
+%endif
+%if 0%{?rhel} >= 7
+BuildRequires: libusbx-devel
+%endif
+%if %{defined suse_version}
+BuildRequires: systemd-rpm-macros
+%{?systemd_requires}
+BuildRequires: libusb-1_0-devel
+%endif
+# Opensuse 13 systemd-rpm-macros does not define that!?
+%if %{undefined _sysusersdir} && %{defined suse_version}
+%define _sysusersdir /usr/lib/sysusers.d
 %endif
 
 ###############################################################################
@@ -36,7 +54,11 @@ A KNX daemon and tools supporting it.
 ###############################################################################
 %build
 %configure
-%make_build
+%if %{defined suse_version}
+  make
+%else
+  %make_build
+%endif
 
 ###############################################################################
 %install
@@ -191,9 +213,11 @@ A KNX daemon and tools supporting it.
 %{_datarootdir}/knxd/examples/xpropread.c
 %{_datarootdir}/knxd/examples/xpropwrite.c
 
+%if %{undefined suse_version}
 %exclude
 %{_datarootdir}/knxd/EIBConnection.pyc
 %{_datarootdir}/knxd/EIBConnection.pyo
+%endif
 
 ###############################################################################
 # preinstall
@@ -229,6 +253,7 @@ fi
 * Thu Feb 09 2017 Michael Kefeder <m.kefeder@gmail.com> 0.12.10
 - libev based release 0.12.10
 - improved user add/del in spec file
+- builds on OpenSUSE 13
 
 * Mon Jan 09 2017 Michael Kefeder <m.kefeder@gmail.com> 0.11.18-0
 - Initial spec file created and tested on CentOS 7
