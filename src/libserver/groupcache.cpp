@@ -354,10 +354,11 @@ GroupCache::LastUpdates (uint16_t start, uint8_t Timeout,
     GCLastCallback cb, ClientConnPtr cc)
 {
   uint32_t st;
-  if (seq > 0xFFFF && start > (st&0xFFFF))
-    st = (seq&~0xFFFF) - 0x10000 + start;
+  // counter wraparound
+  st = (seq&~0xFFFF) + start;
+  if (st > seq)
+    st -= 0x10000;
   else
-    st = start;
   new GCTracker(this, st, Timeout, cb,cc);
 }
 

@@ -1,3 +1,9 @@
+knxd (0.12.11-1) unstable; urgency=medium
+
+  * eibread-cgi: old last-update reader: wraparound handled wrongly
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 10 Feb 2017 02:13:25 +0100
+
 knxd (0.12.10-1) unstable; urgency=medium
 
   * stupid errors in the ncn5120 driver
