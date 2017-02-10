@@ -166,7 +166,7 @@ void readConfig()
 {
   char fname[] = "/etc/wiregate/eibga.conf";
   FILE* fp;       /*Declare file pointer variable*/
-  char *buf[BUFSIZE], *tok;
+  char buf[BUFSIZE], *tok;
   //char *buf, *tok;
   int hg,mg,ga;
   int currentga=0,ptr;
