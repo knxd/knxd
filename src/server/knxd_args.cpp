@@ -402,7 +402,12 @@ parse_opt (int key, char *arg, struct argp_state *state)
         ini[link]["driver"] = "knx-link";
         const char *name = OPT_ARG(arg,state,NULL);
         if (name)
-          ini[link]["path"] = name;
+          {
+            ini[link]["path"] = name;
+            ini[link]["systemd-ignore"] = "false";
+          }
+        else:
+          ini[link]["systemd-ignore"] = "true";
         arguments->stack(link);
       }
       break;
@@ -415,7 +420,12 @@ parse_opt (int key, char *arg, struct argp_state *state)
         ini[link]["driver"] = "knx-link";
         const char *port = OPT_ARG(arg,state,"");
         if (*port && atoi(port) > 0)
-          ini[link]["port"] = port;
+          {
+            ini[link]["port"] = port;
+            ini[link]["systemd-ignore"] = "false";
+          }
+        else
+          ini[link]["systemd-ignore"] = "true";
 
         arguments->stack(link);
       }

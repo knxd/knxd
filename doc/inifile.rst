@@ -185,6 +185,38 @@ it starts up. (In contrast, a server (below) is a point of connection which
 knxd establishes so that other interfaces, routers or clients may connect
 to it.)
 
+Each interface in your "main" section names a section where that
+interface's driver is configured. If a driver doesn't need any
+configuration you may just use the name of the driver. Thus,
+
+    [main]
+    interfaces=foo,…
+
+and
+
+    [main]
+    interfaces=my-driver,…
+
+    [my-driver]
+    driver=foo
+
+are equivalent, as are
+
+    [main]
+    interfaces=my-driver,…
+
+    [my-driver]
+    driver=foo
+    some-options=true
+
+and
+
+    [main]
+    interfaces=foo,…
+
+    [foo]
+    some-options=true
+
 dummy
 -----
 
@@ -417,10 +449,12 @@ Some drivers accept these options.
     Optional; default false.
 
     If you want to monitor a specific device while using it normally, use
-    the "monitor" filter.
-    
+    the "monitor" filter instead.
+
     If you want to log all packets passing through knxd, use the
-    "vbusmonitor" commands.
+    "vbusmonitor" commands instead.
+
+    There is no way to switch a device from bus monitoring to normal mode.
 
 Servers
 =======
@@ -479,6 +513,46 @@ with the standardized KNX tunneling or routing protocols.
 
     Optional; defaults to the interface with the default route.
 
+unix-socket
+-----------
+
+Allow local knxd-specific clients to connect using a Unix-domain socket.
+
+  * path (string: file name)
+
+    Path to the socket file to use.
+
+    Optional; default /run/knx.
+
+  * systemd-ignore
+
+    Ignore this option when knxd is started via systemd.
+
+    Optional; default "true" if no path option is used.
+
+tcp-socket
+----------
+
+Allow remote knxd-specific clients to connect using a TCP socket.
+
+  * ip-address (string: IP address)
+
+    Bind to this address.
+
+    Default: none, i.e. listen on all addresses the system is using.
+
+  * port (int)
+
+    TCP port to bind to.
+
+    Optional; default 6720.
+
+  * systemd-ignore
+
+    Ignore this option when knxd is started via systemd.
+
+    Optional; default "true" if no port option is used.
+
 Filters
 =======
 
@@ -491,17 +565,32 @@ doesn't need any configuration you may just use the name of the filter.
 Thus,
 
     [some-driver]
-    filters=foo
+    filters=foo,…
 
 and
 
     [some-driver]
-    filters=my-filter
+    filters=my-filter,…
 
     [my-filter]
     filter=foo
 
-are equivalent.
+are equivalent, as are
+
+    [some-driver]
+    filters=my-filter,…
+
+    [my-filter]
+    filter=foo
+    some-option=true
+
+and
+
+    [some-driver]
+    filters=foo,…
+
+    [foo]
+    some-option=true
 
 Filters are applied in order; conceptually, the knx router is added at the
 beginning of the filter list, while the driver itself is at the end.
@@ -512,10 +601,12 @@ server gets this set of filters.
 single
 ------
 
-knxd will behave as if there is only a single device talking to the driver
-in question, instead of a complete knx network with mutiple clients.
-Specifically, on outgoing packets it will remember the sender's address 
-in order to re-address any replies (if they're addressed individually).
+This filter allows knxd to connect to devices which only expect (or accept)
+a single device. Thus, on outgoing packets knxd will remember the sender's
+address in order to re-address any replies (if they're addressed
+individually).
+
+The "single" filter may not be necessary unless you're programming devices with ETS.
 
 monitor
 -------
