@@ -38,7 +38,13 @@ IniSection::value(const std::string& name, const std::string& def)
 {
   auto v = values.find(name);
   if (v == values.end())
-    return def;
+    {
+      v = values.find("use");
+      if (v == values.end())
+        return def;
+      return parent[v->second].values(name,def);
+    }
+
   return v->second;
 }
 
