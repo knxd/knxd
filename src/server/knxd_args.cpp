@@ -106,14 +106,14 @@ public:
    * and with 'false' when you want to use it.
    *
    * If the current tracer has been used, it's not modified; instead, it is
-   * passed to Layer3 (which will deallocate it when it ends) and copied to
+   * passed to Router (which will deallocate it when it ends) and copied to
    * a new instance.
    */
 
   void stack(const std::string section, bool clear = true)
     {
       ITER(i,filters)
-        ADD(ini[section]["filter"],(*i));
+        ADD(ini[section]["filters"],(*i));
       if (l2opts.send_delay)
         {
           char buf[10];
@@ -125,13 +125,13 @@ public:
       if (l2opts.flags & FLAG_B_TPUARTS_ACKINDIVIDUAL)
         ini[section]["ack-individual"] = "true";
       if (l2opts.flags & FLAG_B_TPUARTS_DISCH_RESET)
-        ini[section]["disch-reset"] = "true";
+        ini[section]["reset"] = "true";
       if (l2opts.flags & FLAG_B_NO_MONITOR)
         ini[section]["monitor"] = "false";
       if (tracelevel >= 0 || errorlevel >= 0 || no_timestamps) {
           char b1[10],b2[50];
-          snprintf(b2,sizeof(b2),"debug--%s",section.c_str());
-          ini["section"]["debug"] = b2;
+          snprintf(b2,sizeof(b2),"debug-%s",section.c_str());
+          ini[section]["debug"] = b2;
           if (tracelevel >= 0)
             {
               snprintf(b1,sizeof(b1),"0x%x",tracelevel);
@@ -198,10 +198,10 @@ void driver_args(const char *arg, char *ap)
     driver_argsv(arg,ap, "!ip-address","dest-port","src-port", NULL);
   else if(!strcmp(arg,"iptn"))
     {
-      driver_argsv(arg,ap, "!ip-address","dest-port","src-port","nat-ip","data-port", NULL);
+      driver_argsv("ipt",ap, "!ip-address","dest-port","src-port","nat-ip","data-port", NULL);
       ini[link]["nat"] = "true";
     }
-  else if(!strcmp(arg,"ft12") || !strcmp(arg,"ncn5120") || !strcmp(arg,"tpuarts"))
+  else if(!strcmp(arg,"ft12") || !strcmp(arg,"ncn5120") || !strcmp(arg,"tpuarts") || !strcmp(arg,"ft12cemi"))
     driver_argsv(arg,ap, "!device","baudrate", NULL);
   else if(!strcmp(arg,"dummy"))
     driver_argsv(arg,ap, NULL);
@@ -318,7 +318,7 @@ static struct argp_option options[] = {
   {"no-emi-send-queuing", OPT_BACK_EMI_NOQUEUE, 0, 0,
    "wait for ACK after transmitting packets. Obsolete, please use --send-delay=500"},
   {"no-monitor", 'N', 0, 0,
-   "the next Layer2 interface may not enter monitor mode"},
+   "the next Driver interface may not enter monitor mode"},
   {"allow-forced-broadcast", OPT_FORCE_BROADCAST, 0, 0,
    "Treat routing counter 7 as per KNX spec (dangerous)"},
   {"stop-right-now", OPT_STOP_NOW, 0, OPTION_HIDDEN,
@@ -337,7 +337,8 @@ parse_opt (int key, char *arg, struct argp_state *state)
       ini["server"]["tunnel"] = "true";
       break;
     case 'R':
-      ini["server"]["router"] = "true";
+      ini["server"]["router"] = "router";
+      ini["router"]["driver"] = "ets-multicast";
       break;
     case 'D':
       ini["server"]["discover"] = "true";
@@ -353,8 +354,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
     case 'S':
       {
-        ADD(ini["main"]["links"], "server");
-        ini["server"]["driver"] = "server";
+        ADD(ini["main"]["connections"], "server");
+        ini["server"]["server"] = "router";
+        ini["server"]["driver"] = "ets-link";
 
         const char *serverip;
         const char *name = arguments->servername.c_str();
@@ -395,8 +397,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'u':
       {
         ++*link;
-        ADD(ini["main"]["links"], link);
-        ini[link]["driver"] = "unix-socket";
+        ADD(ini["main"]["connections"], link);
+        ini[link]["server"] = "unix-socket";
+        ini[link]["driver"] = "knx-link";
         const char *name = OPT_ARG(arg,state,NULL);
         if (name)
           ini[link]["path"] = name;
@@ -407,8 +410,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'i':
       {
         ++*link;
-        ADD(ini["main"]["links"], link);
-        ini[link]["driver"] = "tcp-socket";
+        ADD(ini["main"]["connections"], link);
+        ini[link]["server"] = "tcp-socket";
+        ini[link]["driver"] = "knx-link";
         const char *port = OPT_ARG(arg,state,"");
         if (*port && atoi(port) > 0)
           ini[link]["port"] = port;
@@ -498,7 +502,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'b':
       {
         ++*link;
-        ADD(ini["main"]["links"], link);
+        ADD(ini["main"]["connections"], link);
         char *ap = strchr(arg,':');
         if (ap)
           *ap++ = '\0';
@@ -517,8 +521,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
 #ifdef HAVE_SYSTEMD
       {
-        ADD(ini["main"]["links"], "systemd");
-        ini["systemd"]["driver"] = "systemd";
+        ADD(ini["main"]["connections"], "systemd");
+        ini["systemd"]["server"] = "systemd";
+        ini["systemd"]["driver"] = "knx-link";
         arguments->stack("systemd");
       }
 #endif
