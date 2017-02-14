@@ -23,7 +23,7 @@
 #include "server.h"
 
 /** implements a server listening on a TCP port */
-class InetServer:public NetServer
+SERVER_(InetServer,NetServer,knxd_tcp)
 {
 protected:
   void setupConnection (int cfd);

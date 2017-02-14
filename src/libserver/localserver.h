@@ -23,7 +23,7 @@
 #include "server.h"
 
 /** implements a server listening on a unix domain socket */
-class LocalServer:public NetServer
+SERVER_(LocalServer,NetServer,knxd_unix)
 {
 public:
   LocalServer (BaseRouter& r, IniSection& s);

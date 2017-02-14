@@ -22,6 +22,10 @@
 #include <sys/socket.h>
 #include "systemdserver.h"
 
+/*
+ * systemd services are not controlled by the "usual" server logic,
+ * so no SERVER macro here.
+ */
 SystemdServer::SystemdServer (BaseRouter& r, IniSection& s, int systemd_fd)
     : NetServer(r,s)
 {
@@ -38,12 +42,15 @@ void
 SystemdServer::start()
 {
   TRACEPRINTF (t, 8, "OpenSystemdSocket");
+  if (fd < 0)
+    {
+      stopped();
+      return;
+    }
 
   if (listen (fd, 10) == -1)
     {
       ERRORPRINTF (t, E_ERROR | 19, "OpenSystemdSocket: listen: %s", strerror(errno));
-      close (fd);
-      fd = -1;
       NetServer::stop();
       return;
     }
@@ -55,11 +62,12 @@ SystemdServer::start()
 void
 SystemdServer::stop()
 {
-  if (fd > -1)
-    {
-      close(fd);
-      fd = -1;
-    }
+//** actually, we can't. So fake it.
+//  if (fd > -1)
+//    {
+//      close(fd);
+//      fd = -1;
+//    }
   NetServer::stop();
 }
 

@@ -27,7 +27,7 @@
 #include "inetserver.h"
 
 InetServer::InetServer (BaseRouter& r, IniSection& s)
-  : NetServer(r,s)
+  : AutoRegister_(r,s)
 {
 }
 

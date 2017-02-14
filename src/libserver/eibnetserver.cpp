@@ -30,7 +30,7 @@
 #include <memory>
 
 EIBnetServer::EIBnetServer (BaseRouter& r, IniSection& s)
-	: Server(r,s)
+	: AutoRegister(r,s)
   , mcast(NULL)
   , sock(NULL)
   , tunnel(false)

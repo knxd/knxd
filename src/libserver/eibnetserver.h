@@ -99,7 +99,7 @@ public:
   void send_L_Data (LDataPtr l);
 };
 
-class EIBnetServer: public Server
+SERVER(EIBnetServer,router)
 {
   friend class ConnState;
   friend class EIBnetDriver;

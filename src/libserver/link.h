@@ -114,7 +114,7 @@ template<class C>
 class Factory {
 public:
   typedef typename C::first_arg C_first;
-  typedef C * (*Creator)(C_first& c, IniSection& s);
+  typedef C * (*Creator)(C_first c, IniSection& s);
   typedef std::unordered_map<const char *, Creator> M;
   static M& map() { static M m; return m;}
 
@@ -162,7 +162,7 @@ struct RegisterClass
 template <class T, class I, const char * N>
 struct AutoRegister: public I
 {
-    AutoRegister(LinkConnectPtr c, IniSection& s) : I(c,s) { &ourRegisterer; } 
+    AutoRegister(typename I::first_arg c, IniSection& s) : I(c,s) { &ourRegisterer; } 
 private:
     static RegisterClass<T, I, N> ourRegisterer;
 };
@@ -170,7 +170,7 @@ private:
 template <class T, class I, class D, const char * N>
 struct AutoRegister_: public I
 {
-    AutoRegister_(LinkConnectPtr c, IniSection& s) : I(c,s) { &ourRegisterer; } 
+    AutoRegister_(typename I::first_arg c, IniSection& s) : I(c,s) { &ourRegisterer; } 
 private:
     static RegisterClass<T, D, N> ourRegisterer;
 };
@@ -279,12 +279,20 @@ public:
   void addAddress (eibaddr_t addr) {}
 };
 
+#define SERVER(_cls,_name) \
+static constexpr const char _cls##_name[] = #_name; \
+class _cls : public AutoRegister<_cls,Server,_cls##_name>
+
+#define SERVER_(_cls,_base,_name) \
+static constexpr const char _cls##_name[] = #_name; \
+class _cls : public AutoRegister_<_cls,_base,Server,_cls##_name>
+
 class Server : public LinkConnect
 {
 public:
   IniSection& client_section;
 
-  typedef BaseRouter first_arg;
+  typedef BaseRouter& first_arg;
   Server(BaseRouter& r, IniSection& s);
   LinkConnectPtr new_link();
   virtual ~Server();
@@ -304,7 +312,7 @@ class Filter : public LinkRecv
 {
   friend class LinkConnect;
 public:
-  typedef LinkConnect first_arg;
+  typedef LinkConnectPtr first_arg;
 
   Filter(LinkConnectPtr c, IniSection& s) : conn(c), LinkRecv(c->router, s) {}
   virtual ~Filter();
@@ -339,6 +347,7 @@ public:
 #define DRIVER(_cls,_name) \
 static constexpr const char _cls##_name[] = #_name; \
 class _cls : public AutoRegister<_cls,Driver,_cls##_name>
+
 #define DRIVER_(_cls,_base,_name) \
 static constexpr const char _cls##_name[] = #_name; \
 class _cls : public AutoRegister_<_cls,_base,Driver,_cls##_name>
@@ -348,7 +357,7 @@ class Driver : public LinkBase
   friend class LinkConnect;
   std::vector<bool> addrs;
 public:
-  typedef LinkConnect first_arg;
+  typedef LinkConnectPtr first_arg;
 
   Driver(LinkConnectPtr c, IniSection& s) : conn(c), LinkBase(c->router, s)
   { addrs.resize(65536); }
