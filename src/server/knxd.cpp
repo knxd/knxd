@@ -123,7 +123,6 @@ void fork_args_helper(int key)
       die("could not exec knxd_args helper");
       exit(1);
     }
-  fprintf(stderr,"Unknown argument (%d). Running helper program.",key);
   close(fifo[1]);
   dup2(fifo[0],0);
   close(fifo[0]);
@@ -273,8 +272,13 @@ main (int ac, char *ag[])
     stop_now = main.value("stop-after-setup",false);
 
   Router *r = new Router(i,mainsection);
+  if (!strcmp(cfgfile, "-"))
+    ERRORPRINTF(r->t, E_WARNING,"Consider using a config file.");
   if (!r->setup())
-    die("Error setting up the KNX router.");
+    {
+      ERRORPRINTF(r->t, E_FATAL,"Error setting up the KNX router.");
+      exit(1);
+    }
 
   if (background) {
     hup.t = TracePtr(new Trace(*r->t,"reload"));
