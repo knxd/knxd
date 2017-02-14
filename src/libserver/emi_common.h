@@ -20,7 +20,8 @@
 #ifndef EIB_EMI_COMMON_H
 #define EIB_EMI_COMMON_H
 
-#include "layer2.h"
+#include "link.h"
+#include "router.h"
 #include "lowlevel.h"
 #include "emi.h"
 #include "ev++.h"
@@ -32,7 +33,7 @@ typedef enum {
 } indTypes;
 
 /** EMI common backend code */
-class EMI_Common:public Layer2
+class EMI_Common:public Driver
 {
 protected:
   /** driver to send/receive */
@@ -42,7 +43,6 @@ protected:
   float send_delay;
 
   void Send (LDataPtr l);
-  virtual const char *Name() = 0;
 
   virtual void cmdEnterMonitor() = 0;
   virtual void cmdLeaveMonitor() = 0;
@@ -51,6 +51,7 @@ protected:
   virtual const uint8_t * getIndTypes() = 0;
 private:
   bool wait_confirm = false;
+  bool monitor = false;
 
   ev::async trigger;
   void trigger_cb (ev::async &w, int revents);
@@ -61,10 +62,12 @@ private:
   void on_recv_cb(CArray *p);
 
 public:
-  EMI_Common (LowLevelDriver * i, L2options *opt);
+  EMI_Common (LowLevelDriver * i, LinkConnectPtr c, IniSection& s);
   ~EMI_Common ();
-  bool init (Layer3 *l3);
-  Layer2Ptr real_l2 = nullptr;
+  bool setup();
+  void start();
+  void stop();
+  DriverPtr real_l2 = nullptr;
 
   void send_L_Data (LDataPtr l);
 
@@ -73,12 +76,10 @@ public:
 
   virtual CArray lData2EMI (uchar code, const LDataPtr &p)
   { return L_Data_ToEMI(code, p); }
-  virtual LDataPtr EMI2lData (const CArray & data, Layer2Ptr l2)
-  { return EMI_to_L_Data(data,l2); }
+  virtual LDataPtr EMI2lData (const CArray & data)
+  { return EMI_to_L_Data(data, t); }
 
   virtual unsigned int maxPacketLen() { return 0x10; }
-  bool Open ();
-  bool Close ();
 };
 
 typedef std::shared_ptr<EMI_Common> EMIPtr;

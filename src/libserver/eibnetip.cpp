@@ -95,14 +95,14 @@ IPtoEIBNetIP (const struct sockaddr_in * a, bool nat)
   return buf;
 }
 
-int
+bool
 EIBnettoIP (const CArray & buf, struct sockaddr_in *a,
 	    const struct sockaddr_in *src, bool & nat)
 {
   int ip, port;
   memset (a, 0, sizeof (*a));
   if (buf[0] != 0x8 || buf[1] != 0x1)
-    return 1;
+    return true;
   ip = (buf[2] << 24) | (buf[3] << 16) | (buf[4] << 8) | (buf[5]);
   port = (buf[6] << 8) | (buf[7]);
 #ifdef HAVE_SOCKADDR_IN_LEN
@@ -121,7 +121,7 @@ EIBnettoIP (const CArray & buf, struct sockaddr_in *a,
   else
     a->sin_addr.s_addr = htonl (ip);
 
-  return 0;
+  return false;
 }
 
 EIBNetIPSocket::EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr,
@@ -339,12 +339,14 @@ EIBNetIPSocket::io_recv_cb (ev::io &w, int revents)
 }
 
 bool
-EIBNetIPSocket::SetInterface(const char *iface)
+EIBNetIPSocket::SetInterface(std::string& iface)
 {
   struct sockaddr_in sa = {0};
   struct ip_mreqn addr = {{0}};
 
-  addr.imr_ifindex = if_nametoindex(iface);
+  if (iface.size() == 0)
+    return true;
+  addr.imr_ifindex = if_nametoindex(iface.c_str());
   return
     setsockopt(fd, IPPROTO_IP, IP_MULTICAST_IF, &addr, sizeof(addr)) >= 0;
 }

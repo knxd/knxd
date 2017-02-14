@@ -22,17 +22,14 @@
 #include <sys/ioctl.h>
 #include "ncn5120.h"
 
-NCN5120SerialLayer2Driver::NCN5120SerialLayer2Driver (const char *dev, L2options *opt)
-    : TPUARTSerialLayer2Driver(dev, opt)
-{
-}
+NCN5120SerialDriverDriver::NCN5120SerialDriverDriver (LinkConnectPtr c, IniSection& s)
+    : AutoRegister_(c,s) { }
 
-NCN5120SerialLayer2Driver::~NCN5120SerialLayer2Driver ()
-{
-}
+NCN5120SerialDriverDriver::~NCN5120SerialDriverDriver ()
+{ }
 
 void
-NCN5120SerialLayer2Driver::termios_settings(struct termios &t1)
+NCN5120SerialDriverDriver::termios_settings(struct termios &t1)
 {
     t1.c_cflag = CS8 | CLOCAL | CREAD;
     t1.c_iflag = IGNBRK | INPCK | ISIG;
@@ -42,19 +39,19 @@ NCN5120SerialLayer2Driver::termios_settings(struct termios &t1)
     t1.c_cc[VMIN] = 0;
 }
 
-unsigned int NCN5120SerialLayer2Driver::default_baudrate()
+unsigned int NCN5120SerialDriverDriver::default_baudrate()
 {
     return 38400;
 }
 
-void NCN5120SerialLayer2Driver::RecvLPDU (const uchar * data, int len)
+void NCN5120SerialDriverDriver::RecvLPDU (const uchar * data, int len)
 {
     skip_char = true;
-    TPUARTSerialLayer2Driver::RecvLPDU (data, len);
+    TPUARTSerialDriverDriver::RecvLPDU (data, len);
 }
 
 void
-NCN5120SerialLayer2Driver::setstate(enum TSTATE new_state)
+NCN5120SerialDriverDriver::setstate(enum TSTATE new_state)
 {
   if (new_state == T_in_setaddr && my_addr != 0)
     {
@@ -63,6 +60,6 @@ NCN5120SerialLayer2Driver::setstate(enum TSTATE new_state)
       sendbuf.write(addrbuf, sizeof(addrbuf));
       new_state = T_in_getstate;
     }
-  TPUARTSerialLayer2Driver::setstate(new_state);
+  TPUARTSerialDriverDriver::setstate(new_state);
 }
 

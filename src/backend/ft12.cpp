@@ -23,36 +23,50 @@
 
 #include "ft12.h"
 
-FT12LowLevelDriver::FT12LowLevelDriver (const char *dev, TracePtr tr)
-    : LowLevelDriver(tr)
+FT12LowLevelDriver::FT12LowLevelDriver (IniSection& s, TracePtr tr)
+    : LowLevelDriver(s,tr)
+{
+}
+
+bool
+FT12LowLevelDriver::setup(DriverPtr master)
+{
+  if(!LowLevelDriver::setup(master))
+    return false;
+  dev = cfg.value("device","");
+  if (!dev.size())
+    {
+      ERRORPRINTF (t, E_ERROR | 36, "Section '%s' requires a 'device=' entry", cfg.name);
+      return false;
+    }
+  return true;
+}
+
+void
+FT12LowLevelDriver::start()
 {
   struct termios t1;
   TRACEPRINTF (t, 1, "Open");
 
-  fd = open (dev, O_RDWR | O_NOCTTY | O_NDELAY | O_SYNC);
+  fd = open (dev.c_str(), O_RDWR | O_NOCTTY | O_NDELAY | O_SYNC);
   if (fd == -1)
-    return;
+    goto ex;
   set_low_latency (fd, &sold);
-
   close (fd);
 
-  fd = open (dev, O_RDWR | O_NOCTTY);
+  fd = open (dev.c_str(), O_RDWR | O_NOCTTY);
   if (fd == -1)
-    return;
+    goto ex;
   if (tcgetattr (fd, &old))
     {
-      restore_low_latency (fd, &sold);
-      close (fd);
-      fd = -1;
-      return;
+      ERRORPRINTF (t, E_ERROR | 34, "%s: getattr_old: %s", cfg.name.c_str(), strerror(errno));
+      goto ex2;
     }
 
   if (tcgetattr (fd, &t1))
     {
-      restore_low_latency (fd, &sold);
-      close (fd);
-      fd = -1;
-      return;
+      ERRORPRINTF (t, E_ERROR | 34, "%s: getattr: %s", cfg.name.c_str(), strerror(errno));
+      goto ex2;
     }
   t1.c_cflag = CS8 | PARENB | CLOCAL | CREAD;
   t1.c_iflag = IGNBRK | INPCK | ISIG;
@@ -65,15 +79,29 @@ FT12LowLevelDriver::FT12LowLevelDriver (const char *dev, TracePtr tr)
 
   if (tcsetattr (fd, TCSAFLUSH, &t1))
     {
-      restore_low_latency (fd, &sold);
-      close (fd);
-      fd = -1;
-      return;
+      ERRORPRINTF (t, E_ERROR | 34, "%s: setattr: %s", cfg.name.c_str(), strerror(errno));
+      goto ex2;
     }
+  set_low_latency (fd, &sold);
+  setup_buffers();
+
   sendflag = 0;
   recvflag = 0;
   repeatcount = 0;
   TRACEPRINTF (t, 1, "Opened");
+  started();
+  return;
+
+ex2:
+  if (fd > -1)
+    restore_low_latency (fd, &sold);
+ex:
+  if (fd >= -1)
+    {
+      close(fd);
+      fd = -1;
+    }
+  stopped();
 }
 
 void
@@ -106,11 +134,12 @@ void
 FT12LowLevelDriver::stop()
 {
   // XXX TODO add de-registration callback
-}
 
-FT12LowLevelDriver::~FT12LowLevelDriver ()
-{
-  stop ();
+  recvbuf.stop();
+  sendbuf.stop();
+  timer.stop();
+  sendtimer.stop();
+  trigger.stop();
 
   TRACEPRINTF (t, 1, "Close");
   if (fd != -1)
@@ -118,15 +147,13 @@ FT12LowLevelDriver::~FT12LowLevelDriver ()
       tcsetattr (fd, TCSAFLUSH, &old);
       restore_low_latency (fd, &sold);
       close (fd);
+      fd = -1;
     }
 }
 
-bool FT12LowLevelDriver::init ()
+FT12LowLevelDriver::~FT12LowLevelDriver ()
 {
-  if (fd < 0)
-    return false;
-  setup_buffers();
-  return true;
+  stop ();
 }
 
 void

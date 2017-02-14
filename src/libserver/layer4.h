@@ -20,7 +20,8 @@
 #ifndef LAYER4_H
 #define LAYER4_H
 
-#include "layer3.h"
+#include "link.h"
+#include "router.h"
 
 /** information about a broadcast packet */
 typedef struct
@@ -60,15 +61,6 @@ typedef struct
   eibaddr_t dst;
 } GroupAPDU;
 
-class Layer4common:public Layer2single
-{
-protected:
-  Layer4common(TracePtr tr);
-  bool init_ok;
-public:
-  bool init (Layer3 *l3);
-};
-
 template<class T>
 class T_Reader
 {
@@ -77,108 +69,120 @@ public:
   eibaddr_t addr; // phys address of this client
 };
 
-/** Broadcast Layer 4 connection */
-class T_Broadcast:public Layer4common
+template<class COMM>
+class Layer4common:public LineDriver
 {
-  T_Reader<BroadcastComm> *app;
-
+protected:
+  T_Reader<COMM> *app;
+  Layer4common(T_Reader<COMM> *app, ServerPtr s) : LineDriver(s)
+  {
+    this->app = app;
+  };
+  virtual ~Layer4common();
 public:
-  T_Broadcast (TracePtr t, int write_only);
-  virtual ~T_Broadcast ();
+  bool setup() {
+    if (!LineDriver::setup())
+      return false;
+    addAddress(app->addr);
+    return true;
+  }
 
-  bool init (T_Reader<BroadcastComm> *app, Layer3 *l3);
+};
+
+template<class COMM>
+class Layer4commonWO:public Layer4common<COMM>
+{
+  bool write_only;
+public:
+  Layer4commonWO (T_Reader<COMM> *app, ServerPtr s, bool write_only) : Layer4common<COMM>(app,s)
+    { this->write_only = write_only; }
+
+  bool checkAddress(eibaddr_t addr) { return !write_only && addr == this->addr; }
+  bool checkGroupAddress(eibaddr_t addr) { return !write_only; }
+};
+
+/** Broadcast Layer 4 connection */
+class T_Broadcast:public Layer4commonWO<BroadcastComm>
+{
+public:
+  T_Broadcast (T_Reader<BroadcastComm> *app, ServerPtr s, bool write_only);
+  virtual ~T_Broadcast ();
 
   /** enqueues a packet */
   void send_L_Data (LDataPtr l);
   /** send APDU c */
-  void recv (const CArray & c);
+  void recv_Data (const CArray & c);
 };
 typedef std::shared_ptr<T_Broadcast> T_BroadcastPtr;
 
 /** Group Communication socket */
-class GroupSocket:public Layer4common
+class GroupSocket:public Layer4commonWO<GroupAPDU>
 {
-  T_Reader<GroupAPDU> *app;
-
 public:
-  GroupSocket (TracePtr t, int write_only);
+  GroupSocket (T_Reader<GroupAPDU> *app, ServerPtr s, bool write_only);
   virtual ~GroupSocket ();
-
-  bool init (T_Reader<GroupAPDU> *app, Layer3 *l3);
 
   /** enqueues a packet from L3 */
   void send_L_Data (LDataPtr l);
   /** send APDU to L3 */
-  void recv (const GroupAPDU & c);
+  void recv_Data (const GroupAPDU & c);
 };
 typedef std::shared_ptr<GroupSocket> GroupSocketPtr;
 
 /** Group Layer 4 connection */
-class T_Group:public Layer4common
+class T_Group:public Layer4commonWO<GroupComm>
 {
-  T_Reader<GroupComm> *app;
   /** group address */
   eibaddr_t groupaddr;
 
 public:
-  T_Group (TracePtr t, eibaddr_t dest, int write_only);
+  T_Group (T_Reader<GroupComm> *app, ServerPtr s, eibaddr_t group, bool write_only);
   virtual ~T_Group ();
-
-  bool init (T_Reader<GroupComm> *app, Layer3 *l3);
 
   /** enqueues a packet from L3 */
   void send_L_Data (LDataPtr l);
   /** send APDU to L3 */
-  void recv (const CArray & c);
+  void recv_Data (const CArray & c);
 };
 typedef std::shared_ptr<T_Group> T_GroupPtr;
 
 /** Layer 4 raw individual connection */
-class T_TPDU:public Layer4common
+class T_TPDU:public Layer4common<TpduComm>
 {
-  T_Reader<TpduComm> *app;
   /** source address to use */
   eibaddr_t src;
 
 public:
-  T_TPDU (TracePtr t, eibaddr_t src);
+  T_TPDU (T_Reader<TpduComm> *app, ServerPtr s, eibaddr_t src);
   virtual ~T_TPDU ();
-
-  bool init (T_Reader<TpduComm> *app, Layer3 *l3);
 
   /** enqueues a packet from L3 */
   void send_L_Data (LDataPtr l);
   /** send APDU to L3 */
-  void recv (const TpduComm & c);
+  void recv_Data (const TpduComm & c);
 };
 typedef std::shared_ptr<T_TPDU> T_TPDUPtr;
 
 /** Layer 4 T_Individual connection */
-class T_Individual:public Layer4common
+class T_Individual:public Layer4commonWO<CArray>
 {
-  T_Reader<CArray> *app;
-
   /** destination address */
   eibaddr_t dest;
 
 public:
-  T_Individual (TracePtr t, eibaddr_t dest, int write_only);
+  T_Individual (T_Reader<CArray> *app, ServerPtr s, eibaddr_t dest, int write_only);
   virtual ~T_Individual ();
-
-  bool init (T_Reader<CArray> *app, Layer3 *l3);
 
   /** enqueues a packet from L3 */
   void send_L_Data (LDataPtr l);
   /** send APDU to L3 */
-  void recv (const CArray & c);
+  void recv_Data (const CArray & c);
 };
 typedef std::shared_ptr<T_Individual> T_IndividualPtr;
 
 /** implement a client T_Connection */
-class T_Connection:public Layer4common
+class T_Connection:public Layer4common<CArray>
 {
-  T_Reader<CArray> *app;
-
   ev::timer timer; void timer_cb(ev::timer &w, int revents);
 
   /** input queue */
@@ -208,17 +212,14 @@ class T_Connection:public Layer4common
   void SendData (int serno, const CArray & c);
   /** process the next bit from sendq if mode==1 */
   void SendCheck (); 
-  const char *Name() { return "Tconnection"; }
 public:
-  T_Connection (TracePtr t, eibaddr_t dest);
+  T_Connection (T_Reader<CArray> *app, ServerPtr s, eibaddr_t dest);
   virtual ~T_Connection ();
-
-  bool init (T_Reader<CArray> *app, Layer3 *l3);
 
   /** enqueues a packet from L3 */
   void send_L_Data (LDataPtr l);
   /** send APDU to L3 */
-  void recv (const CArray & c);
+  void recv_Data (const CArray & c);
 
   void stop();
 };

@@ -19,8 +19,7 @@
 
 #ifndef NAT_H
 #define NAT_H
-#include "layer2.h"
-#include "layer23.h"
+#include "link.h"
 
 /** NAT filter
  * outgoing packets: remember src/dest combination, zero src
@@ -31,19 +30,19 @@ typedef struct {
   eibaddr_t dest;
 } phys_comm;
 
-class NatL2Filter:public Layer23
+FILTER(NatL2Filter,single)
 {
   /** source addresses when the destination is my own */
-  Array < phys_comm > revaddr;
-  eibaddr_t addr;
+  Array < phys_comm > revaddr; // TODO: replace with a map
 
 public:
-  NatL2Filter (L2options *opt, Layer2Ptr l2);
-  ~NatL2Filter ();
-  virtual const char *Name() override { return "single"; }
+  eibaddr_t addr;
 
-  Layer2Ptr clone(Layer2Ptr l2);
-  bool init(Layer3 *l3);
+  NatL2Filter (LinkConnectPtr c, IniSection& s);
+  virtual ~NatL2Filter ();
+
+  DriverPtr clone(DriverPtr l2);
+  bool setup();
 
   void recv_L_Data (LDataPtr l);
   void send_L_Data (LDataPtr l);

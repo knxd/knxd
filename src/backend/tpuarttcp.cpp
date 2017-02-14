@@ -27,18 +27,23 @@
 #include "tpuarttcp.h"
 #include "layer3.h"
 
-TPUARTTCPLayer2Driver::TPUARTTCPLayer2Driver (const char *dest, int port,
-						    L2options *opt)
-	: TPUART_Base(opt)
+TPUARTTCPDriverDriver::TPUARTTCPDriverDriver (LinkConnectPtr c, IniSection& s)
+	: AutoRegister_(c,s)
+{
+}
+
+void
+TPUARTTCPDriverDriver::start()
 {
   int reuse = 1;
   int nodelay = 1;
   struct sockaddr_in addr;
 
-  TRACEPRINTF (t, 2, "Open");
-
   if (!GetHostIP (t, &addr, dest))
-    return;
+    {
+      ERRORPRINTF (t, E_ERROR | 52, "Lookup of %s failed: %s", dest, strerror(errno));
+      return;
+    }
   addr.sin_port = htons (port);
 
   fd = socket (AF_INET, SOCK_STREAM, 0);
@@ -58,29 +63,60 @@ TPUARTTCPLayer2Driver::TPUARTTCPLayer2Driver (const char *dest, int port,
     }
   setsockopt (fd, IPPROTO_TCP, TCP_NODELAY, &nodelay, sizeof (nodelay));
 
+  setup_buffers();
   TRACEPRINTF (t, 2, "Openend");
 }
 
-bool
-TPUARTTCPLayer2Driver::init(Layer3 *l3)
-{
-  if (!TPUART_Base::init(l3))
-    return false;
-  setup_buffers();
-  return true;
-}
-
 void
-TPUARTTCPLayer2Driver::setstate(enum TSTATE new_state)
+TPUARTTCPDriverDriver::setstate(enum TSTATE new_state)
 {
   if (new_state == T_dev_start)
-    new_state = T_is_online;
+    {
+      // TODO do this asynchronously
+      int reuse = 1;
+      int nodelay = 1;
+      struct sockaddr_in addr;
 
+      if (!GetHostIP (t, &addr, dest))
+        {
+          ERRORPRINTF (t, E_ERROR | 52, "Lookup of %s failed: %s", dest, strerror(errno));
+          goto ex;
+        }
+      addr.sin_port = htons (port);
+
+      fd = socket (AF_INET, SOCK_STREAM, 0);
+      if (fd == -1)
+        {
+          ERRORPRINTF (t, E_ERROR | 52, "Opening %s:%d failed: %s", dest,port, strerror(errno));
+          goto ex;
+        }
+      setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof (reuse));
+
+      if (connect (fd, (struct sockaddr *) &addr, sizeof (addr)) == -1)
+        {
+          ERRORPRINTF (t, E_ERROR | 53, "Connect %s:%d: connect: %s", dest,port, strerror(errno));
+          goto ex;
+        }
+      setsockopt (fd, IPPROTO_TCP, TCP_NODELAY, &nodelay, sizeof (nodelay));
+      new_state = T_is_online;
+
+      setup_buffers();
+      TRACEPRINTF (t, 2, "Openend");
+    }
   TPUART_Base::setstate(new_state);
+  return;
+ex:
+  if (fd > -1)
+    {
+      close(fd);
+      fd = -1;
+    }
+  TPUART_Base::setstate(T_error);
+  stopped();
 }
 
 void
-TPUARTTCPLayer2Driver::dev_timer()
+TPUARTTCPDriverDriver::dev_timer()
 {
   ERRORPRINTF (t, E_ERROR | 61, "bad timeout in state %d",state);
 }

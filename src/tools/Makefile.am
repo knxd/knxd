@@ -29,5 +29,5 @@ install-exec-local:
 	mkdir -p $(DESTDIR)/$(proglibdir)
 	for L in ${links}; do ln -sf ../../bin/knxtool $(DESTDIR)/$(proglibdir)/$$L; done
 
-# SUBDIRS=bcu eibnet
-SUBDIRS=eibnet
+## SUBDIRS=bcu eibnet
+#SUBDIRS=eibnet

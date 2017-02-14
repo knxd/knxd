@@ -23,45 +23,29 @@
 #include <errno.h>
 #include <sys/ioctl.h>
 #include "nat.h"
-#include "layer3.h"
-
-NatL2Filter::NatL2Filter (L2options *opt, Layer2Ptr l2) : Layer23 (l2)
-{
-  TRACEPRINTF (t, 2, "OpenFilter");
-}
+#include "router.h"
 
 bool
-NatL2Filter::init (Layer3 *l3)
+NatL2Filter::setup()
 {
-  addr = l3->getDefaultAddr();
-  return Layer23::init(l3);
+  if (!Filter::setup())
+    return false;
+
+  addr = dynamic_cast<Router *>(&conn->router)->addr;
+  return true;
 }
 
 NatL2Filter::~NatL2Filter ()
 {
-  TRACEPRINTF (t, 2, "CloseFilter");
-}
-
-Layer2Ptr
-NatL2Filter::clone (Layer2Ptr l2)
-{
-  Layer2Ptr c = Layer2Ptr(new NatL2Filter(NULL, l2));
-  // now copy our settings to c. In this case there's nothing to copy,
-  // because each interface has its own NAT table.
-  return c;
 }
 
 void
 NatL2Filter::send_L_Data (LDataPtr  l)
 {
   /* Sending a packet to this interface: record address pair, clear source */
-  if (l->getType () == L_Data)
-    {
-      if (l->AddrType == IndividualAddress)
-        addReverseAddress (l->source, l->dest);
-      l->source = addr;
-    }
-  l2->send_L_Data (std::move(l));
+  if (l->AddrType == IndividualAddress)
+    addReverseAddress (l->source, l->dest);
+  l->source = addr;
 }
 
 
@@ -76,7 +60,7 @@ NatL2Filter::recv_L_Data (LDataPtr  l)
     }
   if (l->AddrType == IndividualAddress)
     l->dest = getDestinationAddress (l->source);
-  Layer23::recv_L_Data (std::move(l));
+  Filter::recv_L_Data (std::move(l));
 }
 
 void NatL2Filter::addReverseAddress (eibaddr_t src, eibaddr_t dest)

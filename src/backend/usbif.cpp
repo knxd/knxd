@@ -27,50 +27,14 @@
 #include "usb.h"
 
 USBEndpoint
-parseUSBEndpoint (const char *addr)
+parseUSBEndpoint (IniSection &s)
 {
   USBEndpoint e;
-  e.bus = -1;
-  e.device = -1;
-  e.config = -1;
-  e.altsetting = -1;
-  e.interface = -1;
-  if (!*addr)
-    return e;
-  if (!isdigit (*addr))
-    return e;
-  e.bus = atoi (addr);
-  while (isdigit (*addr))
-    addr++;
-  if (*addr != ':')
-    return e;
-  addr++;
-  if (!isdigit (*addr))
-    return e;
-  e.device = atoi (addr);
-  while (isdigit (*addr))
-    addr++;
-  if (*addr != ':')
-    return e;
-  addr++;
-  if (!isdigit (*addr))
-    return e;
-  e.config = atoi (addr);
-  while (isdigit (*addr))
-    addr++;
-  if (*addr != ':')
-    return e;
-  addr++;
-  if (!isdigit (*addr))
-    return e;
-  e.altsetting = atoi (addr);
-  if (*addr != ':')
-    return e;
-  addr++;
-  if (!isdigit (*addr))
-    return e;
-  e.interface = atoi (addr);
-  return e;
+  e.bus = s.value("bus", -1);
+  e.device = s.value("device", -1);
+  e.config = s.value("config", -1);
+  e.altsetting = s.value("setting", -1);
+  e.interface = s.value("interface", -1);
 }
 
 bool
@@ -184,18 +148,27 @@ detectUSBEndpoint (libusb_context *context, USBEndpoint e)
   return e2;
 }
 
-USBLowLevelDriver::USBLowLevelDriver (const char *Dev, TracePtr tr) : LowLevelDriver(tr)
+USBLowLevelDriver::USBLowLevelDriver (IniSection &s, TracePtr tr) : LowLevelDriver(s,tr)
 {
-  loop = new USBLoop (tr);
+}
+
+void
+USBLowLevelDriver::start()
+{
+  if (running)
+    return;
+  loop = new USBLoop (t);
 
   if (!loop->context)
-    return;
+    goto ex;
 
   trigger.set<USBLowLevelDriver,&USBLowLevelDriver::trigger_cb>(this);
   trigger.start();
   TRACEPRINTF (t, 1, "Detect");
-  USBEndpoint e = parseUSBEndpoint (Dev);
-  d = detectUSBEndpoint (loop->context, e);
+  {
+    USBEndpoint e = parseUSBEndpoint (cfg);
+    d = detectUSBEndpoint (loop->context, e);
+  }
   state = 0;
   if (d.dev == 0)
     return;
@@ -232,9 +205,23 @@ USBLowLevelDriver::USBLowLevelDriver (const char *Dev, TracePtr tr) : LowLevelDr
   connection_state = true;
 
   TRACEPRINTF (t, 1, "Opened");
+
+  recvh = libusb_alloc_transfer (0);
+  if (!recvh)
+    {
+      ERRORPRINTF (t, E_ERROR | 34, "Error AllocRecv: %s", strerror(errno));
+      goto ex;
+    } 
+  running = true;
+  StartUsbRecvTransfer();
+  start();
+  return;
+ex:
+  stop();
 }
 
-USBLowLevelDriver::~USBLowLevelDriver ()
+void
+USBLowLevelDriver::stop()
 {
   TRACEPRINTF (t, 1, "Close");
   running = false;
@@ -254,27 +241,11 @@ USBLowLevelDriver::~USBLowLevelDriver ()
   if (state > 0)
     libusb_close (dev);
   delete loop;
-  TRACEPRINTF (t, 1, "Closed");
+  loop = nullptr;
 }
-
-bool
-USBLowLevelDriver::init ()
+USBLowLevelDriver::~USBLowLevelDriver ()
 {
-  if (state != 2)
-    return false;
-  // may be called a second time
-  if (running)
-    return true;
-
-  recvh = libusb_alloc_transfer (0);
-  if (!recvh)
-    {
-      ERRORPRINTF (t, E_ERROR | 34, "Error AllocRecv: %s", strerror(errno));
-      return false;
-    } 
-  running = true;
-  StartUsbRecvTransfer();
-  return true;
+  stop();
 }
 
 void

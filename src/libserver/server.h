@@ -21,48 +21,41 @@
 #define SERVER_H
 
 #include "common.h"
-#include "layer3.h"
+#include "link.h"
+#include "router.h"
 
 class ClientConnection;
 typedef std::shared_ptr<ClientConnection> ClientConnPtr;
 
 /** implements the frontend (but opens no connection) */
-class BaseServer: public Layer2virtual
+class NetServer: public Server
 {
-  const char *Name() { return "baseserver"; }
 protected:
-  BaseServer (TracePtr tr);
+  NetServer (BaseRouter& l3, IniSection& s);
 public:
-  virtual ~BaseServer ();
-};
-typedef std::shared_ptr<BaseServer> BaseServerPtr;
+  virtual ~NetServer ();
+  bool ignore_when_systemd = false;
 
-/** implements the frontend (but opens no connection) */
-class Server:public BaseServer
-{
+private:
   ev::io io; void io_cb (ev::io &w, int revents);
 
   /** open client connections*/
-  Array <std::shared_ptr<ClientConnection>> connections;
+  Array < ClientConnPtr > connections;
 
   ev::async cleanup;
   void cleanup_cb (ev::async &w, int revents);
-private:
-  /** to-be-closed client connections*/
-  Queue <ClientConnPtr> cleanup_q;
 
-  const char *Name() { return "server"; }
+  /** to-be-closed client connections*/
+  Queue < ClientConnPtr > cleanup_q;
+
 protected:
   /** server socket */
   int fd;
 
   virtual void setupConnection (int cfd);
 
-  Server (TracePtr tr);
-public:
-  virtual ~Server ();
-
-  virtual bool init (Layer3 *l3);
+  void start();
+  void stop();
 
   /** deregister client connection */
   void deregister (ClientConnPtr con);

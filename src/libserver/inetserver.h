@@ -23,12 +23,20 @@
 #include "server.h"
 
 /** implements a server listening on a TCP port */
-class InetServer:public Server
+class InetServer:public NetServer
 {
 protected:
   void setupConnection (int cfd);
+  uint16_t port;
+  std::string addr;
+
 public:
-  InetServer (TracePtr tr, int port);
+  InetServer (BaseRouter& r, IniSection& s);
+  ~InetServer ();
+
+  bool setup();
+  void start();
+  void stop();
 };
 
 #endif

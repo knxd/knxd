@@ -21,20 +21,20 @@
 #define TPUART_TCP_H
 #include "tpuart.h"
 
+DRIVER_(TPUARTSerialDriverDriver,TPUART_Base,tpuartstcp)
 
-
-/** TPUART user mode driver */
-class TPUARTTCPLayer2Driver:public TPUART_Base
 {
-  const char *Name() { return "tpuarts"; }
   void setstate(enum TSTATE new_state);
   void dev_timer();
 
-public:
-  TPUARTTCPLayer2Driver (const char *dest, int port, L2options *opt);
-  ~TPUARTTCPLayer2Driver () {}
+  std::string dest;
+  uint16_t port;
 
-  bool init(Layer3 *l3);
+public:
+  TPUARTTCPDriverDriver (LinkConnectPtr c, IniSection& s)
+  ~TPUARTTCPDriverDriver () {}
+
+  bool setup();
 };
 
 #endif

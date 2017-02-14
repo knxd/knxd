@@ -46,7 +46,7 @@ GMP_PROG_EXEEXT_FOR_BUILD
 CC_FOR_BUILD_OPTS
 
 dnl AC_COMPILER_OPTION(nortti,[-fno-rtti],[-fno-rtti],CXXFLAGS="$CXXFLAGS -fno-rtti")
-AC_COMPILER_OPTION(stdc,[-std=c++0x],[-std=c++0x],CXXFLAGS="$CXXFLAGS -std=c++0x")
+AC_COMPILER_OPTION(stdc,[-std=c++0x],[-std=c++0x],CXXFLAGS="$CXXFLAGS -std=c++0x -Wno-subobject-linkage")
 dnl libev++ requires exceptions
 dnl AC_COMPILER_OPTION(noexceptions,[-fno-exceptions],[-fno-exceptions],CXXFLAGS="$CXXFLAGS -fno-exceptions")
 
@@ -318,6 +318,7 @@ src/client/perl/Makefile src/client/python/Makefile src/client/pascal/Makefile s
 src/tools/eibnet/Makefile src/tools/bcu/Makefile src/usb/Makefile src/tools/Makefile systemd/Makefile systemd/knxd.service systemd/knxd.socket
 rpm/Makefile rpm/knxd.spec
 tools/Makefile
+src/common/paths.h
 )
 
 AC_CONFIG_MACRO_DIR([m4])

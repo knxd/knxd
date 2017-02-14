@@ -24,11 +24,11 @@
 #include "tpuartserial.h"
 
 /** TPUART user mode driver */
-class NCN5120SerialLayer2Driver : public TPUARTSerialLayer2Driver
+DRIVER_(NCN5120SerialDriverDriver,TPUARTSerialDriverDriver,ncn5120)
 {
 public:
-    NCN5120SerialLayer2Driver (const char *dev, L2options *opt);
-   ~NCN5120SerialLayer2Driver ();
+  NCN5120SerialDriverDriver (LinkConnectPtr c, IniSection& s);
+  virtual ~NCN5120SerialDriverDriver ();
 
 protected:
   void termios_settings(struct termios &t);

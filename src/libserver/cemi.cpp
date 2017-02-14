@@ -22,32 +22,24 @@
 
 #include "cemi.h"
 #include "emi.h"
-#include "layer3.h"
 
 unsigned int
-CEMILayer2::maxPacketLen()
+CEMIDriver::maxPacketLen()
 {
   return 50;
 }
 
-CEMILayer2::~CEMILayer2()
+CEMIDriver::~CEMIDriver()
 {
 }
 
-bool
-CEMILayer2::enterBusmonitor ()
-{
-  TRACEPRINTF (t, 2, "(CEMILayer2)  OpenBusmon not implemented");
-  return false;
-}
-
-void CEMILayer2::cmdEnterMonitor() {}
-void CEMILayer2::cmdLeaveMonitor() {}
-void CEMILayer2::cmdOpen() {}
-void CEMILayer2::cmdClose() {}
+void CEMIDriver::cmdEnterMonitor() {}
+void CEMIDriver::cmdLeaveMonitor() {}
+void CEMIDriver::cmdOpen() {}
+void CEMIDriver::cmdClose() {}
 
 const uint8_t *
-CEMILayer2::getIndTypes()
+CEMIDriver::getIndTypes()
 { 
   static const uint8_t indTypes[] = { 0x2E, 0x29, 0x2B };
   return indTypes;

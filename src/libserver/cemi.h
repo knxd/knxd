@@ -26,25 +26,23 @@
 #include "emi_common.h"
 
 /** CEMI backend */
-class CEMILayer2:public EMI_Common
+class CEMIDriver:public EMI_Common
 {
-  const char *Name() { return "cemi"; }
   void cmdEnterMonitor();
   void cmdLeaveMonitor();
   void cmdOpen(); 
   void cmdClose();
   const uint8_t * getIndTypes(); 
 
-  bool enterBusmonitor();
   unsigned int maxPacketLen();
 
   CArray lData2EMI (uchar code, const LDataPtr & p) 
   { return L_Data_ToCEMI(code, p); }
-  LDataPtr EMI2lData (const CArray & data, Layer2Ptr l2) 
-  { return CEMI_to_L_Data(data,l2); }
+  LDataPtr EMI2lData (const CArray & data)
+  { return CEMI_to_L_Data(data, t); }
 public:
-  CEMILayer2 (LowLevelDriver * i, L2options *opt) : EMI_Common(i,opt) {}
-  ~CEMILayer2 ();
+  CEMIDriver (LowLevelDriver * i, LinkConnectPtr c, IniSection& s) : EMI_Common(i,c,s) {}
+  ~CEMIDriver ();
 };
 
 #endif  /* EIB_CEMI_H */

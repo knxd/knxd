@@ -24,7 +24,7 @@
 #include "tpuart.h"
 
 /** TPUART user mode driver */
-class TPUARTSerialLayer2Driver:public TPUART_Base
+DRIVER_(TPUARTSerialDriverDriver,TPUART_Base,tpuarts)
 {
   /** old serial config */
   low_latency_save sold;
@@ -32,7 +32,6 @@ class TPUARTSerialLayer2Driver:public TPUART_Base
   struct termios old;
   bool dischreset;
 
-  const char *Name() { return "tpuarts"; }
   void dev_timer();
   virtual void termios_settings (struct termios &t);
   virtual unsigned int default_baudrate () { return 19200; }
@@ -43,8 +42,10 @@ protected:
   void setstate(enum TSTATE state);
 
 public:
-  TPUARTSerialLayer2Driver (const char *dev, L2options *opt);
-  ~TPUARTSerialLayer2Driver();
+  TPUARTSerialDriverDriver (LinkConnectPtr c, IniSection& s);
+  ~TPUARTSerialDriverDriver();
+
+  bool setup();
 };
 
 #endif

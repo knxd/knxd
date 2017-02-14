@@ -19,14 +19,13 @@
 
 #include "emi1.h"
 #include "emi.h"
-#include "layer3.h"
 
-EMI1Layer2::~EMI1Layer2()
+EMI1Driver::~EMI1Driver()
 {
 }
 
 void
-EMI1Layer2::cmdEnterMonitor()
+EMI1Driver::cmdEnterMonitor()
 {
   const uchar t[] = { 0x46, 0x01, 0x00, 0x60, 0x90 };
   // pth_usleep (1000000);
@@ -34,7 +33,7 @@ EMI1Layer2::cmdEnterMonitor()
 }
 
 void
-EMI1Layer2::cmdLeaveMonitor()
+EMI1Driver::cmdLeaveMonitor()
 {
   uchar t[] = { 0x46, 0x01, 0x00, 0x60, 0xc0 };
   iface->Send_Packet (CArray (t, sizeof (t)));
@@ -42,21 +41,21 @@ EMI1Layer2::cmdLeaveMonitor()
 }
 
 void
-EMI1Layer2::cmdOpen ()
+EMI1Driver::cmdOpen ()
 {
   const uchar t[] = { 0x46, 0x01, 0x00, 0x60, 0x12 };
   iface->Send_Packet (CArray (t, sizeof (t)));
 }
 
 void
-EMI1Layer2::cmdClose ()
+EMI1Driver::cmdClose ()
 {
   uchar t[] = { 0x46, 0x01, 0x00, 0x60, 0xc0 };
   iface->Send_Packet (CArray (t, sizeof (t)));
 }
 
 const uint8_t *
-EMI1Layer2::getIndTypes()
+EMI1Driver::getIndTypes()
 {
     static const uint8_t indTypes[] = { 0x4E, 0x49, 0x49 };
     return indTypes;

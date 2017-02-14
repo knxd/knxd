@@ -21,13 +21,27 @@
 #include <argp.h>
 #include <stdio.h>
 #include <iostream>
+#include <stdarg.h>
 
 #include "inifile.h"
 #include "types.h"
-#include "layer2common.h"
+#include "trace.h"
 
 /** aborts program with a printf like message */
 void die (const char *msg, ...);
+
+typedef struct {
+  unsigned int flags;
+  unsigned int send_delay;
+  TracePtr t;
+} L2options;
+
+#define FLAG_B_TUNNEL_NOQUEUE (1<<0)
+#define FLAG_B_TPUARTS_ACKGROUP (1<<1)
+#define FLAG_B_TPUARTS_ACKINDIVIDUAL (1<<2)
+#define FLAG_B_TPUARTS_DISCH_RESET (1<<3)
+#define FLAG_B_EMI_NOQUEUE (1<<4)
+#define FLAG_B_NO_MONITOR (1<<5)
 
 // The NOQUEUE options are deprecated
 #define OPT_BACK_TUNNEL_NOQUEUE 1
@@ -406,7 +420,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
             ini[link]["path"] = name;
             ini[link]["systemd-ignore"] = "false";
           }
-        else:
+        else
           ini[link]["systemd-ignore"] = "true";
         arguments->stack(link);
       }

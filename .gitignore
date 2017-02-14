@@ -145,3 +145,4 @@ Makefile
 /src/tools/knxtool
 /tools/test_inih
 /src/server/knxd_args
+/src/common/paths.h

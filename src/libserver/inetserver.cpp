@@ -26,12 +26,26 @@
 #include <errno.h>
 #include "inetserver.h"
 
-InetServer::InetServer (TracePtr tr, int port):
-Server (tr)
+InetServer::InetServer (BaseRouter& r, IniSection& s)
+  : NetServer(r,s)
+{
+}
+
+bool
+InetServer::setup()
+{
+  if (!NetServer::setup())
+    return false;
+  port = cfg.value("port",6720);
+  return true;
+}
+
+void
+InetServer::start()
 {
   struct sockaddr_in addr;
   int reuse = 1;
-  TRACEPRINTF (tr, 8, "OpenInetSocket %d", port);
+  TRACEPRINTF (t, 8, "OpenInetSocket %d", port);
   memset (&addr, 0, sizeof (addr));
   addr.sin_family = AF_INET;
   addr.sin_port = htons (port);
@@ -40,29 +54,34 @@ Server (tr)
   fd = socket (AF_INET, SOCK_STREAM, 0);
   if (fd == -1)
     {
-      ERRORPRINTF (tr, E_ERROR | 12, "OpenInetSocket %d: socket: %s", port, strerror(errno));
-      return;
+      ERRORPRINTF (t, E_ERROR | 12, "OpenInetSocket %d: socket: %s", port, strerror(errno));
+      goto ex1;
     }
 
   setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof (reuse));
 
   if (bind (fd, (struct sockaddr *) &addr, sizeof (addr)) == -1)
     {
-      ERRORPRINTF (tr, E_ERROR | 13, "OpenInetSocket %d: bind: %s", port, strerror(errno));
-      close (fd);
-      fd = -1;
-      return;
+      ERRORPRINTF (t, E_ERROR | 13, "OpenInetSocket %d: bind: %s", port, strerror(errno));
+      goto ex2;
     }
 
   if (listen (fd, 10) == -1)
     {
-      ERRORPRINTF (tr, E_ERROR | 14, "OpenInetSocket %d: listen: %s", port, strerror(errno));
-      close (fd);
-      fd = -1;
-      return;
+      ERRORPRINTF (t, E_ERROR | 14, "OpenInetSocket %d: listen: %s", port, strerror(errno));
+      goto ex2;
     }
 
-  TRACEPRINTF (tr, 8, "InetSocket opened");
+  TRACEPRINTF (t, 8, "InetSocket opened");
+  NetServer::start();
+  return;
+
+ex2:
+  close (fd);
+  fd = -1;
+ex1:
+  NetServer::stop();
+  return;
 }
 
 void

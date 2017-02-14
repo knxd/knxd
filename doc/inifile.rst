@@ -48,6 +48,13 @@ The main section controls configuration of the whole of knxd. Its name
 defaults to "main". An alternate main section may be named on the command
 line.
 
+  * name
+
+    The name of this server. This name will be used in logging/trace output.
+    It's also the default name used to announce knxd on multicast.
+
+    Optional; defaults to "knxd".
+
   * addr (string: KNX device address)
 
     The KNX address of knxd itself. Used e.g. for requests originating at the
@@ -71,16 +78,21 @@ line.
     either a device to exchange KNX packets with, or a server which a
     device may connect to.
 
-    If you start knxd with systemd, you need to add the systemd server.
+    Mandatory, as knxd is useless without any connections.
+
+  * systemd (string)
+
+    Section name for describing connections managed by ``systemd.socket``.
+
+    The named section may be missing or empty; the only options you might
+    want to set relate to logging.
 
         [main]
-	connections=…,systemd
+	systemd=systemd
 
 	[systemd]
-	server=systemd
-	driver=knx-link
-
-    Mandatory, as knxd is useless without any connections.
+        error-level=fatal
+	
 
   * cache (string)
 
@@ -146,6 +158,9 @@ You can selectively enable logging or tracing.
     This option, available in all sections, names the config file section
     where specific debugging options for this section can be configured.
 
+    Optional; if missing, read debug options from the current section, or
+    from the main section.
+
 "debug" sections may contain these options:
 
   * error-level (string or int)
@@ -156,7 +171,7 @@ You can selectively enable logging or tracing.
 
     Optional; default: warning.
 
-  * trace-level (int)
+  * trace-mask (int)
 
     A bitmask corresponding to various types of loggable messages to help
     tracking down problems in knxd or one of its devices.
@@ -330,12 +345,19 @@ Warning: bus+device numbers may change after rebooting.
 
     It's an error to specify this option without also using "device".
 
-  * interface (int)
+  * setting (int)
 
-    The interface to use on this device configuration. Most interfaces only
+    The setting to use on this device configuration. Most interfaces only
     have one, so this option is not needed.
 
     It's an error to specify this option without also using "config".
+
+  * interface (int)
+
+    The interface to use on this setting. Most interfaces only
+    have one, so this option is not needed.
+
+    It's an error to specify this option without also using "setting".
 
 tpuarts
 -------
@@ -513,6 +535,24 @@ with the standardized KNX tunneling or routing protocols.
 
     Optional; defaults to the interface with the default route.
 
+  * multicast-address (string: IP address)
+
+    The multicast IP address to use.
+
+    Optional; the default is 224.0.23.12.
+  
+  * port (int)
+
+    The UDP port to listen on / transmit to.
+
+    Optional; the default is 3671.
+
+  * name (string)
+
+    The server name announced in Discovery packets.
+
+    Optional: default: the name configured in the "main" section, or "knxd".
+
 unix-socket
 -----------
 
@@ -618,4 +658,32 @@ dummy
 -----
 
 This filter does nothing.
+
+Special settings
+================
+
+These are enabled by naming them in designated wntries of your main section.
+
+Thus, you enable the group cache with
+
+  [main]
+  cache=gc
+  [gc]
+  max-size=200
+
+If you don't want to use any parameters, you don't need to add the section:
+
+  [main]
+  cache=gc
+
+group cache
+-----------
+
+  * max-size
+
+    The maximum number of messages that the group cache will store.
+
+    Optional; no default = no limit. There are 65535 possible group addresses
+    entries, so the recommended usage is to not specify a maximum unless
+    knxd is running on an embedded system.
 

@@ -31,7 +31,8 @@
 #include "inifile.h"
 #include "types.h"
 
-IniSection::IniSection(const IniData &p, const std::string& n) : values(), name(n), parent(p) { }
+IniSection::IniSection(IniData &p, const std::string& n) : values(), name(n), parent(p) { }
+IniSection::IniSection(IniData &p, const std::string&& n) : values(), name(n), parent(p) { }
 
 const std::string&
 IniSection::value(const std::string& name, const std::string& def)
@@ -42,10 +43,16 @@ IniSection::value(const std::string& name, const std::string& def)
       v = values.find("use");
       if (v == values.end())
         return def;
-      return parent[v->second].values(name,def);
+      return parent[v->second].value(name,def);
     }
 
   return v->second;
+}
+const std::string
+IniSection::value(const std::string& name, const char *def)
+{
+  std::string s = def;
+  return value(name,s);
 }
 
 static const std::string empty = "";

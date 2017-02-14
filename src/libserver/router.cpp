@@ -1,0 +1,561 @@
+/*
+    EIBD eib bus access and management daemon
+    Copyright (C) 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
+
+    This program is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+*/
+
+#include "link.h"
+#include "server.h"
+#include <typeinfo>
+#include <iostream>
+
+/** parses an EIB individual address */
+bool
+readaddr (const std::string& addr, eibaddr_t& parsed)
+{
+  int a, b, c;
+  if (sscanf (addr.c_str(), "%d.%d.%d", &a, &b, &c) != 3)
+    {
+      std::cerr << "'" << addr << "' is not a device address. Use X.Y.Z format." <<std::endl;
+      return false;
+    }
+  parsed = ((a & 0x0f) << 12) | ((b & 0x0f) << 8) | (c & 0xff);
+  return true;
+}
+
+bool
+readaddrblock (const std::string& addr, eibaddr_t& parsed, int &len)
+{
+  int a, b, c;
+  if (sscanf (addr.c_str(), "%d.%d.%d:%d", &a, &b, &c, &len) != 4)
+    {
+      std::cerr << "An address block needs to look like X.Y.Z:N, not '" << addr << "'." << std::endl;
+      return false;
+    }
+  parsed = ((a & 0x0f) << 12) | ((b & 0x0f) << 8) | (c & 0xff);
+  return true;
+}
+
+Router::Router (IniData& d, std::string sn) : BaseRouter(d),main(sn) { }
+
+bool
+Router::setup()
+{
+  std::string x;
+  IniSection s = ini[main];
+  servername = s.value("name","knxd");
+
+  t = TracePtr(new Trace(s,servername));
+  if (!t->setup())
+    return false;
+
+  force_broadcast = s.value("force-broadcast", false);
+
+  x = s.value("addr","");
+  if (!x.size())
+    {
+      std::cerr << "There is no KNX addr= in section '" << main << "'." << std::endl;
+      return false;
+    }
+  if (!readaddr(x,addr))
+    return false;
+
+  x = s.value("client-addrs","");
+  if (x.size())
+    {
+      if (!readaddrblock(x,client_addrs_start,client_addrs_len))
+        return false;
+      client_addrs_pos = client_addrs_len-1;
+      client_addrs.resize(client_addrs_len);
+      ITER(i,client_addrs)
+        *i = false;
+    }
+
+  x = s.value("connections","");
+  if(!x.size())
+    {
+      std::cerr << "There are no connections in section '" << main << "'." << std::endl;
+      return false;
+    }
+  {
+    size_t pos = 0;
+    size_t comma = 0;
+    while(true)
+      {
+        std::string name = x.substr(pos,comma-pos);
+        if (!name.size())
+          std::cerr << "empty connection name in '" << main << "', ignored." << std::endl;
+        else
+          {
+            LinkBasePtr link = setup_link(name);
+            if (link == nullptr)
+              return false;
+          }
+        if (comma == std::string::npos)
+          break;
+        pos = comma+1;
+      }
+
+  }
+
+  TRACEPRINTF (t, 3, "setup");
+  return true;
+}
+
+void
+Router::start()
+{
+  if (running && !switching) // already up
+    return;
+  if (!running && switching) // already going up
+    return;
+
+  if (!running && !switching)
+    {
+      trigger.set<Router, &Router::trigger_cb>(this);
+      trigger.start();
+      mtrigger.set<Router, &Router::mtrigger_cb>(this);
+      mtrigger.start();
+    }
+
+  switching = true;
+
+  ITER(i,links)
+    i->second->start();
+}
+
+void
+Router::link_started(LinkConnectPtr link)
+{
+  switching = false;
+  running = true;
+
+  ITER(i,links)
+    {
+      if (i->second->switching)
+        switching = true;
+      if (!i->second->running)
+        running = false;
+    }
+}
+
+void
+Router::link_stopped(LinkConnectPtr link)
+{
+  ITER(i,links)
+    {
+      if (i->second->switching)
+        return;
+      if (i->second->running)
+        return;
+    }
+  trigger.stop();
+  mtrigger.stop();
+}
+
+void
+Router::stop()
+{
+  ITER(i,links)
+    i->second->stop();
+}
+
+Router::~Router()
+{
+  TRACEPRINTF (t, 3, "L3 stopping");
+  running = false;
+  cache = nullptr;
+  trigger.stop();
+  mtrigger.stop();
+
+  R_ITER(i,vbusmonitor)
+    ERRORPRINTF (t, E_WARNING | 55, "VBusmonitor '%s' didn't de-register!", i->cb->name);
+  vbusmonitor.clear();
+
+  R_ITER(i,busmonitor)
+    ERRORPRINTF (t, E_WARNING | 56, "Busmonitor '%s' didn't de-register!", i->cb->name);
+  busmonitor.clear();
+
+//  ITER(i,links)
+//    delete i->second;
+  links.clear();
+
+  TRACEPRINTF (t, 3, "Closed");
+}
+
+void
+Router::recv_L_Data (LDataPtr l, LinkConnect& link)
+{
+  if (running)
+    {
+      TRACEPRINTF (link.t, 9, "Queue %s", l->Decode (t).c_str());
+      buf.emplace (std::move(l),std::dynamic_pointer_cast<LinkConnect>(link.shared_from_this()));
+      trigger.send();
+    }
+  else
+    TRACEPRINTF (link.t, 9, "Queue: discard (not running) %s", l->Decode (t).c_str());
+}
+
+void
+Router::recv_L_Busmonitor (LBusmonPtr l)
+{
+  if (running)
+    {
+      TRACEPRINTF (t, 9, "MonQueue %s", l->Decode (t).c_str());
+      mbuf.push (std::move(l));
+      mtrigger.send();
+    }
+  else
+    TRACEPRINTF (t, 9, "MonQueue: discard (not running) %s", l->Decode (t).c_str());
+}
+
+bool
+Router::deregisterBusmonitor (L_Busmonitor_CallBack * c)
+{
+  ITER(i, busmonitor)
+    if (i->cb == c)
+      {
+        busmonitor.erase(i);
+	TRACEPRINTF (t, 3, "deregisterBusmonitor %08X = 1", c);
+        return true;
+      }
+  TRACEPRINTF (t, 3, "deregisterBusmonitor %08X = 0", c);
+  return false;
+}
+
+bool
+Router::deregisterVBusmonitor (L_Busmonitor_CallBack * c)
+{
+  ITER(i,vbusmonitor)
+    if (i->cb == c)
+      {
+	TRACEPRINTF (t, 3, "deregisterVBusmonitor %08X = 1", c);
+	vbusmonitor.erase(i);
+	return true;
+      }
+  TRACEPRINTF (t, 3, "deregisterVBusmonitor %08X = 0", c);
+  return false;
+}
+
+bool
+Router::registerBusmonitor (L_Busmonitor_CallBack * c)
+{
+  busmonitor.push_back((Busmonitor_Info){.cb=c});
+  TRACEPRINTF (t, 3, "registerBusmontitr %08X = 1", c);
+  return true;
+}
+
+bool
+Router::registerVBusmonitor (L_Busmonitor_CallBack * c)
+{
+  vbusmonitor.push_back((Busmonitor_Info){.cb=c});
+  TRACEPRINTF (t, 3, "registerVBusmonitor %08X", c);
+  return true;
+}
+
+bool
+Router::registerLink(LinkConnectPtr link)
+{
+  const std::string& n = link->name();
+  auto res = links.emplace(std::piecewise_construct,
+                std::forward_as_tuple(n),
+                std::forward_as_tuple(link));
+  if (! res.second)
+    {
+      TRACEPRINTF (t, 3, "registerLink: %s: already present", n.c_str());
+      return false;
+    }
+  return true;
+}
+
+bool
+Router::unregisterLink(LinkConnectPtr link)
+{
+  const std::string& n = link->name();
+  auto res = links.find(n);
+  if (res == links.end())
+    {
+      TRACEPRINTF (t, 3, "unregisterLink: %s: not present", n.c_str());
+      return false;
+    }
+  links.erase(res);
+  return true;
+}
+
+bool
+Router::hasAddress (eibaddr_t addr, LinkConnectPtr& link)
+{
+  if (addr == this->addr)
+    {
+      TRACEPRINTF (t, 8, "default addr %s", FormatEIBAddr (addr).c_str());
+      return true;
+    }
+
+  if (link && link->hasAddress(addr))
+    {
+    on_this_interface:
+      TRACEPRINTF (t, 8, "own addr %s", FormatEIBAddr (addr).c_str());
+      return false;
+    }
+
+  ITER(i,links)
+    {
+      if (i->second == link)
+        continue;
+      if (i->second->hasAddress (addr))
+        {
+          if (i->second == link)
+            {
+              TRACEPRINTF (link->t, 8, "local addr %s", FormatEIBAddr (addr).c_str());
+              return false;
+            }
+          TRACEPRINTF (i->second->t, 8, "found addr %s", FormatEIBAddr (addr).c_str());
+          link = i->second;
+          return true;
+        }
+    }
+
+  TRACEPRINTF (t, 8, "unknown addr %s", FormatEIBAddr (addr).c_str());
+  return false;
+}
+
+bool
+Router::checkAddress (eibaddr_t addr, LinkConnectPtr link)
+{
+  if (addr == 0) // always accept broadcast
+    return true;
+
+  ITER(i, links)
+    {
+      if (i->second == link)
+        continue;
+      if (i->second->checkAddress (addr))
+        return true;
+    }
+
+  return false;
+}
+
+bool
+Router::checkGroupAddress (eibaddr_t addr, LinkConnectPtr link)
+{
+  if (addr == 0) // always accept broadcast
+    return true;
+
+  ITER(i, links)
+    {
+      if (i->second == link)
+        continue;
+      if (i->second->checkGroupAddress (addr))
+        return true;
+    }
+
+  return false;
+}
+
+eibaddr_t
+Router::get_client_addr (TracePtr t)
+{
+  /*
+   * Start allocating after the last-assigned address.
+   * This leaves a buffer for delayed replies so that they don't get sent
+   * to a new client.
+   *
+   * client_addrs_pos is set to len-1 in set_client_block() so that allocation
+   * still starts at the first free address when starting up.
+   */
+  for (int i = 1; i <= client_addrs_len; i++)
+    {
+      unsigned int pos = (client_addrs_pos + i) % client_addrs_len;
+      if (client_addrs[pos])
+        continue;
+      eibaddr_t a = client_addrs_start + pos;
+      LinkConnectPtr link = nullptr;
+      if (a != addr && !hasAddress (a, link))
+        {
+          TRACEPRINTF (t, 3, "Allocate %s", FormatEIBAddr (a).c_str());
+          /* remember for next pass */
+          client_addrs_pos = pos;
+          client_addrs[pos] = true;
+          return a;
+        }
+    }
+
+  /* no more … */
+  ERRORPRINTF (t, E_WARNING | 59, "Allocate: no more free addresses!");
+  return 0;
+}
+
+void
+Router::release_client_addr(eibaddr_t addr)
+{
+  TRACEPRINTF (t, 3, "Release %s", FormatEIBAddr (addr).c_str());
+  if (addr < client_addrs_start)
+    return;
+  unsigned int pos = addr - client_addrs_start;
+  if (pos >= client_addrs_len)
+    return;
+  client_addrs[pos] = false;
+}
+
+void
+Router::trigger_cb (ev::async &w, int revents)
+{
+  unsigned i;
+
+  while (!buf.isempty())
+    {
+      LPtr l = buf.get ();
+
+      LDataPtr l1 = std::move(l.first);
+      LinkConnectPtr l2 = l.second;
+      LinkConnectPtr l2x = nullptr;
+
+      if (l1->source == 0)
+        l1->source = l2->addr;
+      if (l1->source == 0)
+        l1->source = addr;
+      if (l1->source == addr) { /* locally generated, do nothing */ }
+      // Cases:
+      // * address is unknown: associate with input IF not from local range and not programming addr
+      // * address is known to input: OK
+      // * address is on another 
+      else if (hasAddress (l1->source, l2x))
+        {
+          if (l2x != l2)
+            {
+              TRACEPRINTF (l2->t, 3, "Packet not from %d:%s: %s", l2->t->seq, l2->t->name.c_str(), l1->Decode (t).c_str());
+              goto next;
+            }
+        }
+      else if (client_addrs_start && (l1->source >= client_addrs_start) &&
+          (l1->source < client_addrs_start+client_addrs_len))
+        { // late arrival to an already-freed client
+          TRACEPRINTF (l2->t, 3, "Packet from client: %s", l1->Decode (t).c_str());
+          goto next;
+        }
+      else if (l1->source != 0xFFFF)
+        l2->addAddress (l1->source);
+
+      if (vbusmonitor.size())
+        {
+          LBusmonPtr l2 = LBusmonPtr(new L_Busmonitor_PDU ());
+          l2->pdu.set (l1->ToPacket ());
+
+          ITER(i,vbusmonitor)
+            i->cb->send_L_Busmonitor (LBusmonPtr(new L_Busmonitor_PDU (*l2)));
+        }
+      if (!l1->hopcount)
+        {
+          TRACEPRINTF (t, 3, "Hopcount zero: %s", l1->Decode (t).c_str());
+          goto next;
+        }
+      if (l1->hopcount < 7 || !force_broadcast)
+        l1->hopcount--;
+
+      if (l1->repeated)
+        {
+          CArray d1 = l1->ToPacket ();
+          ITER (i,ignore)
+            if (d1 == i->data)
+              {
+                TRACEPRINTF (t, 9, "Repeated, discarded");
+                goto next;
+              }
+        }
+      l1->repeated = 1;
+      ignore.push_back((IgnoreInfo){.data = l1->ToPacket (), .end = getTime () + 1000000});
+      l1->repeated = 0;
+
+      if (l1->AddrType == IndividualAddress
+          && l1->dest == this->addr)
+        l1->dest = 0;
+      TRACEPRINTF (t, 3, "Route %s", l1->Decode (t).c_str());
+
+      if (l1->AddrType == GroupAddress)
+        {
+          // This is easy: send to all other L2 which subscribe to the
+          // group.
+          ITER(i, links)
+            {
+              if (i->second == l2)
+                continue;
+              if (l1->hopcount == 7 || i->second->checkGroupAddress(l1->dest))
+                i->second->send_L_Data (LDataPtr(new L_Data_PDU (*l1)));
+            }
+        }
+      if (l1->AddrType == IndividualAddress)
+        {
+	  if (!l1->dest)
+	    {
+	      // Common problem with things that are not true gateways
+	      ERRORPRINTF (l2->t, E_WARNING | 57, "Message without destination. Use the single-node filter ('-B single')?");
+	      goto next;
+	    }
+
+          // we want to send to the interface on which the address
+          // has appeared. If it hasn't been seen yet, we send to all
+          // interfaces.
+          // Address ~0 is special; it's used for programming
+          // so can be on different interfaces. Always broadcast these.
+          // Packets to knxd itself aren't forwarded.
+          bool found = (l1->dest == this->addr);
+          if (l1->dest != 0xFFFF)
+            ITER(i, links)
+              {
+                if (i->second == l2)
+                  continue;
+                if (i->second->hasAddress (l1->dest))
+                  {
+                    found = true;
+                    break;
+                  }
+              }
+          ITER (i, links)
+            {
+              if (i->second == l2)
+                continue;
+              if (l1->hopcount == 7 || found ? i->second->hasAddress (l1->dest) : i->second->checkAddress (l1->dest))
+                i->second->send_L_Data (LDataPtr(new L_Data_PDU (*l1)));
+            }
+        }
+    next:;
+    }
+
+  // Timestamps are ordered, so we scan for the first 
+  timestamp_t tm = getTime ();
+  ITER (i, ignore)
+    if (i->end >= tm)
+      {
+        ignore.erase (ignore.begin(), i);
+        break;
+      }
+}
+
+void
+Router::mtrigger_cb (ev::async &w, int revents)
+{
+  unsigned i;
+
+  while (!mbuf.isempty())
+    {
+      LBusmonPtr l1 = mbuf.get ();
+
+      TRACEPRINTF (t, 3, "RecvMon %s", l1->Decode (t).c_str());
+      ITER (i, busmonitor)
+        i->cb->send_L_Busmonitor (LBusmonPtr(new L_Busmonitor_PDU (*l1)));
+    }
+}

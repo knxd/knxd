@@ -29,9 +29,8 @@
 #include <string.h>
 #include <memory>
 
-EIBnetServer::EIBnetServer (TracePtr tr, String serverName)
-	: Layer2mixin::Layer2mixin (tr)
-  , name(serverName)
+EIBnetServer::EIBnetServer (BaseRouter& r, IniSection& s)
+	: Server(r,s)
   , mcast(NULL)
   , sock(NULL)
   , tunnel(false)
@@ -44,18 +43,18 @@ EIBnetServer::EIBnetServer (TracePtr tr, String serverName)
   drop_trigger.start();
 }
 
-EIBnetDiscover::EIBnetDiscover (EIBnetServer *parent, const char *multicastaddr, int port, const char *intf)
+EIBnetDriver::EIBnetDriver (EIBnetServerPtr parent, std::string& multicastaddr, int port, std::string& intf)
+  : LineDriver(parent)
 {
   struct sockaddr_in baddr;
   struct ip_mreq mcfg;
   sock = 0;
 
-  this->parent = parent;
-  TRACEPRINTF (parent->t, 8, "OpenD");
+  TRACEPRINTF (t, 8, "OpenD");
 
-  if (GetHostIP (parent->t, &maddr, multicastaddr) == 0)
+  if (GetHostIP (t, &maddr, multicastaddr) == 0)
     {
-      ERRORPRINTF (parent->t, E_ERROR | 11, "Addr '%s' not resolvable", multicastaddr);
+      ERRORPRINTF (t, E_ERROR | 11, "Addr '%s' not resolvable", multicastaddr);
       goto err_out;
     }
 
@@ -70,17 +69,17 @@ EIBnetDiscover::EIBnetDiscover (EIBnetServer *parent, const char *multicastaddr,
       baddr.sin_addr.s_addr = htonl (INADDR_ANY);
       baddr.sin_port = htons (port);
 
-      sock = new EIBNetIPSocket (baddr, 1, parent->t);
-      if (intf && !sock->SetInterface(intf))
+      sock = new EIBNetIPSocket (baddr, 1, t);
+      if (sock->SetInterface(intf))
         goto err_out;
       if (!sock->init ())
         goto err_out;
-      sock->on_recv.set<EIBnetDiscover,&EIBnetDiscover::on_recv_cb>(this);
+      sock->on_recv.set<EIBnetDriver,&EIBnetDriver::on_recv_cb>(this);
     }
   else
     {
-      maddr.sin_port = parent->Port;
-      sock = parent->sock;
+      maddr.sin_port = std::static_pointer_cast<EIBnetServer>(server)->Port;
+      sock = std::static_pointer_cast<EIBnetServer>(server)->sock;
     }
 
   mcfg.imr_multiaddr = maddr.sin_addr;
@@ -89,12 +88,12 @@ EIBnetDiscover::EIBnetDiscover (EIBnetServer *parent, const char *multicastaddr,
     goto err_out;
 
   /** This causes us to ignore multicast packets sent by ourselves */
-  if (!GetSourceAddress (&maddr, &sock->localaddr))
+  if (!GetSourceAddress (t, &maddr, &sock->localaddr))
     goto err_out;
-  sock->localaddr.sin_port = parent->Port;
+  sock->localaddr.sin_port = std::static_pointer_cast<EIBnetServer>(server)->Port;
   sock->recvall = 2;
 
-  TRACEPRINTF (parent->t, 8, "OpenedD");
+  TRACEPRINTF (t, 8, "OpenedD");
   return;
 
 err_out:
@@ -105,7 +104,7 @@ err_out:
 }
 
 bool
-EIBnetDiscover::init ()
+EIBnetDriver::setup()
 {
   if (! sock)
     return false;
@@ -119,21 +118,37 @@ EIBnetServer::~EIBnetServer ()
   TRACEPRINTF (t, 8, "Close");
 }
 
-EIBnetDiscover::~EIBnetDiscover ()
+EIBnetDriver::~EIBnetDriver ()
 {
-  TRACEPRINTF (parent->t, 8, "CloseD");
-  if (sock && parent->sock && parent->sock != sock)
+  TRACEPRINTF (t, 8, "CloseD");
+  EIBNetIPSocket * ps = std::static_pointer_cast<EIBnetServer>(server)->sock;
+  if (sock && ps && ps != sock)
     delete sock;
 }
 
 bool
-EIBnetServer::setup (const char *multicastaddr, const int port, const char *intf,
-                     const bool tunnel, const bool route,
-                     const bool discover, const bool single_port)
+EIBnetServer::setup()
+//(const char *multicastaddr, const int port, const char *intf,
+//                     const bool tunnel, const bool route,
+//                     const bool discover, const bool single_port)
+{
+  route = cfg.value("router",false);
+  tunnel = cfg.value("tunnel",false);
+  discover = cfg.value("discover",false);
+  single_port = cfg.value("single-port",true);
+  multicastaddr = cfg.value("multicast-address","224.0.23.12");
+  port = cfg.value("port",3671);
+  interface = cfg.value("interface","");
+  servername = cfg.value("name", dynamic_cast<Router *>(&router)->servername);
+}
+
+void
+EIBnetServer::start()
 {
   struct sockaddr_in baddr;
 
   TRACEPRINTF (t, 8, "Open");
+
   sock_mac = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
   if (sock_mac < 0)
   {
@@ -154,8 +169,7 @@ EIBnetServer::setup (const char *multicastaddr, const int port, const char *intf
     ERRORPRINTF (t, E_ERROR | 41, "EIBNetIPSocket creation failed");
     goto err_out1;
   }
-  if (intf)
-    sock->SetInterface(intf);
+  sock->SetInterface(interface);
 
   if (!sock->init ())
     goto err_out2;
@@ -165,25 +179,24 @@ EIBnetServer::setup (const char *multicastaddr, const int port, const char *intf
   sock->recvall = 1;
   Port = sock->port ();
 
-  mcast = new EIBnetDiscover (this, multicastaddr, single_port ? 0 : port, intf);
+  mcast = new EIBnetDriver (std::static_pointer_cast<EIBnetServer>(shared_from_this()), multicastaddr, single_port ? 0 : port, interface);
   if (!mcast)
   {
-    ERRORPRINTF (t, E_ERROR | 42, "EIBnetDiscover creation failed");
+    ERRORPRINTF (t, E_ERROR | 42, "EIBnetDriver creation failed");
     goto err_out2;
   }
-  if (!mcast->init ())
+  if (!mcast->setup ())
     goto err_out3;
 
   this->tunnel = tunnel;
   this->route = route;
   this->discover = discover;
   this->single_port = single_port;
-  if (this->route || this->tunnel)
-    addGroupAddress(0);
 
   TRACEPRINTF (t, 8, "Opened");
 
-  return true;
+  Server::start();
+  return;
 
 err_out4:
   stop();
@@ -197,40 +210,37 @@ err_out1:
   close (sock_mac);
   sock_mac = -1;
 err_out0:
-  return false;
+  Server::stop();
 }
 
-void EIBnetDiscover::Send (EIBNetIPPacket p, struct sockaddr_in addr)
+void EIBnetDriver::Send (EIBNetIPPacket p, struct sockaddr_in addr)
 {
   if (sock)
     sock->Send (p, addr);
 }
 
 void
-EIBnetServer::send_L_Data (LDataPtr l)
+EIBnetDriver::send_L_Data (LDataPtr l)
 {
-  if (route)
+  if (std::static_pointer_cast<EIBnetServer>(server)->route)
     {
-      TRACEPRINTF (t, 8, "Send_Route %s", l->Decode ().c_str());
+      TRACEPRINTF (t, 8, "Send_Route %s", l->Decode (t).c_str());
       EIBNetIPPacket p;
       p.service = ROUTING_INDICATION;
       p.data = L_Data_ToCEMI (0x29, l);
-      Send (p);
+      std::static_pointer_cast<EIBnetServer>(server)->Send (p);
     }
 }
 
-bool ConnState::init()
+bool ConnState::setup()
 {
-  if (! Layer2mixin::init(parent->l3))
+  if (! LineDriver::setup())
     return false;
-  if (! addGroupAddress(0))
+  if (type == CT_BUSMONITOR && ! dynamic_cast<Router *>(&server->router)->registerVBusmonitor(this))
     return false;
-  if (type == CT_BUSMONITOR && ! l3->registerVBusmonitor(this))
-    return false;
-  l3 = parent->l3->registerLayer2(shared_from_this());
 
-  addAddress(remoteAddr);
-  TRACEPRINTF (parent->t, 8, "Start Conn %d", channel);
+  addAddress(addr);
+  TRACEPRINTF (t, 8, "Start Conn %d", channel);
   return true;
 }
 
@@ -269,7 +279,7 @@ rt:
       }
   if (id <= 0xff)
     {
-      ConnStatePtr s = ConnStatePtr(new ConnState (this, addr));
+      ConnStatePtr s = ConnStatePtr(new ConnState (std::static_pointer_cast<EIBnetServer>(shared_from_this()), addr));
       s->channel = id;
       s->daddr = r1.daddr;
       s->caddr = r1.caddr;
@@ -287,15 +297,15 @@ rt:
   return id;
 }
 
-ConnState::ConnState (EIBnetServer *p, eibaddr_t addr)
-  : Layer2mixin (TracePtr(new Trace(*(p->t),p->t->name+':'+FormatEIBAddr(addr))))
+ConnState::ConnState (EIBnetServerPtr p, eibaddr_t addr)
+  : L_Busmonitor_CallBack(p->t->name), LineDriver (p)
 {
-  parent = p;
+  t = TracePtr(new Trace(*(p->t),p->t->name+':'+FormatEIBAddr(addr)));
   timeout.set <ConnState,&ConnState::timeout_cb> (this);
   sendtimeout.set <ConnState,&ConnState::sendtimeout_cb> (this);
   send_trigger.set<ConnState,&ConnState::send_trigger_cb>(this);
   send_trigger.start();
-  remoteAddr = addr;
+  this->addr = addr;
   TRACEPRINTF (t, 9, "has %s", FormatEIBAddr (addr).c_str());
 }
 
@@ -334,7 +344,7 @@ void ConnState::send_trigger_cb(ev::async &w, int revents)
     }
   retries ++;
   sendtimeout.start(1,0);
-  parent->mcast->Send (p, daddr);
+  std::static_pointer_cast<EIBnetServer>(server)->mcast->Send (p, daddr);
 }
 
 void ConnState::timeout_cb(ev::timer &w, int revents)
@@ -343,11 +353,11 @@ void ConnState::timeout_cb(ev::timer &w, int revents)
     {
       EIBnet_DisconnectRequest r;
       r.channel = channel;
-      if (GetSourceAddress (&caddr, &r.caddr))
+      if (GetSourceAddress (t, &caddr, &r.caddr))
         {
-          r.caddr.sin_port = parent->Port;
+          r.caddr.sin_port = std::static_pointer_cast<EIBnetServer>(server)->Port;
           r.nat = nat;
-          parent->Send (r.ToPacket (), caddr);
+          std::static_pointer_cast<EIBnetServer>(server)->Send (r.ToPacket (), caddr);
         }
     }
   stop();
@@ -357,17 +367,17 @@ void ConnState::stop()
 {
   TRACEPRINTF (t, 8, "Stop Conn %d", channel);
   if (type == CT_BUSMONITOR)
-    l3->deregisterVBusmonitor(this);
+    dynamic_cast<Router *>(&server->router)->deregisterVBusmonitor(this);
   timeout.stop();
   sendtimeout.stop();
   send_trigger.stop();
   retries = 0;
-  parent->drop_connection (std::static_pointer_cast<ConnState>(shared_from_this()));
-  Layer2::stop();
-  if (remoteAddr && l3)
+  std::static_pointer_cast<EIBnetServer>(server)->drop_connection (std::static_pointer_cast<ConnState>(shared_from_this()));
+  Driver::stop();
+  if (addr)
     {
-      l3->release_client_addr(remoteAddr);
-      remoteAddr = 0;
+      dynamic_cast<Router *>(&server->router)->release_client_addr(addr);
+      addr = 0;
     }
 }
 
@@ -393,7 +403,7 @@ void EIBnetServer::drop_trigger_cb(ev::async &w, int revents)
 
 ConnState::~ConnState()
 {
-  TRACEPRINTF (parent->t, 8, "CloseS");
+  TRACEPRINTF (t, 8, "CloseS");
 }
 
 void ConnState::reset_timer()
@@ -456,7 +466,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
 
       r2.KNXmedium = 2;
       r2.devicestatus = 0;
-      r2.individual_addr = l3->getDefaultAddr();
+      r2.individual_addr = dynamic_cast<Router *>(&router)->addr;
       r2.installid = 0;
       r2.multicastaddr = mcast->maddr.sin_addr;
       r2.serial[0]=1;
@@ -468,7 +478,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       //FIXME: Hostname, MAC-addr
       memcpy(r2.MAC, mac_address, sizeof(r2.MAC));
       //FIXME: Hostname, indiv. address
-      strncpy ((char *) r2.name, name.c_str(), sizeof(r2.name));
+      strncpy ((char *) r2.name, servername.c_str(), sizeof(r2.name));
       d.version = 1;
       d.family = 2; // core
       r2.services.push_back (d);
@@ -480,7 +490,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       d.family = 5;
       if (route)
 	r2.services.push_back (d);
-      if (!GetSourceAddress (&r1.caddr, &r2.caddr))
+      if (!GetSourceAddress (t, &r1.caddr, &r2.caddr))
 	goto out;
       r2.caddr.sin_port = Port;
       isock->Send (r2.ToPacket (), r1.caddr);
@@ -502,12 +512,12 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       TRACEPRINTF (t, 8, "DESCRIBE");
       r2.KNXmedium = 2;
       r2.devicestatus = 0;
-      r2.individual_addr = l3->getDefaultAddr();
+      r2.individual_addr = dynamic_cast<Router *>(&router)->addr;
       r2.installid = 0;
       r2.multicastaddr = mcast->maddr.sin_addr;
       memcpy(r2.MAC, mac_address, sizeof(r2.MAC));
       //FIXME: Hostname, indiv. address
-      strncpy ((char *) r2.name, name.c_str(), sizeof(r2.name));
+      strncpy ((char *) r2.name, servername.c_str(), sizeof(r2.name));
       d.version = 1;
       d.family = 2;
       if (discover)
@@ -530,13 +540,13 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
           t->TracePacket (2, "unparseable ROUTING_INDICATION", p1->data);
           goto out;
         }
-      LDataPtr c = CEMI_to_L_Data (p1->data, shared_from_this());
+      LDataPtr c = CEMI_to_L_Data (p1->data, t);
       if (!c)
         t->TracePacket (2, "unCEMIable ROUTING_INDICATION", p1->data);
       else if (route)
 	{
-	  TRACEPRINTF (t, 8, "Recv_Route %s", c->Decode ().c_str());
-          l3->recv_L_Data (std::move(c));
+	  TRACEPRINTF (t, 8, "Recv_Route %s", c->Decode (t).c_str());
+          mcast->recv_L_Data (std::move(c));
 	}
       goto out;
     }
@@ -601,7 +611,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       r2.status = 0x22;
       if (r1.CRI.size() == 3 && r1.CRI[0] == 4)
 	{
-	  eibaddr_t a = tunnel ? l3->get_client_addr (t) : 0;
+	  eibaddr_t a = tunnel ? static_cast<Router *>(&router)->get_client_addr (t) : 0;
 	  r2.CRD.resize (3);
 	  r2.CRD[0] = 0x04;
           if (tunnel)
@@ -641,7 +651,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
           TRACEPRINTF (t, 8, "bad CONNECTION_REQ: size %d, [0] x%02x", r1.CRI.size(), r1.CRI[0]);
           // XXX set status to something more reasonable
         }
-      if (!GetSourceAddress (&r1.caddr, &r2.daddr))
+      if (!GetSourceAddress (t, &r1.caddr, &r2.daddr))
 	goto out;
       if (tunnel && r2.status)
         TRACEPRINTF (t, 8, "CONNECTION_REQ: no free channel");
@@ -750,6 +760,8 @@ EIBnetServer::stop()
 
   if (mcast)
   {
+    mcast->conn->stop();
+    mcast->conn->unlink();
     delete mcast;
     mcast = 0;
   }
@@ -763,13 +775,13 @@ EIBnetServer::stop()
     close (sock_mac);
     sock_mac = -1;
   }
-  Layer2mixin::stop();
+  Server::stop();
 }
 
 void
-EIBnetDiscover::on_recv_cb (EIBNetIPPacket *p)
+EIBnetDriver::on_recv_cb (EIBNetIPPacket *p)
 {
-  parent->handle_packet (p, this->sock);
+  std::static_pointer_cast<EIBnetServer>(server)->handle_packet (p, this->sock);
 }
 
 void ConnState::tunnel_request(EIBnet_TunnelRequest &r1, EIBNetIPSocket *isock)
@@ -793,7 +805,7 @@ void ConnState::tunnel_request(EIBnet_TunnelRequest &r1, EIBNetIPSocket *isock)
   if (type == CT_STANDARD)
     {
       TRACEPRINTF (t, 8, "TUNNEL_REQ");
-      LDataPtr c = CEMI_to_L_Data (r1.CEMI, shared_from_this());
+      LDataPtr c = CEMI_to_L_Data (r1.CEMI, t);
       if (c)
 	{
 	  r2.status = 0;
@@ -804,9 +816,9 @@ void ConnState::tunnel_request(EIBnet_TunnelRequest &r1, EIBNetIPSocket *isock)
 		send_trigger.send();
             }
           if (c->source == 0)
-            c->source = remoteAddr;
+            c->source = addr;
           if (r1.CEMI[0] == 0x11 || r1.CEMI[0] == 0x29)
-            l3->recv_L_Data (std::move(c));
+            recv_L_Data (std::move(c));
           else
             TRACEPRINTF (t, 8, "Wrong leader x%02x", r1.CEMI[0]);
 	}

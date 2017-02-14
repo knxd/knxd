@@ -357,7 +357,6 @@ private:
   /** multicast in use? */
   bool multicast;
 
-  const char *Name() { return "eibnetipsocket"; }
 public:
   EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr, TracePtr tr,
                   SockMode mode = S_RDWR);
@@ -376,7 +375,7 @@ public:
   /** get the port this socket is bound to (network byte order) */
   int port ();
 
-  bool SetInterface(const char *iface);
+  bool SetInterface(std::string& iface);
 
   /** default send address */
   struct sockaddr_in sendaddr;

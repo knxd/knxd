@@ -23,13 +23,17 @@
 #include "server.h"
 
 /** implements a server listening on a unix domain socket */
-class LocalServer:public Server
+class LocalServer:public NetServer
 {
 public:
-  LocalServer (TracePtr tr, const char *path);
+  LocalServer (BaseRouter& r, IniSection& s);
   ~LocalServer ();
+
+  bool setup();
+  void start();
+  void stop();
 private:
-  const char *path;
+  std::string path;
 };
 
 #endif

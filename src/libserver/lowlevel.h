@@ -21,6 +21,7 @@
 #define LOWLEVEL_H
 
 #include "common.h"
+#include "link.h"
 
 typedef void (*c_recv_cb_t)(void *data, CArray *p);
 
@@ -75,13 +76,17 @@ class LowLevelDriver
 {
 private:
   void recv_discard(CArray *p);
-  /** debug output */
+
 protected:
+  DriverPtr master;
+  /** configuration */
+  IniSection &cfg;
+  /** debug output */
   TracePtr t;
 public:
-  LowLevelDriver (TracePtr tr)
+  LowLevelDriver (IniSection &s, TracePtr t) : cfg(s)
   {
-    t = tr;
+    t = TracePtr(new Trace(*t,s));
     reset();
   }
   void reset() {
@@ -90,7 +95,16 @@ public:
 
   ~LowLevelDriver ();
 
-  virtual bool init () = 0;
+  virtual bool setup (DriverPtr master)
+    {
+      this->master = master;
+      return true;
+    }
+  virtual void start () = 0;
+  virtual void stop () = 0;
+
+  void started() { master->started(); }
+  void stopped() { master->stopped(); }
 
   /** sends a EMI frame asynchronous */
   virtual void Send_Packet (CArray l) = 0;

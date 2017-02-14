@@ -26,12 +26,12 @@
 #include "cemi.h"
 
 /** CEMI backend */
-class FT12CEMILayer2 : public CEMILayer2
+class FT12CEMIDriver : public CEMIDriver
 {
   void cmdOpen(); 
 public:
-  FT12CEMILayer2 (LowLevelDriver * i, L2options *opt) : CEMILayer2(i,opt) {}
-  ~FT12CEMILayer2 ();
+  FT12CEMIDriver (LowLevelDriver * i, LinkConnectPtr c, IniSection& s) : CEMIDriver(i,c,s) {}
+  ~FT12CEMIDriver ();
 };
 
 #endif  /* EIB_CEMI_H */

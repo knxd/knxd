@@ -67,15 +67,16 @@ class USBLowLevelDriver:public LowLevelDriver
   struct libusb_transfer *sendh = 0;
   struct libusb_transfer *recvh = 0;
 
-  const char *Name() { return "usbif"; }
   void StartUsbRecvTransfer();
   void FinishUsbRecvTransfer();
   void ReceiveUsb();
 
 public:
-  USBLowLevelDriver (const char *device, TracePtr tr);
+  USBLowLevelDriver (IniSection& s, TracePtr tr);
   ~USBLowLevelDriver ();
-  bool init ();
+  bool setup(DriverPtr master);
+  void start();
+  void stop();
   void CompleteReceive(struct libusb_transfer *recvh);
   void CompleteSend(struct libusb_transfer *recvh);
 

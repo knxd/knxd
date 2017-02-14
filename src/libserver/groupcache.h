@@ -25,8 +25,7 @@
 #include <map>
 #include <unordered_map>
 
-#include "layer3.h"
-#include "layer2.h"
+#include "link.h"
 #include "client.h"
 
 class GroupCache;
@@ -67,7 +66,7 @@ typedef std::map<uint32_t, eibaddr_t> SeqMap;
 /** map group addresses to cache entries */
 typedef std::unordered_map<eibaddr_t, GroupCacheEntry> CacheMap;
 
-class GroupCache:public Layer2virtual
+class GroupCache:public Driver
 {
   Array < GroupCacheReader * > reader;
   /** The Cache */
@@ -78,7 +77,9 @@ class GroupCache:public Layer2virtual
   uint16_t maxsize;
 
 public: // but only for GroupCacheReader
-  bool init(Layer3 *l3);
+  bool setup();
+  void start();
+  void stop();
   bool hasGroupAddress (eibaddr_t addr UNUSED) { return true; }
 
 private:
@@ -88,7 +89,7 @@ private:
 
 public:
   /** constructor */
-  GroupCache (TracePtr t, uint16_t maxsize = 256);
+  GroupCache (LinkConnectPtr c, IniSection& s);
   /** destructor */
   virtual ~GroupCache ();
   /** Feed data to the cache */

@@ -25,7 +25,7 @@
 
 /** implement a generic FIFO queue*/
 template < typename _T >
-class Queue : std::queue<_T>
+class Queue : public std::queue<_T>
 {
 public:
   typedef typename std::queue<_T>::value_type value_type;

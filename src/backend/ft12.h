@@ -31,8 +31,11 @@ class FT12LowLevelDriver:public LowLevelDriver
 {
   /** old serial config */
   low_latency_save sold;
+  /** device file name */
+  std::string dev;
   /** file descriptor */
   int fd;
+
   RecvBuf recvbuf;
   SendBuf sendbuf;
   size_t read_cb(uint8_t *buf, size_t len);
@@ -54,7 +57,6 @@ class FT12LowLevelDriver:public LowLevelDriver
   /** state */
   bool send_wait;
 
-  const char *Name() { return "ft12"; }
   /** set up send and recv buffers, timers, etc. */
   void setup_buffers();
 
@@ -65,9 +67,10 @@ class FT12LowLevelDriver:public LowLevelDriver
   void process_read(bool is_timeout);
 
 public:
-  FT12LowLevelDriver (const char *device, TracePtr tr);
+  FT12LowLevelDriver (IniSection& s, TracePtr tr);
   ~FT12LowLevelDriver ();
-  bool init ();
+  bool setup (DriverPtr master);
+  void start();
   void stop();
 
   void Send_Packet (CArray l);

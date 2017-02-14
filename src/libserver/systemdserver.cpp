@@ -22,20 +22,44 @@
 #include <sys/socket.h>
 #include "systemdserver.h"
 
-SystemdServer::SystemdServer (TracePtr tr, int systemd_fd):
-Server (tr)
+SystemdServer::SystemdServer (BaseRouter& r, IniSection& s, int systemd_fd)
+    : NetServer(r,s)
 {
-  TRACEPRINTF (tr, 8, "OpenSystemdSocket");
-
   fd = systemd_fd;
+}
+
+bool
+SystemdServer::setup()
+{
+  return NetServer::setup();
+}
+
+void
+SystemdServer::start()
+{
+  TRACEPRINTF (t, 8, "OpenSystemdSocket");
+
   if (listen (fd, 10) == -1)
     {
-      ERRORPRINTF (tr, E_ERROR | 19, "OpenSystemdSocket: listen: %s", strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 19, "OpenSystemdSocket: listen: %s", strerror(errno));
       close (fd);
       fd = -1;
+      NetServer::stop();
       return;
     }
 
-  TRACEPRINTF (tr, 8, "SystemdSocket opened");
+  TRACEPRINTF (t, 8, "SystemdSocket opened");
+  NetServer::start();
+}
+
+void
+SystemdServer::stop()
+{
+  if (fd > -1)
+    {
+      close(fd);
+      fd = -1;
+    }
+  NetServer::stop();
 }
 

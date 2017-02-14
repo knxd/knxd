@@ -22,28 +22,53 @@
 A_Busmonitor::~A_Busmonitor ()
 {
   TRACEPRINTF (t, 7, "Close A_Busmonitor");
-  if (v)
-    l3->deregisterVBusmonitor (this);
-  else
-    l3->deregisterBusmonitor (this);
 }
 
-A_Busmonitor::A_Busmonitor (ClientConnPtr c, bool virt, bool TS, uint8_t *buf,size_t len)
+void
+A_Busmonitor::start()
 {
-  CArray resp;
+  if (running)
+    return;
+  Router& r = con->router;
+  if (v)
+    r.registerVBusmonitor (this);
+  else
+    r.registerBusmonitor (this);
+  running = true;
+}
 
+void
+A_Busmonitor::stop()
+{
+  if (!running)
+    return;
+  Router& r = con->router;
+  if (v)
+    r.deregisterVBusmonitor (this);
+  else
+    r.deregisterBusmonitor (this);
+  running = false;
+}
+
+A_Busmonitor::A_Busmonitor (ClientConnPtr c, bool virt, bool TS)
+  : L_Busmonitor_CallBack(c->t->name),A__Base(c),router(static_cast<Router&>(c->server->router))
+{
   t = TracePtr(new Trace(*c->t, c->t->name+":monitor"));
   TRACEPRINTF (t, 7, "Open A_Busmonitor");
-  this->l3 = c->l3;
   con = c;
   v = virt;
   ts = TS;
+}
 
-  if (!(v ? l3->registerVBusmonitor (this) : l3->registerBusmonitor (this)))
+bool
+A_Busmonitor::setup(uint8_t *buf,size_t len)
+{
+  CArray resp;
+
+  if (!(v ? router.registerVBusmonitor (this) : router.registerBusmonitor (this)))
     {
       con->sendreject (EIB_CONNECTION_INUSE);
-      con = 0;
-      return;
+      return false;
     }
 
   resp.setpart (buf, 0, 2);
@@ -61,6 +86,7 @@ A_Busmonitor::A_Busmonitor (ClientConnPtr c, bool virt, bool TS, uint8_t *buf,si
     }
 
   con->sendmessage (resp.size(), resp.data());
+  return true;
 }
 
 void
@@ -91,7 +117,7 @@ void
 A_Text_Busmonitor::send_L_Busmonitor (LBusmonPtr p)
 {
   CArray buf;
-  String s = p->Decode ();
+  String s = p->Decode (t);
   buf.resize (2 + s.length() + 1);
   EIBSETTYPE (buf, EIB_BUSMONITOR_PACKET);
   buf.setpart ((uint8_t *)s.c_str(), 2, s.length()+1);

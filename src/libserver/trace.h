@@ -23,7 +23,9 @@
 #include <stdarg.h>
 #include <sys/time.h>
 #include <memory>
+#include <iostream>
 #include "common.h"
+#include "inifile.h"
 
 #define LEVEL_FATAL 0
 #define LEVEL_CRITICAL 1
@@ -42,6 +44,31 @@
 extern unsigned int trace_seq;
 extern unsigned int trace_namelen;
 
+static const char *error_levels[] = {
+    "none",
+    "fatal",
+    "error",
+    "warning",
+    "note",
+    "info",
+    "debug",
+    "trace",
+};
+
+static int
+error_level(std::string level, int def)
+{
+  if (level.size() == 0)
+    return def;
+  if(isdigit(level[0]))
+    return atoi(level.c_str());
+  for(int i = 0; i < sizeof(error_levels)/sizeof(error_levels[0]); i++)
+    if (level == error_levels[i])
+      return i;
+  std::cerr << "Unrecognized logging level: " << level << std::endl;
+  return 3; // warning
+}
+
 /** implements debug output with different levels */
 class Trace
 {
@@ -59,22 +86,28 @@ class Trace
 
 public:
   /** name(s) and number of this tracer */
-  std::string &servername;
+  std::string servername;
   std::string name;
   unsigned int seq;
 
-  Trace (std::string &server, const char *name) : servername(server)
+  IniSection &cfg;
+
+  Trace (IniSection& s, std::string& sn) : cfg(s), servername(sn)
   {
-    layers = 0;
-    level = 0;
     seq = ++trace_seq;
-    this->name = name;
+    gettimeofday(&started, NULL);
+    name = s.name;
+  }
+  bool setup()
+  {
     if (trace_namelen < this->name.length())
       trace_namelen = this->name.length();
-    gettimeofday(&started, NULL);
+    timestamps = cfg.value("timestamps",timestamps);
+    layers = cfg.value("trace-mask",(int)layers);
+    level = error_level(cfg.value("error-level",""),level);
   }
 
-  Trace (Trace &orig, std::string name) : servername(orig.servername)
+  Trace (Trace &orig, std::string name) : cfg(orig.cfg)
   {
     this->layers = orig.layers;
     this->level = orig.level;
@@ -85,23 +118,37 @@ public:
     if (trace_namelen < this->name.length())
       trace_namelen = this->name.length();
   }
-  virtual ~Trace ()
+
+  Trace (Trace &orig, IniSection& s) : cfg(s)
+  {
+    this->layers = orig.layers;
+    this->level = orig.level;
+    this->name = name;
+    this->started = orig.started;
+    this->timestamps = orig.timestamps;
+    this->seq = ++trace_seq;
+    if (trace_namelen < this->name.length())
+      trace_namelen = this->name.length();
+    setup();
+  }
+
+  ~Trace ()
   {
   }
 
   /** sets trace level */
-  virtual void SetTraceLevel (int l)
+  void SetTraceLevel (int l)
   {
     layers = l;
   }
 
-  virtual void SetTimestamps (bool l)
+  void SetTimestamps (bool l)
   {
     timestamps = l;
   }
 
   /** sets error level */
-  virtual void SetErrorLevel (int l)
+  void SetErrorLevel (int l)
   {
     level = l;
   }
@@ -112,7 +159,7 @@ public:
    * @param Len length of the data
    * @param data pointer to the data
    */
-  virtual void TracePacketUncond (int layer, const char *msg,
+  void TracePacketUncond (int layer, const char *msg,
 				  int Len, const uchar * data);
   /** prints a message with a hex dump
    * @param layer level of the message
@@ -141,13 +188,13 @@ public:
    * @param layer level of the message
    * @param msg Message
    */
-  virtual void TracePrintf (int layer, const char *msg, ...);
+  void TracePrintf (int layer, const char *msg, ...);
 
   /** like printf for errors
    * @param msgid message id
    * @param msg Message
    */
-  virtual void ErrorPrintfUncond (unsigned int msgid, const char *msg, ...);
+  void ErrorPrintfUncond (unsigned int msgid, const char *msg, ...);
 
   /** should trace message be written
    * @parm layer level of the message

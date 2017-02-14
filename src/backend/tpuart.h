@@ -21,7 +21,7 @@
 #define TPUART_H
 #include "iobuf.h"
 #include "eibnetip.h"
-#include "layer2.h"
+#include "link.h"
 #include "lpdu.h"
 
 // also update SN() in tpuart.cpp
@@ -42,7 +42,7 @@ enum TSTATE {
 };
 
 /** TPUART user mode driver */
-class TPUART_Base:public Layer2
+class TPUART_Base:public Driver
 {
 protected:
   /** device connection */
@@ -60,7 +60,6 @@ protected:
   virtual void RecvLPDU (const uchar * data, int len);
   void process_read(bool timed_out);
 
-  virtual const char *Name() = 0;
   void setup_buffers();
   void send_next(bool done);
   void in_check();
@@ -79,22 +78,20 @@ protected:
   bool acked = false;
   bool recvecho = false;
   bool skip_char = false;
+  bool monitor = false;
   eibaddr_t my_addr = 0;
 
   enum TSTATE state = T_new;
   virtual void setstate(enum TSTATE new_state);
 
 public:
-  TPUART_Base (L2options *opt);
+  TPUART_Base (LinkConnectPtr c, IniSection& s);
   ~TPUART_Base ();
-  bool init (Layer3 *l3);
+  bool setup();
+  void start();
+  void stop();
 
   void send_L_Data (LDataPtr l);
-
-  bool enterBusmonitor ();
-  bool leaveBusmonitor ();
-
-  bool Open ();
 };
 
 #endif

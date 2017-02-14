@@ -21,12 +21,11 @@
 #include "tpdu.h"
 #include "apdu.h"
 
-GroupCache::GroupCache (TracePtr t, uint16_t maxsize)
-	: Layer2virtual(t)
+GroupCache::GroupCache (LinkConnectPtr c, IniSection& s)
+	: Driver(c,s)
 {
   TRACEPRINTF (t, 4, "GroupCacheInit");
   enable = 0;
-  this->maxsize = maxsize ? maxsize : 0xFFFF;
   remtrigger.set<GroupCache, &GroupCache::remtrigger_cb>(this);
 }
 
@@ -43,13 +42,27 @@ GroupCache::~GroupCache ()
 }
 
 bool
-GroupCache::init(Layer3 *l3)
+GroupCache::setup()
 {
-  if (!Layer2::init(l3))
+  if (!Driver::setup())
     return false;
-  l3 = l3->registerLayer2(shared_from_this());
   remtrigger.start();
+  this->maxsize = cfg.value("max-size", 0xFFFF);
   return true;
+}
+
+void
+GroupCache::start()
+{
+  enable = true;
+  Driver::start();
+}
+
+void
+GroupCache::stop()
+{
+  enable = false;
+  Driver::stop();
 }
 
 void
@@ -276,12 +289,12 @@ GroupCache::Read (eibaddr_t addr, unsigned Timeout, uint16_t age,
   GCReader *gcr = new GCReader(this,addr,Timeout,age, cb,cc);
 
   tpdu.data = apdu.ToPacket ();
-  l = LDataPtr(new L_Data_PDU (shared_from_this()));
+  l = LDataPtr(new L_Data_PDU ());
   l->data = tpdu.ToPacket ();
   l->source = 0;
   l->dest = addr;
   l->AddrType = GroupAddress;
-  l3->recv_L_Data (std::move(l));
+  recv_L_Data (std::move(l));
 }
 
 class GCTracker : protected GroupCacheReader

@@ -22,14 +22,13 @@
 
 #include "ft12cemi.h"
 #include "emi.h"
-#include "layer3.h"
 
-FT12CEMILayer2::~FT12CEMILayer2()
+FT12CEMIDriver::~FT12CEMIDriver()
 {
 }
 
 void
-FT12CEMILayer2::cmdOpen()
+FT12CEMIDriver::cmdOpen()
 {
   const uchar t1[] = { 0xF6, 0x00, 0x08, 0x01, 0x34, 0x10, 0x01, 0x00 };
   iface->Send_Packet (CArray (t1, sizeof (t1)));

@@ -20,22 +20,24 @@
 #ifndef BUSMONITOR_H
 #define BUSMONITOR_H
 
-#include "layer3.h"
+#include "link.h"
+#include "router.h"
 #include "client.h"
 #include "connection.h"
 
 /** implements busmonitor functions for a client */
-class A_Busmonitor:public L_Busmonitor_CallBack, public A_Base
+class A_Busmonitor:public L_Busmonitor_CallBack, public A__Base
 {
   /** is virtual busmonitor */
   bool v;
   /** should provide timestamps */
   bool ts;
+  /** registered? */
+  bool running;
 
-  const char *Name() { return "busmonitor"; }
 protected:
   /** Layer 3 Interface*/
-  Layer3 * l3;
+  Router& router;
   /** debug output */
   TracePtr t;
 public:
@@ -47,12 +49,15 @@ public:
    * @param ts provide timestamps
    */
   A_Busmonitor (ClientConnPtr c,
-                bool virt, bool ts,
-                uint8_t *buf,size_t len);
+                bool virt, bool ts);
   virtual ~A_Busmonitor ();
+  bool setup(uint8_t *buf,size_t len);
+  void start();
+  void stop();
+
   void send_L_Busmonitor (LBusmonPtr l);
   // dummy method
-  void recv(uint8_t *buf, size_t len) {}
+  void recv_Data(uint8_t *buf, size_t len) {}
 };
 
 /** implements text busmonitor functions for a client */
@@ -65,8 +70,8 @@ public:
    * @param l3 Layer 3
    * @param virt is virtual busmonitor
    */
-  A_Text_Busmonitor (ClientConnPtr c, bool virt, uint8_t *buf,size_t len)
-                   : A_Busmonitor (c, virt, false, buf,len)
+  A_Text_Busmonitor (ClientConnPtr c, bool virt)
+                   : A_Busmonitor (c, virt, false)
   {
   }
   void send_L_Busmonitor (LBusmonPtr l);

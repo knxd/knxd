@@ -33,7 +33,7 @@ class Layer7_Broadcast : T_Reader<BroadcastComm>
 public:
   Layer7_Broadcast (TracePtr tr);
   virtual ~Layer7_Broadcast ();
-  bool init (Layer3 * l3);
+  bool init (Router * l3);
   void recv (BroadcastComm *c);
 
   /** send IndividualAddress_Write */
@@ -55,7 +55,7 @@ class Layer7_Connection : T_Reader<BroadcastComm>
 public:
   Layer7_Connection (TracePtr tr, eibaddr_t dest);
   virtual ~Layer7_Connection ();
-  bool init (Layer3 * l3);
+  bool init (Router * l3);
   void recv (BroadcastComm *c);
 
   /** send A_Restart */
@@ -110,7 +110,7 @@ class Layer7_Individual
 public:
   Layer7_Individual (TracePtr tr, eibaddr_t dest);
   virtual ~Layer7_Individual ();
-  bool init (Layer3 * l3);
+  bool init (Router * l3);
 
   /** read a property */
   int A_Property_Read (uchar obj, uchar propertyid, uint16_t start,

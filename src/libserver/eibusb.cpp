@@ -90,18 +90,20 @@ private:
     }
 public:
     EMIVer run() {
+        i->start();
         emiver = vDiscovery;
         xmit();
         do {
             ev_run(EV_DEFAULT_ EVRUN_ONCE);
         } while (emiver == vDiscovery);
         assert (emiver != vDiscovery);
+        i->stop();
         return emiver;
     }
 };
 
 LowLevelDriver *
-initUSBDriver (LowLevelDriver * i, TracePtr tr)
+initUSBDriver (LowLevelDriver * i, IniSection& s, TracePtr tr)
 {
   CArray r1, *r = 0;
   LowLevelDriver *iface;
@@ -112,7 +114,7 @@ initUSBDriver (LowLevelDriver * i, TracePtr tr)
     0x01
   };
 
-  if (!i->init ())
+  if (!i->setup (nullptr))
     {
       delete i;
       return 0;
@@ -130,7 +132,7 @@ initUSBDriver (LowLevelDriver * i, TracePtr tr)
     case vCEMI:
       init[12] = emiver;
       i->Send_Packet (CArray (init, sizeof (init)));
-      iface = new USBConverterInterface (i, tr, emiver);
+      iface = new USBConverterInterface (i, s, tr, emiver);
       break;
     case vTIMEOUT:
       TRACEPRINTF (tr, 1, "Timeout reading EMI version");
@@ -147,9 +149,9 @@ initUSBDriver (LowLevelDriver * i, TracePtr tr)
   return iface;
 }
 
-USBConverterInterface::USBConverterInterface (LowLevelDriver * iface,
+USBConverterInterface::USBConverterInterface (LowLevelDriver * iface, IniSection& s,
 					      TracePtr tr, EMIVer ver)
-    : LowLevelDriver(tr)
+    : LowLevelDriver(s,tr)
 {
   i = iface;
   v = ver;
@@ -177,9 +179,19 @@ USBConverterInterface::~USBConverterInterface ()
   delete i;
 }
 
-bool USBConverterInterface::init ()
+void USBConverterInterface::started()
 {
-  return i->init ();
+  master->started();
+}
+
+void USBConverterInterface::stopped()
+{
+  master->stopped();
+}
+
+bool USBConverterInterface::setup (DriverPtr master)
+{
+  return i->setup (master);
 }
 
 void
@@ -282,24 +294,24 @@ EMIVer USBConverterInterface::getEMIVer ()
 }
 
 
-USBLayer2::USBLayer2 (LowLevelDriver * i,
-                      L2options *opt) : Layer2 (opt)
+USBDriver::USBDriver (LowLevelDriver * i,
+                      LinkConnectPtr c, IniSection& s) : Driver (c,s)
 {
   emi = nullptr;
-  LowLevelDriver *iface = initUSBDriver (i, t);
+  LowLevelDriver *iface = initUSBDriver (i, s, t);
   if (!iface)
     return;
 
   switch (iface->getEMIVer ())
     {
     case vEMI1:
-      emi = std::shared_ptr<EMI1Layer2> (new EMI1Layer2 (iface, opt));
+      emi = std::shared_ptr<EMI1Driver> (new EMI1Driver (i,c,s));
       break;
     case vEMI2:
-      emi = std::shared_ptr<EMI2Layer2>(new EMI2Layer2 (iface, opt));
+      emi = std::shared_ptr<EMI2Driver>(new EMI2Driver (i,c,s));
       break;
     case vCEMI:
-      emi = std::shared_ptr<CEMILayer2>(new CEMILayer2 (iface, opt));
+      emi = std::shared_ptr<CEMIDriver>(new CEMIDriver (i,c,s));
       break;
     default:
       TRACEPRINTF (t, 2, "Unsupported EMI");
@@ -308,48 +320,40 @@ USBLayer2::USBLayer2 (LowLevelDriver * i,
     }
 }
 
-bool USBLayer2::init (Layer3 *l3)
+bool USBDriver::setup ()
 {
+  if (!Driver::setup())
+    return false;
   if (emi == 0)
     return false;
-  if (! addGroupAddress(0))
+  if (! emi->setup())
     return false;
-  if (! emi->init(l3))
-    return false;
-  emi->real_l2 = shared_from_this();
-  return Layer2::init(l3);
+  emi->real_l2 = std::static_pointer_cast<USBDriver>(shared_from_this());
+  return true;
 }
 
-bool USBLayer2::enterBusmonitor ()
+bool USBDriver::enterBusmonitor ()
 {
-  if (! Layer2::enterBusmonitor ())
-    return false;
   return emi->enterBusmonitor ();
 }
 
-bool USBLayer2::leaveBusmonitor ()
+bool USBDriver::leaveBusmonitor ()
 {
-  if (! Layer2::leaveBusmonitor ())
-    return false;
   return emi->leaveBusmonitor ();
 }
 
-bool USBLayer2::Open ()
+void USBDriver::start ()
 {
-  if (! Layer2::Open ())
-    return false;
-  return emi->Open ();
+  emi->start ();
 }
 
-bool USBLayer2::Close ()
+void USBDriver::stop ()
 {
-  if (! Layer2::Close ())
-    return false;
-  return emi->Close ();
+  emi->stop ();
 }
 
 void
-USBLayer2::send_L_Data (LDataPtr l)
+USBDriver::send_L_Data (LDataPtr l)
 {
   emi->send_L_Data (std::move(l));
 }

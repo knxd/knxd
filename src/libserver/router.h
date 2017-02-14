@@ -20,6 +20,8 @@
 #ifndef ROUTER_H
 #define ROUTER_H
 
+#include <unordered_map>
+
 #include "link.h"
 #include "lpdu.h"
 #include <ev++.h>
@@ -27,6 +29,13 @@
 class BaseServer;
 class GroupCache;
 class LinkConnect;
+
+class LPtr {
+public:
+  LDataPtr first;
+  LinkConnectPtr second;
+  LPtr(LDataPtr f, LinkConnectPtr s) {first = std::move(f); second = s; }
+};
 
 /** stores a registered busmonitor callback */
 typedef struct
@@ -40,13 +49,15 @@ typedef struct
   timestamp_t end;
 } IgnoreInfo;
 
-class Router {
+class Router : public BaseRouter {
 public:
-  Router(IniData d, std::string &sn);
+  Router(IniData& d, std::string sn);
   ~Router();
 
   /** debug output */
   TracePtr t;
+  /** my name */
+  std::string servername;
 
   /** the server's own address */
   eibaddr_t addr = 0;
@@ -62,32 +73,32 @@ public:
   /** shut down*/
   void stop();
 
-  /** register a layer2 interface, return the L3 registered-to if successful.
-   * Registration may shift the caller to a different L3 if intermediate
-   * layer23 modules are present
-   */
-private:
-  map<std::string, LinkRecv> links;
+  /** callbacks from link */
+  void link_started(LinkConnectPtr link);
+  void link_stopped(LinkConnectPtr link);
+
+  /** register a new link. Must be fully linked and setup() must be OK. */
+  bool registerLink(LinkConnectPtr link);
+  /** unregister a new link */
+  bool unregisterLink(LinkConnectPtr link);
 
   /** register a busmonitor callback, return true, if successful*/
   bool registerBusmonitor (L_Busmonitor_CallBack * c);
   /** register a vbusmonitor callback, return true, if successful*/
   bool registerVBusmonitor (L_Busmonitor_CallBack * c);
-  /** register a broadcast callback, return true, if successful*/
 
   /** deregister a busmonitor callback, return true, if successful*/
   bool deregisterBusmonitor (L_Busmonitor_CallBack * c);
   /** deregister a vbusmonitor callback, return true, if successful*/
   bool deregisterVBusmonitor (L_Busmonitor_CallBack * c);
-  /** register a broadcast callback, return true, if successful*/
 
-  /** accept a L_Data frame */
-  void recv_L_Data (LDataPtr l, LinkConnectPtr link);
-  /** accept a L_Busmonitor frame */
-  void recv_L_Busmonitor (LBusmonPtr l);
+  /** Get a free dynamic address */
+  eibaddr_t get_client_addr (TracePtr t);
+  /** … and release it */
+  void release_client_addr (eibaddr_t addr);
 
   /** check if any interface knows this address. */
-  LinkConnectPtr hasAddress (eibaddr_t addr);
+  bool hasAddress (eibaddr_t addr, LinkConnectPtr& link);
   /** check if any interface accepts this address.
       'l2' says which interface NOT to check. */
   bool checkAddress (eibaddr_t addr, LinkConnectPtr l2 = nullptr);
@@ -95,29 +106,29 @@ private:
       'l2' says which interface NOT to check. */
   bool checkGroupAddress (eibaddr_t addr, LinkConnectPtr l2 = nullptr);
 
-  /** remember this server, for deallocation with the L3 */
-  virtual void registerServer (BaseServer *s) = 0;
-  /** remember this server, for deallocation with the L3 */
-  virtual void deregisterServer (BaseServer *s) = 0;
-
-  /** Get a free dynamic address */
-  virtual eibaddr_t get_client_addr (TracePtr t);
-  /** … and release it */
-  virtual void release_client_addr (eibaddr_t addr);
-
-  virtual Driver3 * findFilter (const char *name) { return nullptr; }
+  /** accept a L_Data frame */
+  void recv_L_Data (LDataPtr l, LinkConnect& link);
+  /** accept a L_Busmonitor frame */
+  void recv_L_Busmonitor (LBusmonPtr l);
 
 private:
+  /** name of our main section */
+  std::string main;
+
+  /** create a link */
+  LinkBasePtr setup_link(std::string& name);
+
+  /** interfaces */
+  std::unordered_map<std::string, LinkConnectPtr> links;
+
   // libev
   ev::async trigger;
   void trigger_cb (ev::async &w, int revents);
   ev::async mtrigger;
   void mtrigger_cb (ev::async &w, int revents);
 
-  /** interfaces */
-  Array < LinkBasePtr > layer2;
   /** buffer queues for receiving from L2 */
-  Queue < LDataPtr > buf;
+  Queue < LPtr > buf;
   Queue < LBusmonPtr > mbuf;
   /** buffer for packets to ignore when repeat flag is set */
   Array < IgnoreInfo > ignore;
@@ -135,7 +146,9 @@ private:
   Array < Busmonitor_Info > vbusmonitor;
 
   /** flag whether we've been started */
-  bool running;
+  bool running = false;
+  /** flag whether we're transitioning states */
+  bool switching = false;
 
   /** treat route count 7 as per EIB spec? */
   bool force_broadcast;

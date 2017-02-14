@@ -20,7 +20,7 @@
 #ifndef EIB_USB_EMI_H
 #define EIB_USB_EMI_H
 
-#include "layer2.h"
+#include "link.h"
 #include "lowlevel.h"
 #include "emi_common.h"
 
@@ -30,10 +30,15 @@ class USBConverterInterface:public LowLevelDriver
   LowLevelDriver *i;
   EMIVer v;
 public:
-  USBConverterInterface (LowLevelDriver * iface, TracePtr tr,
-                          EMIVer ver);
+  USBConverterInterface (LowLevelDriver * iface, IniSection& s,
+                         TracePtr tr, EMIVer ver);
   virtual ~USBConverterInterface ();
-  bool init ();
+
+  bool setup (DriverPtr master);
+  void start ();
+  void stop ();
+  void started();
+  void stopped();
 
   void Send_Packet (CArray l);
 
@@ -50,14 +55,16 @@ LowLevelDriver *initUSBDriver (LowLevelDriver * i,
 					TracePtr tr);
 
 /** USB backend */
-class USBLayer2:public Layer2
+class USBDriver:public Driver
 {
   /** EMI */
   EMIPtr emi;
 
 public:
-  USBLayer2 (LowLevelDriver * i, L2options *opt);
-  bool init (Layer3 * l3);
+  USBDriver (LowLevelDriver * i, LinkConnectPtr c, IniSection& s);
+  bool setup();
+  void start();
+  void stop();
 
   void send_L_Data (LDataPtr l);
 

@@ -20,10 +20,10 @@
 #ifndef EIBNET_TUNNEL_H
 #define EIBNET_TUNNEL_H
 
-#include "layer2.h"
+#include "link.h"
 #include "eibnetip.h"
 
-class EIBNetIPTunnel:public Layer2
+DRIVER(EIBNetIPTunnel,ipt)
 {
   EIBNetIPSocket *sock;
   struct sockaddr_in caddr;
@@ -32,8 +32,14 @@ class EIBNetIPTunnel:public Layer2
   struct sockaddr_in raddr;
 
   Queue < CArray > send_q;
-  int dataport;
   bool NAT;
+  bool monitor;
+  std::string dest;
+  uint16_t port;
+  uint16_t sport;
+  std::string srcip;
+  uint16_t dataport;
+
 // main loop internal vars
   int channel = -1;
   int mod = 0;
@@ -53,8 +59,6 @@ class EIBNetIPTunnel:public Layer2
   bool connect_busmonitor;
   void on_recv_cb(EIBNetIPPacket *p);
 
-  const char *Name() { return "eibnettunnel"; }
-
   inline EIBnet_ConnectRequest get_creq() { 
     EIBnet_ConnectRequest creq;
 
@@ -69,13 +73,11 @@ class EIBNetIPTunnel:public Layer2
   } 
 
 public:
-  EIBNetIPTunnel (const char *dest, int port, int sport, const char *srcip,
-                  int dataport, L2options *opt);
+  EIBNetIPTunnel (LinkConnectPtr c, IniSection& s);
   virtual ~EIBNetIPTunnel ();
-  bool init (Layer3 *l3);
-
-  bool enterBusmonitor ();
-  bool leaveBusmonitor ();
+  bool setup();
+  void start();
+  void stop();
 
   void send_L_Data (LDataPtr  l);
 };

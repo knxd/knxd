@@ -23,17 +23,16 @@
 #include "emi_common.h"
 
 /** EMI1 backend */
-class EMI1Layer2:public EMI_Common
+class EMI1Driver:public EMI_Common
 {
-  const char *Name() { return "emi1"; }
   void cmdEnterMonitor();
   void cmdLeaveMonitor();
   void cmdOpen();
   void cmdClose();
   const uint8_t * getIndTypes();
 public:
-  EMI1Layer2 (LowLevelDriver * i, L2options *opt) : EMI_Common(i,opt) {}
-  ~EMI1Layer2 ();
+  EMI1Driver (LowLevelDriver * i, LinkConnectPtr c, IniSection& s) : EMI_Common(i,c,s) {}
+  ~EMI1Driver ();
 };
 
 #endif

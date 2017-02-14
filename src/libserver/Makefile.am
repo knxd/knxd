@@ -1,4 +1,5 @@
-noinst_LIBRARIES = libeibstack.a
+noinst_LIBRARIES = libeibstack.a libserver.a
+
 AM_CPPFLAGS=-I$(top_srcdir)/src/include -I$(top_srcdir)/src/common
 
 if HAVE_SYSTEMD
@@ -9,7 +10,7 @@ endif
 
 COMMON=exception.h common.h common.cpp trace.h trace.cpp ipsupport.h ipsupport.cpp emi.h emi.cpp
 PDUs=lpdu.h lpdu.cpp tpdu.h tpdu.cpp apdu.h apdu.cpp 
-CORE=lowlevel.h lowlevel.cpp layer2.h layer2.cpp layer3.h layer3.cpp layer4.h layer4.cpp layer23.h layer23.cpp
+CORE=lowlevel.h lowlevel.cpp router.h router.cpp layer4.h layer4.cpp link.h link.cpp
 if HAVE_GROUPCACHE
 CACHE=groupcache.h groupcache.cpp groupcacheclient.h groupcacheclient.cpp 
 else
@@ -23,7 +24,8 @@ MANAGEMENT=
 MANAGEMENT_C=
 endif
 FRONTEND_C=client.h client.cpp connection.h connection.cpp
-FRONTEND=server.h server.cpp localserver.h localserver.cpp inetserver.h inetserver.cpp $(SYSTEMD_SERVER) $(FRONTEND_C) $(MANAGEMENT_C)
+FRONT_C=$(FRONTEND_C) $(MANAGEMENT_C)
+
 if HAVE_EMI
 EMI=emi_common.h emi_common.cpp emi1.h emi1.cpp emi2.h emi2.cpp cemi.h cemi.cpp ft12cemi.h ft12cemi.cpp
 else
@@ -45,4 +47,6 @@ else
 USB=
 endif
 
-libeibstack_a_SOURCES =$(COMMON) $(CORE) $(PDUs) $(MANAGEMENT) $(FRONTEND) $(EMI) $(EIBNETIP) $(USB) $(CACHE) $(BUSMON)
+libeibstack_a_SOURCES =$(COMMON) $(CORE) $(PDUs) $(MANAGEMENT) $(EMI) $(EIBNETIP) $(FRONT_C) $(USB) $(CACHE) $(BUSMON)
+
+libserver_a_SOURCES = server.h server.cpp localserver.h localserver.cpp inetserver.h inetserver.cpp $(SYSTEMD_SERVER)

@@ -19,14 +19,13 @@
 
 #include "emi2.h"
 #include "emi.h"
-#include "layer3.h"
 
-EMI2Layer2::~EMI2Layer2()
+EMI2Driver::~EMI2Driver()
 {
 }
 
 void
-EMI2Layer2::cmdEnterMonitor ()
+EMI2Driver::cmdEnterMonitor ()
 {
   const uchar t1[] = { 0xa9, 0x1E, 0x12, 0x34, 0x56, 0x78, 0x9a };
   const uchar t2[] = { 0xa9, 0x90, 0x18, 0x34, 0x45, 0x67, 0x8a };
@@ -35,14 +34,14 @@ EMI2Layer2::cmdEnterMonitor ()
 }
 
 void
-EMI2Layer2::cmdLeaveMonitor ()
+EMI2Driver::cmdLeaveMonitor ()
 {
   uchar t[] = { 0xa9, 0x1E, 0x12, 0x34, 0x56, 0x78, 0x9a };
   iface->Send_Packet (CArray (t, sizeof (t)));
 }
 
 void
-EMI2Layer2::cmdOpen ()
+EMI2Driver::cmdOpen ()
 {
   const uchar t1[] = { 0xa9, 0x1E, 0x12, 0x34, 0x56, 0x78, 0x9a };
   const uchar t2[] = { 0xa9, 0x00, 0x18, 0x34, 0x56, 0x78, 0x0a };
@@ -51,14 +50,14 @@ EMI2Layer2::cmdOpen ()
 }
 
 void
-EMI2Layer2::cmdClose ()
+EMI2Driver::cmdClose ()
 {
   uchar t[] = { 0xa9, 0x1E, 0x12, 0x34, 0x56, 0x78, 0x9a };
   iface->Send_Packet (CArray (t, sizeof (t)));
 }
 
 const uint8_t *
-EMI2Layer2::getIndTypes()
+EMI2Driver::getIndTypes()
 {
     static const uint8_t indTypes[] = { 0x2E, 0x29, 0x2B };
     return indTypes;

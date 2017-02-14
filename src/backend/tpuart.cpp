@@ -23,7 +23,8 @@
 #include <errno.h>
 #include <sys/ioctl.h>
 #include "tpuart.h"
-#include "layer3.h"
+#include "nat.h"
+#include "router.h"
 
 static const char* SN(enum TSTATE s)
 {
@@ -50,21 +51,28 @@ static const char* SN(enum TSTATE s)
       return buf[x];
     }
 }
-TPUART_Base::TPUART_Base (L2options *opt)
-	: sendbuf(), recvbuf(), Layer2 (opt)
+TPUART_Base::TPUART_Base (LinkConnectPtr c, IniSection& s)
+	: sendbuf(), recvbuf(), Driver (c,s)
 {
-  int reuse = 1;
-  int nodelay = 1;
-  struct sockaddr_in addr;
+}
 
-  TRACEPRINTF (t, 2, "Open");
+bool
+TPUART_Base::setup()
+{
+  if(!Driver::setup())
+    return false;
+  ackallgroup = cfg.value("ack-group",false);
+  ackallindividual = cfg.value("ack-individual",false);
+  monitor = cfg.value("monitor",false);
 
-  ackallgroup = opt ? (opt->flags & FLAG_B_TPUARTS_ACKGROUP) : 0;
-  ackallindividual = opt ? (opt->flags & FLAG_B_TPUARTS_ACKINDIVIDUAL) : 0;
-
-  if (opt)
-	opt->flags &=~ (FLAG_B_TPUARTS_ACKGROUP |
-	                FLAG_B_TPUARTS_ACKINDIVIDUAL);
+  FilterPtr single = recv->findFilter("single");
+  if (single != nullptr)
+    {
+      std::shared_ptr<NatL2Filter> f = std::dynamic_pointer_cast<NatL2Filter>(single);
+      if (f)
+        my_addr = f->addr;
+    }
+  return true;
 }
 
 void
@@ -105,26 +113,10 @@ TPUART_Base::~TPUART_Base ()
     close (fd);
 }
 
-bool TPUART_Base::init (Layer3 *l3)
-{
-  if (fd == -1)
-    return false;
-  if (! addGroupAddress(0))
-    return false;
-  if (! Layer2::init (l3))
-    return false;
-
-  if (l3->findFilter("single"))
-    my_addr = l3->getDefaultAddr();
-
-  setstate(T_dev_start);
-  return true;
-}
-
 void
 TPUART_Base::send_L_Data (LDataPtr l)
 {
-  TRACEPRINTF (t, 2, "Send %s", l->Decode ().c_str());
+  TRACEPRINTF (t, 2, "Send %s", l->Decode (t).c_str());
   send_q.push(std::move(l));
   if (sending == nullptr)
     send_next(false);
@@ -169,36 +161,23 @@ TPUART_Base::send_next(bool done)
     }
 }
 
-//Open
-
-bool
-TPUART_Base::enterBusmonitor ()
+void
+TPUART_Base::start()
 {
-  if (!Layer2::enterBusmonitor ())
-    return false;
-
-  setstate(T_busmonitor);
-  return true;
+  setup_buffers();
+  setstate(T_dev_start);
 }
 
-bool
-TPUART_Base::leaveBusmonitor ()
+void
+TPUART_Base::stop()
 {
-  if (!Layer2::leaveBusmonitor ())
-    return false;
-  TRACEPRINTF (t, 2, "leaveBusmonitor");
-  setstate(T_in_reset);
-  return true;
-}
-
-bool
-TPUART_Base::Open ()
-{
-  if (!Layer2::Open ())
-    return false;
-  TRACEPRINTF (t, 2, "open");
-  setstate(T_in_reset);
-  return 1;
+  if (fd >= -1)
+    {
+      close(fd);
+      fd = -1;
+    }
+  setstate(T_new);
+  stopped();
 }
 
 void
@@ -207,19 +186,19 @@ TPUART_Base::RecvLPDU (const uchar * data, int len)
   t->TracePacket (1, "RecvLP", len, data);
   if (state == T_busmonitor)
     {
-      LBusmonPtr l = LBusmonPtr(new L_Busmonitor_PDU (shared_from_this()));
+      LBusmonPtr l = LBusmonPtr(new L_Busmonitor_PDU ());
       l->pdu.set (data, len);
-      l3->recv_L_Busmonitor (std::move(l));
+      recv_L_Busmonitor (std::move(l));
     }
   else if (state > T_start)
     {
-      LPDUPtr l = LPDU::fromPacket (CArray (data, len), shared_from_this());
+      LPDUPtr l = LPDU::fromPacket (CArray (data, len), t);
       if (l->getType () != L_Data)
         TRACEPRINTF (t, 1, "dropping packet: type %d", l->getType ());
       else
         {
           if (((L_Data_PDU *)(&*l))->valid_checksum)
-            l3->recv_L_Data (dynamic_unique_cast<L_Data_PDU>(std::move(l)));
+            recv_L_Data (dynamic_unique_cast<L_Data_PDU>(std::move(l)));
           else
             TRACEPRINTF (t, 1, "dropping packet: invalid");
         }
@@ -309,12 +288,12 @@ TPUART_Base::in_check()
               uchar c = 0x10;
               if ((in[ext ? 1 : 5] & 0x80) == 0)
                 {
-                  if (ackallindividual || l3->hasAddress ((in[3+ext] << 8) | in[4+ext], shared_from_this()))
+                  if (ackallindividual || static_cast<Router&>(conn->router).checkAddress ((in[3+ext] << 8) | in[4+ext], conn))
                     c |= 0x1;
                 }
               else
                 {
-                  if (ackallgroup || l3->hasGroupAddress ((in[3+ext] << 8) | in[4+ext], shared_from_this()))
+                  if (ackallgroup || static_cast<Router&>(conn->router).checkGroupAddress ((in[3+ext] << 8) | in[4+ext]))
                     c |= 0x1;
                 }
               TRACEPRINTF (t, 0, "SendAck %02X", c);
@@ -457,8 +436,14 @@ TPUART_Base::setstate(enum TSTATE new_state)
 {
   TRACEPRINTF (t, 8, "state: %s > %s", SN(state),SN(new_state));
 
-  if (state < T_is_online && new_state >= T_is_online && new_state < T_busmonitor)
-    send_next(false);
+  if (state < T_is_online && new_state >= T_is_online)
+    {
+      started();
+      if (monitor)
+        new_state = T_busmonitor;
+      else if (new_state < T_busmonitor)
+        send_next(false);
+    }
 
   switch(new_state)
     {

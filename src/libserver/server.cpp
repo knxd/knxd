@@ -24,40 +24,41 @@
 #include "server.h"
 #include "client.h"
 
-
-BaseServer::BaseServer (TracePtr tr)
-	: Layer2virtual (tr)
-{
-}
-
-BaseServer::~BaseServer ()
-{
-  TRACEPRINTF (t, 8, "StopBaseServer");
-  if (l3)
-    l3->deregisterServer (this);
-}
-
-Server::~Server ()
+void
+NetServer::stop()
 {
   TRACEPRINTF (t, 8, "StopServer");
+
   io.stop();
   cleanup.stop();
-  ITER(i,connections)
-    (*i)->stop(true);
+  while(!cleanup_q.empty())
+    cleanup_q.pop();
 
-  if (fd != -1)
-    close (fd);
+  ITER(i,connections)
+    (*i)->stop();
+  connections.resize(0);
+
+  if (fd > -1)
+    {
+      close (fd);
+      fd = -1;
+    }
+}
+
+NetServer::~NetServer ()
+{
+  stop();
 }
 
 void
-Server::deregister (ClientConnPtr con)
+NetServer::deregister (ClientConnPtr con)
 {
   cleanup_q.push(con);
   cleanup.send();
 }
 
 void
-Server::cleanup_cb (ev::async &w, int revents)
+NetServer::cleanup_cb (ev::async &w, int revents)
 {
   while (!cleanup_q.isempty())
     {
@@ -72,28 +73,30 @@ Server::cleanup_cb (ev::async &w, int revents)
     }
 }
 
-Server::Server (TracePtr tr)
-    : BaseServer (tr)
+NetServer::NetServer (BaseRouter& l3, IniSection& s) : Server (l3,s)
 {
   fd = -1;
 }
 
-bool
-Server::init (Layer3 *l3)
+void
+NetServer::start()
 {
   if (fd == -1)
-    return false;
+    {
+      Server::stop();
+      return;
+    }
   set_non_blocking(fd);
-  io.set<Server, &Server::io_cb>(this);
+  io.set<NetServer, &NetServer::io_cb>(this);
   io.start(fd,ev::READ);
-  cleanup.set<Server, &Server::cleanup_cb>(this);
+  cleanup.set<NetServer, &NetServer::cleanup_cb>(this);
   cleanup.start();
 
-  return BaseServer::init(l3);
+  Server::start();
 }
 
 void
-Server::io_cb (ev::io &w, int revents)
+NetServer::io_cb (ev::io &w, int revents)
 {
   int cfd;
   cfd = accept (fd, NULL,NULL);
@@ -101,15 +104,19 @@ Server::io_cb (ev::io &w, int revents)
     {
       TRACEPRINTF (t, 8, "New Connection");
       setupConnection (cfd);
-      ClientConnPtr c = std::shared_ptr<ClientConnection>(new ClientConnection (this, cfd));
-      if (c->start())
+      ClientConnPtr c = std::shared_ptr<ClientConnection>(new ClientConnection (std::static_pointer_cast<Server>(shared_from_this()), cfd));
+      if (!c->setup())
+        return;
+      c->start();
+      if (c->running)
         connections.push_back(c);
     }
   else if (errno != EWOULDBLOCK && errno != EAGAIN && errno != EINTR)
-    ERRORPRINTF (t, E_ERROR | 51, "Accept %s: %s", Name(), strerror(errno));
+    ERRORPRINTF (t, E_ERROR | 51, "Accept %s: %s", name(), strerror(errno));
 }
 
 void
-Server::setupConnection (int cfd UNUSED)
+NetServer::setupConnection (int cfd UNUSED)
 {
+  ignore_when_systemd = cfg.value("systemd-ignore",ignore_when_systemd);
 }

@@ -123,7 +123,7 @@ main (int ac, char *ag[])
   if (!GetHostIP (NULL, &caddr, a))
     die ("Host not found");
   caddr.sin_port = htons (dport);
-  if (!GetSourceAddress (&caddr, &saddr))
+  if (!GetSourceAddress (TracePtr(new Trace(t,a)), &caddr, &saddr))
     die ("No route found");
   saddr.sin_port = htons (sport);
   sock = new EIBNetIPSocket (saddr, 0, TracePtr(new Trace(t,a)));

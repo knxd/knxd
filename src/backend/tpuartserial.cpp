@@ -23,7 +23,6 @@
 #include <errno.h>
 #include <sys/ioctl.h>
 #include "tpuartserial.h"
-#include "layer3.h"
 #include <stdlib.h>
 
 /** get serial status lines */
@@ -57,22 +56,22 @@ static speed_t getbaud(int baud) {
     }
 }
 
-TPUARTSerialLayer2Driver::TPUARTSerialLayer2Driver (const char *dev,
-						    L2options *opt)
-	: TPUART_Base (opt)
+TPUARTSerialDriverDriver::TPUARTSerialDriverDriver (LinkConnectPtr c, IniSection& s)
+	: AutoRegister_ (c,s)
 {
-  TRACEPRINTF (t, 2, "Open");
+}
+bool
+TPUARTSerialDriverDriver::setup()
+{
+  if(!TPUART_Base::setup())
+    return false;
 
-  dischreset = opt ? (opt->flags & FLAG_B_TPUARTS_DISCH_RESET) : 0;
-
-  if (opt)
-	opt->flags &=~ FLAG_B_TPUARTS_DISCH_RESET;
-
-  this->dev = dev;
+  dischreset = cfg.value("reset",false);
+  return true;
 }
 
 void
-TPUARTSerialLayer2Driver::setstate(enum TSTATE new_state)
+TPUARTSerialDriverDriver::setstate(enum TSTATE new_state)
 {
   TRACEPRINTF (t, 8, "ser state %d>%d",state,new_state);
   switch(new_state)
@@ -190,12 +189,12 @@ TPUARTSerialLayer2Driver::setstate(enum TSTATE new_state)
   state = new_state;
 }
 
-TPUARTSerialLayer2Driver::~TPUARTSerialLayer2Driver ()
+TPUARTSerialDriverDriver::~TPUARTSerialDriverDriver ()
 {
 }
 
 void
-TPUARTSerialLayer2Driver::dev_timer()
+TPUARTSerialDriverDriver::dev_timer()
 {
   switch(state)
     {
@@ -215,7 +214,7 @@ TPUARTSerialLayer2Driver::dev_timer()
 }
 
 void
-TPUARTSerialLayer2Driver::termios_settings (struct termios &t1)
+TPUARTSerialDriverDriver::termios_settings (struct termios &t1)
 {
   t1.c_cflag = CS8 | CLOCAL | CREAD | PARENB;
   t1.c_iflag = IGNBRK | INPCK | ISIG;
