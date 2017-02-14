@@ -352,7 +352,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
     case 'R':
       ini["server"]["router"] = "router";
-      ini["router"]["driver"] = "ets-multicast";
+      // ini["router"]["driver"] = "ets-multicast";
       break;
     case 'D':
       ini["server"]["discover"] = "true";
@@ -370,7 +370,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       {
         ADD(ini["main"]["connections"], "server");
         ini["server"]["server"] = "router";
-        ini["server"]["driver"] = "ets-link";
+        // ini["server"]["driver"] = "ets-link";
 
         const char *serverip;
         const char *name = arguments->servername.c_str();
@@ -412,8 +412,8 @@ parse_opt (int key, char *arg, struct argp_state *state)
       {
         ++*link;
         ADD(ini["main"]["connections"], link);
-        ini[link]["server"] = "unix-socket";
-        ini[link]["driver"] = "knx-link";
+        ini[link]["server"] = "knxd_unix";
+        // ini[link]["driver"] = "knx-link";
         const char *name = OPT_ARG(arg,state,NULL);
         if (name)
           {
@@ -430,8 +430,8 @@ parse_opt (int key, char *arg, struct argp_state *state)
       {
         ++*link;
         ADD(ini["main"]["connections"], link);
-        ini[link]["server"] = "tcp-socket";
-        ini[link]["driver"] = "knx-link";
+        ini[link]["server"] = "knxd_tcp";
+        // ini[link]["driver"] = "knx-link";
         const char *port = OPT_ARG(arg,state,"");
         if (*port && atoi(port) > 0)
           {
@@ -546,8 +546,8 @@ parse_opt (int key, char *arg, struct argp_state *state)
 #ifdef HAVE_SYSTEMD
       {
         ADD(ini["main"]["connections"], "systemd");
-        ini["systemd"]["server"] = "systemd";
-        ini["systemd"]["driver"] = "knx-link";
+        ini["systemd"]["server"] = "knxd_systemd";
+        // ini["systemd"]["driver"] = "knx-link";
         arguments->stack("systemd");
       }
 #endif
