@@ -49,7 +49,12 @@ readaddrblock (const std::string& addr, eibaddr_t& parsed, int &len)
   return true;
 }
 
-Router::Router (IniData& d, std::string sn) : BaseRouter(d),main(sn) { }
+Router::Router (IniData& d, std::string sn) : BaseRouter(d),main(sn)
+{
+  IniSection s = ini[main];
+  t = TracePtr(new Trace(s,servername));
+  t->setup();
+}
 
 bool
 Router::setup()
@@ -58,7 +63,6 @@ Router::setup()
   IniSection s = ini[main];
   servername = s.value("name","knxd");
 
-  t = TracePtr(new Trace(s,servername));
   if (!t->setup())
     return false;
 
