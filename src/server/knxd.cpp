@@ -116,6 +116,9 @@ void fork_args_helper(int key)
       close(fifo[0]);
       dup2(fifo[1],1);
       close(fifo[1]);
+      char *s = (char *)malloc(strlen(argv[0])+7);
+      sprintf(s,"%s_args",argv[0]);
+      execv(s, argv);
       execv(LIBEXECDIR "knxd_args", argv);
       die("could not exec knxd_args helper");
       exit(1);
