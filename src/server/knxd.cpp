@@ -105,12 +105,12 @@ static struct argp_option options[] = {
 
 void fork_args_helper(int key)
 {
-  pid_t pid = fork();
-  if (pid == -1)
-    die("could not fork");
   int fifo[2];
   if (pipe(fifo) == -1)
     die("pipe");
+  pid_t pid = fork();
+  if (pid == -1)
+    die("could not fork");
   if (pid == 0)
     {
       close(fifo[0]);
@@ -150,7 +150,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
     default:
       fork_args_helper(key);
-      break;
+      return 1;
     }
   return 0;
 }
@@ -241,12 +241,12 @@ main (int ac, char *ag[])
   ev_timer_again (EV_A_ &timer);
 #endif
 
+  argp_parse (&argp, ac, ag, ARGP_NO_EXIT | ARGP_NO_ERRS | ARGP_NO_HELP | ARGP_IN_ORDER, &index, NULL);
+
   if (cfgfile == NULL)
     usage();
   if (mainsection == NULL)
     mainsection = "main";
-
-  argp_parse (&argp, ac, ag, ARGP_IN_ORDER, &index, NULL);
 
   IniData i;
   int errl = i.parse(cfgfile);
