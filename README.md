@@ -9,6 +9,8 @@ https://www.auto.tuwien.ac.at/~mkoegler/index.php/bcusdk
 
 For a (german only) history and discussion why knxd emerged please also see: [eibd(war bcusdk) Fork -> knxd](http://knx-user-forum.de/forum/öffentlicher-bereich/knx-eib-forum/39972-eibd-war-bcusdk-fork-knxd)
 
+# This version does not yet work!
+
 # Unstable development version!
 
 This version is unstable. Development happens here.
@@ -23,11 +25,9 @@ Please switch to the v0.12 branch for productive use.
 
 * 0.13 (development)
 
-  * TBD
-
-  * TPUART support rewritten (single state machine).
-  * Support for TPUART-2 added
-    * auto-ACK mode auto-enabled when "single" filter is used
+  * Configuration file
+    * including a translator from options to config file
+  * Complete stack refactored
 
 ## Building
 
