@@ -63,7 +63,7 @@ Router::setup()
   IniSection s = ini[main];
   servername = s.value("name","knxd");
 
-  if (!t->setup())
+  if (!t->setup(true))
     return false;
 
   force_broadcast = s.value("force-broadcast", false);

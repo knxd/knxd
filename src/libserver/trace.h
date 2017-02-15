@@ -98,14 +98,7 @@ public:
     gettimeofday(&started, NULL);
     name = s.name;
   }
-  bool setup()
-  {
-    if (trace_namelen < this->name.length())
-      trace_namelen = this->name.length();
-    timestamps = cfg.value("timestamps",timestamps);
-    layers = cfg.value("trace-mask",(int)layers);
-    level = error_level(cfg.value("error-level",""),level);
-  }
+  bool setup(bool quiet=false);
 
   Trace (Trace &orig, std::string name) : cfg(orig.cfg)
   {
