@@ -152,7 +152,8 @@ IniData::add(const char *section, const char *name, const char *value)
 IniSection&
 IniData::operator[](const char *name)
 {
-  if (read_only)
+  // for now we always create a section.
+  if (false) // read_only
     {
       auto v = sections.find(name);
       assert (v != sections.end());
