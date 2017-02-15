@@ -27,12 +27,15 @@
 #include "common.h"
 #include "inifile.h"
 
-#define LEVEL_FATAL 0
-#define LEVEL_CRITICAL 1
-#define LEVEL_ERROR 2
-#define LEVEL_WARNING 3
-#define LEVEL_NOTICE 4
-#define LEVEL_INFO 5
+#define LEVEL_NONE 0
+#define LEVEL_FATAL 1
+#define LEVEL_CRITICAL 2
+#define LEVEL_ERROR 3
+#define LEVEL_WARNING 4
+#define LEVEL_NOTICE 5
+#define LEVEL_INFO 6
+#define LEVEL_DEBUG 7
+#define LEVEL_TRACE 8
 
 #define E_FATAL (LEVEL_FATAL<<28)
 #define E_CRTIICAL (LEVEL_CRITICAL<<28)
