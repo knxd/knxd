@@ -203,6 +203,9 @@ Router::start()
 void
 Router::link_started(LinkConnectPtr link)
 {
+  bool osw = switching;
+  bool orn = running;
+
   switching = false;
   running = true;
 
@@ -214,6 +217,13 @@ Router::link_started(LinkConnectPtr link)
         running = false;
     }
 
+  if (osw != switching || orn != running)
+    {
+      TRACEPRINTF (t, 3, "R state was %s%s, now %s%s",
+          osw?">":"", orn?"up":"down",
+          switching?">":":", running?"up":"down");
+    }
+
 #ifdef HAVE_SYSTEMD
   if (running && !switching)
     sd_notify(0,"READY=1");
@@ -223,15 +233,27 @@ Router::link_started(LinkConnectPtr link)
 void
 Router::link_stopped(LinkConnectPtr link)
 {
+  bool osw = switching;
+  bool orn = running;
+
+  switching = false;
+  running = false;
+
   ITER(i,links)
     {
       if (i->second->switching)
-        return;
-      if (i->second->running)
-        return;
+        switching = true;
+      else if (i->second->running)
+        running = true;
     }
-  trigger.stop();
-  mtrigger.stop();
+  if (osw != switching || orn != running)
+    {
+      TRACEPRINTF (t, 3, "R state was %s%s, now %s%s",
+          osw?">":"", orn?"up":"down",
+          switching?">":":", running?"up":"down");
+
+    }
+  return;
 }
 
 void
