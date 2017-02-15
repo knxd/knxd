@@ -93,6 +93,7 @@ bool
 LinkConnect::setup()
 {
   ERRORPRINTF (t, E_ERROR | 32, "Not yet implemented");
+  
   return false;
 }
 

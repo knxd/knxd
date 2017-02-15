@@ -47,6 +47,7 @@ void EIBNetIPTunnel::is_stopped()
   conntimeout.stop();
   trigger.stop();
   delete sock;
+  sock = nullptr;
 }
 
 bool
@@ -130,6 +131,7 @@ ex:
       delete sock;
       sock = nullptr;
     }
+  is_stopped();
   stopped();
 }
 
@@ -515,6 +517,7 @@ void EIBNetIPTunnel::conntimeout_cb(ev::timer &w, int revents)
   else
     {
       TRACEPRINTF (t, 1, "Connect timed out");
+      is_stopped();
       stopped();
       // EIBnet_ConnectRequest creq = get_creq();
       // creq.CRI[1] =

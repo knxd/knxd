@@ -80,7 +80,7 @@ ex2:
   close (fd);
   fd = -1;
 ex1:
-  NetServer::stop();
+  stop();
   return;
 }
 

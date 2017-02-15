@@ -84,9 +84,8 @@ EIBNetIPRouter::stop()
 
 EIBNetIPRouter::~EIBNetIPRouter ()
 {
+  stop();
   TRACEPRINTF (t, 2, "Destroy");
-  if (sock)
-    delete sock;
 }
 
 bool
