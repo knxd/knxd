@@ -73,9 +73,9 @@ error_level(std::string level, int def)
 class Trace
 {
   /** message levels to print */
-  unsigned int layers;
+  unsigned int layers = 0;
   /** error levels to print */
-  unsigned int level;
+  unsigned int level = 3;
   /** when did we start up? */
   struct timeval started;
   /** print timestamps when tracing */
