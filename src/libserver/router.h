@@ -112,6 +112,13 @@ public:
   void recv_L_Busmonitor (LBusmonPtr l);
 
 private:
+  Factory<Server>& servers;
+  Factory<Driver>& drivers;
+  Factory<Filter>& filters;
+
+  bool do_server(ServerPtr &link, IniSection& s, const std::string& servername, bool quiet = false);
+  bool do_driver(LinkConnectPtr &link, IniSection& s, const std::string& servername, bool quiet = false);
+
   /** name of our main section */
   std::string main;
 

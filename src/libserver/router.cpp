@@ -28,6 +28,10 @@
 #include <systemd/sd-daemon.h>
 #endif
 
+static Factory<Server> _servers;
+static Factory<Driver> _drivers;
+static Factory<Filter> _filters;
+
 /** parses an EIB individual address */
 bool
 readaddr (const std::string& addr, eibaddr_t& parsed)
@@ -55,7 +59,8 @@ readaddrblock (const std::string& addr, eibaddr_t& parsed, int &len)
   return true;
 }
 
-Router::Router (IniData& d, std::string sn) : BaseRouter(d),main(sn)
+Router::Router (IniData& d, std::string sn) : BaseRouter(d),main(sn),
+  servers(_servers.Instance()),filters(_filters.Instance()),drivers(_drivers.Instance())
 {
   IniSection s = ini[main];
   t = TracePtr(new Trace(s,servername));
@@ -77,7 +82,7 @@ Router::setup()
   x = s.value("addr","");
   if (!x.size())
     {
-      std::cerr << "There is no KNX addr= in section '" << main << "'." << std::endl;
+      ERRORPRINTF (t, E_WARNING | 55, "There is no KNX addr= in section '%s'.", main);
       return false;
     }
   if (!readaddr(x,addr))
@@ -130,9 +135,10 @@ Router::setup()
     size_t comma = 0;
     while(true)
       {
+        comma = x.find(',',pos);
         std::string name = x.substr(pos,comma-pos);
         if (!name.size())
-          std::cerr << "empty connection name in '" << main << "', ignored." << std::endl;
+          ERRORPRINTF (t, E_WARNING | 55, "empty connection name in %s, ignored.", main);
         else
           {
             LinkBasePtr link = setup_link(name);
@@ -153,6 +159,41 @@ Router::setup()
     }
 
   TRACEPRINTF (t, 3, "setup");
+  return true;
+}
+
+bool
+Router::do_driver(LinkConnectPtr &link, IniSection& s, const std::string& drivername, bool quiet)
+{
+  DriverPtr driver = nullptr;
+
+  link = LinkConnectPtr(new LinkConnect(*this, s));
+  driver = drivers.create(drivername, link, s);
+  if (driver == nullptr)
+    {
+      if(!quiet)
+        ERRORPRINTF (t, E_ERROR | 55, "Driver '%s' not found.", drivername.c_str());
+      link = nullptr;
+      return false;
+    }
+  link->set_driver(driver);
+  if (!link->setup())
+    link = nullptr;
+  return true;
+}
+
+bool
+Router::do_server(ServerPtr &link, IniSection& s, const std::string& servername, bool quiet)
+{
+  link = servers.create(servername, *this, s);
+  if (link == nullptr)
+    {
+      if(!quiet)
+        ERRORPRINTF (t, E_ERROR | 55, "Server '%s' not found.", servername.c_str());
+      return false;
+    }
+  if (!link->setup())
+    link = nullptr;
   return true;
 }
 

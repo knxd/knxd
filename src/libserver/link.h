@@ -42,10 +42,9 @@
  * LinkConnect: class that holds a reference to the driver stack;
  *              this is what Router talks to
  * 
- * Driver(LinkBase): an interface to the outside world
+ * Driver: an interface to the outside world, created by configuration
  *
- * LineDriver: a driver for a remote that typically has a single address,
- *             created by a Server when a client connects to knxd
+ * LineDriver: a driver created by a Server when a client connects to knxd
  *             an address gets assigned when connecting
  *             a sender address of zero gets replaced
  *
@@ -114,39 +113,35 @@ template<class C>
 class Factory {
 public:
   typedef typename C::first_arg C_first;
-  typedef C * (*Creator)(C_first c, IniSection& s);
-  typedef std::unordered_map<const char *, Creator> M;
+  typedef std::shared_ptr<C> (*Creator)(C_first c, IniSection& s);
+  typedef std::unordered_map<std::string, Creator> M;
   static M& map() { static M m; return m;}
 
   static Factory& Instance() {
       static Factory<C> f;
       return f;
   };
-  C & Create(C_first&, IniSection&) const;
 
   template<class T>
   struct Maker {
-    static T* create(C_first& c, IniSection& s) { return new T(c,s); }
-  };
-
-  template<class T>
-  struct _call
-  {
-    C *creator(C_first& c, IniSection& s) { return new C(c,s); }
+      static std::shared_ptr<T> create(C_first& c, IniSection& s) { return std::shared_ptr<T>(new T(c,s)); }
   };
 
   template <class T> 
-  void reg(const char* id)
+  void
+  reg(const char* id)
   {
+    fprintf(stderr,"REG %s\n",id);
     static Maker<T> m;
     map()[id] = m;
   }
 
-  static C* create(const char *id, C_first& c, IniSection& s) {
+  std::shared_ptr<C>
+  create(const std::string& id, C_first& c, IniSection& s) {
     typename M::iterator i = map().find(id);
     if (i == map().end())
       return nullptr;
-    return i->creator(c,s);
+    return i->second(c,s);
   }
 };
 
@@ -155,6 +150,7 @@ struct RegisterClass
 {
   RegisterClass()
   {
+    fprintf(stderr,"REG1 %s\n",N);
     Factory<I>::Instance().reg(N);
   }
 };
@@ -162,15 +158,23 @@ struct RegisterClass
 template <class T, class I, const char * N>
 struct AutoRegister: public I
 {
-    AutoRegister(typename I::first_arg c, IniSection& s) : I(c,s) { &ourRegisterer; } 
+  AutoRegister(typename I::first_arg c, IniSection& s) : I(c,s)
+    {
+      fprintf(stderr,"REG2 %s\n",N);
+      &ourRegisterer;
+    } 
 private:
-    static RegisterClass<T, I, N> ourRegisterer;
+  static RegisterClass<T, I, N> ourRegisterer;
 };
 
 template <class T, class I, class D, const char * N>
 struct AutoRegister_: public I
 {
-    AutoRegister_(typename I::first_arg c, IniSection& s) : I(c,s) { &ourRegisterer; } 
+  AutoRegister_(typename I::first_arg c, IniSection& s) : I(c,s)
+    {
+      fprintf(stderr,"REG3 %s\n",N);
+      &ourRegisterer;
+    } 
 private:
     static RegisterClass<T, D, N> ourRegisterer;
 };
@@ -238,9 +242,10 @@ public:
   BaseRouter& router;
 private:
   LinkBasePtr send = nullptr;
-  DriverPtr driver = nullptr;
+  std::weak_ptr<Driver> driver;
 
 public:
+  void set_driver(DriverPtr d) { driver = d; }
   bool setup();
   void start();
   void stop();
