@@ -243,6 +243,7 @@ USBLowLevelDriver::stop()
   delete loop;
   loop = nullptr;
 }
+
 USBLowLevelDriver::~USBLowLevelDriver ()
 {
   stop();
@@ -394,3 +395,10 @@ USBLowLevelDriver::trigger_cb(ev::async &w, int revents)
   TRACEPRINTF (t, 0, "StartSend");
 }
 
+bool
+USBLowLevelDriver::setup(DriverPtr master)
+{
+  ERRORPRINTF (t, E_ERROR | 36, "not yet implemented");
+
+  return false;
+}

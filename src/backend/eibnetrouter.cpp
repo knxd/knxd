@@ -72,6 +72,16 @@ err_out:
   stopped();
 }
 
+void
+EIBNetIPRouter::stop()
+{
+  if (sock)
+    {
+      delete sock;
+      sock = nullptr;
+    }
+}
+
 EIBNetIPRouter::~EIBNetIPRouter ()
 {
   TRACEPRINTF (t, 2, "Destroy");

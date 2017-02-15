@@ -71,3 +71,9 @@ SystemdServer::stop()
   NetServer::stop();
 }
 
+SystemdServer::~SystemdServer()
+{
+  if (fd >= 0)
+    close(fd);
+}
+

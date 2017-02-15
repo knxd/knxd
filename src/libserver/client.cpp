@@ -62,6 +62,12 @@ ClientConnection::error_cb ()
   stop();
 }
 
+bool
+ClientConnection::setup()
+{
+  return true;
+}
+
 void
 ClientConnection::start()
 {

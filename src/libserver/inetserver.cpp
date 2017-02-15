@@ -85,6 +85,22 @@ ex1:
 }
 
 void
+InetServer::stop()
+{
+  if (fd >= 0)
+    {
+      close(fd);
+      fd = -1;
+    }
+  NetServer::stop();
+}
+
+InetServer::~InetServer()
+{
+  stop();
+}
+
+void
 InetServer::setupConnection (int cfd)
 {
   int val = 1;

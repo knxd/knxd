@@ -37,6 +37,11 @@ EIBNetIPTunnel::~EIBNetIPTunnel ()
       EIBNetIPPacket p = dreq.ToPacket ();
       sock->Send (p, caddr);
     }
+  is_stopped();
+}
+
+void EIBNetIPTunnel::is_stopped()
+{
   timeout.stop();
   sendtimeout.stop();
   conntimeout.stop();
@@ -523,6 +528,27 @@ void EIBNetIPTunnel::conntimeout_cb(ev::timer &w, int revents)
 }
 
 void
+EIBNetIPTunnel::stop()
+{
+  if (mod)
+    {
+      TRACEPRINTF (t, 1, "Disconnecting");
+      EIBnet_DisconnectRequest dreq;
+      dreq.caddr = saddr;
+      dreq.channel = channel;
+
+      if (channel != -1)
+        {
+          EIBNetIPPacket p = dreq.ToPacket ();
+          sock->Send (p, caddr);
+        }
+      sock->recvall = 0;
+      mod = 0;
+      conntimeout.start(0.1,0);
+    }
+}
+
+void
 EIBNetIPTunnel::sendtimeout_cb(ev::timer &w, int revents)
 {
   if (mod == 3)
@@ -544,15 +570,7 @@ EIBNetIPTunnel::timeout_cb(ev::timer &w, int revents)
       if (drop >= 3)
         {
           TRACEPRINTF (t, 1, "Too many drops, disconnecting");
-          EIBnet_DisconnectRequest dreq;
-          dreq.caddr = saddr;
-          dreq.channel = channel;
-          EIBNetIPPacket p = dreq.ToPacket ();
-          sock->Send (p, caddr);
-          sock->recvall = 0;
-          mod = 0;
-          conntimeout.start(0.1,0);
-          return;
+          stop();
         }
       else
         TRACEPRINTF (t, 1, "Drop");

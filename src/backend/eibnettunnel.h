@@ -78,6 +78,7 @@ public:
   bool setup();
   void start();
   void stop();
+  void is_stopped();
 
   void send_L_Data (LDataPtr  l);
 };

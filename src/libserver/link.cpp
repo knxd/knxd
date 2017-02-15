@@ -129,3 +129,10 @@ Server::Server(BaseRouter& r, IniSection& s)
 {
 }
 
+LinkConnectPtr
+Server::new_link()
+{
+  ERRORPRINTF (t, E_ERROR | 32, "Not yet implemented");
+
+  return nullptr;
+}

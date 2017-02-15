@@ -48,6 +48,10 @@ USBDevice detectUSBEndpoint (USBEndpoint e);
 
 class USBLowLevelDriver:public LowLevelDriver
 {
+public:
+  USBLowLevelDriver (IniSection& s, TracePtr tr);
+  virtual ~USBLowLevelDriver ();
+private:
   libusb_device_handle *dev;
   /* libusb event loop */
   USBLoop *loop;
@@ -72,8 +76,6 @@ class USBLowLevelDriver:public LowLevelDriver
   void ReceiveUsb();
 
 public:
-  USBLowLevelDriver (IniSection& s, TracePtr tr);
-  ~USBLowLevelDriver ();
   bool setup(DriverPtr master);
   void start();
   void stop();
