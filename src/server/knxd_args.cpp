@@ -241,11 +241,11 @@ die (const char *msg, ...)
   int err = errno;
 
   va_start (ap, msg);
-  vprintf (msg, ap);
+  vfprintf (stderr, msg, ap);
   if (err)
-    printf (": %s\n", strerror(err));
+    fprintf (stderr, ": %s\n", strerror(err));
   else
-    printf ("\n");
+    fprintf (stderr, "\n");
   va_end (ap);
 
   exit (1);
