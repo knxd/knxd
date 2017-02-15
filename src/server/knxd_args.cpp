@@ -549,8 +549,8 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
 #ifdef HAVE_SYSTEMD
       {
-        ADD(ini["main"]["connections"], "systemd");
-        ini["systemd"]["server"] = "knxd_systemd";
+        ini["main"]["systemd"] = "systemd";
+        // ini["systemd"]["server"] = "knxd_systemd";
         // ini["systemd"]["driver"] = "knx-link";
         arguments->stack("systemd");
       }

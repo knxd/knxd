@@ -19,8 +19,14 @@
 
 #include "link.h"
 #include "server.h"
+#include "sys/socket.h"
+#include "systemdserver.h"
 #include <typeinfo>
 #include <iostream>
+
+#ifdef HAVE_SYSTEMD
+#include <systemd/sd-daemon.h>
+#endif
 
 /** parses an EIB individual address */
 bool
@@ -88,12 +94,37 @@ Router::setup()
         *i = false;
     }
 
-  x = s.value("connections","");
-  if(!x.size())
+#ifdef HAVE_SYSTEMD
+  std::string sd_name = s.value("systemd","");
+  if (sd_name.size() > 0)
     {
-      std::cerr << "There are no connections in section '" << main << "'." << std::endl;
-      return false;
+      IniSection& sd = ini[sd_name];
+      int num_fds = sd_listen_fds(0);
+      if( num_fds < 0 )
+        {
+          ERRORPRINTF (t, E_ERROR | 55, "Error getting fds from systemd.");
+          return false;
+        }
+
+      // zero FDs from systemd is not a bug
+      for( int fd = SD_LISTEN_FDS_START; fd < SD_LISTEN_FDS_START+num_fds; ++fd )
+        {
+          if( sd_is_socket(fd, AF_UNSPEC, SOCK_STREAM, 1) <= 0 )
+            {
+              ERRORPRINTF (t, E_ERROR | 55, "systemd socket %d is not a socket.", fd);
+              return false;
+            }
+
+          ServerPtr sdp = ServerPtr(new SystemdServer(*this, sd, fd));
+          if (!sdp->setup())
+            return false;
+          registerLink(sdp);
+        }
     }
+
+#endif
+
+  x = s.value("connections","");
   {
     size_t pos = 0;
     size_t comma = 0;
@@ -115,8 +146,36 @@ Router::setup()
 
   }
 
+  if (links.size() == 0)
+    {
+      ERRORPRINTF (t, E_WARNING | 55, "No connections in section '%s'.", main);
+      return false;
+    }
+
   TRACEPRINTF (t, 3, "setup");
   return true;
+}
+
+LinkBasePtr
+Router::setup_link(std::string& name)
+{
+  IniSection& s = ini[name];
+  std::string servername = s.value("server","");
+  std::string drivername = s.value("driver","");
+  LinkConnectPtr link = nullptr;
+  ServerPtr server = nullptr;
+  bool found;
+
+  if (servername.size() && do_server(server, s,servername))
+    return link;
+  if (drivername.size() && do_driver(link, s,drivername))
+    return link;
+  if (do_server(server, s,s.name, true))
+    return link;
+  if (do_driver(link, s,s.name, true))
+    return link;
+  ERRORPRINTF (t, E_ERROR | 55, "Section '%s' has no known server nor driver.", name.c_str());
+  return nullptr;
 }
 
 void
@@ -154,6 +213,11 @@ Router::link_started(LinkConnectPtr link)
       if (!i->second->running)
         running = false;
     }
+
+#ifdef HAVE_SYSTEMD
+  if (running && !switching)
+    sd_notify(0,"READY=1");
+#endif
 }
 
 void
