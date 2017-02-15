@@ -25,10 +25,11 @@
 #define INIFILE_H
 
 #include "inih.h"
-#include <unordered_map>
+//#include <unordered_map>
+#include <map>
 #include <string>
 
-typedef std::unordered_map<std::string,std::string> ValueMap;
+typedef std::map<std::string,std::string> ValueMap;
 
 class IniData;
 
@@ -52,7 +53,7 @@ class IniSection {
     void write(std::ostream& file);
 };
 
-typedef std::unordered_map<std::string, IniSection> SectionMap;
+typedef std::map<std::string, IniSection> SectionMap;
 class IniData {
     SectionMap sections;
 
