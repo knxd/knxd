@@ -92,9 +92,45 @@ LineDriver::setup()
 bool
 LinkConnect::setup()
 {
-  ERRORPRINTF (t, E_ERROR | 32, "Not yet implemented");
+  DriverPtr dr = driver.lock();
+  if(dr == nullptr)
+    {
+      ERRORPRINTF (t, E_WARNING | 55, "No driver in %s, ignored.", cfg.name);
+      return false;
+    }
+  std::string x = cfg.value("filters","");
+  {
+    size_t pos = 0;
+    size_t comma = 0;
+    while(true)
+      {
+        comma = x.find(',',pos);
+        std::string name = x.substr(pos,comma-pos);
+        if (name.size())
+          {
+            FilterPtr link;
+            IniSection& s = static_cast<Router&>(router).ini[name];
+            name = s.value("filter",name);
+            link = static_cast<Router&>(router).get_filter(std::dynamic_pointer_cast<LinkConnect>(shared_from_this()),
+                  s, name);
+            if (link == nullptr)
+              {
+                ERRORPRINTF (t, E_ERROR | 32, "filter '%s' not found.", name);
+                return false;
+              }
+            if(!dr->push_filter(link))
+              {
+                ERRORPRINTF (t, E_ERROR | 32, "Linking filter '%s' failed.", name);
+                return false;
+              }
+          }
+        if (comma == std::string::npos)
+          break;
+        pos = comma+1;
+      }
+  }
   
-  return false;
+  return true;
 }
 
 void
