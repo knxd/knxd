@@ -88,14 +88,14 @@ LocalServer::start()
 
   this->path = path;
   TRACEPRINTF (t, 8, "LocalSocket opened");
-  Server::start();
+  NetServer::start();
   return;
 
 ex2:
   close (fd);
   fd = -1;
 ex3:
-  Server::stop();
+  NetServer::stop();
   return;
 }
 
