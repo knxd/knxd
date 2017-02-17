@@ -300,6 +300,7 @@ public:
   LinkConnectPtr new_link();
   virtual ~Server();
 
+  bool setup();
   void send_L_Data (LDataPtr l) {}
   bool hasAddress (eibaddr_t addr) { return false; }
   void addAddress (eibaddr_t addr) { ERRORPRINTF(t,E_ERROR|99,"Tried to add address %s to %s", FormatEIBAddr(addr), cfg.name); }

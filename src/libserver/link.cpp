@@ -173,3 +173,10 @@ Server::new_link()
 
   return nullptr;
 }
+
+bool
+Server::setup()
+{
+  return true;
+}
+
