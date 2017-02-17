@@ -24,7 +24,7 @@
 #include "tpuart.h"
 
 /** TPUART user mode driver */
-DRIVER_(TPUARTSerialDriverDriver,TPUART_Base,tpuarts)
+DRIVER_(TPUARTSerial,TPUART_Base,tpuarts)
 {
   /** old serial config */
   low_latency_save sold;
@@ -42,8 +42,8 @@ protected:
   void setstate(enum TSTATE state);
 
 public:
-  TPUARTSerialDriverDriver (LinkConnectPtr c, IniSection& s);
-  ~TPUARTSerialDriverDriver();
+  TPUARTSerial (LinkConnectPtr c, IniSection& s);
+  ~TPUARTSerial();
 
   bool setup();
 };

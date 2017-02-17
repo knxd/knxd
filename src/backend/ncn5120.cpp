@@ -22,14 +22,14 @@
 #include <sys/ioctl.h>
 #include "ncn5120.h"
 
-NCN5120SerialDriverDriver::NCN5120SerialDriverDriver (LinkConnectPtr c, IniSection& s)
+NCN5120Serial::NCN5120Serial (LinkConnectPtr c, IniSection& s)
     : AutoRegister_(c,s) { }
 
-NCN5120SerialDriverDriver::~NCN5120SerialDriverDriver ()
+NCN5120Serial::~NCN5120Serial ()
 { }
 
 void
-NCN5120SerialDriverDriver::termios_settings(struct termios &t1)
+NCN5120Serial::termios_settings(struct termios &t1)
 {
     t1.c_cflag = CS8 | CLOCAL | CREAD;
     t1.c_iflag = IGNBRK | INPCK | ISIG;
@@ -39,19 +39,19 @@ NCN5120SerialDriverDriver::termios_settings(struct termios &t1)
     t1.c_cc[VMIN] = 0;
 }
 
-unsigned int NCN5120SerialDriverDriver::default_baudrate()
+unsigned int NCN5120Serial::default_baudrate()
 {
     return 38400;
 }
 
-void NCN5120SerialDriverDriver::RecvLPDU (const uchar * data, int len)
+void NCN5120Serial::RecvLPDU (const uchar * data, int len)
 {
     skip_char = true;
-    TPUARTSerialDriverDriver::RecvLPDU (data, len);
+    TPUARTSerial::RecvLPDU (data, len);
 }
 
 void
-NCN5120SerialDriverDriver::setstate(enum TSTATE new_state)
+NCN5120Serial::setstate(enum TSTATE new_state)
 {
   if (new_state == T_in_setaddr && my_addr != 0)
     {
@@ -60,6 +60,6 @@ NCN5120SerialDriverDriver::setstate(enum TSTATE new_state)
       sendbuf.write(addrbuf, sizeof(addrbuf));
       new_state = T_in_getstate;
     }
-  TPUARTSerialDriverDriver::setstate(new_state);
+  TPUARTSerial::setstate(new_state);
 }
 

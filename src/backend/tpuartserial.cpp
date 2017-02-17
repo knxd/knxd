@@ -56,12 +56,13 @@ static speed_t getbaud(int baud) {
     }
 }
 
-TPUARTSerialDriverDriver::TPUARTSerialDriverDriver (LinkConnectPtr c, IniSection& s)
+TPUARTSerial::TPUARTSerial (LinkConnectPtr c, IniSection& s)
 	: AutoRegister_ (c,s)
 {
 }
+
 bool
-TPUARTSerialDriverDriver::setup()
+TPUARTSerial::setup()
 {
   if(!TPUART_Base::setup())
     return false;
@@ -71,7 +72,7 @@ TPUARTSerialDriverDriver::setup()
 }
 
 void
-TPUARTSerialDriverDriver::setstate(enum TSTATE new_state)
+TPUARTSerial::setstate(enum TSTATE new_state)
 {
   TRACEPRINTF (t, 8, "ser state %d>%d",state,new_state);
   switch(new_state)
@@ -189,12 +190,12 @@ TPUARTSerialDriverDriver::setstate(enum TSTATE new_state)
   state = new_state;
 }
 
-TPUARTSerialDriverDriver::~TPUARTSerialDriverDriver ()
+TPUARTSerial::~TPUARTSerial ()
 {
 }
 
 void
-TPUARTSerialDriverDriver::dev_timer()
+TPUARTSerial::dev_timer()
 {
   switch(state)
     {
@@ -214,7 +215,7 @@ TPUARTSerialDriverDriver::dev_timer()
 }
 
 void
-TPUARTSerialDriverDriver::termios_settings (struct termios &t1)
+TPUARTSerial::termios_settings (struct termios &t1)
 {
   t1.c_cflag = CS8 | CLOCAL | CREAD | PARENB;
   t1.c_iflag = IGNBRK | INPCK | ISIG;
