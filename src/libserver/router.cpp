@@ -139,15 +139,15 @@ Router::setup()
         std::string name = x.substr(pos,comma-pos);
         if (name.size())
           {
-            LinkBasePtr link = setup_link(name);
+            LinkConnectPtr link = setup_link(name);
             if (link == nullptr)
               return false;
+            registerLink(link);
           }
         if (comma == std::string::npos)
           break;
         pos = comma+1;
       }
-
   }
 
   if (links.size() == 0)
@@ -204,7 +204,7 @@ Router::do_server(ServerPtr &link, IniSection& s, const std::string& servername,
   return true;
 }
 
-LinkBasePtr
+LinkConnectPtr
 Router::setup_link(std::string& name)
 {
   IniSection& s = ini[name];

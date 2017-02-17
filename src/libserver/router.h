@@ -126,7 +126,7 @@ private:
   std::string main;
 
   /** create a link */
-  LinkBasePtr setup_link(std::string& name);
+  LinkConnectPtr setup_link(std::string& name);
 
   /** interfaces */
   std::unordered_map<std::string, LinkConnectPtr> links;
