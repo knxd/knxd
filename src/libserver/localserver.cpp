@@ -33,8 +33,9 @@ LocalServer::setup()
   path = cfg.value("path","/run/knx");
   if (path == "/run/knx")
     ignore_when_systemd = true;
-  if (!Server::setup())
+  if (!NetServer::setup())
     return false;
+  return true;
 }
 
 void
