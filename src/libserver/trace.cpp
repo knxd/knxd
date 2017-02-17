@@ -65,6 +65,30 @@ Trace::TracePacketUncond (int layer, const char *msg, int Len,
   fmt::printf ("\n");
 }
 
+static const char *error_levels[] = {
+    "none",
+    "fatal",
+    "error",
+    "warning",
+    "note",
+    "info",
+    "debug",
+    "trace",
+};
+
+static int
+error_level(std::string level, int def)
+{
+  if (level.size() == 0)
+    return def;
+  if(isdigit(level[0]))
+    return strtoul(level.c_str(), NULL, 0);
+  for(int i = 0; i < sizeof(error_levels)/sizeof(error_levels[0]); i++)
+    if (level == error_levels[i])
+      return i;
+  return -1; // warning
+}
+
 bool
 Trace::setup(bool quiet)
 {
@@ -72,7 +96,14 @@ Trace::setup(bool quiet)
     trace_namelen = this->name.length();
   timestamps = cfg.value("timestamps",timestamps);
   layers = cfg.value("trace-mask",(int)layers);
-  level = error_level(cfg.value("error-level",""),level);
+  int nlevel = error_level(cfg.value("error-level",""),level);
+  if (nlevel == -1)
+    {
+      if (!quiet)
+        std::cerr << "Unrecognized logging level: " << cfg.value("error-level","") << std::endl;
+      return false;
+    }
+  level = nlevel;
   return true;
 }
 

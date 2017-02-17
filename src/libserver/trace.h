@@ -48,31 +48,6 @@
 extern unsigned int trace_seq;
 extern unsigned int trace_namelen;
 
-static const char *error_levels[] = {
-    "none",
-    "fatal",
-    "error",
-    "warning",
-    "note",
-    "info",
-    "debug",
-    "trace",
-};
-
-static int
-error_level(std::string level, int def)
-{
-  if (level.size() == 0)
-    return def;
-  if(isdigit(level[0]))
-    return atoi(level.c_str());
-  for(int i = 0; i < sizeof(error_levels)/sizeof(error_levels[0]); i++)
-    if (level == error_levels[i])
-      return i;
-  std::cerr << "Unrecognized logging level: " << level << std::endl;
-  return 3; // warning
-}
-
 /** implements debug output with different levels */
 class Trace
 {
