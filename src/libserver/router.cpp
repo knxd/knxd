@@ -213,7 +213,7 @@ Router::setup_link(std::string& name)
   bool found;
 
   if (servername.size() && do_server(server, s,servername))
-    return link;
+    return server;
   if (drivername.size() && do_driver(link, s,drivername))
     return link;
   if (do_server(server, s,s.name, true))
