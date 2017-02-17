@@ -162,7 +162,7 @@ LinkConnect::recv_L_Busmonitor (LBusmonPtr l)
 }
 
 Server::Server(BaseRouter& r, IniSection& s)
-  : LinkConnect(r,s), client_section(r.sub_section(s,"client"))
+  : LinkConnect(r,s), client_section(s.sub("client"))
 {
 }
 

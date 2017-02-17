@@ -97,15 +97,6 @@ public:
 
   /** our configuration data */
   IniData &ini;
-
-  /** Return the section named by the name in  */
-  IniSection& sub_section(IniSection& s, const std::string &name)
-  {
-    const std::string& sn = s.value(name,std::string(""));
-    if (!sn.size())
-      return s;
-    return ini[sn];
-  }
 };
 
 
