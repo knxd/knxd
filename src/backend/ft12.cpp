@@ -59,13 +59,13 @@ FT12LowLevelDriver::start()
     goto ex;
   if (tcgetattr (fd, &old))
     {
-      ERRORPRINTF (t, E_ERROR | 34, "%s: getattr_old: %s", cfg.name.c_str(), strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 34, "%s: getattr_old: %s", cfg.name, strerror(errno));
       goto ex2;
     }
 
   if (tcgetattr (fd, &t1))
     {
-      ERRORPRINTF (t, E_ERROR | 34, "%s: getattr: %s", cfg.name.c_str(), strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 34, "%s: getattr: %s", cfg.name, strerror(errno));
       goto ex2;
     }
   t1.c_cflag = CS8 | PARENB | CLOCAL | CREAD;
@@ -79,7 +79,7 @@ FT12LowLevelDriver::start()
 
   if (tcsetattr (fd, TCSAFLUSH, &t1))
     {
-      ERRORPRINTF (t, E_ERROR | 34, "%s: setattr: %s", cfg.name.c_str(), strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 34, "%s: setattr: %s", cfg.name, strerror(errno));
       goto ex2;
     }
   set_low_latency (fd, &sold);

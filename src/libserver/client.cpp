@@ -92,7 +92,7 @@ ClientConnection::stop()
 {
   if (addr)
     {
-      TRACEPRINTF (t, 8, "ClientConnection %s closing", FormatEIBAddr (addr).c_str());
+      TRACEPRINTF (t, 8, "ClientConnection %s closing", FormatEIBAddr (addr));
       Router *router = static_cast<Router *>(&server->router);
       router->release_client_addr(addr);
       addr = 0;

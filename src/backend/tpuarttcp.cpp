@@ -40,12 +40,12 @@ TPUARTTCP::setup()
   port = cfg.value("dest-port",0);
   if (dest.size() == 0)
     {
-      ERRORPRINTF (t, E_ERROR | 52, "%s: 'ip-address=<host>' required", cfg.name.c_str());
+      ERRORPRINTF (t, E_ERROR | 52, "%s: 'ip-address=<host>' required", cfg.name);
       return false;
     }
   if (port == 0)
     {
-      ERRORPRINTF (t, E_ERROR | 52, "%s: 'port=<num>' required", cfg.name.c_str());
+      ERRORPRINTF (t, E_ERROR | 52, "%s: 'port=<num>' required", cfg.name);
       return false;
     }
 
@@ -64,7 +64,7 @@ TPUARTTCP::setstate(enum TSTATE new_state)
 
       if (!GetHostIP (t, &addr, dest.c_str()))
         {
-          ERRORPRINTF (t, E_ERROR | 52, "Lookup of %s failed: %s", dest.c_str(), strerror(errno));
+          ERRORPRINTF (t, E_ERROR | 52, "Lookup of %s failed: %s", dest, strerror(errno));
           goto ex;
         }
       addr.sin_port = htons (port);
@@ -72,14 +72,14 @@ TPUARTTCP::setstate(enum TSTATE new_state)
       fd = socket (AF_INET, SOCK_STREAM, 0);
       if (fd == -1)
         {
-          ERRORPRINTF (t, E_ERROR | 52, "Opening %s:%d failed: %s", dest.c_str(),port, strerror(errno));
+          ERRORPRINTF (t, E_ERROR | 52, "Opening %s:%d failed: %s", dest,port, strerror(errno));
           goto ex;
         }
       setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof (reuse));
 
       if (connect (fd, (struct sockaddr *) &addr, sizeof (addr)) == -1)
         {
-          ERRORPRINTF (t, E_ERROR | 53, "Connect %s:%d: connect: %s", dest.c_str(),port, strerror(errno));
+          ERRORPRINTF (t, E_ERROR | 53, "Connect %s:%d: connect: %s", dest,port, strerror(errno));
           goto ex;
         }
       setsockopt (fd, IPPROTO_TCP, TCP_NODELAY, &nodelay, sizeof (nodelay));

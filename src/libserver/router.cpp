@@ -39,7 +39,7 @@ Router::readaddr (const std::string& addr, eibaddr_t& parsed)
   int a, b, c;
   if (sscanf (addr.c_str(), "%d.%d.%d", &a, &b, &c) != 3)
     {
-      ERRORPRINTF (t, E_ERROR | 55, "'%s' is not a device address. Use X.Y.Z format.", addr.c_str());
+      ERRORPRINTF (t, E_ERROR | 55, "'%s' is not a device address. Use X.Y.Z format.", addr);
       return false;
     }
   parsed = ((a & 0x0f) << 12) | ((b & 0x0f) << 8) | (c & 0xff);
@@ -52,7 +52,7 @@ Router::readaddrblock (const std::string& addr, eibaddr_t& parsed, int &len)
   int a, b, c;
   if (sscanf (addr.c_str(), "%d.%d.%d:%d", &a, &b, &c, &len) != 4)
     {
-      ERRORPRINTF (t, E_ERROR | 55, "An address block needs to look like X.Y.Z:N, not '%s'.", addr.c_str());
+      ERRORPRINTF (t, E_ERROR | 55, "An address block needs to look like X.Y.Z:N, not '%s'.", addr);
       return false;
     }
   parsed = ((a & 0x0f) << 12) | ((b & 0x0f) << 8) | (c & 0xff);
@@ -82,7 +82,7 @@ Router::setup()
   x = s.value("addr","");
   if (!x.size())
     {
-      ERRORPRINTF (t, E_ERROR | 55, "There is no KNX addr= in section '%s'.", main.c_str());
+      ERRORPRINTF (t, E_ERROR | 55, "There is no KNX addr= in section '%s'.", main);
       return false;
     }
   if (!readaddr(x,addr))
@@ -170,7 +170,7 @@ Router::do_driver(LinkConnectPtr &link, IniSection& s, const std::string& driver
   if (driver == nullptr)
     {
       if(!quiet)
-        ERRORPRINTF (t, E_ERROR | 55, "Driver '%s' not found.", drivername.c_str());
+        ERRORPRINTF (t, E_ERROR | 55, "Driver '%s' not found.", drivername);
       link = nullptr;
       return false;
     }
@@ -194,7 +194,7 @@ Router::do_server(ServerPtr &link, IniSection& s, const std::string& servername,
   if (link == nullptr)
     {
       if(!quiet)
-        ERRORPRINTF (t, E_ERROR | 55, "Server '%s' not found.", servername.c_str());
+        ERRORPRINTF (t, E_ERROR | 55, "Server '%s' not found.", servername);
       return false;
     }
   if (!link->setup())
@@ -220,7 +220,7 @@ Router::setup_link(std::string& name)
     return link;
   if (do_driver(link, s,s.name, true))
     return link;
-  ERRORPRINTF (t, E_ERROR | 55, "Section '%s' has no known server nor driver.", name.c_str());
+  ERRORPRINTF (t, E_ERROR | 55, "Section '%s' has no known server nor driver.", name);
   return nullptr;
 }
 
@@ -337,12 +337,12 @@ Router::recv_L_Data (LDataPtr l, LinkConnect& link)
 {
   if (running)
     {
-      TRACEPRINTF (link.t, 9, "Queue %s", l->Decode (t).c_str());
+      TRACEPRINTF (link.t, 9, "Queue %s", l->Decode (t));
       buf.emplace (std::move(l),std::dynamic_pointer_cast<LinkConnect>(link.shared_from_this()));
       trigger.send();
     }
   else
-    TRACEPRINTF (link.t, 9, "Queue: discard (not running) %s", l->Decode (t).c_str());
+    TRACEPRINTF (link.t, 9, "Queue: discard (not running) %s", l->Decode (t));
 }
 
 void
@@ -350,12 +350,12 @@ Router::recv_L_Busmonitor (LBusmonPtr l)
 {
   if (running)
     {
-      TRACEPRINTF (t, 9, "MonQueue %s", l->Decode (t).c_str());
+      TRACEPRINTF (t, 9, "MonQueue %s", l->Decode (t));
       mbuf.push (std::move(l));
       mtrigger.send();
     }
   else
-    TRACEPRINTF (t, 9, "MonQueue: discard (not running) %s", l->Decode (t).c_str());
+    TRACEPRINTF (t, 9, "MonQueue: discard (not running) %s", l->Decode (t));
 }
 
 bool
@@ -411,7 +411,7 @@ Router::registerLink(LinkConnectPtr link)
                 std::forward_as_tuple(link));
   if (! res.second)
     {
-      TRACEPRINTF (t, 3, "registerLink: %s: already present", n.c_str());
+      TRACEPRINTF (t, 3, "registerLink: %s: already present", n);
       return false;
     }
   return true;
@@ -424,7 +424,7 @@ Router::unregisterLink(LinkConnectPtr link)
   auto res = links.find(n);
   if (res == links.end())
     {
-      TRACEPRINTF (t, 3, "unregisterLink: %s: not present", n.c_str());
+      TRACEPRINTF (t, 3, "unregisterLink: %s: not present", n);
       return false;
     }
   links.erase(res);
@@ -436,14 +436,14 @@ Router::hasAddress (eibaddr_t addr, LinkConnectPtr& link)
 {
   if (addr == this->addr)
     {
-      TRACEPRINTF (t, 8, "default addr %s", FormatEIBAddr (addr).c_str());
+      TRACEPRINTF (t, 8, "default addr %s", FormatEIBAddr (addr));
       return true;
     }
 
   if (link && link->hasAddress(addr))
     {
     on_this_interface:
-      TRACEPRINTF (t, 8, "own addr %s", FormatEIBAddr (addr).c_str());
+      TRACEPRINTF (t, 8, "own addr %s", FormatEIBAddr (addr));
       return false;
     }
 
@@ -455,16 +455,16 @@ Router::hasAddress (eibaddr_t addr, LinkConnectPtr& link)
         {
           if (i->second == link)
             {
-              TRACEPRINTF (link->t, 8, "local addr %s", FormatEIBAddr (addr).c_str());
+              TRACEPRINTF (link->t, 8, "local addr %s", FormatEIBAddr (addr));
               return false;
             }
-          TRACEPRINTF (i->second->t, 8, "found addr %s", FormatEIBAddr (addr).c_str());
+          TRACEPRINTF (i->second->t, 8, "found addr %s", FormatEIBAddr (addr));
           link = i->second;
           return true;
         }
     }
 
-  TRACEPRINTF (t, 8, "unknown addr %s", FormatEIBAddr (addr).c_str());
+  TRACEPRINTF (t, 8, "unknown addr %s", FormatEIBAddr (addr));
   return false;
 }
 
@@ -522,7 +522,7 @@ Router::get_client_addr (TracePtr t)
       LinkConnectPtr link = nullptr;
       if (a != addr && !hasAddress (a, link))
         {
-          TRACEPRINTF (t, 3, "Allocate %s", FormatEIBAddr (a).c_str());
+          TRACEPRINTF (t, 3, "Allocate %s", FormatEIBAddr (a));
           /* remember for next pass */
           client_addrs_pos = pos;
           client_addrs[pos] = true;
@@ -538,7 +538,7 @@ Router::get_client_addr (TracePtr t)
 void
 Router::release_client_addr(eibaddr_t addr)
 {
-  TRACEPRINTF (t, 3, "Release %s", FormatEIBAddr (addr).c_str());
+  TRACEPRINTF (t, 3, "Release %s", FormatEIBAddr (addr));
   if (addr < client_addrs_start)
     return;
   unsigned int pos = addr - client_addrs_start;
@@ -573,14 +573,14 @@ Router::trigger_cb (ev::async &w, int revents)
         {
           if (l2x != l2)
             {
-              TRACEPRINTF (l2->t, 3, "Packet not from %d:%s: %s", l2->t->seq, l2->t->name.c_str(), l1->Decode (t).c_str());
+              TRACEPRINTF (l2->t, 3, "Packet not from %d:%s: %s", l2->t->seq, l2->t->name, l1->Decode (t));
               goto next;
             }
         }
       else if (client_addrs_start && (l1->source >= client_addrs_start) &&
           (l1->source < client_addrs_start+client_addrs_len))
         { // late arrival to an already-freed client
-          TRACEPRINTF (l2->t, 3, "Packet from client: %s", l1->Decode (t).c_str());
+          TRACEPRINTF (l2->t, 3, "Packet from client: %s", l1->Decode (t));
           goto next;
         }
       else if (l1->source != 0xFFFF)
@@ -596,7 +596,7 @@ Router::trigger_cb (ev::async &w, int revents)
         }
       if (!l1->hopcount)
         {
-          TRACEPRINTF (t, 3, "Hopcount zero: %s", l1->Decode (t).c_str());
+          TRACEPRINTF (t, 3, "Hopcount zero: %s", l1->Decode (t));
           goto next;
         }
       if (l1->hopcount < 7 || !force_broadcast)
@@ -619,7 +619,7 @@ Router::trigger_cb (ev::async &w, int revents)
       if (l1->AddrType == IndividualAddress
           && l1->dest == this->addr)
         l1->dest = 0;
-      TRACEPRINTF (t, 3, "Route %s", l1->Decode (t).c_str());
+      TRACEPRINTF (t, 3, "Route %s", l1->Decode (t));
 
       if (l1->AddrType == GroupAddress)
         {
@@ -690,7 +690,7 @@ Router::mtrigger_cb (ev::async &w, int revents)
     {
       LBusmonPtr l1 = mbuf.get ();
 
-      TRACEPRINTF (t, 3, "RecvMon %s", l1->Decode (t).c_str());
+      TRACEPRINTF (t, 3, "RecvMon %s", l1->Decode (t));
       ITER (i, busmonitor)
         i->cb->send_L_Busmonitor (LBusmonPtr(new L_Busmonitor_PDU (*l1)));
     }

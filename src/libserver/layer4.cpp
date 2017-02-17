@@ -58,7 +58,7 @@ T_Broadcast::recv_Data (const CArray & c)
   T_DATA_XXX_REQ_PDU t;
   t.data = c;
   String s = t.Decode (this->t);
-  TRACEPRINTF (this->t, 4, "Recv Broadcast %s", s.c_str());
+  TRACEPRINTF (this->t, 4, "Recv Broadcast %s", s);
   LDataPtr l = LDataPtr(new L_Data_PDU ());
   l->source = 0;
   l->dest = 0;
@@ -73,7 +73,7 @@ T_Broadcast::recv_Data (const CArray & c)
 T_Group::T_Group (T_Reader<GroupComm> *app, ServerPtr s, eibaddr_t group, bool write_only)
   : Layer4commonWO(app, s, write_only)
 {
-  TRACEPRINTF (t, 4, "OpenGroup %s %s", FormatGroupAddr (group).c_str(),
+  TRACEPRINTF (t, 4, "OpenGroup %s %s", FormatGroupAddr (group),
 	       write_only ? "WO" : "RW");
   groupaddr = group;
 }
@@ -98,7 +98,7 @@ T_Group::recv_Data (const CArray & c)
   T_DATA_XXX_REQ_PDU t;
   t.data = c;
   String s = t.Decode (this->t);
-  TRACEPRINTF (this->t, 4, "Recv Group %s", s.c_str());
+  TRACEPRINTF (this->t, 4, "Recv Group %s", s);
   LDataPtr l = LDataPtr(new L_Data_PDU ());
   l->source = 0;
   l->dest = groupaddr;
@@ -117,7 +117,7 @@ T_Group::~T_Group ()
 T_TPDU::T_TPDU (T_Reader<TpduComm> *app, ServerPtr s, eibaddr_t src)
   : Layer4common(app, s)
 {
-  TRACEPRINTF (t, 4, "OpenTPDU %s", FormatEIBAddr (src).c_str());
+  TRACEPRINTF (t, 4, "OpenTPDU %s", FormatEIBAddr (src));
   this->src = src;
 }
 
@@ -176,7 +176,7 @@ T_Individual::recv_Data (const CArray & c)
   T_DATA_XXX_REQ_PDU t;
   t.data = c;
   String s = t.Decode (this->t);
-  TRACEPRINTF (this->t, 4, "Recv Individual %s", s.c_str());
+  TRACEPRINTF (this->t, 4, "Recv Individual %s", s);
   LDataPtr l = LDataPtr(new L_Data_PDU ());
   l->source = 0;
   l->dest = dest;
@@ -195,7 +195,7 @@ T_Individual::~T_Individual ()
 T_Connection::T_Connection (T_Reader<CArray> *app, ServerPtr s, eibaddr_t d)
 	: Layer4common (app, s)
 {
-  TRACEPRINTF (t, 4, "OpenConnection %s", FormatEIBAddr (d).c_str());
+  TRACEPRINTF (t, 4, "OpenConnection %s", FormatEIBAddr (d));
   timer.set <T_Connection, &T_Connection::timer_cb> (this);
 
   dest = d;
@@ -350,7 +350,7 @@ T_Connection::SendData (int serno, const CArray & c)
   T_DATA_CONNECTED_REQ_PDU p;
   p.data = c;
   p.serno = serno;
-  TRACEPRINTF (t, 4, "SendData %s", p.Decode (t).c_str());
+  TRACEPRINTF (t, 4, "SendData %s", p.Decode (t));
   LDataPtr l = LDataPtr(new L_Data_PDU ());
   l->source = 0;
   l->dest = dest;
@@ -424,7 +424,7 @@ GroupSocket::recv_Data (const GroupAPDU & c)
   T_DATA_XXX_REQ_PDU t;
   t.data = c.data;
   String s = t.Decode (this->t);
-  TRACEPRINTF (this->t, 4, "Recv GroupSocket %s %s", FormatGroupAddr(c.dst).c_str(), s.c_str());
+  TRACEPRINTF (this->t, 4, "Recv GroupSocket %s %s", FormatGroupAddr(c.dst), s);
   LDataPtr l = LDataPtr(new L_Data_PDU ());
   l->source = 0;
   l->dest = c.dst;

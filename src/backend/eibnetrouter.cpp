@@ -46,7 +46,7 @@ EIBNetIPRouter::start()
 
   if (! sock->SetInterface(interface))
     {
-      ERRORPRINTF (t, E_ERROR | 58, "interface %s not recognized", interface.c_str());
+      ERRORPRINTF (t, E_ERROR | 58, "interface %s not recognized", interface);
       goto err_out;
     }
 
@@ -103,7 +103,7 @@ EIBNetIPRouter::setup()
 void
 EIBNetIPRouter::send_L_Data (LDataPtr l)
 {
-  TRACEPRINTF (t, 2, "Send %s", l->Decode (t).c_str());
+  TRACEPRINTF (t, 2, "Send %s", l->Decode (t));
   EIBNetIPPacket p;
   p.data = L_Data_ToCEMI (0x29, l);
   p.service = ROUTING_INDICATION;
@@ -136,7 +136,7 @@ EIBNetIPRouter::on_recv_cb(EIBNetIPPacket *p)
   delete p;
   if (c)
     {
-      TRACEPRINTF (t, 2, "Recv %s", c->Decode (t).c_str());
+      TRACEPRINTF (t, 2, "Recv %s", c->Decode (t));
       if (!monitor)
         {
           recv_L_Data (std::move(c));

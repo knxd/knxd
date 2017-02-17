@@ -55,7 +55,7 @@ NatL2Filter::recv_L_Data (LDataPtr  l)
   /* Receiving a packet from this interface: reverse-lookup real destination from source */
   if (l->source == addr)
     {
-      TRACEPRINTF (t, 5, "drop packet from %s", FormatEIBAddr (l->source).c_str());
+      TRACEPRINTF (t, 5, "drop packet from %s", FormatEIBAddr (l->source));
       return;
     }
   if (l->AddrType == IndividualAddress)
@@ -70,13 +70,13 @@ void NatL2Filter::addReverseAddress (eibaddr_t src, eibaddr_t dest)
       {
         if (i->src != src)
 	  {
-	    TRACEPRINTF (t, 5, "from %s to %s", FormatEIBAddr (src).c_str(), FormatEIBAddr (dest).c_str());
+	    TRACEPRINTF (t, 5, "from %s to %s", FormatEIBAddr (src), FormatEIBAddr (dest));
             i->src = src;
 	  }
         return;
       }
 
-  TRACEPRINTF (t, 5, "from %s to %s", FormatEIBAddr (src).c_str(), FormatEIBAddr (dest).c_str());
+  TRACEPRINTF (t, 5, "from %s to %s", FormatEIBAddr (src), FormatEIBAddr (dest));
   phys_comm srcdest = (phys_comm) { .src=src, .dest=dest };
   revaddr.push_back(srcdest);
 }

@@ -82,7 +82,7 @@ EMI_Common::stop ()
 void
 EMI_Common::send_L_Data (LDataPtr l)
 {
-  TRACEPRINTF (t, 2, "Send %s", l->Decode (t).c_str());
+  TRACEPRINTF (t, 2, "Send %s", l->Decode (t));
   assert (l->data.size() >= 1);
   /* discard long frames, as they are not supported by EMI 1 */
   if (l->data.size() > maxPacketLen())
@@ -108,7 +108,7 @@ void
 
 EMI_Common::Send (LDataPtr l)
 {
-  TRACEPRINTF (t, 1, "Send %s", l->Decode (t).c_str());
+  TRACEPRINTF (t, 1, "Send %s", l->Decode (t));
 
   CArray pdu = lData2EMI (0x11, l);
   iface->Send_Packet (pdu);
@@ -149,7 +149,7 @@ EMI_Common::on_recv_cb(CArray *c)
       if (p)
         {
           delete c;
-          TRACEPRINTF (t, 2, "Recv %s", p->Decode (t).c_str());
+          TRACEPRINTF (t, 2, "Recv %s", p->Decode (t));
           recv->recv_L_Data (std::move(p));
           return;
         }
@@ -161,7 +161,7 @@ EMI_Common::on_recv_cb(CArray *c)
       p->timestamp = ((*c)[2] << 24) | ((*c)[3] << 16);
       p->pdu.set (c->data() + 4, c->size() - 4);
       delete c;
-      TRACEPRINTF (t, 2, "Recv %s", p->Decode (t).c_str());
+      TRACEPRINTF (t, 2, "Recv %s", p->Decode (t));
       recv->recv_L_Busmonitor (std::move(p));
       return;
     }

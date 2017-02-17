@@ -227,7 +227,7 @@ EIBnetDriver::send_L_Data (LDataPtr l)
 {
   if (std::static_pointer_cast<EIBnetServer>(server)->route)
     {
-      TRACEPRINTF (t, 8, "Send_Route %s", l->Decode (t).c_str());
+      TRACEPRINTF (t, 8, "Send_Route %s", l->Decode (t));
       EIBNetIPPacket p;
       p.service = ROUTING_INDICATION;
       p.data = L_Data_ToCEMI (0x29, l);
@@ -309,7 +309,7 @@ ConnState::ConnState (EIBnetServerPtr p, eibaddr_t addr)
   send_trigger.set<ConnState,&ConnState::send_trigger_cb>(this);
   send_trigger.start();
   this->addr = addr;
-  TRACEPRINTF (t, 9, "has %s", FormatEIBAddr (addr).c_str());
+  TRACEPRINTF (t, 9, "has %s", FormatEIBAddr (addr));
 }
 
 void ConnState::sendtimeout_cb(ev::timer &w, int revents)
@@ -548,7 +548,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
         t->TracePacket (2, "unCEMIable ROUTING_INDICATION", p1->data);
       else if (route)
 	{
-	  TRACEPRINTF (t, 8, "Recv_Route %s", c->Decode (t).c_str());
+	  TRACEPRINTF (t, 8, "Recv_Route %s", c->Decode (t));
           mcast->recv_L_Data (std::move(c));
 	}
       goto out;
@@ -618,7 +618,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
 	  r2.CRD.resize (3);
 	  r2.CRD[0] = 0x04;
           if (tunnel)
-            TRACEPRINTF (t, 8, "Tunnel CONNECTION_REQ with %s", FormatEIBAddr(a).c_str());
+            TRACEPRINTF (t, 8, "Tunnel CONNECTION_REQ with %s", FormatEIBAddr(a));
 	  r2.CRD[1] = (a >> 8) & 0xFF;
 	  r2.CRD[2] = (a >> 0) & 0xFF;
           if (!tunnel)

@@ -118,7 +118,7 @@ TPUART_Base::~TPUART_Base ()
 void
 TPUART_Base::send_L_Data (LDataPtr l)
 {
-  TRACEPRINTF (t, 2, "Send %s", l->Decode (t).c_str());
+  TRACEPRINTF (t, 2, "Send %s", l->Decode (t));
   send_q.push(std::move(l));
   if (sending == nullptr)
     send_next(false);

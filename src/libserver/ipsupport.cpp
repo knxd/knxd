@@ -52,7 +52,7 @@ GetHostIP (TracePtr t, struct sockaddr_in *sock, const std::string& name)
   if (!h)
     {
       if (t)
-        ERRORPRINTF (t, E_ERROR | 50, NULL, "Resolving %s failed: %s", name.c_str(), hstrerror(h_errno));
+        ERRORPRINTF (t, E_ERROR | 50, NULL, "Resolving %s failed: %s", name, hstrerror(h_errno));
       return false;
     }
 #ifdef HAVE_SOCKADDR_IN_LEN
