@@ -213,6 +213,7 @@ protected:
 public:
   bool link(LinkBasePtr next)
     {
+      assert(next);
       if(!next->_link(std::dynamic_pointer_cast<LinkRecv>(shared_from_this())))
         return false;
       assert(send == next); // _link_ was called
@@ -236,20 +237,20 @@ private:
   std::weak_ptr<Driver> driver;
 
 public:
-  void set_driver(DriverPtr d) { driver = d; }
-  bool setup();
-  void start();
-  void stop();
+  void set_driver(DriverPtr d) { driver = d; link(std::dynamic_pointer_cast<LinkBase>(d)); }
+  virtual bool setup();
+  virtual void start();
+  virtual void stop();
 
-  void started();
-  void stopped();
-  void recv_L_Data (LDataPtr l); // { l3.recv_L_Data(std::move(l), this); }
-  eibaddr_t getMyAddr () { return router.addr; }
-  void recv_L_Busmonitor (LBusmonPtr l); // { l3.recv_L_Busmonitor(std::move(l), this); }
+  virtual void started();
+  virtual void stopped();
+  virtual void recv_L_Data (LDataPtr l); // { l3.recv_L_Data(std::move(l), this); }
+  virtual eibaddr_t getMyAddr () { return router.addr; }
+  virtual void recv_L_Busmonitor (LBusmonPtr l); // { l3.recv_L_Busmonitor(std::move(l), this); }
 
-  void send_L_Data (LDataPtr l) { send->send_L_Data(std::move(l)); }
-  bool checkAddress (eibaddr_t addr) { return send->checkAddress(addr); }
-  bool checkGroupAddress (eibaddr_t addr) { return send->checkGroupAddress(addr); }
+  virtual void send_L_Data (LDataPtr l) { send->send_L_Data(std::move(l)); }
+  virtual bool checkAddress (eibaddr_t addr) { return send->checkAddress(addr); }
+  virtual bool checkGroupAddress (eibaddr_t addr) { return send->checkGroupAddress(addr); }
 
   virtual bool hasAddress (eibaddr_t addr) { return send->hasAddress(addr); }
   virtual void addAddress (eibaddr_t addr) { send->addAddress(addr); }
@@ -263,8 +264,8 @@ public:
   ~LinkConnectClient();
   ServerPtr server;
 
-  bool hasAddress (eibaddr_t addr) { return addr == this->addr; }
-  void addAddress (eibaddr_t addr) {}
+  virtual bool hasAddress (eibaddr_t addr) { return addr == this->addr; }
+  virtual void addAddress (eibaddr_t addr) {}
 };
 
 #ifdef NO_MAP
@@ -298,12 +299,15 @@ public:
   LinkConnectPtr new_link();
   virtual ~Server();
 
-  bool setup();
-  void send_L_Data (LDataPtr l) {}
-  bool hasAddress (eibaddr_t addr) { return false; }
-  void addAddress (eibaddr_t addr) { ERRORPRINTF(t,E_ERROR|99,"Tried to add address %s to %s", FormatEIBAddr(addr), cfg.name); }
-  bool checkAddress (eibaddr_t addr) { return false; }
-  bool checkGroupAddress (eibaddr_t addr) { return false; }
+  virtual bool setup();
+  virtual void start() { started(); }
+  virtual void stop() { stopped(); }
+
+  virtual void send_L_Data (LDataPtr l) {}
+  virtual bool hasAddress (eibaddr_t addr) { return false; }
+  virtual void addAddress (eibaddr_t addr) { ERRORPRINTF(t,E_ERROR|99,"Tried to add address %s to %s", FormatEIBAddr(addr), cfg.name); }
+  virtual bool checkAddress (eibaddr_t addr) { return false; }
+  virtual bool checkGroupAddress (eibaddr_t addr) { return false; }
 };
 
 #ifdef NO_MAP
@@ -341,9 +345,8 @@ public:
       prev->_link_(shared_from_this());
       recv = prev; return true;
     }
-
-
   void unlink() { send->_link(recv); send = nullptr; recv = nullptr; }
+
   virtual void recv_L_Data (LDataPtr l) { recv->recv_L_Data(std::move(l)); }
   virtual void recv_L_Busmonitor (LBusmonPtr l) { recv->recv_L_Busmonitor(std::move(l)); }
 
@@ -391,8 +394,8 @@ class Driver : public LinkBase
 public:
   typedef LinkConnectPtr first_arg;
 
-  Driver(LinkConnectPtr c, IniSection& s) : conn(c), LinkBase(c->router, s)
-  { addrs.resize(65536); }
+  Driver(LinkConnectPtr c, IniSection& s) : LinkBase(c->router, s)
+  { conn = c; addrs.resize(65536); }
   virtual ~Driver();
   LinkConnectPtr conn;
 protected:
@@ -406,9 +409,9 @@ public:
   virtual void start() { started(); }
   virtual void stop() { stopped(); }
 
-  void started() { recv->started(); }
-  void stopped() { recv->stopped(); }
-  bool _link(LinkRecvPtr prev)
+  virtual void started() { recv->started(); }
+  virtual void stopped() { recv->stopped(); }
+  virtual bool _link(LinkRecvPtr prev)
     {
       if (prev == nullptr)
         return false;
@@ -416,9 +419,9 @@ public:
       recv = prev;
       return true;
     }
-  bool link(LinkBasePtr next) { return false; }
-  void _link_(LinkBasePtr next) { assert(false); }
-  bool push_filter(FilterPtr filter)
+  virtual bool link(LinkBasePtr next) { return false; }
+  virtual void _link_(LinkBasePtr next) { assert(false); }
+  virtual bool push_filter(FilterPtr filter)
     {
       if (!recv->link(filter))
         return false;
@@ -448,7 +451,7 @@ public:
   ServerPtr server;
   LineDriver(ServerPtr s)
       : Driver(s->new_link(), s->client_section)
-    { server = s; }
+    { server = s; conn->set_driver(std::static_pointer_cast<Driver>(shared_from_this())); conn->setup(); }
   virtual ~LineDriver();
 
   virtual bool setup(); // assigns the address
