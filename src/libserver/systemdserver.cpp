@@ -32,12 +32,6 @@ SystemdServer::SystemdServer (BaseRouter& r, IniSection& s, int systemd_fd)
   fd = systemd_fd;
 }
 
-bool
-SystemdServer::setup()
-{
-  return NetServer::setup();
-}
-
 void
 SystemdServer::start()
 {

@@ -29,7 +29,6 @@ public:
   SystemdServer (BaseRouter& r, IniSection& s, int systemd_fd);
   ~SystemdServer ();
 
-  bool setup();
   void start();
   void stop();
 };
