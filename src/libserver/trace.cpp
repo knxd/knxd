@@ -46,11 +46,11 @@ Trace::TraceHeader (int layer)
       setvbuf(stderr, NULL, _IOLBF, 0);
   }
   if (servername.length())
-    printf("%s: ",servername.c_str());
+    fmt::printf("%s: ",servername.c_str());
   if (timestamps)
-    printf ("Layer %d [%2d:%-*s %u.%03u] ", layer, seq, trace_namelen, name.c_str(), (unsigned int)tv.tv_sec,(unsigned int)tv.tv_usec/1000);
+    fmt::printf ("Layer %d [%2d:%-*s %u.%03u] ", layer, seq, trace_namelen, name.c_str(), (unsigned int)tv.tv_sec,(unsigned int)tv.tv_usec/1000);
   else
-    printf ("Layer %d [%2d:%s] ", layer, seq, name.c_str());
+    fmt::printf ("Layer %d [%2d:%s] ", layer, seq, name.c_str());
 }
 
 void
@@ -59,58 +59,10 @@ Trace::TracePacketUncond (int layer, const char *msg, int Len,
 {
   int i;
   TraceHeader(layer);
-  printf ("%s(%03d):", msg, Len);
+  fmt::printf ("%s(%03d):", msg, Len);
   for (i = 0; i < Len; i++)
-    printf (" %02X", data[i]);
-  printf ("\n");
-}
-
-void
-Trace::TracePrintf (int layer, const char *msg, ...)
-{
-  va_list ap;
-  TraceHeader(layer);
-  va_start (ap, msg);
-  vprintf (msg, ap);
-  printf ("\n");
-  va_end (ap);
-}
-
-void
-Trace::ErrorPrintfUncond (unsigned int msgid, const char *msg, ...)
-{
-  va_list ap;
-  char c;
-  switch ((msgid >> 28) & 0x0f)
-    {
-    case LEVEL_FATAL:
-      c = 'F';
-      break;
-    case LEVEL_CRITICAL:
-      c = 'C';
-      break;
-    case LEVEL_ERROR:
-      c = 'E';
-      break;
-    case LEVEL_WARNING:
-      c = 'W';
-      break;
-    case LEVEL_NOTICE:
-      c = 'N';
-      break;
-    case LEVEL_INFO:
-      c = 'I';
-      break;
-    default:
-      c = '?';
-    }
-  if (servername.length())
-    fprintf(stderr, "%s: ",servername.c_str());
-  fprintf (stderr, "%c%08d: ", c, (msgid & 0xffffff));
-  va_start (ap, msg);
-  vfprintf (stderr, msg, ap);
-  fprintf (stderr, "\n");
-  va_end (ap);
+    fmt::printf (" %02X", data[i]);
+  fmt::printf ("\n");
 }
 
 bool
@@ -124,3 +76,30 @@ Trace::setup(bool quiet)
   return true;
 }
 
+char
+Trace::get_level_char(int level)
+{
+  switch (level)
+    {
+    case LEVEL_NONE:
+      return 'X';
+    case LEVEL_FATAL:
+      return 'F';
+    case LEVEL_CRITICAL:
+      return 'C';
+    case LEVEL_ERROR:
+      return 'E';
+    case LEVEL_WARNING:
+      return 'W';
+    case LEVEL_NOTICE:
+      return 'N';
+    case LEVEL_INFO:
+      return 'I';
+    case LEVEL_DEBUG:
+      return 'D';
+    case LEVEL_TRACE:
+      return 'T';
+    default:
+      return '?';
+    }
+}

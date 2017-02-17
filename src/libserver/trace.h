@@ -24,6 +24,7 @@
 #include <sys/time.h>
 #include <memory>
 #include <iostream>
+#include <fmt/format.h>
 #include "common.h"
 #include "inifile.h"
 
@@ -86,6 +87,8 @@ class Trace
 
   /** print the common header */
   void TraceHeader (int layer);
+
+  char get_level_char(int level);
 
 public:
   /** name(s) and number of this tracer */
@@ -184,13 +187,30 @@ public:
    * @param layer level of the message
    * @param msg Message
    */
-  void TracePrintf (int layer, const char *msg, ...);
+  template <typename... Args>
+  void TracePrintf (int layer, const char *msg, const Args & ... args)
+    {
+        TraceHeader(layer);
+        fmt::fprintf(stdout, msg, args ...);
+        fmt::printf ("\n");
+    }
 
   /** like printf for errors
    * @param msgid message id
    * @param msg Message
    */
-  void ErrorPrintfUncond (unsigned int msgid, const char *msg, ...);
+  template <typename... Args>
+  void ErrorPrintfUncond (unsigned int msgid, const char *msg, const Args & ... args)
+    {
+      va_list ap;
+      char c = get_level_char((msgid >> 28) & 0x0f); 
+      if (servername.length())
+        fmt::fprintf(stderr, "%s: ",servername.c_str());
+      fmt::fprintf (stderr, "%c%08d: ", c, (msgid & 0xffffff));
+      fmt::fprintf (stderr, msg, args...); 
+      fprintf (stderr, "\n");
+    } 
+
 
   /** should trace message be written
    * @parm layer level of the message
