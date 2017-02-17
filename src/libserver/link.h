@@ -123,7 +123,6 @@ public:
   void
   reg(struct Maker<T,I> &m, const char* id)
   {
-    fprintf(stderr,"REG %s\n",id);
     map()[id] = &m.create;
   }
 
@@ -144,7 +143,6 @@ struct RegisterClass
 
   RegisterClass()
   {
-    // fprintf(stderr,"REG1 %s\n",N);
     Factory<I> f;
 
     static struct Maker<T,I> m;
