@@ -132,6 +132,8 @@ EIBnetServer::setup()
 //                     const bool tunnel, const bool route,
 //                     const bool discover, const bool single_port)
 {
+  if(!Server::setup())
+    return false;
   route = cfg.value("router",false);
   tunnel = cfg.value("tunnel",false);
   discover = cfg.value("discover",false);
@@ -140,6 +142,7 @@ EIBnetServer::setup()
   port = cfg.value("port",3671);
   interface = cfg.value("interface","");
   servername = cfg.value("name", dynamic_cast<Router *>(&router)->servername);
+  return true;
 }
 
 void
