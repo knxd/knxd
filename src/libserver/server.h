@@ -47,6 +47,7 @@ private:
 
   /** to-be-closed client connections*/
   Queue < ClientConnPtr > cleanup_q;
+  void stop_();
 
 protected:
   /** server socket */

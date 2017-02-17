@@ -25,7 +25,7 @@
 #include "client.h"
 
 void
-NetServer::stop()
+NetServer::stop_()
 {
   TRACEPRINTF (t, 8, "StopServer");
 
@@ -45,9 +45,17 @@ NetServer::stop()
     }
 }
 
+void
+NetServer::stop()
+{
+  stop_();
+  stopped();
+}
+
 NetServer::~NetServer ()
 {
-  stop();
+  // stopped() may not be called from a destructor
+  stop_();
 }
 
 void
@@ -83,7 +91,7 @@ NetServer::start()
 {
   if (fd == -1)
     {
-      Server::stop();
+      stopped();
       return;
     }
   set_non_blocking(fd);
@@ -92,7 +100,7 @@ NetServer::start()
   cleanup.set<NetServer, &NetServer::cleanup_cb>(this);
   cleanup.start();
 
-  Server::start();
+  started();
 }
 
 void
