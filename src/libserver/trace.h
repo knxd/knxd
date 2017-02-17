@@ -78,7 +78,7 @@ class Trace
   /** message levels to print */
   unsigned int layers = 0;
   /** error levels to print */
-  unsigned int level = 3;
+  unsigned int level = LEVEL_ERROR;
   /** when did we start up? */
   struct timeval started;
   /** print timestamps when tracing */
@@ -133,7 +133,7 @@ public:
   }
 
   /** sets trace level */
-  void SetTraceLevel (int l)
+  inline void SetTraceLevel (int l)
   {
     layers = l;
   }
@@ -163,7 +163,7 @@ public:
    * @param Len length of the data
    * @param data pointer to the data
    */
-  void TracePacket (int layer, const char *msg, int Len,
+  inline void TracePacket (int layer, const char *msg, int Len,
 		    const uchar * data)
   {
     if (!ShowPrint (layer))
@@ -175,7 +175,7 @@ public:
    * @param msg Message
    * @param c array with the data
    */
-  void TracePacket (int layer, const char *msg, const CArray & c)
+  inline void TracePacket (int layer, const char *msg, const CArray & c)
   {
     TracePacket (layer, msg, c.size(), c.data());
   }
@@ -196,24 +196,18 @@ public:
    * @parm layer level of the message
    * @return bool
    */
-  bool ShowPrint (int layer)
+  inline bool ShowPrint (int layer)
   {
-    if (layers & (1 << layer))
-      return 1;
-    else
-      return 0;
+    return (layers & (1 << layer));
   }
 
   /** should error message be written
    * @parm msgid level of the message
    * @return bool
    */
-  bool ShowError (unsigned int msgid)
+  inline bool ShowError (unsigned int msgid)
   {
-    if (((msgid >> 28) & 0x0f) <= level)
-      return 1;
-    else
-      return 0;
+    return (((msgid >> 28) & 0x0f) <= level);
   }
 };
 
