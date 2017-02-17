@@ -52,6 +52,8 @@ class IniSection {
 
     void write(std::ostream& file);
 
+    /** If an entry 'name=XX' exists, return section XX.
+      * Otherwise return the current section. */
     IniSection& sub(const char *name);
     IniSection& sub(const std::string& name) { return this->sub(name.c_str()); }
 };
@@ -69,10 +71,6 @@ public:
     /** lookup, returns a new empty section if not found */
     IniSection& operator[](const char *name);
     IniSection& operator[](const std::string& name) { return (*this)[name.c_str()]; }
-
-    /** lookup, but defaults to the current section if not found */
-    IniSection& sub(const char *name, IniSection& parent);
-    IniSection& sub(const std::string& name, IniSection& p) { return this->sub(name.c_str(), p); }
 
     bool add(const char *section, const char *name, const char *value);
 

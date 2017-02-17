@@ -170,17 +170,10 @@ IniData::operator[](const char *name)
 IniSection&
 IniSection::sub(const char *name)
 {
-  return parent.sub(name, *this);
-}
-
-IniSection&
-IniData::sub(const char *name, IniSection& def)
-{
-  // for now we always create a section.
-  auto v = sections.find(name);
-  if (v == sections.end())
-    return def;
-  return v->second;
+  std::string n = value(name,"");
+  if (!n.size())
+    return *this;
+  return parent[n];
 }
 
 bool
