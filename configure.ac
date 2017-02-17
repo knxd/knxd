@@ -37,6 +37,7 @@ AC_PROG_LEX
 AM_PROG_AS
 AC_PROG_RANLIB
 AC_PROG_LIBTOOL
+AC_LANG_CPLUSPLUS
 
 AC_CHECK_HEADERS([sys/time.h sys/select.h])
 AX_CXX_COMPILE_STDCXX(11)
@@ -269,6 +270,14 @@ if test x$groupcache = xtrue ; then
 fi
 
 AM_CONDITIONAL(HAVE_EMI, test x$need_emi = xyes)
+
+LIBS="-lfmt $LIBS"
+AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <fmt/format.h>], [fmt::format("The answer is {}", 42);
+])],
+    [HAVE_FMT=1],                                           
+    [AC_MSG_ERROR([libfmt (string formatting library) is not installed.])]
+    )
+AC_DEFINE(HAVE_FMT, 1, [ String formatting library installed. ])
 
 AC_CHECK_LIB([ev], [ev_run],,[AC_MSG_ERROR([libev not found])])
 EV_LIBS="-lev"

@@ -27,7 +27,10 @@ Please switch to the v0.12 branch for productive use.
 
   * Configuration file
     * including a translator from options to config file
+
   * Complete stack refactored
+
+  * use libfmt for sane and type-safe formatting of error and trace messages
 
 ## Building
 
