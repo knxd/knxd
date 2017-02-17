@@ -95,7 +95,7 @@ LinkConnect::setup()
   DriverPtr dr = driver.lock();
   if(dr == nullptr)
     {
-      ERRORPRINTF (t, E_WARNING | 55, "No driver in %s, ignored.", cfg.name);
+      ERRORPRINTF (t, E_ERROR | 55, "No driver in %s. Refusing.", cfg.name);
       return false;
     }
   std::string x = cfg.value("filters","");
