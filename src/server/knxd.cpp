@@ -194,7 +194,7 @@ sighup_cb (EV_P_ ev_signal *w, int revents)
 
   if(hup->logfile && hup->logfile[0])
     {
-      int fd = open (hup->logfile, O_WRONLY | O_APPEND | O_CREAT);
+      int fd = open (hup->logfile, O_WRONLY | O_APPEND | O_CREAT, 0660);
       if (fd == -1)
       {
         ERRORPRINTF (hup->t, E_ERROR | 21, "can't open log file %s", hup->logfile);
@@ -305,7 +305,7 @@ main (int ac, char *ag[])
 
   if (logfile && *logfile)
     {
-      int fd = open (logfile, O_WRONLY | O_APPEND | O_CREAT);
+      int fd = open (logfile, O_WRONLY | O_APPEND | O_CREAT, 0660);
       if (fd == -1)
         die ("Can not open file %s", logfile);
       int i = fork ();
