@@ -34,12 +34,12 @@ static Factory<Filter> _filters;
 
 /** parses an EIB individual address */
 bool
-readaddr (const std::string& addr, eibaddr_t& parsed)
+Router::readaddr (const std::string& addr, eibaddr_t& parsed)
 {
   int a, b, c;
   if (sscanf (addr.c_str(), "%d.%d.%d", &a, &b, &c) != 3)
     {
-      std::cerr << "'" << addr << "' is not a device address. Use X.Y.Z format." <<std::endl;
+      ERRORPRINTF (t, E_ERROR | 55, "'%s' is not a device address. Use X.Y.Z format.", addr.c_str());
       return false;
     }
   parsed = ((a & 0x0f) << 12) | ((b & 0x0f) << 8) | (c & 0xff);
@@ -47,12 +47,12 @@ readaddr (const std::string& addr, eibaddr_t& parsed)
 }
 
 bool
-readaddrblock (const std::string& addr, eibaddr_t& parsed, int &len)
+Router::readaddrblock (const std::string& addr, eibaddr_t& parsed, int &len)
 {
   int a, b, c;
   if (sscanf (addr.c_str(), "%d.%d.%d:%d", &a, &b, &c, &len) != 4)
     {
-      std::cerr << "An address block needs to look like X.Y.Z:N, not '" << addr << "'." << std::endl;
+      ERRORPRINTF (t, E_ERROR | 55, "An address block needs to look like X.Y.Z:N, not '%s'.", addr.c_str());
       return false;
     }
   parsed = ((a & 0x0f) << 12) | ((b & 0x0f) << 8) | (c & 0xff);
@@ -82,7 +82,7 @@ Router::setup()
   x = s.value("addr","");
   if (!x.size())
     {
-      ERRORPRINTF (t, E_WARNING | 55, "There is no KNX addr= in section '%s'.", main);
+      ERRORPRINTF (t, E_ERROR | 55, "There is no KNX addr= in section '%s'.", main.c_str());
       return false;
     }
   if (!readaddr(x,addr))

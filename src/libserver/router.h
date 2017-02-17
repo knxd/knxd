@@ -170,6 +170,11 @@ private:
 
   /** group cache */
   std::shared_ptr<GroupCache> cache;
+
+  /** parser support */
+  bool readaddr (const std::string& addr, eibaddr_t& parsed);
+  bool readaddrblock (const std::string& addr, eibaddr_t& parsed, int &len);
+
 };
 
 #endif
