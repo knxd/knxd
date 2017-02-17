@@ -137,9 +137,7 @@ Router::setup()
       {
         comma = x.find(',',pos);
         std::string name = x.substr(pos,comma-pos);
-        if (!name.size())
-          ERRORPRINTF (t, E_WARNING | 55, "empty connection name in %s, ignored.", main);
-        else
+        if (name.size())
           {
             LinkBasePtr link = setup_link(name);
             if (link == nullptr)
@@ -180,6 +178,13 @@ Router::do_driver(LinkConnectPtr &link, IniSection& s, const std::string& driver
   if (!link->setup())
     link = nullptr;
   return true;
+}
+
+
+FilterPtr
+Router::get_filter(LinkConnectPtr link, IniSection& s, const std::string& filtername)
+{
+  return filters.create(filtername, link, s);
 }
 
 bool
