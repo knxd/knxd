@@ -155,6 +155,8 @@ Router::setup()
       ERRORPRINTF (t, E_WARNING | 55, "No connections in section '%s'.", main);
       return false;
     }
+  ITER(i,links)
+    ERRORPRINTF (t, E_INFO | 55, "Connected: %s.", i->second->info(2));
 
   TRACEPRINTF (t, 3, "setup");
   return true;

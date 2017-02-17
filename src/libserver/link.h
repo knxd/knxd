@@ -178,7 +178,7 @@ public:
 
   /** dump info about me */
   virtual const std::string& name() { return cfg.name; }
-  virtual void info(std::ostream& cs, int verbose = 0); // debugging
+  virtual std::string info(int verbose = 0); // debugging
 
   /** transmit a packet */
   virtual void send_L_Data (LDataPtr l) = 0;

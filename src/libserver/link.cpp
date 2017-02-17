@@ -35,10 +35,12 @@ LinkBase::LinkBase(BaseRouter& r, IniSection& s) : cfg(s)
   t = TracePtr(new Trace(s, rt.servername));
 }
 
-void
-LinkBase::info(std::ostream& out, int level)
+std::string
+LinkBase::info(int level)
 {
-  out << "LinkBase: cfg:"<<cfg.name;
+  std::string res = "LinkBase: cfg:";
+  res += cfg.name;
+  return res;
 }
 
 LinkConnect::LinkConnect(BaseRouter& r, IniSection& s)
