@@ -21,7 +21,7 @@
 #define TPUART_TCP_H
 #include "tpuart.h"
 
-DRIVER_(TPUARTSerialDriverDriver,TPUART_Base,tpuartstcp)
+DRIVER_(TPUARTTCP,TPUART_Base,tpuarttcp)
 
 {
   void setstate(enum TSTATE new_state);
@@ -31,8 +31,8 @@ DRIVER_(TPUARTSerialDriverDriver,TPUART_Base,tpuartstcp)
   uint16_t port;
 
 public:
-  TPUARTTCPDriverDriver (LinkConnectPtr c, IniSection& s)
-  ~TPUARTTCPDriverDriver () {}
+  TPUARTTCP (LinkConnectPtr c, IniSection& s);
+  ~TPUARTTCP () {}
 
   bool setup();
 };

@@ -25,50 +25,35 @@
 #include <netinet/tcp.h>
 #include <netinet/in.h>
 #include "tpuarttcp.h"
-#include "layer3.h"
 
-TPUARTTCPDriverDriver::TPUARTTCPDriverDriver (LinkConnectPtr c, IniSection& s)
+TPUARTTCP::TPUARTTCP (LinkConnectPtr c, IniSection& s)
 	: TPUART_Base(c,s)
 {
 }
 
-void
-TPUARTTCPDriverDriver::start()
+bool
+TPUARTTCP::setup()
 {
-  int reuse = 1;
-  int nodelay = 1;
-  struct sockaddr_in addr;
-
-  if (!GetHostIP (t, &addr, dest))
+  if (!TPUART_Base::setup())
+    return false;
+  dest = cfg.value("ip-address","");
+  port = cfg.value("dest-port",0);
+  if (dest.size() == 0)
     {
-      ERRORPRINTF (t, E_ERROR | 52, "Lookup of %s failed: %s", dest, strerror(errno));
-      return;
+      ERRORPRINTF (t, E_ERROR | 52, "%s: 'ip-address=<host>' required", cfg.name.c_str());
+      return false;
     }
-  addr.sin_port = htons (port);
-
-  fd = socket (AF_INET, SOCK_STREAM, 0);
-  if (fd == -1)
+  if (port == 0)
     {
-      ERRORPRINTF (t, E_ERROR | 52, "Opening %s:%d failed: %s", dest,port, strerror(errno));
-      return;
+      ERRORPRINTF (t, E_ERROR | 52, "%s: 'port=<num>' required", cfg.name.c_str());
+      return false;
     }
-  setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof (reuse));
 
-  if (connect (fd, (struct sockaddr *) &addr, sizeof (addr)) == -1)
-    {
-      ERRORPRINTF (t, E_ERROR | 53, "Connect %s:%d: connect: %s", dest,port, strerror(errno));
-      close (fd);
-      fd = -1;
-      return;
-    }
-  setsockopt (fd, IPPROTO_TCP, TCP_NODELAY, &nodelay, sizeof (nodelay));
-
-  setup_buffers();
-  TRACEPRINTF (t, 2, "Openend");
+  return true;
 }
 
 void
-TPUARTTCPDriverDriver::setstate(enum TSTATE new_state)
+TPUARTTCP::setstate(enum TSTATE new_state)
 {
   if (new_state == T_dev_start)
     {
@@ -77,9 +62,9 @@ TPUARTTCPDriverDriver::setstate(enum TSTATE new_state)
       int nodelay = 1;
       struct sockaddr_in addr;
 
-      if (!GetHostIP (t, &addr, dest))
+      if (!GetHostIP (t, &addr, dest.c_str()))
         {
-          ERRORPRINTF (t, E_ERROR | 52, "Lookup of %s failed: %s", dest, strerror(errno));
+          ERRORPRINTF (t, E_ERROR | 52, "Lookup of %s failed: %s", dest.c_str(), strerror(errno));
           goto ex;
         }
       addr.sin_port = htons (port);
@@ -87,14 +72,14 @@ TPUARTTCPDriverDriver::setstate(enum TSTATE new_state)
       fd = socket (AF_INET, SOCK_STREAM, 0);
       if (fd == -1)
         {
-          ERRORPRINTF (t, E_ERROR | 52, "Opening %s:%d failed: %s", dest,port, strerror(errno));
+          ERRORPRINTF (t, E_ERROR | 52, "Opening %s:%d failed: %s", dest.c_str(),port, strerror(errno));
           goto ex;
         }
       setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof (reuse));
 
       if (connect (fd, (struct sockaddr *) &addr, sizeof (addr)) == -1)
         {
-          ERRORPRINTF (t, E_ERROR | 53, "Connect %s:%d: connect: %s", dest,port, strerror(errno));
+          ERRORPRINTF (t, E_ERROR | 53, "Connect %s:%d: connect: %s", dest.c_str(),port, strerror(errno));
           goto ex;
         }
       setsockopt (fd, IPPROTO_TCP, TCP_NODELAY, &nodelay, sizeof (nodelay));
@@ -116,7 +101,7 @@ ex:
 }
 
 void
-TPUARTTCPDriverDriver::dev_timer()
+TPUARTTCP::dev_timer()
 {
   ERRORPRINTF (t, E_ERROR | 61, "bad timeout in state %d",state);
 }
