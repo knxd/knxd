@@ -168,9 +168,19 @@ IniData::operator[](const char *name)
 }
 
 IniSection&
-IniData::operator[](const std::string& name)
+IniSection::sub(const char *name)
 {
-  return (*this)[name.c_str()];
+  return parent.sub(name, *this);
+}
+
+IniSection&
+IniData::sub(const char *name, IniSection& def)
+{
+  // for now we always create a section.
+  auto v = sections.find(name);
+  if (v == sections.end())
+    return def;
+  return v->second;
 }
 
 bool

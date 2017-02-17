@@ -95,7 +95,7 @@ public:
 
   IniSection &cfg;
 
-  Trace (IniSection& s, std::string& sn) : cfg(s), servername(sn)
+  Trace (IniSection& s, std::string& sn) : cfg(s.sub("debug")), servername(sn)
   {
     seq = ++trace_seq;
     gettimeofday(&started, NULL);
@@ -115,7 +115,7 @@ public:
       trace_namelen = this->name.length();
   }
 
-  Trace (Trace &orig, IniSection& s) : cfg(s)
+  Trace (Trace &orig, IniSection& s) : cfg(s.sub("debug"))
   {
     this->layers = orig.layers;
     this->level = orig.level;
