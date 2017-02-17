@@ -118,7 +118,10 @@ private:
 
   bool do_server(ServerPtr &link, IniSection& s, const std::string& servername, bool quiet = false);
   bool do_driver(LinkConnectPtr &link, IniSection& s, const std::string& servername, bool quiet = false);
+public:
+  FilterPtr get_filter(LinkConnectPtr link, IniSection& s, const std::string& filtername);
 
+private:
   /** name of our main section */
   std::string main;
 

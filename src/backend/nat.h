@@ -38,7 +38,7 @@ FILTER(NatL2Filter,single)
 public:
   eibaddr_t addr;
 
-  NatL2Filter (LinkConnectPtr c, IniSection& s);
+  NatL2Filter (LinkConnectPtr c, IniSection& s) : Filter(c,s) {}
   virtual ~NatL2Filter ();
 
   DriverPtr clone(DriverPtr l2);

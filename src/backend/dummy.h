@@ -25,7 +25,7 @@
 DRIVER(DummyL2Driver,dummy)
 {
 public:
-  DummyL2Driver (LinkConnectPtr c, IniSection& s) : AutoRegister(c,s) {}
+  DummyL2Driver (LinkConnectPtr c, IniSection& s) : Driver(c,s) {}
   ~DummyL2Driver ();
 
   void send_L_Data (LDataPtr l) {}
@@ -35,7 +35,7 @@ public:
 FILTER(DummyL2Filter,dummy)
 {
 public:
-  DummyL2Filter (LinkConnectPtr c, IniSection& s) : AutoRegister(c,s) {}
+  DummyL2Filter (LinkConnectPtr c, IniSection& s) : Filter(c,s) {}
   ~DummyL2Filter ();
 };
 

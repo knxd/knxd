@@ -23,8 +23,10 @@
 #include <errno.h>
 #include <sys/ioctl.h>
 #include "tpuart.h"
-#include "nat.h"
 #include "router.h"
+
+#define NO_MAP
+#include "nat.h"
 
 static const char* SN(enum TSTATE s)
 {

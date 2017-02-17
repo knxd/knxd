@@ -28,7 +28,7 @@
 #include "layer3.h"
 
 TPUARTTCPDriverDriver::TPUARTTCPDriverDriver (LinkConnectPtr c, IniSection& s)
-	: AutoRegister_(c,s)
+	: TPUART_Base(c,s)
 {
 }
 

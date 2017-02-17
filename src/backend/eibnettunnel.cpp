@@ -20,7 +20,8 @@
 #include "eibnettunnel.h"
 #include "emi.h"
 
-EIBNetIPTunnel::EIBNetIPTunnel (LinkConnectPtr c, IniSection& s) : AutoRegister(c,s)
+EIBNetIPTunnel::EIBNetIPTunnel (LinkConnectPtr c, IniSection& s)
+  : Driver(c,s)
 {
 }
 

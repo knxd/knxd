@@ -24,7 +24,7 @@
 #include "localserver.h"
 
 LocalServer::LocalServer (BaseRouter& r, IniSection& s)
-    : AutoRegister_ (r,s)
+    : NetServer (r,s)
 { }
 
 bool

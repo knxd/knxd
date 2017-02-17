@@ -109,35 +109,35 @@ public:
 };
 
 
-template<class C>
+template<class T, class I>
+struct Maker {
+  typedef typename I::first_arg I_first;
+  static std::shared_ptr<I> create(I_first c, IniSection& s) { return std::shared_ptr<T>(new T(c,s)); }
+};
+
+template<class I>
 class Factory {
 public:
-  typedef typename C::first_arg C_first;
-  typedef std::shared_ptr<C> (*Creator)(C_first c, IniSection& s);
+  typedef typename I::first_arg I_first;
+  typedef std::shared_ptr<I> (*Creator)(I_first c, IniSection& s);
   typedef std::unordered_map<std::string, Creator> M;
   static M& map() { static M m; return m;}
 
   static Factory& Instance() {
-      static Factory<C> f;
+      static Factory<I> f;
       return f;
   };
 
   template<class T>
-  struct Maker {
-      static std::shared_ptr<T> create(C_first& c, IniSection& s) { return std::shared_ptr<T>(new T(c,s)); }
-  };
-
-  template <class T> 
   void
-  reg(const char* id)
+  reg(struct Maker<T,I> &m, const char* id)
   {
     fprintf(stderr,"REG %s\n",id);
-    static Maker<T> m;
-    map()[id] = m;
+    map()[id] = &m.create;
   }
 
-  std::shared_ptr<C>
-  create(const std::string& id, C_first& c, IniSection& s) {
+  std::shared_ptr<I>
+  create(const std::string& id, I_first& c, IniSection& s) {
     typename M::iterator i = map().find(id);
     if (i == map().end())
       return nullptr;
@@ -148,39 +148,29 @@ public:
 template<class T, class I, const char * N>
 struct RegisterClass
 {
+  typedef typename I::first_arg I_first;
+  typedef std::shared_ptr<I> (*Creator)(I_first c, IniSection& s);
+
   RegisterClass()
   {
-    fprintf(stderr,"REG1 %s\n",N);
-    Factory<I>::Instance().reg(N);
+    // fprintf(stderr,"REG1 %s\n",N);
+    Factory<I> f;
+
+    static struct Maker<T,I> m;
+    f.reg(m,N);
   }
 };
 
 template <class T, class I, const char * N>
-struct AutoRegister: public I
+struct AutoRegister
 {
-  AutoRegister(typename I::first_arg c, IniSection& s) : I(c,s)
-    {
-      fprintf(stderr,"REG2 %s\n",N);
-      &ourRegisterer;
-    } 
+  AutoRegister() { (volatile void *) &ourRegisterer; } 
 private:
   static RegisterClass<T, I, N> ourRegisterer;
 };
 
-template <class T, class I, class D, const char * N>
-struct AutoRegister_: public I
-{
-  AutoRegister_(typename I::first_arg c, IniSection& s) : I(c,s)
-    {
-      fprintf(stderr,"REG3 %s\n",N);
-      &ourRegisterer;
-    } 
-private:
-    static RegisterClass<T, D, N> ourRegisterer;
-};
-
-//template <class T, class I, const char * N>
-//RegisterClass<T,I,N> AutoRegister<T,I,N>::ourRegisterer;
+template <class T, class I, const char * N>
+RegisterClass<T,I,N> AutoRegister<T,I,N>::ourRegisterer;
 
 
 class LinkBase : public std::enable_shared_from_this<LinkBase>
@@ -228,6 +218,19 @@ public:
   virtual void stopped() = 0;
 
   virtual FilterPtr findFilter(std::string name) { return nullptr; }
+
+protected:
+  LinkBasePtr send = nullptr;
+public:
+  bool link(LinkBasePtr next)
+    {
+      if(!next->_link(std::dynamic_pointer_cast<LinkRecv>(shared_from_this())))
+        return false;
+      assert(send == next); // _link_ was called
+      return true;
+    }
+  void _link_(LinkBasePtr next) { send = next; }
+  void unlink();
 };
 
 class LinkConnect : public LinkRecv
@@ -241,7 +244,6 @@ public:
 
   BaseRouter& router;
 private:
-  LinkBasePtr send = nullptr;
   std::weak_ptr<Driver> driver;
 
 public:
@@ -249,14 +251,6 @@ public:
   bool setup();
   void start();
   void stop();
-  bool link(LinkBasePtr next)
-    {
-      if(!next->_link(std::dynamic_pointer_cast<LinkRecv>(shared_from_this())))
-        return false;
-      send = next;
-      return true;
-    }
-  void unlink();
 
   void started();
   void stopped();
@@ -284,13 +278,26 @@ public:
   void addAddress (eibaddr_t addr) {}
 };
 
+#ifdef NO_MAP
+#define SERVER(_cls,_name) \
+class _cls : public Server
+#define SERVER_(_cls,_base,_name) \
+class _cls : public _base
+
+#else
 #define SERVER(_cls,_name) \
 static constexpr const char _cls##_name[] = #_name; \
-class _cls : public AutoRegister<_cls,Server,_cls##_name>
+class _cls; \
+static AutoRegister<_cls,Server,_cls##_name> _auto_S##_name; \
+class _cls : public Server
 
 #define SERVER_(_cls,_base,_name) \
 static constexpr const char _cls##_name[] = #_name; \
-class _cls : public AutoRegister_<_cls,_base,Server,_cls##_name>
+class _cls; \
+static AutoRegister<_cls,Server,_cls##_name> _auto_S##_name; \
+class _cls : public _base
+
+#endif
 
 class Server : public LinkConnect
 {
@@ -309,9 +316,16 @@ public:
   bool checkGroupAddress (eibaddr_t addr) { return false; }
 };
 
+#ifdef NO_MAP
+#define FILTER(_cls,_name) \
+class _cls : public Filter
+#else
 #define FILTER(_cls,_name) \
 static constexpr const char _cls##_name[] = #_name; \
-class _cls : public AutoRegister<_cls,Filter,_cls##_name>
+class _cls; \
+static AutoRegister<_cls,Filter,_cls##_name> _auto_F##_name; \
+class _cls : public Filter
+#endif
 
 class Filter : public LinkRecv
 {
@@ -330,8 +344,16 @@ private:
 public:
   virtual const std::string& name();
 
-  bool _link(LinkRecvPtr prev) { recv = prev; return true; }
+  bool _link(LinkRecvPtr prev)
+    {
+      if (prev == nullptr)
+        return false;
+      prev->_link_(shared_from_this());
+      recv = prev; return true;
+    }
 
+
+  void unlink() { send->_link(recv); send = nullptr; recv = nullptr; }
   virtual void recv_L_Data (LDataPtr l) { recv->recv_L_Data(std::move(l)); }
   virtual void recv_L_Busmonitor (LBusmonPtr l) { recv->recv_L_Busmonitor(std::move(l)); }
 
@@ -343,19 +365,34 @@ public:
   virtual void started() { recv->started(); }
   virtual void stopped() { recv->stopped(); }
 
+  virtual eibaddr_t getMyAddr () { return recv->getMyAddr(); }
+  virtual bool hasAddress (eibaddr_t addr) { return send->hasAddress(addr); }
+  virtual void addAddress (eibaddr_t addr) { return send->addAddress(addr); }
   virtual bool checkAddress (eibaddr_t addr) { return send->checkAddress(addr); }
   virtual bool checkGroupAddress (eibaddr_t addr) { return send->checkGroupAddress(addr); }
 
   virtual FilterPtr findFilter(std::string name);
 };
 
+#ifdef NO_MAP
+#define DRIVER(_cls,_name) \
+class _cls : public Driver
+#define DRIVER_(_cls,_base,_name) \
+class _cls : public _base
+
+#else
 #define DRIVER(_cls,_name) \
 static constexpr const char _cls##_name[] = #_name; \
-class _cls : public AutoRegister<_cls,Driver,_cls##_name>
+class _cls; \
+static AutoRegister<_cls,Driver,_cls##_name> _auto_D_##_name; \
+class _cls : public Driver
 
 #define DRIVER_(_cls,_base,_name) \
 static constexpr const char _cls##_name[] = #_name; \
-class _cls : public AutoRegister_<_cls,_base,Driver,_cls##_name>
+class _cls; \
+static AutoRegister<_cls,Driver,_cls##_name> _auto_D_##_name; \
+class _cls : public _base
+#endif
 
 class Driver : public LinkBase
 {
@@ -381,8 +418,33 @@ public:
 
   void started() { recv->started(); }
   void stopped() { recv->stopped(); }
-  bool _link(LinkRecvPtr prev) { recv = prev; return true; }
+  bool _link(LinkRecvPtr prev)
+    {
+      if (prev == nullptr)
+        return false;
+      prev->_link_(shared_from_this());
+      recv = prev;
+      return true;
+    }
   bool link(LinkBasePtr next) { return false; }
+  void _link_(LinkBasePtr next) { assert(false); }
+  bool push_filter(FilterPtr filter)
+    {
+      if (!recv->link(filter))
+        return false;
+      if (!filter->link(shared_from_this()))
+        {
+          recv->link(shared_from_this());
+          return false;
+        }
+
+      if (!filter->setup())
+        {
+          filter->unlink();
+          return false;
+        }
+      return true;
+    }
 
   virtual bool hasAddress(eibaddr_t addr) { return addrs[addr]; }
   virtual void addAddress(eibaddr_t addr) { addrs[addr] = true; }

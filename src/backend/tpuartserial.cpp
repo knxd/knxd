@@ -57,7 +57,7 @@ static speed_t getbaud(int baud) {
 }
 
 TPUARTSerial::TPUARTSerial (LinkConnectPtr c, IniSection& s)
-	: AutoRegister_ (c,s)
+	: TPUART_Base (c,s)
 {
 }
 

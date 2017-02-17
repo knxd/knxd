@@ -23,7 +23,7 @@
 #include "ncn5120.h"
 
 NCN5120Serial::NCN5120Serial (LinkConnectPtr c, IniSection& s)
-    : AutoRegister_(c,s) { }
+    : TPUARTSerial(c,s) { }
 
 NCN5120Serial::~NCN5120Serial ()
 { }

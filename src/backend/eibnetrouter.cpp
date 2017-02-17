@@ -22,7 +22,7 @@
 #include "config.h"
 
 EIBNetIPRouter::EIBNetIPRouter (LinkConnectPtr c, IniSection& s)
-  : AutoRegister(c,s)
+  : Driver(c,s)
 {
 }
 
