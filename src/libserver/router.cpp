@@ -365,10 +365,10 @@ Router::deregisterBusmonitor (L_Busmonitor_CallBack * c)
     if (i->cb == c)
       {
         busmonitor.erase(i);
-	TRACEPRINTF (t, 3, "deregisterBusmonitor %08X = 1", c);
+	TRACEPRINTF (t, 3, "deregisterBusmonitor %08X = 1", (void *)c);
         return true;
       }
-  TRACEPRINTF (t, 3, "deregisterBusmonitor %08X = 0", c);
+  TRACEPRINTF (t, 3, "deregisterBusmonitor %08X = 0", (void *)c);
   return false;
 }
 
@@ -378,11 +378,11 @@ Router::deregisterVBusmonitor (L_Busmonitor_CallBack * c)
   ITER(i,vbusmonitor)
     if (i->cb == c)
       {
-	TRACEPRINTF (t, 3, "deregisterVBusmonitor %08X = 1", c);
+	TRACEPRINTF (t, 3, "deregisterVBusmonitor %08X = 1", (void *)c);
 	vbusmonitor.erase(i);
 	return true;
       }
-  TRACEPRINTF (t, 3, "deregisterVBusmonitor %08X = 0", c);
+  TRACEPRINTF (t, 3, "deregisterVBusmonitor %08X = 0", (void *)c);
   return false;
 }
 
@@ -390,7 +390,7 @@ bool
 Router::registerBusmonitor (L_Busmonitor_CallBack * c)
 {
   busmonitor.push_back((Busmonitor_Info){.cb=c});
-  TRACEPRINTF (t, 3, "registerBusmontitr %08X = 1", c);
+  TRACEPRINTF (t, 3, "registerBusmontitr %08X = 1", (void *)c);
   return true;
 }
 
@@ -398,7 +398,7 @@ bool
 Router::registerVBusmonitor (L_Busmonitor_CallBack * c)
 {
   vbusmonitor.push_back((Busmonitor_Info){.cb=c});
-  TRACEPRINTF (t, 3, "registerVBusmonitor %08X", c);
+  TRACEPRINTF (t, 3, "registerVBusmonitor %08X", (void *)c);
   return true;
 }
 
