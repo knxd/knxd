@@ -275,13 +275,13 @@ main (int ac, char *ag[])
     stop_now = main.value("stop-after-setup",false);
 
   Router *r = new Router(i,mainsection);
-  if (!strcmp(cfgfile, "-"))
-    ERRORPRINTF(r->t, E_WARNING,"Consider using a config file.");
   if (!r->setup())
     {
       ERRORPRINTF(r->t, E_FATAL,"Error setting up the KNX router.");
       exit(1);
     }
+  if (!strcmp(cfgfile, "-"))
+    ERRORPRINTF(r->t, E_WARNING,"Consider using a config file.");
 
   if (background) {
     hup.t = TracePtr(new Trace(*r->t,"reload"));
@@ -341,6 +341,7 @@ main (int ac, char *ag[])
 #ifdef HAVE_SYSTEMD
   sd_notify(0,"STOPPING=1");
 #endif
+  ERRORPRINTF(r->t, E_NOTICE,"Shutting down.");
 
   ev_break(EV_A_ EVBREAK_ALL);
 
