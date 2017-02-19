@@ -20,6 +20,7 @@
 #include "eibnettunnel.h"
 #include "emi.h"
 #include "layer3.h"
+#include "nat.h"
 
 EIBNetIPTunnel::EIBNetIPTunnel (const char *dest, int port, int sport,
 				const char *srcip, int Dataport, L2options *opt) : Layer2 (opt)
@@ -154,6 +155,8 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
     case CONNECTION_RESPONSE:
       {
 	EIBnet_ConnectResponse cresp;
+	eibaddr_t addr;
+	Layer23 *single;
 	if (mod)
 	  goto err;
 	if (parseEIBnet_ConnectResponse (*p1, cresp))
@@ -186,7 +189,13 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
 	    TRACEPRINTF (t, 1, this, "Recv wrong connection response");
 	    break;
 	  }
-	addAddress((cresp.CRD[1] << 8) | cresp.CRD[2]);
+
+	addr = (cresp.CRD[1] << 8) | cresp.CRD[2];
+	addAddress(addr);
+	single = l3->findFilter("single");
+	if (single != nullptr)
+	  dynamic_cast<NatL2Filter *>(single)->setAddress(addr);
+
 	daddr = cresp.daddr;
 	if (!cresp.nat)
 	  {

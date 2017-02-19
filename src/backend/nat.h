@@ -49,6 +49,7 @@ public:
   void send_L_Data (LDataPtr l);
 
   void addReverseAddress (eibaddr_t src, eibaddr_t dest);
+  void setAddress (eibaddr_t addr) { this->addr = addr; }
   eibaddr_t getDestinationAddress (eibaddr_t src);
 };
 
