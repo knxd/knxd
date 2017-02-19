@@ -150,7 +150,9 @@ EMI_Common::on_recv_cb(CArray *c)
         {
           delete c;
           TRACEPRINTF (t, 2, "Recv %s", p->Decode (t));
-          recv->recv_L_Data (std::move(p));
+          auto r = recv.lock();
+          if (r != nullptr)
+            r->recv_L_Data (std::move(p));
           return;
         }
     }
@@ -162,7 +164,9 @@ EMI_Common::on_recv_cb(CArray *c)
       p->pdu.set (c->data() + 4, c->size() - 4);
       delete c;
       TRACEPRINTF (t, 2, "Recv %s", p->Decode (t));
-      recv->recv_L_Busmonitor (std::move(p));
+      auto r = recv.lock();
+      if (r != nullptr)
+        r->recv_L_Busmonitor (std::move(p));
       return;
     }
   delete c;

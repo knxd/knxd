@@ -67,7 +67,7 @@ TPUART_Base::setup()
   ackallindividual = cfg.value("ack-individual",false);
   monitor = cfg.value("monitor",false);
 
-  FilterPtr single = recv->findFilter("single");
+  FilterPtr single = findFilter("single");
   if (single != nullptr)
     {
       std::shared_ptr<NatL2Filter> f = std::dynamic_pointer_cast<NatL2Filter>(single);
@@ -288,15 +288,20 @@ TPUART_Base::in_check()
           else
             {
               uchar c = 0x10;
-              if ((in[ext ? 1 : 5] & 0x80) == 0)
+              auto cn = conn.lock();
+              if (cn != nullptr)
                 {
-                  if (ackallindividual || static_cast<Router&>(conn->router).checkAddress ((in[3+ext] << 8) | in[4+ext], conn))
-                    c |= 0x1;
-                }
-              else
-                {
-                  if (ackallgroup || static_cast<Router&>(conn->router).checkGroupAddress ((in[3+ext] << 8) | in[4+ext]))
-                    c |= 0x1;
+                  Router& r = static_cast<Router&>(cn->router);
+                  if ((in[ext ? 1 : 5] & 0x80) == 0)
+                    {
+                      if (ackallindividual || r.checkAddress ((in[3+ext] << 8) | in[4+ext], cn))
+                        c |= 0x1;
+                    }
+                  else
+                    {
+                      if (ackallgroup || r.checkGroupAddress ((in[3+ext] << 8) | in[4+ext]))
+                        c |= 0x1;
+                    }
                 }
               TRACEPRINTF (t, 0, "SendAck %02X", c);
               sendbuf.write(&c,1);

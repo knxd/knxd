@@ -763,8 +763,12 @@ EIBnetServer::stop()
 
   if (mcast)
   {
-    mcast->conn->stop();
-    mcast->conn->unlink();
+    auto c = mcast->conn.lock();
+    if (c != nullptr)
+      {
+        c->stop();
+        c->unlink();
+      }
     delete mcast;
     mcast = 0;
   }

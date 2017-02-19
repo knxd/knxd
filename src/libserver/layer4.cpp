@@ -65,7 +65,9 @@ T_Broadcast::recv_Data (const CArray & c)
   l->AddrType = GroupAddress;
   l->data = t.ToPacket ();
   l->hopcount = 0x07;
-  recv->recv_L_Data (std::move(l));
+  auto r = recv.lock();
+  if (r != nullptr)
+    r->recv_L_Data (std::move(l));
 }
 
 /***************** T_Group *****************/
@@ -104,7 +106,9 @@ T_Group::recv_Data (const CArray & c)
   l->dest = groupaddr;
   l->AddrType = GroupAddress;
   l->data = t.ToPacket ();
-  recv->recv_L_Data (std::move(l));
+  auto r = recv.lock();
+  if (r != nullptr)
+    r->recv_L_Data (std::move(l));
 }
 
 T_Group::~T_Group ()
@@ -139,7 +143,9 @@ T_TPDU::recv_Data (const TpduComm & c)
   l->dest = c.addr;
   l->AddrType = IndividualAddress;
   l->data = c.data;
-  recv->recv_L_Data (std::move(l));
+  auto r = recv.lock();
+  if (r != nullptr)
+    r->recv_L_Data (std::move(l));
 }
 
 T_TPDU::~T_TPDU ()
@@ -182,7 +188,9 @@ T_Individual::recv_Data (const CArray & c)
   l->dest = dest;
   l->AddrType = IndividualAddress;
   l->data = t.ToPacket ();
-  recv->recv_L_Data (std::move(l));
+  auto r = recv.lock();
+  if (r != nullptr)
+    r->recv_L_Data (std::move(l));
 }
 
 T_Individual::~T_Individual ()
@@ -308,12 +316,14 @@ T_Connection::SendConnect ()
   l->AddrType = IndividualAddress;
   l->data = p.ToPacket ();
   l->prio = PRIO_SYSTEM;
-  recv->recv_L_Data (std::move(l));
 
   mode = 1;
   sendno = 0;
   recvno = 0;
   repcount = 0;
+  auto r = recv.lock();
+  if (r != nullptr)
+    r->recv_L_Data (std::move(l));
 }
 
 void
@@ -327,7 +337,9 @@ T_Connection::SendDisconnect ()
   l->AddrType = IndividualAddress;
   l->data = p.ToPacket ();
   l->prio = PRIO_SYSTEM;
-  recv->recv_L_Data (std::move(l));
+  auto r = recv.lock();
+  if (r != nullptr)
+    r->recv_L_Data (std::move(l));
 }
 
 void
@@ -341,7 +353,9 @@ T_Connection::SendAck (int serno)
   l->dest = dest;
   l->AddrType = IndividualAddress;
   l->data = p.ToPacket ();
-  recv->recv_L_Data (std::move(l));
+  auto r = recv.lock();
+  if (r != nullptr)
+    r->recv_L_Data (std::move(l));
 }
 
 void
@@ -356,7 +370,9 @@ T_Connection::SendData (int serno, const CArray & c)
   l->dest = dest;
   l->AddrType = IndividualAddress;
   l->data = p.ToPacket ();
-  recv->recv_L_Data (std::move(l));
+  auto r = recv.lock();
+  if (r != nullptr)
+    r->recv_L_Data (std::move(l));
 }
 
 /*
@@ -430,6 +446,8 @@ GroupSocket::recv_Data (const GroupAPDU & c)
   l->dest = c.dst;
   l->AddrType = GroupAddress;
   l->data = t.ToPacket ();
-  recv->recv_L_Data (std::move(l));
+  auto r = recv.lock();
+  if (r != nullptr)
+    r->recv_L_Data (std::move(l));
 }
 

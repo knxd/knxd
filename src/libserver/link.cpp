@@ -79,22 +79,40 @@ Filter::name()
 FilterPtr
 Filter::findFilter(std::string name)
 {
+  auto r = recv.lock();
+  if (r == nullptr)
+    return nullptr;
   if (this->name() == name)
     return std::static_pointer_cast<Filter>(shared_from_this());
-  return recv->findFilter(name);
+  return r->findFilter(name);
+}
+
+FilterPtr
+Driver::findFilter(std::string name)
+{
+  auto r = recv.lock();
+  if (r == nullptr)
+    return nullptr;
+  return r->findFilter(name);
 }
 
 bool
 LineDriver::setup()
 {
-  ERRORPRINTF (t, E_ERROR | 32, "Not yet implemented");
-  return false;
+  auto c = conn.lock();
+  if (c == nullptr)
+    return false;
+
+  c->set_driver(std::static_pointer_cast<Driver>(shared_from_this()));
+  if (!c->setup())
+    return false;
+  return true;
 }
 
 bool
 LinkConnect::setup()
 {
-  DriverPtr dr = driver.lock();
+  DriverPtr dr = driver; // .lock();
   if(dr == nullptr)
     {
       ERRORPRINTF (t, E_ERROR | 55, "No driver in %s. Refusing.", cfg.name);
@@ -171,14 +189,114 @@ Server::Server(BaseRouter& r, IniSection& s)
 LinkConnectPtr
 Server::new_link()
 {
-  ERRORPRINTF (t, E_ERROR | 32, "Not yet implemented");
+  LinkConnectPtr link = LinkConnectPtr(new LinkConnectClient(std::static_pointer_cast<Server>(shared_from_this())));
 
-  return nullptr;
+  return link;
 }
 
 bool
 Server::setup()
 {
+  return true;
+}
+
+LinkConnectClient::LinkConnectClient(ServerPtr s)
+  : LinkConnect(s->router, s->cfg)
+{}
+
+LinkConnectClient::~LinkConnectClient()
+{}
+
+LineDriver::LineDriver(ServerPtr s)
+      : Driver(s->new_link(), s->client_section)
+{
+  server = s;
+}
+
+void
+Driver::recv_L_Data (LDataPtr l)
+{
+  auto r = recv.lock();
+  if (r != nullptr)
+    r->recv_L_Data(std::move(l));
+}
+
+void
+Filter::recv_L_Data (LDataPtr l)
+{
+  auto r = recv.lock();
+  if (r != nullptr)
+    r->recv_L_Data(std::move(l));
+}
+
+void
+Driver::recv_L_Busmonitor (LBusmonPtr l)
+{
+  auto r = recv.lock();
+  if (r != nullptr)
+    r->recv_L_Busmonitor(std::move(l)); 
+}
+
+void
+Filter::recv_L_Busmonitor (LBusmonPtr l)
+{
+  auto r = recv.lock();
+  if (r != nullptr)
+    r->recv_L_Busmonitor(std::move(l)); 
+}
+
+void
+Driver::started()
+{
+  auto r = recv.lock();
+  if (r != nullptr)
+    r->started();
+}
+
+void
+Filter::started()
+{
+  auto r = recv.lock();
+  if (r != nullptr)
+    r->started();
+}
+
+void
+Driver::stopped()
+{
+  auto r = recv.lock();
+  if (r != nullptr)
+    r->stopped();
+}
+
+void
+Filter::stopped()
+{
+  auto r = recv.lock();
+  if (r != nullptr)
+    r->stopped();
+}
+
+bool
+Driver::push_filter(FilterPtr filter)
+{
+  auto r = recv.lock();
+  if (r == nullptr)
+    return false;
+
+  if (!r->link(filter))
+    return false;
+  if (!filter->link(shared_from_this()))
+    {
+      r->link(shared_from_this());
+      return false;
+    }
+
+  if (!filter->setup())
+    {
+      filter->unlink();
+      return false;
+    }
   return true;
 }
 
