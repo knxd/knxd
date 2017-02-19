@@ -1,3 +1,9 @@
+knxd (0.12.13-1) unstable; urgency=medium
+
+  * Fix de-allocation of tunnel client address
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 19 Feb 2017 09:02:08 +0100
+
 knxd (0.12.12-1) unstable; urgency=medium
 
   * eibread-cgi: reinstate initial read (but not for all addresses)

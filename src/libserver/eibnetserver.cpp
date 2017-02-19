@@ -363,12 +363,12 @@ void ConnState::stop()
   send_trigger.stop();
   retries = 0;
   parent->drop_connection (std::static_pointer_cast<ConnState>(shared_from_this()));
-  Layer2::stop();
   if (remoteAddr && l3)
     {
       l3->release_client_addr(remoteAddr);
       remoteAddr = 0;
     }
+  Layer2::stop();
 }
 
 void EIBnetServer::drop_connection (ConnStatePtr s)
