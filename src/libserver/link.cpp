@@ -203,7 +203,7 @@ LinkConnect::setup()
     }
   if (s == nullptr)
     {
-      ERRORPRINTF (t, E_FATAL | 33, "%s: setup %s: no driver", cfg.name, s->cfg.name);
+      ERRORPRINTF (t, E_FATAL | 33, "%s: setup: no driver", cfg.name);
       return false;
     }
   return true;
