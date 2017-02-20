@@ -149,7 +149,7 @@ public:
           if (tracelevel >= 0)
             {
               snprintf(b1,sizeof(b1),"0x%x",tracelevel);
-              ini[b2]["trace-level"] = b1;
+              ini[b2]["trace-mask"] = b1;
             }
           if (errorlevel >= 0)
             {
