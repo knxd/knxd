@@ -543,12 +543,24 @@ Router::get_client_addr (TracePtr t)
 void
 Router::release_client_addr(eibaddr_t addr)
 {
-  TRACEPRINTF (t, 3, "Release %s", FormatEIBAddr (addr));
   if (addr < client_addrs_start)
-    return;
+    {
+      ERRORPRINTF (t, E_ERROR | 3, "Release BAD1 %s", FormatEIBAddr (addr));
+      return;
+    }
   unsigned int pos = addr - client_addrs_start;
   if (pos >= client_addrs_len)
-    return;
+    {
+      ERRORPRINTF (t, E_ERROR | 3, "Release BAD2 %s", FormatEIBAddr (addr));
+      return;
+    }
+  if (!client_addrs[pos])
+    {
+      ERRORPRINTF (t, E_ERROR | 3, "Release free addr %s", FormatEIBAddr (addr));
+      return;
+    }
+
+  TRACEPRINTF (t, 3, "Release %s", FormatEIBAddr (addr));
   client_addrs[pos] = false;
 }
 
