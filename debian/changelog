@@ -1,3 +1,9 @@
+knxd (0.12.13-2) unstable; urgency=medium
+
+  * fix C# code generator
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 20 Feb 2017 03:33:26 +0100
+
 knxd (0.12.13-1) unstable; urgency=medium
 
   * Fix de-allocation of tunnel client address
