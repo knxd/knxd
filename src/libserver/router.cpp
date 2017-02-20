@@ -598,7 +598,6 @@ Router::trigger_cb (ev::async &w, int revents)
           (l1->source < client_addrs_start+client_addrs_len))
         { // late arrival to an already-freed client
           TRACEPRINTF (l2->t, 3, "Packet from client: %s", l1->Decode (t));
-          goto next;
         }
       else if (l1->source != 0xFFFF)
         l2->addAddress (l1->source);
