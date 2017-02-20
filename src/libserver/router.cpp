@@ -412,6 +412,7 @@ Router::registerLink(LinkConnectPtr link)
       TRACEPRINTF (t, 3, "registerLink: %s: already present", n);
       return false;
     }
+  TRACEPRINTF (t, 3, "registerLink: %s", n);
   return true;
 }
 
@@ -426,6 +427,7 @@ Router::unregisterLink(LinkConnectPtr link)
       return false;
     }
   links.erase(res);
+  TRACEPRINTF (t, 3, "unregisterLink: %s", n);
   return true;
 }
 
