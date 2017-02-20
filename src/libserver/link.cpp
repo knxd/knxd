@@ -231,7 +231,7 @@ Server::setup()
 }
 
 LinkConnectClient::LinkConnectClient(ServerPtr s, IniSection& c, TracePtr tr)
-  : LinkConnect(s->router, c, tr)
+  : server(s), LinkConnect(s->router, c, tr)
 {}
 
 LinkConnectClient::~LinkConnectClient()
