@@ -108,6 +108,8 @@ protected: // can't instantiate this class directly
   BaseRouter(IniData &i) : ini(i) {}
 public:
   virtual ~BaseRouter();
+  /** debug output */
+  TracePtr t;
 
   eibaddr_t addr = 0;
 
@@ -181,7 +183,7 @@ RegisterClass<T,I,N> AutoRegister<T,I,N>::ourRegisterer;
 class LinkBase : public std::enable_shared_from_this<LinkBase>
 {
 public:
-  LinkBase(BaseRouter &r, IniSection& s);
+  LinkBase(BaseRouter &r, IniSection& s, TracePtr tr);
   virtual ~LinkBase();
 private:
   bool setup_called;
@@ -213,7 +215,7 @@ public:
 class LinkRecv : public LinkBase
 {
 public:
-  LinkRecv(BaseRouter &r, IniSection& c) : LinkBase(r,c) {}
+  LinkRecv(BaseRouter &r, IniSection& c, TracePtr tr) : LinkBase(r,c,tr) {}
   virtual ~LinkRecv();
   virtual void recv_L_Data (LDataPtr l) = 0;
   virtual void recv_L_Busmonitor (LBusmonPtr l) = 0;
@@ -242,7 +244,7 @@ public:
 class LinkConnect : public LinkRecv
 {
 public:
-  LinkConnect(BaseRouter& r, IniSection& s);
+  LinkConnect(BaseRouter& r, IniSection& s, TracePtr tr);
   virtual ~LinkConnect();
   bool running = false;
   bool switching = false;
@@ -282,7 +284,7 @@ class LinkConnectClient : public LinkConnect
 public:
   ServerPtr server;
 
-  LinkConnectClient(ServerPtr s, IniSection& c);
+  LinkConnectClient(ServerPtr s, IniSection& c, TracePtr tr);
   ~LinkConnectClient();
 };
 
@@ -290,7 +292,7 @@ public:
 class LinkConnectSingle : public LinkConnectClient
 {
 public:
-  LinkConnectSingle(ServerPtr s, IniSection& c) : LinkConnectClient(s,c) {}
+  LinkConnectSingle(ServerPtr s, IniSection& c, TracePtr tr) : LinkConnectClient(s,c,tr) {}
   virtual ~LinkConnectSingle();
 
   eibaddr_t addr = 0;
@@ -325,7 +327,7 @@ class Server : public LinkConnect
 {
 public:
   typedef BaseRouter& first_arg;
-  Server(BaseRouter& r, IniSection& c) : LinkConnect(r,c) {}
+  Server(BaseRouter& r, IniSection& c) : LinkConnect(r,c,r.t) {}
   virtual ~Server();
 
   virtual bool setup();
@@ -356,7 +358,7 @@ class Filter : public LinkRecv
 public:
   typedef LinkConnectPtr first_arg;
 
-  Filter(LinkConnectPtr c, IniSection& s) : conn(c), LinkRecv(c->router, s) {}
+  Filter(LinkConnectPtr c, IniSection& s) : conn(c), LinkRecv(c->router, s, c->t) {}
   virtual ~Filter();
 protected:
   LinkConnectPtr conn;
@@ -436,7 +438,7 @@ class Driver : public LinkBase
 public:
   typedef LinkConnectPtr first_arg;
 
-  Driver(LinkConnectPtr c, IniSection& s) : LinkBase(c->router, s) { conn = c; }
+  Driver(LinkConnectPtr c, IniSection& s) : LinkBase(c->router, s, c->t) { conn = c; }
   virtual ~Driver();
   std::weak_ptr<LinkConnect> conn;
 

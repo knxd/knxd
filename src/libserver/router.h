@@ -54,8 +54,6 @@ public:
   Router(IniData& d, std::string sn);
   ~Router();
 
-  /** debug output */
-  TracePtr t;
   /** my name */
   std::string servername;
 

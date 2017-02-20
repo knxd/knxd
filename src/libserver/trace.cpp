@@ -89,9 +89,10 @@ error_level(std::string level, int def)
   return -1; // warning
 }
 
-bool
-Trace::setup(bool quiet)
+void
+Trace::setup()
 {
+  assert(this->name.length() > 0);
   if (trace_namelen < this->name.length())
     trace_namelen = this->name.length();
   timestamps = cfg.value("timestamps",timestamps);
@@ -99,12 +100,13 @@ Trace::setup(bool quiet)
   int nlevel = error_level(cfg.value("error-level",""),level);
   if (nlevel == -1)
     {
-      if (!quiet)
-        std::cerr << "Unrecognized logging level: " << cfg.value("error-level","") << std::endl;
-      return false;
+      std::cerr << "Unrecognized logging level: " << cfg.value("error-level","") << std::endl;
+      return;
     }
   level = nlevel;
-  return true;
+  if (trace_namelen < this->name.length())
+    trace_namelen = this->name.length();
+
 }
 
 char

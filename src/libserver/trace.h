@@ -65,6 +65,7 @@ class Trace
 
   char get_level_char(int level);
 
+  void setup();
 public:
   /** name(s) and number of this tracer */
   std::string servername;
@@ -78,10 +79,10 @@ public:
     seq = ++trace_seq;
     gettimeofday(&started, NULL);
     name = s.name;
+    setup();
   }
-  bool setup(bool quiet=false);
 
-  Trace (Trace &orig, std::string name) : cfg(orig.cfg)
+  Trace (Trace &orig, std::string name) : cfg(orig.cfg), servername(orig.servername)
   {
     this->layers = orig.layers;
     this->level = orig.level;
@@ -89,20 +90,17 @@ public:
     this->started = orig.started;
     this->timestamps = orig.timestamps;
     this->seq = ++trace_seq;
-    if (trace_namelen < this->name.length())
-      trace_namelen = this->name.length();
+    setup();
   }
 
-  Trace (Trace &orig, IniSection& s) : cfg(s.sub("debug"))
+  Trace (Trace &orig, IniSection& s) : cfg(s.sub("debug")), servername(orig.servername)
   {
     this->layers = orig.layers;
     this->level = orig.level;
-    this->name = name;
+    this->name = s.name;
     this->started = orig.started;
     this->timestamps = orig.timestamps;
     this->seq = ++trace_seq;
-    if (trace_namelen < this->name.length())
-      trace_namelen = this->name.length();
     setup();
   }
 

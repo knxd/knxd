@@ -31,10 +31,10 @@ Filter::~Filter() { }
 Server::~Server() { }
 BaseRouter::~BaseRouter() { }
 
-LinkBase::LinkBase(BaseRouter& r, IniSection& s) : cfg(s)
+LinkBase::LinkBase(BaseRouter& r, IniSection& s, TracePtr tr) : cfg(s)
 {
   Router& rt = dynamic_cast<Router&>(r);
-  t = TracePtr(new Trace(s, rt.servername));
+  t = TracePtr(new Trace(*tr, s));
 }
 
 std::string
@@ -45,8 +45,8 @@ LinkBase::info(int level)
   return res;
 }
 
-LinkConnect::LinkConnect(BaseRouter& r, IniSection& c)
-   : router(r), LinkRecv(r,c)
+LinkConnect::LinkConnect(BaseRouter& r, IniSection& c, TracePtr tr)
+   : router(r), LinkRecv(r,c,tr)
 {
   //Router& rt = dynamic_cast<Router&>(r);
 }
@@ -230,8 +230,8 @@ Server::setup()
   return true;
 }
 
-LinkConnectClient::LinkConnectClient(ServerPtr s, IniSection& c)
-  : LinkConnect(s->router, c)
+LinkConnectClient::LinkConnectClient(ServerPtr s, IniSection& c, TracePtr tr)
+  : LinkConnect(s->router, c, tr)
 {}
 
 LinkConnectClient::~LinkConnectClient()

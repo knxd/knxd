@@ -64,7 +64,6 @@ Router::Router (IniData& d, std::string sn) : BaseRouter(d),main(sn),
 {
   IniSection s = ini[main];
   t = TracePtr(new Trace(s,servername));
-  t->setup();
 }
 
 bool
@@ -73,9 +72,6 @@ Router::setup()
   std::string x;
   IniSection s = ini[main];
   servername = s.value("name","knxd");
-
-  if (!t->setup(true))
-    return false;
 
   force_broadcast = s.value("force-broadcast", false);
 
@@ -167,7 +163,7 @@ Router::do_driver(LinkConnectPtr &link, IniSection& s, const std::string& driver
 {
   DriverPtr driver = nullptr;
 
-  link = LinkConnectPtr(new LinkConnect(*this, s));
+  link = LinkConnectPtr(new LinkConnect(*this, s, t));
   driver = drivers.create(drivername, link, s);
   if (driver == nullptr)
     {

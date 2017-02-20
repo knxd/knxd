@@ -192,7 +192,7 @@ EIBnetServer::start()
 
   if(route)
     {
-      conn = LinkConnectClientPtr(new LinkConnectClient(std::dynamic_pointer_cast<EIBnetServer>(shared_from_this()), tunnel_cfg));
+      conn = LinkConnectClientPtr(new LinkConnectClient(std::dynamic_pointer_cast<EIBnetServer>(shared_from_this()), tunnel_cfg, t));
       mcast = new EIBnetDriver (conn, multicastaddr, single_port ? 0 : port, interface);
       if (!mcast)
         {
@@ -292,7 +292,7 @@ rt:
       }
   if (id <= 0xff)
     {
-      LinkConnectClientPtr conn = LinkConnectClientPtr(new LinkConnectClient(std::dynamic_pointer_cast<EIBnetServer>(shared_from_this()), tunnel_cfg));
+      LinkConnectClientPtr conn = LinkConnectClientPtr(new LinkConnectClient(std::dynamic_pointer_cast<EIBnetServer>(shared_from_this()), tunnel_cfg, t));
       ConnStatePtr s = ConnStatePtr(new ConnState(conn, addr));
       conn->link(s);
       s->channel = id;

@@ -24,7 +24,7 @@
 bool
 CreateGroupCache (Router& r, IniSection& s)
 {
-  LinkConnectPtr c = LinkConnectPtr(new LinkConnect(r,s));
+  LinkConnectPtr c = LinkConnectPtr(new LinkConnect(r,s,r.t));
   GroupCachePtr cache;
   if (r.getCache())
     return false;
