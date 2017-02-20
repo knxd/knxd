@@ -18,6 +18,7 @@
 */
 
 #include "connection.h"
+#include "server.h"
 #include "trace.h"
 
 template<class C>

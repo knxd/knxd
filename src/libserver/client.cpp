@@ -33,7 +33,7 @@
 #include "groupcacheclient.h"
 #endif
 
-ClientConnection::ClientConnection (ServerPtr s, int fd) : router(static_cast<Router&>(s->router)), sendbuf(fd),recvbuf(fd)
+ClientConnection::ClientConnection (NetServerPtr s, int fd) : router(static_cast<Router&>(s->router)), sendbuf(fd),recvbuf(fd)
 {
   t = TracePtr(new Trace(*(s->t), s->t->name));
   server = s;
@@ -98,6 +98,7 @@ ClientConnection::stop()
       addr = 0;
     }
   exit_conn();
+  server->deregister(shared_from_this());
 
   if (fd == -1)
     return;

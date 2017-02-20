@@ -112,7 +112,7 @@ NetServer::io_cb (ev::io &w, int revents)
     {
       TRACEPRINTF (t, 8, "New Connection");
       setupConnection (cfd);
-      ClientConnPtr c = std::shared_ptr<ClientConnection>(new ClientConnection (std::static_pointer_cast<Server>(shared_from_this()), cfd));
+      ClientConnPtr c = std::shared_ptr<ClientConnection>(new ClientConnection (std::static_pointer_cast<NetServer>(shared_from_this()), cfd));
       if (!c->setup())
         return;
       c->start();

@@ -29,7 +29,9 @@
 /** sets the type of a eibd packet*/
 #define EIBSETTYPE(buf,type) do{(buf)[0]=((type)>>8)&0xff;(buf)[1]=(type)&0xff;}while(0)
 
-class Server;
+class NetServer;
+typedef std::shared_ptr<NetServer> NetServerPtr;
+
 class Router;
 class A__Base;
 
@@ -48,7 +50,7 @@ public:
   /** debug output */
   TracePtr t;
   /** server creating this connection */
-  ServerPtr server;
+  NetServerPtr server;
 
 protected:
   /** sending */
@@ -59,7 +61,7 @@ protected:
   void exit_conn();
 
 public:
-  ClientConnection (ServerPtr s, int fd);
+  ClientConnection (NetServerPtr s, int fd);
   virtual ~ClientConnection ();
   bool setup();
   void start();

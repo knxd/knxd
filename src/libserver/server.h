@@ -30,6 +30,7 @@ typedef std::shared_ptr<ClientConnection> ClientConnPtr;
 /** implements the frontend (but opens no connection) */
 class NetServer: public Server
 {
+  friend class ClientConnection;
 protected:
   NetServer (BaseRouter& l3, IniSection& s);
 public:
@@ -61,5 +62,7 @@ protected:
   /** deregister client connection */
   void deregister (ClientConnPtr con);
 };
+
+typedef std::shared_ptr<NetServer> NetServerPtr;
 
 #endif
