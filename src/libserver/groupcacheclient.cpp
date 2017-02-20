@@ -41,12 +41,6 @@ CreateGroupCache (Router& r, IniSection& s)
 }
 
 void
-DeleteGroupCache (Router * l3)
-{
-  l3->setCache(nullptr);
-}
-
-void
 ReadCallback(const GroupCacheEntry &gce, bool nowait, ClientConnPtr c)
 {
   CArray erg;
