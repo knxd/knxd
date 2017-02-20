@@ -263,6 +263,7 @@ ClientConnection::read_cb (uint8_t *buf, size_t len)
         {
           TRACEPRINTF (t, 8, "Error setting up conn, msg=x%x",msg);
           exit_conn();
+          sendreject();
         }
       break;
     }
