@@ -372,12 +372,12 @@ private:
 protected:
   std::weak_ptr<LinkRecv> recv;
 public:
+  virtual void send_L_Data (LDataPtr l) { send->send_L_Data(std::move(l)); }
   virtual void recv_L_Data (LDataPtr l);
   virtual void recv_L_Busmonitor (LBusmonPtr l);
   virtual void started();
   virtual void stopped();
 
-public:
   virtual const std::string& name();
 
   bool _link(LinkRecvPtr prev)
@@ -391,12 +391,14 @@ public:
     {
       auto r = recv.lock();
       if (r != nullptr)
-        send->_link(r);
+        {
+          if (send != nullptr)
+            send->_link(r);
+          r->_link_(send);
+        }
       send.reset();
       recv.reset();
     }
-
-  virtual void send_L_Data (LDataPtr l) { send->send_L_Data(std::move(l)); }
 
   virtual void start() { if (send == nullptr) stopped(); else send->start(); }
   virtual void stop() { if (send == nullptr) stopped(); else send->stop(); }
