@@ -142,32 +142,36 @@ EMI_Common::on_recv_cb(CArray *c)
       stopped();
     }
   if (c->size() && (*c)[0] == ind[I_CONFIRM])
-    wait_confirm = false;
-  if (c->size() && (*c)[0] == ind[I_DATA] && monitor)
+    {
+      if (wait_confirm)
+        {
+          wait_confirm = false;
+          timeout.stop();
+        }
+    }
+  if (c->size() && (*c)[0] == ind[I_DATA] && !monitor)
     {
       LDataPtr p = EMI2lData (*c);
       if (p)
         {
-          delete c;
           TRACEPRINTF (t, 2, "Recv %s", p->Decode (t));
           auto r = recv.lock();
           if (r != nullptr)
             r->recv_L_Data (std::move(p));
-          return;
         }
+      else
+        t->TracePacket (2, "unparseable EMI data", *c);
     }
-  if (c->size() > 4 && (*c)[0] == ind[I_BUSMON] && monitor)
+  else if (c->size() > 4 && (*c)[0] == ind[I_BUSMON] && monitor)
     {
       LBusmonPtr p = LBusmonPtr(new L_Busmonitor_PDU ());
       p->status = (*c)[1];
       p->timestamp = ((*c)[2] << 24) | ((*c)[3] << 16);
       p->pdu.set (c->data() + 4, c->size() - 4);
-      delete c;
       TRACEPRINTF (t, 2, "Recv %s", p->Decode (t));
       auto r = recv.lock();
       if (r != nullptr)
         r->recv_L_Busmonitor (std::move(p));
-      return;
     }
   delete c;
 }
