@@ -295,7 +295,7 @@ EMIVer USBConverterInterface::getEMIVer ()
 
 
 USBDriver::USBDriver (LowLevelDriver * i,
-                      LinkConnectPtr c, IniSection& s) : Driver (c,s)
+                      LinkConnectPtr c, IniSection& s) : BusDriver (c,s)
 {
   emi = nullptr;
   LowLevelDriver *iface = initUSBDriver (i, s, t);
@@ -322,7 +322,7 @@ USBDriver::USBDriver (LowLevelDriver * i,
 
 bool USBDriver::setup ()
 {
-  if (!Driver::setup())
+  if (!BusDriver::setup())
     return false;
   if (emi == 0)
     return false;

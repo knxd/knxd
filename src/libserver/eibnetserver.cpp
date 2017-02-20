@@ -38,13 +38,16 @@ EIBnetServer::EIBnetServer (BaseRouter& r, IniSection& s)
   , discover(false)
   , Port(-1)
   , sock_mac(-1)
+  , router_cfg(s.sub("router",false))
+  , tunnel_cfg(s.sub("tunnel",false))
 {
   drop_trigger.set<EIBnetServer,&EIBnetServer::drop_trigger_cb>(this);
   drop_trigger.start();
 }
 
-EIBnetDriver::EIBnetDriver (EIBnetServerPtr parent, std::string& multicastaddr, int port, std::string& intf)
-  : LineDriver(parent)
+EIBnetDriver::EIBnetDriver (LinkConnectClientPtr c,
+                            std::string& multicastaddr, int port, std::string& intf)
+  : SubDriver(c)
 {
   struct sockaddr_in baddr;
   struct ip_mreq mcfg;
@@ -78,8 +81,9 @@ EIBnetDriver::EIBnetDriver (EIBnetServerPtr parent, std::string& multicastaddr, 
     }
   else
     {
-      maddr.sin_port = std::static_pointer_cast<EIBnetServer>(server)->Port;
-      sock = std::static_pointer_cast<EIBnetServer>(server)->sock;
+      EIBnetServer &parent = *std::static_pointer_cast<EIBnetServer>(server);
+      maddr.sin_port = parent.Port;
+      sock = parent.sock;
     }
 
   mcfg.imr_multiaddr = maddr.sin_addr;
@@ -106,6 +110,8 @@ err_out:
 bool
 EIBnetDriver::setup()
 {
+  if (!SubDriver::setup())
+    return false;
   if (! sock)
     return false;
   
@@ -121,7 +127,8 @@ EIBnetServer::~EIBnetServer ()
 EIBnetDriver::~EIBnetDriver ()
 {
   TRACEPRINTF (t, 8, "CloseD");
-  EIBNetIPSocket * ps = std::static_pointer_cast<EIBnetServer>(server)->sock;
+  EIBnetServer &parent = *std::static_pointer_cast<EIBnetServer>(server);
+  EIBNetIPSocket *ps = parent.sock;
   if (sock && ps && ps != sock)
     delete sock;
 }
@@ -134,8 +141,8 @@ EIBnetServer::setup()
 {
   if(!Server::setup())
     return false;
-  route = cfg.value("router",false);
-  tunnel = cfg.value("tunnel",false);
+  route = router_cfg.name.size() > 0;
+  tunnel = tunnel_cfg.name.size() > 0;
   discover = cfg.value("discover",false);
   single_port = cfg.value("single-port",true);
   multicastaddr = cfg.value("multicast-address","224.0.23.12");
@@ -149,6 +156,7 @@ void
 EIBnetServer::start()
 {
   struct sockaddr_in baddr;
+  LinkConnectClientPtr conn;
 
   TRACEPRINTF (t, 8, "Open");
 
@@ -182,19 +190,18 @@ EIBnetServer::start()
   sock->recvall = 1;
   Port = sock->port ();
 
-  mcast = new EIBnetDriver (std::static_pointer_cast<EIBnetServer>(shared_from_this()), multicastaddr, single_port ? 0 : port, interface);
-  if (!mcast)
-  {
-    ERRORPRINTF (t, E_ERROR | 42, "EIBnetDriver creation failed");
-    goto err_out2;
-  }
-  if (!mcast->setup ())
-    goto err_out3;
-
-  this->tunnel = tunnel;
-  this->route = route;
-  this->discover = discover;
-  this->single_port = single_port;
+  if(route)
+    {
+      conn = LinkConnectClientPtr(new LinkConnectClient(std::dynamic_pointer_cast<EIBnetServer>(shared_from_this()), tunnel_cfg));
+      mcast = new EIBnetDriver (conn, multicastaddr, single_port ? 0 : port, interface);
+      if (!mcast)
+        {
+          ERRORPRINTF (t, E_ERROR | 42, "EIBnetDriver creation failed");
+          goto err_out2;
+        }
+      if (!mcast->setup ())
+        goto err_out3;
+    }
 
   TRACEPRINTF (t, 8, "Opened");
 
@@ -225,19 +232,20 @@ void EIBnetDriver::Send (EIBNetIPPacket p, struct sockaddr_in addr)
 void
 EIBnetDriver::send_L_Data (LDataPtr l)
 {
-  if (std::static_pointer_cast<EIBnetServer>(server)->route)
+  EIBnetServer &parent = *std::static_pointer_cast<EIBnetServer>(server);
+  if (parent.route)
     {
       TRACEPRINTF (t, 8, "Send_Route %s", l->Decode (t));
       EIBNetIPPacket p;
       p.service = ROUTING_INDICATION;
       p.data = L_Data_ToCEMI (0x29, l);
-      std::static_pointer_cast<EIBnetServer>(server)->Send (p);
+      parent.Send (p);
     }
 }
 
 bool ConnState::setup()
 {
-  if (! LineDriver::setup())
+  if (! SubDriver::setup())
     return false;
   if (type == CT_BUSMONITOR && ! dynamic_cast<Router *>(&server->router)->registerVBusmonitor(this))
     return false;
@@ -282,7 +290,8 @@ rt:
       }
   if (id <= 0xff)
     {
-      ConnStatePtr s = ConnStatePtr(new ConnState (std::static_pointer_cast<EIBnetServer>(shared_from_this()), addr));
+      LinkConnectClientPtr conn = LinkConnectClientPtr(new LinkConnectClient(std::dynamic_pointer_cast<EIBnetServer>(shared_from_this()), tunnel_cfg));
+      ConnStatePtr s = ConnStatePtr(new ConnState(conn, addr));
       s->channel = id;
       s->daddr = r1.daddr;
       s->caddr = r1.caddr;
@@ -300,10 +309,10 @@ rt:
   return id;
 }
 
-ConnState::ConnState (EIBnetServerPtr p, eibaddr_t addr)
-  : L_Busmonitor_CallBack(p->t->name), LineDriver (p)
+ConnState::ConnState (LinkConnectClientPtr c, eibaddr_t addr)
+  : L_Busmonitor_CallBack(c->t->name), SubDriver (c)
 {
-  t = TracePtr(new Trace(*(p->t),p->t->name+':'+FormatEIBAddr(addr)));
+  t->name += ':'; t->name += FormatEIBAddr(addr);
   timeout.set <ConnState,&ConnState::timeout_cb> (this);
   sendtimeout.set <ConnState,&ConnState::sendtimeout_cb> (this);
   send_trigger.set<ConnState,&ConnState::send_trigger_cb>(this);
@@ -376,7 +385,7 @@ void ConnState::stop()
   send_trigger.stop();
   retries = 0;
   std::static_pointer_cast<EIBnetServer>(server)->drop_connection (std::static_pointer_cast<ConnState>(shared_from_this()));
-  Driver::stop();
+  SubDriver::stop();
   if (addr)
     {
       dynamic_cast<Router *>(&server->router)->release_client_addr(addr);
@@ -788,7 +797,8 @@ EIBnetServer::stop()
 void
 EIBnetDriver::on_recv_cb (EIBNetIPPacket *p)
 {
-  std::static_pointer_cast<EIBnetServer>(server)->handle_packet (p, this->sock);
+  EIBnetServer &parent = *std::static_pointer_cast<EIBnetServer>(server);
+  parent.handle_packet (p, this->sock);
 }
 
 void ConnState::tunnel_request(EIBnet_TunnelRequest &r1, EIBNetIPSocket *isock)

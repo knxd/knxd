@@ -42,7 +42,7 @@ enum TSTATE {
 };
 
 /** TPUART user mode driver */
-class TPUART_Base:public Driver
+class TPUART_Base:public BusDriver
 {
 protected:
   /** device connection */

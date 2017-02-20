@@ -74,7 +74,7 @@ class Layer4common:public LineDriver
 {
 protected:
   T_Reader<COMM> *app;
-  Layer4common(T_Reader<COMM> *app, ServerPtr s) : LineDriver(s)
+  Layer4common(T_Reader<COMM> *app, LinkConnectClientPtr lc) : LineDriver(lc)
   {
     this->app = app;
   };
@@ -94,7 +94,7 @@ class Layer4commonWO:public Layer4common<COMM>
 {
   bool write_only;
 public:
-  Layer4commonWO (T_Reader<COMM> *app, ServerPtr s, bool write_only) : Layer4common<COMM>(app,s)
+  Layer4commonWO (T_Reader<COMM> *app, LinkConnectClientPtr lc, bool write_only) : Layer4common<COMM>(app,lc)
     { this->write_only = write_only; }
 
   bool checkAddress(eibaddr_t addr) { return !write_only && addr == this->addr; }
@@ -105,7 +105,7 @@ public:
 class T_Broadcast:public Layer4commonWO<BroadcastComm>
 {
 public:
-  T_Broadcast (T_Reader<BroadcastComm> *app, ServerPtr s, bool write_only);
+  T_Broadcast (T_Reader<BroadcastComm> *app, LinkConnectClientPtr lc, bool write_only);
   virtual ~T_Broadcast ();
 
   /** enqueues a packet */
@@ -119,7 +119,7 @@ typedef std::shared_ptr<T_Broadcast> T_BroadcastPtr;
 class GroupSocket:public Layer4commonWO<GroupAPDU>
 {
 public:
-  GroupSocket (T_Reader<GroupAPDU> *app, ServerPtr s, bool write_only);
+  GroupSocket (T_Reader<GroupAPDU> *app, LinkConnectClientPtr lc, bool write_only);
   virtual ~GroupSocket ();
 
   /** enqueues a packet from L3 */
@@ -136,7 +136,7 @@ class T_Group:public Layer4commonWO<GroupComm>
   eibaddr_t groupaddr;
 
 public:
-  T_Group (T_Reader<GroupComm> *app, ServerPtr s, eibaddr_t group, bool write_only);
+  T_Group (T_Reader<GroupComm> *app, LinkConnectClientPtr lc, eibaddr_t group, bool write_only);
   virtual ~T_Group ();
 
   /** enqueues a packet from L3 */
@@ -153,7 +153,7 @@ class T_TPDU:public Layer4common<TpduComm>
   eibaddr_t src;
 
 public:
-  T_TPDU (T_Reader<TpduComm> *app, ServerPtr s, eibaddr_t src);
+  T_TPDU (T_Reader<TpduComm> *app, LinkConnectClientPtr lc, eibaddr_t src);
   virtual ~T_TPDU ();
 
   /** enqueues a packet from L3 */
@@ -170,7 +170,7 @@ class T_Individual:public Layer4commonWO<CArray>
   eibaddr_t dest;
 
 public:
-  T_Individual (T_Reader<CArray> *app, ServerPtr s, eibaddr_t dest, int write_only);
+  T_Individual (T_Reader<CArray> *app, LinkConnectClientPtr lc, eibaddr_t dest, int write_only);
   virtual ~T_Individual ();
 
   /** enqueues a packet from L3 */
@@ -213,7 +213,7 @@ class T_Connection:public Layer4common<CArray>
   /** process the next bit from sendq if mode==1 */
   void SendCheck (); 
 public:
-  T_Connection (T_Reader<CArray> *app, ServerPtr s, eibaddr_t dest);
+  T_Connection (T_Reader<CArray> *app, LinkConnectClientPtr lc, eibaddr_t dest);
   virtual ~T_Connection ();
 
   /** enqueues a packet from L3 */

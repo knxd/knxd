@@ -27,8 +27,8 @@ Layer4common<COMM>::~Layer4common() {}
 
 /***************** T_Brodcast *****************/
 
-T_Broadcast::T_Broadcast (T_Reader<BroadcastComm> *app, ServerPtr s, bool write_only)
-  : Layer4commonWO(app, s,write_only)
+T_Broadcast::T_Broadcast (T_Reader<BroadcastComm> *app, LinkConnectClientPtr lc, bool write_only)
+  : Layer4commonWO(app, lc,write_only)
 {
   TRACEPRINTF (t, 4, "OpenBroadcast %s", write_only ? "WO" : "RW");
 }
@@ -72,8 +72,8 @@ T_Broadcast::recv_Data (const CArray & c)
 
 /***************** T_Group *****************/
 
-T_Group::T_Group (T_Reader<GroupComm> *app, ServerPtr s, eibaddr_t group, bool write_only)
-  : Layer4commonWO(app, s, write_only)
+T_Group::T_Group (T_Reader<GroupComm> *app, LinkConnectClientPtr lc, eibaddr_t group, bool write_only)
+  : Layer4commonWO(app, lc, write_only)
 {
   TRACEPRINTF (t, 4, "OpenGroup %s %s", FormatGroupAddr (group),
 	       write_only ? "WO" : "RW");
@@ -118,8 +118,8 @@ T_Group::~T_Group ()
 
 /***************** T_TPDU *****************/
 
-T_TPDU::T_TPDU (T_Reader<TpduComm> *app, ServerPtr s, eibaddr_t src)
-  : Layer4common(app, s)
+T_TPDU::T_TPDU (T_Reader<TpduComm> *app, LinkConnectClientPtr lc, eibaddr_t src)
+  : Layer4common(app, lc)
 {
   TRACEPRINTF (t, 4, "OpenTPDU %s", FormatEIBAddr (src));
   this->src = src;
@@ -155,8 +155,8 @@ T_TPDU::~T_TPDU ()
 
 /***************** T_Individual *****************/
 
-T_Individual::T_Individual (T_Reader<CArray> *app, ServerPtr s, eibaddr_t dest, int write_only)
-  : Layer4commonWO(app, s,write_only)
+T_Individual::T_Individual (T_Reader<CArray> *app, LinkConnectClientPtr lc, eibaddr_t dest, int write_only)
+  : Layer4commonWO(app, lc, write_only)
 {
   TRACEPRINTF (t, 4, "OpenIndividual %s %s",
                FormatEIBAddr (dest).c_str(), write_only ? "WO" : "RW");
@@ -200,8 +200,8 @@ T_Individual::~T_Individual ()
 
 /***************** T_Connection *****************/
 
-T_Connection::T_Connection (T_Reader<CArray> *app, ServerPtr s, eibaddr_t d)
-	: Layer4common (app, s)
+T_Connection::T_Connection (T_Reader<CArray> *app, LinkConnectClientPtr lc, eibaddr_t d)
+	: Layer4common (app, lc)
 {
   TRACEPRINTF (t, 4, "OpenConnection %s", FormatEIBAddr (d));
   timer.set <T_Connection, &T_Connection::timer_cb> (this);
@@ -408,8 +408,8 @@ T_Connection::stop()
 
 /***************** GroupSocket *****************/
 
-GroupSocket::GroupSocket (T_Reader<GroupAPDU> *app, ServerPtr s, bool write_only)
-  : Layer4commonWO(app, s,write_only)
+GroupSocket::GroupSocket (T_Reader<GroupAPDU> *app, LinkConnectClientPtr lc, bool write_only)
+  : Layer4commonWO(app, lc, write_only)
 {
   TRACEPRINTF (t, 4, "OpenGroupSocket %s", write_only ? "WO" : "RW");
 }

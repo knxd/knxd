@@ -24,6 +24,8 @@ LinkBase::~LinkBase() { }
 LinkRecv::~LinkRecv() { }
 LinkConnect::~LinkConnect() { }
 Driver::~Driver() { }
+BusDriver::~BusDriver() { }
+SubDriver::~SubDriver() { }
 LineDriver::~LineDriver() { }
 Filter::~Filter() { }
 Server::~Server() { }
@@ -43,10 +45,25 @@ LinkBase::info(int level)
   return res;
 }
 
-LinkConnect::LinkConnect(BaseRouter& r, IniSection& s)
-   : router(r), LinkRecv(r,s)
+LinkConnect::LinkConnect(BaseRouter& r, IniSection& c)
+   : router(r), LinkRecv(r,c)
 {
   //Router& rt = dynamic_cast<Router&>(r);
+}
+
+LinkConnectSingle::~LinkConnectSingle()
+{
+  if (addr)
+    static_cast<Router &>(router).release_client_addr(addr);
+}
+
+bool
+LinkConnectSingle::setup()
+{
+  addr = static_cast<Router &>(router).get_client_addr(t);
+  if (addr == 0)
+    return false;
+  return true;
 }
 
 void
@@ -103,9 +120,8 @@ LineDriver::setup()
   if (c == nullptr)
     return false;
 
-  c->set_driver(std::static_pointer_cast<Driver>(shared_from_this()));
-  if (!c->setup())
-    return false;
+  addr = static_cast<Router &>(c->router).get_client_addr(t);
+    // .c->set_driver(std::static_pointer_cast<Driver>(shared_from_this()));
   return true;
 }
 
@@ -181,36 +197,29 @@ LinkConnect::recv_L_Busmonitor (LBusmonPtr l)
   static_cast<Router&>(router).recv_L_Busmonitor(std::move(l));
 }
 
-Server::Server(BaseRouter& r, IniSection& s)
-  : LinkConnect(r,s), client_section(s.sub("client"))
-{
-}
-
-LinkConnectPtr
-Server::new_link()
-{
-  LinkConnectPtr link = LinkConnectPtr(new LinkConnectClient(std::static_pointer_cast<Server>(shared_from_this())));
-
-  return link;
-}
-
 bool
 Server::setup()
 {
   return true;
 }
 
-LinkConnectClient::LinkConnectClient(ServerPtr s)
-  : LinkConnect(s->router, s->cfg)
+LinkConnectClient::LinkConnectClient(ServerPtr s, IniSection& c)
+  : LinkConnect(s->router, c)
 {}
 
 LinkConnectClient::~LinkConnectClient()
 {}
 
-LineDriver::LineDriver(ServerPtr s)
-      : Driver(s->new_link(), s->client_section)
+SubDriver::SubDriver(LinkConnectClientPtr c)
+      : BusDriver(c->server, c->cfg)
 {
-  server = s;
+  server = c->server;
+}
+
+LineDriver::LineDriver(LinkConnectClientPtr c)
+      : Driver(c->server, c->cfg)
+{
+  server = c->server;
 }
 
 void

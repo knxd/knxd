@@ -491,28 +491,30 @@ router
 The "router" server allows clients to discover knxd and to connect to it
 with the standardized KNX tunneling or routing protocols.
 
-  * tunnel (bool)
+  * tunnel (str)
 
     Allow client connections via tunneling. This is typically used by
     single devices or programs.
 
-    Optional; default false.
+    This option names a section with configuration for tunnelled
+    connections. It's OK if that section doesn't exist or is empty.
 
-  * router (bool)
+    Optional; tunneling is disabled if not set.
+
+  * router (str)
 
     Exchange packets via multicast. This is typically used by other KNX
     routers.
 
-    If set, this option names a separate configuration section. This
-    section may be empty or non-existent; the idea is to be able to add
-    a different set of filters to the router and the tunnels.
+    This option names a section with configuration for the multicast
+    connection. It's OK if that section doesn't exist or is empty.
 
-    Optional; default not set.
+    Optional; multicast is disabled if not set.
 
   * discover (bool)
 
-    Reply to KNX discovery packets. Programs like ETS use these to discover
-    routers and tunnels.
+    Reply to KNX discovery packets. Programs like ETS send these packets to
+    discover routers and tunnels.
 
     Optional; default false.
 

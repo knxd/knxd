@@ -21,7 +21,7 @@
 #include "emi.h"
 
 EIBNetIPTunnel::EIBNetIPTunnel (LinkConnectPtr c, IniSection& s)
-  : Driver(c,s)
+  : BusDriver(c,s)
 {
 }
 
@@ -54,7 +54,7 @@ void EIBNetIPTunnel::is_stopped()
 bool
 EIBNetIPTunnel::setup()
 {
-  if (!Driver::setup())
+  if (!BusDriver::setup())
     return false;
   dest = cfg.value("ip-address","");
   if (!dest.size()) 
@@ -124,7 +124,7 @@ EIBNetIPTunnel::start()
   conntimeout.start(10,0);
 
   TRACEPRINTF (t, 2, "Opened");
-  Driver::start();
+  BusDriver::start();
   return;
 ex:
   if (sock) 
@@ -169,8 +169,8 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
             if (cresp.status == 0x23 && support_busmonitor && monitor)
               {
                 TRACEPRINTF (t, 1, "Disable busmonitor support");
-		stop();
-		return;
+                stop();
+                return;
                 // support_busmonitor = false;
                 // connect_busmonitor = false;
 
@@ -205,7 +205,7 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
         sock->recvall = 3;
         conntimeout.start(30,0);
         heartbeat = 0;
-	Driver::start();
+        BusDriver::start();
         break;
       }
     case TUNNEL_REQUEST:
@@ -255,7 +255,7 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
                 sock->Send (p, caddr);
                 sock->recvall = 0;
                 mod = 0;
-		conntimeout.start(0.1,0);
+                conntimeout.start(0.1,0);
               }
             break;
           }
@@ -281,7 +281,7 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
           }
         if (treq.CEMI[0] == 0x2B)
           {
-            LBusmonPtr l2 = CEMI_to_Busmonitor (treq.CEMI, std::static_pointer_cast<Driver>(shared_from_this()));
+            LBusmonPtr l2 = CEMI_to_Busmonitor (treq.CEMI, std::dynamic_pointer_cast<Driver>(shared_from_this()));
             recv_L_Busmonitor (std::move(l2));
             break;
           }
@@ -453,7 +453,7 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
         mod = 0;
         sock->recvall = 0;
         TRACEPRINTF (t, 1, "Disconnected");
-	stop();
+        stop();
         conntimeout.start(0.1,0);
         break;
       }

@@ -42,9 +42,13 @@
  * LinkConnect: class that holds a reference to the driver stack;
  *              this is what Router talks to
  * 
+ * LinkConnectClient: a LinkConnect that was created by a server's new connection
+ * 
+ * LinkConnectSingle: a LinkConnectClient guaranteed to only have one address
+ * 
  * Driver: an interface to the outside world, created by configuration
  *
- * LineDriver: a driver created by a Server when a client connects to knxd
+ * LineDriver: base class for the driver that's linked to a LinkConnectClient
  *             an address gets assigned when connecting
  *             a sender address of zero gets replaced
  *
@@ -65,22 +69,33 @@
  *
  */
 
+/** Helper class so that we don't need to bunch enerything into one header */
 class BaseRouter;
 
+/** some forward declarations */
 class LinkBase;
 typedef std::shared_ptr<LinkBase> LinkBasePtr;
 
 class LinkConnect;
 typedef std::shared_ptr<LinkConnect> LinkConnectPtr;
 
+class LinkConnectClient;
+typedef std::shared_ptr<LinkConnectClient> LinkConnectClientPtr;
+
+class LinkConnectSingle;
+typedef std::shared_ptr<LinkConnectSingle> LinkConnectSinglePtr;
+
 class LinkRecv;
 typedef std::shared_ptr<LinkRecv> LinkRecvPtr;
+
+class LineDriver;
+typedef std::shared_ptr<LineDriver> LineDriverPtr;
 
 class Driver;
 typedef std::shared_ptr<Driver> DriverPtr;
 
-class LineDriver;
-typedef std::shared_ptr<Driver> LineDriverPtr;
+class BusDriver;
+typedef std::shared_ptr<BusDriver> BusDriverPtr;
 
 class Filter;
 typedef std::shared_ptr<Filter> FilterPtr;
@@ -89,8 +104,9 @@ class Server;
 typedef std::shared_ptr<Server> ServerPtr;
 
 class BaseRouter {
-public:
+protected: // can't instantiate this class directly
   BaseRouter(IniData &i) : ini(i) {}
+public:
   virtual ~BaseRouter();
 
   eibaddr_t addr = 0;
@@ -195,7 +211,7 @@ public:
 class LinkRecv : public LinkBase
 {
 public:
-  LinkRecv(BaseRouter &r, IniSection& s) : LinkBase(r,s) {}
+  LinkRecv(BaseRouter &r, IniSection& c) : LinkBase(r,c) {}
   virtual ~LinkRecv();
   virtual void recv_L_Data (LDataPtr l) = 0;
   virtual void recv_L_Busmonitor (LBusmonPtr l) = 0;
@@ -235,7 +251,11 @@ private:
   DriverPtr driver;
 
 public:
-  void set_driver(DriverPtr d) { driver = d; link(std::dynamic_pointer_cast<LinkBase>(d)); }
+  void set_driver(DriverPtr d)
+    {
+      driver = d;
+      link(std::dynamic_pointer_cast<LinkBase>(d));
+    }
   virtual bool setup();
   virtual void start();
   virtual void stop();
@@ -254,14 +274,26 @@ public:
   virtual void addAddress (eibaddr_t addr) { send->addAddress(addr); }
 };
 
-/** connection for a single client */
+/** connection for a server client */
 class LinkConnectClient : public LinkConnect
 {
 public:
-  LinkConnectClient(ServerPtr s);
-  ~LinkConnectClient();
   ServerPtr server;
 
+  LinkConnectClient(ServerPtr s, IniSection& c);
+  ~LinkConnectClient();
+};
+
+/** connection for a server client with a single address */
+class LinkConnectSingle : public LinkConnectClient
+{
+public:
+  LinkConnectSingle(ServerPtr s, IniSection& c) : LinkConnectClient(s,c) {}
+  virtual ~LinkConnectSingle();
+
+  eibaddr_t addr = 0;
+
+  virtual bool setup();
   virtual bool hasAddress (eibaddr_t addr) { return addr == this->addr; }
   virtual void addAddress (eibaddr_t addr) {}
 };
@@ -290,11 +322,8 @@ class _cls : public _base
 class Server : public LinkConnect
 {
 public:
-  IniSection& client_section;
-
   typedef BaseRouter& first_arg;
-  Server(BaseRouter& r, IniSection& s);
-  LinkConnectPtr new_link();
+  Server(BaseRouter& r, IniSection& c) : LinkConnect(r,c) {}
   virtual ~Server();
 
   virtual bool setup();
@@ -381,7 +410,7 @@ public:
 
 #ifdef NO_MAP
 #define DRIVER(_cls,_name) \
-class _cls : public Driver
+class _cls : public BusDriver
 #define DRIVER_(_cls,_base,_name) \
 class _cls : public _base
 
@@ -390,7 +419,7 @@ class _cls : public _base
 static constexpr const char _cls##_name[] = #_name; \
 class _cls; \
 static AutoRegister<_cls,Driver,_cls##_name> _auto_D_##_name; \
-class _cls : public Driver
+class _cls : public BusDriver
 
 #define DRIVER_(_cls,_base,_name) \
 static constexpr const char _cls##_name[] = #_name; \
@@ -402,12 +431,10 @@ class _cls : public _base
 class Driver : public LinkBase
 {
   friend class LinkConnect;
-  std::vector<bool> addrs;
 public:
   typedef LinkConnectPtr first_arg;
 
-  Driver(LinkConnectPtr c, IniSection& s) : LinkBase(c->router, s)
-  { conn = c; addrs.resize(65536); }
+  Driver(LinkConnectPtr c, IniSection& s) : LinkBase(c->router, s) { conn = c; }
   virtual ~Driver();
   std::weak_ptr<LinkConnect> conn;
 
@@ -436,6 +463,18 @@ public:
   virtual void _link_(LinkBasePtr next) { assert(false); }
   virtual bool push_filter(FilterPtr filter);
   virtual FilterPtr findFilter(std::string name);
+};
+
+class BusDriver : public Driver
+{
+  std::vector<bool> addrs;
+
+public:
+  BusDriver(LinkConnectPtr c, IniSection& s) : Driver(c,s)
+    {
+      addrs.resize(65536);
+    }
+  virtual ~BusDriver();
 
   virtual bool hasAddress(eibaddr_t addr) { return addrs[addr]; }
   virtual void addAddress(eibaddr_t addr) { addrs[addr] = true; }
@@ -443,11 +482,21 @@ public:
   virtual bool checkGroupAddress (eibaddr_t addr) { return true; }
 };
 
+/** Base class for server-linked drivers with busses behind them */
+class SubDriver : public BusDriver
+{
+public:
+  ServerPtr server;
+  SubDriver(LinkConnectClientPtr c);
+  virtual ~SubDriver();
+};
+
+/** Base class for server-linked drivers with a single client */
 class LineDriver : public Driver
 {
 public:
   ServerPtr server;
-  LineDriver(ServerPtr s);
+  LineDriver(LinkConnectClientPtr c);
   virtual ~LineDriver();
 
   virtual bool setup(); // assigns the address
@@ -455,7 +504,9 @@ public:
 
 protected:
   virtual bool hasAddress(eibaddr_t addr) { return addr == this->addr; }
-  virtual void addAddress(eibaddr_t addr) { }
+  virtual void addAddress(eibaddr_t addr) { this->addr = addr; }
+  virtual bool checkAddress(eibaddr_t addr) { return addr == this->addr; }
+  virtual bool checkGroupAddress (eibaddr_t addr) { return true; }
 };
 
 #endif

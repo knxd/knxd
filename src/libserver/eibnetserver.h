@@ -38,10 +38,12 @@ typedef enum {
 	CT_CONFIG,
 } ConnType;
 
-class ConnState: public LineDriver, public L_Busmonitor_CallBack
+
+/** Driver for tunnels */
+class ConnState: public SubDriver, public L_Busmonitor_CallBack
 {
 public:
-  ConnState (EIBnetServerPtr p, eibaddr_t addr);
+  ConnState (LinkConnectClientPtr c, eibaddr_t addr);
   ~ConnState ();
   bool setup();
   void start();
@@ -50,6 +52,7 @@ public:
   EIBnetServer *parent;
   bool init();
 
+  eibaddr_t addr;
   uchar channel;
   uchar sno;
   uchar rno;
@@ -78,7 +81,9 @@ public:
 };
 typedef std::shared_ptr<ConnState> ConnStatePtr;
 
-class EIBnetDriver : public LineDriver
+
+/** Driver for routing */
+class EIBnetDriver : public SubDriver
 {
   EIBNetIPSocket *sock; // receive only
 
@@ -86,7 +91,7 @@ class EIBnetDriver : public LineDriver
   p_recv_cb on_recv;
 
 public:
-  EIBnetDriver (EIBnetServerPtr parent, std::string& multicastaddr, int port, std::string& intf);
+  EIBnetDriver (LinkConnectClientPtr c, std::string& multicastaddr, int port, std::string& intf);
   virtual ~EIBnetDriver ();
   struct sockaddr_in maddr;
 
@@ -118,6 +123,8 @@ SERVER(EIBnetServer,router)
   uint16_t port;
   std::string interface;
   std::string servername;
+  IniSection& router_cfg;
+  IniSection& tunnel_cfg;
 
   Array < ConnStatePtr > connections;
   Queue < ConnStatePtr > drop_q;

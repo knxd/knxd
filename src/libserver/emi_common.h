@@ -33,7 +33,7 @@ typedef enum {
 } indTypes;
 
 /** EMI common backend code */
-class EMI_Common:public Driver
+class EMI_Common:public BusDriver
 {
 protected:
   /** driver to send/receive */

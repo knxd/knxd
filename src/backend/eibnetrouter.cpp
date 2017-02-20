@@ -22,7 +22,7 @@
 #include "config.h"
 
 EIBNetIPRouter::EIBNetIPRouter (LinkConnectPtr c, IniSection& s)
-  : Driver(c,s)
+  : BusDriver(c,s)
 {
 }
 
@@ -63,7 +63,7 @@ EIBNetIPRouter::start()
   if (!sock->SetMulticast (mcfg))
     goto err_out;
   TRACEPRINTF (t, 2, "Opened");
-  Driver::start();
+  BusDriver::start();
   return;
 
 err_out:
@@ -91,7 +91,7 @@ EIBNetIPRouter::~EIBNetIPRouter ()
 bool
 EIBNetIPRouter::setup()
 {
-  if(!Driver::setup())
+  if(!BusDriver::setup())
     return false;
   multicastaddr = cfg.value("multicast-address","224.0.23.12");
   port = cfg.value("port",3671);

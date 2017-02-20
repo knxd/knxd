@@ -55,7 +55,7 @@ LowLevelDriver *initUSBDriver (LowLevelDriver * i,
 					TracePtr tr);
 
 /** USB backend */
-class USBDriver:public Driver
+class USBDriver:public BusDriver
 {
   /** EMI */
   EMIPtr emi;

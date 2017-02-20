@@ -25,7 +25,7 @@
 DRIVER(DummyL2Driver,dummy)
 {
 public:
-  DummyL2Driver (LinkConnectPtr c, IniSection& s) : Driver(c,s) {}
+  DummyL2Driver (LinkConnectPtr c, IniSection& s) : BusDriver(c,s) {}
   ~DummyL2Driver ();
 
   void send_L_Data (LDataPtr l) {}

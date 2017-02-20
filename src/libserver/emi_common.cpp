@@ -23,7 +23,7 @@
 unsigned int maxPacketLen() { return 0x10; }
 
 EMI_Common::EMI_Common (LowLevelDriver * i, 
-                        LinkConnectPtr c, IniSection& s) : Driver(c,s)
+                        LinkConnectPtr c, IniSection& s) : BusDriver(c,s)
 {
   TRACEPRINTF (t, 2, "Open");
   iface = i;
@@ -33,9 +33,9 @@ EMI_Common::EMI_Common (LowLevelDriver * i,
 bool
 EMI_Common::setup()
 {
-  if(!Driver::setup())
+  if(!BusDriver::setup())
     return false;
-  if (!iface->setup (std::static_pointer_cast<Driver>(shared_from_this())))
+  if (!iface->setup (std::dynamic_pointer_cast<Driver>(shared_from_this())))
     return false;
   iface->on_recv.set<EMI_Common,&EMI_Common::on_recv_cb>(this);
   send_delay = cfg.value("send-delay",0);
@@ -64,7 +64,7 @@ EMI_Common::start()
   else
     cmdOpen();
 
-  Driver::start();
+  BusDriver::start();
 }
 
 void
@@ -76,7 +76,7 @@ EMI_Common::stop ()
   else
     cmdClose();
   trigger.stop();
-  Driver::stop();
+  BusDriver::stop();
 }
 
 void

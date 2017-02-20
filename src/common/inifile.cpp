@@ -168,10 +168,10 @@ IniData::operator[](const char *name)
 }
 
 IniSection&
-IniSection::sub(const char *name)
+IniSection::sub(const char *name, bool force)
 {
   std::string n = value(name,"");
-  if (!n.size())
+  if (force && !n.size())
     return *this;
   return parent[n];
 }

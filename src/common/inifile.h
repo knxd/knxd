@@ -53,9 +53,10 @@ class IniSection {
     void write(std::ostream& file);
 
     /** If an entry 'name=XX' exists, return section XX.
+      * Otherwise if @force is set, return the empty-named section.
       * Otherwise return the current section. */
-    IniSection& sub(const char *name);
-    IniSection& sub(const std::string& name) { return this->sub(name.c_str()); }
+    IniSection& sub(const char *name, bool force = false);
+    IniSection& sub(const std::string& name, bool force = false) { return this->sub(name.c_str(), force); }
 };
 
 typedef std::map<std::string, IniSection> SectionMap;

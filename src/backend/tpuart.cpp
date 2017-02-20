@@ -54,14 +54,14 @@ static const char* SN(enum TSTATE s)
     }
 }
 TPUART_Base::TPUART_Base (LinkConnectPtr c, IniSection& s)
-	: sendbuf(), recvbuf(), Driver (c,s)
+	: sendbuf(), recvbuf(), BusDriver (c,s)
 {
 }
 
 bool
 TPUART_Base::setup()
 {
-  if(!Driver::setup())
+  if(!BusDriver::setup())
     return false;
   ackallgroup = cfg.value("ack-group",false);
   ackallindividual = cfg.value("ack-individual",false);
