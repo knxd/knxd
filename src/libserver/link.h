@@ -301,7 +301,7 @@ public:
 
   virtual bool setup();
   virtual bool hasAddress (eibaddr_t addr) { return addr == this->addr; }
-  virtual void addAddress (eibaddr_t addr) {}
+  virtual void addAddress (eibaddr_t addr) { assert (addr == 0 || addr == this->addr); }
 };
 
 #ifdef NO_MAP
@@ -332,6 +332,8 @@ public:
   Server(BaseRouter& r, IniSection& c) : LinkConnect(r,c,r.t) {}
   virtual ~Server();
 
+  /** does NOT call LinkConnect::setup because there is no driver here.
+      TODO: move to router code, separate servers and links */
   virtual bool setup();
   virtual void start() { started(); }
   virtual void stop() { stopped(); }

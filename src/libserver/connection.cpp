@@ -30,6 +30,8 @@ A_Broadcast::A_Broadcast (ClientConnPtr cc) : A_Base<T_BroadcastPtr>(cc)
   TRACEPRINTF (t, 7, "OpenBroadcast");
 }
 
+/* TODO refactor this mess */
+
 bool
 A_Broadcast::setup(uint8_t *buf,size_t len)
 {
@@ -38,9 +40,11 @@ A_Broadcast::setup(uint8_t *buf,size_t len)
       TRACEPRINTF (t, 7, "OpenBroadcast size bad %d", len);
       return false;
     }
-  lc = LinkConnectClientPtr(new LinkConnectClient(con->server, con->server->cfg, t));
+  lc = LinkConnectSinglePtr(new LinkConnectSingle(con->server, con->server->cfg, t));
+  lc->setAddress(con->addr);
   c = T_BroadcastPtr(new T_Broadcast (this, lc, buf[4] != 0));
-  if (!c->setup())
+  lc->set_driver(c);
+  if (!lc->setup())
     {
       TRACEPRINTF (t, 7, "OpenBroadcast init bad");
       return false;
@@ -63,9 +67,11 @@ A_Group::setup(uint8_t *buf,size_t len)
       TRACEPRINTF (t, 7, "OpenGroup size bad %d", len);
       return false;
     }
-  lc = LinkConnectClientPtr(new LinkConnectClient(con->server, con->server->cfg, t));
+  lc = LinkConnectSinglePtr(new LinkConnectSingle(con->server, con->server->cfg, t));
+  lc->setAddress(con->addr);
   c = T_GroupPtr(new T_Group (this, lc, (buf[2] << 8) | (buf[3]), buf[4] != 0));
-  if (!c->setup())
+  lc->set_driver(c);
+  if (!lc->setup())
     {
       TRACEPRINTF (t, 7, "OpenGroup init bad");
       return false;
@@ -87,9 +93,11 @@ A_TPDU::setup(uint8_t *buf,size_t len)
       TRACEPRINTF (t, 7, "OpenTPDU size bad %d", len);
       return false;
     }
-  lc = LinkConnectClientPtr(new LinkConnectClient(con->server, con->server->cfg, t));
+  lc = LinkConnectSinglePtr(new LinkConnectSingle(con->server, con->server->cfg, t));
+  lc->setAddress(con->addr);
   c = T_TPDUPtr(new T_TPDU (this, lc, (buf[2] << 8) | (buf[3])));
-  if (!c->setup())
+  lc->set_driver(c);
+  if (!lc->setup())
     {
       TRACEPRINTF (t, 7, "OpenTPDU init bad");
       return false;
@@ -112,11 +120,13 @@ A_Individual::setup(uint8_t *buf,size_t len)
       TRACEPRINTF (t, 7, "OpenIndividual size bad %d", len);
       return false;
     }
-  lc = LinkConnectClientPtr(new LinkConnectClient(con->server, con->server->cfg, t));
+  lc = LinkConnectSinglePtr(new LinkConnectSingle(con->server, con->server->cfg, t));
+  lc->setAddress(con->addr);
   c = T_IndividualPtr(
     new T_Individual (this, lc, (buf[2] << 8) | (buf[3]),
 		      buf[4] != 0));
-  if (!c->setup())
+  lc->set_driver(c);
+  if (!lc->setup())
     {
       TRACEPRINTF (t, 7, "OpenIndividual init bad");
       return false;
@@ -139,9 +149,11 @@ A_Connection::setup(uint8_t *buf,size_t len)
       TRACEPRINTF (t, 7, "OpenConnection size bad %d", len);
       return false;
     }
-  lc = LinkConnectClientPtr(new LinkConnectClient(con->server, con->server->cfg, t));
+  lc = LinkConnectSinglePtr(new LinkConnectSingle(con->server, con->server->cfg, t));
+  lc->setAddress(con->addr);
   c = T_ConnectionPtr(new T_Connection (this, lc, (buf[2] << 8) | (buf[3])));
-  if (!c->setup())
+  lc->set_driver(c);
+  if (!lc->setup())
     {
       TRACEPRINTF (t, 7, "OpenConnection init bad");
       return false;
@@ -164,9 +176,11 @@ A_GroupSocket::setup(uint8_t *buf,size_t len)
       TRACEPRINTF (t, 7, "OpenGroupSocket size bad %d", len);
       return false;
     }
-  lc = LinkConnectClientPtr(new LinkConnectClient(con->server, con->server->cfg, t));
+  lc = LinkConnectSinglePtr(new LinkConnectSingle(con->server, con->server->cfg, t));
+  lc->setAddress(con->addr);
   c = GroupSocketPtr(new GroupSocket (this, lc, buf[4] != 0));
-  if (!c->setup())
+  lc->set_driver(c);
+  if (!lc->setup())
     {
       TRACEPRINTF (t, 7, "OpenGroupSocket init bad");
       return false;
