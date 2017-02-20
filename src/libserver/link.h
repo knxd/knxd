@@ -253,6 +253,7 @@ public:
   BaseRouter& router;
 private:
   DriverPtr driver;
+  bool addr_local = true;
 
 public:
   void set_driver(DriverPtr d)
@@ -263,6 +264,9 @@ public:
   virtual bool setup();
   virtual void start();
   virtual void stop();
+
+  /** Call before setup() to set a remotely-assigned address */
+  virtual void setAddress(eibaddr_t addr);
 
   virtual void started();
   virtual void stopped();
@@ -294,8 +298,6 @@ class LinkConnectSingle : public LinkConnectClient
 public:
   LinkConnectSingle(ServerPtr s, IniSection& c, TracePtr tr) : LinkConnectClient(s,c,tr) {}
   virtual ~LinkConnectSingle();
-
-  eibaddr_t addr = 0;
 
   virtual bool setup();
   virtual bool hasAddress (eibaddr_t addr) { return addr == this->addr; }

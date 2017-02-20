@@ -22,7 +22,6 @@
 
 LinkBase::~LinkBase() { }
 LinkRecv::~LinkRecv() { }
-LinkConnect::~LinkConnect() { }
 Driver::~Driver() { }
 BusDriver::~BusDriver() { }
 SubDriver::~SubDriver() { }
@@ -30,6 +29,14 @@ LineDriver::~LineDriver() { }
 Filter::~Filter() { }
 Server::~Server() { }
 BaseRouter::~BaseRouter() { }
+LinkConnectClient::~LinkConnectClient() { }
+LinkConnectSingle::~LinkConnectSingle() { }
+
+LinkConnect::~LinkConnect()
+{
+  if (addr && addr_local)
+    static_cast<Router &>(router).release_client_addr(addr);
+}
 
 LinkBase::LinkBase(BaseRouter& r, IniSection& s, TracePtr tr) : cfg(s)
 {
@@ -51,16 +58,20 @@ LinkConnect::LinkConnect(BaseRouter& r, IniSection& c, TracePtr tr)
   //Router& rt = dynamic_cast<Router&>(r);
 }
 
-LinkConnectSingle::~LinkConnectSingle()
-{
-  if (addr)
-    static_cast<Router &>(router).release_client_addr(addr);
-}
 
+void
+LinkConnect::setAddress(eibaddr_t addr)
+{
+  this->addr = addr;
+  this->addr_local = false;
+}
 bool
 LinkConnectSingle::setup()
 {
-  addr = static_cast<Router &>(router).get_client_addr(t);
+  if (!LinkConnectClient::setup())
+    return false;
+  if (addr == 0)
+    addr = static_cast<Router &>(router).get_client_addr(t);
   if (addr == 0)
     return false;
   return true;
@@ -118,12 +129,14 @@ Driver::findFilter(std::string name)
 bool
 LineDriver::setup()
 {
+  if(!Driver::setup())
+    return false;
+
   auto c = conn.lock();
   if (c == nullptr)
     return false;
 
-  addr = static_cast<Router &>(c->router).get_client_addr(t);
-    // .c->set_driver(std::static_pointer_cast<Driver>(shared_from_this()));
+  addr = c->addr;
   return true;
 }
 
@@ -232,9 +245,6 @@ Server::setup()
 
 LinkConnectClient::LinkConnectClient(ServerPtr s, IniSection& c, TracePtr tr)
   : server(s), LinkConnect(s->router, c, tr)
-{}
-
-LinkConnectClient::~LinkConnectClient()
 {}
 
 SubDriver::SubDriver(LinkConnectClientPtr c)
