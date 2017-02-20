@@ -656,6 +656,25 @@ monitor
 This filter forwards all packets passing through it to knxd's bus monitoring
 system.
 
+TODO.
+
+log
+---
+
+This filter logs all packets passing through it to knxd's logging system.
+
+  * name
+
+    Set the output's name. The default is "log".
+
+  * recv
+
+    Log incoming packets. Defaults to true.
+
+  * send
+
+    Log outgoing packets. Defaults to true.
+
 dummy
 -----
 

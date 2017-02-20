@@ -54,5 +54,5 @@ endif
 noinst_LIBRARIES = libbackend.a
 AM_CPPFLAGS=-I$(top_srcdir)/src/libserver -I$(top_srcdir)/src/common -I$(top_srcdir)/src/usb $(LIBUSB_CFLAGS)
 
-libbackend_a_SOURCES= $(FT12) $(TPUART_COMMON) $(TPUART_SERIAL) $(TPUART_TCP) $(EIBNETIP) $(EIBNETIPTUNNEL) $(USB) $(NCN5120) dummy.cpp nat.cpp $(LOW)
+libbackend_a_SOURCES= $(FT12) $(TPUART_COMMON) $(TPUART_SERIAL) $(TPUART_TCP) $(EIBNETIP) $(EIBNETIPTUNNEL) $(USB) $(NCN5120) log.cpp dummy.cpp nat.cpp $(LOW)
 
