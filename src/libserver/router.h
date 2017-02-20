@@ -96,7 +96,7 @@ public:
   void release_client_addr (eibaddr_t addr);
 
   /** check if any interface knows this address. */
-  bool hasAddress (eibaddr_t addr, LinkConnectPtr& link);
+  bool hasAddress (eibaddr_t addr, LinkConnectPtr& link, bool quiet = false);
   /** check if any interface accepts this address.
       'l2' says which interface NOT to check. */
   bool checkAddress (eibaddr_t addr, LinkConnectPtr l2 = nullptr);

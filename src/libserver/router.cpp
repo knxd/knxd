@@ -432,18 +432,20 @@ Router::unregisterLink(LinkConnectPtr link)
 }
 
 bool
-Router::hasAddress (eibaddr_t addr, LinkConnectPtr& link)
+Router::hasAddress (eibaddr_t addr, LinkConnectPtr& link, bool quiet)
 {
   if (addr == this->addr)
     {
-      TRACEPRINTF (t, 8, "default addr %s", FormatEIBAddr (addr));
+      if (!quiet)
+        TRACEPRINTF (t, 8, "default addr %s", FormatEIBAddr (addr));
       return true;
     }
 
   if (link && link->hasAddress(addr))
     {
     on_this_interface:
-      TRACEPRINTF (t, 8, "own addr %s", FormatEIBAddr (addr));
+      if (!quiet)
+        TRACEPRINTF (t, 8, "own addr %s", FormatEIBAddr (addr));
       return false;
     }
 
@@ -455,16 +457,19 @@ Router::hasAddress (eibaddr_t addr, LinkConnectPtr& link)
         {
           if (i->second == link)
             {
-              TRACEPRINTF (link->t, 8, "local addr %s", FormatEIBAddr (addr));
+              if (!quiet)
+                TRACEPRINTF (link->t, 8, "local addr %s", FormatEIBAddr (addr));
               return false;
             }
-          TRACEPRINTF (i->second->t, 8, "found addr %s", FormatEIBAddr (addr));
+          if (!quiet)
+            TRACEPRINTF (i->second->t, 8, "found addr %s", FormatEIBAddr (addr));
           link = i->second;
           return true;
         }
     }
 
-  TRACEPRINTF (t, 8, "unknown addr %s", FormatEIBAddr (addr));
+  if (!quiet)
+    TRACEPRINTF (t, 8, "unknown addr %s", FormatEIBAddr (addr));
   return false;
 }
 
@@ -520,7 +525,7 @@ Router::get_client_addr (TracePtr t)
         continue;
       eibaddr_t a = client_addrs_start + pos;
       LinkConnectPtr link = nullptr;
-      if (a != addr && !hasAddress (a, link))
+      if (a != addr && !hasAddress (a, link, true))
         {
           TRACEPRINTF (t, 3, "Allocate %s", FormatEIBAddr (a));
           /* remember for next pass */
