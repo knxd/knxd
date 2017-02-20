@@ -366,8 +366,6 @@ public:
   virtual ~Filter();
 protected:
   LinkConnectPtr conn;
-private:
-  LinkBasePtr send;
 
 protected:
   std::weak_ptr<LinkRecv> recv;
