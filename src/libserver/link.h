@@ -183,7 +183,9 @@ class LinkBase : public std::enable_shared_from_this<LinkBase>
 public:
   LinkBase(BaseRouter &r, IniSection& s);
   virtual ~LinkBase();
-
+private:
+  bool setup_called;
+public:
   /** config data */
   IniSection &cfg;
 
@@ -197,9 +199,9 @@ public:
   /** transmit a packet */
   virtual void send_L_Data (LDataPtr l) = 0;
 
-  virtual bool setup() { return true; }
-  virtual void start() = 0;
-  virtual void stop() = 0;
+  virtual bool setup() { setup_called = true; return true; }
+  virtual void start() { assert(setup_called); }
+  virtual void stop() {}
 
   virtual bool hasAddress (eibaddr_t addr) = 0;
   virtual void addAddress (eibaddr_t addr) = 0;
@@ -390,8 +392,8 @@ public:
 
   virtual void send_L_Data (LDataPtr l) { send->send_L_Data(std::move(l)); }
 
-  virtual void start() { send->start(); }
-  virtual void stop() { send->stop(); }
+  virtual void start() { if (send == nullptr) stopped(); else send->start(); }
+  virtual void stop() { if (send == nullptr) stopped(); else send->stop(); }
 
   virtual eibaddr_t getMyAddr ()
     {

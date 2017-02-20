@@ -199,8 +199,10 @@ EIBnetServer::start()
           ERRORPRINTF (t, E_ERROR | 42, "EIBnetDriver creation failed");
           goto err_out2;
         }
-      if (!mcast->setup ())
+      conn->link(mcast->shared_from_this());
+      if (!conn->setup ())
         goto err_out3;
+      static_cast<Router &>(router).registerLink(conn);
     }
 
   TRACEPRINTF (t, 8, "Opened");
@@ -292,6 +294,7 @@ rt:
     {
       LinkConnectClientPtr conn = LinkConnectClientPtr(new LinkConnectClient(std::dynamic_pointer_cast<EIBnetServer>(shared_from_this()), tunnel_cfg));
       ConnStatePtr s = ConnStatePtr(new ConnState(conn, addr));
+      conn->link(s);
       s->channel = id;
       s->daddr = r1.daddr;
       s->caddr = r1.caddr;
@@ -301,9 +304,9 @@ rt:
       s->no = 1;
       s->type = type;
       s->nat = r1.nat;
-      if(!s->init())
+      if(!conn->setup())
         return -1;
-
+      static_cast<Router &>(router).registerLink(conn);
       connections.push_back(s);
     }
   return id;
@@ -385,12 +388,12 @@ void ConnState::stop()
   send_trigger.stop();
   retries = 0;
   std::static_pointer_cast<EIBnetServer>(server)->drop_connection (std::static_pointer_cast<ConnState>(shared_from_this()));
-  SubDriver::stop();
   if (addr)
     {
       dynamic_cast<Router *>(&server->router)->release_client_addr(addr);
       addr = 0;
     }
+  SubDriver::stop();
 }
 
 void EIBnetServer::drop_connection (ConnStatePtr s)
@@ -408,6 +411,9 @@ void EIBnetServer::drop_trigger_cb(ev::async &w, int revents)
         if (*i == s)
           {
             connections.erase (i);
+            auto c = s->conn.lock();
+            if (c != nullptr)
+              static_cast<Router &>(router).unregisterLink(c);
             break;
           }
     }
@@ -623,7 +629,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       r2.status = 0x22;
       if (r1.CRI.size() == 3 && r1.CRI[0] == 4)
 	{
-	  eibaddr_t a = tunnel ? static_cast<Router *>(&router)->get_client_addr (t) : 0;
+	  eibaddr_t a = tunnel ? static_cast<Router &>(router).get_client_addr (t) : 0;
 	  r2.CRD.resize (3);
 	  r2.CRD[0] = 0x04;
           if (tunnel)
@@ -776,7 +782,7 @@ EIBnetServer::stop()
     if (c != nullptr)
       {
         c->stop();
-        c->unlink();
+        static_cast<Router &>(router).unregisterLink(c);
       }
     delete mcast;
     mcast = 0;

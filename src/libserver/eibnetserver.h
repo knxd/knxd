@@ -50,7 +50,6 @@ public:
   void stop(); // false when called from destructor
 
   EIBnetServer *parent;
-  bool init();
 
   eibaddr_t addr;
   uchar channel;
@@ -111,6 +110,8 @@ SERVER(EIBnetServer,router)
 
   EIBnetDriver *mcast;   // used for multicast receiving
   EIBNetIPSocket *sock;  // used for normal dialog
+  LinkConnectClientPtr mcast_conn;
+
   int sock_mac;          // used to query the list of interfaces
   int Port;              // copy of sock->port()
 

@@ -36,6 +36,7 @@ public:
   virtual ~A__Base() {}
 
   ClientConnPtr con;
+  LinkConnectClientPtr lc;
   error_cb on_error_cb;
   void on_error() {}
 

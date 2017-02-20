@@ -39,8 +39,8 @@ ClientConnection::ClientConnection (ServerPtr s, int fd) : router(static_cast<Ro
   server = s;
 
   TRACEPRINTF (t, 8, "ClientConnection Init");
-  Router *router = static_cast<Router *>(&s->router);
-  this->addr = router->get_client_addr(this->t);
+  Router& router = static_cast<Router &>(s->router);
+  this->addr = router.get_client_addr(this->t);
 
   this->fd = fd;
 
@@ -114,6 +114,11 @@ ClientConnection::exit_conn()
   if (! a_conn)
     return;
   a_conn->stop();
+  if (a_conn->lc != nullptr)
+    {
+      router.unregisterLink(a_conn->lc);
+      a_conn->lc = nullptr;
+    }
   TRACEPRINTF (t, 8, "Exiting");
   delete a_conn;
   a_conn = 0;
@@ -249,7 +254,11 @@ ClientConnection::read_cb (uint8_t *buf, size_t len)
     new_a_conn:
       a_conn->on_error_cb.set<ClientConnection,&ClientConnection::exit_conn>(this);
       if (a_conn->setup(buf,xlen))
-        a_conn->start();
+        {
+          if (a_conn->lc != nullptr)
+            router.registerLink(a_conn->lc);
+          a_conn->start();
+        }
       else
         {
           TRACEPRINTF (t, 8, "Error setting up conn, msg=x%x",msg);

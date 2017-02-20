@@ -29,12 +29,13 @@ CreateGroupCache (Router& r, IniSection& s)
   if (r.getCache())
     return false;
   cache = GroupCachePtr(new GroupCache (c,s));
-  if (!cache->setup())
-    return false;
   if(!c->link(cache))
     return false;
+  if (!c->setup())
+    return false;
 
-  r.registerLink(c);
+  if (!r.registerLink(c))
+    return false;
   r.setCache(cache);
   return true;
 }

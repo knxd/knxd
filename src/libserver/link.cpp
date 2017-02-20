@@ -69,6 +69,7 @@ LinkConnectSingle::setup()
 void
 LinkConnect::start()
 {
+  LinkRecv::start();
   if (running || switching)
     return;
   running = false;
@@ -85,6 +86,7 @@ LinkConnect::stop()
     return;
   switching = true;
   send->stop();
+  LinkRecv::stop();
 }
 
 const std::string&
@@ -128,6 +130,8 @@ LineDriver::setup()
 bool
 LinkConnect::setup()
 {
+  if (!LinkRecv::setup())
+    return false;
   DriverPtr dr = driver; // .lock();
   if(dr == nullptr)
     {
@@ -166,6 +170,29 @@ LinkConnect::setup()
       }
   }
   
+  LinkBasePtr s = send;
+  while (s != nullptr)
+    {
+      if (!s->setup())
+        {
+          ERRORPRINTF (t, E_ERROR | 32, "%s: setup %s: failed", cfg.name, s->cfg.name);
+          return false;
+        }
+      if (s == dr)
+        break;
+      auto ps = std::dynamic_pointer_cast<Filter>(s);
+      if (ps == nullptr)
+        {
+          ERRORPRINTF (t, E_FATAL | 32, "%s: setup %s: no driver", cfg.name, s->cfg.name);
+          return false;
+        }
+      s = ps->send;
+    }
+  if (s == nullptr)
+    {
+      ERRORPRINTF (t, E_FATAL | 33, "%s: setup %s: no driver", cfg.name, s->cfg.name);
+      return false;
+    }
   return true;
 }
 
