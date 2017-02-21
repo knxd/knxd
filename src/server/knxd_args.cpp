@@ -352,13 +352,16 @@ parse_opt (int key, char *arg, struct argp_state *state)
   switch (key)
     {
     case 'T':
+      arguments->stack("tunnel");
       ini["server"]["tunnel"] = "tunnel";
       break;
     case 'R':
+      arguments->stack("router");
       ini["server"]["router"] = "router";
       // ini["router"]["driver"] = "ets-multicast";
       break;
     case 'D':
+      arguments->stack("server"); // to allow for -t255 -DTRS
       ini["server"]["discover"] = "true";
       break;
     case OPT_SINGLE_PORT:
