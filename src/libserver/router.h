@@ -159,11 +159,13 @@ private:
   bool switching = false;
 
   /** treat route count 7 as per EIB spec? */
-  bool force_broadcast;
+  bool force_broadcast = false;
 
 public:
   /** allow unparsed tags in the config file? */
-  bool unknown_ok; 
+  bool unknown_ok = false;
+  /** flag whether systemd has passed us any file descriptors */
+  bool using_systemd = false;
 
 private:
   ev::async cleanup;

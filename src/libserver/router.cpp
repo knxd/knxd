@@ -123,6 +123,7 @@ Router::setup()
           if (!sdp->setup())
             return false;
           registerLink(sdp);
+          using_systemd = true;
         }
     }
 

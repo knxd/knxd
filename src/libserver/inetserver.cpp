@@ -37,6 +37,7 @@ InetServer::setup()
   if (!NetServer::setup())
     return false;
   port = cfg.value("port",6720);
+  ignore_when_systemd = cfg.value("systemd-ignore",(port == 6720));
   return true;
 }
 
@@ -45,6 +46,13 @@ InetServer::start()
 {
   struct sockaddr_in addr;
   int reuse = 1;
+
+  if (ignore_when_systemd && static_cast<Router &>(router).using_systemd)
+    {
+      stopped();
+      return;
+    }
+
   TRACEPRINTF (t, 8, "OpenInetSocket %d", port);
   memset (&addr, 0, sizeof (addr));
   addr.sin_family = AF_INET;

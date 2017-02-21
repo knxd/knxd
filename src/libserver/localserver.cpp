@@ -31,8 +31,7 @@ bool
 LocalServer::setup()
 {
   path = cfg.value("path","/run/knx");
-  if (path == "/run/knx")
-    ignore_when_systemd = true;
+  ignore_when_systemd = cfg.value("systemd-ignore",(path == "/run/knx"));
   if (!NetServer::setup())
     return false;
   return true;
@@ -41,6 +40,12 @@ LocalServer::setup()
 void
 LocalServer::start()
 {
+  if (ignore_when_systemd && static_cast<Router &>(router).using_systemd)
+    {
+      stopped();
+      return;
+    }
+
   struct sockaddr_un addr;
   TRACEPRINTF (t, 8, "OpenLocalSocket %s", path);
   addr.sun_family = AF_LOCAL;
