@@ -31,7 +31,10 @@ NatL2Filter::setup()
   if (!Filter::setup())
     return false;
 
-  addr = dynamic_cast<Router *>(&conn->router)->addr;
+  LinkConnectPtr c = conn.lock();
+  if (c == nullptr)
+    return false;
+  addr = dynamic_cast<Router *>(&c->router)->addr;
   return true;
 }
 

@@ -366,13 +366,12 @@ class Filter : public LinkRecv
 public:
   typedef LinkConnectPtr first_arg;
 
-  Filter(LinkConnectPtr c, IniSection& s) : conn(c), LinkRecv(c->router, s, c->t) {}
+  Filter(LinkConnectPtr c, IniSection& s) : LinkRecv(c->router, s, c->t) { conn = c; }
   virtual ~Filter();
-protected:
-  LinkConnectPtr conn;
 
 protected:
   std::weak_ptr<LinkRecv> recv;
+  std::weak_ptr<LinkConnect> conn;
 public:
   virtual void send_L_Data (LDataPtr l) { send->send_L_Data(std::move(l)); }
   virtual void recv_L_Data (LDataPtr l);
