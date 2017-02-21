@@ -409,10 +409,10 @@ Router::registerLink(LinkConnectPtr link)
                 std::forward_as_tuple(link));
   if (! res.second)
     {
-      TRACEPRINTF (t, 3, "registerLink: %s: already present", n);
+      TRACEPRINTF (link->t, 3, "registerLink: %s: already present", n);
       return false;
     }
-  TRACEPRINTF (t, 3, "registerLink: %s", n);
+  TRACEPRINTF (link->t, 3, "registerLink: %s", n);
   return true;
 }
 
@@ -423,11 +423,11 @@ Router::unregisterLink(LinkConnectPtr link)
   auto res = links.find(n);
   if (res == links.end())
     {
-      TRACEPRINTF (t, 3, "unregisterLink: %s: not present", n);
+      TRACEPRINTF (link->t, 3, "unregisterLink: %s: not present", n);
       return false;
     }
   links.erase(res);
-  TRACEPRINTF (t, 3, "unregisterLink: %s", n);
+  TRACEPRINTF (link->t, 3, "unregisterLink: %s", n);
   return true;
 }
 
