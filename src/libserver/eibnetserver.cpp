@@ -149,6 +149,11 @@ EIBnetServer::setup()
   port = cfg.value("port",3671);
   interface = cfg.value("interface","");
   servername = cfg.value("name", dynamic_cast<Router *>(&router)->servername);
+
+  /* If we're tunneling, set up a fake tunnel stack to test the arguments */
+  if (tunnel && !static_cast<Router &>(router).checkStack(tunnel_cfg))
+    return false;
+
   return true;
 }
 

@@ -743,3 +743,17 @@ Router::mtrigger_cb (ev::async &w, int revents)
         i->cb->send_L_Busmonitor (LBusmonPtr(new L_Busmonitor_PDU (*l1)));
     }
 }
+
+bool
+Router::checkStack(IniSection& cfg)
+{
+  LinkConnectPtr conn = LinkConnectPtr(new LinkConnect(*this, cfg, t));
+  DriverPtr dummy = drivers.create("dummy",conn,cfg);
+  if (dummy == nullptr)
+    return false;
+  conn->set_driver(dummy);
+  if (!conn->setup())
+    return false;
+  return true;
+}
+

@@ -117,7 +117,13 @@ private:
   bool do_server(ServerPtr &link, IniSection& s, const std::string& servername, bool quiet = false);
   bool do_driver(LinkConnectPtr &link, IniSection& s, const std::string& servername, bool quiet = false);
 public:
+  /** Look up a filter by name */
   FilterPtr get_filter(LinkConnectPtr link, IniSection& s, const std::string& filtername);
+
+  /** Create a temporary dummy driver stack to test arguments for filters etc.
+   * Testing the calling driver's config args is the caller#s job.
+   */
+  bool checkStack(IniSection& cfg);
 
 private:
   /** name of our main section */
