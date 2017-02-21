@@ -30,6 +30,7 @@
 #include "router.h"
 #include "version.h"
 #include "paths.h"
+#include "link.h"
 
 #ifdef HAVE_SYSTEMD
 #include <systemd/sd-daemon.h>
@@ -37,6 +38,7 @@
 
 // option values
 bool stop_now = false;
+bool do_list = false;
 bool background = false;
 const char *pidfile = NULL;
 const char *logfile = NULL;
@@ -100,6 +102,8 @@ static char doc[] =
 static struct argp_option options[] = {
   {"stop", OPT_STOP_NOW, 0, OPTION_HIDDEN,
    "immediately stops the server after a successful start"},
+  {"list", 'l', 0, 0,
+   "list known drivers, filters, or servers"},
   {0}
 };
 
@@ -140,8 +144,14 @@ parse_opt (int key, char *arg, struct argp_state *state)
   struct arguments *arguments = (struct arguments *) state->input;
   switch (key)
     {
+    case ARGP_KEY_INIT:
+      break;
     case OPT_STOP_NOW:
       stop_now = true;
+      break;
+
+    case 'l':
+      do_list = true;
       break;
 
     case ARGP_KEY_ARG:
@@ -154,7 +164,8 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
 
     default:
-      fork_args_helper(key);
+      if (!do_list)
+        fork_args_helper(key);
       return 1;
     }
   return 0;
@@ -246,8 +257,48 @@ main (int ac, char *ag[])
   ev_timer_again (EV_A_ &timer);
 #endif
 
-  argp_parse (&argp, ac, ag, ARGP_NO_EXIT | ARGP_NO_ERRS | ARGP_NO_HELP | ARGP_IN_ORDER, &index, NULL);
+  argp_parse (&argp, ac, ag, ARGP_NO_EXIT | ARGP_NO_ERRS | ARGP_IN_ORDER, &index, NULL);
 
+  if (do_list)
+    {
+      static Factory<Server> _servers;
+      static Factory<Driver> _drivers;
+      static Factory<Filter> _filters;
+
+      if (cfgfile == NULL)
+        {
+        x1:
+          printf(""
+            "Requires type of structure to list.\n"
+            "Either 'driver', 'filter' or 'server'.\n"
+            );
+        }
+      else // if (mainsection == NULL)
+        {
+          if (!strcmp(cfgfile, "driver"))
+            {
+              for(auto &m : _drivers.Instance().map())
+                printf("%s\n",m.first.c_str());
+            }
+          else if (!strcmp(cfgfile, "filter"))
+            {
+              for(auto &m : _filters.Instance().map())
+                printf("%s\n",m.first.c_str());
+            }
+          else if (!strcmp(cfgfile, "server"))
+            {
+              for(auto &m : _servers.Instance().map())
+                printf("%s\n",m.first.c_str());
+            }
+          else
+            goto x1;
+        }
+      // else
+      //   {
+      //     printf("Detail printing is not implemented yet.\n");
+      //   }
+      return 0;
+    }
   if (cfgfile == NULL)
     usage();
   if (mainsection == NULL)
