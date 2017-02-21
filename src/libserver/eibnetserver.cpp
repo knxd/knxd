@@ -201,7 +201,8 @@ EIBnetServer::start()
       mcast_conn->set_driver(mcast);
       if (!mcast_conn->setup ())
         goto err_out3;
-      static_cast<Router &>(router).registerLink(mcast_conn);
+      if (!static_cast<Router &>(router).registerLink(mcast_conn))
+        goto err_out3;
     }
 
   TRACEPRINTF (t, 8, "Opened");
@@ -293,7 +294,7 @@ rt:
     {
       LinkConnectClientPtr conn = LinkConnectClientPtr(new LinkConnectClient(std::dynamic_pointer_cast<EIBnetServer>(shared_from_this()), tunnel_cfg, t));
       ConnStatePtr s = ConnStatePtr(new ConnState(conn, addr));
-      conn->link(s);
+      conn->set_driver(s);
       s->channel = id;
       s->daddr = r1.daddr;
       s->caddr = r1.caddr;
@@ -305,7 +306,8 @@ rt:
       s->nat = r1.nat;
       if(!conn->setup())
         return -1;
-      static_cast<Router &>(router).registerLink(conn);
+      if(!static_cast<Router &>(router).registerLink(conn))
+        return -1;
       connections.push_back(s);
     }
   return id;
