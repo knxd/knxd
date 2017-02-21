@@ -112,7 +112,6 @@ SERVER(EIBnetServer,ets_router)
 
   EIBnetDriverPtr mcast;   // used for multicast receiving
   EIBNetIPSocket *sock;  // used for normal dialog
-  LinkConnectClientPtr mcast_conn;
 
   int sock_mac;          // used to query the list of interfaces
   int Port;              // copy of sock->port()

@@ -156,6 +156,7 @@ void
 EIBnetServer::start()
 {
   struct sockaddr_in baddr;
+  LinkConnectClientPtr mcast_conn;
 
   TRACEPRINTF (t, 8, "Open");
 
@@ -781,11 +782,13 @@ EIBnetServer::stop_()
   R_ITER(i,connections)
     (*i)->stop();
 
-  if (route && mcast_conn != nullptr)
+  if (route)
     {
-      mcast_conn->stop();
-      static_cast<Router &>(router).unregisterLink(mcast_conn);
-      mcast_conn.reset();
+      auto c = mcast->conn.lock();
+      assert (c);
+
+      c->stop();
+      static_cast<Router &>(router).unregisterLink(c);
       mcast.reset();
     }
   if (sock)
