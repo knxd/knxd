@@ -36,8 +36,9 @@ BUSMON=busmonitor.h busmonitor.cpp
 else
 BUSMON=
 endif
+NETIP=eibnetip.cpp eibnetip.h 
 if HAVE_EIBNETSERVER
-EIBNETIP=eibnetip.cpp eibnetip.h eibnetserver.cpp eibnetserver.h
+EIBNETIP=eibnetserver.cpp eibnetserver.h
 else
 EIBNETIP=
 endif
@@ -47,6 +48,6 @@ else
 USB=
 endif
 
-libeibstack_a_SOURCES =$(COMMON) $(CORE) $(PDUs) $(MANAGEMENT) $(EMI) $(EIBNETIP) $(FRONT_C) $(USB) $(CACHE) $(BUSMON)
+libeibstack_a_SOURCES =$(COMMON) $(CORE) $(PDUs) $(MANAGEMENT) $(EMI) $(NETIP) $(FRONT_C) $(USB) $(CACHE) $(BUSMON)
 
-libserver_a_SOURCES = server.h server.cpp localserver.h localserver.cpp inetserver.h inetserver.cpp $(SYSTEMD_SERVER)
+libserver_a_SOURCES = server.h server.cpp localserver.h localserver.cpp inetserver.h inetserver.cpp $(SYSTEMD_SERVER) $(EIBNETIP)
