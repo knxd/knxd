@@ -113,7 +113,7 @@ public:
   Array < const char * > filters;
 
   arguments () { }
-  ~arguments () { }
+  virtual ~arguments () { }
 
   /** get the current tracer.
    * Call with 'true' when you want to change the tracer

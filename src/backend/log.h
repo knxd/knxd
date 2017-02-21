@@ -28,7 +28,7 @@ FILTER(LogFilter,log)
 
 public:
   LogFilter (LinkConnectPtr c, IniSection& s) : Filter(c,s) {}
-  ~LogFilter ();
+  virtual ~LogFilter ();
 
   virtual bool setup();
   virtual void recv_L_Data (LDataPtr l);

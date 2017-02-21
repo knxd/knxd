@@ -65,7 +65,7 @@ class A_Broadcast : public T_Reader<BroadcastComm>, public A_Base<T_BroadcastPtr
 public:
   A_Broadcast (ClientConnPtr cc);
   bool setup (uint8_t *buf,size_t len);
-  ~A_Broadcast ();
+  virtual ~A_Broadcast ();
 
   void send(BroadcastComm &); // from socket
   void recv_Data(uint8_t *buf, size_t len); // to socket
@@ -78,7 +78,7 @@ class A_Group : public T_Reader<GroupComm>, public A_Base<T_GroupPtr>
 public:
   A_Group (ClientConnPtr cc);
   bool setup (uint8_t *buf,size_t len);
-  ~A_Group ();
+  virtual ~A_Group ();
 
   void send(GroupComm &); // from socket
   void recv_Data(uint8_t *buf, size_t len); // to socket
@@ -91,7 +91,7 @@ class A_TPDU : public T_Reader<TpduComm>, public A_Base<T_TPDUPtr>
 public:
   A_TPDU (ClientConnPtr cc);
   bool setup (uint8_t *buf,size_t len);
-  ~A_TPDU ();
+  virtual ~A_TPDU ();
 
   void send(TpduComm &); // from socket
   void recv_Data(uint8_t *buf, size_t len); // to socket
@@ -104,7 +104,7 @@ class A_Individual : public T_Reader<CArray>, public A_Base<T_IndividualPtr>
 public:
   A_Individual (ClientConnPtr cc);
   bool setup (uint8_t *buf,size_t len);
-  ~A_Individual ();
+  virtual ~A_Individual ();
 
   void send(CArray &); // from socket
   void recv_Data(uint8_t *buf, size_t len); // to socket
@@ -117,7 +117,7 @@ class A_Connection : public T_Reader<CArray>, public A_Base<T_ConnectionPtr>
 public:
   A_Connection (ClientConnPtr cc);
   bool setup(uint8_t *buf,size_t len);
-  ~A_Connection ();
+  virtual ~A_Connection ();
 
   void send(CArray &); // from socket
   void recv_Data(uint8_t *buf, size_t len); // to socket
@@ -130,7 +130,7 @@ class A_GroupSocket : public T_Reader<GroupAPDU>, public A_Base<GroupSocketPtr>
 public:
   A_GroupSocket (ClientConnPtr cc);
   bool setup(uint8_t *buf,size_t len);
-  ~A_GroupSocket ();
+  virtual ~A_GroupSocket ();
 
   /** start processing */
   void send(GroupAPDU &);

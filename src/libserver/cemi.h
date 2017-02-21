@@ -42,7 +42,7 @@ class CEMIDriver:public EMI_Common
   { return CEMI_to_L_Data(data, t); }
 public:
   CEMIDriver (LowLevelDriver * i, LinkConnectPtr c, IniSection& s) : EMI_Common(i,c,s) {}
-  ~CEMIDriver ();
+  virtual ~CEMIDriver ();
 };
 
 #endif  /* EIB_CEMI_H */

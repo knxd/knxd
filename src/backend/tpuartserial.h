@@ -43,7 +43,7 @@ protected:
 
 public:
   TPUARTSerial (LinkConnectPtr c, IniSection& s);
-  ~TPUARTSerial();
+  virtual ~TPUARTSerial();
 
   bool setup();
 };

@@ -63,7 +63,7 @@ private:
 
 public:
   EMI_Common (LowLevelDriver * i, LinkConnectPtr c, IniSection& s);
-  ~EMI_Common ();
+  virtual ~EMI_Common ();
   bool setup();
   void start();
   void stop();

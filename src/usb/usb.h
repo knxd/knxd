@@ -39,7 +39,7 @@ public:
   libusb_context *context;
 
   USBLoop (TracePtr tr);
-  ~USBLoop ();
+  virtual ~USBLoop ();
 
   void setup();
 };

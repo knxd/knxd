@@ -68,7 +68,7 @@ class FT12LowLevelDriver:public LowLevelDriver
 
 public:
   FT12LowLevelDriver (IniSection& s, TracePtr tr);
-  ~FT12LowLevelDriver ();
+  virtual ~FT12LowLevelDriver ();
   bool setup (DriverPtr master);
   void start();
   void stop();

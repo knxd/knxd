@@ -32,7 +32,7 @@ class EMI2Driver:public EMI_Common
   const uint8_t * getIndTypes();
 public:
   EMI2Driver (LowLevelDriver * i, LinkConnectPtr c, IniSection& s) : EMI_Common(i,c,s) {}
-  ~EMI2Driver ();
+  virtual ~EMI2Driver ();
 };
 
 #endif

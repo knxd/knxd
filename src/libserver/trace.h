@@ -104,7 +104,7 @@ public:
     setup();
   }
 
-  ~Trace ()
+  virtual ~Trace ()
   {
   }
 

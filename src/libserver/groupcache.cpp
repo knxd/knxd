@@ -213,7 +213,7 @@ public:
     timeout.set<GCReader,&GCReader::timeout_cb>(this);
     timeout.start(Timeout,0);
   }
-  ~GCReader()
+  virtual ~GCReader()
     {
       if (stopped)
         return;
@@ -316,7 +316,7 @@ public:
     timeout.set<GCTracker,&GCTracker::timeout_cb>(this);
     timeout.start(Timeout,0);
   }
-  ~GCTracker() {
+  virtual ~GCTracker() {
       a.clear();
   }
   void stop()

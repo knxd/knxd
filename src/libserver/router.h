@@ -52,7 +52,7 @@ typedef struct
 class Router : public BaseRouter {
 public:
   Router(IniData& d, std::string sn);
-  ~Router();
+  virtual ~Router();
 
   /** my name */
   std::string servername;

@@ -291,7 +291,7 @@ public:
   ServerPtr server;
 
   LinkConnectClient(ServerPtr s, IniSection& c, TracePtr tr);
-  ~LinkConnectClient();
+  virtual ~LinkConnectClient();
 
   virtual const std::string& name() { return linkname; }
 };

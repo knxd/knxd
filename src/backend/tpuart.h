@@ -86,7 +86,7 @@ protected:
 
 public:
   TPUART_Base (LinkConnectPtr c, IniSection& s);
-  ~TPUART_Base ();
+  virtual ~TPUART_Base ();
   bool setup();
   void start();
   void stop();

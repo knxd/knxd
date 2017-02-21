@@ -32,7 +32,7 @@ DRIVER_(TPUARTTCP,TPUART_Base,tpuarttcp)
 
 public:
   TPUARTTCP (LinkConnectPtr c, IniSection& s);
-  ~TPUARTTCP () {}
+  virtual ~TPUARTTCP () {}
 
   bool setup();
 };

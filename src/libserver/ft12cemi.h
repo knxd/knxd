@@ -31,7 +31,7 @@ class FT12CEMIDriver : public CEMIDriver
   void cmdOpen(); 
 public:
   FT12CEMIDriver (LowLevelDriver * i, LinkConnectPtr c, IniSection& s) : CEMIDriver(i,c,s) {}
-  ~FT12CEMIDriver ();
+  virtual ~FT12CEMIDriver ();
 };
 
 #endif  /* EIB_CEMI_H */

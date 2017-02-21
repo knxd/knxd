@@ -32,7 +32,7 @@ protected:
 
 public:
   InetServer (BaseRouter& r, IniSection& s);
-  ~InetServer ();
+  virtual ~InetServer ();
 
   bool setup();
   void start();

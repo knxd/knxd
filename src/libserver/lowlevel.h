@@ -93,7 +93,7 @@ public:
     on_recv.set<LowLevelDriver, &LowLevelDriver::recv_discard>(this);
   }
 
-  ~LowLevelDriver ();
+  virtual ~LowLevelDriver ();
 
   virtual bool setup (DriverPtr master)
     {

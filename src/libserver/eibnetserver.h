@@ -44,7 +44,7 @@ class ConnState: public SubDriver, public L_Busmonitor_CallBack
 {
 public:
   ConnState (LinkConnectClientPtr c, eibaddr_t addr);
-  ~ConnState ();
+  virtual ~ConnState ();
   bool setup();
   void start();
   void stop(); // false when called from destructor

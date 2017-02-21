@@ -35,7 +35,7 @@ public:
         timeout.set<initUSB,&initUSB::timeout_cb>(this);
         i->on_recv.set<initUSB,&initUSB::read_cb>(this);
     }
-    ~initUSB() {
+    virtual ~initUSB() {
         timeout.stop();
         i->reset();
     }
