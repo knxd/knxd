@@ -675,6 +675,10 @@ This filter logs all packets passing through it to knxd's logging system.
 
     Log outgoing packets. Defaults to true.
 
+  * monitor
+
+    Log incoming bus monitor packets. Defaults to false.
+
 dummy
 -----
 

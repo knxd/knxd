@@ -25,6 +25,7 @@ FILTER(LogFilter,log)
 {
   bool log_send;
   bool log_recv;
+  bool log_monitor;
 
 public:
   LogFilter (LinkConnectPtr c, IniSection& s) : Filter(c,s) {}
@@ -33,6 +34,7 @@ public:
   virtual bool setup();
   virtual void recv_L_Data (LDataPtr l);
   virtual void send_L_Data (LDataPtr l);
+  virtual void recv_L_Busmonitor (LBusmonPtr l);
 };
 
 

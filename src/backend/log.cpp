@@ -29,6 +29,7 @@ LogFilter::setup()
   t->name = cfg.value("name",cfg.name);
   log_send = cfg.value("send",true);
   log_recv = cfg.value("recv",true);
+  log_monitor = cfg.value("monitor",false);
   return true;
 }
 
@@ -48,4 +49,11 @@ LogFilter::send_L_Data (LDataPtr l)
   Filter::send_L_Data(std::move(l));
 }
 
+void
+LogFilter::recv_L_Busmonitor (LBusmonPtr l)
+{
+  if (log_monitor)
+    t->TracePrintf (0, "Monitor %s", l->Decode (t));
+  Filter::recv_L_Busmonitor(std::move(l));
+}
 
