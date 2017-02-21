@@ -21,7 +21,7 @@
 #include "tpdu.h"
 #include "apdu.h"
 
-GroupCache::GroupCache (LinkConnectPtr c, IniSection& s)
+GroupCache::GroupCache (const LinkConnectPtr& c, IniSection& s)
 	: Driver(c,s)
 {
   TRACEPRINTF (t, 4, "GroupCacheInit");

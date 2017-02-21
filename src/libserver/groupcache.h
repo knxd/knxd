@@ -92,7 +92,7 @@ private:
 
 public:
   /** constructor */
-  GroupCache (LinkConnectPtr c, IniSection& s);
+  GroupCache (const LinkConnectPtr& c, IniSection& s);
   /** destructor */
   virtual ~GroupCache ();
   /** Feed data to the cache */

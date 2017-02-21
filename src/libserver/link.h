@@ -121,14 +121,17 @@ public:
 template<class T, class I>
 struct Maker {
   typedef typename I::first_arg I_first;
-  static std::shared_ptr<I> create(I_first c, IniSection& s) { return std::shared_ptr<T>(new T(c,s)); }
+  static std::shared_ptr<I> create(const I_first &c, IniSection& s)
+    {
+      return std::shared_ptr<T>(new T(c,s));
+    }
 };
 
 template<class I>
 class Factory {
 public:
   typedef typename I::first_arg I_first;
-  typedef std::shared_ptr<I> (*Creator)(I_first c, IniSection& s);
+  typedef std::shared_ptr<I> (*Creator)(const I_first &c, IniSection& s);
   typedef std::unordered_map<std::string, Creator> M;
   static M& map() { static M m; return m;}
 
@@ -366,7 +369,7 @@ class Filter : public LinkRecv
 public:
   typedef LinkConnectPtr first_arg;
 
-  Filter(LinkConnectPtr c, IniSection& s) : LinkRecv(c->router, s, c->t) { conn = c; }
+  Filter(const LinkConnectPtr& c, IniSection& s) : LinkRecv(c->router, s, c->t) { conn = c; }
   virtual ~Filter();
 
 protected:
@@ -445,7 +448,10 @@ class Driver : public LinkBase
 public:
   typedef LinkConnectPtr first_arg;
 
-  Driver(LinkConnectPtr c, IniSection& s) : LinkBase(c->router, s, c->t) { conn = c; }
+  Driver(const LinkConnectPtr& c, IniSection& s) : LinkBase(c->router, s, c->t)
+    {
+      conn = c;
+    }
   virtual ~Driver();
   std::weak_ptr<LinkConnect> conn;
 
@@ -481,7 +487,7 @@ class BusDriver : public Driver
   std::vector<bool> addrs;
 
 public:
-  BusDriver(LinkConnectPtr c, IniSection& s) : Driver(c,s)
+  BusDriver(const LinkConnectPtr& c, IniSection& s) : Driver(c,s)
     {
       addrs.resize(65536);
     }
@@ -498,7 +504,7 @@ class SubDriver : public BusDriver
 {
 public:
   ServerPtr server;
-  SubDriver(LinkConnectClientPtr c);
+  SubDriver(const LinkConnectClientPtr& c);
   virtual ~SubDriver();
 };
 
@@ -507,7 +513,7 @@ class LineDriver : public Driver
 {
 public:
   ServerPtr server;
-  LineDriver(LinkConnectClientPtr c);
+  LineDriver(const LinkConnectClientPtr& c);
   virtual ~LineDriver();
 
   virtual bool setup(); // assigns the address

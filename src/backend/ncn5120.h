@@ -27,7 +27,7 @@
 DRIVER_(NCN5120Serial,TPUARTSerial,ncn5120)
 {
 public:
-  NCN5120Serial (LinkConnectPtr c, IniSection& s);
+  NCN5120Serial (const LinkConnectPtr& c, IniSection& s);
   virtual ~NCN5120Serial ();
 
 protected:

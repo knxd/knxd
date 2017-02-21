@@ -31,7 +31,7 @@ class EMI1Driver:public EMI_Common
   void cmdClose();
   const uint8_t * getIndTypes();
 public:
-  EMI1Driver (LowLevelDriver * i, LinkConnectPtr c, IniSection& s) : EMI_Common(i,c,s) {}
+  EMI1Driver (LowLevelDriver * i, const LinkConnectPtr& c, IniSection& s) : EMI_Common(i,c,s) {}
   virtual ~EMI1Driver ();
 };
 

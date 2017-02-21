@@ -61,7 +61,7 @@ class USBDriver:public BusDriver
   EMIPtr emi;
 
 public:
-  USBDriver (LowLevelDriver * i, LinkConnectPtr c, IniSection& s);
+  USBDriver (LowLevelDriver * i, const LinkConnectPtr& c, IniSection& s);
   bool setup();
   void start();
   void stop();

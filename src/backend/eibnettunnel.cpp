@@ -20,7 +20,7 @@
 #include "eibnettunnel.h"
 #include "emi.h"
 
-EIBNetIPTunnel::EIBNetIPTunnel (LinkConnectPtr c, IniSection& s)
+EIBNetIPTunnel::EIBNetIPTunnel (const LinkConnectPtr& c, IniSection& s)
   : BusDriver(c,s)
 {
 }

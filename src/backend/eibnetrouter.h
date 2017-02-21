@@ -36,7 +36,7 @@ DRIVER(EIBNetIPRouter,ip)
 
   void on_recv_cb(EIBNetIPPacket *p);
 public:
-  EIBNetIPRouter (LinkConnectPtr c, IniSection& s);
+  EIBNetIPRouter (const LinkConnectPtr& c, IniSection& s);
   virtual ~EIBNetIPRouter ();
   bool setup();
   void start();

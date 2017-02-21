@@ -72,13 +72,13 @@ public:
   void stop();
 
   /** callbacks from link */
-  void link_started(LinkConnectPtr link);
-  void link_stopped(LinkConnectPtr link);
+  void link_started(const LinkConnectPtr& link);
+  void link_stopped(const LinkConnectPtr& link);
 
   /** register a new link. Must be fully linked and setup() must be OK. */
-  bool registerLink(LinkConnectPtr link);
+  bool registerLink(const LinkConnectPtr& link);
   /** unregister a new link */
-  bool unregisterLink(LinkConnectPtr link);
+  bool unregisterLink(const LinkConnectPtr& link);
 
   /** register a busmonitor callback, return true, if successful*/
   bool registerBusmonitor (L_Busmonitor_CallBack * c);

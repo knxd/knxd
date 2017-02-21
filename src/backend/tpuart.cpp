@@ -53,7 +53,7 @@ static const char* SN(enum TSTATE s)
       return buf[x];
     }
 }
-TPUART_Base::TPUART_Base (LinkConnectPtr c, IniSection& s)
+TPUART_Base::TPUART_Base (const LinkConnectPtr& c, IniSection& s)
 	: sendbuf(), recvbuf(), BusDriver (c,s)
 {
 }

@@ -31,7 +31,7 @@ DRIVER_(TPUARTTCP,TPUART_Base,tpuarttcp)
   uint16_t port;
 
 public:
-  TPUARTTCP (LinkConnectPtr c, IniSection& s);
+  TPUARTTCP (const LinkConnectPtr& c, IniSection& s);
   virtual ~TPUARTTCP () {}
 
   bool setup();

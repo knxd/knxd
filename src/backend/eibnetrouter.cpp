@@ -21,7 +21,7 @@
 #include "emi.h"
 #include "config.h"
 
-EIBNetIPRouter::EIBNetIPRouter (LinkConnectPtr c, IniSection& s)
+EIBNetIPRouter::EIBNetIPRouter (const LinkConnectPtr& c, IniSection& s)
   : BusDriver(c,s)
 {
 }

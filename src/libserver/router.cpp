@@ -245,7 +245,7 @@ Router::start()
 }
 
 void
-Router::link_started(LinkConnectPtr link)
+Router::link_started(const LinkConnectPtr& link)
 {
   bool osw = switching;
   bool orn = running;
@@ -275,7 +275,7 @@ Router::link_started(LinkConnectPtr link)
 }
 
 void
-Router::link_stopped(LinkConnectPtr link)
+Router::link_stopped(const LinkConnectPtr& link)
 {
   bool osw = switching;
   bool orn = running;
@@ -401,7 +401,7 @@ Router::registerVBusmonitor (L_Busmonitor_CallBack * c)
 }
 
 bool
-Router::registerLink(LinkConnectPtr link)
+Router::registerLink(const LinkConnectPtr& link)
 {
   const std::string& n = link->name();
   auto res = links.emplace(std::piecewise_construct,
@@ -417,7 +417,7 @@ Router::registerLink(LinkConnectPtr link)
 }
 
 bool
-Router::unregisterLink(LinkConnectPtr link)
+Router::unregisterLink(const LinkConnectPtr& link)
 {
   const std::string& n = link->name();
   auto res = links.find(n);
