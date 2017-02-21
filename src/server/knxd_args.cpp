@@ -352,7 +352,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
   switch (key)
     {
     case 'T':
-      ini["server"]["tunnel"] = "true";
+      ini["server"]["tunnel"] = "tunnel";
       break;
     case 'R':
       ini["server"]["router"] = "router";
@@ -373,7 +373,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'S':
       {
         ADD(ini["main"]["connections"], "server");
-        ini["server"]["server"] = "router";
+        ini["server"]["server"] = "ets_router";
         // ini["server"]["driver"] = "ets-link";
 
         const char *serverip;

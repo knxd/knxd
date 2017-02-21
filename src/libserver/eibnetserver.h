@@ -46,8 +46,8 @@ public:
   ConnState (LinkConnectClientPtr c, eibaddr_t addr);
   virtual ~ConnState ();
   bool setup();
-  void start();
-  void stop(); // false when called from destructor
+  // void start();
+  void stop();
 
   EIBnetServer *parent;
 
@@ -95,20 +95,22 @@ public:
   struct sockaddr_in maddr;
 
   bool setup();
-  void start();
-  void stop();
+  // void start();
+  // void stop();
 
   void Send (EIBNetIPPacket p, struct sockaddr_in addr);
 
   void send_L_Data (LDataPtr l);
 };
 
-SERVER(EIBnetServer,router)
+typedef std::shared_ptr<EIBnetDriver> EIBnetDriverPtr;
+
+SERVER(EIBnetServer,ets_router)
 {
   friend class ConnState;
   friend class EIBnetDriver;
 
-  EIBnetDriver *mcast;   // used for multicast receiving
+  EIBnetDriverPtr mcast;   // used for multicast receiving
   EIBNetIPSocket *sock;  // used for normal dialog
   LinkConnectClientPtr mcast_conn;
 
@@ -136,12 +138,14 @@ SERVER(EIBnetServer,router)
 
   void on_recv_cb(EIBNetIPPacket *p);
 
+  void stop_();
 public:
   EIBnetServer (BaseRouter& r, IniSection& s);
   virtual ~EIBnetServer ();
   bool setup ();
   void start();
   void stop();
+
   void handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock);
 
   void drop_connection (ConnStatePtr s);

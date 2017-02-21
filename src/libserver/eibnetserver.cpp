@@ -120,7 +120,7 @@ EIBnetDriver::setup()
 
 EIBnetServer::~EIBnetServer ()
 {
-  stop();
+  stop_();
   TRACEPRINTF (t, 8, "Close");
 }
 
@@ -156,7 +156,6 @@ void
 EIBnetServer::start()
 {
   struct sockaddr_in baddr;
-  LinkConnectClientPtr conn;
 
   TRACEPRINTF (t, 8, "Open");
 
@@ -192,29 +191,30 @@ EIBnetServer::start()
 
   if(route)
     {
-      conn = LinkConnectClientPtr(new LinkConnectClient(std::dynamic_pointer_cast<EIBnetServer>(shared_from_this()), tunnel_cfg, t));
-      mcast = new EIBnetDriver (conn, multicastaddr, single_port ? 0 : port, interface);
+      mcast_conn = LinkConnectClientPtr(new LinkConnectClient(std::dynamic_pointer_cast<EIBnetServer>(shared_from_this()), router_cfg, t));
+      mcast = EIBnetDriverPtr(new EIBnetDriver (mcast_conn, multicastaddr, single_port ? 0 : port, interface));
       if (!mcast)
         {
           ERRORPRINTF (t, E_ERROR | 42, "EIBnetDriver creation failed");
           goto err_out2;
         }
-      conn->link(mcast->shared_from_this());
-      if (!conn->setup ())
+      mcast_conn->set_driver(mcast);
+      if (!mcast_conn->setup ())
         goto err_out3;
-      static_cast<Router &>(router).registerLink(conn);
+      static_cast<Router &>(router).registerLink(mcast_conn);
     }
 
   TRACEPRINTF (t, 8, "Opened");
 
   Server::start();
+  if (route)
+    mcast_conn->start();
   return;
 
 err_out4:
   stop();
 err_out3:
-  delete mcast;
-  mcast = NULL;
+  mcast.reset();
 err_out2:
   delete sock;
   sock = NULL;
@@ -771,33 +771,35 @@ EIBnetServer::on_recv_cb (EIBNetIPPacket *p)
 void
 EIBnetServer::stop()
 {
+  stop_();
+  Server::stop();
+}
+
+void
+EIBnetServer::stop_()
+{
   drop_trigger.stop();
 
   R_ITER(i,connections)
     (*i)->stop();
 
-  if (mcast)
-  {
-    auto c = mcast->conn.lock();
-    if (c != nullptr)
-      {
-        c->stop();
-        static_cast<Router &>(router).unregisterLink(c);
-      }
-    delete mcast;
-    mcast = 0;
-  }
+  if (route && mcast_conn != nullptr)
+    {
+      mcast_conn->stop();
+      static_cast<Router &>(router).unregisterLink(mcast_conn);
+      mcast_conn.reset();
+      mcast.reset();
+    }
   if (sock)
-  {
-    delete sock;
-    sock = 0;
-  }
+    {
+      delete sock;
+      sock = 0;
+    }
   if (sock_mac >= 0)
-  {
-    close (sock_mac);
-    sock_mac = -1;
-  }
-  Server::stop();
+    {
+      close (sock_mac);
+      sock_mac = -1;
+    }
 }
 
 void
