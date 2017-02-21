@@ -19,6 +19,7 @@
 
 #include "link.h"
 #include "router.h"
+#include <stdio.h>
 
 LinkBase::~LinkBase() { }
 LinkRecv::~LinkRecv() { }
@@ -245,7 +246,11 @@ Server::setup()
 
 LinkConnectClient::LinkConnectClient(ServerPtr s, IniSection& c, TracePtr tr)
   : server(s), LinkConnect(s->router, c, tr)
-{}
+{
+  char n[10];
+  sprintf(n,"%d",t->seq);
+  linkname = t->name + '_' + n;
+}
 
 SubDriver::SubDriver(LinkConnectClientPtr c)
       : BusDriver(c->server, c->cfg)

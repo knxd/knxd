@@ -285,11 +285,15 @@ public:
 /** connection for a server client */
 class LinkConnectClient : public LinkConnect
 {
+  std::string linkname;
+
 public:
   ServerPtr server;
 
   LinkConnectClient(ServerPtr s, IniSection& c, TracePtr tr);
   ~LinkConnectClient();
+
+  virtual const std::string& name() { return linkname; }
 };
 
 /** connection for a server client with a single address */
