@@ -382,6 +382,7 @@ public:
   virtual void started();
   virtual void stopped();
 
+  /** Returns the filter's name, i.e. the config's filter= value */
   virtual const std::string& name();
 
   bool _link(LinkRecvPtr prev)
@@ -447,6 +448,8 @@ class Driver : public LinkBase
   friend class LinkConnect;
 public:
   typedef LinkConnectPtr first_arg;
+  /** Returns the driver's name, i.e. the config's driver= value */
+  virtual const std::string& name();
 
   Driver(const LinkConnectPtr& c, IniSection& s) : LinkBase(c->router, s, c->t)
     {
@@ -478,7 +481,14 @@ public:
     }
   virtual bool link(LinkBasePtr next) { return false; }
   virtual void _link_(LinkBasePtr next) { assert(false); }
+
+  /** Add a filter just below this driver.
+   * The caller is responsible for calling .setup()!
+   * Don't call after being started! */
   virtual bool push_filter(FilterPtr filter);
+
+  /** Find a filter below me.
+   * This checks the filter= value, not the section. */
   virtual FilterPtr findFilter(std::string name);
 };
 

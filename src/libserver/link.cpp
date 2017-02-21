@@ -103,8 +103,14 @@ LinkConnect::stop()
 
 const std::string&
 Filter::name()
-{ 
+{
   return cfg.value("filter",cfg.name);
+}
+
+const std::string&
+Driver::name()
+{
+  return cfg.value("driver",cfg.name);
 }
 
 FilterPtr
@@ -343,11 +349,13 @@ Driver::push_filter(FilterPtr filter)
       return false;
     }
 
+#if 0 // this is done by LinkConnect::setup() once the stack is complete
   if (!filter->setup())
     {
       filter->unlink();
       return false;
     }
+#endif
   return true;
 }
 
