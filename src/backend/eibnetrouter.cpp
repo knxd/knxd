@@ -103,7 +103,6 @@ EIBNetIPRouter::setup()
 void
 EIBNetIPRouter::send_L_Data (LDataPtr l)
 {
-  TRACEPRINTF (t, 2, "Send %s", l->Decode (t));
   EIBNetIPPacket p;
   p.data = L_Data_ToCEMI (0x29, l);
   p.service = ROUTING_INDICATION;
@@ -136,16 +135,14 @@ EIBNetIPRouter::on_recv_cb(EIBNetIPPacket *p)
   delete p;
   if (c)
     {
-      TRACEPRINTF (t, 2, "Recv %s", c->Decode (t));
       if (!monitor)
+        recv_L_Data (std::move(c));
+      else
         {
-          recv_L_Data (std::move(c));
-          return;
+          LBusmonPtr p1 = LBusmonPtr(new L_Busmonitor_PDU ());
+          p1->pdu = c->ToPacket ();
+          recv_L_Busmonitor (std::move(p1));
         }
-      LBusmonPtr p1 = LBusmonPtr(new L_Busmonitor_PDU ());
-      p1->pdu = c->ToPacket ();
-      recv_L_Busmonitor (std::move(p1));
-      return;
     }
 }
 

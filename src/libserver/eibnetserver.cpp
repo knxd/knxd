@@ -237,7 +237,6 @@ EIBnetDriver::send_L_Data (LDataPtr l)
   EIBnetServer &parent = *std::static_pointer_cast<EIBnetServer>(server);
   if (parent.route)
     {
-      TRACEPRINTF (t, 8, "Send_Route %s", l->Decode (t));
       EIBNetIPPacket p;
       p.service = ROUTING_INDICATION;
       p.data = L_Data_ToCEMI (0x29, l);
@@ -562,10 +561,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       if (!c)
         t->TracePacket (2, "unCEMIable ROUTING_INDICATION", p1->data);
       else if (route)
-	{
-	  TRACEPRINTF (t, 8, "Recv_Route %s", c->Decode (t));
-          mcast->recv_L_Data (std::move(c));
-	}
+        mcast->recv_L_Data (std::move(c));
       goto out;
     }
   if (p1->service == CONNECTIONSTATE_REQUEST)

@@ -139,8 +139,6 @@ ex:
 void
 EIBNetIPTunnel::send_L_Data (LDataPtr l)
 {
-  TRACEPRINTF (t, 2, "Send %s", l->Decode (t));
-
   send_q.put (L_Data_ToCEMI (0x11, l));
   trigger.send();
 }
@@ -294,15 +292,14 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
         c = CEMI_to_L_Data (treq.CEMI, t);
         if (c)
           {
-            TRACEPRINTF (t, 1, "Recv %s", c->Decode (t));
             if (!monitor)
+              recv_L_Data (std::move(c));
+            else
               {
-                recv_L_Data (std::move(c));
-                break;
+                LBusmonPtr p1 = LBusmonPtr(new L_Busmonitor_PDU ());
+                p1->pdu = c->ToPacket ();
+                recv_L_Busmonitor (std::move(p1));
               }
-            LBusmonPtr p1 = LBusmonPtr(new L_Busmonitor_PDU ());
-            p1->pdu = c->ToPacket ();
-            recv_L_Busmonitor (std::move(p1));
             break;
           }
         TRACEPRINTF (t, 1, "Unknown CEMI");
