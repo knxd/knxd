@@ -144,7 +144,7 @@ EIBnetServer::setup()
   route = router_cfg.name.size() > 0;
   tunnel = tunnel_cfg.name.size() > 0;
   discover = cfg.value("discover",false);
-  single_port = cfg.value("single-port",true);
+  single_port = !cfg.value("multi-port",false);
   multicastaddr = cfg.value("multicast-address","224.0.23.12");
   port = cfg.value("port",3671);
   interface = cfg.value("interface","");
