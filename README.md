@@ -9,13 +9,13 @@ https://www.auto.tuwien.ac.at/~mkoegler/index.php/bcusdk
 
 For a (german only) history and discussion why knxd emerged please also see: [eibd(war bcusdk) Fork -> knxd](http://knx-user-forum.de/forum/öffentlicher-bereich/knx-eib-forum/39972-eibd-war-bcusdk-fork-knxd)
 
-# This version does not yet work!
-
 # Unstable development version!
+
+## Most features do not yet work!
 
 This version is unstable. Development happens here.
 
-Please switch to the v0.12 branch for productive use.
+Please switch to the v0.12 branch for production use.
 
     git checkout v0.12
 
@@ -31,6 +31,8 @@ Please switch to the v0.12 branch for productive use.
   * Complete stack refactored
 
   * use libfmt for sane and type-safe formatting of error and trace messages
+
+  * new filter for logging packets to a driver
 
 ## Building
 
