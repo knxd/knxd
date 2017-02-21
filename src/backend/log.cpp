@@ -27,11 +27,48 @@ LogFilter::setup()
   if (!Filter::setup())
     return false;
   t->name = cfg.value("name",cfg.name);
+  log_state = cfg.value("state",true);
   log_send = cfg.value("send",true);
   log_recv = cfg.value("recv",true);
+  log_addr = cfg.value("addr",true);
   log_monitor = cfg.value("monitor",false);
+  if (log_state)
+    t->TracePrintf (0, "State setup");
   return true;
 }
+
+void
+LogFilter::start()
+{
+  if (log_state)
+    t->TracePrintf (0, "State start");
+  Filter::start();
+}
+
+void
+LogFilter::stop()
+{
+  if (log_state)
+    t->TracePrintf (0, "State stop");
+  Filter::stop();
+}
+
+void
+LogFilter::started()
+{
+  if (log_state)
+    t->TracePrintf (0, "State started");
+  Filter::started();
+}
+
+void
+LogFilter::stopped()
+{
+  if (log_state)
+    t->TracePrintf (0, "State stopped");
+  Filter::stopped();
+}
+
 
 void
 LogFilter::recv_L_Data (LDataPtr l)
@@ -55,5 +92,43 @@ LogFilter::recv_L_Busmonitor (LBusmonPtr l)
   if (log_monitor)
     t->TracePrintf (0, "Monitor %s", l->Decode (t));
   Filter::recv_L_Busmonitor(std::move(l));
+}
+
+bool
+LogFilter::hasAddress (eibaddr_t addr)
+{
+  bool res = Filter::hasAddress(addr);
+  if (log_addr)
+    t->TracePrintf (0, "Has Addr %s: %s",
+        FormatEIBAddr(addr), res ? "yes" : "no");
+  return res;
+}
+
+void
+LogFilter::addAddress (eibaddr_t addr)
+{
+  Filter::addAddress(addr);
+  if (log_addr)
+    t->TracePrintf (0, "Add Addr %s", FormatEIBAddr(addr));
+}
+
+bool
+LogFilter::checkAddress (eibaddr_t addr)
+{
+  bool res = Filter::checkAddress(addr);
+  if (log_addr)
+    t->TracePrintf (0, "Addr Check %s: %s",
+        FormatEIBAddr(addr), res ? "yes" : "no");
+  return res;
+}
+
+bool
+LogFilter::checkGroupAddress (eibaddr_t addr)
+{
+  bool res = Filter::checkGroupAddress(addr);
+  if (log_addr)
+    t->TracePrintf (0, "Addr Check %s: %s",
+        FormatGroupAddr(addr), res ? "yes" : "no");
+  return res;
 }
 

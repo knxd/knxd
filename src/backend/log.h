@@ -26,6 +26,8 @@ FILTER(LogFilter,log)
   bool log_send;
   bool log_recv;
   bool log_monitor;
+  bool log_state;
+  bool log_addr;
 
 public:
   LogFilter (LinkConnectPtr c, IniSection& s) : Filter(c,s) {}
@@ -35,6 +37,17 @@ public:
   virtual void recv_L_Data (LDataPtr l);
   virtual void send_L_Data (LDataPtr l);
   virtual void recv_L_Busmonitor (LBusmonPtr l);
+
+  virtual void start();
+  virtual void stop();
+  virtual void started();
+  virtual void stopped();
+
+  virtual bool hasAddress (eibaddr_t addr);
+  virtual void addAddress (eibaddr_t addr);
+  virtual bool checkAddress (eibaddr_t addr);
+  virtual bool checkGroupAddress (eibaddr_t addr);
+
 };
 
 

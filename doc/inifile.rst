@@ -675,6 +675,15 @@ This filter logs all packets passing through it to knxd's logging system.
 
     Log outgoing packets. Defaults to true.
 
+  * state
+
+    Log state transitions (link up/down). Defaults to true.
+
+  * addr
+
+    Log address checks, i.e. whether the driver knows and/or accepts 
+    a particular device or group address. Defaults to false.
+
   * monitor
 
     Log incoming bus monitor packets. Defaults to false.
