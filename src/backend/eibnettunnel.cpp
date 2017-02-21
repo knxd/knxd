@@ -192,8 +192,11 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
         if (!cresp.nat)
           {
             if (NAT)
-              daddr.sin_addr = caddr.sin_addr;
-                daddr.sin_port = htons (dataport);
+              {
+                daddr.sin_addr = caddr.sin_addr;
+                if (dataport != 0)
+                  daddr.sin_port = htons (dataport);
+              }
           }
         channel = cresp.channel;
         mod = 1; trigger.send();
