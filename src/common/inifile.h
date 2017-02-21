@@ -29,9 +29,13 @@
 #include <map>
 #include <string>
 
-typedef std::map<std::string,std::string> ValueMap;
+typedef std::pair<std::string,bool> ValueType;
+typedef std::map<std::string, ValueType> ValueMap;
 
 class IniData;
+class IniSection;
+typedef bool (*UnseenViewer)(void *user,
+    const IniSection& section, const std::string& name, const std::string& value);
 
 class IniSection {
     ValueMap values;
@@ -43,7 +47,7 @@ class IniSection {
     const std::string name; // aliased from the mapping's key
 
     const std::string& value(const std::string& name, const std::string& def);
-    const std::string value(const std::string& name, const char *def);
+    const std::string& value(const std::string& name, const char *def);
     std::string& operator[](const char *name);
     int value(const std::string& name, int def);
     bool value(const std::string& name, bool def);
@@ -57,6 +61,8 @@ class IniSection {
       * Otherwise return the current section. */
     IniSection& sub(const char *name, bool force = false);
     IniSection& sub(const std::string& name, bool force = false) { return this->sub(name.c_str(), force); }
+
+    bool list_unseen(UnseenViewer uv, void *user);
 };
 
 typedef std::map<std::string, IniSection> SectionMap;
@@ -79,6 +85,8 @@ public:
     int parse(std::istream& file);
 
     void write(std::ostream& file);
+
+    bool list_unseen(UnseenViewer uv, void *user);
 };
 
 #endif

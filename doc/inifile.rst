@@ -116,6 +116,14 @@ line.
 
     Optional; default false.
 
+  * unknown-ok (bool)
+
+    Mark that arguments ``knxd`` doesn't know whould emit a warning instead
+    of being fatal. This is useful if you want a config file that allows
+    for backwards compatibility.
+
+    Optional; default false, to catch typos and thinkos.
+
   * stop-after-setup (bool)
 
     Usually, knxd exits if there are any fatal configuration errors. 

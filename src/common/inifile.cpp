@@ -42,12 +42,13 @@ IniSection::value(const std::string& name, const std::string& def)
       v = values.find("use");
       if (v == values.end())
         return def;
-      return parent[v->second].value(name,def);
+      return parent[v->second.first].value(name,def);
     }
 
-  return v->second;
+  v->second.second = true;
+  return v->second.first;
 }
-const std::string
+const std::string&
 IniSection::value(const std::string& name, const char *def)
 {
   std::string s = def;
@@ -63,10 +64,10 @@ IniSection::operator[](const char *name)
     {
       auto v = values.find(name);
       assert (v != values.end());
-      return v->second;
+      return v->second.first;
     } else {
-      auto res = values.emplace(name, "");
-      return res.first->second;
+      auto res = values.emplace(name, ValueType("",false));
+      return res.first->second.first;
     }
 }
 
@@ -151,20 +152,15 @@ IniData::add(const char *section, const char *name, const char *value)
 IniSection&
 IniData::operator[](const char *name)
 {
-  // for now we always create a section.
-  if (false) // read_only
-    {
-      auto v = sections.find(name);
-      assert (v != sections.end());
-      return v->second;
-    }
-  else
+  auto v = sections.find(name);
+  if (v == sections.end())
     {
       auto res = sections.emplace(std::piecewise_construct,
                     std::forward_as_tuple(name),
                     std::forward_as_tuple(*this, name));
-      return res.first->second;
+      v = sections.find(name);
     }
+  return v->second;
 }
 
 IniSection&
@@ -182,7 +178,7 @@ IniSection::add(const char *name, const char *value)
   if (value == NULL)
     value = "TRUE"; // assume bool flag
 
-  auto res2 = values.emplace(name, value);
+  auto res2 = values.emplace(name, ValueType(value,false));
   if (! res2.second)
     {
       std::cerr << "Parse error: Duplicate value: " << name << std::endl;
@@ -232,7 +228,7 @@ void
 IniSection::write(std::ostream& file)
 {
   ITER(i,values)
-    file << i->first << " = " << i->second << std::endl;
+    file << i->first << " = " << i->second.first << std::endl;
 }
 
 void
@@ -245,4 +241,30 @@ IniData::write(std::ostream& file)
     }
 }
 
+bool
+IniSection::list_unseen(UnseenViewer uv, void *x)
+{
+  bool res = false;
+  ITER(i,values)
+    {
+      if (!i->second.second)
+        {
+          if (uv(x, *this, i->first, i->second.first))
+            res = true;
+        }
+    }
+  return res;
+}
+
+bool
+IniData::list_unseen(UnseenViewer uv, void *x)
+{
+  bool res = false;
+  ITER(i,sections)
+    {
+      if (i->second.list_unseen(uv, x))
+        res = true;
+    }
+  return res;
+}
 

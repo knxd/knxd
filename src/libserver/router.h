@@ -161,6 +161,11 @@ private:
   /** treat route count 7 as per EIB spec? */
   bool force_broadcast;
 
+public:
+  /** allow unparsed tags in the config file? */
+  bool unknown_ok; 
+
+private:
   ev::async cleanup;
   void cleanup_cb (ev::async &w, int revents);
   /** to-be-closed client connections*/

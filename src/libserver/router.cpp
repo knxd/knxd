@@ -32,6 +32,8 @@ static Factory<Server> _servers;
 static Factory<Driver> _drivers;
 static Factory<Filter> _filters;
 
+bool unseen_lister(void *user, const IniSection& section, const std::string& name, const std::string& value);
+
 /** parses an EIB individual address */
 bool
 Router::readaddr (const std::string& addr, eibaddr_t& parsed)
@@ -62,7 +64,7 @@ Router::readaddrblock (const std::string& addr, eibaddr_t& parsed, int &len)
 Router::Router (IniData& d, std::string sn) : BaseRouter(d),main(sn),
   servers(_servers.Instance()),filters(_filters.Instance()),drivers(_drivers.Instance())
 {
-  IniSection s = ini[main];
+  IniSection &s = ini[main];
   t = TracePtr(new Trace(s,servername));
 }
 
@@ -70,10 +72,11 @@ bool
 Router::setup()
 {
   std::string x;
-  IniSection s = ini[main];
+  IniSection &s = ini[main];
   servername = s.value("name","knxd");
 
   force_broadcast = s.value("force-broadcast", false);
+  unknown_ok = s.value("unknown-ok", false);
 
   x = s.value("addr","");
   if (!x.size())
@@ -148,14 +151,33 @@ Router::setup()
 
   if (links.size() == 0)
     {
-      ERRORPRINTF (t, E_WARNING | 55, "No connections in section '%s'.", main);
+      ERRORPRINTF (t, E_ERROR | 55, "No connections in section '%s'.", main);
       return false;
     }
+  if (links.size() == 1)
+    {
+      ERRORPRINTF (t, E_ERROR | 55, "Only one connection in section '%s'.", main);
+      return false;
+    }
+
+  if (ini.list_unseen(&unseen_lister, (void *)this))
+    return false;
+
   ITER(i,links)
     ERRORPRINTF (t, E_INFO | 55, "Connected: %s.", i->second->info(2));
 
   TRACEPRINTF (t, 3, "setup");
   return true;
+}
+
+bool
+unseen_lister(void *user, 
+    const IniSection& section, const std::string& name, const std::string& value)
+{
+  Router *r = (Router *)user;
+  ERRORPRINTF (r->t, r->unknown_ok ? E_WARNING : E_FATAL, "Section '%s': unrecognized argument '%s = %s'",
+      section.name, name, value);
+  return !r->unknown_ok;
 }
 
 bool

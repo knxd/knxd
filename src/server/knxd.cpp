@@ -123,7 +123,7 @@ void fork_args_helper(int key)
 
       char *s = (char *)malloc(strlen(argv[0])+7);
       sprintf(s,"%s_args",argv[0]);
-      execv(s, argv);
+      execvp(s, argv);
 
       execv(LIBEXECDIR "knxd_args", argv);
 
@@ -163,6 +163,16 @@ parse_opt (int key, char *arg, struct argp_state *state)
         usage();
       break;
 
+    case ARGP_KEY_SUCCESS:
+      return 0;
+    case ARGP_KEY_NO_ARGS:
+      usage();
+    case ARGP_KEY_ARGS:
+    case ARGP_KEY_FINI:
+    case ARGP_KEY_END:
+      if (cfgfile != NULL)
+        break;
+    case ARGP_KEY_ERROR:
     default:
       if (!do_list)
         fork_args_helper(key);
@@ -308,7 +318,7 @@ main (int ac, char *ag[])
   int errl = i.parse(cfgfile);
   if (errl)
     die("Parse error of '%s' in line %d", cfgfile, errl);
-  IniSection main = i[mainsection];
+  IniSection &main = i[mainsection];
 
   pidfile = main.value("pidfile","").c_str();
   if (num_fds)
