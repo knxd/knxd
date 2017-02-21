@@ -47,7 +47,7 @@ class IniSection {
     const std::string name; // aliased from the mapping's key
 
     const std::string& value(const std::string& name, const std::string& def);
-    const std::string& value(const std::string& name, const char *def);
+    const std::string value(const std::string& name, const char *def);
     std::string& operator[](const char *name);
     int value(const std::string& name, int def);
     bool value(const std::string& name, bool def);

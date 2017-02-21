@@ -48,7 +48,8 @@ IniSection::value(const std::string& name, const std::string& def)
   v->second.second = true;
   return v->second.first;
 }
-const std::string&
+
+const std::string
 IniSection::value(const std::string& name, const char *def)
 {
   std::string s = def;
