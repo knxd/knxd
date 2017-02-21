@@ -29,8 +29,7 @@ CreateGroupCache (Router& r, IniSection& s)
   if (r.getCache())
     return false;
   cache = GroupCachePtr(new GroupCache (c,s));
-  if(!c->link(cache))
-    return false;
+  c->set_driver(cache);
   if (!c->setup())
     return false;
 

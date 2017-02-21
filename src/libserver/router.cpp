@@ -21,6 +21,7 @@
 #include "server.h"
 #include "sys/socket.h"
 #include "systemdserver.h"
+#include "groupcacheclient.h"
 #include <typeinfo>
 #include <iostream>
 
@@ -98,6 +99,14 @@ Router::setup()
         *i = false;
     }
 
+    {
+      IniSection& gc = s.sub("cache",true);
+      if (gc.name.size() > 0)
+        {
+          if (!CreateGroupCache(*this, gc))
+            return false;
+        }
+    }
 #ifdef HAVE_SYSTEMD
   std::string sd_name = s.value("systemd","");
   if (sd_name.size() > 0)
