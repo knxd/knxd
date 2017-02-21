@@ -190,27 +190,23 @@ EIBnetServer::start()
   sock->recvall = 1;
   Port = sock->port ();
 
-  if(route)
+  mcast_conn = LinkConnectClientPtr(new LinkConnectClient(std::dynamic_pointer_cast<EIBnetServer>(shared_from_this()), router_cfg, t));
+  mcast = EIBnetDriverPtr(new EIBnetDriver (mcast_conn, multicastaddr, single_port ? 0 : port, interface));
+  if (!mcast)
     {
-      mcast_conn = LinkConnectClientPtr(new LinkConnectClient(std::dynamic_pointer_cast<EIBnetServer>(shared_from_this()), router_cfg, t));
-      mcast = EIBnetDriverPtr(new EIBnetDriver (mcast_conn, multicastaddr, single_port ? 0 : port, interface));
-      if (!mcast)
-        {
-          ERRORPRINTF (t, E_ERROR | 42, "EIBnetDriver creation failed");
-          goto err_out2;
-        }
-      mcast_conn->set_driver(mcast);
-      if (!mcast_conn->setup ())
-        goto err_out3;
-      if (!static_cast<Router &>(router).registerLink(mcast_conn))
-        goto err_out3;
+      ERRORPRINTF (t, E_ERROR | 42, "EIBnetDriver creation failed");
+      goto err_out2;
     }
+  mcast_conn->set_driver(mcast);
+  if (!mcast_conn->setup ())
+    goto err_out3;
+  if (route && !static_cast<Router &>(router).registerLink(mcast_conn))
+    goto err_out3;
 
   TRACEPRINTF (t, 8, "Opened");
 
   Server::start();
-  if (route)
-    mcast_conn->start();
+  mcast_conn->start();
   return;
 
 err_out4:
@@ -782,13 +778,14 @@ EIBnetServer::stop_()
   R_ITER(i,connections)
     (*i)->stop();
 
-  if (route)
+  if (mcast)
     {
       auto c = mcast->conn.lock();
       assert (c);
 
       c->stop();
-      static_cast<Router &>(router).unregisterLink(c);
+      if(route)
+        static_cast<Router &>(router).unregisterLink(c);
       mcast.reset();
     }
   if (sock)
