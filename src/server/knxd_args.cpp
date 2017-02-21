@@ -402,7 +402,8 @@ parse_opt (int key, char *arg, struct argp_state *state)
             tracename = "mcast:";
             tracename += name;
         }
-        ini["server"]["trace-name"] = tracename;
+        ini["debug-server"]["name"] = tracename;
+        ini["server"]["debug"] = "debug-server";
         arguments->stack("server");
         break;
       }

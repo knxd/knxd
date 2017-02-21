@@ -97,7 +97,7 @@ Trace::setup()
     trace_namelen = this->name.length();
   timestamps = cfg.value("timestamps",timestamps);
   layers = cfg.value("trace-mask",(int)layers);
-  name = cfg.value("trace-name",name);
+  name = cfg.value("name",name);
   int nlevel = error_level(cfg.value("error-level",""),level);
   if (nlevel == -1)
     {
