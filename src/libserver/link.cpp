@@ -253,13 +253,13 @@ LinkConnectClient::LinkConnectClient(ServerPtr s, IniSection& c, TracePtr tr)
 }
 
 SubDriver::SubDriver(const LinkConnectClientPtr& c)
-      : BusDriver(static_cast<const LinkConnectPtr&>(c->server), c->cfg)
+      : BusDriver(static_cast<const LinkConnectPtr&>(c), c->cfg)
 {
   server = c->server;
 }
 
 LineDriver::LineDriver(const LinkConnectClientPtr& c)
-      : Driver(c->server, c->cfg)
+      : Driver(c, c->cfg)
 {
   server = c->server;
 }
