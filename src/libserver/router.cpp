@@ -66,7 +66,8 @@ Router::Router (IniData& d, std::string sn) : BaseRouter(d),main(sn),
   servers(_servers.Instance()),filters(_filters.Instance()),drivers(_drivers.Instance())
 {
   IniSection &s = ini[main];
-  t = TracePtr(new Trace(s,servername));
+  t = TracePtr(new Trace(s, s.value("name","")));
+  servername = s.value("name","knxd");
 
   trigger.set<Router, &Router::trigger_cb>(this);
   mtrigger.set<Router, &Router::mtrigger_cb>(this);
@@ -81,7 +82,6 @@ Router::setup()
 {
   std::string x;
   IniSection &s = ini[main];
-  servername = s.value("name","knxd");
   TRACEPRINTF (t, 4, "R state: setting up");
 
   force_broadcast = s.value("force-broadcast", false);

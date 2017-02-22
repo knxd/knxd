@@ -74,7 +74,7 @@ public:
 
   IniSection &cfg;
 
-  Trace (IniSection& s, std::string& sn) : cfg(s.sub("debug")), servername(sn)
+  Trace (IniSection& s, const std::string& sn) : cfg(s.sub("debug")), servername(sn)
   {
     seq = ++trace_seq;
     gettimeofday(&started, NULL);
