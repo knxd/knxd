@@ -13,7 +13,7 @@ CLEANFILES = genh.inc gen.inc result.inc EIBD.pas
 pkgdata_DATA = EIBD.pas
 
 result.inc : $(top_srcdir)/src/common/eibloadresult.h
-	cat $<  |grep IMG_ |sed -e 's/#define \(IMG_[A-Z_0-9]\+\)  \+\([0-9]\+\)/Const \1 = \2;\n/g' > $@
+	sed -ne 's/#define \(IMG_[A-Z_0-9]\+\)  \+\([0-9]\+\)/Const \1 = \2;\n/p' $< > $@
 
 noinst_PROGRAMS = genh gen
 
