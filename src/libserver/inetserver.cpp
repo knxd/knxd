@@ -105,7 +105,8 @@ InetServer::stop()
 
 InetServer::~InetServer()
 {
-  stop();
+  if (fd >= 0)
+    close(fd);
 }
 
 void

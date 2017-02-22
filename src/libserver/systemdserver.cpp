@@ -56,7 +56,7 @@ SystemdServer::start()
 void
 SystemdServer::stop()
 {
-//** actually, we can't. So fake it.
+//** actually, we can't, because we can't re-open. So fake it.
 //  if (fd > -1)
 //    {
 //      close(fd);

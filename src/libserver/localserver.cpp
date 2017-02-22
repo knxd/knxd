@@ -114,9 +114,16 @@ LocalServer::stop()
       if (path.size())
         ::unlink (path.c_str());
     }
+  NetServer::stop();
 }
 
 LocalServer::~LocalServer ()
 {
+  if (fd >= 0)
+    {
+      close(fd);
+      if (path.size())
+        ::unlink (path.c_str());
+    }
 }
 
