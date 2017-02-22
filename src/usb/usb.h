@@ -21,8 +21,9 @@
 #define USB_H
 
 #include <ev++.h>
+#include <libusb.h>
+
 #include "trace.h"
-#include "libusb.h"
 
 class USBLoop
 {

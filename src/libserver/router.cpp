@@ -21,6 +21,7 @@
 #include "server.h"
 #include "sys/socket.h"
 #include "systemdserver.h"
+#include "lowlevel.h"
 #include "groupcacheclient.h"
 #include <typeinfo>
 #include <iostream>
@@ -32,6 +33,7 @@
 static Factory<Server> _servers;
 static Factory<Driver> _drivers;
 static Factory<Filter> _filters;
+static Factory<LowLevelDriver> _lowlevels;
 
 bool unseen_lister(void *user, const IniSection& section, const std::string& name, const std::string& value);
 
@@ -62,8 +64,11 @@ Router::readaddrblock (const std::string& addr, eibaddr_t& parsed, int &len)
   return true;
 }
 
-Router::Router (IniData& d, std::string sn) : BaseRouter(d),main(sn),
-  servers(_servers.Instance()),filters(_filters.Instance()),drivers(_drivers.Instance())
+Router::Router (IniData& d, std::string sn) : BaseRouter(d),main(sn)
+                , servers(_servers.Instance())
+                , filters(_filters.Instance())
+                , drivers(_drivers.Instance())
+                , lowlevels(_lowlevels.Instance())
 {
   IniSection &s = ini[main];
   t = TracePtr(new Trace(s, s.value("name","")));
@@ -209,7 +214,7 @@ Router::do_driver(LinkConnectPtr &link, IniSection& s, const std::string& driver
   DriverPtr driver = nullptr;
 
   link = LinkConnectPtr(new LinkConnect(*this, s, t));
-  driver = drivers.create(drivername, link, s);
+  driver = DriverPtr(drivers.create(drivername, link, s));
   if (driver == nullptr)
     {
       if(!quiet)
@@ -225,15 +230,21 @@ Router::do_driver(LinkConnectPtr &link, IniSection& s, const std::string& driver
 
 
 FilterPtr
-Router::get_filter(LinkConnectPtr link, IniSection& s, const std::string& filtername)
+Router::get_filter(const LinkConnectPtr& link, IniSection& s, const std::string& filtername)
 {
-  return filters.create(filtername, link, s);
+  return FilterPtr(filters.create(filtername, link, s));
+}
+
+LowLevelDriver *
+Router::get_lowlevel(const DriverPtr& parent, IniSection& s, const std::string& lowlevelname)
+{
+  return lowlevels.create(lowlevelname, parent, s);
 }
 
 bool
 Router::do_server(ServerPtr &link, IniSection& s, const std::string& servername, bool quiet)
 {
-  link = servers.create(servername, *this, s);
+  link = ServerPtr(servers.create(servername, *this, s));
   if (link == nullptr)
     {
       if(!quiet)
@@ -797,7 +808,7 @@ bool
 Router::checkStack(IniSection& cfg)
 {
   LinkConnectPtr conn = LinkConnectPtr(new LinkConnect(*this, cfg, t));
-  DriverPtr dummy = drivers.create("dummy",conn,cfg);
+  DriverPtr dummy = DriverPtr(drivers.create("dummy",conn,cfg));
   if (dummy == nullptr)
     return false;
   conn->set_driver(dummy);

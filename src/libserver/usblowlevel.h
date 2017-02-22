@@ -20,8 +20,8 @@
 #ifndef EIB_USB_H
 #define EIB_USB_H
 
+#include <libusb.h>
 #include "lowlevel.h"
-#include "libusb.h"
 #include "usb.h"
 
 typedef struct
@@ -46,10 +46,10 @@ typedef struct
 USBEndpoint parseUSBEndpoint (const char *addr);
 USBDevice detectUSBEndpoint (USBEndpoint e);
 
-class USBLowLevelDriver:public LowLevelDriver
+LOWLEVEL(USBLowLevelDriver, usb)
 {
 public:
-  USBLowLevelDriver (IniSection& s, TracePtr tr);
+  USBLowLevelDriver (const DriverPtr& p, IniSection& s);
   virtual ~USBLowLevelDriver ();
 private:
   libusb_device_handle *dev;

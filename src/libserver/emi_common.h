@@ -62,17 +62,14 @@ private:
   void on_recv_cb(CArray *p);
 
 public:
+  EMI_Common (const LinkConnectPtr& c, IniSection& s);
   EMI_Common (LowLevelDriver * i, const LinkConnectPtr& c, IniSection& s);
   virtual ~EMI_Common ();
   bool setup();
   void start();
   void stop();
-  DriverPtr real_l2 = nullptr;
 
   void send_L_Data (LDataPtr l);
-
-  virtual bool enterBusmonitor ();
-  bool leaveBusmonitor ();
 
   virtual CArray lData2EMI (uchar code, const LDataPtr &p)
   { return L_Data_ToEMI(code, p); }

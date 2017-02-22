@@ -23,8 +23,8 @@
 
 #include "ft12.h"
 
-FT12LowLevelDriver::FT12LowLevelDriver (IniSection& s, TracePtr tr)
-    : LowLevelDriver(s,tr)
+FT12LowLevelDriver::FT12LowLevelDriver (const DriverPtr& p, IniSection &s)
+    : LowLevelDriver(p,s)
 {
 }
 

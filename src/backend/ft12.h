@@ -25,9 +25,10 @@
 #include "iobuf.h"
 #include "lowlevel.h"
 #include "lowlatency.h"
+#include "link.h"
 
 /** FT1.2 lowlevel driver*/
-class FT12LowLevelDriver:public LowLevelDriver
+LOWLEVEL(FT12LowLevelDriver, ft12)
 {
   /** old serial config */
   low_latency_save sold;
@@ -67,7 +68,7 @@ class FT12LowLevelDriver:public LowLevelDriver
   void process_read(bool is_timeout);
 
 public:
-  FT12LowLevelDriver (IniSection& s, TracePtr tr);
+  FT12LowLevelDriver (const DriverPtr& parent, IniSection &s);
   virtual ~FT12LowLevelDriver ();
   bool setup (DriverPtr master);
   void start();

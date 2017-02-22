@@ -23,6 +23,7 @@
 #include <unordered_map>
 
 #include "link.h"
+#include "lowlevel.h"
 #include "lpdu.h"
 #include <ev++.h>
 
@@ -113,12 +114,16 @@ private:
   Factory<Server>& servers;
   Factory<Driver>& drivers;
   Factory<Filter>& filters;
+  Factory<LowLevelDriver>& lowlevels;
 
   bool do_server(ServerPtr &link, IniSection& s, const std::string& servername, bool quiet = false);
   bool do_driver(LinkConnectPtr &link, IniSection& s, const std::string& servername, bool quiet = false);
 public:
   /** Look up a filter by name */
-  FilterPtr get_filter(LinkConnectPtr link, IniSection& s, const std::string& filtername);
+  FilterPtr get_filter(const LinkConnectPtr &link, IniSection& s, const std::string& filtername);
+
+  /** Look up a filter by name */
+  LowLevelDriver * get_lowlevel(const DriverPtr& parent, IniSection& s, const std::string& lowlevelname);
 
   /** Create a temporary dummy driver stack to test arguments for filters etc.
    * Testing the calling driver's config args is the caller#s job.

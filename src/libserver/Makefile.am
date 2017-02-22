@@ -1,6 +1,6 @@
 noinst_LIBRARIES = libeibstack.a libserver.a
 
-AM_CPPFLAGS=-I$(top_srcdir)/src/include -I$(top_srcdir)/src/common
+AM_CPPFLAGS=-I$(top_srcdir)/src/include -I$(top_srcdir)/src/common -I$(top_srcdir)/src/usb $(LIBUSB_CFLAGS)
 
 if HAVE_SYSTEMD
 SYSTEMD_SERVER=systemdserver.cpp systemdserver.h
@@ -43,11 +43,11 @@ else
 EIBNETIP=
 endif
 if HAVE_USB
-USB=eibusb.cpp eibusb.h
+USB=eibusb.cpp eibusb.h usblowlevel.cpp usblowlevel.h
 else
 USB=
 endif
 
-libeibstack_a_SOURCES =$(COMMON) $(CORE) $(PDUs) $(MANAGEMENT) $(EMI) $(NETIP) $(FRONT_C) $(USB) $(CACHE) $(BUSMON)
+libeibstack_a_SOURCES =$(COMMON) $(CORE) $(PDUs) $(MANAGEMENT) $(NETIP) $(FRONT_C) $(CACHE) $(BUSMON)
 
-libserver_a_SOURCES = server.h server.cpp localserver.h localserver.cpp inetserver.h inetserver.cpp $(SYSTEMD_SERVER) $(EIBNETIP)
+libserver_a_SOURCES = server.h server.cpp localserver.h localserver.cpp inetserver.h inetserver.cpp $(SYSTEMD_SERVER) $(EIBNETIP) $(EMI) $(USB)

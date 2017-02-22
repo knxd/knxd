@@ -23,7 +23,8 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "usbif.h"
+
+#include "usblowlevel.h"
 #include "usb.h"
 
 USBEndpoint
@@ -148,7 +149,7 @@ detectUSBEndpoint (libusb_context *context, USBEndpoint e)
   return e2;
 }
 
-USBLowLevelDriver::USBLowLevelDriver (IniSection &s, TracePtr tr) : LowLevelDriver(s,tr)
+USBLowLevelDriver::USBLowLevelDriver (const DriverPtr& p, IniSection &s) : LowLevelDriver(p,s)
 {
 }
 

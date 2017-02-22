@@ -67,6 +67,28 @@ public:
     }
 };
 
+class LowLevelDriver;
+#ifdef NO_MAP
+#define LOWLEVEL(_cls,_name) \
+class _cls : public LowLevelDriver
+#define LOWLEVEL_(_cls,_base,_name) \
+class _cls : public _base
+
+#else
+#define LOWLEVEL(_cls,_name) \
+static constexpr const char _cls##_name[] = #_name; \
+class _cls; \
+static AutoRegister<_cls,LowLevelDriver,_cls##_name> _auto_L##_name; \
+class _cls : public LowLevelDriver
+
+#define LOWLEVEL_(_cls,_base,_name) \
+static constexpr const char _cls##_name[] = #_name; \
+class _cls; \
+static AutoRegister<_cls,LowLevelDriver,_cls##_name> _auto_L##_name; \
+class _cls : public _base
+
+#endif
+
 
 typedef enum
 { vERROR, vEMI1 = 1, vEMI2 = 2, vCEMI = 3, vRaw, vDiscovery, vTIMEOUT } EMIVer;
@@ -74,6 +96,8 @@ typedef enum
 /** implements interface for a Driver to send packets for the EMI1/2 driver */
 class LowLevelDriver
 {
+public:
+  typedef DriverPtr first_arg;
 private:
   void recv_discard(CArray *p);
 
@@ -84,9 +108,10 @@ protected:
   /** debug output */
   TracePtr t;
 public:
-  LowLevelDriver (IniSection &s, TracePtr t) : cfg(s)
+  LowLevelDriver (const DriverPtr& parent, IniSection &s) : cfg(s)
   {
-    t = TracePtr(new Trace(*t,s));
+    t = TracePtr(new Trace(*parent->t,s));
+    master = parent;
     reset();
   }
   void reset() {

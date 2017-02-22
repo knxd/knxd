@@ -21,6 +21,7 @@
 #include "emi1.h"
 #include "emi2.h"
 #include "cemi.h"
+#include "usblowlevel.h"
 
 class initUSB
 {
@@ -96,14 +97,13 @@ public:
         do {
             ev_run(EV_DEFAULT_ EVRUN_ONCE);
         } while (emiver == vDiscovery);
-        assert (emiver != vDiscovery);
         i->stop();
         return emiver;
     }
 };
 
 LowLevelDriver *
-initUSBDriver (LowLevelDriver * i, IniSection& s, TracePtr tr)
+initUSBDriver (LowLevelDriver * i, const DriverPtr& p, IniSection& s)
 {
   CArray r1, *r = 0;
   LowLevelDriver *iface;
@@ -132,16 +132,16 @@ initUSBDriver (LowLevelDriver * i, IniSection& s, TracePtr tr)
     case vCEMI:
       init[12] = emiver;
       i->Send_Packet (CArray (init, sizeof (init)));
-      iface = new USBConverterInterface (i, s, tr, emiver);
+      iface = new USBConverterInterface (i, p, s, emiver);
       break;
     case vTIMEOUT:
-      TRACEPRINTF (tr, 1, "Timeout reading EMI version");
+      TRACEPRINTF (p->t, 1, "Timeout reading EMI version");
       goto ex;
     case vERROR:
-      TRACEPRINTF (tr, 1, "Error reading EMI version");
+      TRACEPRINTF (p->t, 1, "Error reading EMI version");
       goto ex;
     default:
-      TRACEPRINTF (tr, 1, "Unsupported EMI %d", emiver);
+      TRACEPRINTF (p->t, 1, "Unsupported EMI %d", emiver);
     ex:
       delete i;
       return 0;
@@ -149,9 +149,9 @@ initUSBDriver (LowLevelDriver * i, IniSection& s, TracePtr tr)
   return iface;
 }
 
-USBConverterInterface::USBConverterInterface (LowLevelDriver * iface, IniSection& s,
-					      TracePtr tr, EMIVer ver)
-    : LowLevelDriver(s,tr)
+USBConverterInterface::USBConverterInterface (LowLevelDriver * iface,
+    const DriverPtr& p, IniSection& s, EMIVer ver)
+    : LowLevelDriver(p,s)
 {
   i = iface;
   v = ver;
@@ -177,6 +177,16 @@ USBConverterInterface::USBConverterInterface (LowLevelDriver * iface, IniSection
 USBConverterInterface::~USBConverterInterface ()
 {
   delete i;
+}
+
+void USBConverterInterface::start()
+{
+  i->start();
+}
+
+void USBConverterInterface::stop()
+{
+  i->stop();
 }
 
 void USBConverterInterface::started()
@@ -278,6 +288,7 @@ USBConverterInterface::on_recv_cb(CArray *res1)
   return;
 
 out:
+  t->TracePacket (8, "RecvEMI:deleted", *res1);
   delete res1;
   return;
 }
@@ -294,52 +305,52 @@ EMIVer USBConverterInterface::getEMIVer ()
 }
 
 
-USBDriver::USBDriver (LowLevelDriver * i,
-                      const LinkConnectPtr& c, IniSection& s) : BusDriver (c,s)
+USBDriver::USBDriver (const LinkConnectPtr& c, IniSection& s) : BusDriver (c,s)
 {
   emi = nullptr;
-  LowLevelDriver *iface = initUSBDriver (i, s, t);
-  if (!iface)
-    return;
-
-  switch (iface->getEMIVer ())
-    {
-    case vEMI1:
-      emi = std::shared_ptr<EMI1Driver> (new EMI1Driver (i,c,s));
-      break;
-    case vEMI2:
-      emi = std::shared_ptr<EMI2Driver>(new EMI2Driver (i,c,s));
-      break;
-    case vCEMI:
-      emi = std::shared_ptr<CEMIDriver>(new CEMIDriver (i,c,s));
-      break;
-    default:
-      TRACEPRINTF (t, 2, "Unsupported EMI");
-      delete iface;
-      return;
-    }
 }
 
 bool USBDriver::setup ()
 {
+  auto cn = conn.lock();
+  if (cn == nullptr)
+    return false;
+
+  DriverPtr th = std::dynamic_pointer_cast<Driver>(shared_from_this());
+  LowLevelDriver *i = new USBLowLevelDriver(th,cfg);
+  LowLevelDriver *iface = initUSBDriver (i, th, cfg);
+  if (!iface)
+    return false;
+
+  switch (iface->getEMIVer ())
+    {
+    case vEMI1:
+      emi = std::shared_ptr<EMI1Driver> (new EMI1Driver (i,cn,cfg));
+      break;
+    case vEMI2:
+      emi = std::shared_ptr<EMI2Driver>(new EMI2Driver (i,cn,cfg));
+      break;
+    case vCEMI:
+      emi = std::shared_ptr<CEMIDriver>(new CEMIDriver (i,cn,cfg));
+      break;
+    default:
+      TRACEPRINTF (t, 2, "Unsupported EMI");
+      goto ex;
+    }
+
   if (!BusDriver::setup())
-    return false;
+    {
+      return false;
+    }
   if (emi == 0)
-    return false;
+    goto ex;
   if (! emi->setup())
-    return false;
-  emi->real_l2 = std::static_pointer_cast<USBDriver>(shared_from_this());
+    goto ex;
   return true;
-}
-
-bool USBDriver::enterBusmonitor ()
-{
-  return emi->enterBusmonitor ();
-}
-
-bool USBDriver::leaveBusmonitor ()
-{
-  return emi->leaveBusmonitor ();
+ex:
+  delete iface;
+  iface = nullptr;
+  return false;
 }
 
 void USBDriver::start ()

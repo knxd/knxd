@@ -25,9 +25,11 @@ unsigned int maxPacketLen() { return 0x10; }
 EMI_Common::EMI_Common (LowLevelDriver * i, 
                         const LinkConnectPtr& c, IniSection& s) : BusDriver(c,s)
 {
-  TRACEPRINTF (t, 2, "Open");
   iface = i;
-  TRACEPRINTF (t, 2, "Opened");
+}
+
+EMI_Common::EMI_Common (const LinkConnectPtr& c, IniSection& s) : BusDriver(c,s)
+{
 }
 
 bool
@@ -35,6 +37,33 @@ EMI_Common::setup()
 {
   if(!BusDriver::setup())
     return false;
+  if (!iface)
+    {
+      auto cn = conn.lock();
+      if (cn == nullptr)
+        return false;
+
+      std::string ll;
+      const std::string& n = name();
+      if (n == "ft12")
+        ll = "ft12";
+      else if (n == "ft12cemi")
+        ll = "ft12";
+      else
+        ll = "";
+      ll = cfg.value("subdriver",ll);
+      if (ll.size() == 0)
+        {
+          ERRORPRINTF(t, E_ERROR, "EMI_common: %s: no default subdriver= value known", n);
+          return false;
+        }
+      iface = static_cast<Router&>(cn->router).get_lowlevel(std::dynamic_pointer_cast<Driver>(shared_from_this()), cfg, ll);
+      if (iface == nullptr)
+        {
+          ERRORPRINTF(t, E_ERROR, "EMI_common: %s: no subdriver '%s' known", n, ll);
+          return false;
+        }
+    }
   if (!iface->setup (std::dynamic_pointer_cast<Driver>(shared_from_this())))
     return false;
   iface->on_recv.set<EMI_Common,&EMI_Common::on_recv_cb>(this);

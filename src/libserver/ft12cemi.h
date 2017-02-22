@@ -26,11 +26,12 @@
 #include "cemi.h"
 
 /** CEMI backend */
-class FT12CEMIDriver : public CEMIDriver
+DRIVER_(FT12CEMIDriver,CEMIDriver,ft12cemi)
 {
   void cmdOpen(); 
 public:
   FT12CEMIDriver (LowLevelDriver * i, const LinkConnectPtr& c, IniSection& s) : CEMIDriver(i,c,s) {}
+  FT12CEMIDriver (const LinkConnectPtr& c, IniSection& s) : CEMIDriver(c,s) {}
   virtual ~FT12CEMIDriver ();
 };
 

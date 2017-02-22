@@ -121,9 +121,9 @@ public:
 template<class T, class I>
 struct Maker {
   typedef typename I::first_arg I_first;
-  static std::shared_ptr<I> create(const I_first &c, IniSection& s)
+  static I* create(const I_first &c, IniSection& s)
     {
-      return std::shared_ptr<T>(new T(c,s));
+      return new T(c,s);
     }
 };
 
@@ -131,7 +131,7 @@ template<class I>
 class Factory {
 public:
   typedef typename I::first_arg I_first;
-  typedef std::shared_ptr<I> (*Creator)(const I_first &c, IniSection& s);
+  typedef I* (*Creator)(const I_first &c, IniSection& s);
   typedef std::unordered_map<std::string, Creator> M;
   static M& map() { static M m; return m;}
 
@@ -147,8 +147,8 @@ public:
     map()[id] = &m.create;
   }
 
-  std::shared_ptr<I>
-  create(const std::string& id, I_first& c, IniSection& s) {
+  I *
+  create(const std::string& id, const I_first& c, IniSection& s) {
     typename M::iterator i = map().find(id);
     if (i == map().end())
       return nullptr;

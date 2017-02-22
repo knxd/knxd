@@ -30,8 +30,8 @@ class USBConverterInterface:public LowLevelDriver
   LowLevelDriver *i;
   EMIVer v;
 public:
-  USBConverterInterface (LowLevelDriver * iface, IniSection& s,
-                         TracePtr tr, EMIVer ver);
+  USBConverterInterface (LowLevelDriver * iface, const DriverPtr& p,
+      IniSection& s, EMIVer ver);
   virtual ~USBConverterInterface ();
 
   bool setup (DriverPtr master);
@@ -51,25 +51,21 @@ private:
 
 };
 
-LowLevelDriver *initUSBDriver (LowLevelDriver * i,
-					TracePtr tr);
+LowLevelDriver *initUSBDriver (LowLevelDriver * i, const DriverPtr& p, IniSection& s);
 
 /** USB backend */
-class USBDriver:public BusDriver
+DRIVER(USBDriver,usb)
 {
   /** EMI */
   EMIPtr emi;
 
 public:
-  USBDriver (LowLevelDriver * i, const LinkConnectPtr& c, IniSection& s);
+  USBDriver (const LinkConnectPtr& c, IniSection& s);
   bool setup();
   void start();
   void stop();
 
   void send_L_Data (LDataPtr l);
-
-  bool enterBusmonitor ();
-  bool leaveBusmonitor ();
 
   bool Open ();
   bool Close ();
