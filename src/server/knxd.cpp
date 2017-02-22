@@ -166,8 +166,12 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
     case ARGP_KEY_SUCCESS:
       return 0;
+
     case ARGP_KEY_NO_ARGS:
-      usage();
+      if (!do_list)
+        usage();
+      return 0;
+
     case ARGP_KEY_ARGS:
     case ARGP_KEY_FINI:
     case ARGP_KEY_END:
