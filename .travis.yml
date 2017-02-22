@@ -1,5 +1,6 @@
 language: cpp
 compiler: gcc
+dist: trusty
 script:
   - sh -x bootstrap.sh
   - env CFLAGS="-Wall -Wextra" CPPFLAGS="-Wall -Wextra" ./configure --disable-systemd
