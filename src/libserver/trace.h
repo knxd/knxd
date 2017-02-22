@@ -25,6 +25,7 @@
 #include <memory>
 #include <iostream>
 #include <fmt/format.h>
+#include <fmt/printf.h>
 #include "common.h"
 #include "inifile.h"
 

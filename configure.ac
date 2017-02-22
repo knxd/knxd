@@ -275,7 +275,12 @@ LIBS="-lfmt $LIBS"
 AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <fmt/format.h>], [fmt::format("The answer is {}", 42);
 ])],
     [HAVE_FMT=1],                                           
-    [AC_MSG_ERROR([libfmt (string formatting library) is not installed.])]
+    [
+sh tools/get_libfmt || exit 1
+CFLAGS="$CFLAGS -I$(pwd)/libfmt"
+CXXFLAGS="$CXXFLAGS -I$(pwd)/libfmt"
+LDFLAGS="$LDFLAGS -L$(pwd)/libfmt/fmt"
+    ]
     )
 AC_DEFINE(HAVE_FMT, 1, [ String formatting library installed. ])
 
