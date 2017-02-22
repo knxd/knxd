@@ -11,13 +11,19 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 
 # Unstable development version!
 
-## Most features do not yet work!
-
 This version is unstable. Development happens here.
 
 Please switch to the v0.12 branch for production use.
 
     git checkout v0.12
+
+## Known bugs
+
+* tpuart compiles but is untested
+
+* Other serial interfaces do not work yet
+
+* ETS programming has not been tested
 
 ## New Features since 0.12
 
