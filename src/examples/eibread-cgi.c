@@ -310,8 +310,10 @@ main ()
         {
           if (buf_gread[1] & 0xC0)
           {
-            if (outptr != outbuf)
+            if (seen)
               *outptr++ = ',';
+            else
+              seen = 1;
 
             if (len_gread == 2)
             {
