@@ -73,7 +73,7 @@ EIBnetDriver::EIBnetDriver (LinkConnectClientPtr c,
       baddr.sin_port = htons (port);
 
       sock = new EIBNetIPSocket (baddr, 1, t);
-      if (sock->SetInterface(intf))
+      if (!sock->SetInterface(intf))
         goto err_out;
       if (!sock->init ())
         goto err_out;
