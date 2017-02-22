@@ -112,7 +112,8 @@
 
 #define EIBC_RETURN_PTR7(offset) \
 	if (ptr7 != null) \
-	  ptr7.addr = (uint)SHORT2LONG (data[offset], data[offset+1], data[offset+2], data[offset+3]);
+	  ptr7.data = (uint)SHORT2LONG (data[offset], data[offset+1], data[offset+2], data[offset+3]);
+
 
 #define EIBC_COMPLETE(name, body) \
         private int name ## _complete () { \
@@ -190,8 +191,8 @@
 
 #define EIBC_SETUINT32(name, offset) \
 	ibuf[offset] = (byte)((name>>24)&0xff); \
-	ibuf[offset+1] = (byte)((name>>16)&0xff);
-	ibuf[offset+2] = (byte)((name>>8)&0xff);
+	ibuf[offset+1] = (byte)((name>>16)&0xff); \
+	ibuf[offset+2] = (byte)((name>>8)&0xff); \
 	ibuf[offset+3] = (byte)((name)&0xff);
 
 #define EIBC_SETLEN(name, offset) \

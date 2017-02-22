@@ -3,7 +3,7 @@ pkgdata_DATA = eibclient.php
 AM_CPPFLAGS=-I$(top_srcdir)/src/include -I$(top_srcdir)/src/client -I$(top_builddir)/src/client
 
 result.inc : $(top_srcdir)/src/common/eibloadresult.h
-	cat $<  |grep IMG_ |sed -e 's/#define \(IMG_[A-Z_0-9]\+\)  \+\([0-9]\+\)/ const \1 = \2;/g' > $@
+	sed -ne 's/#define \(IMG_[A-Z_0-9]\+\)  \+\([0-9]\+\)/ const \1 = \2;/p' $< > $@
 
 CLEANFILES = result.inc EIBConnection.post EIBConnection.php eibclient.php
 EXTRA_DIST = lic.inc end.inc arg.def  class.def  def.def complete.inc errno.inc  help.inc  io.inc EIBConnection.pre

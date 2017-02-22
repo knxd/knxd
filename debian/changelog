@@ -5,6 +5,30 @@ knxd (0.13.0-1) UNRELEASED; urgency=medium
 
  -- Matthias Urlichs <matthias@urlichs.de>  Wed, 01 Feb 2017 01:50:56 +0100
 
+knxd (0.12.14-1) unstable; urgency=medium
+
+  * eibread CGI generated syntactically wrong JSON
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 22 Feb 2017 23:42:27 +0100
+
+knxd (0.12.13-2) unstable; urgency=medium
+
+  * fix C# code generator
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 20 Feb 2017 03:33:26 +0100
+
+knxd (0.12.13-1) unstable; urgency=medium
+
+  * Fix de-allocation of tunnel client address
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 19 Feb 2017 09:02:08 +0100
+
+knxd (0.12.12-1) unstable; urgency=medium
+
+  * eibread-cgi: reinstate initial read (but not for all addresses)
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 10 Feb 2017 21:22:47 +0100
+
 knxd (0.12.11-1) unstable; urgency=medium
 
   * eibread-cgi: old last-update reader: wraparound handled wrongly
