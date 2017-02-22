@@ -276,12 +276,12 @@ Router::start()
 
   TRACEPRINTF (t, 4, "R state: trigger going up");
   some_running = true;
-  links_changed = false;
   bool seen = true;
 
   while (seen)
     {
       seen = false;
+      links_changed = false;
       ITER(i,links)
         {
           if (i->second->running || i->second->switching)
@@ -359,11 +359,22 @@ Router::stop()
 
   TRACEPRINTF (t, 4, "R state: trigger Going down");
   all_running = false;
+  bool seen = true;
 
-  ITER(i,links)
+  while(seen)
     {
-      TRACEPRINTF (i->second->t, 3, "Stop: %s", i->second->info(0));
-      i->second->stop();
+      links_changed = false;
+      seen = false;
+      ITER(i,links)
+        {
+          if (i->second->running == i->second->switching)
+            continue;
+          TRACEPRINTF (i->second->t, 3, "Stop: %s", i->second->info(0));
+          seen = true;
+          i->second->stop();
+          if (links_changed)
+            break;
+        }
     }
   TRACEPRINTF (t, 4, "R state: Going down triggered");
 }
