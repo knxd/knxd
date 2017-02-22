@@ -345,7 +345,11 @@ class EIBNetIPSocket
 public:
   p_recv_cb on_recv;
 private:
-  void on_recv_cb(EIBNetIPPacket *p) { delete p; }
+  void on_recv_cb(EIBNetIPPacket *p)
+    {
+      t->TracePacket (0, "Drop", p->data);
+      delete p;
+    }
 
   /** input queue */
   Queue < struct _EIBNetIP_Send > send_q;

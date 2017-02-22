@@ -332,6 +332,8 @@ EIBNetIPSocket::io_recv_cb (ev::io &w, int revents)
             EIBNetIPPacket::fromPacket (CArray (buf, i), r);
           if (p)
             on_recv(p);
+          else
+            t->TracePacket (0, "Parse?", i, buf);
         }
       else
         t->TracePacket (0, "Dropped", i, buf);
