@@ -211,7 +211,6 @@ EIBnetServer::start()
   TRACEPRINTF (t, 8, "Opened");
 
   Server::start();
-  mcast_conn->start();
   return;
 
 err_out4:
