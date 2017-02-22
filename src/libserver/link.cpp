@@ -81,21 +81,21 @@ LinkConnectSingle::setup()
 void
 LinkConnect::start()
 {
-  LinkRecv::start();
-  if (running || switching)
+  if (running != switching)
     return;
+  TRACEPRINTF(t, 5, "Starting");
   running = false;
   switching = true;
+  LinkRecv::start();
   send->start();
 }
 
 void
 LinkConnect::stop()
 {
-  if (running && switching)
+  if (running == switching)
     return;
-  if (!running && !switching)
-    return;
+  TRACEPRINTF(t, 5, "Stopping");
   switching = true;
   send->stop();
   LinkRecv::stop();
@@ -221,6 +221,7 @@ LinkConnect::started()
 {
   running = true;
   switching = false;
+  TRACEPRINTF(t, 5, "Started");
   static_cast<Router&>(router).link_started(std::dynamic_pointer_cast<LinkConnect>(shared_from_this()));
 }
 
@@ -229,6 +230,7 @@ LinkConnect::stopped()
 {
   running = false;
   switching = false;
+  TRACEPRINTF(t, 5, "Stopped");
   static_cast<Router&>(router).link_stopped(std::dynamic_pointer_cast<LinkConnect>(shared_from_this()));
 }
 

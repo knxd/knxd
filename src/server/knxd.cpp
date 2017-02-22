@@ -40,6 +40,7 @@
 bool stop_now = false;
 bool do_list = false;
 bool background = false;
+bool stopping = false;
 const char *pidfile = NULL;
 const char *logfile = NULL;
 const char *cfgfile = NULL;
@@ -192,6 +193,7 @@ static void
 signal_cb (EV_P_ ev_signal *w, int revents)
 {
   ev_break (EV_A_ EVBREAK_ALL);
+  stopping = true;
 }
 
 #ifdef EV_TRACE
@@ -335,35 +337,6 @@ main (int ac, char *ag[])
   if (!stop_now)
     stop_now = main.value("stop-after-setup",false);
 
-  Router *r = new Router(i,mainsection);
-  if (!r->setup())
-    {
-      ERRORPRINTF(r->t, E_FATAL,"Error setting up the KNX router.");
-      exit(1);
-    }
-  if (!strcmp(cfgfile, "-"))
-    ERRORPRINTF(r->t, E_WARNING,"Consider using a config file.");
-
-  if (background) {
-    hup.t = TracePtr(new Trace(*r->t,"reload"));
-    hup.logfile = logfile;
-    ev_signal_init (&hup.sighup, sighup_cb, SIGINT);
-    ev_signal_start (EV_A_ &hup.sighup);
-  }
-
-  r->start();
-
-  ev_signal_init (&sigint, signal_cb, SIGINT);
-  ev_signal_start (EV_A_ &sigint);
-  ev_signal_init (&sigterm, signal_cb, SIGTERM);
-  ev_signal_start (EV_A_ &sigterm);
-
-  // if you ever want this to be fatal, doing it here would be too late
-  if (getuid () == 0)
-    ERRORPRINTF (r->t, E_WARNING | 20, "knxd should not run as root");
-
-  signal (SIGPIPE, SIG_IGN);
-
   if (logfile && *logfile)
     {
       int fd = open (logfile, O_WRONLY | O_APPEND | O_CREAT, 0660);
@@ -381,6 +354,37 @@ main (int ac, char *ag[])
       dup2 (fd, 2);
       close (fd);
       setsid ();
+    }
+
+  Router *r = new Router(i,mainsection);
+  if (!r->setup())
+    {
+      ERRORPRINTF(r->t, E_FATAL,"Error setting up the KNX router.");
+      exit(1);
+    }
+  if (!strcmp(cfgfile, "-"))
+    ERRORPRINTF(r->t, E_WARNING,"Consider using a config file.");
+
+  if (background) {
+    hup.t = TracePtr(new Trace(*r->t,"reload"));
+    hup.logfile = logfile;
+    ev_signal_init (&hup.sighup, sighup_cb, SIGINT);
+    ev_signal_start (EV_A_ &hup.sighup);
+  }
+
+  signal (SIGPIPE, SIG_IGN);
+
+  if (getuid () == 0)
+    ERRORPRINTF (r->t, E_WARNING | 20, "knxd should not run as root");
+
+  if (!stop_now)
+    {
+      r->start();
+
+      ev_signal_init (&sigint, signal_cb, SIGINT);
+      ev_signal_start (EV_A_ &sigint);
+      ev_signal_init (&sigterm, signal_cb, SIGTERM);
+      ev_signal_start (EV_A_ &sigterm);
     }
 
   FILE *pidf;
@@ -404,9 +408,11 @@ main (int ac, char *ag[])
 #endif
   ERRORPRINTF(r->t, E_NOTICE,"Shutting down.");
 
-  ev_break(EV_A_ EVBREAK_ALL);
-
+  stopping = false; // re-set by a second signal
   r->stop();
+  while (r->isRunning() && !stopping)
+    ev_run (EV_A_ stop_now ? EVRUN_NOWAIT : EVRUN_ONCE);
+
   delete r;
 
   if (pidfile && *pidfile)

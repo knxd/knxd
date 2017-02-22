@@ -30,6 +30,9 @@ Please switch to the v0.12 branch for production use.
 
   * Complete stack refactored
 
+  * Startup sequencing fixed: packets will not be routed (and systemd not
+    signalled) until all interfaces are ready.
+
   * use libfmt for sane and type-safe formatting of error and trace messages
 
   * new filter for logging packets to a driver

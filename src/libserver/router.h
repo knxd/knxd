@@ -159,19 +159,29 @@ private:
   /** vbusmonitor callbacks */
   Array < Busmonitor_Info > vbusmonitor;
 
-  /** flag whether we've been started */
-  bool running = false;
-  /** flag whether we're transitioning states */
-  bool switching = false;
+  /** flag whether some driver is active */
+  bool some_running = false;
+  /** flag whether new drivers should be active */
+  bool want_up = false;
+  /** flag whether all drivers are active */
+  bool all_running = false;
+  /** flag to signal systemd */
+  bool running_signal = false;
 
   /** treat route count 7 as per EIB spec? */
   bool force_broadcast = false;
+
+  /** iterators are evil */
+  bool links_changed = false;
 
 public:
   /** allow unparsed tags in the config file? */
   bool unknown_ok = false;
   /** flag whether systemd has passed us any file descriptors */
   bool using_systemd = false;
+
+  bool isIdle() { return !some_running; }
+  bool isRunning() { return all_running; }
 
 private:
   ev::async cleanup;

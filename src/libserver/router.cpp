@@ -67,6 +67,13 @@ Router::Router (IniData& d, std::string sn) : BaseRouter(d),main(sn),
 {
   IniSection &s = ini[main];
   t = TracePtr(new Trace(s,servername));
+
+  trigger.set<Router, &Router::trigger_cb>(this);
+  mtrigger.set<Router, &Router::mtrigger_cb>(this);
+  trigger.start();
+  mtrigger.start();
+
+  TRACEPRINTF (t, 4, "R state: initialized");
 }
 
 bool
@@ -75,6 +82,7 @@ Router::setup()
   std::string x;
   IniSection &s = ini[main];
   servername = s.value("name","knxd");
+  TRACEPRINTF (t, 4, "R state: setting up");
 
   force_broadcast = s.value("force-broadcast", false);
   unknown_ok = s.value("unknown-ok", false);
@@ -83,16 +91,16 @@ Router::setup()
   if (!x.size())
     {
       ERRORPRINTF (t, E_ERROR | 55, "There is no KNX addr= in section '%s'.", main);
-      return false;
+      goto ex;
     }
   if (!readaddr(x,addr))
-    return false;
+    goto ex;
 
   x = s.value("client-addrs","");
   if (x.size())
     {
       if (!readaddrblock(x,client_addrs_start,client_addrs_len))
-        return false;
+        goto ex;
       client_addrs_pos = client_addrs_len-1;
       client_addrs.resize(client_addrs_len);
       ITER(i,client_addrs)
@@ -104,37 +112,39 @@ Router::setup()
       if (gc.name.size() > 0)
         {
           if (!CreateGroupCache(*this, gc))
-            return false;
+            goto ex;
         }
     }
 #ifdef HAVE_SYSTEMD
-  std::string sd_name = s.value("systemd","");
-  if (sd_name.size() > 0)
-    {
-      IniSection& sd = ini[sd_name];
-      int num_fds = sd_listen_fds(0);
-      if( num_fds < 0 )
-        {
-          ERRORPRINTF (t, E_ERROR | 55, "Error getting fds from systemd.");
-          return false;
-        }
+  {
+    std::string sd_name = s.value("systemd","");
+    if (sd_name.size() > 0)
+      {
+        IniSection& sd = ini[sd_name];
+        int num_fds = sd_listen_fds(0);
+        if( num_fds < 0 )
+          {
+            ERRORPRINTF (t, E_ERROR | 55, "Error getting fds from systemd.");
+            goto ex;
+          }
 
-      // zero FDs from systemd is not a bug
-      for( int fd = SD_LISTEN_FDS_START; fd < SD_LISTEN_FDS_START+num_fds; ++fd )
-        {
-          if( sd_is_socket(fd, AF_UNSPEC, SOCK_STREAM, 1) <= 0 )
-            {
-              ERRORPRINTF (t, E_ERROR | 55, "systemd socket %d is not a socket.", fd);
-              return false;
-            }
+        // zero FDs from systemd is not a bug
+        for( int fd = SD_LISTEN_FDS_START; fd < SD_LISTEN_FDS_START+num_fds; ++fd )
+          {
+            if( sd_is_socket(fd, AF_UNSPEC, SOCK_STREAM, 1) <= 0 )
+              {
+                ERRORPRINTF (t, E_ERROR | 55, "systemd socket %d is not a socket.", fd);
+                goto ex;
+              }
 
-          ServerPtr sdp = ServerPtr(new SystemdServer(*this, sd, fd));
-          if (!sdp->setup())
-            return false;
-          registerLink(sdp);
-          using_systemd = true;
-        }
-    }
+            ServerPtr sdp = ServerPtr(new SystemdServer(*this, sd, fd));
+            if (!sdp->setup())
+              goto ex;
+            registerLink(sdp);
+            using_systemd = true;
+          }
+      }
+  }
 
 #endif
 
@@ -150,7 +160,7 @@ Router::setup()
           {
             LinkConnectPtr link = setup_link(name);
             if (link == nullptr)
-              return false;
+              goto ex;
             registerLink(link);
           }
         if (comma == std::string::npos)
@@ -162,22 +172,25 @@ Router::setup()
   if (links.size() == 0)
     {
       ERRORPRINTF (t, E_ERROR | 55, "No connections in section '%s'.", main);
-      return false;
+      goto ex;
     }
   if (links.size() == 1)
     {
       ERRORPRINTF (t, E_ERROR | 55, "Only one connection in section '%s'.", main);
-      return false;
+      goto ex;
     }
 
   if (ini.list_unseen(&unseen_lister, (void *)this))
-    return false;
+    goto ex;
 
   ITER(i,links)
     ERRORPRINTF (t, E_INFO | 55, "Connected: %s.", i->second->info(2));
 
-  TRACEPRINTF (t, 3, "setup");
+  TRACEPRINTF (t, 4, "R state: setup OK");
   return true;
+ex:
+  TRACEPRINTF (t, 4, "R state: setup BROKEN");
+  return false;
 }
 
 bool
@@ -257,92 +270,107 @@ Router::setup_link(std::string& name)
 void
 Router::start()
 {
-  if (running && !switching) // already up
+  if (want_up)
     return;
-  if (!running && switching) // already going up
-    return;
+  want_up = true;
 
-  if (!running && !switching)
+  TRACEPRINTF (t, 4, "R state: trigger going up");
+  some_running = true;
+  links_changed = false;
+  bool seen = true;
+
+  while (seen)
     {
-      trigger.set<Router, &Router::trigger_cb>(this);
-      trigger.start();
-      mtrigger.set<Router, &Router::mtrigger_cb>(this);
-      mtrigger.start();
+      seen = false;
+      ITER(i,links)
+        {
+          if (i->second->running || i->second->switching)
+            continue;
+          seen = true;
+          TRACEPRINTF (i->second->t, 3, "Start: %s", i->second->info(0));
+          i->second->start();
+          if (links_changed)
+            break;
+        }
     }
-
-  switching = true;
-
-  ITER(i,links)
-    i->second->start();
+  TRACEPRINTF (t, 4, "R state: going up triggered");
 }
 
 void
 Router::link_started(const LinkConnectPtr& link)
 {
-  bool osw = switching;
-  bool orn = running;
+  bool orn = all_running;
+  some_running = true;
+  all_running = true;
 
-  switching = false;
-  running = true;
+  TRACEPRINTF (link->t, 4, "R state: started");
 
   ITER(i,links)
-    {
-      if (i->second->switching)
-        switching = true;
-      if (!i->second->running)
-        running = false;
-    }
+    if (!i->second->running || i->second->switching)
+      {
+        //TRACEPRINTF (i->second->t, 4, "R state: still %s%s",
+        //    i->second->switching?">":"",
+        //    i->second->running?"up":"down");
+        all_running = false;
+      }
 
-  if (osw != switching || orn != running)
-    {
-      TRACEPRINTF (t, 3, "R state was %s%s, now %s%s",
-          osw?">":"", orn?"up":"down",
-          switching?">":":", running?"up":"down");
-    }
+  if (orn != all_running)
+    TRACEPRINTF (t, 4, "R state: %s", all_running?"up":"transition");
 
+  if (all_running && !running_signal)
+    {
+      running_signal = true;
+      TRACEPRINTF (t, 4, "R state: all drivers up");
+      trigger.send();
+      mtrigger.send();
 #ifdef HAVE_SYSTEMD
-  if (running && !switching)
-    sd_notify(0,"READY=1");
+      sd_notify(0,"READY=1");
 #endif
+    }
 }
 
 void
 Router::link_stopped(const LinkConnectPtr& link)
 {
-  bool osw = switching;
-  bool orn = running;
+  bool orn = some_running;
 
-  switching = false;
-  running = false;
+  some_running = false;
+  all_running = false;
 
   ITER(i,links)
-    {
-      if (i->second->switching)
-        switching = true;
-      else if (i->second->running)
-        running = true;
-    }
-  if (osw != switching || orn != running)
-    {
-      TRACEPRINTF (t, 3, "R state was %s%s, now %s%s",
-          osw?">":"", orn?"up":"down",
-          switching?">":":", running?"up":"down");
+    if (i->second->running || i->second->switching)
+      {
+        some_running = true;
+        //TRACEPRINTF (i->second->t, 4, "R state: still %s%s",
+        //    i->second->switching?">":"",
+        //    i->second->running?"up":"down");
+      }
 
-    }
-  return;
+  if (orn != some_running)
+    TRACEPRINTF (t, 4, "R state: %s", some_running?"transition":"down");
 }
 
 void
 Router::stop()
 {
+  if (!want_up)
+    return;
+  want_up = false;
+
+  TRACEPRINTF (t, 4, "R state: trigger Going down");
+  all_running = false;
+
   ITER(i,links)
-    i->second->stop();
+    {
+      TRACEPRINTF (i->second->t, 3, "Stop: %s", i->second->info(0));
+      i->second->stop();
+    }
+  TRACEPRINTF (t, 4, "R state: Going down triggered");
 }
 
 Router::~Router()
 {
-  TRACEPRINTF (t, 3, "L3 stopping");
-  running = false;
+  TRACEPRINTF (t, 4, "R state: deleting");
   cache = nullptr;
   trigger.stop();
   mtrigger.stop();
@@ -359,17 +387,18 @@ Router::~Router()
 //    delete i->second;
   links.clear();
 
-  TRACEPRINTF (t, 3, "Closed");
+  TRACEPRINTF (t, 4, "R state: deleted.");
 }
 
 void
 Router::recv_L_Data (LDataPtr l, LinkConnect& link)
 {
-  if (running)
+  if (some_running)
     {
       TRACEPRINTF (link.t, 9, "Queue %s", l->Decode (t));
       buf.emplace (std::move(l),std::dynamic_pointer_cast<LinkConnect>(link.shared_from_this()));
-      trigger.send();
+      if (running_signal)
+        trigger.send();
     }
   else
     TRACEPRINTF (link.t, 9, "Queue: discard (not running) %s", l->Decode (t));
@@ -378,11 +407,12 @@ Router::recv_L_Data (LDataPtr l, LinkConnect& link)
 void
 Router::recv_L_Busmonitor (LBusmonPtr l)
 {
-  if (running)
+  if (some_running)
     {
       TRACEPRINTF (t, 9, "MonQueue %s", l->Decode (t));
       mbuf.push (std::move(l));
-      mtrigger.send();
+      if (running_signal)
+        mtrigger.send();
     }
   else
     TRACEPRINTF (t, 9, "MonQueue: discard (not running) %s", l->Decode (t));
@@ -445,6 +475,13 @@ Router::registerLink(const LinkConnectPtr& link)
       return false;
     }
   TRACEPRINTF (link->t, 3, "registerLink: %s", n);
+  links_changed = true;
+  if (want_up)
+    {
+      all_running = false;
+      TRACEPRINTF (link->t, 3, "Start: %s", link->info(0));
+      link->start();
+    }
   return true;
 }
 
@@ -460,6 +497,7 @@ Router::unregisterLink(const LinkConnectPtr& link)
     }
   links.erase(res);
   TRACEPRINTF (link->t, 3, "unregisterLink: %s", n);
+  links_changed = true;
   return true;
 }
 
