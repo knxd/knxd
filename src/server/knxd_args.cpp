@@ -365,10 +365,10 @@ parse_opt (int key, char *arg, struct argp_state *state)
       ini["server"]["discover"] = "true";
       break;
     case OPT_SINGLE_PORT:
-      ini["server"]["multi-port"] = "true";
+      ini["server"]["multi-port"] = "false";
       break;
     case OPT_MULTI_PORT:
-      ini["server"]["multi-port"] = "false";
+      ini["server"]["multi-port"] = "true";
       break;
     case 'I':
       ini["server"]["interface"] = arg;
