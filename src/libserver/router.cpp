@@ -108,7 +108,7 @@ Router::setup()
     }
 
     {
-      IniSection& gc = s.sub("cache",true);
+      IniSection& gc = s.sub("cache",false);
       if (gc.name.size() > 0)
         {
           if (!CreateGroupCache(*this, gc))
