@@ -5,7 +5,7 @@
 export LD_LIBRARY_PATH=src/client/c/.libs${LD_LIBRARY_PATH:+:}$LD_LIBRARY_PATH
 
 set -ex
-export PATH="$(pwd)/src/tools/.libs:$(pwd)/src/tools:$(pwd)/src/server/.libs:$(pwd)/src/server:$PATH"
+export PATH="$(pwd)/src/tools/.libs:$(pwd)/src/tools:$(pwd)/src/server/.libs:$(pwd)/src/server:$(pwd)/src/server:$PATH"
 
 EF=$(tempfile)
 
