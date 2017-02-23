@@ -283,6 +283,9 @@ LDFLAGS="$LDFLAGS -L$(pwd)/libfmt/fmt"
     ]
     )
 AC_DEFINE(HAVE_FMT, 1, [ String formatting library installed. ])
+AC_CHECK_HEADER([fmt/printf.h],
+AC_DEFINE(HAVE_FMT_PRINTF, 1, [ fmt/printf.h header found ])
+)
 
 AC_CHECK_LIB([ev], [ev_run],,[AC_MSG_ERROR([libev not found])])
 EV_LIBS="-lev"

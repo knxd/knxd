@@ -25,9 +25,13 @@
 #include <memory>
 #include <iostream>
 #include <fmt/format.h>
-#include <fmt/printf.h>
 #include "common.h"
 #include "inifile.h"
+
+#include "config.h"
+#if HAVE_FMT_PRINTF
+#include <fmt/printf.h>
+#endif
 
 #define LEVEL_NONE 0
 #define LEVEL_FATAL 1
