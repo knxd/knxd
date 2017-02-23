@@ -130,10 +130,10 @@ public:
    */
   bool checkStack(IniSection& cfg);
 
-private:
   /** name of our main section */
   std::string main;
 
+private:
   /** create a link */
   LinkConnectPtr setup_link(std::string& name);
 
@@ -159,6 +159,10 @@ private:
   int client_addrs_pos;
   std::vector<bool> client_addrs;
 
+public:
+  bool hasClientAddrs(bool complain = true);
+
+private:
   /** busmonitor callbacks */
   Array < Busmonitor_Info > busmonitor;
   /** vbusmonitor callbacks */

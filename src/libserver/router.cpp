@@ -817,3 +817,15 @@ Router::checkStack(IniSection& cfg)
   return true;
 }
 
+bool
+Router::hasClientAddrs(bool complain)
+{
+  if (client_addrs_len > 0)
+    return true;
+  if (complain)
+    ERRORPRINTF (t, E_ERROR | 51, "You need a client-addrs=X.Y.Z:N option in your %s section.", main);
+  return false;
+
+}
+
+

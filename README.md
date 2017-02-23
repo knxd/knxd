@@ -43,6 +43,8 @@ Please switch to the v0.12 branch for production use.
 
   * new filter for logging packets to a driver
 
+  * Complain loudly (and early) if knxd needs -E / client-addrs=X.Y.Z:N
+
 ## Building
 
 On Debian:

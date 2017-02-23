@@ -81,7 +81,7 @@ NetServer::cleanup_cb (ev::async &w, int revents)
     }
 }
 
-NetServer::NetServer (BaseRouter& l3, IniSection& s) : Server (l3,s)
+NetServer::NetServer (BaseRouter& r, IniSection& s) : Server (r,s)
 {
   fd = -1;
 }
@@ -121,6 +121,16 @@ NetServer::io_cb (ev::io &w, int revents)
     }
   else if (errno != EWOULDBLOCK && errno != EAGAIN && errno != EINTR)
     ERRORPRINTF (t, E_ERROR | 51, "Accept %s: %s", name(), strerror(errno));
+}
+
+bool
+NetServer::setup()
+{
+  if (!Server::setup())
+    return false;
+  if (!static_cast<Router&>(router).hasClientAddrs())
+    return false;
+  return true;
 }
 
 void

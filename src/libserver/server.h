@@ -56,6 +56,7 @@ protected:
 
   virtual void setupConnection (int cfd);
 
+  bool setup();
   void start();
   void stop();
 
