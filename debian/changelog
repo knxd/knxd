@@ -6,6 +6,7 @@ knxd (0.13.0-3) unstable; urgency=medium
   * use libfmt
     * require git or cmake if no libfmt3-dev is found
   * Complain if -E / client-addrs= is required but missing
+  * Configuration options to not start, or start and ignore failures of, specific interfaces
 
  -- Matthias Urlichs <matthias@urlichs.de>  Thu, 23 Feb 2017 10:01:37 +0100
 

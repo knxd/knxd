@@ -297,6 +297,8 @@ Router::start()
         {
           if (i->second->running || i->second->switching)
             continue;
+          if (i->second->ignore)
+            continue;
           seen = true;
           TRACEPRINTF (i->second->t, 3, "Start: %s", i->second->info(0));
           i->second->start();
@@ -317,12 +319,16 @@ Router::link_started(const LinkConnectPtr& link)
   TRACEPRINTF (link->t, 4, "R state: started");
 
   ITER(i,links)
-    if (!i->second->running || i->second->switching)
+    if (!i->second->running || i->second->switching) // not up
       {
         //TRACEPRINTF (i->second->t, 4, "R state: still %s%s",
         //    i->second->switching?">":"",
         //    i->second->running?"up":"down");
-        all_running = false;
+
+        /* Ignore drivers marked as may_fail, but only if they're not still
+         * transitioning */
+        if (!i->second->may_fail && !i->second->switching)
+          all_running = false;
       }
 
   if (orn != all_running)

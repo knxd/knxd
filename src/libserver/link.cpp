@@ -158,6 +158,9 @@ LinkConnect::setup()
       ERRORPRINTF (t, E_ERROR | 55, "No driver in %s. Refusing.", cfg.name);
       return false;
     }
+  ignore = cfg.value("ignore",false);
+  may_fail = cfg.value("may-fail",false);
+
   std::string x = cfg.value("filters","");
   {
     size_t pos = 0;

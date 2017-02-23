@@ -240,6 +240,21 @@ and
     [foo]
     some-options=true
 
+Common options
+--------------
+
+These options apply to all drivers (and servers).
+
+  * ignore (bool)
+
+    The driver is configured, but not started up automatically.
+
+    *Note*: Starting up knxd still fails if there is a configuration error.
+
+  * may-fail (bool)
+
+    The driver is started, but does not block starting to route packets.
+
 dummy
 -----
 

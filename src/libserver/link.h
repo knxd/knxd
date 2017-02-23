@@ -249,8 +249,14 @@ class LinkConnect : public LinkRecv
 public:
   LinkConnect(BaseRouter& r, IniSection& s, TracePtr tr);
   virtual ~LinkConnect();
+  /** Driver/Server is up */
   bool running = false;
+  /** Driver/Server intends to be what @running says  */
   bool switching = false;
+  /** Don't auto-start */
+  bool ignore = false;
+  /** Ignore startup failures */
+  bool may_fail = false;
   eibaddr_t addr = 0;
 
   BaseRouter& router;

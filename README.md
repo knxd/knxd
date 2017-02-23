@@ -39,6 +39,9 @@ Please switch to the v0.12 branch for production use.
   * Startup sequencing fixed: packets will not be routed (and systemd not
     signalled) until all interfaces are ready.
 
+    * Configuration options to not start, or start and ignore failures of,
+      specific interfaces
+
   * use libfmt for sane and type-safe formatting of error and trace messages
 
   * new filter for logging packets to a driver
