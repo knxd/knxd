@@ -48,6 +48,10 @@ Please switch to the v0.12 branch for production use.
 
   * Complain loudly (and early) if knxd needs -E / client-addrs=X.Y.Z:N
 
+  * There is now a "log" filter. Logging of complete packets
+    (inconsistently bit 1, 2, or 8 of the tracing mask) has been removed
+    from individual drivers.
+
 ## Building
 
 On Debian:
