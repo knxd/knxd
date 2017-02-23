@@ -1,9 +1,12 @@
-knxd (0.13.0-1) UNRELEASED; urgency=medium
+knxd (0.13.0-3) unstable; urgency=medium
 
   * Start master branch
-  * Generate a config file
+  * Generate and use a config file
+  * Refactor linking drivers to the main dispatcher
+  * use libfmt
+    * require git or cmake if no libfmt3-dev is found
 
- -- Matthias Urlichs <matthias@urlichs.de>  Wed, 01 Feb 2017 01:50:56 +0100
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 23 Feb 2017 10:01:37 +0100
 
 knxd (0.12.14-1) unstable; urgency=medium
 
