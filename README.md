@@ -154,6 +154,27 @@ port to be somewhat unreliable. If this happens, disable bluetooth by adding
 to ``/boot/config.txt``, executing ``systemctl disable hciuart``, and
 rebooting. The TPUART module is now back on ``ttyAMA0``.
 
+## Migrating to 0.14
+
+* knxd is now configured with a .ini-style configuration file.
+
+  The old way of configuring knxd via a heap of position-dependent
+  arguments is still supported.
+
+  You can use ``knxd_args <args-to-knxd>`` to emit a file that corresponds to
+  your old list of arguments.
+
+* Not configuring client addresses for the knxd\_\* servers (options -i -u),
+  systemd sockets, or the router's tunnel mode (-T) now results in that
+  service not being offered at all, instead of only failing when a client
+  connects. An error message is emitted. The multicast server will not
+  start at all, and systemd startup will fail.
+
+* knxd will not start routing any packets unless startup is successful on
+  all interfaces.
+
+  This means that it is now safe to use "socket activation" mode for
+  systemd. Previously, knxd might have lost the initial packets.
 
 ## Migrating to 0.12
 
