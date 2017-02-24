@@ -95,7 +95,7 @@ public:
   Layer4commonWO (T_Reader<COMM> *app, LinkConnectClientPtr lc, bool write_only) : Layer4common<COMM>(app,lc)
     { this->write_only = write_only; }
 
-  bool checkAddress(eibaddr_t addr) { return !write_only && addr == this->addr; }
+  bool checkAddress(eibaddr_t addr) { return !write_only && addr == this->getAddress(); }
   bool checkGroupAddress(eibaddr_t addr) { return !write_only; }
 };
 

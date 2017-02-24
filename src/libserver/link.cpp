@@ -143,7 +143,7 @@ LineDriver::setup()
   if (c == nullptr)
     return false;
 
-  addr = c->addr;
+  _addr = c->addr;
   return true;
 }
 
