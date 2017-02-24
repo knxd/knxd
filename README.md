@@ -32,9 +32,12 @@ Please switch to the v0.12 branch for production use.
 * 0.13 (development)
 
   * Configuration file
+
     * including a translator from options to config file
 
   * Complete stack refactored
+
+    * You may now use global filters.
 
   * Startup sequencing fixed: packets will not be routed (and systemd not
     signalled) until all interfaces are ready.
@@ -182,6 +185,9 @@ rebooting. The TPUART module is now back on ``ttyAMA0``.
 
   This means that it is now safe to use "socket activation" mode for
   systemd. Previously, knxd might have lost the initial packets.
+
+* Tracing no longer logs the actual decoded contents of packet.
+  If you need that, use the "log" filter.
 
 ## Migrating to 0.12
 
