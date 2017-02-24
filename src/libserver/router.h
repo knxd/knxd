@@ -31,13 +31,6 @@ class BaseServer;
 class GroupCache;
 class LinkConnect;
 
-class LPtr {
-public:
-  LDataPtr first;
-  LinkConnectPtr second;
-  LPtr(LDataPtr f, LinkConnectPtr s) {first = std::move(f); second = s; }
-};
-
 /** stores a registered busmonitor callback */
 typedef struct
 {
@@ -147,7 +140,7 @@ private:
   void mtrigger_cb (ev::async &w, int revents);
 
   /** buffer queues for receiving from L2 */
-  Queue < LPtr > buf;
+  Queue < LDataPtr > buf;
   Queue < LBusmonPtr > mbuf;
   /** buffer for packets to ignore when repeat flag is set */
   Array < IgnoreInfo > ignore;

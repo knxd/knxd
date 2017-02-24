@@ -421,10 +421,42 @@ Router::~Router()
 void
 Router::recv_L_Data (LDataPtr l, LinkConnect& link)
 {
+  LinkConnectPtr l2x = nullptr;
+
+  if (l->AddrType == IndividualAddress && l->dest == 0)
+    {
+      // Common problem with things that are not true gateways
+      ERRORPRINTF (link.t, E_WARNING | 57, "Message without destination. Use the single-node filter ('-B single')?");
+      return;
+    }
+
+  // Unassigned source: set to link's, or our, address
+  if (l->source == 0)
+    l->source = link.addr;
+  if (l->source == 0)
+    l->source = addr;
+
+  if (l->source == addr)
+    { // locally generated, pass thru
+      // TODO mark interfaces which are local (currently just the group // cache)
+      // and reject those packets from other interfaces
+    }
+  else if (hasAddress (l->source, l2x))
+    { // check if from the correct interface
+      if (&*l2x != &link)
+        {
+          TRACEPRINTF (link.t, 3, "Packet not from %d:%s: %s", link.t->seq, link.t->name, l->Decode (t));
+          return;
+        }
+    }
+  else if (l->source != 0xFFFF) { // don't assign the "unprogrammed" address
+    link.addAddress (l->source);
+  }
+
   if (some_running)
     {
       TRACEPRINTF (link.t, 9, "Queue %s", l->Decode (t));
-      buf.emplace (std::move(l),std::dynamic_pointer_cast<LinkConnect>(link.shared_from_this()));
+      buf.emplace (std::move(l));
       if (running_signal)
         trigger.send();
     }
@@ -669,36 +701,7 @@ Router::trigger_cb (ev::async &w, int revents)
 
   while (!buf.isempty())
     {
-      LPtr l = buf.get ();
-
-      LDataPtr l1 = std::move(l.first);
-      LinkConnectPtr l2 = l.second;
-      LinkConnectPtr l2x = nullptr;
-
-      if (l1->source == 0)
-        l1->source = l2->addr;
-      if (l1->source == 0)
-        l1->source = addr;
-      if (l1->source == addr) { /* locally generated, do nothing */ }
-      // Cases:
-      // * address is unknown: associate with input IF not from local range and not programming addr
-      // * address is known to input: OK
-      // * address is on another 
-      else if (hasAddress (l1->source, l2x))
-        {
-          if (l2x != l2)
-            {
-              TRACEPRINTF (l2->t, 3, "Packet not from %d:%s: %s", l2->t->seq, l2->t->name, l1->Decode (t));
-              goto next;
-            }
-        }
-      else if (client_addrs_start && (l1->source >= client_addrs_start) &&
-          (l1->source < client_addrs_start+client_addrs_len))
-        { // late arrival to an already-freed client
-          TRACEPRINTF (l2->t, 3, "Packet from client: %s", l1->Decode (t));
-        }
-      else if (l1->source != 0xFFFF)
-        l2->addAddress (l1->source);
+      LDataPtr l1 = buf.get ();
 
       if (vbusmonitor.size())
         {
@@ -741,7 +744,7 @@ Router::trigger_cb (ev::async &w, int revents)
           // group.
           ITER(i, links)
             {
-              if (i->second == l2)
+              if (i->second->hasAddress(l1->source))
                 continue;
               if (l1->hopcount == 7 || i->second->checkGroupAddress(l1->dest))
                 i->second->send_L_Data (LDataPtr(new L_Data_PDU (*l1)));
@@ -749,24 +752,16 @@ Router::trigger_cb (ev::async &w, int revents)
         }
       if (l1->AddrType == IndividualAddress)
         {
-	  if (!l1->dest)
-	    {
-	      // Common problem with things that are not true gateways
-	      ERRORPRINTF (l2->t, E_WARNING | 57, "Message without destination. Use the single-node filter ('-B single')?");
-	      goto next;
-	    }
-
           // we want to send to the interface on which the address
           // has appeared. If it hasn't been seen yet, we send to all
           // interfaces.
           // Address ~0 is special; it's used for programming
           // so can be on different interfaces. Always broadcast these.
-          // Packets to knxd itself aren't forwarded.
           bool found = (l1->dest == this->addr);
           if (l1->dest != 0xFFFF)
             ITER(i, links)
               {
-                if (i->second == l2)
+                if (i->second->hasAddress (l1->source))
                   continue;
                 if (i->second->hasAddress (l1->dest))
                   {
@@ -776,7 +771,7 @@ Router::trigger_cb (ev::async &w, int revents)
               }
           ITER (i, links)
             {
-              if (i->second == l2)
+              if (i->second->hasAddress (l1->source))
                 continue;
               if (l1->hopcount == 7 || found ? i->second->hasAddress (l1->dest) : i->second->checkAddress (l1->dest))
                 i->second->send_L_Data (LDataPtr(new L_Data_PDU (*l1)));
@@ -833,5 +828,4 @@ Router::hasClientAddrs(bool complain)
   return false;
 
 }
-
 

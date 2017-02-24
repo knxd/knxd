@@ -27,6 +27,7 @@ GroupCache::GroupCache (const LinkConnectPtr& c, IniSection& s)
   TRACEPRINTF (t, 4, "GroupCacheInit");
   enable = 0;
   remtrigger.set<GroupCache, &GroupCache::remtrigger_cb>(this);
+  addr = c->router.addr;
 }
 
 GroupCache::~GroupCache ()

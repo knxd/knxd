@@ -75,6 +75,8 @@ class GroupCache:public Driver
   bool enable = false;
   /** max size of cache */
   uint16_t maxsize;
+  /** cached copy of main address */
+  eibaddr_t addr;
 
 public: // but only for GroupCacheReader
   bool setup();
@@ -82,7 +84,7 @@ public: // but only for GroupCacheReader
   void stop();
   bool checkGroupAddress (eibaddr_t addr UNUSED) { return true; }
   bool checkAddress (eibaddr_t addr UNUSED) { return false; }
-  bool hasAddress (eibaddr_t addr UNUSED) { return false; }
+  bool hasAddress (eibaddr_t addr ) { return addr == this->addr; }
   void addAddress (eibaddr_t addr UNUSED) { }
 
 private:
