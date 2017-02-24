@@ -66,7 +66,6 @@ class T_Reader
 {
 public:
   virtual void send(T &) = 0;
-  eibaddr_t addr; // phys address of this client
 };
 
 template<class COMM>
@@ -83,7 +82,6 @@ public:
   bool setup() {
     if (!LineDriver::setup())
       return false;
-    addAddress(app->addr);
     return true;
   }
 
