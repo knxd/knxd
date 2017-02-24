@@ -33,7 +33,14 @@ NatL2Filter::setup()
 
   auto c = std::dynamic_pointer_cast<LinkConnect>(conn.lock());
   if (c == nullptr)
-    return false;
+    {
+      // either the parent has vanished, or the object is not a
+      // LinkConnect – which happens when you try to apply the filter
+      // globally. The former is exceedingly unlikely, but …
+      if (conn.lock() != nullptr)
+        ERRORPRINTF(t, E_ERROR, "%s: cannot be used globally");
+      return false;
+    }
   addr = dynamic_cast<Router *>(&c->router)->addr;
   return true;
 }
