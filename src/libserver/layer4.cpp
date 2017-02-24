@@ -155,7 +155,7 @@ T_TPDU::~T_TPDU ()
 
 /***************** T_Individual *****************/
 
-T_Individual::T_Individual (T_Reader<CArray> *app, LinkConnectClientPtr lc, eibaddr_t dest, int write_only)
+T_Individual::T_Individual (T_Reader<CArray> *app, LinkConnectClientPtr lc, eibaddr_t dest, bool write_only)
   : Layer4commonWO(app, lc, write_only)
 {
   TRACEPRINTF (t, 4, "OpenIndividual %s %s",

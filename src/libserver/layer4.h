@@ -170,7 +170,7 @@ class T_Individual:public Layer4commonWO<CArray>
   eibaddr_t dest;
 
 public:
-  T_Individual (T_Reader<CArray> *app, LinkConnectClientPtr lc, eibaddr_t dest, int write_only);
+  T_Individual (T_Reader<CArray> *app, LinkConnectClientPtr lc, eibaddr_t dest, bool write_only);
   virtual ~T_Individual ();
 
   /** enqueues a packet from L3 */
