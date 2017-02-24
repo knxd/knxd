@@ -187,7 +187,7 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
             TRACEPRINTF (t, 1, "Recv wrong connection response");
             break;
           }
-        addAddress((cresp.CRD[1] << 8) | cresp.CRD[2]);
+        conn.lock()->setAddress((cresp.CRD[1] << 8) | cresp.CRD[2]);
         daddr = cresp.daddr;
         if (!cresp.nat)
           {
