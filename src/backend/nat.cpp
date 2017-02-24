@@ -31,7 +31,7 @@ NatL2Filter::setup()
   if (!Filter::setup())
     return false;
 
-  LinkConnectPtr c = conn.lock();
+  auto c = std::dynamic_pointer_cast<LinkConnect>(conn.lock());
   if (c == nullptr)
     return false;
   addr = dynamic_cast<Router *>(&c->router)->addr;

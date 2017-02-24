@@ -47,6 +47,8 @@ const char *cfgfile = NULL;
 const char *mainsection = NULL;
 char *const *argv;
 
+LOOP_RESULT loop;
+
 /** aborts program with a printf like message */
 void die (const char *msg, ...);
 
@@ -244,12 +246,7 @@ main (int ac, char *ag[])
   argv = ag;
 
 // set up libev
-#if EV_MULTIPLICITY
-  typedef struct ev_loop *LOOP_RESULT;
-#else
-  typedef int LOOP_RESULT;
-#endif
-  LOOP_RESULT loop = ev_default_loop(EVFLAG_AUTO | EVFLAG_NOSIGMASK | EVBACKEND_SELECT);
+  loop = ev_default_loop(EVFLAG_AUTO | EVFLAG_NOSIGMASK | EVBACKEND_SELECT);
   assert (loop);
 
 #ifdef EV_TRACE
@@ -420,13 +417,14 @@ main (int ac, char *ag[])
 
   stopping = false; // re-set by a second signal
   r->stop();
-  while (r->isRunning() && !stopping)
+  while (!r->isIdle() && !stopping)
     ev_run (EV_A_ stop_now ? EVRUN_NOWAIT : EVRUN_ONCE);
 
+  int exitcode = r->exitcode;
   delete r;
 
   if (pidfile && *pidfile)
     unlink (pidfile);
 
-  return 0;
+  return exitcode;
 }

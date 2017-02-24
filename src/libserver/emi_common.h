@@ -62,8 +62,8 @@ private:
   void on_recv_cb(CArray *p);
 
 public:
-  EMI_Common (const LinkConnectPtr& c, IniSection& s);
-  EMI_Common (LowLevelDriver * i, const LinkConnectPtr& c, IniSection& s);
+  EMI_Common (const LinkConnectPtr_& c, IniSection& s);
+  EMI_Common (LowLevelDriver * i, const LinkConnectPtr_& c, IniSection& s);
   virtual ~EMI_Common ();
   bool setup();
   void start();

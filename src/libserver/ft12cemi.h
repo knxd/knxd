@@ -30,8 +30,8 @@ DRIVER_(FT12CEMIDriver,CEMIDriver,ft12cemi)
 {
   void cmdOpen(); 
 public:
-  FT12CEMIDriver (LowLevelDriver * i, const LinkConnectPtr& c, IniSection& s) : CEMIDriver(i,c,s) {}
-  FT12CEMIDriver (const LinkConnectPtr& c, IniSection& s) : CEMIDriver(c,s) {}
+  FT12CEMIDriver (LowLevelDriver * i, const LinkConnectPtr_& c, IniSection& s) : CEMIDriver(i,c,s) {}
+  FT12CEMIDriver (const LinkConnectPtr_& c, IniSection& s) : CEMIDriver(c,s) {}
   virtual ~FT12CEMIDriver ();
 };
 

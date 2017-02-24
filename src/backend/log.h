@@ -30,7 +30,7 @@ FILTER(LogFilter,log)
   bool log_addr;
 
 public:
-  LogFilter (const LinkConnectPtr& c, IniSection& s) : Filter(c,s) {}
+  LogFilter (const LinkConnectPtr_& c, IniSection& s) : Filter(c,s) {}
   virtual ~LogFilter ();
 
   virtual bool setup();

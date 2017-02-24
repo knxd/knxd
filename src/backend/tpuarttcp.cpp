@@ -26,7 +26,7 @@
 #include <netinet/in.h>
 #include "tpuarttcp.h"
 
-TPUARTTCP::TPUARTTCP (const LinkConnectPtr& c, IniSection& s)
+TPUARTTCP::TPUARTTCP (const LinkConnectPtr_& c, IniSection& s)
 	: TPUART_Base(c,s)
 {
 }

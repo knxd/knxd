@@ -22,7 +22,7 @@
 #include <sys/ioctl.h>
 #include "ncn5120.h"
 
-NCN5120Serial::NCN5120Serial (const LinkConnectPtr& c, IniSection& s)
+NCN5120Serial::NCN5120Serial (const LinkConnectPtr_& c, IniSection& s)
     : TPUARTSerial(c,s) { }
 
 NCN5120Serial::~NCN5120Serial ()

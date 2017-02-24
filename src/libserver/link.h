@@ -96,6 +96,9 @@ class BaseRouter;
 class LinkBase;
 typedef std::shared_ptr<LinkBase> LinkBasePtr;
 
+class LinkConnect_;
+typedef std::shared_ptr<LinkConnect_> LinkConnectPtr_;
+
 class LinkConnect;
 typedef std::shared_ptr<LinkConnect> LinkConnectPtr;
 
@@ -292,10 +295,9 @@ public:
   /** Call for drivers to find a filter, if it exists */
   virtual FilterPtr findFilter(std::string name) { return nullptr; }
 
-protected:
   /** The thing to send data to. */
   LinkBasePtr send = nullptr;
-public:
+
   /** Attach the next (i.e. sending) link to me */
   bool link(LinkBasePtr next)
     {
@@ -311,32 +313,24 @@ public:
 };
 
 
-/** A LinkConnect is something which the router knows about.
- * For non-servers, it holds a pointer to the driver and to the bottom of
- * the filter stack.
+/** This is the base class for LinkConnect, the bottom node of a filter stack.
+ * This class separates the parts that are used in the global filter chain.
  */
-class LinkConnect : public LinkRecv
+class LinkConnect_ : public LinkRecv
 {
 public:
-  LinkConnect(BaseRouter& r, IniSection& s, TracePtr tr);
-  virtual ~LinkConnect();
-  /** Driver/Server is up */
-  bool running = false;
-  /** Driver/Server intends to be what @running says  */
-  bool switching = false;
-  /** Don't auto-start */
-  bool ignore = false;
-  /** Ignore startup failures */
-  bool may_fail = false;
-  /** address assigned to this link */
-  eibaddr_t addr = 0;
+  LinkConnect_(BaseRouter& r, IniSection& s, TracePtr tr);
+  virtual ~LinkConnect_();
 
   BaseRouter& router;
+
 private:
   DriverPtr driver;
-  bool addr_local = true;
-
 public:
+  virtual bool setup();
+  virtual void start();
+  virtual void stop();
+
   /** Link up a driver. Can't be in ctor because of the shared pointer. */
   void set_driver(DriverPtr d)
     {
@@ -344,6 +338,42 @@ public:
       link(std::dynamic_pointer_cast<LinkBase>(d));
     }
 
+  /** You can't unlink the root of the chain … */
+  virtual void unlink() { assert(false); }
+
+  virtual void send_L_Data (LDataPtr l) { send->send_L_Data(std::move(l)); }
+  virtual bool checkAddress (eibaddr_t addr) { return send->checkAddress(addr); }
+  virtual bool checkGroupAddress (eibaddr_t addr) { return send->checkGroupAddress(addr); }
+  virtual bool hasAddress (eibaddr_t addr) { return send->hasAddress(addr); }
+  virtual void addAddress (eibaddr_t addr) { send->addAddress(addr); }
+};
+
+/** A LinkConnect is something which the router knows about.
+ * For non-servers, it holds a pointer to the driver and to the bottom of
+ * the filter stack.
+ * This contains the parts useable on a per-link filter chain.
+ */
+class LinkConnect : public LinkConnect_
+{
+public:
+  LinkConnect(BaseRouter& r, IniSection& s, TracePtr tr);
+  virtual ~LinkConnect();
+  /** Don't auto-start */
+  bool ignore = false;
+  /** Ignore startup failures */
+  bool may_fail = false;
+  /** address assigned to this link */
+  eibaddr_t addr = 0;
+
+  /** Driver/Server is up */
+  bool running = false;
+  /** Driver/Server intends to be what @running says  */
+  bool switching = false;
+
+private:
+  bool addr_local = true;
+
+public:
   /** This is responsible for setting up the filters. Don't call it twice!
    * Precondition: set_driver() has been called. */
   virtual bool setup();
@@ -357,15 +387,6 @@ public:
   virtual void stopped();
   virtual void recv_L_Data (LDataPtr l); // { l3.recv_L_Data(std::move(l), this); }
   virtual void recv_L_Busmonitor (LBusmonPtr l); // { l3.recv_L_Busmonitor(std::move(l), this); }
-
-  virtual void send_L_Data (LDataPtr l) { send->send_L_Data(std::move(l)); }
-  virtual bool checkAddress (eibaddr_t addr) { return send->checkAddress(addr); }
-  virtual bool checkGroupAddress (eibaddr_t addr) { return send->checkGroupAddress(addr); }
-  virtual bool hasAddress (eibaddr_t addr) { return send->hasAddress(addr); }
-  virtual void addAddress (eibaddr_t addr) { send->addAddress(addr); }
-
-  /** You can't unlink the root of the chain … */
-  virtual void unlink() { assert(false); }
 };
 
 /** connection for a server's client */
@@ -460,16 +481,16 @@ class Filter : public LinkRecv
 {
   friend class LinkConnect;
 public:
-  typedef LinkConnectPtr first_arg;
+  typedef LinkConnectPtr_ first_arg;
 
-  Filter(const LinkConnectPtr& c, IniSection& s) : LinkRecv(c->router, s, c->t) { conn = c; }
+  Filter(const LinkConnectPtr_& c, IniSection& s) : LinkRecv(c->router, s, c->t) { conn = c; }
   virtual ~Filter();
 
 protected:
   /** Link to the receiver */
   std::weak_ptr<LinkRecv> recv;
   /** Link to the LinkConnect object holding the stack this filter is in */
-  std::weak_ptr<LinkConnect> conn;
+  std::weak_ptr<LinkConnect_> conn;
 public:
   virtual void send_L_Data (LDataPtr l) { send->send_L_Data(std::move(l)); }
   virtual void recv_L_Data (LDataPtr l); // recv->recv_L_Data(std::move(l));
@@ -537,16 +558,16 @@ class Driver : public LinkBase
 {
   friend class LinkConnect;
 public:
-  typedef LinkConnectPtr first_arg;
+  typedef LinkConnectPtr_ first_arg;
   /** Returns the driver's name, i.e. the config's driver= value */
   virtual const std::string& name();
 
-  Driver(const LinkConnectPtr& c, IniSection& s) : LinkBase(c->router, s, c->t)
+  Driver(const LinkConnectPtr_& c, IniSection& s) : LinkBase(c->router, s, c->t)
     {
       conn = c;
     }
   virtual ~Driver();
-  std::weak_ptr<LinkConnect> conn;
+  std::weak_ptr<LinkConnect_> conn;
 
 protected:
   std::weak_ptr<LinkRecv> recv;
@@ -588,7 +609,7 @@ class BusDriver : public Driver
   std::vector<bool> addrs;
 
 public:
-  BusDriver(const LinkConnectPtr& c, IniSection& s) : Driver(c,s)
+  BusDriver(const LinkConnectPtr_& c, IniSection& s) : Driver(c,s)
     {
       addrs.resize(65536);
     }

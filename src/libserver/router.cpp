@@ -25,6 +25,7 @@
 #include "groupcacheclient.h"
 #include <typeinfo>
 #include <iostream>
+#include <ev++.h>
 
 #ifdef HAVE_SYSTEMD
 #include <systemd/sd-daemon.h>
@@ -74,6 +75,10 @@ Router::Router (IniData& d, std::string sn) : BaseRouter(d),main(sn)
   t = TracePtr(new Trace(s, s.value("name","")));
   servername = s.value("name","knxd");
 
+  r_low = RouterLowPtr(new RouterLow(*this));
+  r_high = RouterHighPtr(new RouterHigh(*this, r_low));
+  r_low->set_driver(std::dynamic_pointer_cast<Driver>(r_high));
+
   trigger.set<Router, &Router::trigger_cb>(this);
   mtrigger.set<Router, &Router::mtrigger_cb>(this);
   trigger.start();
@@ -120,6 +125,10 @@ Router::setup()
             goto ex;
         }
     }
+
+  if (!r_low->setup())
+    return false;
+
 #ifdef HAVE_SYSTEMD
   {
     std::string sd_name = s.value("systemd","");
@@ -230,7 +239,7 @@ Router::do_driver(LinkConnectPtr &link, IniSection& s, const std::string& driver
 
 
 FilterPtr
-Router::get_filter(const LinkConnectPtr& link, IniSection& s, const std::string& filtername)
+Router::get_filter(const LinkConnectPtr_& link, IniSection& s, const std::string& filtername)
 {
   return FilterPtr(filters.create(filtername, link, s));
 }
@@ -286,9 +295,17 @@ Router::start()
   want_up = true;
 
   TRACEPRINTF (t, 4, "R state: trigger going up");
+
+  r_low->start();
+}
+
+void
+Router::start_()
+{
   some_running = true;
   bool seen = true;
 
+  in_link_loop += 1;
   while (seen)
     {
       seen = false;
@@ -306,6 +323,7 @@ Router::start()
             break;
         }
     }
+  in_link_loop -= 1;
   TRACEPRINTF (t, 4, "R state: going up triggered");
 }
 
@@ -327,44 +345,48 @@ Router::link_started(const LinkConnectPtr& link)
 
         /* Ignore drivers marked as may_fail, but only if they're not still
          * transitioning */
+        if (!in_link_loop)
+          TRACEPRINTF (i->second->t, 8, "still not up");
+
         if (!i->second->may_fail && !i->second->switching)
           all_running = false;
       }
 
-  if (orn != all_running)
-    TRACEPRINTF (t, 4, "R state: %s", all_running?"up":"transition");
+  if (!orn && all_running)
+    r_high->started();
 
-  if (all_running && !running_signal)
-    {
-      running_signal = true;
-      TRACEPRINTF (t, 4, "R state: all drivers up");
-      trigger.send();
-      mtrigger.send();
-#ifdef HAVE_SYSTEMD
-      sd_notify(0,"READY=1");
-#endif
-    }
 }
 
 void
 Router::link_stopped(const LinkConnectPtr& link)
 {
   bool orn = some_running;
+  TRACEPRINTF (link->t, 4, "R state: stopped");
 
+  if (want_up && !link->may_fail)
+    { // Ouch. Doesn't work. Exit now.
+      exitcode += 1;
+      stop();
+      return;
+    }
   some_running = false;
   all_running = false;
 
+  in_link_loop += 1;
   ITER(i,links)
     if (i->second->running || i->second->switching)
       {
+        if (!in_link_loop)
+          TRACEPRINTF (i->second->t, 8, "still active");
         some_running = true;
         //TRACEPRINTF (i->second->t, 4, "R state: still %s%s",
         //    i->second->switching?">":"",
         //    i->second->running?"up":"down");
       }
+  in_link_loop -= 1;
 
-  if (orn != some_running)
-    TRACEPRINTF (t, 4, "R state: %s", some_running?"transition":"down");
+  if (orn && !some_running)
+    r_high->stopped();
 }
 
 void
@@ -375,9 +397,22 @@ Router::stop()
   want_up = false;
 
   TRACEPRINTF (t, 4, "R state: trigger Going down");
+  r_low->stop();
+}
+
+void
+Router::stop_()
+{
   all_running = false;
   bool seen = true;
 
+  if (want_up)
+    { // we get gere when there's a globa failure to start
+      stop();
+      return;
+    }
+
+  in_link_loop += 1;
   while(seen)
     {
       links_changed = false;
@@ -393,8 +428,35 @@ Router::stop()
             break;
         }
     }
+  in_link_loop -= 1;
   TRACEPRINTF (t, 4, "R state: Going down triggered");
 }
+
+
+void
+Router::started()
+{
+  if (all_running && !running_signal)
+    {
+      running_signal = true;
+      TRACEPRINTF (t, 4, "R state: all drivers up");
+      trigger.send();
+      mtrigger.send();
+#ifdef HAVE_SYSTEMD
+      sd_notify(0,"READY=1");
+#endif
+    }
+
+  TRACEPRINTF (t, 4, "R state: up");
+}
+
+void
+Router::stopped()
+{
+  TRACEPRINTF (t, 4, "R state: down");
+  ev_break (EV_A_ EVBREAK_ALL);
+}
+
 
 Router::~Router()
 {
@@ -453,23 +515,33 @@ Router::recv_L_Data (LDataPtr l, LinkConnect& link)
     link.addAddress (l->source);
   }
 
-  if (some_running)
-    {
-      TRACEPRINTF (link.t, 9, "Queue %s", l->Decode (t));
-      buf.emplace (std::move(l));
-      if (running_signal)
-        trigger.send();
-    }
-  else
-    TRACEPRINTF (link.t, 9, "Queue: discard (not running) %s", l->Decode (t));
+  r_high->recv_L_Data(std::move(l));
 }
 
 void
 Router::recv_L_Busmonitor (LBusmonPtr l)
 {
-  if (some_running)
+  r_high->recv_L_Busmonitor(std::move(l));
+}
+
+void
+Router::queue_L_Data (LDataPtr l)
+{
+  if (some_running || want_up)
     {
-      TRACEPRINTF (t, 9, "MonQueue %s", l->Decode (t));
+      buf.emplace (std::move(l));
+      if (running_signal)
+        trigger.send();
+    }
+  else
+    TRACEPRINTF (t, 9, "Queue: discard (not running) %s", l->Decode (t));
+}
+
+void
+Router::queue_L_Busmonitor (LBusmonPtr l)
+{
+  if (some_running || want_up)
+    {
       mbuf.push (std::move(l));
       if (running_signal)
         mtrigger.send();
@@ -736,47 +808,8 @@ Router::trigger_cb (ev::async &w, int revents)
       if (l1->AddrType == IndividualAddress
           && l1->dest == this->addr)
         l1->dest = 0;
-      TRACEPRINTF (t, 3, "Route %s", l1->Decode (t));
 
-      if (l1->AddrType == GroupAddress)
-        {
-          // This is easy: send to all other L2 which subscribe to the
-          // group.
-          ITER(i, links)
-            {
-              if (i->second->hasAddress(l1->source))
-                continue;
-              if (l1->hopcount == 7 || i->second->checkGroupAddress(l1->dest))
-                i->second->send_L_Data (LDataPtr(new L_Data_PDU (*l1)));
-            }
-        }
-      if (l1->AddrType == IndividualAddress)
-        {
-          // we want to send to the interface on which the address
-          // has appeared. If it hasn't been seen yet, we send to all
-          // interfaces.
-          // Address ~0 is special; it's used for programming
-          // so can be on different interfaces. Always broadcast these.
-          bool found = (l1->dest == this->addr);
-          if (l1->dest != 0xFFFF)
-            ITER(i, links)
-              {
-                if (i->second->hasAddress (l1->source))
-                  continue;
-                if (i->second->hasAddress (l1->dest))
-                  {
-                    found = true;
-                    break;
-                  }
-              }
-          ITER (i, links)
-            {
-              if (i->second->hasAddress (l1->source))
-                continue;
-              if (l1->hopcount == 7 || found ? i->second->hasAddress (l1->dest) : i->second->checkAddress (l1->dest))
-                i->second->send_L_Data (LDataPtr(new L_Data_PDU (*l1)));
-            }
-        }
+      r_low->send_L_Data(std::move(l1));
     next:;
     }
 
@@ -788,6 +821,51 @@ Router::trigger_cb (ev::async &w, int revents)
         ignore.erase (ignore.begin(), i);
         break;
       }
+}
+
+void
+Router::send_L_Data(LDataPtr l1)
+{
+  if (l1->AddrType == GroupAddress)
+    {
+      // This is easy: send to all other L2 which subscribe to the
+      // group.
+      ITER(i, links)
+        {
+          if (i->second->hasAddress(l1->source))
+            continue;
+          if (l1->hopcount == 7 || i->second->checkGroupAddress(l1->dest))
+            i->second->send_L_Data (LDataPtr(new L_Data_PDU (*l1)));
+        }
+    }
+  if (l1->AddrType == IndividualAddress)
+    {
+      // we want to send to the interface on which the address
+      // has appeared. If it hasn't been seen yet, we send to all
+      // interfaces.
+      // Address ~0 is special; it's used for programming
+      // so can be on different interfaces. Always broadcast these.
+      bool found = (l1->dest == this->addr);
+      if (l1->dest != 0xFFFF)
+        ITER(i, links)
+          {
+            if (i->second->hasAddress (l1->source))
+              continue;
+            if (i->second->hasAddress (l1->dest))
+              {
+                found = true;
+                break;
+              }
+          }
+      ITER (i, links)
+        {
+          if (i->second->hasAddress (l1->source))
+            continue;
+          if (l1->hopcount == 7 || found ? i->second->hasAddress (l1->dest) : i->second->checkAddress (l1->dest))
+            i->second->send_L_Data (LDataPtr(new L_Data_PDU (*l1)));
+        }
+    }
+
 }
 
 void
@@ -828,4 +906,28 @@ Router::hasClientAddrs(bool complain)
   return false;
 
 }
+
+void
+RouterHigh::recv_L_Data (LDataPtr l)
+{
+  auto r = recv.lock();
+  if (r != nullptr)
+    r->recv_L_Data(std::move(l));
+}
+
+void
+RouterHigh::recv_L_Busmonitor (LBusmonPtr l)
+{
+  auto r = recv.lock();
+  if (r != nullptr)
+    r->recv_L_Busmonitor(std::move(l));
+}
+
+RouterHigh::RouterHigh(Router& r, const RouterLowPtr& rl)
+    : router(&r), Driver(std::dynamic_pointer_cast<LinkConnect_>(rl), r.ini[r.main])
+{}
+
+RouterLow::RouterLow(Router& r)
+    : router(&r), LinkConnect_(r, r.ini[r.main], r.t)
+{}
 

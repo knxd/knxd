@@ -472,8 +472,6 @@ parse_opt (int key, char *arg, struct argp_state *state)
       arguments->errorlevel = (arg ? atoi (arg) : 0);
       break;
     case 'e':
-      if (arguments->filters.size())
-        die("You cannot use filters globally.");
       if (arguments->l2opts.flags || arguments->l2opts.send_delay)
         die("You cannot use flags globally.");
       arguments->stack("main");

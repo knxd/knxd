@@ -30,6 +30,7 @@ LineDriver::~LineDriver() { }
 Filter::~Filter() { }
 Server::~Server() { }
 BaseRouter::~BaseRouter() { }
+LinkConnect_::~LinkConnect_() { }
 LinkConnectClient::~LinkConnectClient() { }
 LinkConnectSingle::~LinkConnectSingle() { }
 
@@ -53,8 +54,14 @@ LinkBase::info(int level)
   return res;
 }
 
-LinkConnect::LinkConnect(BaseRouter& r, IniSection& c, TracePtr tr)
+LinkConnect_::LinkConnect_(BaseRouter& r, IniSection& c, TracePtr tr)
    : router(r), LinkRecv(r,c,tr)
+{
+  //Router& rt = dynamic_cast<Router&>(r);
+}
+
+LinkConnect::LinkConnect(BaseRouter& r, IniSection& c, TracePtr tr)
+   : LinkConnect_(r,c,tr)
 {
   //Router& rt = dynamic_cast<Router&>(r);
 }
@@ -86,6 +93,12 @@ LinkConnect::start()
   TRACEPRINTF(t, 5, "Starting");
   running = false;
   switching = true;
+  LinkConnect_::start();
+}
+
+void
+LinkConnect_::start()
+{
   LinkRecv::start();
   send->start();
 }
@@ -97,6 +110,12 @@ LinkConnect::stop()
     return;
   TRACEPRINTF(t, 5, "Stopping");
   switching = true;
+  LinkConnect_::stop();
+}
+
+void
+LinkConnect_::stop()
+{
   send->stop();
   LinkRecv::stop();
 }
@@ -139,7 +158,7 @@ LineDriver::setup()
   if(!Driver::setup())
     return false;
 
-  auto c = conn.lock();
+  auto c = std::dynamic_pointer_cast<LinkConnect>(conn.lock());
   if (c == nullptr)
     return false;
 
@@ -150,6 +169,17 @@ LineDriver::setup()
 bool
 LinkConnect::setup()
 {
+  if (!LinkConnect_::setup())
+    return false;
+  return true;
+
+  ignore = cfg.value("ignore",false);
+  may_fail = cfg.value("may-fail",false);
+}
+
+bool
+LinkConnect_::setup()
+{
   if (!LinkRecv::setup())
     return false;
   DriverPtr dr = driver; // .lock();
@@ -158,8 +188,6 @@ LinkConnect::setup()
       ERRORPRINTF (t, E_ERROR | 55, "No driver in %s. Refusing.", cfg.name);
       return false;
     }
-  ignore = cfg.value("ignore",false);
-  may_fail = cfg.value("may-fail",false);
 
   std::string x = cfg.value("filters","");
   {
@@ -174,7 +202,7 @@ LinkConnect::setup()
             FilterPtr link;
             IniSection& s = static_cast<Router&>(router).ini[name];
             name = s.value("filter",name);
-            link = static_cast<Router&>(router).get_filter(std::dynamic_pointer_cast<LinkConnect>(shared_from_this()),
+            link = static_cast<Router&>(router).get_filter(std::dynamic_pointer_cast<LinkConnect_>(shared_from_this()),
                   s, name);
             if (link == nullptr)
               {

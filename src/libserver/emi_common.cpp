@@ -23,12 +23,12 @@
 unsigned int maxPacketLen() { return 0x10; }
 
 EMI_Common::EMI_Common (LowLevelDriver * i, 
-                        const LinkConnectPtr& c, IniSection& s) : BusDriver(c,s)
+                        const LinkConnectPtr_& c, IniSection& s) : BusDriver(c,s)
 {
   iface = i;
 }
 
-EMI_Common::EMI_Common (const LinkConnectPtr& c, IniSection& s) : BusDriver(c,s)
+EMI_Common::EMI_Common (const LinkConnectPtr_& c, IniSection& s) : BusDriver(c,s)
 {
 }
 

@@ -305,7 +305,7 @@ EMIVer USBConverterInterface::getEMIVer ()
 }
 
 
-USBDriver::USBDriver (const LinkConnectPtr& c, IniSection& s) : BusDriver (c,s)
+USBDriver::USBDriver (const LinkConnectPtr_& c, IniSection& s) : BusDriver (c,s)
 {
   emi = nullptr;
 }

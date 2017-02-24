@@ -60,7 +60,7 @@ DRIVER(USBDriver,usb)
   EMIPtr emi;
 
 public:
-  USBDriver (const LinkConnectPtr& c, IniSection& s);
+  USBDriver (const LinkConnectPtr_& c, IniSection& s);
   bool setup();
   void start();
   void stop();

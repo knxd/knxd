@@ -30,6 +30,12 @@
 class BaseServer;
 class GroupCache;
 class LinkConnect;
+class Router;
+class RouterHigh;
+class RouterLow;
+
+typedef std::shared_ptr<RouterLow> RouterLowPtr;
+typedef std::shared_ptr<RouterHigh> RouterHighPtr;
 
 /** stores a registered busmonitor callback */
 typedef struct
@@ -44,6 +50,8 @@ typedef struct
 } IgnoreInfo;
 
 class Router : public BaseRouter {
+  friend class RouterLow;
+  friend class RouterHigh;
 public:
   Router(IniData& d, std::string sn);
   virtual ~Router();
@@ -65,7 +73,15 @@ public:
   /** shut down*/
   void stop();
 
-  /** callbacks from link */
+  /** second step, after hitting the global queue */
+  void start_();
+  void stop_();
+
+  /** last step, after hitting the global queue */
+  void started();
+  void stopped();
+
+  /** callbacks from LinkConnect */
   void link_started(const LinkConnectPtr& link);
   void link_stopped(const LinkConnectPtr& link);
 
@@ -111,9 +127,17 @@ private:
 
   bool do_server(ServerPtr &link, IniSection& s, const std::string& servername, bool quiet = false);
   bool do_driver(LinkConnectPtr &link, IniSection& s, const std::string& servername, bool quiet = false);
+
+  RouterLowPtr r_low;
+  RouterHighPtr r_high;
+
+  void send_L_Data(LDataPtr l1); // called by RouterHigh
+  void queue_L_Data(LDataPtr l1); // called by RouterLow
+  void queue_L_Busmonitor (LBusmonPtr l); // called by RouterLow
+
 public:
   /** Look up a filter by name */
-  FilterPtr get_filter(const LinkConnectPtr &link, IniSection& s, const std::string& filtername);
+  FilterPtr get_filter(const LinkConnectPtr_ &link, IniSection& s, const std::string& filtername);
 
   /** Look up a filter by name */
   LowLevelDriver * get_lowlevel(const DriverPtr& parent, IniSection& s, const std::string& lowlevelname);
@@ -163,6 +187,8 @@ private:
 
   /** flag whether some driver is active */
   bool some_running = false;
+  /** suppress "still foo" messages */
+  int in_link_loop = 0;
   /** flag whether new drivers should be active */
   bool want_up = false;
   /** flag whether all drivers are active */
@@ -177,6 +203,9 @@ private:
   bool links_changed = false;
 
 public:
+  /** eventual exit code. Inremebted on fatal error */
+  int exitcode = 0;
+
   /** allow unparsed tags in the config file? */
   bool unknown_ok = false;
   /** flag whether systemd has passed us any file descriptors */
@@ -198,6 +227,63 @@ private:
   bool readaddr (const std::string& addr, eibaddr_t& parsed);
   bool readaddrblock (const std::string& addr, eibaddr_t& parsed, int &len);
 
+};
+
+/** global filter adapter, sending end */
+class RouterHigh : public Driver
+{
+  Router* router;
+public:
+  RouterHigh(Router& r, const RouterLowPtr& rl);
+  virtual ~RouterHigh() {}
+
+  virtual void recv_L_Data (LDataPtr l);
+  virtual void recv_L_Busmonitor (LBusmonPtr l);
+  virtual void send_L_Data (LDataPtr l)
+    {
+      router->send_L_Data(std::move(l));
+    }
+  virtual bool checkAddress (eibaddr_t addr)
+    {
+      LinkConnectPtr link = nullptr;
+      return router->checkAddress(addr, link);
+    }
+  virtual bool checkGroupAddress (eibaddr_t addr)
+    {
+      LinkConnectPtr link = nullptr;
+      return router->checkGroupAddress(addr, link);
+    }
+  virtual bool hasAddress (eibaddr_t addr)
+    {
+      LinkConnectPtr link = nullptr;
+      return router->hasAddress(addr, link);
+    }
+  virtual void addAddress (eibaddr_t addr)
+    {
+      if (addr != router->addr)
+        ERRORPRINTF (t, E_ERROR, "%s filter: Trying to add address %s", router->main, FormatEIBAddr(addr));
+    }
+
+  virtual void start() { router->start_(); }
+  virtual void stop() { router->stop_(); }
+};
+
+/** global filter adapter, receiving end */
+class RouterLow : public LinkConnect_
+{
+public:
+  Router* router;
+  RouterLow(Router& r);
+  virtual ~RouterLow() {}
+
+  virtual void recv_L_Data (LDataPtr l) { router->queue_L_Data (std::move(l)); }
+  virtual void recv_L_Busmonitor (LBusmonPtr l) { router->queue_L_Busmonitor (std::move(l)); }
+
+  virtual void start() { send->start(); }
+  virtual void stopp() { send->stop(); }
+
+  virtual void started() { router->started(); }
+  virtual void stopped() { router->stopped(); }
 };
 
 #endif

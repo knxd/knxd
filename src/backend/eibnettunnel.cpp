@@ -20,7 +20,7 @@
 #include "eibnettunnel.h"
 #include "emi.h"
 
-EIBNetIPTunnel::EIBNetIPTunnel (const LinkConnectPtr& c, IniSection& s)
+EIBNetIPTunnel::EIBNetIPTunnel (const LinkConnectPtr_& c, IniSection& s)
   : BusDriver(c,s)
 {
 }
@@ -187,7 +187,10 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
             TRACEPRINTF (t, 1, "Recv wrong connection response");
             break;
           }
-        conn.lock()->setAddress((cresp.CRD[1] << 8) | cresp.CRD[2]);
+        auto cn = std::dynamic_pointer_cast<LinkConnect>(conn.lock());
+        if (cn != nullptr)
+          cn->setAddress((cresp.CRD[1] << 8) | cresp.CRD[2]);
+        // TODO else reject
         daddr = cresp.daddr;
         if (!cresp.nat)
           {

@@ -419,7 +419,7 @@ void EIBnetServer::drop_trigger_cb(ev::async &w, int revents)
         if (*i == s)
           {
             connections.erase (i);
-            auto c = s->conn.lock();
+            auto c = std::dynamic_pointer_cast<LinkConnect>(s->conn.lock());
             if (c != nullptr)
               static_cast<Router &>(router).unregisterLink(c);
             break;
@@ -790,7 +790,7 @@ EIBnetServer::stop_()
 
   if (mcast)
     {
-      auto c = mcast->conn.lock();
+      auto c = std::dynamic_pointer_cast<LinkConnect>(mcast->conn.lock());
       assert (c);
 
       c->stop();

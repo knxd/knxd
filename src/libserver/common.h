@@ -22,6 +22,7 @@
 
 #include "types.h"
 #include <assert.h>
+#include <ev++.h>
 
 /** Domain address */
 typedef uint16_t domainaddr_t;
@@ -85,6 +86,15 @@ inline T ignore_result(T x __attribute__((unused)))
 {
     return x;
 }
+
+/** libev */
+#if EV_MULTIPLICITY
+  typedef struct ev_loop *LOOP_RESULT;
+#else
+  typedef int LOOP_RESULT;
+#endif
+extern LOOP_RESULT loop;
+
 
 #define CONST const
 #ifdef __GNUC__

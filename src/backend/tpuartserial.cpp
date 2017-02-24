@@ -56,7 +56,7 @@ static speed_t getbaud(int baud) {
     }
 }
 
-TPUARTSerial::TPUARTSerial (const LinkConnectPtr& c, IniSection& s)
+TPUARTSerial::TPUARTSerial (const LinkConnectPtr_& c, IniSection& s)
 	: TPUART_Base (c,s)
 {
 }

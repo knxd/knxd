@@ -53,7 +53,7 @@ static const char* SN(enum TSTATE s)
       return buf[x];
     }
 }
-TPUART_Base::TPUART_Base (const LinkConnectPtr& c, IniSection& s)
+TPUART_Base::TPUART_Base (const LinkConnectPtr_& c, IniSection& s)
 	: sendbuf(), recvbuf(), BusDriver (c,s)
 {
 }
@@ -287,7 +287,7 @@ TPUART_Base::in_check()
           else
             {
               uchar c = 0x10;
-              auto cn = conn.lock();
+              auto cn = std::dynamic_pointer_cast<LinkConnect>(conn.lock());
               if (cn != nullptr)
                 {
                   Router& r = static_cast<Router&>(cn->router);
