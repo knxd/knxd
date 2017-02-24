@@ -213,7 +213,8 @@ public:
   virtual ~LinkBase();
 private:
   /* DEBUG: Flag to make sure that the call sequence is observed */
-  bool setup_called;
+  bool setup_called = false;
+  //volatile char *setup_foo; // see setup()
 public:
   /** config data */
   IniSection &cfg;
@@ -230,7 +231,27 @@ public:
   virtual void send_L_Data (LDataPtr l) = 0;
 
   /** Parse configuration; return False if anything's wrong */
-  virtual bool setup() { assert(!setup_called); setup_called = true; return true; }
+  virtual bool setup()
+    {
+#if 0
+      // Use this code if you want to (ab)use valgrind for tracking which
+      // code path called setup the first time.
+      if (setup_called)
+        { // make sure that this doesn't break anything
+          char x = *setup_foo;
+          *setup_foo = 1;
+          *setup_foo = x;
+        }
+      else
+        {
+          setup_foo = (char *)malloc(1);
+          free((void *)setup_foo);
+        }
+#endif
+      assert (!setup_called);
+      setup_called = true;
+      return true;
+    }
   /** Start up. Ultimately calls started() or stopped() */
   virtual void start() { assert(setup_called); }
   /** Shut down. Ultimately calls stopped() */
