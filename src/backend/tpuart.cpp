@@ -285,7 +285,7 @@ TPUART_Base::in_check()
 
       if (!acked && !recvecho && my_addr == 0 && state >= T_is_online && state < T_busmonitor)
         {
-          if (out.size() >= 6+ext && !((in[0]^out[0])&~0x20) && !memcmp(in.data()+1,out.data()+1,6-ext))
+          if (out.size() >= 6+ext && !((in[0]^out[0])&~0x20) && !memcmp(in.data()+1,out.data()+1,5+ext))
             recvecho = true;
           else
             {
