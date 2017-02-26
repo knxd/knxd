@@ -67,6 +67,21 @@ TPUARTSerial::setup()
   if(!TPUART_Base::setup())
     return false;
 
+  dev = cfg.value("device","");
+  if(dev.size() == 0) 
+    {
+      ERRORPRINTF (t, E_ERROR | 22, "Missing device= config");
+      return false;
+    }
+  baudrate = cfg.value("baudrate", 0);
+  if (baudrate == 0)
+      baudrate = default_baudrate();
+  if (getbaud(baudrate) < 0)
+    {
+      ERRORPRINTF (t, E_ERROR | 22, "Wrong baudrate= config");
+      return false;
+    }
+
   dischreset = cfg.value("reset",false);
   return true;
 }
@@ -82,26 +97,7 @@ TPUARTSerial::setstate(enum TSTATE new_state)
         struct termios t1;
         int term_baudrate;
 
-        char *pch;
-        int baudrate = default_baudrate();
-        pch = strtok((char*)dev, ":");
-        int i = 0;
-
-        while(pch != NULL) {
-
-            switch(i) {
-            case 0:
-              break;
-            case 1:
-                baudrate = atoi(pch);
-                break;
-            }
-
-            pch = strtok(NULL, ":");
-            i++;
-        }
-
-        fd = open (dev, O_RDWR | O_NOCTTY | O_NDELAY | O_SYNC);
+        fd = open (dev.c_str(), O_RDWR | O_NOCTTY | O_NDELAY | O_SYNC);
         if (fd == -1)
           {
             ERRORPRINTF (t, E_ERROR | 22, "Opening %s failed: %s", dev, strerror(errno));
@@ -111,7 +107,7 @@ TPUARTSerial::setstate(enum TSTATE new_state)
 
         close (fd);
 
-        fd = open (dev, O_RDWR | O_NOCTTY | O_SYNC);
+        fd = open (dev.c_str(), O_RDWR | O_NOCTTY | O_SYNC);
         if (fd == -1)
           {
             ERRORPRINTF (t, E_ERROR | 23, "Opening %s failed: %s", dev, strerror(errno));
