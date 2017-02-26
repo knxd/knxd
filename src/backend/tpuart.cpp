@@ -165,19 +165,22 @@ TPUART_Base::send_next(bool done)
 void
 TPUART_Base::start()
 {
-  setup_buffers();
   setstate(T_dev_start);
 }
 
 void
 TPUART_Base::stop()
 {
+  sendbuf.stop();
+  recvbuf.stop();
+
   if (fd >= -1)
     {
       close(fd);
       fd = -1;
     }
   setstate(T_new);
+
   stopped();
 }
 
@@ -494,7 +497,7 @@ TPUART_Base::setstate(enum TSTATE new_state)
     case T_busmonitor:
       {
         uchar c = 0x05;
-        TRACEPRINTF (t, 0, "Send openBusmonitor %02X", &c);
+        TRACEPRINTF (t, 0, "Send openBusmonitor %02X", c);
         sendbuf.write(&c, 1);
       }
       break;
@@ -515,7 +518,7 @@ TPUART_Base::setstate(enum TSTATE new_state)
     case T_wait_keepalive:
       {
         uchar c = 0x02;
-        TRACEPRINTF (t, 0, "Send GetState %02X", &c);
+        TRACEPRINTF (t, 0, "Send GetState %02X", c);
         sendbuf.write(&c, 1);
         timer.start(0.5,0);
         break;

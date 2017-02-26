@@ -36,7 +36,8 @@ DRIVER_(TPUARTSerial,TPUART_Base,tpuarts)
   virtual void termios_settings (struct termios &t);
   virtual unsigned int default_baudrate () { return 19200; }
 
-  const char *dev;
+  std::string dev;
+  int baudrate;
 
 protected:
   void setstate(enum TSTATE state);

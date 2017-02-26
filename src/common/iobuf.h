@@ -48,6 +48,7 @@ public:
   }
   void init(int fd) {
     assert (this->fd == -1);
+    assert (fd >= 0);
     set_non_blocking(fd);
     this->fd = fd;
     io.set<SendBuf, &SendBuf::io_cb>(this);
@@ -116,6 +117,7 @@ public:
   }
   void init(int fd) {
     assert (this->fd == -1);
+    assert (fd >= 0);
     set_non_blocking(fd);
     this->fd = fd;
     io.set<RecvBuf, &RecvBuf::io_cb>(this);

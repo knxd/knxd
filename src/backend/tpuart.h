@@ -46,7 +46,7 @@ class TPUART_Base:public BusDriver
 {
 protected:
   /** device connection */
-  int fd;
+  int fd = -1;
   /** queueing */
   SendBuf sendbuf;
   RecvBuf recvbuf;
