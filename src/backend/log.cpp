@@ -29,7 +29,6 @@ LogFilter::setup()
   auto cn = conn.lock();
   if (cn == nullptr)
     return false;
-  t->setName(name() + '@' + cn->t->name);
   log_state = cfg.value("state",true);
   log_send = cfg.value("send",true);
   log_recv = cfg.value("recv",true);
