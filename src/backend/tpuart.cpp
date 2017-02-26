@@ -316,7 +316,8 @@ TPUART_Base::in_check()
 
       if (in.size() >= len)
         {
-          RecvLPDU (in.data(), in.size());
+          if (!recvecho)
+            RecvLPDU (in.data(), in.size());
           in.clear();
         }
     }
