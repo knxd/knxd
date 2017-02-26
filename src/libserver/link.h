@@ -483,7 +483,7 @@ class Filter : public LinkRecv
 public:
   typedef LinkConnectPtr_ first_arg;
 
-  Filter(const LinkConnectPtr_& c, IniSection& s) : LinkRecv(c->router, s, c->t) { conn = c; }
+  Filter(const LinkConnectPtr_& c, IniSection& s);
   virtual ~Filter();
 
 protected:

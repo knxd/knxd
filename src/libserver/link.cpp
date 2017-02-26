@@ -392,3 +392,11 @@ Driver::push_filter(FilterPtr filter)
   return true;
 }
 
+Filter::Filter(const LinkConnectPtr_& c, IniSection& s)
+    : LinkRecv(c->router, s, c->t)
+{
+  conn = c;
+  t->name += '@';
+  t->name += c->name();
+}
+
