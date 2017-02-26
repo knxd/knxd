@@ -71,7 +71,11 @@ class Trace
   char get_level_char(int level);
 
   void setup();
+
 public:
+  /** set a new name */
+  void setName(std::string name);
+
   /** name(s) and number of this tracer */
   std::string servername;
   std::string name;

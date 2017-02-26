@@ -97,7 +97,6 @@ Trace::setup()
     trace_namelen = this->name.length();
   timestamps = cfg.value("timestamps",timestamps);
   layers = cfg.value("trace-mask",(int)layers);
-  name = cfg.value("name",name);
   int nlevel = error_level(cfg.value("error-level",""),level);
   if (nlevel == -1)
     {
@@ -105,9 +104,16 @@ Trace::setup()
       return;
     }
   level = nlevel;
+  setName(cfg.value("name",name));
+}
+
+void
+Trace::setName(std::string name)
+{
+  this->name = name;
+
   if (trace_namelen < this->name.length())
     trace_namelen = this->name.length();
-
 }
 
 char
