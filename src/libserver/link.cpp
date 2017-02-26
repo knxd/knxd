@@ -396,6 +396,6 @@ Filter::Filter(const LinkConnectPtr_& c, IniSection& s)
     : LinkRecv(c->router, s, c->t)
 {
   conn = c;
-  t->setName(name() + '@' + cn->t->name);
+  t->setName(name() + '@' + c->t->name);
 }
 
