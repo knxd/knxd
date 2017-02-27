@@ -83,7 +83,7 @@ TPUARTTCP::setstate(enum TSTATE new_state)
           goto ex;
         }
       setsockopt (fd, IPPROTO_TCP, TCP_NODELAY, &nodelay, sizeof (nodelay));
-      new_state = T_is_online;
+      new_state = T_start;
 
       setup_buffers();
       TRACEPRINTF (t, 2, "Openend");

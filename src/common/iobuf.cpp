@@ -146,16 +146,20 @@ SendBuf::start()
 }
 
 void
-RecvBuf::stop()
+RecvBuf::stop(bool clear)
 {
     if (!running)
         running = false;
     io.stop();
+    if (clear)
+      fd = -1;
 }
 
 void
-SendBuf::stop()
+SendBuf::stop(bool clear)
 {
     io.stop();
+    if (clear)
+      fd = -1;
 }
 

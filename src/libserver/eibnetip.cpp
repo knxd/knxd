@@ -140,6 +140,7 @@ EIBNetIPSocket::EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr,
   io_send.set<EIBNetIPSocket, &EIBNetIPSocket::io_send_cb>(this);
   io_recv.set<EIBNetIPSocket, &EIBNetIPSocket::io_recv_cb>(this);
   on_recv.set<EIBNetIPSocket, &EIBNetIPSocket::on_recv_cb>(this); // dummy
+  on_error.set<EIBNetIPSocket, &EIBNetIPSocket::on_error_cb>(this); // dummy
 
   fd = socket (AF_INET, SOCK_DGRAM, 0);
   if (fd == -1)
@@ -306,6 +307,7 @@ EIBNetIPSocket::io_send_cb (ev::io &w, int revents)
               t->TracePacket (0, "EIBnetSocket:drop", p);
               send_q.get ();
               send_error = 0;
+              on_error();
             }
         }
     }
@@ -321,7 +323,9 @@ EIBNetIPSocket::io_recv_cb (ev::io &w, int revents)
   memset (&r, 0, sizeof (r));
 
   int i = recvfrom (fd, buf, sizeof (buf), 0, (struct sockaddr *) &r, &rl);
-  if (i > 0 && rl == sizeof (r))
+  if (i == 0 || (i < 0 && errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR))
+    on_error();
+  else if (i > 0 && rl == sizeof (r))
     {
       if (recvall == 1 || !memcmp (&r, &recvaddr, sizeof (r)) ||
           (recvall == 2 && memcmp (&r, &localaddr, sizeof (r))) ||

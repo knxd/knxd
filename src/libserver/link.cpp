@@ -27,15 +27,17 @@ Driver::~Driver() { }
 BusDriver::~BusDriver() { }
 SubDriver::~SubDriver() { }
 LineDriver::~LineDriver() { }
+LinkConnect_::~LinkConnect_() { }
 Filter::~Filter() { }
 Server::~Server() { }
 BaseRouter::~BaseRouter() { }
-LinkConnect_::~LinkConnect_() { }
 LinkConnectClient::~LinkConnectClient() { }
 LinkConnectSingle::~LinkConnectSingle() { }
 
 LinkConnect::~LinkConnect()
 {
+  retry_timer.stop();
+
   if (addr && addr_local)
     static_cast<Router &>(router).release_client_addr(addr);
 }
@@ -64,8 +66,15 @@ LinkConnect::LinkConnect(BaseRouter& r, IniSection& c, TracePtr tr)
    : LinkConnect_(r,c,tr)
 {
   //Router& rt = dynamic_cast<Router&>(r);
+  retry_timer.set <LinkConnect,&LinkConnect::retry_timer_cb> (this);
 }
 
+void
+LinkConnect::retry_timer_cb (ev::timer &w, int revents)
+{
+  retries++;
+  start();
+}
 
 void
 LinkConnect::setAddress(eibaddr_t addr)
@@ -107,6 +116,10 @@ LinkConnect_::start()
 void
 LinkConnect::stop()
 {
+  retry_timer.stop();
+  if (running && !switching)
+    retries = 0;
+
   if (!running || switching)
     return;
   TRACEPRINTF(t, 5, "Stopping");
@@ -173,10 +186,11 @@ LinkConnect::setup()
 {
   if (!LinkConnect_::setup())
     return false;
-  return true;
 
   ignore = cfg.value("ignore",false);
   may_fail = cfg.value("may-fail",false);
+  retry_delay = cfg.value("retry",0);
+  return true;
 }
 
 bool
@@ -262,6 +276,8 @@ LinkConnect::started()
 void
 LinkConnect::stopped()
 {
+  if (running != switching && retry_delay)
+    retry_timer.start(retry_delay,0);
   running = false;
   switching = false;
   changed = time(NULL);

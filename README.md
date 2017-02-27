@@ -55,6 +55,10 @@ Please switch to the v0.12 branch for production use.
     (inconsistently bit 1, 2, or 8 of the tracing mask) has been removed
     from individual drivers.
 
+    This also applies to global packet logging.
+
+  * knxd can restart links when they fail, or start to come up.
+
 ## Building
 
 On Debian:

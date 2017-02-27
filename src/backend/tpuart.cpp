@@ -56,6 +56,8 @@ static const char* SN(enum TSTATE s)
 TPUART_Base::TPUART_Base (const LinkConnectPtr_& c, IniSection& s)
 	: sendbuf(), recvbuf(), BusDriver (c,s)
 {
+  timer.set <TPUART_Base,&TPUART_Base::timer_cb> (this);
+  sendtimer.set <TPUART_Base,&TPUART_Base::sendtimer_cb> (this);
 }
 
 bool
@@ -88,8 +90,6 @@ TPUART_Base::setup_buffers()
   recvbuf.on_recv_cb.set<TPUART_Base,&TPUART_Base::read_cb>(this);
   recvbuf.on_error_cb.set<TPUART_Base,&TPUART_Base::error_cb>(this);
   sendbuf.on_error_cb.set<TPUART_Base,&TPUART_Base::error_cb>(this);
-  timer.set <TPUART_Base,&TPUART_Base::timer_cb> (this);
-  sendtimer.set <TPUART_Base,&TPUART_Base::sendtimer_cb> (this);
 
   sendbuf.start();
   recvbuf.start();
@@ -98,7 +98,7 @@ TPUART_Base::setup_buffers()
 void
 TPUART_Base::error_cb()
 {
-  TRACEPRINTF (t, 2, "ERROR");
+  ERRORPRINTF (t, E_ERROR | 23, "Communication error: %s", strerror(errno));
   stop();
 }
 
@@ -106,13 +106,15 @@ TPUART_Base::~TPUART_Base ()
 {
   TRACEPRINTF (t, 2, "Close");
 
-  sendbuf.stop();
-  recvbuf.stop();
   timer.stop();
   sendtimer.stop();
 
   if (fd != -1)
-    close (fd);
+    {
+      sendbuf.stop(true);
+      recvbuf.stop(true);
+      close (fd);
+    }
 }
 
 void
@@ -165,17 +167,18 @@ TPUART_Base::send_next(bool done)
 void
 TPUART_Base::start()
 {
+  setstate(T_new);
   setstate(T_dev_start);
 }
 
 void
 TPUART_Base::stop()
 {
-  sendbuf.stop();
-  recvbuf.stop();
-
   if (fd >= -1)
     {
+      sendbuf.stop(true);
+      recvbuf.stop(true);
+
       close(fd);
       fd = -1;
     }
@@ -227,8 +230,10 @@ TPUART_Base::timer_cb(ev::timer &w, int revents)
     }
   switch(state)
     {
-    case T_new:
     case T_error:
+      stop();
+      break;
+    case T_new:
       break;
     case T_in_reset:
       if (retry < 3)
@@ -523,6 +528,10 @@ TPUART_Base::setstate(enum TSTATE new_state)
         timer.start(0.5,0);
         break;
       }
+
+    case T_error:
+      timer.start(1,0);
+      break;
 
     default:
       break;

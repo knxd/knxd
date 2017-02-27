@@ -243,7 +243,7 @@ and
 Common options
 --------------
 
-These options apply to all drivers (and servers).
+These options apply to all drivers and servers.
 
   * ignore (bool)
 
@@ -254,6 +254,17 @@ These options apply to all drivers (and servers).
   * may-fail (bool)
 
     The driver is started, but does not block starting to route packets.
+
+  * retry (int)
+
+    If the driver fails to start (or dies), knxd will restart it after this
+    many seconds.
+
+    Default: zero: no restart.
+
+If "retry" is active but "may-fail" is false, the driver must start
+correctly when knxd starts up. It will only be restarted once knxd is, or
+rather has been, fully operative.
 
 dummy
 -----
@@ -440,8 +451,8 @@ A TPUART or TPUART-2 interface connected via a remote TCP socket.
 
     Mandatory.
 
-Common options
---------------
+More common options
+-------------------
 
 Some drivers accept these options.
 
@@ -465,6 +476,9 @@ Some drivers accept these options.
     forward. This option is usually a no-op because knxd forwards all
     packets anyway.
 
+    This option only applies to drivers which directly connect to a
+    twisted-pair KNX wire.
+
     Optional; default false.
 
   * ack-individual (bool)
@@ -473,6 +487,9 @@ Some drivers accept these options.
     forward. This option is not a no-op because, while knxd defaults to
     forwarding all packets, it won't accept messages to devices that it
     knows to be on the same bus as the message in question.
+
+    This option only applies to drivers which directly connect to a
+    twisted-pair KNX wire.
 
     Optional; default false.
 
@@ -499,7 +516,8 @@ Some drivers accept these options.
     If you want to log all packets passing through knxd, use the
     "vbusmonitor" commands instead.
 
-    There is no way to switch a device from bus monitoring to normal mode.
+    There is no way to switch between bus monitoring and normal mode.
+    This is intentional.
 
 Servers
 =======
@@ -508,11 +526,18 @@ A server is a point of connection which knxd establishes so that other
 interfaces, routers or clients may connect to it. (In contrast, a driver is
 a link to a KNX interface or router which knxd establishes when it starts up.)
 
+Common options
+--------------
+
+See the "Common options" section under "Drivers", above.
+
 router
 ------
 
 The "router" server allows clients to discover knxd and to connect to it
 with the standardized KNX tunneling or routing protocols.
+
+*Do not* use the "router" server and the "ip" driver at the same time.
 
   * tunnel (str)
 

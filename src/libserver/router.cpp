@@ -82,7 +82,6 @@ Router::Router (IniData& d, std::string sn) : BaseRouter(d),main(sn)
   trigger.set<Router, &Router::trigger_cb>(this);
   mtrigger.set<Router, &Router::mtrigger_cb>(this);
   state_trigger.set<Router, &Router::state_trigger_cb>(this);
-  state_timeout.set <Router,&Router::state_timeout_cb> (this);
   trigger.start();
   mtrigger.start();
   state_trigger.start();
@@ -345,14 +344,15 @@ void
 Router::link_stopped(const LinkConnectPtr& link)
 {
   TRACEPRINTF (link->t, 4, "R state: stopped");
-  if(want_up && !link->may_fail)
-    exitcode += 1;
   state_trigger.send();
-}
 
-void
-Router::state_timeout_cb (ev::timer &w, int revents)
-{
+  if(! want_up)
+    return;
+  if (link->may_fail)
+    return;
+  if (running_signal && link->retry_delay > 0)
+    return;
+  exitcode += 1;
 }
 
 void
@@ -429,10 +429,12 @@ Router::stop_()
       seen = false;
       ITER(i,links)
         {
-          if (i->second->running == i->second->switching)
-            continue;
+          if (!i->second->running && i->second->switching)
+            continue; // already going down
           if (i->second->seq >= seq)
-            continue;
+            continue; // already told it
+          // note that we're stopping even if already stopped, which is
+          // because this will kill its restart timer
           TRACEPRINTF (i->second->t, 3, "Stop: %s", i->second->info(0));
           seen = true;
           i->second->seq = seq;
@@ -481,7 +483,6 @@ Router::~Router()
   trigger.stop();
   mtrigger.stop();
   state_trigger.stop();
-  state_timeout.stop();
 
   R_ITER(i,vbusmonitor)
     ERRORPRINTF (t, E_WARNING | 55, "VBusmonitor '%s' didn't de-register!", i->cb->name);

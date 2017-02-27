@@ -344,16 +344,19 @@ class EIBNetIPSocket
 
 public:
   p_recv_cb on_recv;
+  error_cb on_error;
 private:
   void on_recv_cb(EIBNetIPPacket *p)
     {
       t->TracePacket (0, "Drop", p->data);
       delete p;
     }
+  void on_error_cb() { stop(); }
 
-  /** input queue */
+  /** output queue */
   Queue < struct _EIBNetIP_Send > send_q;
   void send_q_drop();
+
   /** multicast address */
   struct ip_mreq maddr;
   /** file descriptor */
@@ -372,9 +375,7 @@ public:
   bool SetMulticast (struct ip_mreq multicastaddr);
   /** sends a packet */
   void Send (EIBNetIPPacket p, struct sockaddr_in addr);
-  void Send (EIBNetIPPacket p) {
-    Send (p, sendaddr);
-  }
+  void Send (EIBNetIPPacket p) { Send (p, sendaddr); }
 
   /** get the port this socket is bound to (network byte order) */
   int port ();

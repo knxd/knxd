@@ -88,6 +88,7 @@ class EIBnetDriver : public SubDriver
 
   void on_recv_cb(EIBNetIPPacket *p);
   p_recv_cb on_recv;
+  void on_error_cb();
 
 public:
   EIBnetDriver (LinkConnectClientPtr c, std::string& multicastaddr, int port, std::string& intf);
@@ -136,6 +137,7 @@ SERVER(EIBnetServer,ets_router)
   void addNAT (const LDataPtr &&l);
 
   void on_recv_cb(EIBNetIPPacket *p);
+  void on_error_cb();
 
   void stop_();
 public:

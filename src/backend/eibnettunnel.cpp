@@ -87,7 +87,7 @@ EIBNetIPTunnel::start()
 
   trigger.start();
 
-  sock = 0;
+  sock = nullptr;
   if (!GetHostIP (t, &caddr, dest))
     goto ex;
   caddr.sin_port = htons (port);
@@ -97,8 +97,9 @@ EIBNetIPTunnel::start()
   NAT = false;
   sock = new EIBNetIPSocket (raddr, 0, t);
   if (!sock->init ())
-        goto ex;
+    goto ex;
   sock->on_recv.set<EIBNetIPTunnel,&EIBNetIPTunnel::on_recv_cb>(this);
+  sock->on_error.set<EIBNetIPTunnel,&EIBNetIPTunnel::on_error_cb>(this);
 
   if (srcip.size())
     {
@@ -141,6 +142,13 @@ EIBNetIPTunnel::send_L_Data (LDataPtr l)
 {
   send_q.put (L_Data_ToCEMI (0x11, l));
   trigger.send();
+}
+
+void
+EIBNetIPTunnel::on_error_cb ()
+{
+  ERRORPRINTF (t, E_ERROR | 23, "Communication error: %s", strerror(errno));
+  stop();
 }
 
 void

@@ -65,7 +65,7 @@ public:
   };
 
   void start();
-  void stop();
+  void stop(bool clear = false);
 
   void write(const uchar *buf, size_t len) {
     CArray *data = new CArray(buf, len);
@@ -128,7 +128,7 @@ public:
   virtual ~RecvBuf() {};
 
   void start();
-  void stop();
+  void stop(bool clear = false);
   bool running = false;
 
 protected:

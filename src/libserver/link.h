@@ -374,8 +374,15 @@ public:
   int seq = 0;
   /** last state change */
   time_t changed = 0;
+  /** retry timer */
+  int retry_delay = 0;
+  /** how often …? */
+  int retries = 0;
 
 private:
+  ev::timer retry_timer;
+  void retry_timer_cb(ev::timer &w, int revents);
+
   bool addr_local = true;
 
 public:
