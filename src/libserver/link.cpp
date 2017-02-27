@@ -102,6 +102,8 @@ LinkConnect::start()
   TRACEPRINTF(t, 5, "Starting");
   running = false;
   switching = true;
+  need_send_more = false;
+  send_more = true;
   changed = time(NULL);
   LinkConnect_::start();
 }
@@ -274,6 +276,14 @@ LinkConnect::started()
 }
 
 void
+LinkConnect::send_Next()
+{
+  need_send_more = true;
+  send_more = true;
+  static_cast<Router&>(router).send_Next();
+}
+
+void
 LinkConnect::stopped()
 {
   if (running != switching && retry_delay)
@@ -324,11 +334,27 @@ LineDriver::LineDriver(const LinkConnectClientPtr& c)
 }
 
 void
+Driver::send_Next()
+{
+  auto r = recv.lock();
+  if (r != nullptr)
+    r->send_Next();
+}
+
+void
 Driver::recv_L_Data (LDataPtr l)
 {
   auto r = recv.lock();
   if (r != nullptr)
     r->recv_L_Data(std::move(l));
+}
+
+void
+Filter::send_Next()
+{
+  auto r = recv.lock();
+  if (r != nullptr)
+    r->send_Next();
 }
 
 void

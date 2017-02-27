@@ -291,6 +291,8 @@ public:
   virtual void recv_L_Data (LDataPtr l) = 0;
   /** Arriving monitor packet */
   virtual void recv_L_Busmonitor (LBusmonPtr l) = 0;
+  /** packet buffer is empty */
+  virtual void send_Next () = 0;
 
   /** Call for drivers to find a filter, if it exists */
   virtual FilterPtr findFilter(std::string name) { return nullptr; }
@@ -385,7 +387,16 @@ private:
 
   bool addr_local = true;
 
+  /* Flow control. need_send_more is true if the driver ever called send_more(). */
+  /* send_more will only be cleared when need_send_more is true. */
+  bool need_send_more = false;
 public:
+  bool send_more = true;
+  virtual void send_L_Data (LDataPtr l)
+    {
+      LinkConnect_::send_L_Data(std::move(l));
+    }
+
   /** This is responsible for setting up the filters. Don't call it twice!
    * Precondition: set_driver() has been called. */
   virtual bool setup();
@@ -399,6 +410,7 @@ public:
   virtual void stopped();
   virtual void recv_L_Data (LDataPtr l); // { l3.recv_L_Data(std::move(l), this); }
   virtual void recv_L_Busmonitor (LBusmonPtr l); // { l3.recv_L_Busmonitor(std::move(l), this); }
+  virtual void send_Next ();
 };
 
 /** connection for a server's client */
@@ -507,6 +519,7 @@ public:
   virtual void send_L_Data (LDataPtr l) { send->send_L_Data(std::move(l)); }
   virtual void recv_L_Data (LDataPtr l); // recv->recv_L_Data(std::move(l));
   virtual void recv_L_Busmonitor (LBusmonPtr l); // recv->recv_L_Busmonitor(std::move(l));
+  virtual void send_Next ();
   virtual void started(); // recv->started()
   virtual void stopped(); // recv->stopped()
 
@@ -586,6 +599,7 @@ protected:
 public:
   virtual void recv_L_Data (LDataPtr l);
   virtual void recv_L_Busmonitor (LBusmonPtr l);
+  virtual void send_Next ();
   virtual void started();
   virtual void stopped();
 

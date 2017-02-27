@@ -61,6 +61,14 @@ Please switch to the v0.12 branch for production use.
 
   * knxd can restart links when they fail, or start to come up.
 
+  * Queuing and flow control.
+
+    Previously, drivers which needed it implemented their own queue for
+    outgoing packets, resulting in duplicate code and hidden error.
+
+    Now, the central send queue will pace packets for the slowest device;
+    if you don't want that, use a "queue" filter.
+
 ## Building
 
 On Debian:

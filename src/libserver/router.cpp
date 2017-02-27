@@ -338,6 +338,35 @@ Router::link_started(const LinkConnectPtr& link)
 {
   TRACEPRINTF (link->t, 4, "R state: started");
   state_trigger.send();
+  send_Next();
+}
+
+void
+Router::send_Next()
+{
+  if (high_sending)
+    {
+      TRACEPRINTF (t, 6, "SN: sending set");
+      return;
+    }
+  if (high_send_more)
+    {
+      TRACEPRINTF (t, 6, "SN: send_more set");
+      return;
+    }
+  ITER(i,links)
+    {
+      if (!i->second->running || i->second->switching)
+        continue;
+      if (!i->second->send_more)
+        {
+          TRACEPRINTF (i->second->t, 6, "SN: still waiting");
+          return;
+        }
+    }
+  TRACEPRINTF (t, 6, "SN: OK");
+  high_send_more = true;
+  r_high->send_Next();
 }
 
 void
@@ -345,6 +374,7 @@ Router::link_stopped(const LinkConnectPtr& link)
 {
   TRACEPRINTF (link->t, 4, "R state: stopped");
   state_trigger.send();
+  send_Next();
 
   if(! want_up)
     return;
@@ -451,12 +481,15 @@ Router::stop_()
 void
 Router::started()
 {
+  low_send_more = true;
+  high_send_more = true;
+  trigger.send();
+  mtrigger.send();
+
   if (all_running && !running_signal)
     {
       running_signal = true;
       TRACEPRINTF (t, 4, "R state: all drivers up");
-      trigger.send();
-      mtrigger.send();
 #ifdef HAVE_SYSTEMD
       sd_notify(0,"READY=1");
 #endif
@@ -791,7 +824,7 @@ Router::trigger_cb (ev::async &w, int revents)
 {
   unsigned i;
 
-  while (!buf.isempty())
+  while (!buf.isempty() && low_send_more)
     {
       LDataPtr l1 = buf.get ();
 
@@ -829,9 +862,13 @@ Router::trigger_cb (ev::async &w, int revents)
           && l1->dest == this->addr)
         l1->dest = 0;
 
+      low_send_more = false;
       r_low->send_L_Data(std::move(l1));
     next:;
     }
+
+  if (!low_send_more)
+    TRACEPRINTF (t, 6, "SN: wait L");
 
   // Timestamps are ordered, so we scan for the first 
   timestamp_t tm = getTime ();
@@ -846,6 +883,9 @@ Router::trigger_cb (ev::async &w, int revents)
 void
 Router::send_L_Data(LDataPtr l1)
 {
+  assert(high_send_more);
+  high_sending = true;
+  high_send_more = false;
   if (l1->AddrType == GroupAddress)
     {
       // This is easy: send to all other L2 which subscribe to the
@@ -885,7 +925,8 @@ Router::send_L_Data(LDataPtr l1)
             i->second->send_L_Data (LDataPtr(new L_Data_PDU (*l1)));
         }
     }
-
+  high_sending = false;
+  send_Next(); // check readiness
 }
 
 void
@@ -950,4 +991,12 @@ RouterHigh::RouterHigh(Router& r, const RouterLowPtr& rl)
 RouterLow::RouterLow(Router& r)
     : router(&r), LinkConnect_(r, r.ini[r.main], r.t)
 {}
+
+void
+RouterLow::send_Next()
+{
+  router->low_send_more = true;
+  TRACEPRINTF (t, 6, "SN: OK L");
+  router->trigger.send();
+}
 

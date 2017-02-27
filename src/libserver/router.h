@@ -118,6 +118,8 @@ public:
   void recv_L_Data (LDataPtr l, LinkConnect& link);
   /** accept a L_Busmonitor frame */
   void recv_L_Busmonitor (LBusmonPtr l);
+  /** packet buffer is empty */
+  void send_Next();
 
 private:
   Factory<Server>& servers;
@@ -137,6 +139,11 @@ private:
 
   /** loop counter for keeping track of iterators */
   int seq = 1;
+
+  /** Markers to continue sending */
+  bool low_send_more = false;
+  bool high_send_more = false;
+  bool high_sending = false;
 
 public:
   /** Look up a filter by name */
@@ -283,6 +290,7 @@ public:
 
   virtual void recv_L_Data (LDataPtr l) { router->queue_L_Data (std::move(l)); }
   virtual void recv_L_Busmonitor (LBusmonPtr l) { router->queue_L_Busmonitor (std::move(l)); }
+  virtual void send_Next ();
 
   virtual void start() { send->start(); }
   virtual void stop() { send->stop(); }
