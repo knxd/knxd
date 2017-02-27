@@ -44,7 +44,6 @@ EIBNetIPTunnel::~EIBNetIPTunnel ()
 void EIBNetIPTunnel::is_stopped()
 {
   timeout.stop();
-  sendtimeout.stop();
   conntimeout.stop();
   trigger.stop();
   delete sock;
@@ -64,7 +63,6 @@ EIBNetIPTunnel::setup()
     }
   port = cfg.value("dest-port",3671);
   sport = cfg.value("src-port",0);
-  send_delay = cfg.value("send-delay",0);
   NAT = cfg.value("nat",false);
   monitor = cfg.value("monitor",false);
   if(NAT)
@@ -82,7 +80,6 @@ EIBNetIPTunnel::start()
 
   timeout.set <EIBNetIPTunnel,&EIBNetIPTunnel::timeout_cb> (this);
   conntimeout.set <EIBNetIPTunnel,&EIBNetIPTunnel::conntimeout_cb> (this);
-  sendtimeout.set <EIBNetIPTunnel,&EIBNetIPTunnel::sendtimeout_cb> (this);
   trigger.set <EIBNetIPTunnel,&EIBNetIPTunnel::trigger_cb> (this);
 
   trigger.start();
@@ -348,15 +345,7 @@ EIBNetIPTunnel::read_cb (EIBNetIPPacket *p1)
             if (sno > 0xff)
               sno = 0;
             out.clear(); send_Next();
-            if (send_delay)
-              {
-                mod = 3;
-                sendtimeout.start(send_delay, 0);
-              }
-            else
-              {
-                mod = 1; trigger.send();
-              }
+            mod = 1; trigger.send();
             retry = 0;
           }
         else
@@ -561,15 +550,6 @@ EIBNetIPTunnel::stop()
       sock->recvall = 0;
       mod = 0;
       conntimeout.start(0.1,0);
-    }
-}
-
-void
-EIBNetIPTunnel::sendtimeout_cb(ev::timer &w, int revents)
-{
-  if (mod == 3)
-    {
-      mod = 1; trigger.send();
     }
 }
 

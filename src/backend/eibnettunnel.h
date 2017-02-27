@@ -48,9 +48,7 @@ DRIVER(EIBNetIPTunnel,ipt)
   int heartbeat = 0;
   int retry = 0;
 
-  float send_delay;
   ev::timer timeout; void timeout_cb(ev::timer &w, int revents);
-  ev::timer sendtimeout; void sendtimeout_cb(ev::timer &w, int revents);
   ev::timer conntimeout; void conntimeout_cb(ev::timer &w, int revents);
   ev::async trigger; void trigger_cb(ev::async &w, int revents);
   
