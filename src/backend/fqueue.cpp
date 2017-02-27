@@ -34,6 +34,13 @@ QueueFilter::~QueueFilter()
 bool
 QueueFilter::setup()
 {
+  if(std::dynamic_pointer_cast<LinkConnect>(conn.lock()) == nullptr)
+    {
+      ERRORPRINTF(t, E_ERROR, "You can't use the 'queue' filter globally");
+      return false;
+    }
+  if (findFilter("queue", true) != nullptr)
+    ERRORPRINTF(t, E_WARNING, "Two queue filters on a link does not make sense");
   if (!Filter::setup())
     return false;
   // XXX options?

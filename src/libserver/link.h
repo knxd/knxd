@@ -295,7 +295,7 @@ public:
   virtual void send_Next () = 0;
 
   /** Call for drivers to find a filter, if it exists */
-  virtual FilterPtr findFilter(std::string name) { return nullptr; }
+  virtual FilterPtr findFilter(std::string name, bool skip_me = false) { return nullptr; }
 
   /** The thing to send data to. */
   LinkBasePtr send = nullptr;
@@ -556,7 +556,7 @@ public:
   virtual bool checkAddress (eibaddr_t addr) { return send->checkAddress(addr); }
   virtual bool checkGroupAddress (eibaddr_t addr) { return send->checkGroupAddress(addr); }
 
-  virtual FilterPtr findFilter(std::string name);
+  virtual FilterPtr findFilter(std::string name, bool skip_me = false);
 };
 
 #ifdef NO_MAP
@@ -627,7 +627,7 @@ public:
 
   /** Find a filter below me.
    * This checks the filter= value, not the section. */
-  virtual FilterPtr findFilter(std::string name);
+  virtual FilterPtr findFilter(std::string name, bool skip_me = false);
 };
 
 class BusDriver : public Driver

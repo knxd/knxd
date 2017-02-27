@@ -150,18 +150,18 @@ Driver::name()
 }
 
 FilterPtr
-Filter::findFilter(std::string name)
+Filter::findFilter(std::string name, bool skip_me)
 {
   auto r = recv.lock();
   if (r == nullptr)
     return nullptr;
-  if (this->name() == name)
+  if (!skip_me && this->name() == name)
     return std::static_pointer_cast<Filter>(shared_from_this());
-  return r->findFilter(name);
+  return r->findFilter(name, false);
 }
 
 FilterPtr
-Driver::findFilter(std::string name)
+Driver::findFilter(std::string name, bool skip_me UNUSED)
 {
   auto r = recv.lock();
   if (r == nullptr)
