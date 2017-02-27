@@ -40,6 +40,11 @@ public:
   using std::queue<_T>::pop;
   using std::queue<_T>::push;
 
+  inline void clear()
+    {
+      while (!isempty())
+        pop();
+    }
 
   inline void put (value_type && el)
     {
