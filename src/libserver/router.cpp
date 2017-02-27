@@ -82,6 +82,7 @@ Router::Router (IniData& d, std::string sn) : BaseRouter(d),main(sn)
   trigger.set<Router, &Router::trigger_cb>(this);
   mtrigger.set<Router, &Router::mtrigger_cb>(this);
   state_trigger.set<Router, &Router::state_trigger_cb>(this);
+  state_timeout.set <Router,&Router::state_timeout_cb> (this);
   trigger.start();
   mtrigger.start();
   state_trigger.start();
@@ -350,6 +351,11 @@ Router::link_stopped(const LinkConnectPtr& link)
 }
 
 void
+Router::state_timeout_cb (ev::timer &w, int revents)
+{
+}
+
+void
 Router::state_trigger_cb (ev::async &w, int revents)
 {
   bool oarn = all_running;
@@ -475,6 +481,7 @@ Router::~Router()
   trigger.stop();
   mtrigger.stop();
   state_trigger.stop();
+  state_timeout.stop();
 
   R_ITER(i,vbusmonitor)
     ERRORPRINTF (t, E_WARNING | 55, "VBusmonitor '%s' didn't de-register!", i->cb->name);

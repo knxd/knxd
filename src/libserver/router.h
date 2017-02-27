@@ -168,6 +168,10 @@ private:
   ev::async state_trigger;
   void state_trigger_cb (ev::async &w, int revents);
 
+  int retry_time;
+  ev::timer state_timeout;
+  void state_timeout_cb(ev::timer &w, int revents);
+
   /** buffer queues for receiving from L2 */
   Queue < LDataPtr > buf;
   Queue < LBusmonPtr > mbuf;

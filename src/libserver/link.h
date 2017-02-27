@@ -372,6 +372,8 @@ public:
 
   /** loop counter for the router */
   int seq = 0;
+  /** last state change */
+  time_t changed = 0;
 
 private:
   bool addr_local = true;
