@@ -238,7 +238,7 @@ A_Broadcast::recv_Data(uint8_t *buf, size_t len)
 {
   if (len < 2 || EIBTYPE (buf) != EIB_APDU_PACKET)
     {
-      on_error_cb();
+      on_error();
       return;
     }
   con->t->TracePacket (7, "recv Broadcast", len - 2, buf + 2);
@@ -250,7 +250,7 @@ A_Group::recv_Data(uint8_t *buf, size_t len)
 {
   if (len < 2 || EIBTYPE (buf) != EIB_APDU_PACKET)
     {
-      on_error_cb();
+      on_error();
       return;
     }
   con->t->TracePacket (7, "recv Group", len - 2, buf + 2);
@@ -262,7 +262,7 @@ A_TPDU::recv_Data(uint8_t *buf, size_t len)
 {
   if (len < 4 || EIBTYPE (buf) != EIB_APDU_PACKET)
     {
-      on_error_cb();
+      on_error();
       return;
     }
   con->t->TracePacket (7, "recv TPDU", len - 4, buf + 4);
@@ -277,7 +277,7 @@ A_Individual::recv_Data(uint8_t *buf, size_t len)
 {
   if (len < 2 || EIBTYPE (buf) != EIB_APDU_PACKET)
     {
-      on_error_cb();
+      on_error();
       return;
     }
   con->t->TracePacket (7, "recv Indiv", len - 2, buf + 2);
@@ -289,7 +289,7 @@ A_Connection::recv_Data(uint8_t *buf, size_t len)
 {
   if (len < 2 || EIBTYPE (buf) != EIB_APDU_PACKET)
     {
-      on_error_cb();
+      on_error();
       return;
     }
   con->t->TracePacket (7, "recv Conn", len - 2, buf + 2);
@@ -301,7 +301,7 @@ A_GroupSocket::recv_Data(uint8_t *buf, size_t len)
 {
   if (len < 4 || EIBTYPE (buf) != EIB_GROUP_PACKET)
     {
-      on_error_cb();
+      on_error();
       return;
     }
   con->t->TracePacket (7, "recv GroupSock", len - 4, buf + 4);

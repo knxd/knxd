@@ -59,7 +59,7 @@ private:
   ev::timer timeout;
   void timeout_cb(ev::timer &w, int revents);
 
-  void on_recv_cb(CArray *p);
+  void read_cb(CArray *p);
 
 public:
   EMI_Common (const LinkConnectPtr_& c, IniSection& s);

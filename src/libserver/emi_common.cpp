@@ -66,7 +66,7 @@ EMI_Common::setup()
     }
   if (!iface->setup (std::dynamic_pointer_cast<Driver>(shared_from_this())))
     return false;
-  iface->on_recv.set<EMI_Common,&EMI_Common::on_recv_cb>(this);
+  iface->on_recv.set<EMI_Common,&EMI_Common::read_cb>(this);
   send_delay = cfg.value("send-delay",0);
   monitor = cfg.value("monitor",false);
   return true;
@@ -160,7 +160,7 @@ EMI_Common::trigger_cb (ev::async &w, int revents)
 }
 
 void
-EMI_Common::on_recv_cb(CArray *c)
+EMI_Common::read_cb(CArray *c)
 {
   t->TracePacket (1, "RecvEMI", *c);
   const uint8_t *ind = getIndTypes();

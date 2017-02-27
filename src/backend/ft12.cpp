@@ -110,9 +110,9 @@ FT12LowLevelDriver::setup_buffers()
   sendbuf.init(fd);
   recvbuf.init(fd);
 
-  recvbuf.on_recv_cb.set<FT12LowLevelDriver,&FT12LowLevelDriver::read_cb>(this);
-  recvbuf.on_error_cb.set<FT12LowLevelDriver,&FT12LowLevelDriver::error_cb>(this);
-  sendbuf.on_error_cb.set<FT12LowLevelDriver,&FT12LowLevelDriver::error_cb>(this);
+  recvbuf.on_read.set<FT12LowLevelDriver,&FT12LowLevelDriver::read_cb>(this);
+  recvbuf.on_error.set<FT12LowLevelDriver,&FT12LowLevelDriver::error_cb>(this);
+  sendbuf.on_error.set<FT12LowLevelDriver,&FT12LowLevelDriver::error_cb>(this);
   timer.set <FT12LowLevelDriver,&FT12LowLevelDriver::timer_cb> (this);
   sendtimer.set <FT12LowLevelDriver,&FT12LowLevelDriver::sendtimer_cb> (this);
 

@@ -31,14 +31,14 @@ public:
     {
       t = TracePtr(new Trace(*(cc->t), cc->t->name+":"+FormatEIBAddr(cc->addr)));
       con = cc;
-      on_error_cb.set<A__Base,&A__Base::on_error>(this);
+      on_error.set<A__Base,&A__Base::error_cb>(this);
     }
   virtual ~A__Base() {}
 
   ClientConnPtr con;
   LinkConnectSinglePtr lc;
-  error_cb on_error_cb;
-  void on_error() {}
+  InfoCallback on_error;
+  void error_cb() {}
 
   virtual void recv_Data(uint8_t *buf, size_t len) = 0; // to socket
 

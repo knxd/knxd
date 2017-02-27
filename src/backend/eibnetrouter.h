@@ -34,7 +34,7 @@ DRIVER(EIBNetIPRouter,ip)
   uint16_t port;
   bool monitor;
 
-  void on_recv_cb(EIBNetIPPacket *p);
+  void read_cb(EIBNetIPPacket *p);
 public:
   EIBNetIPRouter (const LinkConnectPtr_& c, IniSection& s);
   virtual ~EIBNetIPRouter ();

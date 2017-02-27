@@ -77,8 +77,8 @@ EIBnetDriver::EIBnetDriver (LinkConnectClientPtr c,
         goto err_out;
       if (!sock->init ())
         goto err_out;
-      sock->on_recv.set<EIBnetDriver,&EIBnetDriver::on_recv_cb>(this);
-      sock->on_error.set<EIBnetDriver,&EIBnetDriver::on_error_cb>(this);
+      sock->on_recv.set<EIBnetDriver,&EIBnetDriver::recv_cb>(this);
+      sock->on_error.set<EIBnetDriver,&EIBnetDriver::error_cb>(this);
     }
   else
     {
@@ -197,8 +197,8 @@ EIBnetServer::start()
   if (!sock->init ())
     goto err_out2;
 
-  sock->on_recv.set<EIBnetServer,&EIBnetServer::on_recv_cb>(this);
-  sock->on_error.set<EIBnetServer,&EIBnetServer::on_error_cb>(this);
+  sock->on_recv.set<EIBnetServer,&EIBnetServer::recv_cb>(this);
+  sock->on_error.set<EIBnetServer,&EIBnetServer::error_cb>(this);
 
   sock->recvall = 1;
   Port = sock->port ();
@@ -763,13 +763,13 @@ out:
 }
 
 void
-EIBnetServer::on_recv_cb (EIBNetIPPacket *p)
+EIBnetServer::recv_cb (EIBNetIPPacket *p)
 {
   handle_packet (p, this->sock);
 }
 
 void
-EIBnetServer::on_error_cb ()
+EIBnetServer::error_cb ()
 {
   ERRORPRINTF (t, E_ERROR | 23, "Communication error: %s", strerror(errno));
   stop();
@@ -820,14 +820,14 @@ EIBnetServer::stop_()
 }
 
 void
-EIBnetDriver::on_recv_cb (EIBNetIPPacket *p)
+EIBnetDriver::recv_cb (EIBNetIPPacket *p)
 {
   EIBnetServer &parent = *std::static_pointer_cast<EIBnetServer>(server);
   parent.handle_packet (p, this->sock);
 }
 
 void
-EIBnetDriver::on_error_cb ()
+EIBnetDriver::error_cb ()
 {
   EIBnetServer &parent = *std::static_pointer_cast<EIBnetServer>(server);
   ERRORPRINTF (t, E_ERROR | 23, "Communication error (driver): %s", strerror(errno));

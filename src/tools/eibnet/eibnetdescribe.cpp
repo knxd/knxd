@@ -136,7 +136,7 @@ main (int ac, char *ag[])
   EIBnet_DescriptionRequest req;
   EIBNetIPPacket *p1;
   req.caddr = saddr;
-  sock->on_recv.set<recv_me>();
+  sock->on_read.set<recv_me>();
 
   sock->Send (req.ToPacket ());
   ev_run (EV_DEFAULT_ 0);

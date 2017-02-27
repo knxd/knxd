@@ -44,9 +44,9 @@ ClientConnection::ClientConnection (NetServerPtr s, int fd) : router(static_cast
 
   this->fd = fd;
 
-  recvbuf.on_recv_cb.set<ClientConnection,&ClientConnection::read_cb>(this);
-  recvbuf.on_error_cb.set<ClientConnection,&ClientConnection::error_cb>(this);
-  sendbuf.on_error_cb.set<ClientConnection,&ClientConnection::error_cb>(this);
+  recvbuf.on_read.set<ClientConnection,&ClientConnection::read_cb>(this);
+  recvbuf.on_error.set<ClientConnection,&ClientConnection::error_cb>(this);
+  sendbuf.on_error.set<ClientConnection,&ClientConnection::error_cb>(this);
 }
 
 ClientConnection::~ClientConnection ()
@@ -253,7 +253,7 @@ ClientConnection::read_cb (uint8_t *buf, size_t len)
       break;
 
     new_a_conn:
-      a_conn->on_error_cb.set<ClientConnection,&ClientConnection::exit_conn>(this);
+      a_conn->on_error.set<ClientConnection,&ClientConnection::exit_conn>(this);
       if (a_conn->setup(buf,xlen))
         {
           if (a_conn->lc != nullptr && !router.registerLink(a_conn->lc))

@@ -139,9 +139,9 @@ EIBNetIPSocket::EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr,
 
   io_send.set<EIBNetIPSocket, &EIBNetIPSocket::io_send_cb>(this);
   io_recv.set<EIBNetIPSocket, &EIBNetIPSocket::io_recv_cb>(this);
-  on_recv.set<EIBNetIPSocket, &EIBNetIPSocket::on_recv_cb>(this); // dummy
-  on_error.set<EIBNetIPSocket, &EIBNetIPSocket::on_error_cb>(this); // dummy
-  on_more.set<EIBNetIPSocket, &EIBNetIPSocket::on_more_cb>(this); // dummy
+  on_recv.set<EIBNetIPSocket, &EIBNetIPSocket::recv_cb>(this); // dummy
+  on_error.set<EIBNetIPSocket, &EIBNetIPSocket::error_cb>(this); // dummy
+  on_next.set<EIBNetIPSocket, &EIBNetIPSocket::next_cb>(this); // dummy
 
   fd = socket (AF_INET, SOCK_DGRAM, 0);
   if (fd == -1)
@@ -286,7 +286,7 @@ EIBNetIPSocket::io_send_cb (ev::io &w, int revents)
   if (send_q.isempty ())
     {
       io_send.stop();
-      on_more();
+      on_next();
       return;
     }
   const struct _EIBNetIP_Send s = send_q.front ();

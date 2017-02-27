@@ -98,8 +98,8 @@ EIBNetIPTunnel::start()
   sock = new EIBNetIPSocket (raddr, 0, t);
   if (!sock->init ())
     goto ex;
-  sock->on_recv.set<EIBNetIPTunnel,&EIBNetIPTunnel::on_recv_cb>(this);
-  sock->on_error.set<EIBNetIPTunnel,&EIBNetIPTunnel::on_error_cb>(this);
+  sock->on_recv.set<EIBNetIPTunnel,&EIBNetIPTunnel::read_cb>(this);
+  sock->on_error.set<EIBNetIPTunnel,&EIBNetIPTunnel::error_cb>(this);
 
   if (srcip.size())
     {
@@ -139,14 +139,14 @@ ex:
 }
 
 void
-EIBNetIPTunnel::on_error_cb ()
+EIBNetIPTunnel::error_cb ()
 {
   ERRORPRINTF (t, E_ERROR | 23, "Communication error: %s", strerror(errno));
   stop();
 }
 
 void
-EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
+EIBNetIPTunnel::read_cb (EIBNetIPPacket *p1)
 {
   LDataPtr c;
 

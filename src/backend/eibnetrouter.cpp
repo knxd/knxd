@@ -42,7 +42,7 @@ EIBNetIPRouter::start()
   sock = new EIBNetIPSocket (baddr, 1, t);
   if (!sock->init ())
     goto err_out;
-  sock->on_recv.set<EIBNetIPRouter,&EIBNetIPRouter::on_recv_cb>(this);
+  sock->on_recv.set<EIBNetIPRouter,&EIBNetIPRouter::read_cb>(this);
 
   if (! sock->SetInterface(interface))
     {
@@ -110,7 +110,7 @@ EIBNetIPRouter::send_L_Data (LDataPtr l)
 }
 
 void
-EIBNetIPRouter::on_recv_cb(EIBNetIPPacket *p)
+EIBNetIPRouter::read_cb(EIBNetIPPacket *p)
 {
   if (p->service != ROUTING_INDICATION)
     {

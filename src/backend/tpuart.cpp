@@ -87,9 +87,9 @@ TPUART_Base::setup_buffers()
   recvbuf.init(fd);
   recvbuf.low_latency();
 
-  recvbuf.on_recv_cb.set<TPUART_Base,&TPUART_Base::read_cb>(this);
-  recvbuf.on_error_cb.set<TPUART_Base,&TPUART_Base::error_cb>(this);
-  sendbuf.on_error_cb.set<TPUART_Base,&TPUART_Base::error_cb>(this);
+  recvbuf.on_read.set<TPUART_Base,&TPUART_Base::read_cb>(this);
+  recvbuf.on_error.set<TPUART_Base,&TPUART_Base::error_cb>(this);
+  sendbuf.on_error.set<TPUART_Base,&TPUART_Base::error_cb>(this);
 
   sendbuf.start();
   recvbuf.start();

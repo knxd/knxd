@@ -28,13 +28,13 @@
 #include <ev++.h>
 
 typedef size_t (*data_cb_t)(void *data, uint8_t *buf, size_t len);
-typedef void (*err_cb_t)(void *data);
+typedef void (*info_cb_t)(void *data);
 
-class error_cb {
-    err_cb_t cb_code = 0;
+class InfoCallback {
+    info_cb_t cb_code = 0;
     void *cb_data = 0;
 
-    void set_ (const void *data, err_cb_t cb)
+    void set_ (const void *data, info_cb_t cb)
     {
       this->cb_data = (void *)data;
       this->cb_code = cb;
@@ -59,7 +59,7 @@ public:
     }
 };
 
-class recv_cb {
+class DataCallback {
     data_cb_t cb_code = 0;
     void *cb_data = 0;
 

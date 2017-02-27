@@ -23,13 +23,13 @@
 #include "common.h"
 #include "link.h"
 
-typedef void (*c_recv_cb_t)(void *data, CArray *p);
+typedef void (*packet_cb_t)(void *data, CArray *p);
 
-class c_recv_cb {
-    c_recv_cb_t cb_code = 0;
+class PacketCallback {
+    packet_cb_t cb_code = 0;
     void *cb_data = 0;
 
-    void set_ (const void *data, c_recv_cb_t cb)
+    void set_ (const void *data, packet_cb_t cb)
     {
       this->cb_data = (void *)data;
       this->cb_code = cb;
@@ -139,7 +139,7 @@ public:
 
   virtual EMIVer getEMIVer () = 0;
 
-  c_recv_cb on_recv;
+  PacketCallback on_recv;
 
 };
 

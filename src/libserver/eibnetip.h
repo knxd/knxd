@@ -277,13 +277,13 @@ int parseEIBnet_SearchResponse (const EIBNetIPPacket & p,
 
 
 
-typedef void (*recv_cb_t)(void *data, EIBNetIPPacket *p);
+typedef void (*eibpacket_cb_t)(void *data, EIBNetIPPacket *p);
 
-class p_recv_cb {
-    recv_cb_t cb_code = 0;
+class EIBPacketCallback {
+    eibpacket_cb_t cb_code = 0;
     void *cb_data = 0;
 
-    void set_ (const void *data, recv_cb_t cb)
+    void set_ (const void *data, eibpacket_cb_t cb)
     {
       this->cb_data = (void *)data;
       this->cb_code = cb;
@@ -343,17 +343,17 @@ class EIBNetIPSocket
   unsigned int send_error;
 
 public:
-  p_recv_cb on_recv;
-  error_cb on_error;
-  error_cb on_more;
+  EIBPacketCallback on_recv;
+  InfoCallback on_error;
+  InfoCallback on_next;
 private:
-  void on_recv_cb(EIBNetIPPacket *p)
+  void recv_cb(EIBNetIPPacket *p)
     {
       t->TracePacket (0, "Drop", p->data);
       delete p;
     }
-  void on_error_cb() { stop(); }
-  void on_more_cb() { stop(); }
+  void error_cb() { stop(); }
+  void next_cb() { }
 
   /** output queue */
   Queue < struct _EIBNetIP_Send > send_q;

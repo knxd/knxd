@@ -57,7 +57,7 @@ SendBuf::io_cb (ev::io &w, int revents)
             } else {
                 if (i == 0 || (errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR)) {
                     io.stop();
-                    on_error_cb();
+                    on_error();
                 }
                 return;
             }
@@ -73,7 +73,7 @@ SendBuf::io_cb (ev::io &w, int revents)
     }
     ready = false;
     io.stop();
-    on_more_cb();
+    on_next();
 }
 
 void
@@ -87,7 +87,7 @@ RecvBuf::io_cb (ev::io &w, int revents)
                 break;
 	    if (i == 0 || (errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR)) {
 		io.stop();
-		on_error_cb();
+		on_error();
 	    }
 	    break;
 	}
@@ -102,11 +102,11 @@ RecvBuf::io_cb (ev::io &w, int revents)
 void RecvBuf::feed_out()
 {
     while (running && recvpos > 0) {
-        size_t i = on_recv_cb(recvbuf,recvpos);
+        size_t i = on_read(recvbuf,recvpos);
         if (i == 0) {
             if (recvpos == sizeof(recvbuf)) {
                 io.stop();
-                on_error_cb();
+                on_error();
             }
             return;
         }

@@ -34,7 +34,7 @@ public:
     initUSB(LowLevelDriver *iface) {
         i = iface;
         timeout.set<initUSB,&initUSB::timeout_cb>(this);
-        i->on_recv.set<initUSB,&initUSB::read_cb>(this);
+        i->on_recv.set<initUSB,&initUSB::recv_cb>(this);
     }
     virtual ~initUSB() {
         timeout.stop();
@@ -54,7 +54,7 @@ private:
         i->Send_Packet (CArray (ask, sizeof (ask)));
         timeout.start(5,0);
     }
-    void read_cb(CArray *r1) {
+    void recv_cb(CArray *r1) {
         CArray &r = *r1;
         if (r.size() != 64)
             goto cont;
@@ -156,7 +156,7 @@ USBConverterInterface::USBConverterInterface (LowLevelDriver * iface,
   i = iface;
   v = ver;
 
-  i->on_recv.set<USBConverterInterface, &USBConverterInterface::on_recv_cb>(this);
+  i->on_recv.set<USBConverterInterface, &USBConverterInterface::recv_cb>(this);
 
   switch (v)
     {
@@ -244,7 +244,7 @@ USBConverterInterface::Send_Packet (CArray l)
 }
 
 void
-USBConverterInterface::on_recv_cb(CArray *res1)
+USBConverterInterface::recv_cb(CArray *res1)
 {
   CArray res = *res1;
   if (res.size() != 64)

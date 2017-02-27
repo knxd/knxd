@@ -157,7 +157,7 @@ main (int ac, char *ag[])
   sock->recvall = 1;
   if (!sock->init ())
     die ("IP initialisation failed");
-  sock->on_recv.set<recv_me>();
+  sock->on_read.set<recv_me>();
 
   EIBnet_SearchRequest req;
   EIBNetIPPacket *p1;

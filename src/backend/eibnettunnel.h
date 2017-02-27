@@ -56,8 +56,8 @@ DRIVER(EIBNetIPTunnel,ipt)
   
   bool support_busmonitor;
   bool connect_busmonitor;
-  void on_recv_cb(EIBNetIPPacket *p);
-  void on_error_cb();
+  void read_cb(EIBNetIPPacket *p);
+  void error_cb();
 
   inline EIBnet_ConnectRequest get_creq() { 
     EIBnet_ConnectRequest creq;

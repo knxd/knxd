@@ -38,10 +38,10 @@ class SendBuf
   void io_cb (ev::io &w, int revents);
 
 public:
-  error_cb on_error_cb;
-  error_cb on_more_cb;
-  void on_error() {}
-  void on_more() {}
+  InfoCallback on_error;
+  InfoCallback on_next;
+  void error_cb() {}
+  void next_cb() {}
 
   SendBuf() {} // dead
 
@@ -54,8 +54,8 @@ public:
     set_non_blocking(fd);
     this->fd = fd;
     io.set<SendBuf, &SendBuf::io_cb>(this);
-    on_error_cb.set<SendBuf,&SendBuf::on_error>(this);
-    on_more_cb.set<SendBuf,&SendBuf::on_more>(this);
+    on_error.set<SendBuf,&SendBuf::error_cb>(this);
+    on_next.set<SendBuf,&SendBuf::next_cb>(this);
   };
 
   virtual ~SendBuf() {
@@ -95,24 +95,12 @@ class RecvBuf
   bool quick = false;
 
 public:
-  error_cb on_error_cb;
-  recv_cb on_recv_cb;
-
-  template<class K, void (K::*method)()>
-  void set_error_cb (K *object)
-  {
-    on_error_cb.set<K,&K::method>(object);
-  }
-
-  template<class K, void (K::*method)()>
-  void set_recv_cb (K *object)
-  {
-    on_recv_cb.set<K,&K::method>(object);
-  }
+  InfoCallback on_error;
+  DataCallback on_read;
 
   // dummy methods, to be overridden
-  void on_error() {}
-  size_t on_data(uint8_t *buf, size_t len) { return len; }
+  void error_cb() {}
+  size_t recv_cb(uint8_t *buf, size_t len) { return len; }
 
   RecvBuf() {} // dead
   RecvBuf(int fd) {
@@ -124,8 +112,8 @@ public:
     set_non_blocking(fd);
     this->fd = fd;
     io.set<RecvBuf, &RecvBuf::io_cb>(this);
-    on_error_cb.set<RecvBuf,&RecvBuf::on_error>(this);
-    on_recv_cb.set<RecvBuf,&RecvBuf::on_data>(this);
+    on_error.set<RecvBuf,&RecvBuf::error_cb>(this);
+    on_read.set<RecvBuf,&RecvBuf::recv_cb>(this);
   };
   void low_latency() { quick = true; }
   virtual ~RecvBuf() {};

@@ -47,7 +47,7 @@ public:
   EMIVer getEMIVer ();
 
 private:
-  void on_recv_cb(CArray *p);
+  void recv_cb(CArray *p);
 
 };
 
