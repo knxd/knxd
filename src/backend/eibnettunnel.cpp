@@ -125,6 +125,7 @@ EIBNetIPTunnel::start()
   conntimeout.start(10,0);
 
   TRACEPRINTF (t, 2, "Opened");
+  out.resize(0); send_Next();
   BusDriver::start();
   return;
 ex:
@@ -135,13 +136,6 @@ ex:
     }
   is_stopped();
   stopped();
-}
-
-void
-EIBNetIPTunnel::send_L_Data (LDataPtr l)
-{
-  send_q.put (L_Data_ToCEMI (0x11, l));
-  trigger.send();
 }
 
 void
@@ -353,7 +347,7 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
             sno++;
             if (sno > 0xff)
               sno = 0;
-            send_q.get ();
+            out.resize(0); send_Next();
             if (send_delay)
               {
                 mod = 3;
@@ -363,7 +357,6 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
               {
                 mod = 1; trigger.send();
               }
-            drop = 0;
             retry = 0;
           }
         else
@@ -476,15 +469,23 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
   delete p1;
 }
 
+void
+EIBNetIPTunnel::send_L_Data (LDataPtr l)
+{
+  assert(out.size() == 0);
+  out = L_Data_ToCEMI (0x11, l);
+  trigger.send();
+}
+
 void EIBNetIPTunnel::trigger_cb(ev::async &w, int revents)
 {
-  if (mod != 1 || send_q.isempty ())
+  if (mod != 1 || out.size() == 0)
     return;
 
   EIBnet_TunnelRequest treq;
   treq.channel = channel;
   treq.seqno = sno;
-  treq.CEMI = send_q.front ();
+  treq.CEMI = out;
 
   EIBNetIPPacket p = treq.ToPacket ();
   t->TracePacket (1, "SendTunnel", p.data);
@@ -579,16 +580,9 @@ EIBNetIPTunnel::timeout_cb(ev::timer &w, int revents)
     return;
   if (retry++ > 3)
     {
-      TRACEPRINTF (t, 1, "Drop");
-      send_q.get ();
-      drop++;
-      if (drop >= 3)
-        {
-          TRACEPRINTF (t, 1, "Too many drops, disconnecting");
-          stop();
-        }
-      else
-        TRACEPRINTF (t, 1, "Drop");
+      out.resize(0);
+      TRACEPRINTF (t, 1, "Too many retransmits, disconnecting");
+      stop();
     }
   else
     TRACEPRINTF (t, 1, "Retry");

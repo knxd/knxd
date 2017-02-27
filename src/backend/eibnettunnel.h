@@ -31,7 +31,7 @@ DRIVER(EIBNetIPTunnel,ipt)
   struct sockaddr_in saddr;
   struct sockaddr_in raddr;
 
-  Queue < CArray > send_q;
+  CArray out;
   bool NAT;
   bool monitor;
   std::string dest;
@@ -46,7 +46,6 @@ DRIVER(EIBNetIPTunnel,ipt)
   int rno = 0;
   int sno = 0;
   int heartbeat = 0;
-  int drop = 0;
   int retry = 0;
 
   float send_delay;
