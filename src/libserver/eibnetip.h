@@ -345,6 +345,7 @@ class EIBNetIPSocket
 public:
   p_recv_cb on_recv;
   error_cb on_error;
+  error_cb on_more;
 private:
   void on_recv_cb(EIBNetIPPacket *p)
     {
@@ -352,6 +353,7 @@ private:
       delete p;
     }
   void on_error_cb() { stop(); }
+  void on_more_cb() { stop(); }
 
   /** output queue */
   Queue < struct _EIBNetIP_Send > send_q;

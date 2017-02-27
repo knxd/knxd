@@ -39,7 +39,9 @@ class SendBuf
 
 public:
   error_cb on_error_cb;
+  error_cb on_more_cb;
   void on_error() {}
+  void on_more() {}
 
   SendBuf() {} // dead
 
@@ -53,6 +55,7 @@ public:
     this->fd = fd;
     io.set<SendBuf, &SendBuf::io_cb>(this);
     on_error_cb.set<SendBuf,&SendBuf::on_error>(this);
+    on_more_cb.set<SendBuf,&SendBuf::on_more>(this);
   };
 
   virtual ~SendBuf() {

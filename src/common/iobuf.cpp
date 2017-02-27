@@ -73,6 +73,7 @@ SendBuf::io_cb (ev::io &w, int revents)
     }
     ready = false;
     io.stop();
+    on_more_cb();
 }
 
 void
