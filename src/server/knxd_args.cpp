@@ -73,6 +73,8 @@ char link[] = "@";
 class arguments
 {
 public:
+  /** -D -T -R has been used */
+  bool want_server;
   /** port to listen */
   int port;
   /** path for unix domain socket */
@@ -395,14 +397,17 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'T':
       arguments->stack("tunnel");
       ini["server"]["tunnel"] = "tunnel";
+      arguments->want_server = true;
       break;
     case 'R':
       arguments->stack("router");
       ini["server"]["router"] = "router";
+      arguments->want_server = true;
       // ini["router"]["driver"] = "ets-multicast";
       break;
     case 'D':
       arguments->stack("server"); // to allow for -t255 -DTRS
+      arguments->want_server = true;
       ini["server"]["discover"] = "true";
       break;
     case OPT_SINGLE_PORT:
@@ -416,8 +421,11 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
     case 'S':
       {
+        if (arguments->filters.size())
+          die("Use filters in front of -R or -T, not -S");
         ADD(ini["main"]["connections"], "server");
         ini["server"]["server"] = "ets_router";
+        arguments->want_server = false;
         // ini["server"]["driver"] = "ets-link";
 
         const char *serverip;
@@ -459,6 +467,8 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
     case 'u':
       {
+        if (arguments->want_server)
+          die("You need -S after -D/-T/-R");
         ++*link;
         ADD(ini["main"]["connections"], link);
         ini[link]["server"] = "knxd_unix";
@@ -477,6 +487,8 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
     case 'i':
       {
+        if (arguments->want_server)
+          die("You need -S after -D/-T/-R");
         ++*link;
         ADD(ini["main"]["connections"], link);
         ini[link]["server"] = "knxd_tcp";
@@ -572,6 +584,8 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case ARGP_KEY_ARG:
     case 'b':
       {
+        if (arguments->want_server)
+          die("You need -S after -D/-T/-R");
         ++*link;
         ADD(ini["main"]["connections"], link);
         char *ap = strchr(arg,':');
@@ -591,6 +605,8 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
     case ARGP_KEY_FINI:
 
+      if (arguments->want_server)
+        die("You need -S after -D/-T/-R");
 #ifdef HAVE_SYSTEMD
       {
         ini["main"]["systemd"] = "systemd";
@@ -599,10 +615,10 @@ parse_opt (int key, char *arg, struct argp_state *state)
         arguments->stack("systemd");
       }
 #endif
-      if (arguments->filters.size())
-        die ("You need to use filters in front of the affected backend");
+      if (arguments->filters.size() || arguments->more_args.size())
+        die ("You need to use filters and arguments in front of the affected backend");
       if (arguments->l2opts.flags || arguments->l2opts.send_delay)
-	die ("You provided L2 flags after specifying an L2 interface.");
+	die ("You provided flags after specifying an interface.");
       break;
 
     default:

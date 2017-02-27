@@ -710,6 +710,20 @@ speed does not affect the rest of the system.
 
 The "queue" filter does not yet have any parameters.
 
+pace
+----
+
+Limit the rate at which packets are transmitted to an interface.
+
+  * delay
+
+    The delay between transmissions, in milliseconds.
+    
+    Mandatory.
+
+Note that this filter acts globally, i.e. delays transmission to *all*
+interfaces, if there is no queue in front of it.
+
 monitor
 -------
 
