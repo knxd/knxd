@@ -161,6 +161,12 @@ EIBnetServer::setup()
         return false;
     }
 
+  if (route)
+    {
+      if (!static_cast<Router &>(router).checkStack(router_cfg))
+        return false;
+    }
+
   return true;
 }
 

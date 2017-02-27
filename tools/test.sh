@@ -63,7 +63,7 @@ E5=$(tempfile)
 PORT=$((9999 + $$))
 PORT2=$((9998 + $$))
 
-knxd -n K1 -B log -t 0xffff -f 9 -e 4.1.0 -E 4.1.1:5 -c -u$S1 --multi-port -D -R -B queue -T --Server=224.99.98.97:$PORT -bdummy: &
+knxd -n K1 -B log -t 0xffff -f 9 -e 4.1.0 -E 4.1.1:5 -c -u$S1 --multi-port -D -B queue -R -B queue -T --Server=224.99.98.97:$PORT -bdummy: &
 KNX1=$!
 trap 'echo T1; rm -f $L1 $L2 $E1 $E2 $EF; kill $KNX1; wait' 0 1 2
 
