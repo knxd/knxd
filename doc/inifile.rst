@@ -38,7 +38,7 @@ Command-line options
 
 Previous versions of knxd used position-dependent options instead of a
 configuration file. These are now deprecated. A translation program,
-typically installed as ``/usr/lib/knxd_args``, will emit a mostly-correct
+typically installed as ``/usr/lib/knxd_args``, will emit a correct
 configuration file when called with the old knxd's arguments.
 
 main

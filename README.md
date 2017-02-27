@@ -33,7 +33,9 @@ Please switch to the v0.12 branch for production use.
 
   * Configuration file
 
-    * including a translator from options to config file
+    * includes a translator (knxd\_args) from options to config file
+    
+    * Most (if not all) settings are still usable via the command line
 
   * Complete stack refactored
 

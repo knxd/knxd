@@ -49,6 +49,7 @@ class IniSection {
     const std::string& value(const std::string& name, const std::string& def);
     const std::string value(const std::string& name, const char *def);
     std::string& operator[](const char *name);
+    std::string& operator[](const std::string& name) { return (*this)[name.c_str()]; }
     int value(const std::string& name, int def);
     bool value(const std::string& name, bool def);
 

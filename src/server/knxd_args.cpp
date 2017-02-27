@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <stdarg.h>
+#include <unordered_map>
 
 #include "inifile.h"
 #include "types.h"
@@ -110,7 +111,7 @@ public:
 
 public:
   /** The current tracer */
-  Array < const char * > filters;
+  Array < std::string > filters;
 
   arguments () { }
   virtual ~arguments () { }
@@ -123,6 +124,41 @@ public:
    * passed to Router (which will deallocate it when it ends) and copied to
    * a new instance.
    */
+
+  std::unordered_map<std::string,std::string> more_args;
+  void add_arg(char *arg)
+    {
+      if (!*arg)
+        return;
+
+      char *val = strchr(arg,'=');
+      if (val)
+        {
+          *val++ = 0;
+          more_args.emplace(arg,val);
+        }
+      else if (*arg == '!' && arg[1])
+        more_args.emplace(arg+1,"false");
+      else if (*arg == '!')
+        return;
+      else
+        more_args.emplace(arg,"true");
+    }
+
+  void do_filter(const char *name)
+    {
+      if (more_args.size() > 0)
+        {
+          ++*link;
+          ITER(i, more_args)
+            ini[link][i->first] = i->second;
+          ini[link]["filter"] = name;
+          more_args.clear();
+          filters.push_back(link);
+        }
+      else
+        filters.push_back(name);
+    }
 
   void stack(const std::string section, bool clear = true)
     {
@@ -142,6 +178,9 @@ public:
         ini[section]["reset"] = "true";
       if (l2opts.flags & FLAG_B_NO_MONITOR)
         ini[section]["monitor"] = "false";
+      ITER(i, more_args)
+        ini[section][i->first] = i->second;
+      more_args.clear();
       if (tracelevel >= 0 || errorlevel >= 0 || no_timestamps) {
           char b1[10],b2[50];
           snprintf(b2,sizeof(b2),"debug-%s",section.c_str());
@@ -313,8 +352,10 @@ static struct argp_option options[] = {
 #endif
   {"layer2", 'b', "driver:[arg]", 0,
    "a Layer-2 driver to use (knxd supports more than one)"},
-  {"filter", 'B', "filter:[arg]", 0,
+  {"filter", 'B', "filter", 0,
    "a Layer-2 filter to use in front of the next driver"},
+  {"arg", 'A', "name=value", 0,
+   "an additional configuration item for the next filter or driver"},
 #ifdef HAVE_GROUPCACHE
   {"GroupCache", 'c', "SIZE", OPTION_ARG_OPTIONAL,
    "enable caching of group communication network state"},
@@ -543,10 +584,11 @@ parse_opt (int key, char *arg, struct argp_state *state)
         break;
       }
     case 'B':
-      {
-        arguments->filters.push_back(arg);
-        break;
-      }
+      arguments->do_filter(arg);
+      break;
+    case 'A':
+      arguments->add_arg(arg);
+      break;
     case ARGP_KEY_FINI:
 
 #ifdef HAVE_SYSTEMD
