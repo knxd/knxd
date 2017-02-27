@@ -135,16 +135,14 @@ inidata_handler(void* user, const char* section, const char* name, const char* v
 bool
 IniData::add(const char *section, const char *name, const char *value)
 {
-  auto res = sections.emplace(std::piecewise_construct,
-                std::forward_as_tuple(section),
-                std::forward_as_tuple(*this, section));
+  auto res = sections.emplace(section, SectionType(IniSection(*this,section),false));
   if (! res.second && name == NULL)
     {
       std::cerr << "Parse error: Duplicate section: " << section << std::endl;
       return false;
     }
 
-  IniSection *s = &(res.first->second);
+  IniSection *s = &(res.first->second.first);
   if (name == NULL)
     return true;
   return s->add(name,value);
@@ -156,12 +154,11 @@ IniData::operator[](const char *name)
   auto v = sections.find(name);
   if (v == sections.end())
     {
-      auto res = sections.emplace(std::piecewise_construct,
-                    std::forward_as_tuple(name),
-                    std::forward_as_tuple(*this, name));
+      auto res = sections.emplace(name, SectionType(IniSection(*this,name),false));
       v = sections.find(name);
     }
-  return v->second;
+  v->second.second = true;
+  return v->second.first;
 }
 
 IniSection&
@@ -238,7 +235,7 @@ IniData::write(std::ostream& file)
   ITER(i,sections)
     {
       file << '[' << i->first << ']' << std::endl;
-      i->second.write(file);
+      i->second.first.write(file);
     }
 }
 
@@ -263,7 +260,9 @@ IniData::list_unseen(UnseenViewer uv, void *x)
   bool res = false;
   ITER(i,sections)
     {
-      if (i->second.list_unseen(uv, x))
+      if (!i->second.second)
+        continue;
+      if (i->second.first.list_unseen(uv, x))
         res = true;
     }
   return res;

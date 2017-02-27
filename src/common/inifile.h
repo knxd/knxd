@@ -66,7 +66,8 @@ class IniSection {
     bool list_unseen(UnseenViewer uv, void *user);
 };
 
-typedef std::map<std::string, IniSection> SectionMap;
+typedef std::pair<IniSection,bool> SectionType;
+typedef std::map<std::string, SectionType> SectionMap;
 class IniData {
     SectionMap sections;
 
