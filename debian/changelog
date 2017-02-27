@@ -4,13 +4,14 @@ knxd (0.13.0-3) unstable; urgency=medium
   * Generate and use a config file
   * Refactor linking drivers to the main dispatcher
   * use libfmt
-    * require git or cmake if no libfmt3-dev is found
+    * requires git and cmake, if no libfmt3-dev is found
   * Complain if -E / client-addrs= is required but missing
   * Configuration options to not start, or start and ignore failures of, specific interfaces
   * Filters can now be applied globally
     (filters for which this does not make sense will reject this)
   * Filter logging: append the link's name for disambiguation
   * Auto-restart failing interfaces
+  * Queue filter to decouple a driver
 
  -- Matthias Urlichs <matthias@urlichs.de>  Thu, 23 Feb 2017 10:01:37 +0100
 

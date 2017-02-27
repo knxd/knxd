@@ -67,7 +67,7 @@ Please switch to the v0.12 branch for production use.
     outgoing packets, resulting in duplicate code and hidden error.
 
     Now, the central send queue will pace packets for the slowest device;
-    if you don't want that, use a "queue" filter.
+    if you don't want that, use the "queue" filter.
 
 ## Building
 
