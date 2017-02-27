@@ -164,14 +164,15 @@ public:
 
   void stack(const std::string section, bool clear = true)
     {
-      ITER(i,filters)
-        ADD(ini[section]["filters"],(*i));
       if (l2opts.send_delay)
         {
-          char buf[10];
-          snprintf(buf,sizeof(buf),"%d",l2opts.send_delay);
-          ini[section]["send-delay"] = buf;
+          char buf[15];
+          snprintf(buf,sizeof(buf),"delay=%d",l2opts.send_delay);
+          add_arg(buf);
+          do_filter("pace");
         }
+      ITER(i,filters)
+        ADD(ini[section]["filters"],(*i));
       if (l2opts.flags & FLAG_B_TPUARTS_ACKGROUP)
         ini[section]["ack-group"] = "true";
       if (l2opts.flags & FLAG_B_TPUARTS_ACKINDIVIDUAL)

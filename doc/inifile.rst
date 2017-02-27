@@ -456,20 +456,6 @@ More common options
 
 Some drivers accept these options.
 
-  * send-delay (int)
-
-    Some interfaces mistakenly claim that they're ready for the next packet
-    when in fact they're not. Consequently knxd will overrun their internal
-    buffer when sending a lot of packets, which usually happens when a
-    visualization system starts up and wants to read 100 group addresses.
-
-    The value is a delay in milliseconds.
-
-    If you experience this problem, start with a value of 150. Some
-    interfaces are happy with 30 or so.
-
-    Optional; default zero.
-
   * ack-group (bool)
 
     Accept all group-addressed packets, instead of checking which knxd can
