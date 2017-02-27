@@ -81,8 +81,10 @@ Router::Router (IniData& d, std::string sn) : BaseRouter(d),main(sn)
 
   trigger.set<Router, &Router::trigger_cb>(this);
   mtrigger.set<Router, &Router::mtrigger_cb>(this);
+  state_trigger.set<Router, &Router::state_trigger_cb>(this);
   trigger.start();
   mtrigger.start();
+  state_trigger.start();
 
   TRACEPRINTF (t, 4, "R state: initialized");
 }
@@ -306,6 +308,7 @@ Router::start_()
   bool seen = true;
 
   in_link_loop += 1;
+  seq++;
   while (seen)
     {
       seen = false;
@@ -316,7 +319,10 @@ Router::start_()
             continue;
           if (i->second->ignore)
             continue;
+          if (i->second->seq >= seq)
+            continue;
           seen = true;
+          i->second->seq = seq;
           TRACEPRINTF (i->second->t, 3, "Start: %s", i->second->info(0));
           i->second->start();
           if (links_changed)
@@ -330,63 +336,60 @@ Router::start_()
 void
 Router::link_started(const LinkConnectPtr& link)
 {
-  bool orn = all_running;
-  some_running = true;
-  all_running = true;
-
   TRACEPRINTF (link->t, 4, "R state: started");
-
-  ITER(i,links)
-    if (!i->second->running || i->second->switching) // not up
-      {
-        //TRACEPRINTF (i->second->t, 4, "R state: still %s%s",
-        //    i->second->switching?">":"",
-        //    i->second->running?"up":"down");
-
-        /* Ignore drivers marked as may_fail, but only if they're not still
-         * transitioning */
-        if (!in_link_loop)
-          TRACEPRINTF (i->second->t, 8, "still not up");
-
-        if (!i->second->may_fail && !i->second->switching)
-          all_running = false;
-      }
-
-  if (!orn && all_running)
-    r_high->started();
-
+  state_trigger.send();
 }
 
 void
 Router::link_stopped(const LinkConnectPtr& link)
 {
-  bool orn = some_running;
   TRACEPRINTF (link->t, 4, "R state: stopped");
+  if(want_up && !link->may_fail)
+    exitcode += 1;
+  state_trigger.send();
+}
 
-  if (want_up && !link->may_fail)
-    { // Ouch. Doesn't work. Exit now.
-      exitcode += 1;
-      stop();
-      return;
-    }
-  some_running = false;
-  all_running = false;
+void
+Router::state_trigger_cb (ev::async &w, int revents)
+{
+  bool oarn = all_running;
+  bool osrn = some_running;
 
-  in_link_loop += 1;
+  int n_up = 0;
+  int n_going = 0;
+  int n_down = 0;
+
   ITER(i,links)
-    if (i->second->running || i->second->switching)
-      {
-        if (!in_link_loop)
-          TRACEPRINTF (i->second->t, 8, "still active");
-        some_running = true;
-        //TRACEPRINTF (i->second->t, 4, "R state: still %s%s",
-        //    i->second->switching?">":"",
-        //    i->second->running?"up":"down");
-      }
-  in_link_loop -= 1;
+    if (i->second->switching)
+      n_going++;
+    else if (i->second->running)
+      n_up++;
+    else if (!i->second->ignore)
+      n_down++;
 
-  if (orn && !some_running)
+  if (!n_going && n_down == 0 && n_up > 0)
+    {
+      all_running = true;
+      some_running = true;
+    }
+  else if (!n_going && n_up == 0)
+    {
+      some_running = false;
+      all_running = false;
+    }
+  else
+    {
+      some_running = true;
+      all_running = false;
+    }
+
+  if (want_up && exitcode > 0)
+    stop();
+
+  if (osrn && !some_running)
     r_high->stopped();
+  else if (!oarn && all_running)
+    r_high->started();
 }
 
 void
@@ -407,12 +410,13 @@ Router::stop_()
   bool seen = true;
 
   if (want_up)
-    { // we get gere when there's a globa failure to start
+    { // we get here when there's a failure to start the global filter chain
       stop();
       return;
     }
 
   in_link_loop += 1;
+  seq++;
   while(seen)
     {
       links_changed = false;
@@ -421,8 +425,11 @@ Router::stop_()
         {
           if (i->second->running == i->second->switching)
             continue;
+          if (i->second->seq >= seq)
+            continue;
           TRACEPRINTF (i->second->t, 3, "Stop: %s", i->second->info(0));
           seen = true;
+          i->second->seq = seq;
           i->second->stop();
           if (links_changed)
             break;
@@ -454,7 +461,10 @@ void
 Router::stopped()
 {
   TRACEPRINTF (t, 4, "R state: down");
-  ev_break (EV_A_ EVBREAK_ALL);
+  if (want_up)
+    stop();
+  else
+    ev_break (EV_A_ EVBREAK_ALL);
 }
 
 
@@ -464,6 +474,7 @@ Router::~Router()
   cache = nullptr;
   trigger.stop();
   mtrigger.stop();
+  state_trigger.stop();
 
   R_ITER(i,vbusmonitor)
     ERRORPRINTF (t, E_WARNING | 55, "VBusmonitor '%s' didn't de-register!", i->cb->name);
@@ -612,6 +623,7 @@ Router::registerLink(const LinkConnectPtr& link)
     {
       all_running = false;
       TRACEPRINTF (link->t, 3, "Start: %s", link->info(0));
+      link->seq = seq;
       link->start();
     }
   return true;

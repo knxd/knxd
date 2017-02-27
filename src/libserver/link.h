@@ -370,6 +370,9 @@ public:
   /** Driver/Server intends to be what @running says  */
   bool switching = false;
 
+  /** loop counter for the router */
+  int seq = 0;
+
 private:
   bool addr_local = true;
 

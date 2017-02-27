@@ -135,6 +135,9 @@ private:
   void queue_L_Data(LDataPtr l1); // called by RouterLow
   void queue_L_Busmonitor (LBusmonPtr l); // called by RouterLow
 
+  /** loop counter for keeping track of iterators */
+  int seq = 1;
+
 public:
   /** Look up a filter by name */
   FilterPtr get_filter(const LinkConnectPtr_ &link, IniSection& s, const std::string& filtername);
@@ -162,6 +165,8 @@ private:
   void trigger_cb (ev::async &w, int revents);
   ev::async mtrigger;
   void mtrigger_cb (ev::async &w, int revents);
+  ev::async state_trigger;
+  void state_trigger_cb (ev::async &w, int revents);
 
   /** buffer queues for receiving from L2 */
   Queue < LDataPtr > buf;
@@ -280,7 +285,7 @@ public:
   virtual void recv_L_Busmonitor (LBusmonPtr l) { router->queue_L_Busmonitor (std::move(l)); }
 
   virtual void start() { send->start(); }
-  virtual void stopp() { send->stop(); }
+  virtual void stop() { send->stop(); }
 
   virtual void started() { router->started(); }
   virtual void stopped() { router->stopped(); }
