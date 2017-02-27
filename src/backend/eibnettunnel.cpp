@@ -125,7 +125,7 @@ EIBNetIPTunnel::start()
   conntimeout.start(10,0);
 
   TRACEPRINTF (t, 2, "Opened");
-  out.resize(0); send_Next();
+  out.clear(); send_Next();
   BusDriver::start();
   return;
 ex:
@@ -347,7 +347,7 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
             sno++;
             if (sno > 0xff)
               sno = 0;
-            out.resize(0); send_Next();
+            out.clear(); send_Next();
             if (send_delay)
               {
                 mod = 3;
@@ -580,7 +580,7 @@ EIBNetIPTunnel::timeout_cb(ev::timer &w, int revents)
     return;
   if (retry++ > 3)
     {
-      out.resize(0);
+      out.clear();
       TRACEPRINTF (t, 1, "Too many retransmits, disconnecting");
       stop();
     }

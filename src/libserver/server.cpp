@@ -36,7 +36,7 @@ NetServer::stop_()
 
   ITER(i,connections)
     (*i)->stop();
-  connections.resize(0);
+  connections.clear();
 
   if (fd > -1)
     {
