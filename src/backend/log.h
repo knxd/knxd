@@ -37,6 +37,7 @@ public:
   virtual void recv_L_Data (LDataPtr l);
   virtual void send_L_Data (LDataPtr l);
   virtual void recv_L_Busmonitor (LBusmonPtr l);
+  virtual void send_Next();
 
   virtual void start();
   virtual void stop();

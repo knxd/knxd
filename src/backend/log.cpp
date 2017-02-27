@@ -81,6 +81,14 @@ LogFilter::recv_L_Data (LDataPtr l)
 }
 
 void
+LogFilter::send_Next()
+{
+  if (log_state)
+    t->TracePrintf (0, "send next");
+  Filter::send_Next();
+}
+
+void
 LogFilter::send_L_Data (LDataPtr l)
 {
   if (log_send)
