@@ -698,6 +698,18 @@ individually).
 
 The "single" filter may not be necessary unless you're programming devices with ETS.
 
+queue
+-----
+
+The normal behavior of knxd is to couple the transmission speed of all its
+interfaces, so that packets are transmitted on all of them (if they request
+them) at roughly the same speed, i.e. that of the slowest interface.
+
+This filter implements a queue which decouples an interface, so that its
+speed does not affect the rest of the system.
+
+The "queue" filter does not yet have any parameters.
+
 monitor
 -------
 
