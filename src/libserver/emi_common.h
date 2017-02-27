@@ -38,11 +38,7 @@ class EMI_Common:public BusDriver
 protected:
   /** driver to send/receive */
   LowLevelDriver *iface;
-  /** input queue */
-  Queue < LDataPtr >send_q;
-  float send_delay;
-
-  void Send (LDataPtr l);
+  float send_delay; // max wait for confirmation
 
   virtual void cmdEnterMonitor() = 0;
   virtual void cmdLeaveMonitor() = 0;
@@ -52,9 +48,6 @@ protected:
 private:
   bool wait_confirm = false;
   bool monitor = false;
-
-  ev::async trigger;
-  void trigger_cb (ev::async &w, int revents);
 
   ev::timer timeout;
   void timeout_cb(ev::timer &w, int revents);
@@ -67,6 +60,7 @@ public:
   virtual ~EMI_Common ();
   bool setup();
   void start();
+  void started();
   void stop();
 
   void send_L_Data (LDataPtr l);

@@ -67,7 +67,7 @@ EMI_Common::setup()
   if (!iface->setup (std::dynamic_pointer_cast<Driver>(shared_from_this())))
     return false;
   iface->on_recv.set<EMI_Common,&EMI_Common::read_cb>(this);
-  send_delay = cfg.value("send-delay",0);
+  send_delay = cfg.value("send-delay",300) / 1000.;
   monitor = cfg.value("monitor",false);
   return true;
 }
@@ -75,7 +75,6 @@ EMI_Common::setup()
 EMI_Common::~EMI_Common ()
 {
   TRACEPRINTF (t, 2, "Destroy");
-  trigger.stop();
   if (iface)
     delete iface;
 }
@@ -84,8 +83,6 @@ void
 EMI_Common::start()
 {
   TRACEPRINTF (t, 2, "OpenL2");
-  trigger.set<EMI_Common, &EMI_Common::trigger_cb>(this);
-  trigger.start();
 
   iface->SendReset ();
   if (monitor)
@@ -97,6 +94,13 @@ EMI_Common::start()
 }
 
 void
+EMI_Common::started()
+{
+  send_Next(); // signal support for flow control
+  BusDriver::started();
+}
+
+void
 EMI_Common::stop ()
 {
   TRACEPRINTF (t, 2, "CloseL2");
@@ -104,59 +108,37 @@ EMI_Common::stop ()
     cmdLeaveMonitor();
   else
     cmdClose();
-  trigger.stop();
   BusDriver::stop();
 }
 
 void
 EMI_Common::send_L_Data (LDataPtr l)
 {
+  if (wait_confirm)
+    ERRORPRINTF(t, E_ERROR, "EMI_common: send while waiting");
+    
   assert (l->data.size() >= 1);
   /* discard long frames, as they are not supported by EMI 1 */
   if (l->data.size() > maxPacketLen())
     {
       TRACEPRINTF (t, 2, "Oversize (%d), discarded", l->data.size());
+      send_Next();
       return;
     }
-  assert ((l->hopcount & 0xf8) == 0);
+  CArray pdu = lData2EMI (0x11, l);
+  iface->Send_Packet (pdu);
 
-  send_q.push (std::move(l));
-  if (!wait_confirm)
-    trigger.send();
+  wait_confirm = true;
+  timeout.start(send_delay,0);
 }
 
 void
 EMI_Common::timeout_cb(ev::timer &w, int revents)
 {
+  TRACEPRINTF (t, 1, "No confirm, continuing");
+
   wait_confirm = false;
-  if (!send_q.isempty())
-    trigger.send();
-}
-void
-
-EMI_Common::Send (LDataPtr l)
-{
-  TRACEPRINTF (t, 1, "Send %s", l->Decode (t));
-
-  CArray pdu = lData2EMI (0x11, l);
-  iface->Send_Packet (pdu);
-}
-
-void
-EMI_Common::trigger_cb (ev::async &w, int revents)
-{
-  if (wait_confirm)
-    return;
-  while (!send_q.isempty())
-    {
-      Send(send_q.get());
-      if (send_delay)
-        {
-          timeout.start(send_delay,0);
-          wait_confirm = true;
-          return;
-        }
-    }
+  send_Next();
 }
 
 void
@@ -175,6 +157,7 @@ EMI_Common::read_cb(CArray *c)
         {
           wait_confirm = false;
           timeout.stop();
+          send_Next();
         }
     }
   if (c->size() && (*c)[0] == ind[I_DATA] && !monitor)
