@@ -120,27 +120,24 @@ TPUART_Base::~TPUART_Base ()
 void
 TPUART_Base::send_L_Data (LDataPtr l)
 {
-  send_q.push(std::move(l));
-  if (sending == nullptr)
-    send_next(false);
+  assert(out.size() == 0);
+  out = l->ToPacket ();
+
+  send_again();
 }
 
 void
-TPUART_Base::send_next(bool done)
+TPUART_Base::send_Next()
 {
-  if (done && sending != nullptr)
-    {
-      sending = nullptr;
-      out.clear();
-    }
+  out.clear();
+  send_retry = 0;
+  BusDriver::send_Next();
+}
 
-  if (sending == nullptr && !send_q.isempty())
-    {
-      sending = send_q.get ();
-      out = sending->ToPacket ();
-      send_retry = 0;
-    }
-  if (sending != nullptr && state > T_is_online && state < T_busmonitor)
+void
+TPUART_Base::send_again()
+{
+  if (out.size() > 0 && state > T_is_online && state < T_busmonitor)
     {
       CArray *w = new CArray();
       unsigned i;
@@ -215,9 +212,14 @@ TPUART_Base::RecvLPDU (const uchar * data, int len)
 void
 TPUART_Base::sendtimer_cb(ev::timer &w, int revents)
 {
+  if (send_retry++ > 3)
+    {
+      ERRORPRINTF (t, E_ERROR, "send timeout: too many retries");
+      setstate(T_error);
+      return;
+    } // TODO error
   TRACEPRINTF (t, 8, "send timeout: retry");
-  if (send_retry++ > 1) {} // TODO error
-  send_next(false);
+  send_again();
 }
 
 void
@@ -379,7 +381,7 @@ TPUART_Base::read_cb(uint8_t *buf, size_t len)
               TRACEPRINTF (t, 8, "ACK: but not sending");
               continue;
             }
-          send_next(true);
+          send_Next();
           continue;
         }
       else if (c == 0xCB) // frame end, NCN5120
@@ -391,7 +393,7 @@ TPUART_Base::read_cb(uint8_t *buf, size_t len)
               TRACEPRINTF (t, 8, "NACK: but not sending");
               continue;
             }
-          send_next(true);
+          send_Next();
           continue;
         }
       else if ((c & 0x17) == 0x13) // frame state indication, NCN5120
@@ -453,11 +455,12 @@ TPUART_Base::setstate(enum TSTATE new_state)
 
   if (state < T_is_online && new_state >= T_is_online)
     {
+      send_Next();
       started();
       if (monitor)
         new_state = T_busmonitor;
       else if (new_state < T_busmonitor)
-        send_next(false);
+        send_again();
     }
 
   switch(new_state)

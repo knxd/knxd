@@ -61,7 +61,8 @@ protected:
   void process_read(bool timed_out);
 
   void setup_buffers();
-  void send_next(bool done);
+  virtual void send_Next();
+  void send_again();
   void in_check();
 
   virtual void dev_timer() = 0;
@@ -69,7 +70,6 @@ protected:
   /** main loop state */
   ev::timer timer; void timer_cb(ev::timer &w, int revents);
   ev::timer sendtimer; void sendtimer_cb(ev::timer &w, int revents);
-  Queue <LPDUPtr> send_q;
 
   LPDUPtr sending;
   CArray in, out;
