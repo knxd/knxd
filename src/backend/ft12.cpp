@@ -238,14 +238,14 @@ FT12LowLevelDriver::process_read(bool is_timeout)
           int len;
           uchar c1;
           if (akt.size() < 7)
-            goto err_out;
+            break;
           if (akt[1] != akt[2] || akt[3] != 0x68)
             {
               //receive error, try to resume
               goto err_out;
             }
           if (akt.size() < akt[1] + 6U)
-            goto err_out;
+            break;
 
           c1 = 0;
           for (unsigned int i = 4; i < akt[1] + 4U; i++)
@@ -262,9 +262,8 @@ FT12LowLevelDriver::process_read(bool is_timeout)
           t->TracePacket (0, this, "Send Ack", 1, &c1);
           sendbuf.write (&c1, 1);
 
-          if ((akt[4] == 0xF3 && recvflag) ||
-              (akt[4] == 0xD3 && !recvflag))
-            {
+          if (akt[4] == (recvflag ? 0xF3 : 0xD3))
+            { // repeat packet?
               if (CArray (akt.data() + 5, akt[1] - 1) != last)
                 {
                   TRACEPRINTF (t, 0, this, "Sequence jump");
@@ -273,9 +272,7 @@ FT12LowLevelDriver::process_read(bool is_timeout)
               else
                 TRACEPRINTF (t, 0, this, "Wrong Sequence");
             }
-
-          if ((akt[4] == 0xF3 && !recvflag) ||
-              (akt[4] == 0xD3 && recvflag))
+          else if (akt[4] == (recvflag ? 0xD3 : 0xF3))
             {
               recvflag = !recvflag;
               CArray *c = new CArray;
