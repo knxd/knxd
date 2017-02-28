@@ -512,7 +512,15 @@ main (int ac, char *ag[])
   int index;
   pth_init ();
 
+  std::string arg_str = "";
+  for (index=0; index<ac; index++)
+    {
+      arg_str += ' ';
+      arg_str += ag[index];
+    }
   argp_parse (&argp, ac, ag, ARGP_IN_ORDER, &index, &arg);
+
+  ERRORPRINTF (arg.l3()->t, E_INFO | 0, 0, "%s:%s", PACKAGE_STRING, arg_str.c_str());
 
   // if you ever want this to be fatal, doing it here would be too late
   if (getuid () == 0)
