@@ -75,6 +75,13 @@ err_out:
 void
 EIBNetIPRouter::stop()
 {
+  stop_();
+  BusDriver::stop();
+}
+
+void
+EIBNetIPRouter::stop_()
+{
   if (sock)
     {
       delete sock;
@@ -84,7 +91,7 @@ EIBNetIPRouter::stop()
 
 EIBNetIPRouter::~EIBNetIPRouter ()
 {
-  stop();
+  stop_();
   TRACEPRINTF (t, 2, "Destroy");
 }
 
