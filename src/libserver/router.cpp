@@ -297,7 +297,6 @@ Router::start()
   want_up = true;
 
   TRACEPRINTF (t, 4, "R state: trigger going up");
-
   r_low->start();
 }
 
@@ -474,7 +473,6 @@ Router::stop_()
         }
     }
   in_link_loop -= 1;
-  TRACEPRINTF (t, 4, "R state: Going down triggered");
 }
 
 
