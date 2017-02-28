@@ -1,6 +1,0 @@
-#! /bin/sh
-# postinst script for eibd-server
-
-if [ -e /etc/init.d/eibd ]; then
-    /etc/init.d/eibd restart
-fi

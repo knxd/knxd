@@ -1,6 +1,0 @@
-# MM 2015-01-04
-
-Please note: this is outdated.
-It depends on an already patched version eibd/bcusdk 0.0.4+nmu18 which:
-- removes root-check
-- adds "CometVisu-Client" (eibdread/write-cgi)
