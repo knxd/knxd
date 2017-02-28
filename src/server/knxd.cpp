@@ -270,6 +270,13 @@ main (int ac, char *ag[])
   ev_timer_again (EV_A_ &timer);
 #endif
 
+  std::string arg_str = "";
+  for (index=0; index<ac; index++)
+    {
+      arg_str += ' ';
+      arg_str += ag[index];
+    }
+
   argp_parse (&argp, ac, ag, ARGP_NO_EXIT | ARGP_NO_ERRS | ARGP_IN_ORDER, &index, NULL);
 
   if (do_list)
@@ -364,6 +371,9 @@ main (int ac, char *ag[])
     }
 
   Router *r = new Router(i,mainsection);
+
+  ERRORPRINTF (r->t, E_INFO | 0, "%s:%s", REAL_VERSION, arg_str);
+
   if (!r->setup())
     {
       ERRORPRINTF(r->t, E_FATAL,"Error setting up the KNX router.");
