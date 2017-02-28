@@ -671,7 +671,15 @@ main (int ac, char *ag[])
 
   arg.errorlevel = LEVEL_WARNING;
 
+  std::string arg_str = "";
+  for (index=0; index<ac; index++)
+    {
+      arg_str += ' ';
+      arg_str += ag[index];
+    }
   argp_parse (&argp, ac, ag, ARGP_IN_ORDER, &index, &arg);
+
+  ERRORPRINTF (&arg.t, E_INFO | 0, NULL, "%s:%s", REAL_VERSION, arg_str.c_str());
 
   // if you ever want this to be fatal, doing it here would be too late
   if (getuid () == 0)
