@@ -389,7 +389,7 @@ USBLowLevelDriver::ReceiveUsb()
 {
   CArray res;
   res.set (recvbuf, sizeof (recvbuf));
-  t->TracePacket (0, this, "RecvUSB", res);
+  t->TracePacket (1, this, "RecvUSB", res);
   on_recv (new CArray (res));
   if (is_connection_state(recvbuf))
     connection_state = get_connection_state(recvbuf);
