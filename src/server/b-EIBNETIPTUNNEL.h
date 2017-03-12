@@ -46,7 +46,7 @@ eibnetiptunnel_Create (const char *dev, L2options *opt)
   char *e;
   int dport = 3671;
   int dataport = -1;
-  int sport = 3672;;
+  int sport = 0;
   Layer2Ptr iface;
 
   c = d = e = NULL;
