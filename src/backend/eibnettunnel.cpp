@@ -92,7 +92,7 @@ EIBNetIPTunnel::start()
     goto ex;
   raddr.sin_port = htons (sport);
   NAT = false;
-  sock = new EIBNetIPSocket (raddr, 0, t);
+  sock = new EIBNetIPSocket (raddr, (sport != 0), t);
   if (!sock->init ())
     goto ex;
   sock->on_recv.set<EIBNetIPTunnel,&EIBNetIPTunnel::read_cb>(this);
