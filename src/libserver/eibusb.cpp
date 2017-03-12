@@ -23,190 +23,30 @@
 #include "cemi.h"
 #include "usblowlevel.h"
 
-class initUSB
+USBConverterInterface::USBConverterInterface (LowLevelIface * p, IniSection& s)
+    : LowLevelFilter(p,s)
 {
-    LowLevelDriver *i;
-    ev::timer timeout;
-    int cnt = 0;
-    EMIVer emiver;
-
-public:
-    initUSB(LowLevelDriver *iface) {
-        i = iface;
-        timeout.set<initUSB,&initUSB::timeout_cb>(this);
-        i->on_recv.set<initUSB,&initUSB::recv_cb>(this);
-    }
-    virtual ~initUSB() {
-        timeout.stop();
-        i->reset();
-    }
-private:
-    void timeout_cb(ev::timer &w, int revents) {
-        if (++cnt < 5)
-            xmit();
-        else
-            emiver = vTIMEOUT;
-    }
-    void xmit() {
-        const uchar ask[64] = {
-            0x01, 0x13, 0x09, 0x00, 0x08, 0x00, 0x01, 0x0f, 0x01, 0x00, 0x00, 0x01
-        };
-        i->Send_Packet (CArray (ask, sizeof (ask)));
-        timeout.start(5,0);
-    }
-    void recv_cb(CArray *r1) {
-        CArray &r = *r1;
-        if (r.size() != 64)
-            goto cont;
-        if (r[0] != 01)
-            goto cont;
-        if ((r[1] & 0x0f) != 0x03)
-            goto cont;
-        if (r[2] != 0x0b)
-            goto cont;
-        if (r[3] != 0x00)
-            goto cont;
-        if (r[4] != 0x08)
-            goto cont;
-        if (r[5] != 0x00)
-            goto cont;
-        if (r[6] != 0x03)
-            goto cont;
-        if (r[7] != 0x0F)
-            goto cont;
-        if (r[8] != 0x02)
-            goto cont;
-        if (r[11] != 0x01)
-            goto cont;
-        if (r[13] & 0x2)
-            emiver = vEMI2;
-        else if (r[13] & 0x1)
-            emiver = vEMI1;
-        else if (r[13] & 0x4)
-            emiver = vCEMI;
-        else
-            emiver = vERROR;
-    cont:
-        delete r1;
-    }
-public:
-    EMIVer run() {
-        i->start();
-        emiver = vDiscovery;
-        xmit();
-        do {
-            ev_run(EV_DEFAULT_ EVRUN_ONCE);
-        } while (emiver == vDiscovery);
-        i->stop();
-        return emiver;
-    }
-};
-
-LowLevelDriver *
-initUSBDriver (LowLevelDriver * i, const DriverPtr& p, IniSection& s)
-{
-  CArray r1, *r = 0;
-  LowLevelDriver *iface;
-  EMIVer emiver = vDiscovery;
-  int cnt = 0;
-  uchar init[64] = {
-    0x01, 0x13, 0x0a, 0x00, 0x08, 0x00, 0x02, 0x0f, 0x03, 0x00, 0x00, 0x05,
-    0x01
-  };
-
-  if (!i->setup (nullptr))
-    {
-      delete i;
-      return 0;
-    }
-
-  {
-    initUSB iu(i);
-    emiver = iu.run();
-  }
-
-  switch (emiver)
-    {
-    case vEMI1:
-    case vEMI2:
-    case vCEMI:
-      init[12] = emiver;
-      i->Send_Packet (CArray (init, sizeof (init)));
-      iface = new USBConverterInterface (i, p, s, emiver);
-      break;
-    case vTIMEOUT:
-      TRACEPRINTF (p->t, 1, "Timeout reading EMI version");
-      goto ex;
-    case vERROR:
-      TRACEPRINTF (p->t, 1, "Error reading EMI version");
-      goto ex;
-    default:
-      TRACEPRINTF (p->t, 1, "Unsupported EMI %d", emiver);
-    ex:
-      delete i;
-      return 0;
-    }
-  return iface;
-}
-
-USBConverterInterface::USBConverterInterface (LowLevelDriver * iface,
-    const DriverPtr& p, IniSection& s, EMIVer ver)
-    : LowLevelDriver(p,s)
-{
-  i = iface;
-  v = ver;
-
-  i->on_recv.set<USBConverterInterface, &USBConverterInterface::recv_cb>(this);
-
-  switch (v)
-    {
-    case vEMI1:
-      TRACEPRINTF (t, 1, "EMI1");
-      break;
-    case vEMI2:
-      TRACEPRINTF (t, 1, "EMI2");
-      break;
-    case vCEMI:
-      TRACEPRINTF (t, 1, "CEMI");
-      break;
-    default:
-      TRACEPRINTF (t, 1, "Unknown EMI");
-    }
+  iface = new USBLowLevelDriver(this, s);
 }
 
 USBConverterInterface::~USBConverterInterface ()
 {
-  delete i;
-}
-
-void USBConverterInterface::start()
-{
-  i->start();
-}
-
-void USBConverterInterface::stop()
-{
-  i->stop();
-}
-
-void USBConverterInterface::started()
-{
-  master->started();
-}
-
-void USBConverterInterface::stopped()
-{
-  master->stopped();
-}
-
-bool USBConverterInterface::setup (DriverPtr master)
-{
-  return i->setup (master);
+  delete iface;
 }
 
 void
-USBConverterInterface::Send_Packet (CArray l)
+USBConverterInterface::send_Data (CArray& l)
 {
+  if (version == vRaw)
+    {
+      iface->send_Data (l);
+      return;
+    }
+  if (version < vEMI1 || version > vCEMI)
+    {
+      ERRORPRINTF (t, E_ERROR, "EMI version %s during send",version);
+      return;
+    }
   t->TracePacket (0, "Send-EMI", l);
   CArray out;
   unsigned int j, l1;
@@ -226,27 +66,20 @@ USBConverterInterface::Send_Packet (CArray l)
   out[5] = 0x00;
   out[6] = l1;
   out[7] = 0x01;
-  switch (v)
-    {
-    case vEMI1:
-      out[8] = 0x01;
-      break;
-    case vEMI2:
-      out[8] = 0x02;
-      break;
-    case vCEMI:
-      out[8] = 0x03;
-      break;
-    default:
-      return; // should not happen
-    }
-  i->Send_Packet (out);
+  out[8] = version;
+  iface->send_Data (out);
 }
 
 void
-USBConverterInterface::recv_cb(CArray *res1)
+USBConverterInterface::recv_Data(CArray& res)
 {
-  CArray res = *res1;
+  if (version == vRaw)
+    {
+      t->TracePacket (0, "RecvEMI raw", res);
+      LowLevelFilter::recv_Data(res);
+      return;
+    }
+
   if (res.size() != 64)
     goto out;
   if (res[0] != 0x01)
@@ -265,7 +98,7 @@ USBConverterInterface::recv_cb(CArray *res1)
     goto out;
   if (res[7] != 1)
     goto out;
-  switch (v)
+  switch (version)
     {
     case vEMI1:
       if (res[8] != 1)
@@ -282,90 +115,213 @@ USBConverterInterface::recv_cb(CArray *res1)
     default:
       goto out;
     }
-  res1->set (res.data() + 11, res[6]);
-  t->TracePacket (0, "RecvEMI", *res1);
-  on_recv(res1);
-  return;
+
+  {
+    CArray res1(res.data() + 11, res[6]);
+    t->TracePacket (0, "RecvEMI", res1);
+    LowLevelFilter::recv_Data(res1);
+    return;
+  }
 
 out:
-  t->TracePacket (8, "RecvEMI:deleted", *res1);
-  delete res1;
+  t->TracePacket (8, "RecvEMI:deleted", res);
   return;
 }
 
+USBDriver::USBDriver (const LinkConnectPtr_& c, IniSection& s) : LowLevelAdapter (c,s)
+{
+}
+
 void
-USBConverterInterface::SendReset ()
+USBConverterInterface::send_Init()
 {
-  return i->SendReset ();
+  TRACEPRINTF (t, 2, "OpenL2");
+
+  iface->sendReset ();
+  uchar init[64] = {
+    0x01, 0x13, 0x0a, 0x00, 0x08, 0x00, 0x02, 0x0f, 0x03, 0x00, 0x00, 0x05, 0x01
+  };
+  init[12] = version;
+  iface->send_Local (CArray (init, sizeof (init)));
 }
 
-EMIVer USBConverterInterface::getEMIVer ()
+void 
+USBDriver::started()
 {
-  return v;
+  if (version == vUnknown)
+    {
+      version = vDiscovery;
+      timeout.set<USBDriver,&USBDriver::timeout_cb>(this);
+      xmit();
+      return;
+    }
+
+  LowLevelAdapter::started();
 }
 
-
-USBDriver::USBDriver (const LinkConnectPtr_& c, IniSection& s) : BusDriver (c,s)
+void 
+USBDriver::timeout_cb(ev::timer &w, int revents)
 {
-  emi = nullptr;
+  if (++cnt < 5)
+      xmit();
+  else
+      version = vTIMEOUT;
 }
 
-bool USBDriver::setup ()
+void
+USBDriver::stopped()
 {
-  auto cn = conn.lock();
-  if (cn == nullptr)
-    return false;
+  if (version == vDiscovery)
+    timeout.stop();
+  LowLevelAdapter::stopped();
+}
 
-  DriverPtr th = std::dynamic_pointer_cast<Driver>(shared_from_this());
-  LowLevelDriver *i = new USBLowLevelDriver(th,cfg);
-  LowLevelDriver *iface = initUSBDriver (i, th, cfg);
-  if (!iface)
-    return false;
+void
+USBDriver::send_Next()
+{
+  if (version >= vEMI1 && version <= vCEMI)
+    LowLevelAdapter::send_Next();
+}
 
-  switch (iface->getEMIVer ())
+void
+USBDriver::xmit()
+{
+  const uchar ask[64] = {
+    0x01, 0x13, 0x09, 0x00, 0x08, 0x00, 0x01, 0x0f, 0x01, 0x00, 0x00, 0x01
+  };
+  iface->send_Data (CArray (ask, sizeof (ask)));
+  timeout.start(1,0);
+}
+
+void
+USBDriver::recv_Data(CArray& c)
+{
+  t->TracePacket (2, "recv_Data", c);
+  if (version > vERROR && version <= vRaw)
+    {
+      LowLevelAdapter::recv_Data(c);
+      return;
+    }
+  if (version != vDiscovery)
+    {
+      TRACEPRINTF (t, 2, "Data during version=%d", version);
+      return;
+    }
+  if (c.size() != 64)
+    goto cont;
+  if (c[0] != 01)
+    goto cont;
+  if ((c[1] & 0x0f) != 0x03)
+    goto cont;
+  if (c[2] != 0x0b)
+    goto cont;
+  if (c[3] != 0x00)
+    goto cont;
+  if (c[4] != 0x08)
+    goto cont;
+  if (c[5] != 0x00)
+    goto cont;
+  if (c[6] != 0x03)
+    goto cont;
+  if (c[7] != 0x0F)
+    goto cont;
+  if (c[8] != 0x02)
+    goto cont;
+  if (c[11] != 0x01)
+    goto cont;
+  if (c[13] & 0x2)
+    version = vEMI2;
+  else if (c[13] & 0x1)
+    version = vEMI1;
+  else if (c[13] & 0x4)
+    version = vCEMI;
+  else
+    {
+      TRACEPRINTF (t, 2, "version x%02x not recognized", c[13]);
+      version = vERROR;
+      timeout.stop();
+      stopped();
+      return;
+    }
+  timeout.stop();
+  if(!make_EMI())
+    {
+      stopped();
+      return;
+    }
+
+  TRACEPRINTF (t, 1, "Using EMI version %d", version);
+  iface->started();
+
+cont:
+  TRACEPRINTF (t, 2, "not recognized");
+  return;
+}
+
+bool
+USBDriver::make_EMI()
+{
+  LowLevelDriver *oif = iface;
+  switch (version)
     {
     case vEMI1:
-      emi = std::shared_ptr<EMI1Driver> (new EMI1Driver (i,cn,cfg));
+      iface = new EMI1Driver (iface,this,cfg);
       break;
     case vEMI2:
-      emi = std::shared_ptr<EMI2Driver>(new EMI2Driver (i,cn,cfg));
+      iface = new EMI2Driver (iface,this,cfg);
       break;
     case vCEMI:
-      emi = std::shared_ptr<CEMIDriver>(new CEMIDriver (i,cn,cfg));
+      iface = new CEMIDriver (iface,this,cfg);
       break;
+    case vRaw:
+      return true;
+    case vUnknown:
+      iface = nullptr;
+      return false;
     default:
       TRACEPRINTF (t, 2, "Unsupported EMI");
-      goto ex;
-    }
-
-  if (!BusDriver::setup())
-    {
       return false;
     }
-  if (emi == 0)
-    goto ex;
-  if (! emi->setup())
-    goto ex;
+
   return true;
-ex:
+}
+
+bool
+USBDriver::setup ()
+{
+  LowLevelDriver *orig_iface;
+
+  version = cfgEMIVersion(cfg);
+  if (version == vERROR)
+    {
+      std::string v = cfg.value("version","");
+      ERRORPRINTF (t, E_ERROR, "EMI version %s not recognized",v);
+      return false;
+    }
+
+  if (iface != nullptr)
+    {
+      ERRORPRINTF (t, E_WARNING, "interface in setup??");
+      delete iface;
+    }
+  iface = new USBConverterInterface(this,cfg);
+  if (!iface->setup())
+    goto ex1;
+
+  orig_iface = iface;
+  if(!make_EMI())
+    goto ex1;
+
+  if (iface != nullptr && !iface->setup())
+    goto ex1;
+  if (iface == nullptr)
+    iface = orig_iface;
+  if (!LowLevelAdapter::setup())
+    return false;
+  return true;
+ex1:
   delete iface;
-  iface = nullptr;
+ex0:
   return false;
-}
-
-void USBDriver::start ()
-{
-  emi->start ();
-}
-
-void USBDriver::stop ()
-{
-  emi->stop ();
-}
-
-void
-USBDriver::send_L_Data (LDataPtr l)
-{
-  emi->send_L_Data (std::move(l));
 }
 

@@ -32,8 +32,22 @@ typedef enum {
     I_BUSMON = 2,
 } indTypes;
 
+typedef enum
+{
+  vERROR,
+  vEMI1 = 1,
+  vEMI2 = 2,
+  vCEMI = 3,
+  vRaw,
+  vUnknown,
+  vDiscovery,
+  vTIMEOUT
+} EMIVer;
+
+EMIVer cfgEMIVersion(IniSection& s);
+
 /** EMI common backend code */
-class EMI_Common:public BusDriver
+class EMI_Common:public LowLevelFilter
 {
 protected:
   /** driver to send/receive */
@@ -45,6 +59,7 @@ protected:
   virtual void cmdOpen() = 0;
   virtual void cmdClose() = 0;
   virtual const uint8_t * getIndTypes() = 0;
+  virtual EMIVer getVersion() = 0;
 private:
   bool wait_confirm = false;
   bool monitor = false;
@@ -55,11 +70,10 @@ private:
   void read_cb(CArray *p);
 
 public:
-  EMI_Common (const LinkConnectPtr_& c, IniSection& s);
-  EMI_Common (LowLevelDriver * i, const LinkConnectPtr_& c, IniSection& s);
+  EMI_Common (LowLevelIface* c, IniSection& s);
+  EMI_Common (LowLevelDriver * i, LowLevelIface* c, IniSection& s);
   virtual ~EMI_Common ();
   bool setup();
-  void start();
   void started();
   void stop();
 
@@ -71,6 +85,9 @@ public:
   { return EMI_to_L_Data(data, t); }
 
   virtual unsigned int maxPacketLen() { return 0x10; }
+
+  void recv_Data(CArray& c);
+  void send_Data(CArray& c);
 };
 
 typedef std::shared_ptr<EMI_Common> EMIPtr;

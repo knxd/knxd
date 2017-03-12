@@ -46,23 +46,29 @@ typedef struct
 USBEndpoint parseUSBEndpoint (const char *addr);
 USBDevice detectUSBEndpoint (USBEndpoint e);
 
-LOWLEVEL(USBLowLevelDriver, usb)
+typedef enum {
+    sNone = 0,
+    sStarted,
+    sClaimed,
+    sRunning,
+    sConnected,
+} UState;
+
+class USBLowLevelDriver : public LowLevelDriver
 {
 public:
-  USBLowLevelDriver (const DriverPtr& p, IniSection& s);
+  USBLowLevelDriver (LowLevelIface* p, IniSection& s);
   virtual ~USBLowLevelDriver ();
 private:
   libusb_device_handle *dev;
   /* libusb event loop */
   USBLoop *loop;
   USBDevice d;
-  bool running = false;
 
-  ev::async trigger;
-  void trigger_cb(ev::async &w, int revents);
-  /** transmit queue */
-  Queue < CArray > send_q;
-  int state;
+  /** transmit buffer */
+  CArray out;
+
+  UState state = sNone;
   bool connection_state = false;
   uint8_t sendbuf[64];
   uint8_t recvbuf[64];
@@ -72,19 +78,22 @@ private:
   struct libusb_transfer *recvh = 0;
 
   void StartUsbRecvTransfer();
-  void FinishUsbRecvTransfer();
-  void ReceiveUsb();
+  void HandleReceiveUsb();
+  virtual void reset();
+  void do_send();
+  void send_Next();
+  void stop_();
 
 public:
-  bool setup(DriverPtr master);
+  bool setup();
   void start();
   void stop();
+  void send_Data (CArray& l);
+  void sendReset ();
+
+  // for use by callbacks only
   void CompleteReceive(struct libusb_transfer *recvh);
   void CompleteSend(struct libusb_transfer *recvh);
-
-  void Send_Packet (CArray l);
-  void SendReset ();
-  EMIVer getEMIVer ();
 };
 
 #endif

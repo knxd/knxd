@@ -31,7 +31,7 @@ void
 FT12CEMIDriver::cmdOpen()
 {
   const uchar t1[] = { 0xF6, 0x00, 0x08, 0x01, 0x34, 0x10, 0x01, 0x00 };
-  iface->Send_Packet (CArray (t1, sizeof (t1)));
+  iface->send_Local (CArray (t1, sizeof (t1)));
 }
 
 

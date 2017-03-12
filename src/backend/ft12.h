@@ -24,11 +24,33 @@
 
 #include "iobuf.h"
 #include "lowlevel.h"
+#include "emi_common.h"
 #include "lowlatency.h"
 #include "link.h"
 
 /** FT1.2 lowlevel driver*/
-LOWLEVEL(FT12LowLevelDriver, ft12)
+DRIVER_(FT12Driver,LowLevelAdapter,ft12)
+{
+public:
+  FT12Driver(const LinkConnectPtr_& c, IniSection& s) : LowLevelAdapter(c,s) {}
+  virtual ~FT12Driver();
+
+  bool setup();
+  virtual EMIVer getVersion() { return vEMI2; }
+private:
+  bool make_EMI();
+};
+
+DRIVER_(FT12cemiDriver, FT12Driver, ft12cemi)
+{
+public:
+  FT12cemiDriver(const LinkConnectPtr_& c, IniSection& s) : FT12Driver(c,s) {}
+  virtual ~FT12cemiDriver();
+
+  virtual EMIVer getVersion() { return vCEMI; }
+};
+
+class FT12serial : public LowLevelDriver
 {
   /** old serial config */
   low_latency_save sold;
@@ -47,8 +69,8 @@ LOWLEVEL(FT12LowLevelDriver, ft12)
   int sendflag;
   /** recevie state */
   int recvflag;
-  /** send queue */
-  Queue < CArray > send_q;
+  /** packet send buffer */
+  CArray out;
   /** frame in receiving */
   CArray akt;
   /** last received frame */
@@ -68,15 +90,14 @@ LOWLEVEL(FT12LowLevelDriver, ft12)
   void process_read(bool is_timeout);
 
 public:
-  FT12LowLevelDriver (const DriverPtr& parent, IniSection &s);
-  virtual ~FT12LowLevelDriver ();
-  bool setup (DriverPtr master);
+  FT12serial (LowLevelIface* parent, IniSection &s);
+  virtual ~FT12serial ();
+  bool setup ();
   void start();
   void stop();
 
-  void Send_Packet (CArray l);
+  void send_Data (CArray& l);
   void SendReset ();
-  EMIVer getEMIVer ();
 };
 
 #endif

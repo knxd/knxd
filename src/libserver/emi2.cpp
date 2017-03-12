@@ -29,15 +29,15 @@ EMI2Driver::cmdEnterMonitor ()
 {
   const uchar t1[] = { 0xa9, 0x1E, 0x12, 0x34, 0x56, 0x78, 0x9a };
   const uchar t2[] = { 0xa9, 0x90, 0x18, 0x34, 0x45, 0x67, 0x8a };
-  iface->Send_Packet (CArray (t1, sizeof (t1)));
-  iface->Send_Packet (CArray (t2, sizeof (t2)));
+  iface->send_Local (CArray (t1, sizeof (t1)));
+  iface->send_Local (CArray (t2, sizeof (t2)));
 }
 
 void
 EMI2Driver::cmdLeaveMonitor ()
 {
   uchar t[] = { 0xa9, 0x1E, 0x12, 0x34, 0x56, 0x78, 0x9a };
-  iface->Send_Packet (CArray (t, sizeof (t)));
+  iface->send_Local (CArray (t, sizeof (t)));
 }
 
 void
@@ -45,15 +45,15 @@ EMI2Driver::cmdOpen ()
 {
   const uchar t1[] = { 0xa9, 0x1E, 0x12, 0x34, 0x56, 0x78, 0x9a };
   const uchar t2[] = { 0xa9, 0x00, 0x18, 0x34, 0x56, 0x78, 0x0a };
-  iface->Send_Packet (CArray (t1, sizeof (t1)));
-  iface->Send_Packet (CArray (t2, sizeof (t2)));
+  iface->send_Local (CArray (t1, sizeof (t1)));
+  iface->send_Local (CArray (t2, sizeof (t2)));
 }
 
 void
 EMI2Driver::cmdClose ()
 {
   uchar t[] = { 0xa9, 0x1E, 0x12, 0x34, 0x56, 0x78, 0x9a };
-  iface->Send_Packet (CArray (t, sizeof (t)));
+  iface->send_Local (CArray (t, sizeof (t)));
 }
 
 const uint8_t *

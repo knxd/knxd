@@ -23,16 +23,17 @@
 #include "emi_common.h"
 
 /** EMI2 backend */
-DRIVER_(EMI2Driver,EMI_Common,ft12)
+class EMI2Driver:public EMI_Common
 {
   void cmdEnterMonitor();
   void cmdLeaveMonitor();
   void cmdOpen();
   void cmdClose();
   const uint8_t * getIndTypes();
+  EMIVer getVersion() { return vEMI2; }
 public:
-  EMI2Driver (LowLevelDriver * i, const LinkConnectPtr_& c, IniSection& s) : EMI_Common(i,c,s) {}
-  EMI2Driver (const LinkConnectPtr_& c, IniSection& s) : EMI_Common(c,s) {}
+  EMI2Driver (LowLevelDriver * i, LowLevelIface* c, IniSection& s) : EMI_Common(i,c,s) {}
+  EMI2Driver (LowLevelIface* c, IniSection& s) : EMI_Common(c,s) {}
   virtual ~EMI2Driver ();
 };
 

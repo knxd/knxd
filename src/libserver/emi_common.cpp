@@ -22,51 +22,43 @@
 
 unsigned int maxPacketLen() { return 0x10; }
 
-EMI_Common::EMI_Common (LowLevelDriver * i, 
-                        const LinkConnectPtr_& c, IniSection& s) : BusDriver(c,s)
+EMIVer
+cfgEMIVersion(IniSection& s)
 {
-  iface = i;
+  int v = s.value("version",vERROR);
+  if (v > vRaw || v < vERROR)
+    return vERROR;
+  else if (v != vERROR)
+    return EMIVer(v);
+
+  std::string sv = s.value("version","");
+  if (!sv.size())
+    return vUnknown;
+  else if (sv == "EMI1")
+    return vEMI1;
+  else if (sv == "EMI2")
+    return vEMI2;
+  else if (sv == "CEMI")
+    return vCEMI;
+  else if (sv == "raw")
+    return vRaw;
+  else
+    return vERROR;
 }
 
-EMI_Common::EMI_Common (const LinkConnectPtr_& c, IniSection& s) : BusDriver(c,s)
-{
-}
+EMI_Common::EMI_Common (LowLevelDriver * i, LowLevelIface* c, IniSection& s) : LowLevelFilter(i,c,s) {}
+
+EMI_Common::EMI_Common (LowLevelIface* c, IniSection& s) : LowLevelFilter(c,s) {}
 
 bool
 EMI_Common::setup()
 {
-  if(!BusDriver::setup())
+  if (iface == nullptr)
     return false;
-  if (!iface)
-    {
-      auto cn = conn.lock();
-      if (cn == nullptr)
-        return false;
-
-      std::string ll;
-      const std::string& n = name();
-      if (n == "ft12")
-        ll = "ft12";
-      else if (n == "ft12cemi")
-        ll = "ft12";
-      else
-        ll = "";
-      ll = cfg.value("subdriver",ll);
-      if (ll.size() == 0)
-        {
-          ERRORPRINTF(t, E_ERROR, "EMI_common: %s: no default subdriver= value known", n);
-          return false;
-        }
-      iface = static_cast<Router&>(cn->router).get_lowlevel(std::dynamic_pointer_cast<Driver>(shared_from_this()), cfg, ll);
-      if (iface == nullptr)
-        {
-          ERRORPRINTF(t, E_ERROR, "EMI_common: %s: no subdriver '%s' known", n, ll);
-          return false;
-        }
-    }
-  if (!iface->setup (std::dynamic_pointer_cast<Driver>(shared_from_this())))
+  if(!LowLevelFilter::setup())
     return false;
-  iface->on_recv.set<EMI_Common,&EMI_Common::read_cb>(this);
+  if (!iface->setup ())
+    return false;
   send_delay = cfg.value("send-delay",300) / 1000.;
   monitor = cfg.value("monitor",false);
   return true;
@@ -80,24 +72,15 @@ EMI_Common::~EMI_Common ()
 }
 
 void
-EMI_Common::start()
+EMI_Common::started()
 {
   TRACEPRINTF (t, 2, "OpenL2");
-
-  iface->SendReset ();
   if (monitor)
     cmdEnterMonitor();
   else
     cmdOpen();
 
-  BusDriver::start();
-}
-
-void
-EMI_Common::started()
-{
-  send_Next(); // signal support for flow control
-  BusDriver::started();
+  LowLevelFilter::started();
 }
 
 void
@@ -108,7 +91,7 @@ EMI_Common::stop ()
     cmdLeaveMonitor();
   else
     cmdClose();
-  BusDriver::stop();
+  LowLevelFilter::stop();
 }
 
 void
@@ -126,10 +109,15 @@ EMI_Common::send_L_Data (LDataPtr l)
       return;
     }
   CArray pdu = lData2EMI (0x11, l);
-  iface->Send_Packet (pdu);
+  send_Data (pdu);
+}
 
+void
+EMI_Common::send_Data(CArray &pdu)
+{
   wait_confirm = true;
   timeout.start(send_delay,0);
+  iface->send_Data(pdu);
 }
 
 void
@@ -142,16 +130,16 @@ EMI_Common::timeout_cb(ev::timer &w, int revents)
 }
 
 void
-EMI_Common::read_cb(CArray *c)
+EMI_Common::recv_Data(CArray& c)
 {
-  t->TracePacket (1, "RecvEMI", *c);
+  t->TracePacket (1, "RecvEMI", c);
   const uint8_t *ind = getIndTypes();
-  if (c->size() == 1 && (*c)[0] == 0xA0)
+  if (c.size() == 1 && c[0] == 0xA0)
     {
       TRACEPRINTF (t, 2, "Stopped");
       stopped();
     }
-  if (c->size() && (*c)[0] == ind[I_CONFIRM])
+  if (c.size() && c[0] == ind[I_CONFIRM])
     {
       if (wait_confirm)
         {
@@ -160,28 +148,21 @@ EMI_Common::read_cb(CArray *c)
           send_Next();
         }
     }
-  if (c->size() && (*c)[0] == ind[I_DATA] && !monitor)
+  if (c.size() && c[0] == ind[I_DATA] && !monitor)
     {
-      LDataPtr p = EMI2lData (*c);
+      LDataPtr p = EMI2lData (c);
       if (p)
-        {
-          auto r = recv.lock();
-          if (r != nullptr)
-            r->recv_L_Data (std::move(p));
-        }
+        master->recv_L_Data (std::move(p));
       else
-        t->TracePacket (2, "unparseable EMI data", *c);
+        t->TracePacket (2, "unparseable EMI data", c);
     }
-  else if (c->size() > 4 && (*c)[0] == ind[I_BUSMON] && monitor)
+  else if (c.size() > 4 && c[0] == ind[I_BUSMON] && monitor)
     {
       LBusmonPtr p = LBusmonPtr(new L_Busmonitor_PDU ());
-      p->status = (*c)[1];
-      p->timestamp = ((*c)[2] << 24) | ((*c)[3] << 16);
-      p->pdu.set (c->data() + 4, c->size() - 4);
-      auto r = recv.lock();
-      if (r != nullptr)
-        r->recv_L_Busmonitor (std::move(p));
+      p->status = c[1];
+      p->timestamp = (c[2] << 24) | (c[3] << 16);
+      p->pdu.set (c.data() + 4, c.size() - 4);
+      master->recv_L_Busmonitor (std::move(p));
     }
-  delete c;
 }
 

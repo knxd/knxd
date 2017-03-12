@@ -24,51 +24,57 @@
 #include "lowlevel.h"
 #include "emi_common.h"
 
-/** USBConverterInterface */
-class USBConverterInterface:public LowLevelDriver
+/*
+ * The driver stack is: USB driver > [C]EMI[12] wrapper > USBConverterInterface > USBLowLevelDriver
+ */
+
+/** The USBConverterInterface's job is to add the appropriate USB header to
+ * the [C]EMI[12] frame on sending / remove that from incoming data
+ */
+class USBConverterInterface : public LowLevelFilter
 {
-  LowLevelDriver *i;
-  EMIVer v;
+  LowLevelDriver *iface;
 public:
-  USBConverterInterface (LowLevelDriver * iface, const DriverPtr& p,
-      IniSection& s, EMIVer ver);
+  USBConverterInterface (LowLevelIface* p, IniSection& s);
   virtual ~USBConverterInterface ();
 
   bool setup (DriverPtr master);
-  void start ();
-  void stop ();
-  void started();
-  void stopped();
+  //void start ();
+  //void stop ();
 
-  void Send_Packet (CArray l);
+  void send_Data (CArray& l);
+  void recv_Data (CArray& l);
+  //void sendReset ();
 
-  void SendReset ();
+  void send_Init();
 
-  EMIVer getEMIVer ();
-
-private:
-  void recv_cb(CArray *p);
-
+  EMIVer version = vRaw;
 };
 
-LowLevelDriver *initUSBDriver (LowLevelDriver * i, const DriverPtr& p, IniSection& s);
-
 /** USB backend */
-DRIVER(USBDriver,usb)
+DRIVER_(USBDriver,LowLevelAdapter,usb)
 {
-  /** EMI */
-  EMIPtr emi;
+  // for EMI version discovery
+  ev::timer timeout;
+  int cnt = 0;
+  void timeout_cb(ev::timer &w, int revents);
+  void xmit();
+  void recv(CArray *r1);
+  void recv_Data(CArray& c);
+  bool make_EMI(LowLevelDriver* &ld);
 
 public:
+  EMIVer version = vUnknown;
+
   USBDriver (const LinkConnectPtr_& c, IniSection& s);
   bool setup();
-  void start();
-  void stop();
+  //void start();
+  //void stop();
+  void started();
+  void stopped();
+  void send_Next();
+  bool make_EMI();
 
-  void send_L_Data (LDataPtr l);
-
-  bool Open ();
-  bool Close ();
 };
 
 #endif

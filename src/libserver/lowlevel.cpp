@@ -19,11 +19,27 @@
 
 #include "lowlevel.h"
 
+LowLevelIface::~LowLevelIface() {}
 LowLevelDriver::~LowLevelDriver() {}
+LowLevelFilter::~LowLevelFilter() { delete iface; }
+LowLevelAdapter::~LowLevelAdapter() {}
 
-void LowLevelDriver::recv_discard(CArray *p)
+void
+LowLevelDriver::send_Local(CArray &d)
 {
-  t->TracePacket (1, "lowlevel discard", *p);
-  delete p;
+  assert(!is_local);
+  is_local = true;
+  send_Data(d);
+  while(is_local)
+    ev_run(EV_DEFAULT_ EVRUN_ONCE);
+  // TODO timer?
 }
 
+void
+LowLevelDriver::send_Next()
+{
+  if (is_local)
+    is_local = false;
+  else
+    master->send_Next();
+}

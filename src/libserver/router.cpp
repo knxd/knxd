@@ -247,7 +247,7 @@ Router::get_filter(const LinkConnectPtr_& link, IniSection& s, const std::string
 }
 
 LowLevelDriver *
-Router::get_lowlevel(const DriverPtr& parent, IniSection& s, const std::string& lowlevelname)
+Router::get_lowlevel(LowLevelIface* parent, IniSection& s, const std::string& lowlevelname)
 {
   return lowlevels.create(lowlevelname, parent, s);
 }
@@ -373,7 +373,6 @@ Router::link_stopped(const LinkConnectPtr& link)
 {
   TRACEPRINTF (link->t, 4, "R state: stopped");
   state_trigger.send();
-  send_Next();
 
   if(! want_up)
     return;

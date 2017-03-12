@@ -150,7 +150,7 @@ public:
   FilterPtr get_filter(const LinkConnectPtr_ &link, IniSection& s, const std::string& filtername);
 
   /** Look up a filter by name */
-  LowLevelDriver * get_lowlevel(const DriverPtr& parent, IniSection& s, const std::string& lowlevelname);
+  LowLevelDriver * get_lowlevel(LowLevelIface* parent, IniSection& s, const std::string& lowlevelname);
 
   /** Create a temporary dummy driver stack to test arguments for filters etc.
    * Testing the calling driver's config args is the caller#s job.

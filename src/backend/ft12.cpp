@@ -22,16 +22,70 @@
 #include <errno.h>
 
 #include "ft12.h"
+#include "emi1.h"
+#include "emi2.h"
+#include "ft12cemi.h"
 
-FT12LowLevelDriver::FT12LowLevelDriver (const DriverPtr& p, IniSection &s)
+FT12Driver::~FT12Driver() {}
+FT12cemiDriver::~FT12cemiDriver() {}
+
+bool
+FT12Driver::make_EMI()
+{
+  switch (getVersion())
+    {
+    case vEMI1:
+      iface = new EMI1Driver (iface,this,cfg);
+      break;
+    case vEMI2:
+      iface = new EMI2Driver (iface,this,cfg);
+      break;
+    case vCEMI:
+      iface = new FT12CEMIDriver (iface,this,cfg);
+      break;
+    case vRaw:
+      break;
+    case vUnknown:
+      iface = nullptr;
+      break;
+    default: 
+      TRACEPRINTF (t, 2, "Unsupported EMI");
+      return false;
+    }
+
+  return true;
+}
+
+bool
+FT12Driver::setup()
+{
+  if (!BusDriver::setup())
+    return false;
+  
+  iface = new FT12serial(this, cfg);
+  if (!make_EMI())
+    goto ex1;
+
+  if(!iface->setup())
+    goto ex1;
+
+  return true;
+
+ex1:
+  delete iface;
+  iface = nullptr;
+  return false;
+}
+
+FT12serial::FT12serial (LowLevelIface* p, IniSection &s)
     : LowLevelDriver(p,s)
 {
 }
 
 bool
-FT12LowLevelDriver::setup(DriverPtr master)
+FT12serial::setup()
 {
-  if(!LowLevelDriver::setup(master))
+  if(!LowLevelDriver::setup())
     return false;
   dev = cfg.value("device","");
   if (!dev.size())
@@ -39,11 +93,12 @@ FT12LowLevelDriver::setup(DriverPtr master)
       ERRORPRINTF (t, E_ERROR | 36, "Section '%s' requires a 'device=' entry", cfg.name);
       return false;
     }
+
   return true;
 }
 
 void
-FT12LowLevelDriver::start()
+FT12serial::start()
 {
   struct termios t1;
   TRACEPRINTF (t, 1, "Open");
@@ -89,7 +144,8 @@ FT12LowLevelDriver::start()
   recvflag = 0;
   repeatcount = 0;
   TRACEPRINTF (t, 1, "Opened");
-  started();
+  send_Next();
+  LowLevelDriver::start();
   return;
 
 ex2:
@@ -105,18 +161,18 @@ ex:
 }
 
 void
-FT12LowLevelDriver::setup_buffers()
+FT12serial::setup_buffers()
 {
   sendbuf.init(fd);
   recvbuf.init(fd);
 
-  recvbuf.on_read.set<FT12LowLevelDriver,&FT12LowLevelDriver::read_cb>(this);
-  recvbuf.on_error.set<FT12LowLevelDriver,&FT12LowLevelDriver::error_cb>(this);
-  sendbuf.on_error.set<FT12LowLevelDriver,&FT12LowLevelDriver::error_cb>(this);
-  timer.set <FT12LowLevelDriver,&FT12LowLevelDriver::timer_cb> (this);
-  sendtimer.set <FT12LowLevelDriver,&FT12LowLevelDriver::sendtimer_cb> (this);
+  recvbuf.on_read.set<FT12serial,&FT12serial::read_cb>(this);
+  recvbuf.on_error.set<FT12serial,&FT12serial::error_cb>(this);
+  sendbuf.on_error.set<FT12serial,&FT12serial::error_cb>(this);
+  timer.set <FT12serial,&FT12serial::timer_cb> (this);
+  sendtimer.set <FT12serial,&FT12serial::sendtimer_cb> (this);
 
-  trigger.set<FT12LowLevelDriver,&FT12LowLevelDriver::trigger_cb>(this);
+  trigger.set<FT12serial,&FT12serial::trigger_cb>(this);
   trigger.start();
 
   sendbuf.start();
@@ -124,14 +180,14 @@ FT12LowLevelDriver::setup_buffers()
 }
 
 void
-FT12LowLevelDriver::error_cb()
+FT12serial::error_cb()
 {
   TRACEPRINTF (t, 2, "ERROR");
   stop();
 }
 
 void 
-FT12LowLevelDriver::stop()
+FT12serial::stop()
 {
   // XXX TODO add de-registration callback
 
@@ -151,62 +207,64 @@ FT12LowLevelDriver::stop()
     }
 }
 
-FT12LowLevelDriver::~FT12LowLevelDriver ()
+FT12serial::~FT12serial ()
 {
   stop ();
 }
 
 void
-FT12LowLevelDriver::Send_Packet (CArray l)
+FT12serial::send_Data (CArray& l)
 {
-  CArray pdu;
+  if(out.size() > 0)
+    {
+      ERRORPRINTF (t, E_ERROR | 36, "Send while data");
+      return;
+    }
   uchar c;
   unsigned i;
   t->TracePacket (1, "Send", l);
 
   assert (l.size() <= 32);
-  pdu.resize (l.size() + 7);
-  pdu[0] = 0x68;
-  pdu[1] = l.size() + 1;
-  pdu[2] = l.size() + 1;
-  pdu[3] = 0x68;
+  out.resize (l.size() + 7);
+  out[0] = 0x68;
+  out[1] = l.size() + 1;
+  out[2] = l.size() + 1;
+  out[3] = 0x68;
   if (sendflag)
-    pdu[4] = 0x53;
+    out[4] = 0x53;
   else
-    pdu[4] = 0x73;
+    out[4] = 0x73;
   sendflag = !sendflag;
 
-  pdu.setpart (l.data(), 5, l.size());
-  c = pdu[4];
+  out.setpart (l.data(), 5, l.size());
+  c = out[4];
   for (i = 0; i < l.size(); i++)
     c += l[i];
-  pdu[pdu.size() - 2] = c;
-  pdu[pdu.size() - 1] = 0x16;
+  out[out.size() - 2] = c;
+  out[out.size() - 1] = 0x16;
 
-  send_q.push (pdu);
   if (!send_wait)
     trigger.send();
 }
 
 void
-FT12LowLevelDriver::SendReset ()
+FT12serial::SendReset ()
 {
-  CArray pdu;
   TRACEPRINTF (t, 1, "SendReset");
-  pdu.resize (4);
-  pdu[0] = 0x10;
-  pdu[1] = 0x40;
-  pdu[2] = 0x40;
-  pdu[3] = 0x16;
+  out.resize (4);
+  out[0] = 0x10;
+  out[1] = 0x40;
+  out[2] = 0x40;
+  out[3] = 0x16;
   sendflag = 0;
   recvflag = 0;
-  send_q.push (pdu);
+
   if (!send_wait)
     trigger.send();
 }
 
 size_t
-FT12LowLevelDriver::read_cb(uint8_t *buf, size_t len)
+FT12serial::read_cb(uint8_t *buf, size_t len)
 {
   t->TracePacket (0, "Read", len, buf);
   akt.setpart (buf, akt.size(), len);
@@ -215,24 +273,23 @@ FT12LowLevelDriver::read_cb(uint8_t *buf, size_t len)
 }
 
 void
-FT12LowLevelDriver::timer_cb(ev::timer &w, int revents)
+FT12serial::timer_cb(ev::timer &w, int revents)
 {
   process_read(true);
 }
 
 void
-FT12LowLevelDriver::process_read(bool is_timeout)
+FT12serial::process_read(bool is_timeout)
 {
   while (akt.size() > 0)
     {
       if (akt[0] == 0xE5 && send_wait)
         {
-          send_q.get ();
+          out.clear();
           akt.deletepart (0, 1);
           timer.stop();
           send_wait = false;
-          if (!send_q.isempty())
-            trigger.send();
+          send_Next();
           repeatcount = 0;
         }
       else if (akt[0] == 0x10)
@@ -253,9 +310,9 @@ FT12LowLevelDriver::process_read(bool is_timeout)
               if ((akt[1] & 0x0f) == 0)
                 {
                   const uchar reset[1] = { 0xA0 };
-                  CArray *c = new CArray (reset, sizeof (reset));
-                  t->TracePacket (0, "RecvReset", *c);
-                  on_recv (c);
+                  CArray c = CArray (reset, sizeof (reset));
+                  t->TracePacket (0, "RecvReset", c);
+                  recv_Data (c);
                 }
             }
           akt.deletepart (0, 4);
@@ -306,7 +363,7 @@ FT12LowLevelDriver::process_read(bool is_timeout)
               len = akt[1] + 6;
               c->setpart (akt.data() + 5, 0, len - 7);
               last = *c;
-              on_recv (c);
+              recv_Data (*c);
             }
           // XXX TODO otherwise set 'len' to what? Or continue?
           akt.deletepart (0, len);
@@ -327,29 +384,23 @@ FT12LowLevelDriver::process_read(bool is_timeout)
 }
 
 void
-FT12LowLevelDriver::sendtimer_cb(ev::timer &w, int revents)
+FT12serial::sendtimer_cb(ev::timer &w, int revents)
 {
   send_wait = false;
   trigger.send();
 }
 
 void
-FT12LowLevelDriver::trigger_cb (ev::async &w, int revents)
+FT12serial::trigger_cb (ev::async &w, int revents)
 {
   if (send_wait)
     return;
-  if (send_q.isempty())
+  if (out.size() == 0)
     return;
 
-  const CArray &c = send_q.front ();
-  t->TracePacket (0, "Send", c);
+  t->TracePacket (0, "Send", out);
   repeatcount++;
-  sendbuf.write(c.data(), c.size());
+  sendbuf.write(out.data(), out.size());
   send_wait = true;
   timer.start(0.2, 0);
-}
-
-EMIVer FT12LowLevelDriver::getEMIVer ()
-{
-  return vEMI2;
 }

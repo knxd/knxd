@@ -33,6 +33,7 @@ class CEMIDriver:public EMI_Common
   void cmdOpen(); 
   void cmdClose();
   const uint8_t * getIndTypes(); 
+  EMIVer getVersion() { return vCEMI; }
 
   unsigned int maxPacketLen();
 
@@ -41,8 +42,8 @@ class CEMIDriver:public EMI_Common
   LDataPtr EMI2lData (const CArray & data)
   { return CEMI_to_L_Data(data, t); }
 public:
-  CEMIDriver (LowLevelDriver *i, const LinkConnectPtr_& c, IniSection& s) : EMI_Common(i,c,s) {}
-  CEMIDriver (const LinkConnectPtr_& c, IniSection& s) : EMI_Common(c,s) {}
+  CEMIDriver (LowLevelDriver *i, LowLevelIface* c, IniSection& s) : EMI_Common(i,c,s) {}
+  CEMIDriver (LowLevelIface* c, IniSection& s) : EMI_Common(c,s) {}
   virtual ~CEMIDriver ();
 };
 
