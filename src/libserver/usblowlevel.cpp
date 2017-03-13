@@ -319,6 +319,8 @@ USBLowLevelDriver::CompleteReceive(struct libusb_transfer *transfer)
   if (recvh->status != LIBUSB_TRANSFER_COMPLETED)
     {
       ERRORPRINTF (t, E_WARNING | 33, "RecvError %d", recvh->status);
+      libusb_free_transfer (recvh);
+      recvh = nullptr;
       return;
     }
   TRACEPRINTF (t, 0, "RecvComplete %d", recvh->actual_length);
