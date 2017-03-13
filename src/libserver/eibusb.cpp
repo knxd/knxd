@@ -84,9 +84,9 @@ USBConverterInterface::recv_Data(CArray& res)
     goto out;
   if (res[0] != 0x01)
     goto out;
-  if ((res[1] & 0x0f) != 3)
+  if ((res[1] & 0x0f) != 3) // single-frame packet // TODO
     goto out;
-  if (res[2] > 64 - 8)
+  if (res[2] > 64 - 8) // full packet length
     goto out;
   if (res[3] != 0)
     goto out;
@@ -94,7 +94,7 @@ USBConverterInterface::recv_Data(CArray& res)
     goto out;
   if (res[5] != 0)
     goto out;
-  if (res[6] + 11 > 64)
+  if (res[6] + 11 > 64) // len
     goto out;
   if (res[7] != 1)
     goto out;
