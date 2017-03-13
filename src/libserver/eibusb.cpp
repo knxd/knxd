@@ -75,7 +75,7 @@ USBConverterInterface::recv_Data(CArray& res)
 {
   if (version == vRaw)
     {
-      t->TracePacket (0, "RecvEMI raw", res);
+      //t->TracePacket (0, "RecvEMI raw", res);
       LowLevelFilter::recv_Data(res);
       return;
     }
