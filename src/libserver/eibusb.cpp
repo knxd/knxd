@@ -164,9 +164,13 @@ void
 USBDriver::timeout_cb(ev::timer &w, int revents)
 {
   if (++cnt < 5)
-      xmit();
+    xmit();
   else
+    {
+      ERRORPRINTF (t, E_ERROR, "No reply to setup");
       version = vTIMEOUT;
+      stopped();
+    }
 }
 
 void
