@@ -33,7 +33,6 @@
  */
 class USBConverterInterface : public LowLevelFilter
 {
-  LowLevelDriver *iface;
 public:
   USBConverterInterface (LowLevelIface* p, IniSection& s);
   virtual ~USBConverterInterface ();
@@ -62,6 +61,7 @@ DRIVER_(USBDriver,LowLevelAdapter,usb)
   void recv(CArray *r1);
   void recv_Data(CArray& c);
   bool make_EMI(LowLevelDriver* &ld);
+  USBConverterInterface *usb_iface;
 
 public:
   EMIVer version = vUnknown;

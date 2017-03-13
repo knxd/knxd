@@ -116,8 +116,8 @@ public:
 
 class LowLevelFilter : public LowLevelDriver
 {
-  LowLevelDriver *iface;
 public:
+  LowLevelDriver *iface;
   LowLevelFilter (LowLevelIface* parent, IniSection &s) : LowLevelDriver(parent,s) {}
   LowLevelFilter (LowLevelDriver* i, LowLevelIface* parent, IniSection &s)
       : LowLevelDriver(parent,s)

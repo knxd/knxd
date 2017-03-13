@@ -262,6 +262,8 @@ bool
 USBDriver::make_EMI()
 {
   LowLevelDriver *oif = iface;
+  if (version != vUnknown)
+    usb_iface->version = version;
   switch (version)
     {
     case vEMI1:
@@ -277,7 +279,7 @@ USBDriver::make_EMI()
       return true;
     case vUnknown:
       iface = nullptr;
-      return false;
+      return true;
     default:
       TRACEPRINTF (t, 2, "Unsupported EMI");
       return false;
@@ -304,7 +306,8 @@ USBDriver::setup ()
       ERRORPRINTF (t, E_WARNING, "interface in setup??");
       delete iface;
     }
-  iface = new USBConverterInterface(this,cfg);
+  usb_iface = new USBConverterInterface(this,cfg);
+  iface = usb_iface;
   if (!iface->setup())
     goto ex1;
 
