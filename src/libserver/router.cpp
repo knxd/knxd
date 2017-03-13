@@ -457,8 +457,8 @@ Router::stop_()
       seen = false;
       ITER(i,links)
         {
-          if (!i->second->running && i->second->switching)
-            continue; // already going down
+          if (i->second->running == i->second->switching)
+            continue; // already going down / down
           if (i->second->seq >= seq)
             continue; // already told it
           // note that we're stopping even if already stopped, which is
