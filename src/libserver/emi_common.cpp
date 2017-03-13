@@ -49,6 +49,7 @@ cfgEMIVersion(IniSection& s)
 EMI_Common::EMI_Common (LowLevelDriver * i, LowLevelIface* c, IniSection& s) : LowLevelFilter(i,c,s)
 {
   t->setAuxName("EMI_common");
+  iface = i;
 }
 
 EMI_Common::EMI_Common (LowLevelIface* c, IniSection& s) : LowLevelFilter(c,s)
