@@ -67,7 +67,16 @@ typedef struct {
 } while(0)
 
 IniData ini;
-char link[] = "@";
+char link[99] = "@.";
+void link_to(const char *arg)
+{
+  char *p;
+  ++*link;
+  strcpy(link+2,arg);
+  p = strchr(link+2,':');
+  if (p)
+    *p = 0;
+}
 
 /** structure to store the arguments */
 class arguments
@@ -151,7 +160,7 @@ public:
     {
       if (more_args.size() > 0)
         {
-          ++*link;
+          link_to(name);
           ITER(i, more_args)
             ini[link][i->first] = i->second;
           ini[link]["filter"] = name;
@@ -470,7 +479,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       {
         if (arguments->want_server)
           die("You need -S after -D/-T/-R");
-        ++*link;
+        link_to("unix");
         ADD(ini["main"]["connections"], link);
         ini[link]["server"] = "knxd_unix";
         // ini[link]["driver"] = "knx-link";
@@ -490,7 +499,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       {
         if (arguments->want_server)
           die("You need -S after -D/-T/-R");
-        ++*link;
+        link_to("tcp");
         ADD(ini["main"]["connections"], link);
         ini[link]["server"] = "knxd_tcp";
         // ini[link]["driver"] = "knx-link";
@@ -548,7 +557,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'c':
       if (arguments->l2opts.flags || arguments->l2opts.send_delay)
         die("You cannot apply flags to the group cache.");
-      ini["main"]["cache"] = ++*link;
+
+      link_to("cache");
+      ini["main"]["cache"] = link;
       arguments->stack(link);
       break;
     case OPT_FORCE_BROADCAST:
@@ -587,7 +598,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       {
         if (arguments->want_server)
           die("You need -S after -D/-T/-R");
-        ++*link;
+        link_to(arg);
         ADD(ini["main"]["connections"], link);
         char *ap = strchr(arg,':');
         if (ap)

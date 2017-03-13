@@ -80,6 +80,7 @@ ex1:
 FT12serial::FT12serial (LowLevelIface* p, IniSection &s)
     : LowLevelDriver(p,s)
 {
+  t->setAuxName("ft12ser");
 }
 
 bool

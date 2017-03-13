@@ -152,6 +152,7 @@ detectUSBEndpoint (libusb_context *context, USBEndpoint e)
 
 USBLowLevelDriver::USBLowLevelDriver (LowLevelIface* p, IniSection &s) : LowLevelDriver(p,s)
 {
+  t->setAuxName("usbL");
   reset();
 }
 

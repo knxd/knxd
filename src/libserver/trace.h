@@ -74,11 +74,14 @@ class Trace
 
 public:
   /** set a new name */
-  void setName(std::string name);
+  void setAuxName(std::string name);
 
   /** name(s) and number of this tracer */
   std::string servername;
   std::string name;
+  std::string auxname;
+  std::string fullname();
+
   unsigned int seq;
 
   IniSection &cfg;
@@ -91,11 +94,11 @@ public:
     setup();
   }
 
-  Trace (Trace &orig, std::string name) : cfg(orig.cfg), servername(orig.servername)
+  Trace (Trace &orig, std::string name = "") : cfg(orig.cfg), servername(orig.servername)
   {
     this->layers = orig.layers;
     this->level = orig.level;
-    this->name = name;
+    this->name = name.length() ? name : orig.name;
     this->started = orig.started;
     this->timestamps = orig.timestamps;
     this->seq = ++trace_seq;

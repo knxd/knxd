@@ -42,8 +42,14 @@ class CEMIDriver:public EMI_Common
   LDataPtr EMI2lData (const CArray & data)
   { return CEMI_to_L_Data(data, t); }
 public:
-  CEMIDriver (LowLevelDriver *i, LowLevelIface* c, IniSection& s) : EMI_Common(i,c,s) {}
-  CEMIDriver (LowLevelIface* c, IniSection& s) : EMI_Common(c,s) {}
+  CEMIDriver (LowLevelDriver *i, LowLevelIface* c, IniSection& s) : EMI_Common(i,c,s)
+    {
+      t->setAuxName("CEMI");
+    }
+  CEMIDriver (LowLevelIface* c, IniSection& s) : EMI_Common(c,s)
+    {
+      t->setAuxName("CEMI");
+    }
   virtual ~CEMIDriver ();
 };
 

@@ -29,6 +29,7 @@
 SystemdServer::SystemdServer (BaseRouter& r, IniSection& s, int systemd_fd)
     : NetServer(r,s)
 {
+  t->setAuxName("systemd");
   fd = systemd_fd;
 }
 

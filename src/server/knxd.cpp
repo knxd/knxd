@@ -383,7 +383,8 @@ main (int ac, char *ag[])
     ERRORPRINTF(r->t, E_WARNING,"Consider using a config file.");
 
   if (background) {
-    hup.t = TracePtr(new Trace(*r->t,"reload"));
+    hup.t = TracePtr(new Trace(*r->t));
+    hup.t->setAuxName("reload");
     hup.logfile = logfile;
     ev_signal_init (&hup.sighup, sighup_cb, SIGINT);
     ev_signal_start (EV_A_ &hup.sighup);

@@ -24,6 +24,7 @@
 GroupCache::GroupCache (const LinkConnectPtr& c, IniSection& s)
 	: Driver(c,s)
 {
+  t->setAuxName("G");
   TRACEPRINTF (t, 4, "GroupCacheInit");
   enable = 0;
   remtrigger.set<GroupCache, &GroupCache::remtrigger_cb>(this);

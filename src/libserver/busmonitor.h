@@ -73,6 +73,7 @@ public:
   A_Text_Busmonitor (ClientConnPtr c, bool virt)
                    : A_Busmonitor (c, virt, false)
   {
+    t->setAuxName("TBusMon");
   }
   void send_L_Busmonitor (LBusmonPtr l);
 };

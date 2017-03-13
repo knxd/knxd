@@ -29,6 +29,7 @@
 InetServer::InetServer (BaseRouter& r, IniSection& s)
   : NetServer(r,s)
 {
+  t->setAuxName("inet");
 }
 
 bool

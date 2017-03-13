@@ -54,7 +54,8 @@ A_Busmonitor::stop()
 A_Busmonitor::A_Busmonitor (ClientConnPtr c, bool virt, bool TS)
   : L_Busmonitor_CallBack(c->t->name),A__Base(c),router(static_cast<Router&>(c->server->router))
 {
-  t = TracePtr(new Trace(*c->t, c->t->name+":monitor"));
+  t = TracePtr(new Trace(*c->t));
+  t->setAuxName("BusMon");
   TRACEPRINTF (t, 7, "Open A_Busmonitor");
   con = c;
   v = virt;

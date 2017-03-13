@@ -285,7 +285,10 @@ public:
 class LinkRecv : public LinkBase
 {
 public:
-  LinkRecv(BaseRouter &r, IniSection& c, TracePtr tr) : LinkBase(r,c,tr) {}
+  LinkRecv(BaseRouter &r, IniSection& c, TracePtr tr) : LinkBase(r,c,tr)
+    {
+      t->setAuxName("Recv");
+    }
   virtual ~LinkRecv();
   /** Arriving data packet */
   virtual void recv_L_Data (LDataPtr l) = 0;
@@ -432,7 +435,10 @@ public:
 class LinkConnectSingle : public LinkConnectClient
 {
 public:
-  LinkConnectSingle(ServerPtr s, IniSection& c, TracePtr tr) : LinkConnectClient(s,c,tr) {}
+  LinkConnectSingle(ServerPtr s, IniSection& c, TracePtr tr) : LinkConnectClient(s,c,tr)
+    {
+      t->setAuxName("ConnS");
+    }
   virtual ~LinkConnectSingle();
 
   virtual bool setup();
@@ -470,7 +476,10 @@ class Server : public LinkConnect
 {
 public:
   typedef BaseRouter& first_arg;
-  Server(BaseRouter& r, IniSection& c) : LinkConnect(r,c,r.t) {}
+  Server(BaseRouter& r, IniSection& c) : LinkConnect(r,c,r.t)
+    {
+      t->setAuxName("Server");
+    }
   virtual ~Server();
 
   /** Server::setup() does NOT call LinkConnect::setup() because there is no driver here. */

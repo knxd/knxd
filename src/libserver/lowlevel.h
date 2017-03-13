@@ -84,6 +84,7 @@ public:
   LowLevelDriver (LowLevelIface* parent, IniSection &s) : cfg(s)
     {
       t = TracePtr(new Trace(*parent->tr(),s));
+      t->setAuxName("LowD");
       master = parent;
     }
 
@@ -122,6 +123,7 @@ public:
   LowLevelFilter (LowLevelDriver* i, LowLevelIface* parent, IniSection &s)
       : LowLevelDriver(parent,s)
     {
+      t->setAuxName("LowF");
       iface = i;
     }
   virtual ~LowLevelFilter();
@@ -145,7 +147,10 @@ protected:
 public:
   TracePtr tr() { return t; }
 
-  LowLevelAdapter(const LinkConnectPtr_& c, IniSection& s) : BusDriver(c,s),LowLevelIface() {}
+  LowLevelAdapter(const LinkConnectPtr_& c, IniSection& s) : BusDriver(c,s),LowLevelIface()
+    {
+      t->setAuxName("LowA");
+    }
   virtual ~LowLevelAdapter();
 
   bool setup()

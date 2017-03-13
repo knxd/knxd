@@ -35,7 +35,8 @@
 
 ClientConnection::ClientConnection (NetServerPtr s, int fd) : router(static_cast<Router&>(s->router)), sendbuf(fd),recvbuf(fd)
 {
-  t = TracePtr(new Trace(*(s->t), s->t->name));
+  t = TracePtr(new Trace(*(s->t)));
+  t->setAuxName("CConn");
   server = s;
 
   TRACEPRINTF (t, 8, "ClientConnection Init");

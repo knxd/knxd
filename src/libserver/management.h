@@ -41,7 +41,10 @@ class Management_Connection:public Layer7_Connection
 {
 public:
   Management_Connection (TracePtr tr,
-                         eibaddr_t dest):Layer7_Connection (tr, dest) { }
+                         eibaddr_t dest):Layer7_Connection (tr, dest)
+  {
+    t->setAuxName("Mgr");
+  }
 
   /** turns programming mode on */
   int X_Progmode_On ();

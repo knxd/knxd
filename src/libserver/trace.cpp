@@ -28,6 +28,13 @@ static bool trace_started = false;
 unsigned int trace_seq = 0;
 unsigned int trace_namelen = 3;
 
+std::string Trace::fullname()
+{
+  if (!auxname.length())
+    return name;
+  return name+'/'+auxname;
+}
+
 void
 Trace::TraceHeader (int layer)
 {
@@ -46,11 +53,11 @@ Trace::TraceHeader (int layer)
       setvbuf(stderr, NULL, _IOLBF, 0);
   }
   if (servername.length())
-    fmt::printf("%s: ",servername.c_str());
+    fmt::printf("%s: ",servername);
   if (timestamps)
-    fmt::printf ("Layer %d [%2d:%-*s %u.%03u] ", layer, seq, trace_namelen, name.c_str(), (unsigned int)tv.tv_sec,(unsigned int)tv.tv_usec/1000);
+    fmt::printf ("Layer %d [%2d:%-*s %u.%03u] ", layer, seq, trace_namelen, fullname(), (unsigned int)tv.tv_sec,(unsigned int)tv.tv_usec/1000);
   else
-    fmt::printf ("Layer %d [%2d:%s] ", layer, seq, name.c_str());
+    fmt::printf ("Layer %d [%2d:%s] ", layer, seq, fullname());
 }
 
 void
@@ -104,16 +111,20 @@ Trace::setup()
       return;
     }
   level = nlevel;
-  setName(cfg.value("name",name));
+  setAuxName(cfg.value("name",name));
 }
 
 void
-Trace::setName(std::string name)
+Trace::setAuxName(std::string name)
 {
-  this->name = name;
+  if (name == this->name)
+    return;
 
-  if (trace_namelen < this->name.length())
-    trace_namelen = this->name.length();
+  int len = this->name.length()+name.size()+(name.size()>0);
+  this->auxname = name;
+
+  if (trace_namelen < len)
+    trace_namelen = len;
 }
 
 char

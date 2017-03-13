@@ -29,7 +29,7 @@ public:
   TracePtr t;
   A__Base(ClientConnPtr cc)
     {
-      t = TracePtr(new Trace(*(cc->t), cc->t->name+":"+FormatEIBAddr(cc->addr)));
+      t = TracePtr(new Trace(*(cc->t), cc->t->name+'@'+FormatEIBAddr(cc->addr)));
       con = cc;
       on_error.set<A__Base,&A__Base::error_cb>(this);
     }
@@ -54,7 +54,10 @@ protected:
   TC c = nullptr;
 public:
 
-  A_Base(ClientConnPtr cc) : A__Base(cc) { }
+  A_Base(ClientConnPtr cc) : A__Base(cc)
+    {
+      t->setAuxName("Base");
+    }
   virtual ~A_Base();
 };
 

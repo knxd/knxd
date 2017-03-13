@@ -983,11 +983,15 @@ RouterHigh::recv_L_Busmonitor (LBusmonPtr l)
 
 RouterHigh::RouterHigh(Router& r, const RouterLowPtr& rl)
     : router(&r), Driver(std::dynamic_pointer_cast<LinkConnect_>(rl), r.ini[r.main])
-{}
+{
+  t->setAuxName("H");
+}
 
 RouterLow::RouterLow(Router& r)
     : router(&r), LinkConnect_(r, r.ini[r.main], r.t)
-{}
+{
+  t->setAuxName("L");
+}
 
 void
 RouterLow::send_Next()

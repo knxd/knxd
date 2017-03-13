@@ -41,6 +41,7 @@ EIBnetServer::EIBnetServer (BaseRouter& r, IniSection& s)
   , router_cfg(s.sub("router",false))
   , tunnel_cfg(s.sub("tunnel",false))
 {
+  t->setAuxName("server");
   drop_trigger.set<EIBnetServer,&EIBnetServer::drop_trigger_cb>(this);
   drop_trigger.start();
 }
@@ -52,6 +53,7 @@ EIBnetDriver::EIBnetDriver (LinkConnectClientPtr c,
   struct sockaddr_in baddr;
   struct ip_mreq mcfg;
   sock = 0;
+  t->setAuxName("driver");
 
   TRACEPRINTF (t, 8, "OpenD");
 
@@ -331,7 +333,7 @@ rt:
 ConnState::ConnState (LinkConnectClientPtr c, eibaddr_t addr)
   : L_Busmonitor_CallBack(c->t->name), SubDriver (c)
 {
-  t->name += ':'; t->name += FormatEIBAddr(addr);
+  t->setAuxName(FormatEIBAddr(addr));
   timeout.set <ConnState,&ConnState::timeout_cb> (this);
   sendtimeout.set <ConnState,&ConnState::sendtimeout_cb> (this);
   send_trigger.set<ConnState,&ConnState::send_trigger_cb>(this);

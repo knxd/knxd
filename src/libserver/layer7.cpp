@@ -22,7 +22,8 @@
 
 Layer7_Broadcast::Layer7_Broadcast (TracePtr tr)
 {
-  t = tr;
+  t = TracePtr(new Trace(*tr));
+  t->setAuxName("L7");
   TRACEPRINTF (t, 5, "L7Broadcast Open");
 }
 

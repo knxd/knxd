@@ -32,8 +32,14 @@ class EMI2Driver:public EMI_Common
   const uint8_t * getIndTypes();
   EMIVer getVersion() { return vEMI2; }
 public:
-  EMI2Driver (LowLevelDriver * i, LowLevelIface* c, IniSection& s) : EMI_Common(i,c,s) {}
-  EMI2Driver (LowLevelIface* c, IniSection& s) : EMI_Common(c,s) {}
+  EMI2Driver (LowLevelDriver * i, LowLevelIface* c, IniSection& s) : EMI_Common(i,c,s)
+    {
+      t->setAuxName("EMI2");
+    }
+  EMI2Driver (LowLevelIface* c, IniSection& s) : EMI_Common(c,s)
+    {
+      t->setAuxName("EMI2");
+    }
   virtual ~EMI2Driver ();
 };
 

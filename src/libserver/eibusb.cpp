@@ -26,6 +26,7 @@
 USBConverterInterface::USBConverterInterface (LowLevelIface * p, IniSection& s)
     : LowLevelFilter(p,s)
 {
+  t->setAuxName("Conv");
   iface = new USBLowLevelDriver(this, s);
 }
 
@@ -130,6 +131,7 @@ out:
 
 USBDriver::USBDriver (const LinkConnectPtr_& c, IniSection& s) : LowLevelAdapter (c,s)
 {
+  t->setAuxName("Dr");
 }
 
 void

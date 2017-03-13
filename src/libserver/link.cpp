@@ -46,6 +46,7 @@ LinkBase::LinkBase(BaseRouter& r, IniSection& s, TracePtr tr) : cfg(s)
 {
   Router& rt = dynamic_cast<Router&>(r);
   t = TracePtr(new Trace(*tr, s));
+  t->setAuxName("Base");
 }
 
 std::string
@@ -59,12 +60,14 @@ LinkBase::info(int level)
 LinkConnect_::LinkConnect_(BaseRouter& r, IniSection& c, TracePtr tr)
    : router(r), LinkRecv(r,c,tr)
 {
+  t->setAuxName("Conn_");
   //Router& rt = dynamic_cast<Router&>(r);
 }
 
 LinkConnect::LinkConnect(BaseRouter& r, IniSection& c, TracePtr tr)
    : LinkConnect_(r,c,tr)
 {
+  t->setAuxName("Conn");
   //Router& rt = dynamic_cast<Router&>(r);
   retry_timer.set <LinkConnect,&LinkConnect::retry_timer_cb> (this);
 }
@@ -316,6 +319,7 @@ Server::setup()
 LinkConnectClient::LinkConnectClient(ServerPtr s, IniSection& c, TracePtr tr)
   : server(s), LinkConnect(s->router, c, tr)
 {
+  t->setAuxName("ConnC");
   char n[10];
   sprintf(n,"%d",t->seq);
   linkname = t->name + '_' + n;
@@ -324,12 +328,14 @@ LinkConnectClient::LinkConnectClient(ServerPtr s, IniSection& c, TracePtr tr)
 SubDriver::SubDriver(const LinkConnectClientPtr& c)
       : BusDriver(static_cast<const LinkConnectPtr&>(c), c->cfg)
 {
+  t->setAuxName("SubDr");
   server = c->server;
 }
 
 LineDriver::LineDriver(const LinkConnectClientPtr& c)
       : Driver(c, c->cfg)
 {
+  t->setAuxName("LineDr");
   server = c->server;
 }
 
@@ -442,6 +448,6 @@ Filter::Filter(const LinkConnectPtr_& c, IniSection& s)
     : LinkRecv(c->router, s, c->t)
 {
   conn = c;
-  t->setName(name() + '@' + c->t->name);
+  t->setAuxName(c->t->name);
 }
 

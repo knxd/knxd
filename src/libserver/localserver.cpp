@@ -25,7 +25,9 @@
 
 LocalServer::LocalServer (BaseRouter& r, IniSection& s)
     : NetServer (r,s)
-{ }
+{
+  t->setAuxName("local");
+}
 
 bool
 LocalServer::setup()

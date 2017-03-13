@@ -83,6 +83,7 @@ NetServer::cleanup_cb (ev::async &w, int revents)
 
 NetServer::NetServer (BaseRouter& r, IniSection& s) : Server (r,s)
 {
+  t->setAuxName("NetServ");
   fd = -1;
 }
 

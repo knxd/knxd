@@ -28,6 +28,7 @@ A_Base<C>::~A_Base()
 
 A_Broadcast::A_Broadcast (ClientConnPtr cc) : A_Base<T_BroadcastPtr>(cc)
 {
+  t->setAuxName("Base");
   TRACEPRINTF (t, 7, "OpenBroadcast");
 }
 
@@ -57,6 +58,7 @@ A_Broadcast::setup(uint8_t *buf,size_t len)
 
 A_Group::A_Group (ClientConnPtr cc) : A_Base(cc)
 {
+  t->setAuxName("Group");
   TRACEPRINTF (t, 7, "OpenGroup");
 }
 
@@ -84,6 +86,7 @@ A_Group::setup(uint8_t *buf,size_t len)
 
 A_TPDU::A_TPDU (ClientConnPtr cc) : A_Base(cc)
 {
+  t->setAuxName("TPDU");
   TRACEPRINTF (t, 7, "OpenTPDU");
 }
 bool
@@ -110,6 +113,7 @@ A_TPDU::setup(uint8_t *buf,size_t len)
 
 A_Individual::A_Individual (ClientConnPtr cc) : A_Base(cc)
 {
+  t->setAuxName("Ind");
   TRACEPRINTF (t, 7, "OpenIndividual");
 }
 
@@ -139,6 +143,7 @@ A_Individual::setup(uint8_t *buf,size_t len)
 
 A_Connection::A_Connection (ClientConnPtr cc) : A_Base(cc)
 {
+  t->setAuxName("Conn");
   TRACEPRINTF (t, 7, "OpenConnection");
 }
 
@@ -166,6 +171,7 @@ A_Connection::setup(uint8_t *buf,size_t len)
 
 A_GroupSocket::A_GroupSocket (ClientConnPtr cc) : A_Base(cc)
 {
+  t->setAuxName("GS");
   TRACEPRINTF (t, 7, "OpenGroupSocket");
 }
 
