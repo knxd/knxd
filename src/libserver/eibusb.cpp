@@ -32,7 +32,6 @@ USBConverterInterface::USBConverterInterface (LowLevelIface * p, IniSection& s)
 
 USBConverterInterface::~USBConverterInterface ()
 {
-  delete iface;
 }
 
 void

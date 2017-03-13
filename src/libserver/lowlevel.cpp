@@ -21,7 +21,9 @@
 
 LowLevelIface::~LowLevelIface() {}
 LowLevelDriver::~LowLevelDriver() {}
-LowLevelFilter::~LowLevelFilter() { delete iface; }
+LowLevelFilter::~LowLevelFilter() {
+    delete iface;
+}
 LowLevelAdapter::~LowLevelAdapter() {}
 
 void
