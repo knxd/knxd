@@ -45,8 +45,7 @@ USBLoop::USBLoop (TracePtr tr)
     }
 
   tm.set<USBLoop, &USBLoop::timer_cb>(this);
-  libusb_set_pollfd_notifiers 	(context,
-  pollfd_added_cb,pollfd_removed_cb, this);
+  libusb_set_pollfd_notifiers (context, pollfd_added_cb,pollfd_removed_cb, this);
   setup();
   TRACEPRINTF (t, 10, this, "USBLoop-Create");
 }
@@ -61,7 +60,10 @@ void USBLoop::timer()
 void USBLoop::setup()
 {
   ITER(i,fds)
-    delete *i;
+    {
+      (*i)->stop();
+      delete *i;
+    }
   fds.clear();
   const struct libusb_pollfd **usb_fds = libusb_get_pollfds(context);
   const struct libusb_pollfd **orig_usb_fds = usb_fds;
@@ -87,10 +89,15 @@ void USBLoop::setup()
 
 USBLoop::~USBLoop ()
 {
-  ITER(i,fds)
-    delete *i;
   if (context)
     libusb_exit (context);
+  tm.stop();
+  ITER(i,fds)
+    {
+      (*i)->stop();
+      delete *i;
+    }
+  fds.clear();
 }
 
 void
