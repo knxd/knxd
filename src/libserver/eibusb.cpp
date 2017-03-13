@@ -284,7 +284,7 @@ USBDriver::make_EMI()
       TRACEPRINTF (t, 2, "Unsupported EMI");
       return false;
     }
-
+  oif->resetMaster(iface);
   return true;
 }
 
