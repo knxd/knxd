@@ -44,16 +44,15 @@ FT12Driver::make_EMI()
       iface = new FT12CEMIDriver (iface,this,cfg);
       break;
     case vRaw:
-      break;
+      return true;
     case vUnknown:
-      iface = nullptr;
-      break;
+      return false;
     default: 
       TRACEPRINTF (t, 2, "Unsupported EMI");
       return false;
     }
 
-  return true;
+  return iface->setup();
 }
 
 bool

@@ -289,6 +289,15 @@ USBDriver::make_EMI()
       TRACEPRINTF (t, 2, "Unsupported EMI");
       return false;
     }
+
+  if (!iface->setup())
+    {
+      // delete only this, not the whole stack.
+      dynamic_cast<LowLevelFilter *>(iface)->iface = nullptr;
+      delete iface;
+      iface = oif;
+      return false;
+    }
   oif->resetMaster(iface);
   return true;
 }
@@ -320,8 +329,6 @@ USBDriver::setup ()
   if(!make_EMI())
     goto ex1;
 
-  if (iface != nullptr && !iface->setup())
-    goto ex1;
   if (iface == nullptr)
     iface = orig_iface;
   if (!LowLevelAdapter::setup())

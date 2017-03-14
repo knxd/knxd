@@ -117,6 +117,8 @@ public:
 
 class LowLevelFilter : public LowLevelDriver
 {
+protected:
+  bool inserted = false; // don't propagate setup()
 public:
   LowLevelDriver *iface;
   LowLevelFilter (LowLevelIface* parent, IniSection &s) : LowLevelDriver(parent,s) {}
@@ -125,6 +127,7 @@ public:
     {
       t->setAuxName("LowF");
       iface = i;
+      inserted = true;
     }
   virtual ~LowLevelFilter();
 
@@ -132,6 +135,8 @@ public:
     {
       if (iface == nullptr)
         return false;
+      if (inserted)
+        return true;
       return iface->setup();
     }
   virtual void start () { iface->start(); }
