@@ -9,11 +9,11 @@ https://www.auto.tuwien.ac.at/~mkoegler/index.php/bcusdk
 
 For a (german only) history and discussion why knxd emerged please also see: [eibd(war bcusdk) Fork -> knxd](http://knx-user-forum.de/forum/öffentlicher-bereich/knx-eib-forum/39972-eibd-war-bcusdk-fork-knxd)
 
-# Unstable development version!
+# Test version!
 
-This version is unstable. Development happens here.
+This version should be OK for general use, but development happens.
 
-Please switch to the v0.12 branch for production use.
+Please switch to the v0.12 branch if you need a long-term-stable version.
 
     git checkout v0.12
 
