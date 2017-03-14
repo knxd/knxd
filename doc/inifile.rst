@@ -26,7 +26,9 @@ knxd must be called with one or two arguments:
 
   * main section
 
-    The section to use as "main". 
+    The section to use for the KNX router itself.
+    
+    The default is "main".
 
 Unrecognized options are fatal. Unused sections are not.
 
@@ -48,7 +50,7 @@ The main section controls configuration of the whole of knxd. Its name
 defaults to "main". An alternate main section may be named on the command
 line.
 
-  * name
+  * name (string)
 
     The name of this server. This name will be used in logging/trace output.
     It's also the default name used to announce knxd on multicast.
@@ -70,22 +72,21 @@ line.
 
     Example: 1.2.4:5
 
-    Mandatory if you have servers.
+    Mandatory if you use the server code in knxd (if in doubt: yes, you do).
 
-  * connections (string)
+  * connections (string: list of section names)
 
     Comma-separated list of section names. Each named section describes
     either a device to exchange KNX packets with, or a server which a
-    device may connect to.
+    remote device or program may connect to.
 
     Mandatory, as knxd is useless without any connections.
 
-  * systemd (string)
+  * systemd (string: section name)
 
     Section name for describing connections managed by ``systemd.socket``.
 
-    The named section may be missing or empty; the only options you might
-    want to set relate to logging.
+    The named section may be missing or empty.
 
         [main]
 	systemd=systemd
@@ -94,11 +95,11 @@ line.
         error-level=fatal
 	
 
-  * cache (string)
+  * cache (string: section name)
 
-    Section name of the group cache.
+    Section name for the group cache.
 
-    Optional; more or less required if you have a GUI that accesses KNX.
+    Optional; mostly-required if you have a GUI that accesses KNX.
 
   * force-broadcast (bool)
 
@@ -157,7 +158,7 @@ These options will be ignored when you start knxd with systemd.
     Optional, default: /dev/stderr.
 
 Debugging and logging
----------------------
+=====================
 
 You can selectively enable logging or tracing.
 
@@ -169,7 +170,7 @@ You can selectively enable logging or tracing.
     Optional; if missing, read debug options from the current section, or
     from the main section.
 
-"debug" sections may contain these options:
+A "debug" section may contain these options:
 
   * error-level (string or int)
 

@@ -1,3 +1,10 @@
+knxd (0.14.1-2) unstable; urgency=medium
+
+  * don't install eibnet* tools
+    not built at the moment
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Tue, 14 Mar 2017 23:22:00 +0100
+
 knxd (0.14.1-1) unstable; urgency=medium
 
   * v0.14: "Yay, we have a config file" version
