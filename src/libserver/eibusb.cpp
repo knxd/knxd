@@ -194,7 +194,7 @@ USBDriver::xmit()
   const uchar ask[64] = {
     0x01, 0x13, 0x09, 0x00, 0x08, 0x00, 0x01, 0x0f, 0x01, 0x00, 0x00, 0x01
   };
-  iface->send_Data (CArray (ask, sizeof (ask)));
+  iface->send_Local (CArray (ask, sizeof (ask)));
   timeout.start(1,0);
 }
 
