@@ -19,17 +19,13 @@ Please switch to the v0.12 branch if you need a long-term-stable version.
 
 ## Known bugs
 
-* tpuart compiles but is untested
-
-* Other serial interfaces do not work yet
-
-* ETS programming has not been tested
+* ETS programming has not yet been tested
 
 ## New Features since 0.12
 
 ### see https://github.com/knxd/knxd/blob/v0.12/README.md for earlier changes
 
-* 0.13 (development)
+* 0.14
 
   * Configuration file
 
@@ -41,15 +37,23 @@ Please switch to the v0.12 branch if you need a long-term-stable version.
 
     * You may now use global filters.
 
-  * Startup sequencing fixed: packets will not be routed (and systemd not
-    signalled) until all interfaces are ready.
+    * USB handling updated
+
+  * Startup sequencing fixed: KNX packets will not be routed
+    until all interfaces are ready.
+
+    Also, systemd will not be signalled until then.
 
     * Configuration options to not start, or start and ignore failures of,
       specific interfaces
 
+    * knxd will now retry setting up an interface
+
   * use libfmt for sane and type-safe formatting of error and trace messages
 
-  * new filter for logging packets to a driver
+  * logging packets is now done with a filter
+
+    * packet-level "logging" calls in various drivers have been removed
 
   * Complain loudly (and early) if knxd needs -E / client-addrs=X.Y.Z:N
 
@@ -61,13 +65,20 @@ Please switch to the v0.12 branch if you need a long-term-stable version.
 
   * knxd can restart links when they fail, or start to come up.
 
+  * Interfaces are now either used normally, or in bus monitor mode.
+    This is set in the configuration file / on the command line.
+    There is no longer a way to switch between these modes;
+    "knxtool busmonitor" will no longer change the state of any interface.
+
   * Queuing and flow control.
 
-    Previously, drivers which needed it implemented their own queue for
-    outgoing packets, resulting in duplicate code and hidden error.
+    Previously, all drivers implemented their own queueing for
+    outgoing packets, resulting in duplicate code and hidden errors.
 
-    Now, the central send queue will pace packets for the slowest device;
-    if you don't want that, use the "queue" filter.
+    In v0.14, the main queueing system will pace packets for the slowest device.
+    If you don't want that, use the "queue" filter on the slow device(s).
+
+    Output queues in drivers have been removed.
 
 ## Building
 
