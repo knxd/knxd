@@ -69,6 +69,8 @@ EMI_Common::setup()
     return false;
   send_delay = cfg.value("send-delay",300) / 1000.;
   monitor = cfg.value("monitor",false);
+  TRACEPRINTF (t, 2, "Delay is %f",send_delay);
+
   return true;
 }
 
@@ -147,16 +149,19 @@ EMI_Common::recv_Data(CArray& c)
       TRACEPRINTF (t, 2, "Stopped");
       stopped();
     }
-  if (c.size() && c[0] == ind[I_CONFIRM])
+  else if (c.size() && c[0] == ind[I_CONFIRM])
     {
       if (wait_confirm)
         {
+          TRACEPRINTF (t, 2, "Confirmed");
           wait_confirm = false;
           timeout.stop();
           send_Next();
         }
+      else
+        TRACEPRINTF (t, 2, "spurious Confirm");
     }
-  if (c.size() && c[0] == ind[I_DATA] && !monitor)
+  else if (c.size() && c[0] == ind[I_DATA] && !monitor)
     {
       LDataPtr p = EMI2lData (c);
       if (p)
@@ -171,6 +176,10 @@ EMI_Common::recv_Data(CArray& c)
       p->timestamp = (c[2] << 24) | (c[3] << 16);
       p->pdu.set (c.data() + 4, c.size() - 4);
       master->recv_L_Busmonitor (std::move(p));
+    }
+  else
+    {
+      TRACEPRINTF (t, 2, "unknown data");
     }
 }
 
