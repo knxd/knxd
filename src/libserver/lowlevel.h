@@ -60,6 +60,7 @@ public:
   virtual void send_Next() = 0;
   virtual void recv_Data(CArray& c) = 0;
 
+  virtual void send_L_Data(LDataPtr l) = 0;
   virtual void recv_L_Data(LDataPtr l) = 0;
   virtual void recv_L_Busmonitor(LBusmonPtr l) = 0;
 };
@@ -104,6 +105,7 @@ public:
   void send_Next();
   void recv_L_Data(LDataPtr l) { master->recv_L_Data(std::move(l)); }
   void recv_L_Busmonitor(LBusmonPtr l) { master->recv_L_Busmonitor(std::move(l)); }
+  void send_L_Data(LDataPtr l) { ERRORPRINTF (t, E_ERROR, "packet not coded: %s", l->Decode(t)); }
 
   /** sends a EMI frame asynchronous */
   virtual void send_Data (CArray& l) = 0;
@@ -143,6 +145,7 @@ public:
   virtual void stop () { iface->stop(); }
   virtual void sendReset() { iface->sendReset(); }
   virtual void send_Data(CArray& c) { iface->send_Data(c); }
+  virtual void send_L_Data(LDataPtr l) { iface->send_L_Data(std::move(l)); }
 };
 
 class LowLevelAdapter : public BusDriver, public LowLevelIface
@@ -193,17 +196,20 @@ public:
   void send_L_Data(LDataPtr l)
     {
       if (!iface)
-        return;
-      CArray pdu = L_Data_ToEMI (0x11, l);
-      iface->send_Data(pdu);
+        {
+          TRACEPRINTF (t, 9, "Send: discard (not running) %s", l->Decode (t));
+          return;
+        }
+      iface->send_L_Data(std::move(l));
     }
   void recv_L_Data(LDataPtr l) { BusDriver::recv_L_Data(std::move(l)); }
   void recv_L_Busmonitor(LBusmonPtr l) { BusDriver::recv_L_Busmonitor(std::move(l)); }
 
   void recv_Data(CArray& c)
     {
-      LDataPtr l = EMI_to_L_Data (c, t);
-      BusDriver::recv_L_Data(std::move(l));
+      t->TracePacket (0, "unknown data", c);
+      //LDataPtr l = EMI_to_L_Data (c, t);
+      //BusDriver::recv_L_Data(std::move(l));
     }
 
   inline void started() { BusDriver::started(); }
