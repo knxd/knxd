@@ -136,7 +136,7 @@ USBDriver::USBDriver (const LinkConnectPtr_& c, IniSection& s) : LowLevelAdapter
 void
 USBConverterInterface::send_Init()
 {
-  TRACEPRINTF (t, 2, "OpenL2");
+  TRACEPRINTF (t, 2, "send_Init %d",version);
 
   iface->sendReset ();
   uchar init[64] = {
