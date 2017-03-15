@@ -67,9 +67,8 @@ EMI_Common::setup()
     return false;
   if (!iface->setup ())
     return false;
-  send_delay = cfg.value("send-delay",300) / 1000.;
+  send_timeout = cfg.value("send-timeout",300) / 1000.;
   monitor = cfg.value("monitor",false);
-  TRACEPRINTF (t, 2, "Delay is %f",send_delay);
 
   return true;
 }
@@ -126,7 +125,7 @@ void
 EMI_Common::send_Data(CArray &pdu)
 {
   wait_confirm = true;
-  timeout.start(send_delay,0);
+  timeout.start(send_timeout,0);
   iface->send_Data(pdu);
 }
 

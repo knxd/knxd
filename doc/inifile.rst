@@ -394,6 +394,13 @@ Warning: bus+device numbers may change after rebooting.
 
     It's an error to specify this option without also using "setting".
 
+  * send-timeout
+
+    USB devices confirm packet transmission. This option controls how long
+    to wait until proceeding. A warning is printed when that happens.
+
+    The default is 0.3 seconds.
+
 tpuarts
 -------
 
@@ -416,9 +423,16 @@ USB or (on Raspberry Pi-style computers) a built-in 3.3V serial port.
 ft12
 ----
 
-An older serial interface to KNX.
+An older serial interface to KNX which wraps the EMI1 protocol in serial framing.
 
 TODO: which devices use this?
+
+  * send-timeout
+
+    EMI1 devices confirm packet transmission. This option controls how long
+    to wait until proceeding. A warning is printed when that happens.
+
+    The default is 0.3 seconds.
 
 ft12cemi
 --------
@@ -426,6 +440,13 @@ ft12cemi
 A newer serial interface to KNX.
 
 TODO: which devices use this?
+
+  * send-timeout
+
+    CEMI devices confirm packet transmission. This option controls how long
+    to wait until proceeding. A warning is printed when that happens.
+
+    The default is 0.3 seconds.
 
 ncn5120
 -------
@@ -473,7 +494,7 @@ Some drivers accept these options.
     Accept all device-addressed packets, instead of checking which knxd can
     forward. This option is not a no-op because, while knxd defaults to
     forwarding all packets, it won't accept messages to devices that it
-    knows to be on the same bus as the message in question.
+    knows to be on the bus on which the message in question arrived.
 
     This option only applies to drivers which directly connect to a
     twisted-pair KNX wire.
