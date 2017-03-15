@@ -89,7 +89,7 @@ public:
       t = TracePtr(new Trace(*parent->tr(),s));
       t->setAuxName("LowD");
       master = parent;
-      local_timeout.set<LowLevelDriver,&LowLevelDriver::local_timeout>(this);
+      local_timeout.set<LowLevelDriver,&LowLevelDriver::local_timeout_cb>(this);
     }
 
   void resetMaster(LowLevelIface* parent)
