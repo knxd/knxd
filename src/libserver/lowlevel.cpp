@@ -20,28 +20,44 @@
 #include "lowlevel.h"
 
 LowLevelIface::~LowLevelIface() {}
-LowLevelDriver::~LowLevelDriver() {}
-LowLevelFilter::~LowLevelFilter() {
-    delete iface;
-}
 LowLevelAdapter::~LowLevelAdapter() {}
+
+LowLevelDriver::~LowLevelDriver()
+{
+  local_timeout.stop();
+}
+
+LowLevelFilter::~LowLevelFilter()
+{
+  delete iface;
+}
 
 void
 LowLevelDriver::send_Local(CArray &d)
 {
   assert(!is_local);
   is_local = true;
+  local_timeout.start(1.0,0);
   send_Data(d);
   while(is_local)
     ev_run(EV_DEFAULT_ EVRUN_ONCE);
-  // TODO timer?
+}
+
+void
+LowLevelDriver::local_timeout_cb(ev::timer &w, int revents)
+{
+  ERRORPRINTF (t, E_ERROR, "send_Local timed out!");
+  is_local = false;
 }
 
 void
 LowLevelDriver::send_Next()
 {
   if (is_local)
-    is_local = false;
+    {
+      local_timeout.stop();
+      is_local = false;
+    }
   else
     master->send_Next();
 }

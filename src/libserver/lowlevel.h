@@ -73,6 +73,8 @@ public:
   TracePtr tr() { return t; }
 private:
   bool is_local = false;
+  ev::timer local_timeout; void local_timeout_cb(ev::timer &w, int revents);
+
 
 protected:
   LowLevelIface* master;
@@ -87,6 +89,7 @@ public:
       t = TracePtr(new Trace(*parent->tr(),s));
       t->setAuxName("LowD");
       master = parent;
+      local_timeout.set<LowLevelDriver,&LowLevelDriver::local_timeout>(this);
     }
 
   void resetMaster(LowLevelIface* parent)
