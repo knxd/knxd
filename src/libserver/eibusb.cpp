@@ -268,7 +268,10 @@ USBDriver::make_EMI()
 {
   LowLevelDriver *oif = iface;
   if (version != vUnknown)
-    usb_iface->version = version;
+    {
+      usb_iface->version = version;
+      usb_iface->send_Init();
+    }
   switch (version)
     {
     case vEMI1:
