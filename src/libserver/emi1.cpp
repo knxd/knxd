@@ -44,7 +44,9 @@ EMI1Layer2::cmdLeaveMonitor()
 void
 EMI1Layer2::cmdOpen ()
 {
+  const uchar ta[] = { 0x46, 0x01, 0x01, 0x16, 0x00 }; // clear addr tab
   const uchar t[] = { 0x46, 0x01, 0x00, 0x60, 0x12 };
+  iface->Send_Packet (CArray (ta, sizeof (t)));
   iface->Send_Packet (CArray (t, sizeof (t)));
 }
 
