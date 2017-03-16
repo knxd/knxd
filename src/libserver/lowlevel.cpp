@@ -37,7 +37,7 @@ LowLevelDriver::send_Local(CArray &d)
 {
   assert(!is_local);
   is_local = true;
-  local_timeout.start(1.0,0);
+  local_timeout.start(0.9, 0);
   send_Data(d);
   while(is_local)
     ev_run(EV_DEFAULT_ EVRUN_ONCE);
@@ -47,6 +47,7 @@ void
 LowLevelDriver::local_timeout_cb(ev::timer &w, int revents)
 {
   ERRORPRINTF (t, E_ERROR, "send_Local timed out!");
+  abort_send();
   is_local = false;
 }
 

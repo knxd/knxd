@@ -219,6 +219,24 @@ ex:
 }
 
 void
+USBLowLevelDriver::abort_send()
+{
+  int res;
+  if (sendh == nullptr)
+    return;
+
+  if ((res = libusb_cancel_transfer (sendh)) < 0)
+    {
+      ERRORPRINTF (t, E_ERROR | 31, "cancel %lx: %s", (unsigned long) sendh, libusb_error_name(res));
+      sendh = nullptr; // XXX does this make sense?
+      out.clear();
+      return;
+    }
+  while (sendh)
+    ev_run(EV_DEFAULT_ EVRUN_ONCE);
+}
+
+void
 USBLowLevelDriver::stop_()
 {
   TRACEPRINTF (t, 1, "Close");

@@ -118,6 +118,7 @@ public:
   inline void send_Local (CArray&& l) { CArray lx = l; send_Local(lx); }
   virtual void sendReset() {}
   virtual void recv_Data(CArray& c) { master->recv_Data(c); }
+  virtual void abort_send() { ERRORPRINTF (t, E_ERROR, "cannot abort"); }
 };
 
 class LowLevelFilter : public LowLevelDriver
@@ -148,6 +149,7 @@ public:
   virtual void stop () { iface->stop(); }
   virtual void sendReset() { iface->sendReset(); }
   virtual void send_Data(CArray& c) { iface->send_Data(c); }
+  virtual void abort_send() { iface->abort_send(); }
   virtual void send_L_Data(LDataPtr l) { iface->send_L_Data(std::move(l)); }
 };
 

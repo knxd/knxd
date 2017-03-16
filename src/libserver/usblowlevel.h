@@ -90,6 +90,8 @@ public:
   void stop();
   void send_Data (CArray& l);
   void sendReset ();
+  void abort_send();
+
 
   // for use by callbacks only
   void CompleteReceive(struct libusb_transfer *recvh);
