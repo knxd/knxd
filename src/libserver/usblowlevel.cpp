@@ -319,14 +319,14 @@ USBLowLevelDriver::CompleteSend(struct libusb_transfer *transfer)
     ERRORPRINTF (t, E_WARNING | 35, "SendComp %lx %lx",(unsigned long)transfer,(unsigned long)sendh);
   assert(transfer == sendh);
 
-  TRACEPRINTF (t, 0, "SendCB %lx", (unsigned long) sendh);
+  TRACEPRINTF (t, 10, "SendCB %lx", (unsigned long) sendh);
   write_trigger.send();
 }
 
 void
 USBLowLevelDriver::write_trigger_cb(ev::async &w, int revents)
 {
-  TRACEPRINTF (t, 0, "SendComplete %lx %d", (unsigned long)sendh, sendh->actual_length);
+  TRACEPRINTF (t, 10, "SendComplete %lx %d", (unsigned long)sendh, sendh->actual_length);
   if (sendh == nullptr)
     return;
   if (sendh->status != LIBUSB_TRANSFER_COMPLETED)
@@ -359,14 +359,14 @@ void
 USBLowLevelDriver::CompleteReceive(struct libusb_transfer *transfer)
 {
   assert (transfer == recvh);
-  TRACEPRINTF (t, 0, "RecvCB %lx", (unsigned long) recvh);
+  TRACEPRINTF (t, 10, "RecvCB %lx", (unsigned long) recvh);
   read_trigger.send();
 }
 
 void
 USBLowLevelDriver::read_trigger_cb(ev::async &w, int revents)
 {
-  TRACEPRINTF (t, 0, "RecvComplete %lx %d", (unsigned long) recvh, recvh->actual_length);
+  TRACEPRINTF (t, 10, "RecvComplete %lx %d", (unsigned long) recvh, recvh->actual_length);
   if (recvh == nullptr)
     return;
 
@@ -398,7 +398,7 @@ USBLowLevelDriver::StartUsbRecvTransfer()
       stopped();
       return;
     }
-  TRACEPRINTF (t, 0, "StartRecv");
+  TRACEPRINTF (t, 10, "StartRecv");
 }
 
 inline bool is_connection_state(uint8_t *recvbuf)
