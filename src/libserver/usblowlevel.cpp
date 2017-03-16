@@ -170,6 +170,7 @@ void
 USBLowLevelDriver::start()
 {
   int res;
+  stopping = false;
 
   if (state >= sStarted)
     return;
@@ -245,6 +246,10 @@ void
 USBLowLevelDriver::stop_()
 {
   TRACEPRINTF (t, 1, "Close");
+  stopping = true;
+
+  if (state > sClaimed)
+    state = sClaimed;
   if (sendh)
     libusb_cancel_transfer (sendh);
   if (recvh)
@@ -370,7 +375,7 @@ USBLowLevelDriver::read_trigger_cb(ev::async &w, int revents)
   else
     HandleReceiveUsb();
 
-  if (state > sNone)
+  if (state > sNone && !stopping)
     StartUsbRecvTransfer();
   else
     {
@@ -415,6 +420,8 @@ USBLowLevelDriver::HandleReceiveUsb()
   t->TracePacket (0, "RecvUSB", res);
   master->recv_Data (res);
 
+  if (stopping)
+    return;
   if (!is_connection_state(recvbuf))
     return;
   if (get_connection_state(recvbuf))

@@ -69,6 +69,7 @@ private:
   CArray out;
 
   UState state = sNone;
+  bool stopping = false;
   uint8_t sendbuf[64];
   uint8_t recvbuf[64];
   bool startUsbRecvTransferFailed = false;
