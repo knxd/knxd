@@ -201,7 +201,6 @@ USBLowLevelDriver::start()
     }
   TRACEPRINTF (t, 1, "Claimed");
   state = sClaimed;
-  connection_state = true;
 
   TRACEPRINTF (t, 1, "Opened");
 
@@ -419,7 +418,7 @@ USBLowLevelDriver::HandleReceiveUsb()
 void
 USBLowLevelDriver::do_send()
 {
-  if (sendh || !connection_state || !out.size())
+  if (sendh || state < sClaimed || !out.size())
     return;
 
   t->TracePacket (0, "SendUSB", out);
