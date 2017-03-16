@@ -153,6 +153,8 @@ detectUSBEndpoint (libusb_context *context, USBEndpoint e)
 USBLowLevelDriver::USBLowLevelDriver (LowLevelIface* p, IniSection &s) : LowLevelDriver(p,s)
 {
   t->setAuxName("usbL");
+  read_trigger.set<USBLowLevelDriver,&USBLowLevelDriver::read_trigger_cb>(this);
+  write_trigger.set<USBLowLevelDriver,&USBLowLevelDriver::write_trigger_cb>(this);
   reset();
 }
 
@@ -304,14 +306,26 @@ usb_complete_send (struct libusb_transfer *transfer)
 void
 USBLowLevelDriver::CompleteSend(struct libusb_transfer *transfer)
 {
+  if (transfer != sendh)
+    ERRORPRINTF (t, E_WARNING | 35, "SendComp %lx %lx",(unsigned long)transfer,(unsigned long)sendh);
   assert(transfer == sendh);
+
+  TRACEPRINTF (t, 0, "SendCB %lx", (unsigned long) sendh);
+  write_trigger.start();
+}
+
+void
+USBLowLevelDriver::write_trigger_cb(ev::async &w, int revents)
+{
+  TRACEPRINTF (t, 0, "SendComplete %lx %d", (unsigned long)sendh, sendh->actual_length);
+  if (sendh == nullptr)
+    return;
   if (sendh->status != LIBUSB_TRANSFER_COMPLETED)
     {
-      ERRORPRINTF (t, E_WARNING | 35, "SendError %d", sendh->status);
+      ERRORPRINTF (t, E_WARNING | 35, "SendError %lx %d", (unsigned long)sendh, sendh->status);
       stop(); // TODO probably needs to be an async error
       return;
     }
-  TRACEPRINTF (t, 0, "SendComplete %d", sendh->actual_length);
   libusb_free_transfer (sendh);
   sendh = nullptr;
   send_Next();
@@ -336,19 +350,25 @@ void
 USBLowLevelDriver::CompleteReceive(struct libusb_transfer *transfer)
 {
   assert (transfer == recvh);
-  if (recvh->status != LIBUSB_TRANSFER_COMPLETED)
-    {
-      ERRORPRINTF (t, E_WARNING | 33, "RecvError %d", recvh->status);
-      libusb_free_transfer (recvh);
-      recvh = nullptr;
-      return;
-    }
-  TRACEPRINTF (t, 0, "RecvComplete %d", recvh->actual_length);
-  HandleReceiveUsb();
+  TRACEPRINTF (t, 0, "RecvCB %lx", (unsigned long) recvh);
+  read_trigger.start();
+}
 
-  if (state >= sRunning)
+void
+USBLowLevelDriver::read_trigger_cb(ev::async &w, int revents)
+{
+  TRACEPRINTF (t, 0, "RecvComplete %lx %d", (unsigned long) recvh, recvh->actual_length);
+  if (recvh == nullptr)
+    return;
+
+  if (recvh->status != LIBUSB_TRANSFER_COMPLETED)
+    ERRORPRINTF (t, E_WARNING | 33, "RecvError %d", recvh->status);
+  else
+    HandleReceiveUsb();
+
+  if (state > sNone)
     StartUsbRecvTransfer();
-  else if (recvh)
+  else
     {
       libusb_free_transfer (recvh);
       recvh = nullptr;
@@ -440,7 +460,7 @@ USBLowLevelDriver::do_send()
       ERRORPRINTF (t, E_ERROR | 37, "Error StartSend: %s", libusb_error_name(res));
       return;
     }
-  TRACEPRINTF (t, 0, "StartSend");
+  TRACEPRINTF (t, 0, "StartSend %lx", (unsigned int)sendh);
 }
 
 bool

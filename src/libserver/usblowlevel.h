@@ -83,6 +83,10 @@ private:
   void send_Next();
   void stop_();
 
+  // need to do the trigger callbacks outside of libusb
+  ev::async read_trigger; void read_trigger_cb(ev::async &w, int revents);
+  ev::async write_trigger; void write_trigger_cb(ev::async &w, int revents);
+
 public:
   bool setup();
   void start();
