@@ -43,7 +43,9 @@ EMI1Driver::cmdLeaveMonitor()
 void
 EMI1Driver::cmdOpen ()
 {
+  const uchar ta[] = { 0x46, 0x01, 0x01, 0x16, 0x00 }; // clear addr tab
   const uchar t[] = { 0x46, 0x01, 0x00, 0x60, 0x12 };
+  iface->send_Local (CArray (ta, sizeof (t)));
   iface->send_Local (CArray (t, sizeof (t)));
 }
 
