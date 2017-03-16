@@ -257,6 +257,7 @@ USBDriver::recv_Data(CArray& c)
 
   TRACEPRINTF (t, 1, "Using EMI version %d", version);
   iface->started();
+  return;
 
 cont:
   TRACEPRINTF (t, 2, "not recognized");
