@@ -44,6 +44,11 @@ USBLoop::USBLoop (TracePtr tr)
       return;
     }
 
+  if(t->ShowPrint(10))
+    libusb_set_debug(context,LIBUSB_LOG_LEVEL_DEBUG);
+  else
+    libusb_set_debug(context,LIBUSB_LOG_LEVEL_ERROR);
+
   tm.set<USBLoop, &USBLoop::timer_cb>(this);
   libusb_set_pollfd_notifiers (context, pollfd_added_cb,pollfd_removed_cb, this);
   setup();
@@ -75,6 +80,7 @@ void USBLoop::setup()
           io->set<USBLoop, &USBLoop::io_cb>(this);
           io->start(it->fd,ev::READ);
           fds.push_back(io);
+          TRACEPRINTF (t, 10, "USBLoop read %d",it->fd);
         }
       if (it->events & POLLOUT)
         {
@@ -82,6 +88,7 @@ void USBLoop::setup()
           io->set<USBLoop, &USBLoop::io_cb>(this);
           io->start(it->fd,ev::WRITE);
           fds.push_back(io);
+          TRACEPRINTF (t, 10, "USBLoop write %d",it->fd);
         }
     }
   free(orig_usb_fds);
@@ -111,6 +118,7 @@ USBLoop::timer_cb (ev::timer &w, int revents)
 void
 USBLoop::io_cb (ev::io &w, int revents)
 {
+  // TRACEPRINTF (t, 10, "USBLoop hit %d", w.fd);
   struct timeval tv1 = {0,0};
   libusb_handle_events_timeout (context, &tv1);
   timer();
