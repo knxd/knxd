@@ -471,7 +471,7 @@ USBLowLevelDriver::do_send()
       ERRORPRINTF (t, E_ERROR | 37, "Error StartSend: %s", libusb_error_name(res));
       return;
     }
-  TRACEPRINTF (t, 0, "StartSend %lx", (unsigned int)sendh);
+  TRACEPRINTF (t, 0, "StartSend %lx", (unsigned long)sendh);
 }
 
 bool
