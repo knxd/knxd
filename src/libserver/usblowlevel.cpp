@@ -155,6 +155,8 @@ USBLowLevelDriver::USBLowLevelDriver (LowLevelIface* p, IniSection &s) : LowLeve
   t->setAuxName("usbL");
   read_trigger.set<USBLowLevelDriver,&USBLowLevelDriver::read_trigger_cb>(this);
   write_trigger.set<USBLowLevelDriver,&USBLowLevelDriver::write_trigger_cb>(this);
+  read_trigger.start();
+  write_trigger.start();
   reset();
 }
 
@@ -275,6 +277,8 @@ USBLowLevelDriver::stop()
 USBLowLevelDriver::~USBLowLevelDriver ()
 {
   stop();
+  read_trigger.stop();
+  write_trigger.stop();
 }
 
 void
@@ -311,7 +315,7 @@ USBLowLevelDriver::CompleteSend(struct libusb_transfer *transfer)
   assert(transfer == sendh);
 
   TRACEPRINTF (t, 0, "SendCB %lx", (unsigned long) sendh);
-  write_trigger.start();
+  write_trigger.send();
 }
 
 void
@@ -351,7 +355,7 @@ USBLowLevelDriver::CompleteReceive(struct libusb_transfer *transfer)
 {
   assert (transfer == recvh);
   TRACEPRINTF (t, 0, "RecvCB %lx", (unsigned long) recvh);
-  read_trigger.start();
+  read_trigger.send();
 }
 
 void
