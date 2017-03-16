@@ -44,7 +44,7 @@ LowLevelDriver::send_Local(CArray &d)
 }
 
 void
-LowLevelDriver::local_timeout_cb(ev::timer &w, int revents)
+LowLevelDriver::local_timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
 {
   ERRORPRINTF (t, E_ERROR, "send_Local timed out!");
   abort_send();

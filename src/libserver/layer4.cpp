@@ -388,7 +388,7 @@ T_Connection::SendData (int serno, const CArray & c)
  *
 */
 
-void T_Connection::timer_cb (ev::timer &w, int revents)
+void T_Connection::timer_cb (ev::timer &w UNUSED, int revents UNUSED)
 {
   if (mode == 2 && repcount < 3)
     {

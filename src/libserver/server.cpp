@@ -66,7 +66,7 @@ NetServer::deregister (ClientConnPtr con)
 }
 
 void
-NetServer::cleanup_cb (ev::async &w, int revents)
+NetServer::cleanup_cb (ev::async &w UNUSED, int revents UNUSED)
 {
   while (!cleanup_q.isempty())
     {
@@ -105,7 +105,7 @@ NetServer::start()
 }
 
 void
-NetServer::io_cb (ev::io &w, int revents)
+NetServer::io_cb (ev::io &w UNUSED, int revents UNUSED)
 {
   int cfd;
   cfd = accept (fd, NULL,NULL);

@@ -28,7 +28,8 @@
 enum TSTATE {
   T_new = 0,
   T_error,
-  T_dev_start,
+  T_dev_start = 3,
+  _T4,_T5,_T6,_T7,_T8,_T9,
   T_dev_end = 10,
   T_start = 11,
   T_in_reset,

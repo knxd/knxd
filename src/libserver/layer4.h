@@ -96,7 +96,7 @@ public:
     { this->write_only = write_only; }
 
   bool checkAddress(eibaddr_t addr) { return !write_only && addr == this->getAddress(); }
-  bool checkGroupAddress(eibaddr_t addr) { return !write_only; }
+  bool checkGroupAddress(eibaddr_t addr UNUSED) { return !write_only; }
 };
 
 /** Broadcast Layer 4 connection */

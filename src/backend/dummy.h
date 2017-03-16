@@ -28,7 +28,7 @@ public:
   DummyL2Driver (const LinkConnectPtr_& c, IniSection& s) : BusDriver(c,s) {}
   virtual ~DummyL2Driver ();
 
-  void send_L_Data (LDataPtr l) {}
+  void send_L_Data (LDataPtr l UNUSED) {}
 };
 
 /** dummy L2 filter, is transparent */

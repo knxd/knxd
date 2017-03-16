@@ -30,8 +30,8 @@
 #include "inifile.h"
 #include "types.h"
 
-IniSection::IniSection(IniData &p, const std::string& n) : values(), name(n), parent(p) { }
-IniSection::IniSection(IniData &p, const std::string&& n) : values(), name(n), parent(p) { }
+IniSection::IniSection(IniData &p, const std::string& n) : values(), parent(p), name(n) { }
+IniSection::IniSection(IniData &p, const std::string&& n) : values(), parent(p), name(n) { }
 
 const std::string&
 IniSection::value(const std::string& name, const std::string& def)
@@ -155,7 +155,7 @@ IniData::operator[](const char *name)
   if (v == sections.end())
     {
       auto res = sections.emplace(name, SectionType(IniSection(*this,name),false));
-      v = sections.find(name);
+      v = res.first;
     }
   v->second.second = true;
   return v->second.first;

@@ -118,7 +118,6 @@ GroupCache::Start ()
 void
 GroupCache::Clear ()
 {
-  unsigned int i;
   TRACEPRINTF (t, 4, "GroupCacheClear");
   cache.clear();
 }
@@ -176,13 +175,13 @@ GroupCache::updated(GroupCacheEntry &c)
 }
 
 void
-GroupCache::remove (GroupCacheReader * entry)
+GroupCache::remove (GroupCacheReader * entry UNUSED)
 {
   remtrigger.send();
 }
 
 void
-GroupCache::remtrigger_cb(ev::async &w, int revents)
+GroupCache::remtrigger_cb(ev::async &w UNUSED, int revents UNUSED)
 {
   // erase() doesn't do reverse iterators
   //R_ITER(i,reader)
@@ -236,7 +235,7 @@ private:
     stop();
   }
 
-  void timeout_cb(ev::timer &w, int revents)
+  void timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
   {
     if (stopped)
       return;
@@ -288,7 +287,7 @@ GroupCache::Read (eibaddr_t addr, unsigned Timeout, uint16_t age,
   T_DATA_XXX_REQ_PDU tpdu;
   LDataPtr l;
 
-  GCReader *gcr = new GCReader(this,addr,Timeout,age, cb,cc);
+  new GCReader(this,addr,Timeout,age, cb,cc);
 
   tpdu.data = apdu.ToPacket ();
   l = LDataPtr(new L_Data_PDU ());
@@ -329,7 +328,7 @@ public:
       GroupCacheReader::stop();
   }
 private:
-  void updated(GroupCacheEntry &c)
+  void updated(GroupCacheEntry &c UNUSED)
   {
     if (stopped)
       return;
@@ -337,7 +336,7 @@ private:
     handler();
   }
 
-  void timeout_cb(ev::timer &w, int revents)
+  void timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
   {
     if (stopped)
       return;
@@ -374,7 +373,7 @@ GroupCache::LastUpdates (uint16_t start, uint8_t Timeout,
   if (st > seq)
     st -= 0x10000;
   else
-  new GCTracker(this, st, Timeout, cb,cc);
+    new GCTracker(this, st, Timeout, cb,cc);
 }
 
 void

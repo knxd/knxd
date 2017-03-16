@@ -229,8 +229,6 @@ EIBnetServer::start()
   Server::start();
   return;
 
-err_out4:
-  stop();
 err_out3:
   mcast.reset();
 err_out2:
@@ -298,7 +296,6 @@ int
 EIBnetServer::addClient (ConnType type, const EIBnet_ConnectRequest & r1,
                          eibaddr_t addr)
 {
-  unsigned int i;
   int id = 1;
 rt:
   ITER(i, connections)
@@ -342,7 +339,7 @@ ConnState::ConnState (LinkConnectClientPtr c, eibaddr_t addr)
   TRACEPRINTF (t, 9, "has %s", FormatEIBAddr (addr));
 }
 
-void ConnState::sendtimeout_cb(ev::timer &w, int revents)
+void ConnState::sendtimeout_cb(ev::timer &w UNUSED, int revents UNUSED)
 {
   if (++retries <= 5)
     {
@@ -354,7 +351,7 @@ void ConnState::sendtimeout_cb(ev::timer &w, int revents)
   stop();
 }
 
-void ConnState::send_trigger_cb(ev::async &w, int revents)
+void ConnState::send_trigger_cb(ev::async &w UNUSED, int revents UNUSED)
 {
   if (out.isempty ())
     return;
@@ -380,7 +377,7 @@ void ConnState::send_trigger_cb(ev::async &w, int revents)
   std::static_pointer_cast<EIBnetServer>(server)->mcast->Send (p, daddr);
 }
 
-void ConnState::timeout_cb(ev::timer &w, int revents)
+void ConnState::timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
 {
   if (channel > 0)
     {
@@ -420,7 +417,7 @@ void EIBnetServer::drop_connection (ConnStatePtr s)
   drop_trigger.send();
 }
 
-void EIBnetServer::drop_trigger_cb(ev::async &w, int revents)
+void EIBnetServer::drop_trigger_cb(ev::async &w UNUSED, int revents UNUSED)
 {
   while (!drop_q.isempty())
     {

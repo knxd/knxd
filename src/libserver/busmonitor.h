@@ -57,7 +57,7 @@ public:
 
   void send_L_Busmonitor (LBusmonPtr l);
   // dummy method
-  void recv_Data(uint8_t *buf, size_t len) {}
+  void recv_Data(uint8_t *buf UNUSED, size_t len UNUSED) {}
 };
 
 /** implements text busmonitor functions for a client */

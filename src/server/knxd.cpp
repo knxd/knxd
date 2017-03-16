@@ -110,7 +110,7 @@ static struct argp_option options[] = {
   {0}
 };
 
-void fork_args_helper(int key)
+void fork_args_helper()
 {
   int fifo[2];
   if (pipe(fifo) == -1)
@@ -142,9 +142,8 @@ void fork_args_helper(int key)
 
 /** parses and stores an option */
 static error_t
-parse_opt (int key, char *arg, struct argp_state *state)
+parse_opt (int key, char *arg, struct argp_state *state UNUSED)
 {
-  struct arguments *arguments = (struct arguments *) state->input;
   switch (key)
     {
     case ARGP_KEY_INIT:
@@ -182,7 +181,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case ARGP_KEY_ERROR:
     default:
       if (!do_list)
-        fork_args_helper(key);
+        fork_args_helper();
       return 1;
     }
   return 0;
@@ -196,7 +195,7 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
 // #define EV_TRACE
 
 static void
-signal_cb (EV_P_ ev_signal *w, int revents)
+signal_cb (EV_P_ ev_signal *w UNUSED, int revents UNUSED)
 {
   ev_break (EV_A_ EVBREAK_ALL);
   stopping = true;
@@ -217,7 +216,7 @@ struct _hup {
 } hup;
 
 static void
-sighup_cb (EV_P_ ev_signal *w, int revents)
+sighup_cb (EV_P_ ev_signal *w, int revents UNUSED)
 {
   struct _hup *hup = (struct _hup *)w;
 

@@ -63,10 +63,15 @@ A_Busmonitor::A_Busmonitor (ClientConnPtr c, bool virt, bool TS)
 }
 
 bool
-A_Busmonitor::setup(uint8_t *buf,size_t len)
+A_Busmonitor::setup (uint8_t *buf, size_t len)
 {
   CArray resp;
 
+  if (len != 2)
+    {
+      con->sendreject ();
+      return false;
+    }
   if (!(v ? router.registerVBusmonitor (this) : router.registerBusmonitor (this)))
     {
       con->sendreject (EIB_CONNECTION_INUSE);

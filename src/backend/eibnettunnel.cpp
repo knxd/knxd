@@ -466,7 +466,7 @@ EIBNetIPTunnel::send_L_Data (LDataPtr l)
   trigger.send();
 }
 
-void EIBNetIPTunnel::trigger_cb(ev::async &w, int revents)
+void EIBNetIPTunnel::trigger_cb(ev::async &w UNUSED, int revents UNUSED)
 {
   if (mod != 1 || out.size() == 0)
     return;
@@ -482,7 +482,7 @@ void EIBNetIPTunnel::trigger_cb(ev::async &w, int revents)
   mod = 2; timeout.start(1,0);
 }
 
-void EIBNetIPTunnel::conntimeout_cb(ev::timer &w, int revents)
+void EIBNetIPTunnel::conntimeout_cb(ev::timer &w UNUSED, int revents UNUSED)
 {
   if (mod)
     {
@@ -554,7 +554,7 @@ EIBNetIPTunnel::stop()
 }
 
 void
-EIBNetIPTunnel::timeout_cb(ev::timer &w, int revents)
+EIBNetIPTunnel::timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
 {
   if (mod != 2)
     return;

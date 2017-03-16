@@ -161,7 +161,7 @@ USBDriver::started()
 }
 
 void 
-USBDriver::timeout_cb(ev::timer &w, int revents)
+USBDriver::timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
 {
   if (++cnt < 5)
     xmit();
@@ -340,7 +340,6 @@ USBDriver::setup ()
   return true;
 ex1:
   delete iface;
-ex0:
   return false;
 }
 

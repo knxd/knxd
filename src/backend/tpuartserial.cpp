@@ -52,7 +52,7 @@ static speed_t getbaud(int baud) {
         case 115200:
             return B115200;
         default:
-            return -1;
+            return 0;
     }
 }
 
@@ -76,7 +76,7 @@ TPUARTSerial::setup()
   baudrate = cfg.value("baudrate", 0);
   if (baudrate == 0)
       baudrate = default_baudrate();
-  if (getbaud(baudrate) < 0)
+  if (getbaud(baudrate) == 0)
     {
       ERRORPRINTF (t, E_ERROR | 22, "Wrong baudrate= config");
       return false;

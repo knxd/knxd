@@ -65,11 +65,12 @@ Router::readaddrblock (const std::string& addr, eibaddr_t& parsed, int &len)
   return true;
 }
 
-Router::Router (IniData& d, std::string sn) : BaseRouter(d),main(sn)
+Router::Router (IniData& d, std::string sn) : BaseRouter(d)
                 , servers(_servers.Instance())
                 , filters(_filters.Instance())
                 , drivers(_drivers.Instance())
                 , lowlevels(_lowlevels.Instance())
+                , main(sn)
 {
   IniSection &s = ini[main];
   t = TracePtr(new Trace(s, s.value("name","")));
@@ -275,7 +276,6 @@ Router::setup_link(std::string& name)
   std::string drivername = s.value("driver","");
   LinkConnectPtr link = nullptr;
   ServerPtr server = nullptr;
-  bool found;
 
   if (servername.size() && do_server(server, s,servername))
     return server;
@@ -384,7 +384,7 @@ Router::link_stopped(const LinkConnectPtr& link)
 }
 
 void
-Router::state_trigger_cb (ev::async &w, int revents)
+Router::state_trigger_cb (ev::async &w UNUSED, int revents UNUSED)
 {
   bool oarn = all_running;
   bool osrn = some_running;
@@ -695,7 +695,6 @@ Router::hasAddress (eibaddr_t addr, LinkConnectPtr& link, bool quiet)
 
   if (link && link->hasAddress(addr))
     {
-    on_this_interface:
       if (!quiet)
         TRACEPRINTF (t, 8, "own addr %s", FormatEIBAddr (addr));
       return false;
@@ -800,7 +799,7 @@ Router::release_client_addr(eibaddr_t addr)
       ERRORPRINTF (t, E_ERROR | 3, "Release BAD1 %s", FormatEIBAddr (addr));
       return;
     }
-  unsigned int pos = addr - client_addrs_start;
+  int pos = addr - client_addrs_start;
   if (pos >= client_addrs_len)
     {
       ERRORPRINTF (t, E_ERROR | 3, "Release BAD2 %s", FormatEIBAddr (addr));
@@ -817,10 +816,8 @@ Router::release_client_addr(eibaddr_t addr)
 }
 
 void
-Router::trigger_cb (ev::async &w, int revents)
+Router::trigger_cb (ev::async &w UNUSED, int revents UNUSED)
 {
-  unsigned i;
-
   while (!buf.isempty() && low_send_more)
     {
       LDataPtr l1 = buf.get ();
@@ -927,10 +924,8 @@ Router::send_L_Data(LDataPtr l1)
 }
 
 void
-Router::mtrigger_cb (ev::async &w, int revents)
+Router::mtrigger_cb (ev::async &w UNUSED, int revents UNUSED)
 {
-  unsigned i;
-
   while (!mbuf.isempty())
     {
       LBusmonPtr l1 = mbuf.get ();
@@ -982,13 +977,13 @@ RouterHigh::recv_L_Busmonitor (LBusmonPtr l)
 }
 
 RouterHigh::RouterHigh(Router& r, const RouterLowPtr& rl)
-    : router(&r), Driver(std::dynamic_pointer_cast<LinkConnect_>(rl), r.ini[r.main])
+    : Driver(std::dynamic_pointer_cast<LinkConnect_>(rl), r.ini[r.main]), router(&r)
 {
   t->setAuxName("H");
 }
 
 RouterLow::RouterLow(Router& r)
-    : router(&r), LinkConnect_(r, r.ini[r.main], r.t)
+    : LinkConnect_(r, r.ini[r.main], r.t), router(&r)
 {
   t->setAuxName("L");
 }

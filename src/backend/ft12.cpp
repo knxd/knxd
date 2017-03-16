@@ -273,7 +273,7 @@ FT12serial::read_cb(uint8_t *buf, size_t len)
 }
 
 void
-FT12serial::timer_cb(ev::timer &w, int revents)
+FT12serial::timer_cb(ev::timer &w UNUSED, int revents UNUSED)
 {
   process_read(true);
 }
@@ -334,9 +334,9 @@ FT12serial::process_read(bool is_timeout)
           c1 = 0;
           for (unsigned int i = 4; i < akt[1] + 4U; i++)
             c1 += akt[i];
+          len = akt[1] + 6;
           if (akt[akt[1] + 4] != c1 || akt[akt[1] + 5] != 0x16)
             {
-              len = akt[1] + 6;
               //Forget wrong short frame
               akt.deletepart (0, len);
               continue;
@@ -360,12 +360,10 @@ FT12serial::process_read(bool is_timeout)
             {
               recvflag = !recvflag;
               CArray *c = new CArray;
-              len = akt[1] + 6;
               c->setpart (akt.data() + 5, 0, len - 7);
               last = *c;
               recv_Data (*c);
             }
-          // XXX TODO otherwise set 'len' to what? Or continue?
           akt.deletepart (0, len);
         }
       else
@@ -384,14 +382,14 @@ FT12serial::process_read(bool is_timeout)
 }
 
 void
-FT12serial::sendtimer_cb(ev::timer &w, int revents)
+FT12serial::sendtimer_cb(ev::timer &w UNUSED, int revents UNUSED)
 {
   send_wait = false;
   trigger.send();
 }
 
 void
-FT12serial::trigger_cb (ev::async &w, int revents)
+FT12serial::trigger_cb (ev::async &w UNUSED, int revents UNUSED)
 {
   if (send_wait)
     return;

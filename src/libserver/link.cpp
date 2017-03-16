@@ -42,17 +42,17 @@ LinkConnect::~LinkConnect()
     static_cast<Router &>(router).release_client_addr(addr);
 }
 
-LinkBase::LinkBase(BaseRouter& r, IniSection& s, TracePtr tr) : cfg(s)
+LinkBase::LinkBase(BaseRouter& r UNUSED, IniSection& s, TracePtr tr) : cfg(s)
 {
-  Router& rt = dynamic_cast<Router&>(r);
   t = TracePtr(new Trace(*tr, s));
   t->setAuxName("Base");
 }
 
 std::string
-LinkBase::info(int level)
+LinkBase::info(int level UNUSED)
 {
-  std::string res = "LinkBase: cfg:";
+  // TODO add more introspection
+  std::string res = "cfg:";
   res += cfg.name;
   return res;
 }
@@ -73,7 +73,7 @@ LinkConnect::LinkConnect(BaseRouter& r, IniSection& c, TracePtr tr)
 }
 
 void
-LinkConnect::retry_timer_cb (ev::timer &w, int revents)
+LinkConnect::retry_timer_cb (ev::timer &w UNUSED, int revents UNUSED)
 {
   retries++;
   start();

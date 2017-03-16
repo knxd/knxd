@@ -130,7 +130,7 @@ EMI_Common::send_Data(CArray &pdu)
 }
 
 void
-EMI_Common::timeout_cb(ev::timer &w, int revents)
+EMI_Common::timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
 {
   TRACEPRINTF (t, 1, "No confirm, continuing");
 

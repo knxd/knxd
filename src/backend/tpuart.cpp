@@ -143,7 +143,6 @@ TPUART_Base::send_again()
       unsigned i;
       unsigned z = out.size();
 
-      bool ext = !(out[0] & 0x80);
       w->resize (z * 2);
       for (i = 0; i < z; i++)
         {
@@ -210,7 +209,7 @@ TPUART_Base::RecvLPDU (const uchar * data, int len)
 }
 
 void
-TPUART_Base::sendtimer_cb(ev::timer &w, int revents)
+TPUART_Base::sendtimer_cb(ev::timer &w UNUSED, int revents UNUSED)
 {
   if (send_retry++ > 3)
     {
@@ -223,7 +222,7 @@ TPUART_Base::sendtimer_cb(ev::timer &w, int revents)
 }
 
 void
-TPUART_Base::timer_cb(ev::timer &w, int revents)
+TPUART_Base::timer_cb(ev::timer &w UNUSED, int revents UNUSED)
 {
   if (state >= T_dev_start && state <= T_dev_end)
     {
@@ -287,12 +286,12 @@ TPUART_Base::in_check()
 {
   bool ext = !(in[0] & 0x80);
 
-  if (in.size () >= 6+ext)
+  if (in.size () >= 6u+ext)
     {
 
       if (!acked && !recvecho && my_addr == 0 && state >= T_is_online && state < T_busmonitor)
         {
-          if (out.size() >= 6+ext && !((in[0]^out[0])&~0x20) && !memcmp(in.data()+1,out.data()+1,5+ext))
+          if (out.size() >= 6u+ext && !((in[0]^out[0])&~0x20) && !memcmp(in.data()+1,out.data()+1,5+ext))
             recvecho = true;
           else
             {
@@ -422,6 +421,10 @@ TPUART_Base::read_cb(uint8_t *buf, size_t len)
               break;
             case T_in_getstate:
               setstate(T_is_online);
+              break;
+
+            default:
+              ERRORPRINTF (t, E_WARNING | 63, "TPUART state %s should not happen", SN(state));
               break;
             }
         }

@@ -22,7 +22,7 @@
 #include "tpdu.h"
 
 LPDUPtr
-LPDU::fromPacket (const CArray & c, TracePtr t)
+LPDU::fromPacket (const CArray & c, TracePtr t UNUSED)
 {
   LPDUPtr l = nullptr;
   if (c.size() >= 1)
@@ -64,7 +64,7 @@ CArray L_NACK_PDU::ToPacket ()
   return CArray (&c, 1);
 }
 
-String L_NACK_PDU::Decode (TracePtr t)
+String L_NACK_PDU::Decode (TracePtr t UNUSED)
 {
   return "NACK";
 }
@@ -89,7 +89,7 @@ CArray L_ACK_PDU::ToPacket ()
   return CArray (&c, 1);
 }
 
-String L_ACK_PDU::Decode (TracePtr t)
+String L_ACK_PDU::Decode (TracePtr t UNUSED)
 {
   return "ACK";
 }
@@ -114,7 +114,7 @@ CArray L_BUSY_PDU::ToPacket ()
   return CArray (&c, 1);
 }
 
-String L_BUSY_PDU::Decode (TracePtr t)
+String L_BUSY_PDU::Decode (TracePtr t UNUSED)
 {
   return "BUSY";
 }
@@ -139,10 +139,9 @@ L_Unknown_PDU::ToPacket ()
 }
 
 String
-L_Unknown_PDU::Decode (TracePtr t)
+L_Unknown_PDU::Decode (TracePtr t UNUSED)
 {
   String s ("Unknown LPDU: ");
-  unsigned i;
 
   if (pdu.size() == 0)
     return "empty LPDU";
@@ -180,7 +179,6 @@ String
 L_Busmonitor_PDU::Decode (TracePtr t)
 {
   String s ("LPDU: ");
-  unsigned i;
 
   if (pdu.size() == 0)
     return "empty LPDU";

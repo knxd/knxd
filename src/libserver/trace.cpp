@@ -90,7 +90,7 @@ error_level(std::string level, int def)
     return def;
   if(isdigit(level[0]))
     return strtoul(level.c_str(), NULL, 0);
-  for(int i = 0; i < sizeof(error_levels)/sizeof(error_levels[0]); i++)
+  for(unsigned int i = 0; i < sizeof(error_levels)/sizeof(error_levels[0]); i++)
     if (level == error_levels[i])
       return i;
   return -1; // warning
@@ -120,7 +120,7 @@ Trace::setAuxName(std::string name)
   if (name == this->name)
     return;
 
-  int len = this->name.length()+name.size()+(name.size()>0);
+  unsigned int len = this->name.length()+name.size()+(name.size()>0);
   this->auxname = name;
 
   if (trace_namelen < len)

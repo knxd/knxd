@@ -3,7 +3,7 @@ compiler: gcc
 dist: trusty
 script:
   - sh -x bootstrap.sh
-  - env CFLAGS="-Wall -Wextra" CPPFLAGS="-Wall -Wextra" ./configure --disable-systemd
+  - env CFLAGS="-Wall -Wextra -Wno-reorder" CPPFLAGS="-Wall -Wextra -Wno-reorder" ./configure --disable-systemd
   - make
   - sh tools/test.sh
 notifications:

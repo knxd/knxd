@@ -133,7 +133,7 @@ ClientConnection::read_cb (uint8_t *buf, size_t len)
 {
   if (len < 2)
     return 0;
-  int xlen = (buf[0] << 8) | (buf[1]);
+  unsigned int xlen = (buf[0] << 8) | (buf[1]);
   if (len < xlen+2)
     return 0;
   buf += 2;
@@ -294,8 +294,6 @@ ClientConnection::sendreject (int type)
 void
 ClientConnection::sendmessage (int size, const uchar * msg)
 {
-  int i;
-  int start;
   uchar head[2];
   assert (size >= 2);
   head[0] = (size >> 8) & 0xff;

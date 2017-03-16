@@ -76,6 +76,8 @@ public:
   /** set a new name */
   void setAuxName(std::string name);
 
+  IniSection &cfg;
+
   /** name(s) and number of this tracer */
   std::string servername;
   std::string name;
@@ -83,8 +85,6 @@ public:
   std::string fullname();
 
   unsigned int seq;
-
-  IniSection &cfg;
 
   Trace (IniSection& s, const std::string& sn) : cfg(s.sub("debug")), servername(sn)
   {
@@ -187,7 +187,6 @@ public:
   template <typename... Args>
   void ErrorPrintfUncond (unsigned int msgid, const char *msg, const Args & ... args)
     {
-      va_list ap;
       char c = get_level_char((msgid >> 28) & 0x0f); 
       if (servername.length())
         fmt::fprintf(stderr, "%s: ",servername.c_str());

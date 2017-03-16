@@ -28,7 +28,7 @@ void SendBuf::write(const CArray *data)
   if (!ready)
     {
       ssize_t len = ::write(fd, data->data(), data->size());
-      if (len == data->size())
+      if (len == (ssize_t)data->size())
         {
           delete data;
           return;
@@ -45,7 +45,7 @@ void SendBuf::write(const CArray *data)
 }
 
 void
-SendBuf::io_cb (ev::io &w, int revents)
+SendBuf::io_cb (ev::io &w UNUSED, int revents UNUSED)
 {
     while (sendbuf || !sendqueue.isempty()) {
         if (sendbuf) {
@@ -77,7 +77,7 @@ SendBuf::io_cb (ev::io &w, int revents)
 }
 
 void
-RecvBuf::io_cb (ev::io &w, int revents)
+RecvBuf::io_cb (ev::io &w UNUSED, int revents UNUSED)
 {
     bool some = false;
     while(sizeof(recvbuf) > recvpos) {

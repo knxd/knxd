@@ -281,7 +281,7 @@ EIBNetIPSocket::Send (EIBNetIPPacket p, struct sockaddr_in addr)
 }
 
 void
-EIBNetIPSocket::io_send_cb (ev::io &w, int revents)
+EIBNetIPSocket::io_send_cb (ev::io &w UNUSED, int revents UNUSED)
 {
   if (send_q.isempty ())
     {
@@ -316,7 +316,7 @@ EIBNetIPSocket::io_send_cb (ev::io &w, int revents)
 }
 
 void
-EIBNetIPSocket::io_recv_cb (ev::io &w, int revents)
+EIBNetIPSocket::io_recv_cb (ev::io &w UNUSED, int revents UNUSED)
 {
   uchar buf[255];
   socklen_t rl;
@@ -349,8 +349,11 @@ EIBNetIPSocket::io_recv_cb (ev::io &w, int revents)
 bool
 EIBNetIPSocket::SetInterface(std::string& iface)
 {
-  struct sockaddr_in sa = {0};
-  struct ip_mreqn addr = {{0}};
+  struct sockaddr_in sa;
+  struct ip_mreqn addr;
+
+  memset (&sa, 0, sizeof(sa));
+  memset (&addr, 0, sizeof(addr));
 
   if (iface.size() == 0)
     return true;
