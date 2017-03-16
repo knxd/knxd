@@ -165,6 +165,8 @@ USBLowLevelDriver::reset()
 void
 USBLowLevelDriver::start()
 {
+  int res;
+
   if (state >= sStarted)
     return;
   if (loop == nullptr)
@@ -173,28 +175,28 @@ USBLowLevelDriver::start()
       goto ex;
     }
 
-  if (libusb_open (d.dev, &dev) < 0)
+  if ((res = libusb_open (d.dev, &dev))< 0)
     {
-      ERRORPRINTF (t, E_ERROR | 28, "USBLowLevelDriver: init libusb: %s", strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 28, "USBLowLevelDriver: init libusb: %s", libusb_error_name(res));
       goto ex;
     }
   libusb_unref_device (d.dev);
   state = sStarted;
   TRACEPRINTF (t, 1, "Open");
   libusb_detach_kernel_driver (dev, d.interface);
-  if (libusb_set_configuration (dev, d.config) < 0)
+  if ((res = libusb_set_configuration (dev, d.config)) < 0)
     {
-      ERRORPRINTF (t, E_ERROR | 29, "USBLowLevelDriver: setup config: %s", strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 29, "USBLowLevelDriver: setup config: %s", libusb_error_name(res));
       goto ex;
     }
-  if (libusb_claim_interface (dev, d.interface) < 0)
+  if ((res = libusb_claim_interface (dev, d.interface)) < 0)
     {
-      ERRORPRINTF (t, E_ERROR | 30, "USBLowLevelDriver: claim interface: %s", strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 30, "USBLowLevelDriver: claim interface: %s", libusb_error_name(res));
       goto ex;
     }
-  if (libusb_set_interface_alt_setting (dev, d.interface, d.altsetting) < 0)
+  if ((res = libusb_set_interface_alt_setting (dev, d.interface, d.altsetting)) < 0)
     {
-      ERRORPRINTF (t, E_ERROR | 31, "USBLowLevelDriver: altsetting: %s", strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 31, "USBLowLevelDriver: altsetting: %s", libusb_error_name(res));
       goto ex;
     }
   TRACEPRINTF (t, 1, "Claimed");
@@ -361,9 +363,10 @@ USBLowLevelDriver::StartUsbRecvTransfer()
   libusb_fill_interrupt_transfer (recvh, dev, d.recvep, recvbuf,
                                   sizeof (recvbuf), usb_complete_recv,
                                   this, 0);
-  if (libusb_submit_transfer (recvh))
+  int res = libusb_submit_transfer (recvh);
+  if (res)
     {
-      ERRORPRINTF (t, E_ERROR | 32, "Error StartRecv: %s", strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 32, "Error StartRecv: %s", libusb_error_name(res));
       stopped();
       return;
     }
@@ -426,15 +429,16 @@ USBLowLevelDriver::do_send()
   sendh = libusb_alloc_transfer (0);
   if (!sendh)
     {
-      ERRORPRINTF (t, E_ERROR | 36, "Error AllocSend");
+      ERRORPRINTF (t, E_ERROR | 36, "Error AllocSend: %s", strerror(errno));
       return;
     }
   libusb_fill_interrupt_transfer (sendh, dev, d.sendep, sendbuf,
                                   sizeof (sendbuf), usb_complete_send,
                                   this, 1000);
-  if (libusb_submit_transfer (sendh))
+  int res = libusb_submit_transfer (sendh);
+  if (res)
     {
-      ERRORPRINTF (t, E_ERROR | 37, "Error StartSend");
+      ERRORPRINTF (t, E_ERROR | 37, "Error StartSend: %s", libusb_error_name(res));
       return;
     }
   TRACEPRINTF (t, 0, "StartSend");
