@@ -11,9 +11,9 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 
 # This version is outdated
 
-Please try the v0.12 branch first!
-
 v0.10 is not maintained any more.
+
+Check [the Wiki page](https://github.com/knxd/knxd/wiki) for the current version(s) to use.
 
 ## New Features
 
