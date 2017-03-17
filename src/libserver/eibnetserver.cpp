@@ -320,7 +320,7 @@ rt:
       s->nat = r1.nat;
       if(!conn->setup())
         return -1;
-      if(!static_cast<Router &>(router).registerLink(conn))
+      if(!static_cast<Router &>(router).registerLink(conn, true))
         return -1;
       connections.push_back(s);
     }

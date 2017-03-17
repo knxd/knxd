@@ -257,7 +257,7 @@ ClientConnection::read_cb (uint8_t *buf, size_t len)
       a_conn->on_error.set<ClientConnection,&ClientConnection::exit_conn>(this);
       if (a_conn->setup(buf,xlen))
         {
-          if (a_conn->lc != nullptr && !router.registerLink(a_conn->lc))
+          if (a_conn->lc != nullptr && !router.registerLink(a_conn->lc, true))
             {
               exit_conn();
               sendreject();

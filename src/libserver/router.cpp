@@ -314,16 +314,17 @@ Router::start_()
       links_changed = false;
       ITER(i,links)
         {
-          if (i->second->running || i->second->switching)
+          auto ii = i->second;
+          if (ii->running || ii->switching)
             continue;
-          if (i->second->ignore)
+          if (ii->ignore || ii->transient)
             continue;
-          if (i->second->seq >= seq)
+          if (ii->seq >= seq)
             continue;
           seen = true;
-          i->second->seq = seq;
-          TRACEPRINTF (i->second->t, 3, "Start: %s", i->second->info(0));
-          i->second->start();
+          ii->seq = seq;
+          TRACEPRINTF (ii->t, 3, "Start: %s", ii->info(0));
+          ii->start();
           if (links_changed)
             break;
         }
@@ -376,7 +377,7 @@ Router::link_stopped(const LinkConnectPtr& link)
 
   if(! want_up)
     return;
-  if (link->may_fail)
+  if (link->may_fail || link->transient)
     return;
   if (running_signal && link->retry_delay > 0)
     return;
@@ -394,12 +395,16 @@ Router::state_trigger_cb (ev::async &w UNUSED, int revents UNUSED)
   int n_down = 0;
 
   ITER(i,links)
-    if (i->second->switching)
-      n_going++;
-    else if (i->second->running)
-      n_up++;
-    else if (!i->second->ignore)
-      n_down++;
+    {
+      if (i->second->transient)
+        continue;
+      if (i->second->switching)
+        n_going++;
+      else if (i->second->running)
+        n_up++;
+      else if (!i->second->ignore)
+        n_down++;
+    }
 
   if (!n_going && n_down == 0 && n_up > 0)
     {
@@ -644,7 +649,7 @@ Router::registerVBusmonitor (L_Busmonitor_CallBack * c)
 }
 
 bool
-Router::registerLink(const LinkConnectPtr& link)
+Router::registerLink(const LinkConnectPtr& link, bool transient)
 {
   const std::string& n = link->name();
   auto res = links.emplace(std::piecewise_construct,
@@ -664,6 +669,8 @@ Router::registerLink(const LinkConnectPtr& link)
       link->seq = seq;
       link->start();
     }
+  if (transient)
+    link->transient = true;
   return true;
 }
 

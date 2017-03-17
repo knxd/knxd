@@ -86,7 +86,7 @@ public:
   void link_stopped(const LinkConnectPtr& link);
 
   /** register a new link. Must be fully linked and setup() must be OK. */
-  bool registerLink(const LinkConnectPtr& link);
+  bool registerLink(const LinkConnectPtr& link, bool transient = false);
   /** unregister a new link */
   bool unregisterLink(const LinkConnectPtr& link);
 

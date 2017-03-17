@@ -365,6 +365,8 @@ public:
   virtual ~LinkConnect();
   /** Don't auto-start */
   bool ignore = false;
+  /** client: don't shutdown when this connection ends */
+  bool transient = false;
   /** Ignore startup failures */
   bool may_fail = false;
   /** address assigned to this link */
