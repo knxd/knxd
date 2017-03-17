@@ -1,3 +1,9 @@
+knxd (0.14.1-3) unstable; urgency=medium
+
+  * Actually install knxd_args.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 17 Mar 2017 21:02:34 +0100
+
 knxd (0.14.1-2) unstable; urgency=medium
 
   * don't install eibnet* tools
