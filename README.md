@@ -9,13 +9,11 @@ https://www.auto.tuwien.ac.at/~mkoegler/index.php/bcusdk
 
 For a (german only) history and discussion why knxd emerged please also see: [eibd(war bcusdk) Fork -> knxd](http://knx-user-forum.de/forum/öffentlicher-bereich/knx-eib-forum/39972-eibd-war-bcusdk-fork-knxd)
 
-# Test version!
+# Future stable version
 
-This version should be OK for general use, but development happens.
+This version should be OK for general use.
 
-Please switch to the v0.12 branch if you need a long-term-stable version.
-
-    git checkout v0.12
+Check [the Wiki page](https://github.com/knxd/knxd/wiki) for the version(s) to use.
 
 ## Known bugs
 
