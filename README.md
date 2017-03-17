@@ -13,7 +13,7 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 
 v0.10 is not maintained any more.
 
-Check [the Wiki page](https://github.com/knxd/knxd/wiki) for the current version(s) to use.
+Check [the Wiki page](https://github.com/knxd/knxd/wiki) for the version(s) to use.
 
 ## New Features
 
