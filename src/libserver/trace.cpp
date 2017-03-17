@@ -99,7 +99,6 @@ error_level(std::string level, int def)
 void
 Trace::setup()
 {
-  assert(this->name.length() > 0);
   if (trace_namelen < this->name.length())
     trace_namelen = this->name.length();
   timestamps = cfg.value("timestamps",timestamps);

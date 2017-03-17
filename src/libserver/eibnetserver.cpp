@@ -805,11 +805,13 @@ EIBnetServer::stop_()
   if (mcast)
     {
       auto c = std::dynamic_pointer_cast<LinkConnect>(mcast->conn.lock());
-      assert (c);
 
-      c->stop();
-      if(route)
-        static_cast<Router &>(router).unregisterLink(c);
+      if (c)
+        {
+          c->stop();
+          if(route)
+            static_cast<Router &>(router).unregisterLink(c);
+        }
       mcast.reset();
     }
   if (sock)
