@@ -13,7 +13,7 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 
 This version should be OK for general use.
 
-Check [the Wiki page](https://github.com/knxd/knxd/wiki) for the version(s) to use.
+Check [the Wiki page](https://github.com/knxd/knxd/wiki) for other version(s) to use.
 
 ## Known bugs
 
