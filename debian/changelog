@@ -1,3 +1,9 @@
+knxd (0.15.0-1) unstable; urgency=medium
+
+  * Prepare for v0.16.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 17 Mar 2017 05:56:23 +0100
+
 knxd (0.14.1-2) unstable; urgency=medium
 
   * don't install eibnet* tools
