@@ -11,9 +11,7 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 
 # This is the current stable version
 
-Check the "master" branch for new features.
-
-Stability and security fixes will still be applied to this version.
+Check [the Wiki page](https://github.com/knxd/knxd/wiki) for the current version(s) to use.
 
 ## New Features since v0.10
 
