@@ -40,7 +40,10 @@ QueueFilter::setup()
       return false;
     }
   if (findFilter("queue", true) != nullptr)
-    ERRORPRINTF(t, E_WARNING, "Two queue filters on a link does not make sense");
+    {
+      ERRORPRINTF(t, E_WARNING, "Two queue filters on a link does not make sense");
+      return false;
+    }
   if (!Filter::setup())
     return false;
   // XXX options?
