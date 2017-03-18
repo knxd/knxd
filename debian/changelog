@@ -1,3 +1,9 @@
+knxd (0.14.1-4) unstable; urgency=medium
+
+  * Actually install knxd_args correctly.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sat, 18 Mar 2017 20:44:38 +0100
+
 knxd (0.14.1-3) unstable; urgency=medium
 
   * Actually install knxd_args.

@@ -2,6 +2,5 @@
 #define PATHS_INC
 
 #define LIBEXECDIR "@libexecdir@"
-#define SBINDIR "@sbindir@"
 
 #endif
