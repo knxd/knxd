@@ -638,7 +638,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
           t->TracePacket (2, "unparseable CONNECTION_REQUEST", p1->data);
           goto out;
         }
-      r2.status = 0x22;
+      r2.status = E_CONNECTION_TYPE;
       if (r1.CRI.size() == 3 && r1.CRI[0] == 4)
 	{
 	  eibaddr_t a = tunnel ? static_cast<Router &>(router).get_client_addr (t) : 0;
@@ -651,29 +651,35 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
           if (!tunnel)
             TRACEPRINTF (t, 8, "Tunnel CONNECTION_REQ, ignored, not tunneling");
           else if (!a)
-            TRACEPRINTF (t, 8, "Tunnel CONNECTION_REQ, ignored, no free addresses");
+            {
+              TRACEPRINTF (t, 8, "Tunnel CONNECTION_REQ no free addresses");
+              r2.status = E_NO_MORE_CONNECTIONS;
+            }
           else if (r1.CRI[1] == 0x02 || r1.CRI[1] == 0x80)
 	    {
 	      int id = addClient ((r1.CRI[1] == 0x80) ? CT_BUSMONITOR : CT_STANDARD, r1, a);
 	      if (id <= 0xff)
 		{
 		  r2.channel = id;
-		  r2.status = 0;
+		  r2.status = E_NO_ERROR;
 		}
 	    }
           else
-            TRACEPRINTF (t, 8, "bad CONNECTION_REQ: [1] x%02x", r1.CRI[1]);
+            {
+              r2.status = E_TUNNELING_LAYER;
+              TRACEPRINTF (t, 8, "bad CONNECTION_REQ: [1] x%02x", r1.CRI[1]);
+            }
 	}
       else if (r1.CRI.size() == 1 && r1.CRI[0] == 3)
 	{
 	  r2.CRD.resize (1);
 	  r2.CRD[0] = 0x03;
-	  TRACEPRINTF (t, 8, "Tunnel CONNECTION_REQ");
+	  TRACEPRINTF (t, 8, "Tunnel CONNECTION_REQ, no addr (mgmt)");
 	  int id = addClient (CT_CONFIG, r1, 0);
 	  if (id <= 0xff)
 	    {
 	      r2.channel = id;
-	      r2.status = 0;
+	      r2.status = E_NO_ERROR;
 	    }
 	}
       else
@@ -683,8 +689,13 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
         }
       if (!GetSourceAddress (t, &r1.caddr, &r2.daddr))
 	goto out;
-      if (tunnel && r2.status)
-        TRACEPRINTF (t, 8, "CONNECTION_REQ: no free channel");
+      if (tunnel && (r2.status != E_NO_ERROR))
+        {
+          if (r2.status == E_NO_MORE_CONNECTIONS)
+            TRACEPRINTF (t, 8, "CONNECTION_REQ: no free channel");
+          else
+            TRACEPRINTF (t, 8, "CONNECTION_REQ: error x%x", r2.status);
+        }
       r2.daddr.sin_port = Port;
       r2.nat = r1.nat;
       isock->Send (r2.ToPacket (), r1.caddr);
@@ -947,7 +958,7 @@ void ConnState::config_request(EIBnet_ConfigRequest &r1, EIBNetIPSocket *isock)
   r2.seqno = r1.seqno;
   if (type == CT_CONFIG && r1.CEMI.size() > 1)
     {
-      if (r1.CEMI[0] == 0xFC)
+      if (r1.CEMI[0] == 0xFC) // M_PropRead.req
 	{
 	  if (r1.CEMI.size() == 7)
 	    {
@@ -982,20 +993,20 @@ void ConnState::config_request(EIBnet_ConfigRequest &r1, EIBNetIPSocket *isock)
 	      CEMI[5] = ((count & 0x0f) << 4) | (start >> 8);
 	      CEMI[6] = start & 0xff;
 	      CEMI.setpart (res, 7);
-	      r2.status = 0x00;
+	      r2.status = E_NO_ERROR;
 
 	      out.push (CEMI);
               if (! retries)
 		send_trigger.send();
 	    }
 	  else
-	    r2.status = 0x26;
+	    r2.status = E_DATA_CONNECTION;
 	}
       else
-	r2.status = 0x26;
+	r2.status = E_DATA_CONNECTION;
     }
   else
-    r2.status = 0x29;
+    r2.status = E_TUNNELING_LAYER;
   rno++;
   isock->Send (r2.ToPacket (), daddr);
 }
