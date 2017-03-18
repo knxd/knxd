@@ -128,7 +128,8 @@ void fork_args_helper()
       sprintf(s,"%s_args",argv[0]);
       execvp(s, argv);
 
-      execv(LIBEXECDIR "knxd_args", argv);
+      execv(SBINDIR "/knxd_args", argv);
+      execv(LIBEXECDIR "/knxd_args", argv);
 
       die("could not exec knxd_args helper");
       exit(1);
