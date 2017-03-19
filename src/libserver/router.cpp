@@ -412,6 +412,8 @@ Router::state_trigger_cb (ev::async &w UNUSED, int revents UNUSED)
         n_going++;
       else if (i->second->running)
         n_up++;
+      else if (i->second->may_fail && !running_signal)
+        {}
       else if (!i->second->ignore)
         n_down++;
     }
