@@ -32,6 +32,7 @@ FT12cemiDriver::~FT12cemiDriver() {}
 bool
 FT12Driver::make_EMI()
 {
+  auto oif = iface;
   switch (getVersion())
     {
     case vEMI1:
@@ -52,6 +53,7 @@ FT12Driver::make_EMI()
       return false;
     }
 
+  oif->resetMaster(iface);
   return iface->setup();
 }
 
