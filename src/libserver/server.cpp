@@ -131,6 +131,8 @@ NetServer::setup()
     return false;
   if (!static_cast<Router&>(router).hasClientAddrs())
     return false;
+  if (!static_cast<Router &>(router).checkStack(cfg))
+    return false;
   return true;
 }
 
