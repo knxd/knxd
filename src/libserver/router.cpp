@@ -148,13 +148,23 @@ Router::setup()
         // zero FDs from systemd is not a bug
         for( int fd = SD_LISTEN_FDS_START; fd < SD_LISTEN_FDS_START+num_fds; ++fd )
           {
+            // duplicate sections are not allowed
+            // thus auto-generate a new one for each socket
+            char sdnn[10];
+            snprintf(sdnn,sizeof(sdnn),"%d",fd);
+            std::string sdn = sd_name + "." + sdnn;
+            IniSection *sds = ini.add_auto(sdn);
+            if (sds == nullptr)
+              return false;
+
+            (*sds)["use"] = sd_name;
             if( sd_is_socket(fd, AF_UNSPEC, SOCK_STREAM, 1) <= 0 )
               {
                 ERRORPRINTF (t, E_ERROR | 55, "systemd socket %d is not a socket.", fd);
                 goto ex;
               }
 
-            ServerPtr sdp = ServerPtr(new SystemdServer(*this, sd, fd));
+            ServerPtr sdp = ServerPtr(new SystemdServer(*this, *sds, fd));
             if (!sdp->setup())
               goto ex;
             registerLink(sdp);
