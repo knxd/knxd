@@ -404,6 +404,8 @@ Router::state_trigger_cb (ev::async &w UNUSED, int revents UNUSED)
   int n_going = 0;
   int n_down = 0;
 
+  TRACEPRINTF (t, 4, "R state: check start");
+
   ITER(i,links)
     {
       if (i->second->transient)

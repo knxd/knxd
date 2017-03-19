@@ -1,3 +1,11 @@
+knxd (0.14.2-1) unstable; urgency=medium
+
+  * send ft12* (serial) setup string
+  * fix systemd socket support
+  * allow using filters on servers
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 19 Mar 2017 23:59:23 +0100
+
 knxd (0.14.1-4) unstable; urgency=medium
 
   * Actually install knxd_args correctly.
