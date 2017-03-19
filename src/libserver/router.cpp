@@ -432,6 +432,7 @@ Router::state_trigger_cb (ev::async &w UNUSED, int revents UNUSED)
       all_running = false;
     }
 
+  TRACEPRINTF (t, 4, "R state: check end: want_up %d some %d>%d all %d>%d, going %d up %d down %d", want_up, osrn,some_running, oarn,all_running, n_going,n_up,n_down);
   if (want_up && exitcode > 0)
     stop();
 
