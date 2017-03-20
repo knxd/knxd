@@ -335,13 +335,14 @@ ConnState::ConnState (LinkConnectClientPtr c, eibaddr_t addr)
   sendtimeout.set <ConnState,&ConnState::sendtimeout_cb> (this);
   send_trigger.set<ConnState,&ConnState::send_trigger_cb>(this);
   send_trigger.start();
+  timeout.start(CONNECTION_ALIVE_TIME, 0);
   this->addr = addr;
   TRACEPRINTF (t, 9, "has %s", FormatEIBAddr (addr));
 }
 
 void ConnState::sendtimeout_cb(ev::timer &w UNUSED, int revents UNUSED)
 {
-  if (++retries <= 5)
+  if (++retries <= 2)
     {
       send_trigger.send();
       return;
@@ -373,7 +374,7 @@ void ConnState::send_trigger_cb(ev::async &w UNUSED, int revents UNUSED)
       p = r.ToPacket ();
     }
   retries ++;
-  sendtimeout.start(1,0);
+  sendtimeout.start(TUNNELING_REQUEST_TIMEOUT,0);
   std::static_pointer_cast<EIBnetServer>(server)->mcast->Send (p, daddr);
 }
 

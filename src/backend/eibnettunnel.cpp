@@ -119,7 +119,7 @@ EIBNetIPTunnel::start()
     sock->sendaddr = caddr;
     sock->Send (p);
   }
-  conntimeout.start(10,0);
+  conntimeout.start(CONNECT_REQUEST_TIMEOUT,0);
 
   TRACEPRINTF (t, 2, "Opened");
   out.clear(); send_Next();

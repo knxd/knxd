@@ -89,6 +89,13 @@ typedef enum {
     M_IP = 0x20,
 } MediumCode;
 
+// timeouts
+#define CONNECT_REQUEST_TIMEOUT 10
+#define CONNECTIONSTATE_REQUEST_TIMEOUT 10
+#define DEVICE_CONFIGURATION_REQUEST_TIMEOUT 10
+#define TUNNELING_REQUEST_TIMEOUT 1
+#define CONNECTION_ALIVE_TIME 120
+
 typedef enum {
   S_RDWR, S_RD, S_WR,
 } SockMode;
