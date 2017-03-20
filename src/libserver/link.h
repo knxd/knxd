@@ -399,6 +399,8 @@ public:
   bool send_more = true;
   virtual void send_L_Data (LDataPtr l)
     {
+      if (need_send_more)
+        send_more = false;
       LinkConnect_::send_L_Data(std::move(l));
     }
 
