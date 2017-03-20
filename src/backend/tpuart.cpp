@@ -131,6 +131,7 @@ TPUART_Base::send_Next()
 {
   out.clear();
   send_retry = 0;
+  sendtimer.stop();
   BusDriver::send_Next();
 }
 
