@@ -27,6 +27,8 @@
 #include "lpdu.h"
 #include "ipsupport.h"
 
+// all values are from 03_08_01 5.* unless otherwise specified
+
 typedef enum {
   SEARCH_REQUEST = 0x0201,
   SEARCH_RESPONSE = 0x0202,
@@ -65,10 +67,11 @@ typedef enum
   E_HOST_PROTOCOL_TYPE = 0x01,
   E_VERSION_NOT_SUPPORTED = 0x02,
   E_SEQUENCE_NUMBER = 0x04,
+  E_CONNECTION_ID = 0x21,
   E_CONNECTION_TYPE = 0x22,
   E_CONNECTION_OPTION = 0x23,
   E_NO_MORE_CONNECTIONS = 0x24,
-  E_CONNECTION_ID = 0x21,
+  E_NO_MORE_UNIQUE_CONNECTIONS = 0x25, // 03.08.04, 2.2.2
   E_DATA_CONNECTION = 0x26,
   E_KNX_CONNECTION = 0x27,
   E_TUNNELING_LAYER = 0x29,
