@@ -62,6 +62,7 @@ protected:
   virtual EMIVer getVersion() = 0;
 private:
   bool wait_confirm = false;
+  bool wait_confirm_low = false;
   bool monitor = false;
 
   ev::timer timeout;
@@ -78,6 +79,7 @@ public:
   void stop();
 
   void send_L_Data (LDataPtr l);
+  void send_Next();
 
   virtual CArray lData2EMI (uchar code, const LDataPtr &p)
   { return L_Data_ToEMI(code, p); }
