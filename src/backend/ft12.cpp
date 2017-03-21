@@ -226,7 +226,6 @@ FT12serial::send_Data (CArray& l)
   unsigned i;
   t->TracePacket (1, "Send", l);
 
-  assert (l.size() <= 32);
   out.resize (l.size() + 7);
   out[0] = 0x68;
   out[1] = l.size() + 1;
