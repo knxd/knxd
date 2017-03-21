@@ -866,7 +866,7 @@ Router::trigger_cb (ev::async &w UNUSED, int revents UNUSED)
           ITER (i,ignore)
             if (d1 == i->data)
               {
-                TRACEPRINTF (t, 9, "Repeated, discarded: %s", l1->Decode (t));
+                TRACEPRINTF (t, 9, "Drop: %s", l1->Decode (t));
                 goto next;
               }
         }
