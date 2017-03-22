@@ -194,8 +194,8 @@ rebooting. The TPUART module is now back on ``ttyAMA0``.
   The old way of configuring knxd via a heap of position-dependent
   arguments is still supported.
 
-  You can use ``knxd_args <args-to-knxd>`` to emit a file that corresponds to
-  your old list of arguments.
+  You can use ``/usr/lib/knxd_args <args-to-knxd>`` to emit a file that
+  corresponds to your old list of arguments.
 
 * Not configuring client addresses for the knxd\_\* servers (options -i -u),
   systemd sockets, or the router's tunnel mode (-T) now results in that
@@ -206,11 +206,15 @@ rebooting. The TPUART module is now back on ``ttyAMA0``.
 * knxd will not start routing any packets unless startup is successful on
   all interfaces.
 
-  This means that it is now safe to use "socket activation" mode for
+  This means that it is now safe to use "socket activation" mode with
   systemd. Previously, knxd might have lost the initial packets.
 
 * Tracing no longer logs the actual decoded contents of packet.
   If you need that, use the "log" filter.
+
+* knxd now transmits data synchronously, i.e. individual drivers no longer
+  buffer data for transmission. If you don't want that, use the "queue"
+  filter on slow interfaces.
 
 ## Migrating to 0.12
 
