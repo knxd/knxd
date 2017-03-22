@@ -727,10 +727,28 @@ Limit the rate at which packets are transmitted to an interface.
 
     The delay between transmissions, in milliseconds.
     
-    Mandatory.
+    Optional. The default is 20 msec.
 
-Note that this filter acts globally, i.e. delays transmission to *all*
-interfaces, if there is no queue in front of it.
+  * delay-per-byte
+
+    Additional delay per byte of longer messages, in milliseconds.
+    
+    Optional; the default is 1 msec, which roughly corresponds to one byte
+    at 9600 baud (speed of the KNX bus).
+
+    Note that the fixed part of the protocol is ignored here: a "short
+    write" has an additional length delay of zero. The fixed-overhead part
+    of the KNX protocol should be factored into the per-message delay.
+
+The pace filter's timer starts when a packet has successfully been
+transmitted. Thus it should only be necessary in front of the multicast
+driver (which does not have transmission confirmation). However, there are
+buggy KNX interfaces out there which acknowledge reception of packets
+*before* checking whether they have free buffer space for more data …
+
+Note that knxd schedules packet transmission synchronously. Thus, this
+filter acts globally (it delays transmission to *all* interfaces) unless
+there is a ``queue`` filter in front of it.
 
 monitor
 -------

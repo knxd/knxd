@@ -38,8 +38,14 @@ PaceFilter::setup()
     ERRORPRINTF(t, E_WARNING, "The 'pace' filter without a queue acts globally.");
   if (!Filter::setup())
     return false;
-  delay = cfg.value("delay",20)/1000.;
+  delay = cfg.value("delay",15)/1000.;
   if (delay <= 0)
+    {
+      ERRORPRINTF(t, E_ERROR, "The delay must be >0");
+      return false;
+    }
+  byte_delay = cfg.value("delay-per-byte",1)/1000.;
+  if (byte_delay < 0)
     {
       ERRORPRINTF(t, E_ERROR, "The delay must be >0");
       return false;
@@ -84,7 +90,7 @@ PaceFilter::send_Next()
       break;
     case P_IDLE:
       state = P_BUSY;
-      timer.start(delay);
+      timer.start(last_len*byte_delay + delay);
       break;
     case P_BUSY:
       ERRORPRINTF(t, E_WARNING, "send_next on busy pacer?");
@@ -104,6 +110,7 @@ PaceFilter::timer_cb (ev::timer &w UNUSED, int revents UNUSED)
 void
 PaceFilter::send_L_Data (LDataPtr l)
 {
+  last_len = l->data.size();
   Filter::send_L_Data(std::move(l));
   if (!want_next)
     send_Next(); // sets the timer
