@@ -38,7 +38,7 @@ PaceFilter::setup()
     ERRORPRINTF(t, E_WARNING, "The 'pace' filter without a queue acts globally.");
   if (!Filter::setup())
     return false;
-  delay = cfg.value("delay",0)/1000.;
+  delay = cfg.value("delay",20)/1000.;
   if (delay <= 0)
     {
       ERRORPRINTF(t, E_ERROR, "The delay must be >0");
