@@ -356,12 +356,12 @@ Router::send_Next()
 {
   if (high_sending)
     {
-      TRACEPRINTF (t, 6, "SN: sending set");
+      TRACEPRINTF (t, 6, "sending set");
       return;
     }
   if (high_send_more)
     {
-      TRACEPRINTF (t, 6, "SN: send_more set");
+      TRACEPRINTF (t, 6, "send_more set");
       return;
     }
   ITER(i,links)
@@ -370,11 +370,11 @@ Router::send_Next()
         continue;
       if (!i->second->send_more)
         {
-          TRACEPRINTF (i->second->t, 6, "SN: still waiting");
+          TRACEPRINTF (i->second->t, 6, "still waiting");
           return;
         }
     }
-  TRACEPRINTF (t, 6, "SN: OK");
+  TRACEPRINTF (t, 6, "OK");
   high_send_more = true;
   r_high->send_Next();
 }
@@ -884,7 +884,7 @@ Router::trigger_cb (ev::async &w UNUSED, int revents UNUSED)
     }
 
   if (!low_send_more)
-    TRACEPRINTF (t, 6, "SN: wait L");
+    TRACEPRINTF (t, 6, "wait L");
 
   // Timestamps are ordered, so we scan for the first 
   timestamp_t tm = getTime ();
@@ -1014,7 +1014,7 @@ void
 RouterLow::send_Next()
 {
   router->low_send_more = true;
-  TRACEPRINTF (t, 6, "SN: OK L");
+  TRACEPRINTF (t, 6, "OK L");
   router->trigger.send();
 }
 

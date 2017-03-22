@@ -84,7 +84,7 @@ void
 LogFilter::send_Next()
 {
   if (log_state)
-    t->TracePrintf (0, "send next");
+    t->TracePrintf (6, "send next");
   Filter::send_Next();
 }
 
