@@ -68,11 +68,14 @@ line.
 
   * client-addrs (string: KNX device address plus length)
 
-    Address range to be distributed to client connections.
+    Address range to be distributed to client connections. Note that the
+    length parameter indicates the number of addresses to be allocated.
 
-    Example: 1.2.4:5
+    Example: 1.2.3:5
 
-    Mandatory if you use the server code in knxd (if in doubt: yes, you do).
+    (This assigns addresses 1.2.3 through 1.2.7 to knxd's clients.)
+
+    Mandatory if you use knxd's server code (if in doubt: yes, you do).
 
   * connections (string: list of section names)
 
