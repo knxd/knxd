@@ -140,6 +140,7 @@ EMI_Common::send_Data(CArray &pdu)
 {
   wait_confirm = true;
   wait_confirm_low = true;
+  t->TracePacket (1, "SendEMI", pdu);
   timeout.start(send_timeout,0);
   iface->send_Data(pdu);
 }
