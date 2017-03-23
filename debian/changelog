@@ -1,3 +1,9 @@
+knxd (0.14.4-1) unstable; urgency=medium
+
+  * Auto-add a pace filter in front of the multicast sender.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 23 Mar 2017 04:13:18 +0100
+
 knxd (0.14.3-1) unstable; urgency=medium
 
   * Various bug fixes.
