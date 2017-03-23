@@ -98,6 +98,8 @@ EIBNetIPRouter::~EIBNetIPRouter ()
 bool
 EIBNetIPRouter::setup()
 {
+  if (!assureFilter("pace"))
+    return false;
   if(!BusDriver::setup())
     return false;
   multicastaddr = cfg.value("multicast-address","224.0.23.12");
