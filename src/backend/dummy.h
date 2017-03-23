@@ -33,7 +33,6 @@ public:
     {
       if (!BusDriver::setup())
         return false;
-      send_Next();
       return true;
     }
 };

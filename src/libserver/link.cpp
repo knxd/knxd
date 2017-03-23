@@ -105,7 +105,6 @@ LinkConnect::start()
   TRACEPRINTF(t, 5, "Starting");
   running = false;
   switching = true;
-  need_send_more = false;
   send_more = true;
   changed = time(NULL);
   LinkConnect_::start();
@@ -281,7 +280,6 @@ LinkConnect::started()
 void
 LinkConnect::send_Next()
 {
-  need_send_more = true;
   send_more = true;
   static_cast<Router&>(router).send_Next();
 }

@@ -146,7 +146,6 @@ FT12serial::start()
   recvflag = 0;
   repeatcount = 0;
   TRACEPRINTF (t, 1, "Opened");
-  send_Next();
   LowLevelDriver::start();
   return;
 

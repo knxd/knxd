@@ -217,7 +217,6 @@ USBLowLevelDriver::start()
     } 
   StartUsbRecvTransfer();
   state = sRunning;
-  send_Next();
   started();
   return;
 ex:

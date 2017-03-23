@@ -459,7 +459,6 @@ TPUART_Base::setstate(enum TSTATE new_state)
 
   if (state < T_is_online && new_state >= T_is_online)
     {
-      send_Next();
       started();
       if (monitor)
         new_state = T_busmonitor;

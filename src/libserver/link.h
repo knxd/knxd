@@ -392,15 +392,11 @@ private:
 
   bool addr_local = true;
 
-  /* Flow control. need_send_more is true if the driver ever called send_more(). */
-  /* send_more will only be cleared when need_send_more is true. */
-  bool need_send_more = false;
 public:
   bool send_more = true;
   virtual void send_L_Data (LDataPtr l)
     {
-      if (need_send_more)
-        send_more = false;
+      send_more = false;
       LinkConnect_::send_L_Data(std::move(l));
     }
 

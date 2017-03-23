@@ -59,7 +59,7 @@ PaceFilter::started()
   switch(state)
     {
     case P_DOWN:
-      if (!want_next)
+      if (want_next)
         Filter::send_Next();
       state = P_IDLE;
       break;
@@ -112,7 +112,5 @@ PaceFilter::send_L_Data (LDataPtr l)
 {
   last_len = l->data.size();
   Filter::send_L_Data(std::move(l));
-  if (!want_next)
-    send_Next(); // sets the timer
 }
 

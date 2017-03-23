@@ -122,7 +122,7 @@ EIBNetIPTunnel::start()
   conntimeout.start(CONNECT_REQUEST_TIMEOUT,0);
 
   TRACEPRINTF (t, 2, "Opened");
-  out.clear(); send_Next();
+  out.clear();
   BusDriver::start();
   return;
 ex:
@@ -344,7 +344,8 @@ EIBNetIPTunnel::read_cb (EIBNetIPPacket *p1)
             sno++;
             if (sno > 0xff)
               sno = 0;
-            out.clear(); send_Next();
+            out.clear();
+            send_Next();
             mod = 1; trigger.send();
             retry = 0;
           }

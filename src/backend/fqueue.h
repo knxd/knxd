@@ -31,8 +31,6 @@ supports it.
 
 enum QSTATE {
     Q_DOWN,    // not running, not marked as requiring a queue
-    Q_DOWN_DO, // not running, marked as requiring a queue
-    Q_NOOP,    // running, not requiring a queue
     Q_IDLE,    // no packet submitted
     Q_BUSY,    // packet submitted, not in send loop
     Q_SENDING, // packet submitted, in send loop

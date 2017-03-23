@@ -56,11 +56,6 @@ QueueFilter::started()
   switch(state)
     {
     case Q_DOWN:
-      state = Q_NOOP;
-      ERRORPRINTF(t, E_WARNING, "not needed, disabled");
-      break;
-    case Q_DOWN_DO:
-      Filter::send_Next();
       state = Q_IDLE;
       break;
     default:
@@ -84,17 +79,14 @@ QueueFilter::send_Next()
   switch(state)
     {
     case Q_DOWN:
-      state = Q_DOWN_DO;
-    case Q_DOWN_DO:
-      break;
-    case Q_NOOP:
-      Filter::send_Next();
+      ERRORPRINTF(t, E_WARNING, "send_Next while down");
       break;
     case Q_IDLE:
       ERRORPRINTF(t, E_WARNING, "spurious send_Next");
       break;
     case Q_BUSY:
       trigger.send();
+      // fall thru
     case Q_SENDING:
       state = Q_IDLE;
       break;
@@ -119,9 +111,6 @@ QueueFilter::send_L_Data (LDataPtr l)
 {
   switch(state)
     {
-    case Q_NOOP:
-      Filter::send_L_Data(std::move(l));
-      break;
     case Q_IDLE:
       // TODO if the queue is empty, short-cut
       trigger.send();
