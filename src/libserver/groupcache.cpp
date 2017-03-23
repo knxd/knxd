@@ -105,6 +105,7 @@ GroupCache::send_L_Data (LDataPtr l)
 	    }
 	}
     }
+  send_Next();
 }
 
 bool

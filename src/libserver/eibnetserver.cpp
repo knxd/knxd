@@ -258,6 +258,7 @@ EIBnetDriver::send_L_Data (LDataPtr l)
       p.data = L_Data_ToCEMI (0x29, l);
       parent.Send (p);
     }
+  send_Next();
 }
 
 bool ConnState::setup()
@@ -286,6 +287,8 @@ void ConnState::send_L_Data (LDataPtr l)
 {
   if (type == CT_STANDARD)
     {
+      assert (!do_send_next);
+      do_send_next = true;
       out.put (L_Data_ToCEMI (0x29, l));
       if (! retries)
 	send_trigger.send();
@@ -937,6 +940,11 @@ void ConnState::tunnel_response (EIBnet_TunnelACK &r1)
   retries = 0;
   if (!out.isempty())
     send_trigger.send();
+  else if (do_send_next)
+    {
+      do_send_next = false;
+      send_Next();
+    }
 }
 
 void ConnState::config_request(EIBnet_ConfigRequest &r1, EIBNetIPSocket *isock)
@@ -1043,5 +1051,10 @@ void ConnState::config_response (EIBnet_ConfigACK &r1)
   retries = 0;
   if (!out.isempty())
     send_trigger.send();
+  else if (do_send_next)
+    {
+      do_send_next = false;
+      send_Next();
+    }
 }
 

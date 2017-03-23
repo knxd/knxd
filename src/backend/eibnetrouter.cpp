@@ -114,6 +114,7 @@ EIBNetIPRouter::send_L_Data (LDataPtr l)
   p.data = L_Data_ToCEMI (0x29, l);
   p.service = ROUTING_INDICATION;
   sock->Send (p);
+  send_Next();
 }
 
 void
