@@ -279,8 +279,10 @@ public:
 };
 
 
-/** The next level is something that can receive packets, i.e. everything
- * that's not a driver.
+/** The next level is something that can accept packets, i.e. everything
+ * that's not a driver (which gets them from somewhere outside of knxd).
+ * This implies code that we accept packets from,
+ * which presumably is the same code we send them to. So we do.
  */
 class LinkRecv : public LinkBase
 {
@@ -302,16 +304,11 @@ public:
 
   /** The thing to send data to. */
   LinkBasePtr send = nullptr;
+  /** The code to send data onwards. */
+  virtual void send_L_Data (LDataPtr l) { send->send_L_Data(std::move(l)); }
 
   /** Attach the next (i.e. sending) link to me */
-  bool link(LinkBasePtr next)
-    {
-      assert(next);
-      if(!next->_link(std::dynamic_pointer_cast<LinkRecv>(shared_from_this())))
-        return false;
-      assert(send == next); // _link_ was called
-      return true;
-    }
+  virtual bool link(LinkBasePtr next);
   void _link_(LinkBasePtr next) { send = next; }
   /** remove this object from the chain */
   virtual void unlink() = 0;
@@ -525,7 +522,6 @@ protected:
   /** Link to the LinkConnect object holding the stack this filter is in */
   std::weak_ptr<LinkConnect_> conn;
 public:
-  virtual void send_L_Data (LDataPtr l) { send->send_L_Data(std::move(l)); }
   virtual void recv_L_Data (LDataPtr l); // recv->recv_L_Data(std::move(l));
   virtual void recv_L_Busmonitor (LBusmonPtr l); // recv->recv_L_Busmonitor(std::move(l));
   virtual void send_Next ();
@@ -540,7 +536,8 @@ public:
       if (prev == nullptr)
         return false;
       prev->_link_(shared_from_this());
-      recv = prev; return true;
+      recv = prev;
+      return true;
     }
 
   /** Remove this filter from the link chain */
@@ -637,6 +634,8 @@ public:
   /** Find a filter below me.
    * This checks the filter= value, not the section. */
   virtual FilterPtr findFilter(std::string name, bool skip_me = false);
+
+  bool assureFilter(std::string name);
 };
 
 class BusDriver : public Driver

@@ -34,6 +34,40 @@ BaseRouter::~BaseRouter() { }
 LinkConnectClient::~LinkConnectClient() { }
 LinkConnectSingle::~LinkConnectSingle() { }
 
+bool
+LinkRecv::link(LinkBasePtr next)
+{
+  assert(next);
+  if(!next->_link(std::dynamic_pointer_cast<LinkRecv>(shared_from_this())))
+    return false;
+  assert(send == next); // _link_ was called
+  return true;
+}
+
+bool
+Driver::assureFilter(std::string name)
+{
+  if (findFilter(name) != nullptr)
+    return true;
+
+  auto c = conn.lock();
+  if (c == nullptr)
+    return false;
+
+  std::string sn = this->name() + '.' + name;
+  IniSection* s = static_cast<Router&>(c->router).ini.add_auto(sn);
+  if (s == nullptr)
+    return false;
+  auto f = static_cast<Router&>(c->router).get_filter(c, *s, name);
+  if (f == nullptr)
+    return false;
+  if (!push_filter(f))
+    return false;
+  if (!f->setup())
+    return false;
+  return true;
+}
+
 LinkConnect::~LinkConnect()
 {
   retry_timer.stop();
