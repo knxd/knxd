@@ -882,6 +882,16 @@ individually).
 
 The "single" filter may not be necessary unless you're programming devices with ETS.
 
+  * address (--arg=address=N.N.N)
+
+    The "single" filter typically uses knxd's address. However, that
+    address is also used for multicast and thus is on the wrong line.
+
+    Thus, you can use this option to assign a different address.
+
+If you use this filter behind an "ipt:" driver, the address it uses will be
+replaced with the one assigned by the remote server.
+
 queue
 -----
 

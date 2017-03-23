@@ -20,6 +20,10 @@
 #include "eibnettunnel.h"
 #include "emi.h"
 
+#define NO_MAP
+#include "nat.h"
+
+
 EIBNetIPTunnel::EIBNetIPTunnel (const LinkConnectPtr_& c, IniSection& s)
   : BusDriver(c,s)
 {
@@ -186,9 +190,14 @@ EIBNetIPTunnel::read_cb (EIBNetIPPacket *p1)
             TRACEPRINTF (t, 1, "Recv wrong connection response");
             break;
           }
+
         auto cn = std::dynamic_pointer_cast<LinkConnect>(conn.lock());
         if (cn != nullptr)
           cn->setAddress((cresp.CRD[1] << 8) | cresp.CRD[2]);
+        auto f = findFilter("single");
+        if (f != nullptr)
+          std::dynamic_pointer_cast<NatL2Filter>(f)->setAddress((cresp.CRD[1] << 8) | cresp.CRD[2]);
+
         // TODO else reject
         daddr = cresp.daddr;
         if (!cresp.nat)

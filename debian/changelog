@@ -1,6 +1,7 @@
 knxd (0.14.4-1) unstable; urgency=medium
 
   * Auto-add a pace filter in front of the multicast sender.
+  * Add an address= option to the "single" filter.
 
  -- Matthias Urlichs <matthias@urlichs.de>  Thu, 23 Mar 2017 04:13:18 +0100
 

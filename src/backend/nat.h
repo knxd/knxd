@@ -49,6 +49,8 @@ public:
 
   void addReverseAddress (eibaddr_t src, eibaddr_t dest);
   eibaddr_t getDestinationAddress (eibaddr_t src);
+
+  void setAddress(eibaddr_t addr) { this->addr = addr; }
 };
 
 #endif
