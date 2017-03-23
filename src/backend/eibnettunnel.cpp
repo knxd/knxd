@@ -57,6 +57,10 @@ void EIBNetIPTunnel::is_stopped()
 bool
 EIBNetIPTunnel::setup()
 {
+  // Force queuing so that a broken or unreachable server can't disable the whole system
+  if (!assureFilter("queue", true))
+    return false;
+
   if (!BusDriver::setup())
     return false;
   dest = cfg.value("ip-address","");

@@ -265,6 +265,9 @@ EIBnetDriver::send_L_Data (LDataPtr l)
 
 bool ConnState::setup()
 {
+  // Force queuing so that a bad or unreachable client can't disable the whole system
+  if (!assureFilter("queue", true))
+    return false;
   if (! SubDriver::setup())
     return false;
   if (type == CT_BUSMONITOR && ! dynamic_cast<Router *>(&server->router)->registerVBusmonitor(this))
