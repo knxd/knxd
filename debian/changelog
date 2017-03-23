@@ -1,3 +1,15 @@
+knxd (0.14.3-1) unstable; urgency=medium
+
+  * Various bug fixes.
+  * All drivers now implement flow control.
+  * "pace" filter:
+    * default to 20msec
+    * Add a delay-per-byte parameter (1 msec)
+  * log send_next stuff with layer 6
+  * document flags (specifically, correspondence of flags to config file)
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 23 Mar 2017 02:48:36 +0100
+
 knxd (0.14.2-1) unstable; urgency=medium
 
   * send ft12* (serial) setup string
