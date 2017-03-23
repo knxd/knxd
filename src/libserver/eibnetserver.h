@@ -127,8 +127,8 @@ SERVER(EIBnetServer,ets_router)
   uint16_t port;
   std::string interface;
   std::string servername;
-  IniSection& router_cfg;
-  IniSection& tunnel_cfg;
+  IniSectionPtr router_cfg;
+  IniSectionPtr tunnel_cfg;
 
   Array < ConnStatePtr > connections;
   Queue < ConnStatePtr > drop_q;
@@ -142,7 +142,7 @@ SERVER(EIBnetServer,ets_router)
 
   void stop_();
 public:
-  EIBnetServer (BaseRouter& r, IniSection& s);
+  EIBnetServer (BaseRouter& r, IniSectionPtr& s);
   virtual ~EIBnetServer ();
   bool setup ();
   void start();

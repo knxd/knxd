@@ -57,7 +57,7 @@ typedef enum {
 class USBLowLevelDriver : public LowLevelDriver
 {
 public:
-  USBLowLevelDriver (LowLevelIface* p, IniSection& s);
+  USBLowLevelDriver (LowLevelIface* p, IniSectionPtr& s);
   virtual ~USBLowLevelDriver ();
 private:
   libusb_device_handle *dev;

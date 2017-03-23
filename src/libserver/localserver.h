@@ -26,7 +26,7 @@
 SERVER_(LocalServer,NetServer,knxd_unix)
 {
 public:
-  LocalServer (BaseRouter& r, IniSection& s);
+  LocalServer (BaseRouter& r, IniSectionPtr& s);
   virtual ~LocalServer ();
 
   bool setup();

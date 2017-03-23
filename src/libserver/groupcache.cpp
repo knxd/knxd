@@ -21,7 +21,7 @@
 #include "tpdu.h"
 #include "apdu.h"
 
-GroupCache::GroupCache (const LinkConnectPtr& c, IniSection& s)
+GroupCache::GroupCache (const LinkConnectPtr& c, IniSectionPtr& s)
 	: Driver(c,s)
 {
   t->setAuxName("G");
@@ -49,7 +49,7 @@ GroupCache::setup()
   if (!Driver::setup())
     return false;
   remtrigger.start();
-  this->maxsize = cfg.value("max-size", 0xFFFF);
+  this->maxsize = cfg->value("max-size", 0xFFFF);
   return true;
 }
 

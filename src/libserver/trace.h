@@ -76,7 +76,7 @@ public:
   /** set a new name */
   void setAuxName(std::string name);
 
-  IniSection &cfg;
+  IniSectionPtr cfg;
 
   /** name(s) and number of this tracer */
   std::string servername;
@@ -86,11 +86,11 @@ public:
 
   unsigned int seq;
 
-  Trace (IniSection& s, const std::string& sn) : cfg(s.sub("debug")), servername(sn)
+  Trace (IniSectionPtr& s, const std::string& sn) : cfg(s->sub("debug")), servername(sn)
   {
     seq = ++trace_seq;
     gettimeofday(&started, NULL);
-    name = s.name;
+    name = s->name;
     setup();
   }
 
@@ -105,11 +105,11 @@ public:
     setup();
   }
 
-  Trace (Trace &orig, IniSection& s) : cfg(s.sub("debug")), servername(orig.servername)
+  Trace (Trace &orig, IniSectionPtr& s) : cfg(s->sub("debug")), servername(orig.servername)
   {
     this->layers = orig.layers;
     this->level = orig.level;
-    this->name = s.name;
+    this->name = s->name;
     this->started = orig.started;
     this->timestamps = orig.timestamps;
     this->seq = ++trace_seq;

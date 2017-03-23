@@ -23,7 +23,7 @@
 #include <errno.h>
 #include "localserver.h"
 
-LocalServer::LocalServer (BaseRouter& r, IniSection& s)
+LocalServer::LocalServer (BaseRouter& r, IniSectionPtr& s)
     : NetServer (r,s)
 {
   t->setAuxName("local");
@@ -32,8 +32,8 @@ LocalServer::LocalServer (BaseRouter& r, IniSection& s)
 bool
 LocalServer::setup()
 {
-  path = cfg.value("path","/run/knx");
-  ignore_when_systemd = cfg.value("systemd-ignore",(path == "/run/knx"));
+  path = cfg->value("path","/run/knx");
+  ignore_when_systemd = cfg->value("systemd-ignore",(path == "/run/knx"));
   if (!NetServer::setup())
     return false;
   return true;

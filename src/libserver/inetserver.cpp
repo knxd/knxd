@@ -26,7 +26,7 @@
 #include <errno.h>
 #include "inetserver.h"
 
-InetServer::InetServer (BaseRouter& r, IniSection& s)
+InetServer::InetServer (BaseRouter& r, IniSectionPtr& s)
   : NetServer(r,s)
 {
   t->setAuxName("inet");
@@ -37,8 +37,8 @@ InetServer::setup()
 {
   if (!NetServer::setup())
     return false;
-  port = cfg.value("port",6720);
-  ignore_when_systemd = cfg.value("systemd-ignore",(port == 6720));
+  port = cfg->value("port",6720);
+  ignore_when_systemd = cfg->value("systemd-ignore",(port == 6720));
   return true;
 }
 

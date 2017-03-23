@@ -31,7 +31,7 @@ NatL2Filter::setup()
   if (!Filter::setup())
     return false;
 
-  std::string opt = cfg.value("address","");
+  std::string opt = cfg->value("address","");
   if (opt.length() == 0)
     {
       auto c = std::dynamic_pointer_cast<LinkConnect>(conn.lock());

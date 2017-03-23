@@ -24,7 +24,7 @@
 #include "nat.h"
 
 
-EIBNetIPTunnel::EIBNetIPTunnel (const LinkConnectPtr_& c, IniSection& s)
+EIBNetIPTunnel::EIBNetIPTunnel (const LinkConnectPtr_& c, IniSectionPtr& s)
   : BusDriver(c,s)
 {
   t->setAuxName("ipt");
@@ -64,20 +64,20 @@ EIBNetIPTunnel::setup()
 
   if (!BusDriver::setup())
     return false;
-  dest = cfg.value("ip-address","");
+  dest = cfg->value("ip-address","");
   if (!dest.size()) 
     {
-      ERRORPRINTF (t, E_ERROR | 23, "The 'ipt' driver, section %s, requires an 'ip-address=' option", cfg.name);
+      ERRORPRINTF (t, E_ERROR | 23, "The 'ipt' driver, section %s, requires an 'ip-address=' option", cfg->name);
       return false;
     }
-  port = cfg.value("dest-port",3671);
-  sport = cfg.value("src-port",0);
-  NAT = cfg.value("nat",false);
-  monitor = cfg.value("monitor",false);
+  port = cfg->value("dest-port",3671);
+  sport = cfg->value("src-port",0);
+  NAT = cfg->value("nat",false);
+  monitor = cfg->value("monitor",false);
   if(NAT)
     {
-      srcip = cfg.value("nat-ip","");
-      dataport = cfg.value("data-port",0);
+      srcip = cfg->value("nat-ip","");
+      dataport = cfg->value("data-port",0);
     }
   return true;
 }

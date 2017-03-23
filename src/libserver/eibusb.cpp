@@ -23,7 +23,7 @@
 #include "cemi.h"
 #include "usblowlevel.h"
 
-USBConverterInterface::USBConverterInterface (LowLevelIface * p, IniSection& s)
+USBConverterInterface::USBConverterInterface (LowLevelIface * p, IniSectionPtr& s)
     : LowLevelFilter(p,s)
 {
   t->setAuxName("Conv");
@@ -128,7 +128,7 @@ out:
   return;
 }
 
-USBDriver::USBDriver (const LinkConnectPtr_& c, IniSection& s) : LowLevelAdapter (c,s)
+USBDriver::USBDriver (const LinkConnectPtr_& c, IniSectionPtr& s) : LowLevelAdapter (c,s)
 {
   t->setAuxName("Dr");
 }
@@ -314,7 +314,7 @@ USBDriver::setup ()
   version = cfgEMIVersion(cfg);
   if (version == vERROR)
     {
-      std::string v = cfg.value("version","");
+      std::string v = cfg->value("version","");
       ERRORPRINTF (t, E_ERROR, "EMI version %s not recognized",v);
       return false;
     }

@@ -23,15 +23,15 @@
 unsigned int maxPacketLen() { return 0x10; }
 
 EMIVer
-cfgEMIVersion(IniSection& s)
+cfgEMIVersion(IniSectionPtr& s)
 {
-  int v = s.value("version",vERROR);
+  int v = s->value("version",vERROR);
   if (v > vRaw || v < vERROR)
     return vERROR;
   else if (v != vERROR)
     return EMIVer(v);
 
-  std::string sv = s.value("version","");
+  std::string sv = s->value("version","");
   if (!sv.size())
     return vUnknown;
   else if (sv == "EMI1")
@@ -46,14 +46,14 @@ cfgEMIVersion(IniSection& s)
     return vERROR;
 }
 
-EMI_Common::EMI_Common (LowLevelDriver * i, LowLevelIface* c, IniSection& s) : LowLevelFilter(i,c,s)
+EMI_Common::EMI_Common (LowLevelDriver * i, LowLevelIface* c, IniSectionPtr& s) : LowLevelFilter(i,c,s)
 {
   timeout.set<EMI_Common, &EMI_Common::timeout_cb>(this);
   t->setAuxName("EMI_common");
   iface = i;
 }
 
-EMI_Common::EMI_Common (LowLevelIface* c, IniSection& s) : LowLevelFilter(c,s)
+EMI_Common::EMI_Common (LowLevelIface* c, IniSectionPtr& s) : LowLevelFilter(c,s)
 {
   t->setAuxName("EMIcommon");
 }
@@ -67,8 +67,8 @@ EMI_Common::setup()
     return false;
   if (!iface->setup ())
     return false;
-  send_timeout = cfg.value("send-timeout",300) / 1000.;
-  monitor = cfg.value("monitor",false);
+  send_timeout = cfg->value("send-timeout",300) / 1000.;
+  monitor = cfg->value("monitor",false);
 
   return true;
 }

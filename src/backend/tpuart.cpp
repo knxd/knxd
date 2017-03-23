@@ -53,7 +53,7 @@ static const char* SN(enum TSTATE s)
       return buf[x];
     }
 }
-TPUART_Base::TPUART_Base (const LinkConnectPtr_& c, IniSection& s)
+TPUART_Base::TPUART_Base (const LinkConnectPtr_& c, IniSectionPtr& s)
 	: sendbuf(), recvbuf(), BusDriver (c,s)
 {
   timer.set <TPUART_Base,&TPUART_Base::timer_cb> (this);
@@ -65,9 +65,9 @@ TPUART_Base::setup()
 {
   if(!BusDriver::setup())
     return false;
-  ackallgroup = cfg.value("ack-group",false);
-  ackallindividual = cfg.value("ack-individual",false);
-  monitor = cfg.value("monitor",false);
+  ackallgroup = cfg->value("ack-group",false);
+  ackallindividual = cfg->value("ack-individual",false);
+  monitor = cfg->value("monitor",false);
 
   FilterPtr single = findFilter("single");
   if (single != nullptr)

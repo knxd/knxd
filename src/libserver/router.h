@@ -127,8 +127,8 @@ private:
   Factory<Filter>& filters;
   Factory<LowLevelDriver>& lowlevels;
 
-  bool do_server(ServerPtr &link, IniSection& s, const std::string& servername, bool quiet = false);
-  bool do_driver(LinkConnectPtr &link, IniSection& s, const std::string& servername, bool quiet = false);
+  bool do_server(ServerPtr &link, IniSectionPtr& s, const std::string& servername, bool quiet = false);
+  bool do_driver(LinkConnectPtr &link, IniSectionPtr& s, const std::string& servername, bool quiet = false);
 
   RouterLowPtr r_low;
   RouterHighPtr r_high;
@@ -147,15 +147,15 @@ private:
 
 public:
   /** Look up a filter by name */
-  FilterPtr get_filter(const LinkConnectPtr_ &link, IniSection& s, const std::string& filtername);
+  FilterPtr get_filter(const LinkConnectPtr_ &link, IniSectionPtr& s, const std::string& filtername);
 
   /** Look up a filter by name */
-  LowLevelDriver * get_lowlevel(LowLevelIface* parent, IniSection& s, const std::string& lowlevelname);
+  LowLevelDriver * get_lowlevel(LowLevelIface* parent, IniSectionPtr& s, const std::string& lowlevelname);
 
   /** Create a temporary dummy driver stack to test arguments for filters etc.
    * Testing the calling driver's config args is the caller#s job.
    */
-  bool checkStack(IniSection& cfg);
+  bool checkStack(IniSectionPtr& cfg);
 
   /** name of our main section */
   std::string main;

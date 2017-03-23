@@ -21,7 +21,7 @@
 #include "emi.h"
 #include "config.h"
 
-EIBNetIPRouter::EIBNetIPRouter (const LinkConnectPtr_& c, IniSection& s)
+EIBNetIPRouter::EIBNetIPRouter (const LinkConnectPtr_& c, IniSectionPtr& s)
   : BusDriver(c,s)
 {
   t->setAuxName("ip");
@@ -103,10 +103,10 @@ EIBNetIPRouter::setup()
     return false;
   if(!BusDriver::setup())
     return false;
-  multicastaddr = cfg.value("multicast-address","224.0.23.12");
-  port = cfg.value("port",3671);
-  interface = cfg.value("interface","");
-  monitor = cfg.value("monitor",false);
+  multicastaddr = cfg->value("multicast-address","224.0.23.12");
+  port = cfg->value("port",3671);
+  interface = cfg->value("interface","");
+  monitor = cfg->value("monitor",false);
   return true;
 }
 

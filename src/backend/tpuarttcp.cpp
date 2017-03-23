@@ -26,7 +26,7 @@
 #include <netinet/in.h>
 #include "tpuarttcp.h"
 
-TPUARTTCP::TPUARTTCP (const LinkConnectPtr_& c, IniSection& s)
+TPUARTTCP::TPUARTTCP (const LinkConnectPtr_& c, IniSectionPtr& s)
 	: TPUART_Base(c,s)
 {
 }
@@ -36,16 +36,16 @@ TPUARTTCP::setup()
 {
   if (!TPUART_Base::setup())
     return false;
-  dest = cfg.value("ip-address","");
-  port = cfg.value("dest-port",0);
+  dest = cfg->value("ip-address","");
+  port = cfg->value("dest-port",0);
   if (dest.size() == 0)
     {
-      ERRORPRINTF (t, E_ERROR | 52, "%s: 'ip-address=<host>' required", cfg.name);
+      ERRORPRINTF (t, E_ERROR | 52, "%s: 'ip-address=<host>' required", cfg->name);
       return false;
     }
   if (port == 0)
     {
-      ERRORPRINTF (t, E_ERROR | 52, "%s: 'port=<num>' required", cfg.name);
+      ERRORPRINTF (t, E_ERROR | 52, "%s: 'port=<num>' required", cfg->name);
       return false;
     }
 

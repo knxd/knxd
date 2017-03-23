@@ -101,16 +101,16 @@ Trace::setup()
 {
   if (trace_namelen < this->name.length())
     trace_namelen = this->name.length();
-  timestamps = cfg.value("timestamps",timestamps);
-  layers = cfg.value("trace-mask",(int)layers);
-  int nlevel = error_level(cfg.value("error-level",""),level);
+  timestamps = cfg->value("timestamps",timestamps);
+  layers = cfg->value("trace-mask",(int)layers);
+  int nlevel = error_level(cfg->value("error-level",""),level);
   if (nlevel == -1)
     {
-      std::cerr << "Unrecognized logging level: " << cfg.value("error-level","") << std::endl;
+      std::cerr << "Unrecognized logging level: " << cfg->value("error-level","") << std::endl;
       return;
     }
   level = nlevel;
-  setAuxName(cfg.value("name",name));
+  setAuxName(cfg->value("name",name));
 }
 
 void

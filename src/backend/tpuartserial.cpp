@@ -56,7 +56,7 @@ static speed_t getbaud(int baud) {
     }
 }
 
-TPUARTSerial::TPUARTSerial (const LinkConnectPtr_& c, IniSection& s)
+TPUARTSerial::TPUARTSerial (const LinkConnectPtr_& c, IniSectionPtr& s)
 	: TPUART_Base (c,s)
 {
 }
@@ -67,13 +67,13 @@ TPUARTSerial::setup()
   if(!TPUART_Base::setup())
     return false;
 
-  dev = cfg.value("device","");
+  dev = cfg->value("device","");
   if(dev.size() == 0) 
     {
       ERRORPRINTF (t, E_ERROR | 22, "Missing device= config");
       return false;
     }
-  baudrate = cfg.value("baudrate", 0);
+  baudrate = cfg->value("baudrate", 0);
   if (baudrate == 0)
       baudrate = default_baudrate();
   if (getbaud(baudrate) == 0)
@@ -82,7 +82,7 @@ TPUARTSerial::setup()
       return false;
     }
 
-  dischreset = cfg.value("reset",false);
+  dischreset = cfg->value("reset",false);
   return true;
 }
 

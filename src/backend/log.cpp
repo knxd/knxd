@@ -29,11 +29,11 @@ LogFilter::setup()
   auto cn = conn.lock();
   if (cn == nullptr)
     return false;
-  log_state = cfg.value("state",true);
-  log_send = cfg.value("send",true);
-  log_recv = cfg.value("recv",true);
-  log_addr = cfg.value("addr",false);
-  log_monitor = cfg.value("monitor",false);
+  log_state = cfg->value("state",true);
+  log_send = cfg->value("send",true);
+  log_recv = cfg->value("recv",true);
+  log_addr = cfg->value("addr",false);
+  log_monitor = cfg->value("monitor",false);
   if (log_state)
     t->TracePrintf (0, "State setup");
   return true;

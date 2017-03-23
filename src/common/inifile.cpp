@@ -50,7 +50,7 @@ IniSection::value(const std::string& name, const std::string& def)
       v = values.find("use");
       if (v == values.end())
         return def;
-      return parent[v->second.first].value(name,def);
+      return parent[v->second.first]->value(name,def);
     }
 
   v->second.second = true;
@@ -143,51 +143,46 @@ inidata_handler(void* user, const char* section, const char* name, const char* v
 bool
 IniData::add(const char *section, const char *name, const char *value)
 {
-  auto res = sections.emplace(section, SectionType(IniSection(*this,section),false));
+  auto sec = IniSectionPtr(new IniSection(*this,section));
+  auto res = sections.emplace(section, SectionType(sec,false));
   if (! res.second && name == NULL)
     {
       std::cerr << "Parse error: Duplicate section: " << section << std::endl;
       return false;
     }
 
-  IniSection *s = &(res.first->second.first);
+  IniSectionPtr& s = res.first->second.first;
   if (name == NULL)
     return true;
   return s->add(name,value);
 }
 
-IniSection*
+IniSectionPtr
 IniData::add_auto(std::string& section)
 {
-  auto res = sections.emplace(section, SectionType(IniSection(*this,section,true),false));
-  if (! res.second)
-    {
-      std::cerr << "Error: Duplicate section: " << section << std::endl;
-      return nullptr;
-    }
-
-  return &res.first->second.first;
+  return IniSectionPtr(new IniSection(*this,section + '_'));
 }
 
-IniSection&
+IniSectionPtr&
 IniData::operator[](const char *name)
 {
   auto v = sections.find(name);
   if (v == sections.end())
     {
-      auto res = sections.emplace(name, SectionType(IniSection(*this,name),false));
+      auto sec = IniSectionPtr(new IniSection(*this,name));
+      auto res = sections.emplace(name, SectionType(sec,false));
       v = res.first;
     }
   v->second.second = true;
   return v->second.first;
 }
 
-IniSection&
+IniSectionPtr
 IniSection::sub(const char *name, bool force)
 {
   std::string n = value(name,"");
   if (force && !n.size())
-    return *this;
+    return shared_from_this();
   return parent[n];
 }
 
@@ -256,7 +251,7 @@ IniData::write(std::ostream& file)
   ITER(i,sections)
     {
       file << '[' << i->first << ']' << std::endl;
-      i->second.first.write(file);
+      i->second.first->write(file);
     }
 }
 
@@ -283,7 +278,7 @@ IniData::list_unseen(UnseenViewer uv, void *x)
     {
       if (!i->second.second)
         continue;
-      if (i->second.first.list_unseen(uv, x))
+      if (i->second.first->list_unseen(uv, x))
         res = true;
     }
   return res;

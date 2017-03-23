@@ -19,7 +19,7 @@
 
 #include "fqueue.h"
 
-QueueFilter::QueueFilter (const LinkConnectPtr_& c, IniSection& s) : Filter(c,s)
+QueueFilter::QueueFilter (const LinkConnectPtr_& c, IniSectionPtr& s) : Filter(c,s)
 {
   trigger.set<QueueFilter, &QueueFilter::trigger_cb>(this);
   trigger.start();

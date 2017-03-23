@@ -72,9 +72,9 @@ Router::Router (IniData& d, std::string sn) : BaseRouter(d)
                 , lowlevels(_lowlevels.Instance())
                 , main(sn)
 {
-  IniSection &s = ini[main];
-  t = TracePtr(new Trace(s, s.value("name","")));
-  servername = s.value("name","knxd");
+  IniSectionPtr s = ini[main];
+  t = TracePtr(new Trace(s, s->value("name","")));
+  servername = s->value("name","knxd");
 
   r_low = RouterLowPtr(new RouterLow(*this));
   r_high = RouterHighPtr(new RouterHigh(*this, r_low));
@@ -94,13 +94,13 @@ bool
 Router::setup()
 {
   std::string x;
-  IniSection &s = ini[main];
+  IniSectionPtr s = ini[main];
   TRACEPRINTF (t, 4, "R state: setting up");
 
-  force_broadcast = s.value("force-broadcast", false);
-  unknown_ok = s.value("unknown-ok", false);
+  force_broadcast = s->value("force-broadcast", false);
+  unknown_ok = s->value("unknown-ok", false);
 
-  x = s.value("addr","");
+  x = s->value("addr","");
   if (!x.size())
     {
       ERRORPRINTF (t, E_ERROR | 55, "There is no KNX addr= in section '%s'.", main);
@@ -109,7 +109,7 @@ Router::setup()
   if (!readaddr(x,addr))
     goto ex;
 
-  x = s.value("client-addrs","");
+  x = s->value("client-addrs","");
   if (x.size())
     {
       if (!readaddrblock(x,client_addrs_start,client_addrs_len))
@@ -121,8 +121,8 @@ Router::setup()
     }
 
     {
-      IniSection& gc = s.sub("cache",false);
-      if (gc.name.size() > 0)
+      IniSectionPtr gc = s->sub("cache",false);
+      if (gc->name.size() > 0)
         {
           if (!CreateGroupCache(*this, gc))
             goto ex;
@@ -134,10 +134,10 @@ Router::setup()
 
 #ifdef HAVE_SYSTEMD
   {
-    std::string sd_name = s.value("systemd","");
+    std::string sd_name = s->value("systemd","");
     if (sd_name.size() > 0)
       {
-        IniSection& sd = ini[sd_name];
+        // IniSectionPtr sd = ini[sd_name];
         int num_fds = sd_listen_fds(0);
         if( num_fds < 0 )
           {
@@ -148,12 +148,7 @@ Router::setup()
         // zero FDs from systemd is not a bug
         for( int fd = SD_LISTEN_FDS_START; fd < SD_LISTEN_FDS_START+num_fds; ++fd )
           {
-            // duplicate sections are not allowed
-            // thus auto-generate a new one for each socket
-            char sdnn[10];
-            snprintf(sdnn,sizeof(sdnn),"%d",fd);
-            std::string sdn = sd_name + "." + sdnn;
-            IniSection *sds = ini.add_auto(sdn);
+            IniSectionPtr sds = ini.add_auto(sd_name);
             if (sds == nullptr)
               return false;
 
@@ -164,7 +159,7 @@ Router::setup()
                 goto ex;
               }
 
-            ServerPtr sdp = ServerPtr(new SystemdServer(*this, *sds, fd));
+            ServerPtr sdp = ServerPtr(new SystemdServer(*this, sds, fd));
             if (!sdp->setup())
               goto ex;
             registerLink(sdp);
@@ -175,7 +170,7 @@ Router::setup()
 
 #endif
 
-  x = s.value("connections","");
+  x = s->value("connections","");
   {
     size_t pos = 0;
     size_t comma = 0;
@@ -231,7 +226,7 @@ unseen_lister(void *user,
 }
 
 bool
-Router::do_driver(LinkConnectPtr &link, IniSection& s, const std::string& drivername, bool quiet)
+Router::do_driver(LinkConnectPtr &link, IniSectionPtr& s, const std::string& drivername, bool quiet)
 {
   DriverPtr driver = nullptr;
 
@@ -252,19 +247,19 @@ Router::do_driver(LinkConnectPtr &link, IniSection& s, const std::string& driver
 
 
 FilterPtr
-Router::get_filter(const LinkConnectPtr_& link, IniSection& s, const std::string& filtername)
+Router::get_filter(const LinkConnectPtr_& link, IniSectionPtr& s, const std::string& filtername)
 {
   return FilterPtr(filters.create(filtername, link, s));
 }
 
 LowLevelDriver *
-Router::get_lowlevel(LowLevelIface* parent, IniSection& s, const std::string& lowlevelname)
+Router::get_lowlevel(LowLevelIface* parent, IniSectionPtr& s, const std::string& lowlevelname)
 {
   return lowlevels.create(lowlevelname, parent, s);
 }
 
 bool
-Router::do_server(ServerPtr &link, IniSection& s, const std::string& servername, bool quiet)
+Router::do_server(ServerPtr &link, IniSectionPtr& s, const std::string& servername, bool quiet)
 {
   link = ServerPtr(servers.create(servername, *this, s));
   if (link == nullptr)
@@ -281,9 +276,9 @@ Router::do_server(ServerPtr &link, IniSection& s, const std::string& servername,
 LinkConnectPtr
 Router::setup_link(std::string& name)
 {
-  IniSection& s = ini[name];
-  std::string servername = s.value("server","");
-  std::string drivername = s.value("driver","");
+  IniSectionPtr s = ini[name];
+  std::string servername = s->value("server","");
+  std::string drivername = s->value("driver","");
   LinkConnectPtr link = nullptr;
   ServerPtr server = nullptr;
 
@@ -291,9 +286,9 @@ Router::setup_link(std::string& name)
     return server;
   if (drivername.size() && do_driver(link, s,drivername))
     return link;
-  if (do_server(server, s,s.name, true))
+  if (do_server(server, s,s->name, true))
     return link;
-  if (do_driver(link, s,s.name, true))
+  if (do_driver(link, s,s->name, true))
     return link;
   ERRORPRINTF (t, E_ERROR | 55, "Section '%s' has no known server nor driver.", name);
   return nullptr;
@@ -962,7 +957,7 @@ Router::mtrigger_cb (ev::async &w UNUSED, int revents UNUSED)
 }
 
 bool
-Router::checkStack(IniSection& cfg)
+Router::checkStack(IniSectionPtr& cfg)
 {
   LinkConnectPtr conn = LinkConnectPtr(new LinkConnect(*this, cfg, t));
   DriverPtr dummy = DriverPtr(drivers.create("dummy",conn,cfg));

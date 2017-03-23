@@ -79,12 +79,12 @@ private:
 protected:
   LowLevelIface* master;
   /** configuration */
-  IniSection &cfg;
+  IniSectionPtr cfg;
   /** debug output */
   TracePtr t;
 
 public:
-  LowLevelDriver (LowLevelIface* parent, IniSection &s) : cfg(s)
+  LowLevelDriver (LowLevelIface* parent, IniSectionPtr& s) : cfg(s)
     {
       t = TracePtr(new Trace(*parent->tr(),s));
       t->setAuxName("LowD");
@@ -127,8 +127,8 @@ protected:
   bool inserted = false; // don't propagate setup()
 public:
   LowLevelDriver *iface;
-  LowLevelFilter (LowLevelIface* parent, IniSection &s) : LowLevelDriver(parent,s) {}
-  LowLevelFilter (LowLevelDriver* i, LowLevelIface* parent, IniSection &s)
+  LowLevelFilter (LowLevelIface* parent, IniSectionPtr& s) : LowLevelDriver(parent,s) {}
+  LowLevelFilter (LowLevelDriver* i, LowLevelIface* parent, IniSectionPtr& s)
       : LowLevelDriver(parent,s)
     {
       t->setAuxName("LowF");
@@ -160,7 +160,7 @@ protected:
 public:
   TracePtr tr() { return t; }
 
-  LowLevelAdapter(const LinkConnectPtr_& c, IniSection& s) : BusDriver(c,s),LowLevelIface()
+  LowLevelAdapter(const LinkConnectPtr_& c, IniSectionPtr& s) : BusDriver(c,s),LowLevelIface()
     {
       t->setAuxName("LowA");
     }

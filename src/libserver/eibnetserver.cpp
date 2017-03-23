@@ -29,7 +29,7 @@
 #include <string.h>
 #include <memory>
 
-EIBnetServer::EIBnetServer (BaseRouter& r, IniSection& s)
+EIBnetServer::EIBnetServer (BaseRouter& r, IniSectionPtr& s)
 	: Server(r,s)
   , mcast(NULL)
   , sock(NULL)
@@ -38,8 +38,8 @@ EIBnetServer::EIBnetServer (BaseRouter& r, IniSection& s)
   , discover(false)
   , Port(-1)
   , sock_mac(-1)
-  , router_cfg(s.sub("router",false))
-  , tunnel_cfg(s.sub("tunnel",false))
+  , router_cfg(s->sub("router",false))
+  , tunnel_cfg(s->sub("tunnel",false))
 {
   t->setAuxName("server");
   drop_trigger.set<EIBnetServer,&EIBnetServer::drop_trigger_cb>(this);
@@ -146,14 +146,14 @@ EIBnetServer::setup()
 {
   if(!Server::setup())
     return false;
-  route = router_cfg.name.size() > 0;
-  tunnel = tunnel_cfg.name.size() > 0;
-  discover = cfg.value("discover",false);
-  single_port = !cfg.value("multi-port",false);
-  multicastaddr = cfg.value("multicast-address","224.0.23.12");
-  port = cfg.value("port",3671);
-  interface = cfg.value("interface","");
-  servername = cfg.value("name", dynamic_cast<Router *>(&router)->servername);
+  route = router_cfg->name.size() > 0;
+  tunnel = tunnel_cfg->name.size() > 0;
+  discover = cfg->value("discover",false);
+  single_port = !cfg->value("multi-port",false);
+  multicastaddr = cfg->value("multicast-address","224.0.23.12");
+  port = cfg->value("port",3671);
+  interface = cfg->value("interface","");
+  servername = cfg->value("name", dynamic_cast<Router *>(&router)->servername);
 
   if (tunnel)
     {

@@ -55,10 +55,10 @@ Driver::assureFilter(std::string name, bool first)
     return false;
 
   std::string sn = this->name() + '.' + name;
-  IniSection* s = static_cast<Router&>(c->router).ini.add_auto(sn);
+  IniSectionPtr s = static_cast<Router&>(c->router).ini.add_auto(sn);
   if (s == nullptr)
     return false;
-  auto f = static_cast<Router&>(c->router).get_filter(c, *s, name);
+  auto f = static_cast<Router&>(c->router).get_filter(c, s, name);
   if (f == nullptr)
     return false;
   if (!push_filter(f, first))
@@ -78,7 +78,7 @@ LinkConnect::~LinkConnect()
     static_cast<Router &>(router).release_client_addr(addr);
 }
 
-LinkBase::LinkBase(BaseRouter& r UNUSED, IniSection& s, TracePtr tr) : cfg(s)
+LinkBase::LinkBase(BaseRouter& r UNUSED, IniSectionPtr& s, TracePtr tr) : cfg(s)
 {
   t = TracePtr(new Trace(*tr, s));
   t->setAuxName("Base");
@@ -89,18 +89,18 @@ LinkBase::info(int level UNUSED)
 {
   // TODO add more introspection
   std::string res = "cfg:";
-  res += cfg.name;
+  res += cfg->name;
   return res;
 }
 
-LinkConnect_::LinkConnect_(BaseRouter& r, IniSection& c, TracePtr tr)
+LinkConnect_::LinkConnect_(BaseRouter& r, IniSectionPtr& c, TracePtr tr)
    : router(r), LinkRecv(r,c,tr)
 {
   t->setAuxName("Conn_");
   //Router& rt = dynamic_cast<Router&>(r);
 }
 
-LinkConnect::LinkConnect(BaseRouter& r, IniSection& c, TracePtr tr)
+LinkConnect::LinkConnect(BaseRouter& r, IniSectionPtr& c, TracePtr tr)
    : LinkConnect_(r,c,tr)
 {
   t->setAuxName("Conn");
@@ -178,13 +178,13 @@ LinkConnect_::stop()
 const std::string&
 Filter::name()
 {
-  return cfg.value("filter",cfg.name);
+  return cfg->value("filter",cfg->name);
 }
 
 const std::string&
 Driver::name()
 {
-  return cfg.value("driver",cfg.name);
+  return cfg->value("driver",cfg->name);
 }
 
 FilterPtr
@@ -227,9 +227,9 @@ LinkConnect::setup()
   if (!LinkConnect_::setup())
     return false;
 
-  ignore = cfg.value("ignore",false);
-  may_fail = cfg.value("may-fail",false);
-  retry_delay = cfg.value("retry",0);
+  ignore = cfg->value("ignore",false);
+  may_fail = cfg->value("may-fail",false);
+  retry_delay = cfg->value("retry",0);
   return true;
 }
 
@@ -241,11 +241,11 @@ LinkConnect_::setup()
   DriverPtr dr = driver; // .lock();
   if(dr == nullptr)
     {
-      ERRORPRINTF (t, E_ERROR | 55, "No driver in %s. Refusing.", cfg.name);
+      ERRORPRINTF (t, E_ERROR | 55, "No driver in %s. Refusing.", cfg->name);
       return false;
     }
 
-  std::string x = cfg.value("filters","");
+  std::string x = cfg->value("filters","");
   {
     size_t pos = 0;
     size_t comma = 0;
@@ -256,8 +256,8 @@ LinkConnect_::setup()
         if (name.size())
           {
             FilterPtr link;
-            IniSection& s = static_cast<Router&>(router).ini[name];
-            name = s.value("filter",name);
+            IniSectionPtr s = static_cast<Router&>(router).ini[name];
+            name = s->value("filter",name);
             link = static_cast<Router&>(router).get_filter(std::dynamic_pointer_cast<LinkConnect_>(shared_from_this()),
                   s, name);
             if (link == nullptr)
@@ -282,7 +282,7 @@ LinkConnect_::setup()
     {
       if (!s->setup())
         {
-          ERRORPRINTF (t, E_ERROR | 32, "%s: setup %s: failed", cfg.name, s->cfg.name);
+          ERRORPRINTF (t, E_ERROR | 32, "%s: setup %s: failed", cfg->name, s->cfg->name);
           return false;
         }
       if (s == dr)
@@ -290,14 +290,14 @@ LinkConnect_::setup()
       auto ps = std::dynamic_pointer_cast<Filter>(s);
       if (ps == nullptr)
         {
-          ERRORPRINTF (t, E_FATAL | 32, "%s: setup %s: no driver", cfg.name, s->cfg.name);
+          ERRORPRINTF (t, E_FATAL | 32, "%s: setup %s: no driver", cfg->name, s->cfg->name);
           return false;
         }
       s = ps->send;
     }
   if (s == nullptr)
     {
-      ERRORPRINTF (t, E_FATAL | 33, "%s: setup: no driver", cfg.name);
+      ERRORPRINTF (t, E_FATAL | 33, "%s: setup: no driver", cfg->name);
       return false;
     }
   return true;
@@ -350,7 +350,7 @@ Server::setup()
   return true;
 }
 
-LinkConnectClient::LinkConnectClient(ServerPtr s, IniSection& c, TracePtr tr)
+LinkConnectClient::LinkConnectClient(ServerPtr s, IniSectionPtr& c, TracePtr tr)
   : server(s), LinkConnect(s->router, c, tr)
 {
   t->setAuxName("ConnC");
@@ -500,7 +500,7 @@ Driver::push_filter(FilterPtr filter, bool first)
   return true;
 }
 
-Filter::Filter(const LinkConnectPtr_& c, IniSection& s)
+Filter::Filter(const LinkConnectPtr_& c, IniSectionPtr& s)
     : LinkRecv(c->router, s, c->t)
 {
   conn = c;

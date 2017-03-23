@@ -32,7 +32,7 @@ class NetServer: public Server
 {
   friend class ClientConnection;
 protected:
-  NetServer (BaseRouter& l3, IniSection& s);
+  NetServer (BaseRouter& l3, IniSectionPtr& s);
 public:
   virtual ~NetServer ();
   bool ignore_when_systemd = false;

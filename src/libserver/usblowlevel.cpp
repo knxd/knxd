@@ -28,14 +28,14 @@
 #include "usb.h"
 
 USBEndpoint
-parseUSBEndpoint (IniSection &s)
+parseUSBEndpoint (IniSectionPtr s)
 {
   USBEndpoint e;
-  e.bus = s.value("bus", -1);
-  e.device = s.value("device", -1);
-  e.config = s.value("config", -1);
-  e.altsetting = s.value("setting", -1);
-  e.interface = s.value("interface", -1);
+  e.bus = s->value("bus", -1);
+  e.device = s->value("device", -1);
+  e.config = s->value("config", -1);
+  e.altsetting = s->value("setting", -1);
+  e.interface = s->value("interface", -1);
   return e;
 }
 
@@ -150,7 +150,7 @@ detectUSBEndpoint (libusb_context *context, USBEndpoint e)
   return e2;
 }
 
-USBLowLevelDriver::USBLowLevelDriver (LowLevelIface* p, IniSection &s) : LowLevelDriver(p,s)
+USBLowLevelDriver::USBLowLevelDriver (LowLevelIface* p, IniSectionPtr& s) : LowLevelDriver(p,s)
 {
   t->setAuxName("usbL");
   read_trigger.set<USBLowLevelDriver,&USBLowLevelDriver::read_trigger_cb>(this);

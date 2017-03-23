@@ -52,7 +52,7 @@ FILTER(PaceFilter,pace)
   ev::timer timer; void timer_cb(ev::timer &w, int revents);
 
 public:
-  PaceFilter (const LinkConnectPtr_& c, IniSection& s);
+  PaceFilter (const LinkConnectPtr_& c, IniSectionPtr& s);
   virtual ~PaceFilter ();
 
   virtual bool setup();

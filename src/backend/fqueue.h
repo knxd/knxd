@@ -44,7 +44,7 @@ FILTER(QueueFilter,queue)
   void trigger_cb (ev::async &w, int revents);
 
 public:
-  QueueFilter (const LinkConnectPtr_& c, IniSection& s);
+  QueueFilter (const LinkConnectPtr_& c, IniSectionPtr& s);
   virtual ~QueueFilter ();
 
   virtual bool setup();

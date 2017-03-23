@@ -81,7 +81,7 @@ NetServer::cleanup_cb (ev::async &w UNUSED, int revents UNUSED)
     }
 }
 
-NetServer::NetServer (BaseRouter& r, IniSection& s) : Server (r,s)
+NetServer::NetServer (BaseRouter& r, IniSectionPtr& s) : Server (r,s)
 {
   t->setAuxName("NetServ");
   fd = -1;
@@ -139,5 +139,5 @@ NetServer::setup()
 void
 NetServer::setupConnection (int cfd UNUSED)
 {
-  ignore_when_systemd = cfg.value("systemd-ignore",ignore_when_systemd);
+  ignore_when_systemd = cfg->value("systemd-ignore",ignore_when_systemd);
 }

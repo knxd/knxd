@@ -144,7 +144,7 @@ public:
 template<class T, class I>
 struct Maker {
   typedef typename I::first_arg I_first;
-  static I* create(const I_first &c, IniSection& s)
+  static I* create(const I_first &c, IniSectionPtr& s)
     {
       return new T(c,s);
     }
@@ -154,7 +154,7 @@ template<class I>
 class Factory {
 public:
   typedef typename I::first_arg I_first;
-  typedef I* (*Creator)(const I_first &c, IniSection& s);
+  typedef I* (*Creator)(const I_first &c, IniSectionPtr& s);
   typedef std::unordered_map<std::string, Creator> M;
   static M& map() { static M m; return m;}
 
@@ -171,7 +171,7 @@ public:
   }
 
   I *
-  create(const std::string& id, const I_first& c, IniSection& s) {
+  create(const std::string& id, const I_first& c, IniSectionPtr& s) {
     typename M::iterator i = map().find(id);
     if (i == map().end())
       return nullptr;
@@ -183,7 +183,7 @@ template<class T, class I, const char * N>
 struct RegisterClass
 {
   typedef typename I::first_arg I_first;
-  typedef std::shared_ptr<I> (*Creator)(I_first c, IniSection& s);
+  typedef std::shared_ptr<I> (*Creator)(I_first c, IniSectionPtr& s);
 
   RegisterClass()
   {
@@ -212,7 +212,7 @@ RegisterClass<T,I,N> AutoRegister<T,I,N>::ourRegisterer;
 class LinkBase : public std::enable_shared_from_this<LinkBase>
 {
 public:
-  LinkBase(BaseRouter &r, IniSection& s, TracePtr tr);
+  LinkBase(BaseRouter &r, IniSectionPtr& s, TracePtr tr);
   virtual ~LinkBase();
 private:
   /* DEBUG: Flag to make sure that the call sequence is observed */
@@ -220,13 +220,13 @@ private:
   //volatile char *setup_foo; // see setup()
 public:
   /** config data */
-  IniSection &cfg;
+  IniSectionPtr cfg;
 
   /** debug output */
   TracePtr t;
 
   /** This thing's name; drivers/filters override this with their "real" name */
-  virtual const std::string& name() { return cfg.name; }
+  virtual const std::string& name() { return cfg->name; }
   /** dump info about me */
   virtual std::string info(int verbose = 0); // debugging
 
@@ -287,7 +287,7 @@ public:
 class LinkRecv : public LinkBase
 {
 public:
-  LinkRecv(BaseRouter &r, IniSection& c, TracePtr tr) : LinkBase(r,c,tr)
+  LinkRecv(BaseRouter &r, IniSectionPtr& c, TracePtr tr) : LinkBase(r,c,tr)
     {
       t->setAuxName("Recv");
     }
@@ -321,7 +321,7 @@ public:
 class LinkConnect_ : public LinkRecv
 {
 public:
-  LinkConnect_(BaseRouter& r, IniSection& s, TracePtr tr);
+  LinkConnect_(BaseRouter& r, IniSectionPtr& s, TracePtr tr);
   virtual ~LinkConnect_();
 
   BaseRouter& router;
@@ -358,7 +358,7 @@ public:
 class LinkConnect : public LinkConnect_
 {
 public:
-  LinkConnect(BaseRouter& r, IniSection& s, TracePtr tr);
+  LinkConnect(BaseRouter& r, IniSectionPtr& s, TracePtr tr);
   virtual ~LinkConnect();
   /** Don't auto-start */
   bool ignore = false;
@@ -422,7 +422,7 @@ class LinkConnectClient : public LinkConnect
 public:
   ServerPtr server;
 
-  LinkConnectClient(ServerPtr s, IniSection& c, TracePtr tr);
+  LinkConnectClient(ServerPtr s, IniSectionPtr& c, TracePtr tr);
   virtual ~LinkConnectClient();
 
   virtual const std::string& name() { return linkname; }
@@ -432,7 +432,7 @@ public:
 class LinkConnectSingle : public LinkConnectClient
 {
 public:
-  LinkConnectSingle(ServerPtr s, IniSection& c, TracePtr tr) : LinkConnectClient(s,c,tr)
+  LinkConnectSingle(ServerPtr s, IniSectionPtr& c, TracePtr tr) : LinkConnectClient(s,c,tr)
     {
       t->setAuxName("ConnS");
     }
@@ -473,7 +473,7 @@ class Server : public LinkConnect
 {
 public:
   typedef BaseRouter& first_arg;
-  Server(BaseRouter& r, IniSection& c) : LinkConnect(r,c,r.t)
+  Server(BaseRouter& r, IniSectionPtr& c) : LinkConnect(r,c,r.t)
     {
       t->setAuxName("Server");
     }
@@ -487,7 +487,7 @@ public:
   /** Servers don't accept data */
   virtual void send_L_Data (LDataPtr l UNUSED) {}
   virtual bool hasAddress (eibaddr_t addr UNUSED) { return false; }
-  virtual void addAddress (eibaddr_t addr) { ERRORPRINTF(t,E_ERROR|99,"Tried to add address %s to %s", FormatEIBAddr(addr), cfg.name); }
+  virtual void addAddress (eibaddr_t addr) { ERRORPRINTF(t,E_ERROR|99,"Tried to add address %s to %s", FormatEIBAddr(addr), cfg->name); }
   virtual bool checkAddress (eibaddr_t addr UNUSED) { return false; }
   virtual bool checkGroupAddress (eibaddr_t addr UNUSED) { return false; }
 };
@@ -513,7 +513,7 @@ class Filter : public LinkRecv
 public:
   typedef LinkConnectPtr_ first_arg;
 
-  Filter(const LinkConnectPtr_& c, IniSection& s);
+  Filter(const LinkConnectPtr_& c, IniSectionPtr& s);
   virtual ~Filter();
 
 protected:
@@ -593,7 +593,7 @@ public:
   /** Returns the driver's name, i.e. the config's driver= value */
   virtual const std::string& name();
 
-  Driver(const LinkConnectPtr_& c, IniSection& s) : LinkBase(c->router, s, c->t)
+  Driver(const LinkConnectPtr_& c, IniSectionPtr& s) : LinkBase(c->router, s, c->t)
     {
       conn = c;
       t->setAuxName("Driver");
@@ -644,7 +644,7 @@ class BusDriver : public Driver
   std::vector<bool> addrs;
 
 public:
-  BusDriver(const LinkConnectPtr_& c, IniSection& s) : Driver(c,s)
+  BusDriver(const LinkConnectPtr_& c, IniSectionPtr& s) : Driver(c,s)
     {
       addrs.resize(65536);
       t->setAuxName("BusDriver");

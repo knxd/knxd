@@ -19,7 +19,7 @@
 
 #include "fpace.h"
 
-PaceFilter::PaceFilter (const LinkConnectPtr_& c, IniSection& s) : Filter(c,s)
+PaceFilter::PaceFilter (const LinkConnectPtr_& c, IniSectionPtr& s) : Filter(c,s)
 {
   timer.set<PaceFilter, &PaceFilter::timer_cb>(this);
   state = P_DOWN;
@@ -38,13 +38,13 @@ PaceFilter::setup()
     ERRORPRINTF(t, E_NOTICE, "The 'pace' filter without a queue acts globally.");
   if (!Filter::setup())
     return false;
-  delay = cfg.value("delay",15)/1000.;
+  delay = cfg->value("delay",15)/1000.;
   if (delay <= 0)
     {
       ERRORPRINTF(t, E_ERROR, "The delay must be >0");
       return false;
     }
-  byte_delay = cfg.value("delay-per-byte",1)/1000.;
+  byte_delay = cfg->value("delay-per-byte",1)/1000.;
   if (byte_delay < 0)
     {
       ERRORPRINTF(t, E_ERROR, "The delay must be >0");

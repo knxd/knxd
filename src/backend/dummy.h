@@ -25,7 +25,7 @@
 DRIVER(DummyL2Driver,dummy)
 {
 public:
-  DummyL2Driver (const LinkConnectPtr_& c, IniSection& s) : BusDriver(c,s) {}
+  DummyL2Driver (const LinkConnectPtr_& c, IniSectionPtr& s) : BusDriver(c,s) {}
   virtual ~DummyL2Driver ();
 
   void send_L_Data (LDataPtr l UNUSED) { send_Next(); }
@@ -41,7 +41,7 @@ public:
 FILTER(DummyL2Filter,dummy)
 {
 public:
-  DummyL2Filter (const LinkConnectPtr_& c, IniSection& s) : Filter(c,s) {}
+  DummyL2Filter (const LinkConnectPtr_& c, IniSectionPtr& s) : Filter(c,s) {}
   virtual ~DummyL2Filter ();
 };
 

@@ -78,7 +78,7 @@ ex1:
   return false;
 }
 
-FT12serial::FT12serial (LowLevelIface* p, IniSection &s)
+FT12serial::FT12serial (LowLevelIface* p, IniSectionPtr& s)
     : LowLevelDriver(p,s)
 {
   t->setAuxName("ft12ser");
@@ -89,10 +89,10 @@ FT12serial::setup()
 {
   if(!LowLevelDriver::setup())
     return false;
-  dev = cfg.value("device","");
+  dev = cfg->value("device","");
   if (!dev.size())
     {
-      ERRORPRINTF (t, E_ERROR | 36, "Section '%s' requires a 'device=' entry", cfg.name);
+      ERRORPRINTF (t, E_ERROR | 36, "Section '%s' requires a 'device=' entry", cfg->name);
       return false;
     }
 
@@ -116,13 +116,13 @@ FT12serial::start()
     goto ex;
   if (tcgetattr (fd, &old))
     {
-      ERRORPRINTF (t, E_ERROR | 34, "%s: getattr_old: %s", cfg.name, strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 34, "%s: getattr_old: %s", cfg->name, strerror(errno));
       goto ex2;
     }
 
   if (tcgetattr (fd, &t1))
     {
-      ERRORPRINTF (t, E_ERROR | 34, "%s: getattr: %s", cfg.name, strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 34, "%s: getattr: %s", cfg->name, strerror(errno));
       goto ex2;
     }
   t1.c_cflag = CS8 | PARENB | CLOCAL | CREAD;
@@ -136,7 +136,7 @@ FT12serial::start()
 
   if (tcsetattr (fd, TCSAFLUSH, &t1))
     {
-      ERRORPRINTF (t, E_ERROR | 34, "%s: setattr: %s", cfg.name, strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 34, "%s: setattr: %s", cfg->name, strerror(errno));
       goto ex2;
     }
   set_low_latency (fd, &sold);
