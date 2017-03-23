@@ -35,7 +35,7 @@ PaceFilter::setup()
 {
   if (findFilter("queue", true) == nullptr
       && std::dynamic_pointer_cast<LinkConnect>(conn.lock()) != nullptr)
-    ERRORPRINTF(t, E_WARNING, "The 'pace' filter without a queue acts globally.");
+    ERRORPRINTF(t, E_NOTICE, "The 'pace' filter without a queue acts globally.");
   if (!Filter::setup())
     return false;
   delay = cfg.value("delay",15)/1000.;
