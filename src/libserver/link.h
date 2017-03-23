@@ -596,6 +596,7 @@ public:
   Driver(const LinkConnectPtr_& c, IniSection& s) : LinkBase(c->router, s, c->t)
     {
       conn = c;
+      t->setAuxName("Driver");
     }
   virtual ~Driver();
   std::weak_ptr<LinkConnect_> conn;
@@ -646,6 +647,7 @@ public:
   BusDriver(const LinkConnectPtr_& c, IniSection& s) : Driver(c,s)
     {
       addrs.resize(65536);
+      t->setAuxName("BusDriver");
     }
   virtual ~BusDriver();
 

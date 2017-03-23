@@ -27,6 +27,7 @@
 EIBNetIPTunnel::EIBNetIPTunnel (const LinkConnectPtr_& c, IniSection& s)
   : BusDriver(c,s)
 {
+  t->setAuxName("ipt");
 }
 
 EIBNetIPTunnel::~EIBNetIPTunnel ()

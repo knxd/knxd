@@ -24,6 +24,7 @@
 EIBNetIPRouter::EIBNetIPRouter (const LinkConnectPtr_& c, IniSection& s)
   : BusDriver(c,s)
 {
+  t->setAuxName("ip");
 }
 
 void
