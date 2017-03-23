@@ -119,7 +119,7 @@ Trace::setAuxName(std::string name)
   if (name == this->name)
     return;
 
-  unsigned int len = this->name.length()+name.size()+(name.size()>0);
+  unsigned int len = this->name.length()+auxname.length()+(auxname.length()>0);
   this->auxname = name;
 
   if (trace_namelen < len)
