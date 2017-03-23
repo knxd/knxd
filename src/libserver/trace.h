@@ -190,9 +190,9 @@ public:
       char c = get_level_char((msgid >> 28) & 0x0f); 
       if (servername.length())
         fmt::fprintf(stderr, "%s: ",servername.c_str());
+      fmt::fprintf (stderr, "%c%08d: ", c, (msgid & 0xffffff));
       fmt::fprintf (stderr, "[%2d:%s] ", seq, name.c_str());
 
-      fmt::fprintf (stderr, "%c%08d: ", c, (msgid & 0xffffff));
       fmt::fprintf (stderr, msg, args...); 
       fprintf (stderr, "\n");
     } 
