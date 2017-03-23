@@ -407,7 +407,7 @@ Router::state_trigger_cb (ev::async &w UNUSED, int revents UNUSED)
         continue;
       if (i->second->switching)
         {
-          TRACEPRINTF (i->second->t, 4, "is going up");
+          TRACEPRINTF (i->second->t, 4, "is going %s", i->second->running ? "down" : "up");
           n_going++;
         }
       else if (i->second->running)
