@@ -417,7 +417,10 @@ Router::state_trigger_cb (ev::async &w UNUSED, int revents UNUSED)
       else if (i->second->may_fail && !running_signal)
         {}
       else if (!i->second->ignore)
-        n_down++;
+        {
+          TRACEPRINTF (i->second->t, 4, "is down");
+          n_down++;
+        }
     }
 
   if (!n_going && n_down == 0 && n_up > 0)
