@@ -132,7 +132,6 @@ EIBNetIPTunnel::start()
 
   TRACEPRINTF (t, 2, "Opened");
   out.clear();
-  BusDriver::start();
   return;
 ex:
   if (sock) 
