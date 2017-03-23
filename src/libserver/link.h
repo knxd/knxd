@@ -629,13 +629,13 @@ public:
   /** Add a filter just below this driver.
    * The caller is responsible for calling .setup()!
    * Don't call after being started! */
-  virtual bool push_filter(FilterPtr filter);
+  virtual bool push_filter(FilterPtr filter, bool first = false);
 
   /** Find a filter below me.
    * This checks the filter= value, not the section. */
   virtual FilterPtr findFilter(std::string name, bool skip_me = false);
 
-  bool assureFilter(std::string name);
+  bool assureFilter(std::string name, bool first = false);
 };
 
 class BusDriver : public Driver

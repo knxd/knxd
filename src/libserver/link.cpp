@@ -45,7 +45,7 @@ LinkRecv::link(LinkBasePtr next)
 }
 
 bool
-Driver::assureFilter(std::string name)
+Driver::assureFilter(std::string name, bool first)
 {
   if (findFilter(name) != nullptr)
     return true;
@@ -61,8 +61,10 @@ Driver::assureFilter(std::string name)
   auto f = static_cast<Router&>(c->router).get_filter(c, *s, name);
   if (f == nullptr)
     return false;
-  if (!push_filter(f))
+  if (!push_filter(f, first))
     return false;
+
+  // push_filter doesn't call setup()
   if (!f->setup())
     return false;
   return true;
@@ -452,17 +454,39 @@ Filter::stopped()
 }
 
 bool
-Driver::push_filter(FilterPtr filter)
+Driver::push_filter(FilterPtr filter, bool first)
 {
-  auto r = recv.lock();
-  if (r == nullptr)
-    return false;
+  LinkRecvPtr r;
+  LinkBasePtr t;
 
+  // r->t ==> r->filter->t
+
+  if (first)
+    {
+      // r is the LinkConnect base, t is the following LinkBase-ish thing
+      LinkConnectPtr_ c = conn.lock();
+      if (c == nullptr)
+        return false;
+      r = c;
+      t = c->send;
+    }
+  else
+    {
+      // t is this driver, so r is this->recv
+      r = recv.lock();
+      if (r == nullptr)
+        return false;
+      t = shared_from_this();
+    }
+
+  // link the first part
   if (!r->link(filter))
     return false;
-  if (!filter->link(shared_from_this()))
+  // link the second part
+  if (!filter->link(t))
     {
-      r->link(shared_from_this());
+      // didn't work, so undo the first.
+      r->link(t);
       return false;
     }
 
