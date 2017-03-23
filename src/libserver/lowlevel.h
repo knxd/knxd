@@ -198,15 +198,7 @@ public:
         stopped();
     }
 
-  void send_L_Data(LDataPtr l)
-    {
-      if (!iface)
-        {
-          TRACEPRINTF (t, 9, "Send: discard (not running) %s", l->Decode (t));
-          return;
-        }
-      iface->send_L_Data(std::move(l));
-    }
+  void send_L_Data(LDataPtr l);
   void recv_L_Data(LDataPtr l) { BusDriver::recv_L_Data(std::move(l)); }
   void recv_L_Busmonitor(LBusmonPtr l) { BusDriver::recv_L_Busmonitor(std::move(l)); }
 
