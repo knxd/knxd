@@ -30,7 +30,7 @@ supports it.
 #include "queue.h"
 
 enum QSTATE {
-    Q_DOWN,    // not running, not marked as requiring a queue
+    Q_DOWN,    // not running
     Q_IDLE,    // no packet submitted
     Q_BUSY,    // packet submitted, not in send loop
     Q_SENDING, // packet submitted, in send loop
