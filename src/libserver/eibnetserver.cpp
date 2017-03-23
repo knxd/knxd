@@ -113,6 +113,8 @@ err_out:
 bool
 EIBnetDriver::setup()
 {
+  if (!assureFilter("pace"))
+    return false;
   if (!SubDriver::setup())
     return false;
   if (! sock)
