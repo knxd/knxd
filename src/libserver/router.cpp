@@ -287,7 +287,7 @@ Router::setup_link(std::string& name)
   if (drivername.size() && do_driver(link, s,drivername))
     return link;
   if (do_server(server, s,s->name, true))
-    return link;
+    return server;
   if (do_driver(link, s,s->name, true))
     return link;
   ERRORPRINTF (t, E_ERROR | 55, "Section '%s' has no known server nor driver.", name);
