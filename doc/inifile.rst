@@ -321,12 +321,12 @@ interface's driver is configured. If a driver doesn't need any
 configuration you may just use the name of the driver. Thus,
 
     [main]
-    interfaces=foo,…
+    connections=foo,…
 
 and
 
     [main]
-    interfaces=my-driver,…
+    connections=my-driver,…
 
     [my-driver]
     driver=foo
@@ -334,7 +334,7 @@ and
 are equivalent, as are
 
     [main]
-    interfaces=my-driver,…
+    connections=my-driver,…
 
     [my-driver]
     driver=foo
@@ -343,7 +343,7 @@ are equivalent, as are
 and
 
     [main]
-    interfaces=foo,…
+    connections=foo,…
 
     [foo]
     some-options=true
