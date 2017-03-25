@@ -604,9 +604,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
         if (ap)
           *ap++ = '\0';
         (*ini[link])["driver"] = arg;
-        arguments->stack(link);
         if (ap)
           driver_args(arg,ap);
+        arguments->stack(link);
         break;
       }
     case 'B':
