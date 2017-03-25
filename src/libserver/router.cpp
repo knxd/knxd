@@ -83,6 +83,7 @@ Router::Router (IniData& d, std::string sn) : BaseRouter(d)
   trigger.set<Router, &Router::trigger_cb>(this);
   mtrigger.set<Router, &Router::mtrigger_cb>(this);
   state_trigger.set<Router, &Router::state_trigger_cb>(this);
+  start_timer.set<Router, &Router::start_timer_cb>(this);
   trigger.start();
   mtrigger.start();
   state_trigger.start();
@@ -94,12 +95,19 @@ bool
 Router::setup()
 {
   std::string x;
+  const char *x2;
   IniSectionPtr s = ini[main];
   TRACEPRINTF (t, 4, "R state: setting up");
 
   force_broadcast = s->value("force-broadcast", false);
   unknown_ok = s->value("unknown-ok", false);
 
+  timeout = s->value("timeout",2);
+  if (isnan(timeout) || timeout <= 0)
+    {
+      ERRORPRINTF (t, E_ERROR | 55, "timeout must be >0");
+      goto ex;
+    }
   x = s->value("addr","");
   if (!x.size())
     {
@@ -303,6 +311,7 @@ Router::start()
 
   TRACEPRINTF (t, 4, "R state: trigger going up");
   r_low->start();
+  start_timer.start(start_timeout);
 }
 
 void
@@ -444,7 +453,18 @@ Router::state_trigger_cb (ev::async &w UNUSED, int revents UNUSED)
   if (osrn && !some_running)
     r_high->stopped();
   else if (!oarn && all_running)
-    r_high->started();
+    {
+      r_high->started();
+      start_timer.stop();
+    }
+}
+
+void
+Router::start_timer_cb(ev::timer &w UNUSED, int revents UNUSED)
+{
+  ERRORPRINTF (t, E_ERROR, "Startup not successful.");
+  stop();
+  // TODO only halt failing drivers
 }
 
 void
@@ -534,6 +554,7 @@ Router::~Router()
   trigger.stop();
   mtrigger.stop();
   state_trigger.stop();
+  start_timer.stop();
 
   R_ITER(i,vbusmonitor)
     ERRORPRINTF (t, E_WARNING | 55, "VBusmonitor '%s' didn't de-register!", i->cb->name);
