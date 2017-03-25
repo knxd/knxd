@@ -57,6 +57,7 @@ class IniSection : public std::enable_shared_from_this<IniSection> {
     std::string& operator[](const std::string& name) { return (*this)[name.c_str()]; }
     int value(const std::string& name, int def);
     bool value(const std::string& name, bool def);
+    double value(const std::string& name, double def);
 
     bool add(const char *name, const char *value);
 

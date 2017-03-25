@@ -95,6 +95,21 @@ IniSection::value(const std::string& name, int def)
   return def;
 }
 
+double
+IniSection::value(const std::string& name, double def)
+{
+  static const std::string empty = "";
+  const std::string v { value(name, empty) };
+  if (!v.size())
+    return def;
+  const char *pos;
+  int res = std::strtod(v->c_str(), &pos);
+  if (!*pos)
+    return res;
+  std::cerr << "Parse error: Not a float: " << name << "=" << v << std::endl;
+  return def;
+}
+
 bool
 IniSection::value(const std::string& name, bool def)
 {
