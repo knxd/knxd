@@ -26,6 +26,7 @@
 #include <typeinfo>
 #include <iostream>
 #include <ev++.h>
+#include <math.h>
 
 #ifdef HAVE_SYSTEMD
 #include <systemd/sd-daemon.h>
@@ -102,8 +103,8 @@ Router::setup()
   force_broadcast = s->value("force-broadcast", false);
   unknown_ok = s->value("unknown-ok", false);
 
-  timeout = s->value("timeout",2);
-  if (isnan(timeout) || timeout <= 0)
+  start_timeout = s->value("timeout",2);
+  if (::isnan(start_timeout) || start_timeout <= 0)
     {
       ERRORPRINTF (t, E_ERROR | 55, "timeout must be >0");
       goto ex;

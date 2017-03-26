@@ -102,8 +102,8 @@ IniSection::value(const std::string& name, double def)
   const std::string v { value(name, empty) };
   if (!v.size())
     return def;
-  const char *pos;
-  int res = std::strtod(v->c_str(), &pos);
+  char *pos;
+  int res = std::strtod(v.c_str(), &pos);
   if (!*pos)
     return res;
   std::cerr << "Parse error: Not a float: " << name << "=" << v << std::endl;
