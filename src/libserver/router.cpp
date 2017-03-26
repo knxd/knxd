@@ -609,6 +609,11 @@ Router::recv_L_Data (LDataPtr l, LinkConnect& link)
           return;
         }
     }
+  else if (client_addrs_len && l->source >= client_addrs_start && l->source < client_addrs_start+client_addrs_len)
+    {
+      TRACEPRINTF (link.t, 3, "Packet originally from closed local interface");
+      return;
+    }
   else if (l->source != 0xFFFF) { // don't assign the "unprogrammed" address
     link.addAddress (l->source);
   }
