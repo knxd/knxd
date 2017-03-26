@@ -146,6 +146,7 @@ Router::setup()
     if (sd_name.size() > 0)
       {
         // IniSectionPtr sd = ini[sd_name];
+        (void) ini[sd_name]; // set the section's "referenced" bit, for error checking
         int num_fds = sd_listen_fds(0);
         if( num_fds < 0 )
           {
