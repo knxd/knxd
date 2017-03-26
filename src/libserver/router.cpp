@@ -600,7 +600,7 @@ Router::recv_L_Data (LDataPtr l, LinkConnect& link)
     { // check if from the correct interface
       if (&*l2x != &link)
         {
-          TRACEPRINTF (link.t, 3, "Packet not from %d:%s: %s", link.t->seq, link.t->name, l->Decode (t));
+          TRACEPRINTF (link.t, 3, "Packet not from %d:%s: %s", l2x->t->seq, l2x->t->name, l->Decode (t));
           return;
         }
     }
