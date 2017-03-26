@@ -587,14 +587,19 @@ Router::recv_L_Data (LDataPtr l, LinkConnect& link)
 
   // Unassigned source: set to link's, or our, address
   if (l->source == 0)
-    l->source = link.addr;
-  if (l->source == 0)
-    l->source = addr;
+    {
+      l->source = link.addr;
+      if (l->source == 0)
+        l->source = addr;
+    }
 
   if (l->source == addr)
-    { // locally generated, pass thru
-      // TODO mark interfaces which are local (currently just the group // cache)
-      // and reject those packets from other interfaces
+    { // locally generated?
+      if (!link.is_local)
+        { // Nope. Reject.
+          TRACEPRINTF (link.t, 3, "Packet not from us");
+          return;
+        }
     }
   else if (hasAddress (l->source, l2x))
     { // check if from the correct interface

@@ -366,6 +366,8 @@ public:
   bool transient = false;
   /** Ignore startup failures */
   bool may_fail = false;
+  /** originates with my own address */
+  bool is_local = false;
   /** address assigned to this link */
   eibaddr_t addr = 0;
 

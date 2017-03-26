@@ -29,6 +29,7 @@ GroupCache::GroupCache (const LinkConnectPtr& c, IniSectionPtr& s)
   enable = 0;
   remtrigger.set<GroupCache, &GroupCache::remtrigger_cb>(this);
   addr = c->router.addr;
+  c->is_local = true;
 }
 
 GroupCache::~GroupCache ()
