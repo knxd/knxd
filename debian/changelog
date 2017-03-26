@@ -1,3 +1,9 @@
+knxd (0.14.6-1) unstable; urgency=medium
+
+  * Fix crash starting with systemd
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 26 Mar 2017 23:16:41 +0200
+
 knxd (0.14.5-1) unstable; urgency=medium
 
   * Add an address= option to the "single" filter.

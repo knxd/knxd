@@ -175,7 +175,7 @@ IniData::add(const char *section, const char *name, const char *value)
 IniSectionPtr
 IniData::add_auto(std::string& section)
 {
-  return IniSectionPtr(new IniSection(*this,section + '_'));
+  return IniSectionPtr(new IniSection(*this, section + '_', true));
 }
 
 IniSectionPtr&
