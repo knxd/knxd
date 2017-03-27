@@ -399,6 +399,22 @@ Router::link_stopped(const LinkConnectPtr& link)
 }
 
 void
+Router::link_errored(const LinkConnectPtr& link)
+{
+  TRACEPRINTF (link->t, 4, "R state: errored");
+  errors.push(link);
+  state_trigger.send();
+
+  link->switching = false;
+  link->running = false;
+  if (link->may_fail || link->transient)
+    return;
+  if (running_signal && link->retry_delay > 0)
+    return;
+  exitcode += 1;
+}
+
+void
 Router::state_trigger_cb (ev::async &w UNUSED, int revents UNUSED)
 {
   bool oarn = all_running;
@@ -409,6 +425,14 @@ Router::state_trigger_cb (ev::async &w UNUSED, int revents UNUSED)
   int n_down = 0;
 
   TRACEPRINTF (t, 4, "R state: check start");
+
+  while (!errors.isempty())
+    {
+      LinkConnectPtr l = errors.get();
+      if (l->switching || l->running)
+        continue;
+      l->stop(); // again, for good measure
+    }
 
   ITER(i,links)
     {
@@ -540,6 +564,16 @@ void
 Router::stopped()
 {
   TRACEPRINTF (t, 4, "R state: down");
+  if (want_up)
+    stop();
+  else
+    ev_break (EV_A_ EVBREAK_ALL);
+}
+
+void
+Router::errored()
+{
+  TRACEPRINTF (t, 4, "R state: error");
   if (want_up)
     stop();
   else

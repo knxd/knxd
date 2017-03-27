@@ -80,10 +80,12 @@ public:
   /** last step, after hitting the global queue */
   void started();
   void stopped();
+  void errored();
 
   /** callbacks from LinkConnect */
   void link_started(const LinkConnectPtr& link);
   void link_stopped(const LinkConnectPtr& link);
+  void link_errored(const LinkConnectPtr& link);
 
   /** register a new link. Must be fully linked and setup() must be OK. */
   bool registerLink(const LinkConnectPtr& link, bool transient = false);
@@ -166,6 +168,9 @@ private:
 
   /** interfaces */
   std::unordered_map<int, LinkConnectPtr> links;
+
+  /** queue of interfaces which called errored() */
+  Queue<LinkConnectPtr> errors;
 
   // libev
   ev::async trigger;
@@ -300,6 +305,7 @@ public:
 
   virtual void started() { router->started(); }
   virtual void stopped() { router->stopped(); }
+  virtual void errored() { router->errored(); }
 };
 
 #endif

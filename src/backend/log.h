@@ -43,6 +43,7 @@ public:
   virtual void stop();
   virtual void started();
   virtual void stopped();
+  virtual void errored();
 
   virtual bool hasAddress (eibaddr_t addr);
   virtual void addAddress (eibaddr_t addr);

@@ -183,8 +183,8 @@ FT12serial::setup_buffers()
 void
 FT12serial::error_cb()
 {
-  TRACEPRINTF (t, 2, "ERROR");
-  stop();
+  TRACEPRINTF (t, 2, "error from file descr");
+  errored();
 }
 
 void 

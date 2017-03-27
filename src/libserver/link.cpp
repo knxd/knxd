@@ -111,6 +111,10 @@ LinkConnect::LinkConnect(BaseRouter& r, IniSectionPtr& c, TracePtr tr)
 void
 LinkConnect::retry_timer_cb (ev::timer &w UNUSED, int revents UNUSED)
 {
+  if (!running || !switching)
+    return;
+  running = false;
+  switching = false;
   retries++;
   start();
 }
@@ -160,8 +164,6 @@ LinkConnect::stop()
   if (running && !switching)
     retries = 0;
 
-  if (!running || switching)
-    return;
   TRACEPRINTF(t, 5, "Stopping");
   switching = true;
   changed = time(NULL);
@@ -338,8 +340,14 @@ LinkConnect::stopped()
       TRACEPRINTF(t, 5, "Stopped");
     }
   changed = time(NULL);
-  TRACEPRINTF(t, 5, "Stopped");
   static_cast<Router&>(router).link_stopped(std::dynamic_pointer_cast<LinkConnect>(shared_from_this()));
+}
+
+void
+LinkConnect::errored()
+{
+  TRACEPRINTF(t, 5, "Errored");
+  static_cast<Router&>(router).link_errored(std::dynamic_pointer_cast<LinkConnect>(shared_from_this()));
 }
 
 void
@@ -456,11 +464,27 @@ Driver::stopped()
 }
 
 void
+Driver::errored()
+{
+  auto r = recv.lock();
+  if (r != nullptr)
+    r->errored();
+}
+
+void
 Filter::stopped()
 {
   auto r = recv.lock();
   if (r != nullptr)
     r->stopped();
+}
+
+void
+Filter::errored()
+{
+  auto r = recv.lock();
+  if (r != nullptr)
+    r->errored();
 }
 
 bool

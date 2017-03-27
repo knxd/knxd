@@ -57,6 +57,7 @@ public:
   virtual TracePtr tr() = 0;
   virtual void started() = 0;
   virtual void stopped() = 0;
+  virtual void errored() = 0;
   virtual void send_Next() = 0;
   virtual void recv_Data(CArray& c) = 0;
 
@@ -105,6 +106,7 @@ public:
 
   void started() { master->started(); }
   void stopped() { master->stopped(); }
+  void errored() { master->errored(); }
   void send_Next();
   void recv_L_Data(LDataPtr l) { master->recv_L_Data(std::move(l)); }
   void recv_L_Busmonitor(LBusmonPtr l) { master->recv_L_Busmonitor(std::move(l)); }
@@ -211,6 +213,7 @@ public:
 
   inline void started() { BusDriver::started(); }
   inline void stopped() { BusDriver::stopped(); }
+  inline void errored() { BusDriver::errored(); }
   inline void send_Next() { BusDriver::send_Next(); }
 };
 

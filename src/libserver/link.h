@@ -264,6 +264,8 @@ public:
   virtual void started() = 0;
   /** Note that this link has stopped */
   virtual void stopped() = 0;
+  /** Notify the router that this link has encountered a fatal error */
+  virtual void errored() = 0;
 
   /** Check whether this physical address has been seen on this link */
   virtual bool hasAddress (eibaddr_t addr) = 0;
@@ -386,6 +388,7 @@ public:
   int retry_delay = 0;
   /** how often …? */
   int retries = 0;
+  int max_retries = 0;
 
 private:
   ev::timer retry_timer;
@@ -412,6 +415,7 @@ public:
 
   virtual void started();
   virtual void stopped();
+  virtual void errored();
   virtual void recv_L_Data (LDataPtr l); // { l3.recv_L_Data(std::move(l), this); }
   virtual void recv_L_Busmonitor (LBusmonPtr l); // { l3.recv_L_Busmonitor(std::move(l), this); }
   virtual void send_Next ();
@@ -531,6 +535,7 @@ public:
   virtual void send_Next ();
   virtual void started(); // recv->started()
   virtual void stopped(); // recv->stopped()
+  virtual void errored(); // recv->errored()
 
   /** Returns the filter's name, i.e. the config's filter= value */
   virtual const std::string& name();
@@ -613,6 +618,7 @@ public:
   virtual void send_Next ();
   virtual void started();
   virtual void stopped();
+  virtual void errored();
 
 public:
   virtual void send_L_Data(LDataPtr l) = 0;
