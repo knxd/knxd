@@ -104,7 +104,7 @@ Router::setup()
   unknown_ok = s->value("unknown-ok", false);
 
   start_timeout = s->value("timeout",2);
-  if (::isnan(start_timeout) || start_timeout <= 0)
+  if (std::isnan(start_timeout) || start_timeout <= 0)
     {
       ERRORPRINTF (t, E_ERROR | 55, "timeout must be >0");
       goto ex;
