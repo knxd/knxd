@@ -299,11 +299,6 @@ USBLowLevelDriver::send_Data (CArray& l)
 }
 
 void
-USBLowLevelDriver::sendReset ()
-{
-}
-
-void
 usb_complete_send (struct libusb_transfer *transfer)
 {
   USBLowLevelDriver *

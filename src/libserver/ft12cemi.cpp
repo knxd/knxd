@@ -28,6 +28,13 @@ FT12CEMIDriver::~FT12CEMIDriver()
 }
 
 void
+FT12CEMIDriver::start()
+{
+  sendReset();
+  CEMIDriver::start();
+}
+
+void
 FT12CEMIDriver::cmdOpen()
 {
   const uchar t1[] = { 0xF6, 0x00, 0x08, 0x01, 0x34, 0x10, 0x01, 0x00 };

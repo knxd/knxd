@@ -71,8 +71,9 @@ public:
   typedef LowLevelIface* first_arg;
 
   TracePtr tr() { return t; }
-private:
+protected:
   bool is_local = false;
+private:
   ev::timer local_timeout; void local_timeout_cb(ev::timer &w, int revents);
 
 
@@ -112,10 +113,14 @@ public:
 
   /** sends a EMI frame asynchronous */
   virtual void send_Data (CArray& l) = 0;
+
   /** like send_Data but busy-waits for send_Next call */
-  virtual void send_Local (CArray& l);
+  void send_Local (CArray& l, bool raw = false);
+  virtual void do_send_Local (CArray& l, bool raw = false) { assert(!raw); send_Data(l); };
+
   inline void send_Data (CArray&& l) { CArray lx = l; send_Data(lx); }
-  inline void send_Local (CArray&& l) { CArray lx = l; send_Local(lx); }
+  inline void send_Local (CArray&& l, bool raw = false) { CArray lx = l; send_Local(lx, raw); }
+  inline void do_send_Local (CArray&& l, bool raw = false) { send_Local(l, raw); };
   virtual void sendReset() {}
   virtual void recv_Data(CArray& c) { master->recv_Data(c); }
   virtual void abort_send() { ERRORPRINTF (t, E_ERROR, "cannot abort"); }
@@ -151,6 +156,7 @@ public:
   virtual void send_Data(CArray& c) { iface->send_Data(c); }
   virtual void abort_send() { iface->abort_send(); }
   virtual void send_L_Data(LDataPtr l) { iface->send_L_Data(std::move(l)); }
+  virtual void do_send_Local (CArray& l, bool raw = false);
 };
 
 class LowLevelAdapter : public BusDriver, public LowLevelIface

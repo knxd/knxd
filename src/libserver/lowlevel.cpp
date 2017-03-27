@@ -33,14 +33,24 @@ LowLevelFilter::~LowLevelFilter()
 }
 
 void
-LowLevelDriver::send_Local(CArray &d)
+LowLevelDriver::send_Local(CArray &d, bool raw)
 {
   assert(!is_local);
+  assert (!raw);
   is_local = true;
   local_timeout.start(0.9, 0);
-  send_Data(d);
+  do_send_Local(d, raw);
   while(is_local)
     ev_run(EV_DEFAULT_ EVRUN_ONCE);
+}
+
+void
+LowLevelFilter::do_send_Local(CArray &d, bool raw)
+{
+  if (raw)
+    iface->send_Data(d);
+  else
+    send_Data(d);
 }
 
 void

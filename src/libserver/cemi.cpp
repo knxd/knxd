@@ -38,6 +38,13 @@ void CEMIDriver::cmdLeaveMonitor() {}
 void CEMIDriver::cmdOpen() {}
 void CEMIDriver::cmdClose() {}
 
+void CEMIDriver::sendReset()
+{
+  const uchar t1[] = { 0x10, 0x40, 0x40, 0x16 };
+  iface->send_Local (CArray (t1, sizeof (t1)), true);
+
+}
+
 const uint8_t *
 CEMIDriver::getIndTypes()
 { 

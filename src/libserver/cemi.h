@@ -38,6 +38,7 @@ class CEMIDriver:public EMI_Common
   unsigned int maxPacketLen();
 
 public:
+  void sendReset() override;
   CEMIDriver (LowLevelDriver *i, LowLevelIface* c, IniSectionPtr& s) : EMI_Common(i,c,s)
     {
       t->setAuxName("CEMI");
