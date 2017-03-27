@@ -103,8 +103,8 @@ Router::setup()
   force_broadcast = s->value("force-broadcast", false);
   unknown_ok = s->value("unknown-ok", false);
 
-  start_timeout = s->value("timeout",2);
-  if (std::isnan(start_timeout) || start_timeout <= 0)
+  start_timeout = s->value("timeout",0);
+  if (std::isnan(start_timeout) || start_timeout < 0)
     {
       ERRORPRINTF (t, E_ERROR | 55, "timeout must be >0");
       goto ex;
@@ -311,7 +311,8 @@ Router::start()
 
   TRACEPRINTF (t, 4, "R state: trigger going up");
   r_low->start();
-  start_timer.start(start_timeout);
+  if (start_timeout > 0)
+    start_timer.start(start_timeout);
 }
 
 void
@@ -329,8 +330,6 @@ Router::start_()
       ITER(i,links)
         {
           auto ii = i->second;
-          if (ii->running || ii->switching)
-            continue;
           if (ii->ignore || ii->transient)
             continue;
           if (ii->seq >= seq)
@@ -338,21 +337,13 @@ Router::start_()
           seen = true;
           ii->seq = seq;
           TRACEPRINTF (ii->t, 3, "Start: %s", ii->info(0));
-          ii->start();
+          ii->setState(L_going_up);
           if (links_changed)
             break;
         }
     }
   in_link_loop -= 1;
   TRACEPRINTF (t, 4, "R state: going up triggered");
-}
-
-void
-Router::link_started(const LinkConnectPtr& link)
-{
-  TRACEPRINTF (link->t, 4, "R state: started");
-  state_trigger.send();
-  send_Next();
 }
 
 void
@@ -370,11 +361,12 @@ Router::send_Next()
     }
   ITER(i,links)
     {
-      if (!i->second->running || i->second->switching)
+      auto ii = i->second;
+      if (!ii->state != L_up)
         continue;
-      if (!i->second->send_more)
+      if (!ii->send_more)
         {
-          TRACEPRINTF (i->second->t, 6, "still waiting");
+          TRACEPRINTF (ii->t, 6, "still waiting");
           return;
         }
     }
@@ -384,34 +376,11 @@ Router::send_Next()
 }
 
 void
-Router::link_stopped(const LinkConnectPtr& link)
+Router::linkStateChanged(const LinkConnectPtr& link)
 {
-  TRACEPRINTF (link->t, 4, "R state: stopped");
+  TRACEPRINTF (link->t, 4, "R state: %s", link->stateName());
+  linkChanges.push(link);
   state_trigger.send();
-
-  if(! want_up)
-    return;
-  if (link->may_fail || link->transient)
-    return;
-  if (running_signal && link->retry_delay > 0)
-    return;
-  exitcode += 1;
-}
-
-void
-Router::link_errored(const LinkConnectPtr& link)
-{
-  TRACEPRINTF (link->t, 4, "R state: errored");
-  errors.push(link);
-  state_trigger.send();
-
-  link->switching = false;
-  link->running = false;
-  if (link->may_fail || link->transient)
-    return;
-  if (running_signal && link->retry_delay > 0)
-    return;
-  exitcode += 1;
 }
 
 void
@@ -426,31 +395,51 @@ Router::state_trigger_cb (ev::async &w UNUSED, int revents UNUSED)
 
   TRACEPRINTF (t, 4, "R state: check start");
 
-  while (!errors.isempty())
+  while (!linkChanges.isempty())
     {
-      LinkConnectPtr l = errors.get();
-      if (l->switching || l->running)
-        continue;
-      l->stop(); // again, for good measure
+      LinkConnectPtr l = linkChanges.get();
+      if (!want_up && l->state != L_down)
+        l->setState(L_going_down); // again, for good measure
     }
 
   ITER(i,links)
     {
-      if (i->second->transient)
-        continue;
-      if (i->second->switching)
+      auto ii = i->second;
+      LConnState lcs = ii->state;
+
+      if (ii->transient)
         {
-          TRACEPRINTF (i->second->t, 4, "is going %s", i->second->running ? "down" : "up");
-          n_going++;
+          if (!want_up && lcs != L_down)
+            {
+              ii->setState(L_going_down);
+              n_going ++;
+            }
+          continue;
         }
-      else if (i->second->running)
-        n_up++;
-      else if (i->second->may_fail && !running_signal)
-        {}
-      else if (!i->second->ignore)
+
+      switch(lcs)
         {
-          TRACEPRINTF (i->second->t, 4, "is down");
-          n_down++;
+        case L_down:
+        case L_error:
+          if (!ii->may_fail && !ii->ignore)
+            {
+              TRACEPRINTF (ii->t, 4, "is down");
+              n_down++;
+            }
+          break;
+        case L_up:
+          n_up++;
+          break;
+        case L_wait_retry:
+        case L_up_error:
+        case L_going_down_error:
+          if (ii->may_fail)
+            continue;
+        default:
+          TRACEPRINTF (ii->t, 4, "is %s", ii->stateName());
+          n_going++;
+          if (!want_up)
+            ii->setState(L_going_down);
         }
     }
 
@@ -471,7 +460,7 @@ Router::state_trigger_cb (ev::async &w UNUSED, int revents UNUSED)
     }
 
   TRACEPRINTF (t, 4, "R state: check end: want_up %d some %d>%d all %d>%d, going %d up %d down %d", want_up, osrn,some_running, oarn,all_running, n_going,n_up,n_down);
-  if (want_up && exitcode > 0)
+  if (want_up && n_down > 0)
     stop();
 
   if (osrn && !some_running)
@@ -522,16 +511,13 @@ Router::stop_()
       seen = false;
       ITER(i,links)
         {
-          if (i->second->running == i->second->switching)
-            continue; // already going down / down
-          if (i->second->seq >= seq)
+          auto ii = i->second;
+          if (ii->seq >= seq)
             continue; // already told it
-          // note that we're stopping even if already stopped, which is
-          // because this will kill its restart timer
-          TRACEPRINTF (i->second->t, 3, "Stop: %s", i->second->info(0));
+          TRACEPRINTF (ii->t, 3, "Stop: %s", ii->info(0));
           seen = true;
-          i->second->seq = seq;
-          i->second->stop();
+          ii->seq = seq;
+          ii->setState(L_going_down);
           if (links_changed)
             break;
         }
@@ -750,15 +736,15 @@ Router::registerLink(const LinkConnectPtr& link, bool transient)
     }
   TRACEPRINTF (link->t, 3, "registerLink: %d:%s", link->pos,n);
   links_changed = true;
+  if (transient)
+    link->transient = true;
   if (want_up)
     {
       all_running = false;
       TRACEPRINTF (link->t, 3, "Start: %s", link->info(0));
       link->seq = seq;
-      link->start();
+      link->setState(L_going_up);
     }
-  if (transient)
-    link->transient = true;
   return true;
 }
 
