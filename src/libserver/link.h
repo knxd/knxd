@@ -378,6 +378,8 @@ public:
 
   /** loop counter for the router */
   int seq = 0;
+  /** link map index for the router */
+  int pos = 0;
   /** last state change */
   time_t changed = 0;
   /** retry timer */

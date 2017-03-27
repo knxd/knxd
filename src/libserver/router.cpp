@@ -1,4 +1,4 @@
-/*
+/*,
     EIBD eib bus access and management daemon
     Copyright (C) 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
 
@@ -159,8 +159,6 @@ Router::setup()
         for( int fd = SD_LISTEN_FDS_START; fd < SD_LISTEN_FDS_START+num_fds; ++fd )
           {
             IniSectionPtr sds = ini.add_auto(sd_name);
-            if (sds == nullptr)
-              return false;
 
             (*sds)["use"] = sd_name;
             if( sd_is_socket(fd, AF_UNSPEC, SOCK_STREAM, 1) <= 0 )
@@ -701,15 +699,22 @@ bool
 Router::registerLink(const LinkConnectPtr& link, bool transient)
 {
   const std::string& n = link->name();
+  #if 1 // TODO tracing
+  link->pos = link->t->seq;
+  #else
+  static int pos = 0;
+  if (link->pos == 0)
+    link->pos = ++pos;
+  #endif
   auto res = links.emplace(std::piecewise_construct,
-                std::forward_as_tuple(n),
+                std::forward_as_tuple(link->pos),
                 std::forward_as_tuple(link));
   if (! res.second)
     {
-      TRACEPRINTF (link->t, 3, "registerLink: %s: already present", n);
+      ERRORPRINTF (link->t, E_ERROR, "registerLink: %d:%s: already present", link->pos,n);
       return false;
     }
-  TRACEPRINTF (link->t, 3, "registerLink: %s", n);
+  TRACEPRINTF (link->t, 3, "registerLink: %d:%s", link->pos,n);
   links_changed = true;
   if (want_up)
     {
@@ -727,10 +732,10 @@ bool
 Router::unregisterLink(const LinkConnectPtr& link)
 {
   const std::string& n = link->name();
-  auto res = links.find(n);
+  auto res = links.find(link->pos);
   if (res == links.end())
     {
-      TRACEPRINTF (link->t, 3, "unregisterLink: %s: not present", n);
+      ERRORPRINTF (link->t, E_ERROR, "unregisterLink: %d:%s: not present", link->pos,n);
       return false;
     }
   links.erase(res);

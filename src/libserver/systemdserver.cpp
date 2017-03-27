@@ -36,7 +36,7 @@ SystemdServer::SystemdServer (BaseRouter& r, IniSectionPtr& s, int systemd_fd)
 void
 SystemdServer::start()
 {
-  TRACEPRINTF (t, 8, "OpenSystemdSocket");
+  TRACEPRINTF (t, 8, "OpenSystemdSocket %d", fd);
   if (fd < 0)
     {
       stopped();
@@ -50,7 +50,7 @@ SystemdServer::start()
       return;
     }
 
-  TRACEPRINTF (t, 8, "SystemdSocket opened");
+  TRACEPRINTF (t, 8, "SystemdSocket %d opened", fd);
   NetServer::start();
 }
 

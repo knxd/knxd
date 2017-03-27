@@ -165,7 +165,7 @@ private:
   LinkConnectPtr setup_link(std::string& name);
 
   /** interfaces */
-  std::unordered_map<std::string, LinkConnectPtr> links;
+  std::unordered_map<int, LinkConnectPtr> links;
 
   // libev
   ev::async trigger;
