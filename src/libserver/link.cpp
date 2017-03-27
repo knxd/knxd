@@ -229,7 +229,8 @@ LinkConnect::setup()
 
   ignore = cfg->value("ignore",false);
   may_fail = cfg->value("may-fail",false);
-  retry_delay = cfg->value("retry",0);
+  retry_delay = cfg->value("retry-delay",0);
+  max_retries = cfg->value("max-retry",0);
   return true;
 }
 
@@ -323,10 +324,19 @@ LinkConnect::send_Next()
 void
 LinkConnect::stopped()
 {
-  if (running != switching && retry_delay)
-    retry_timer.start(retry_delay,0);
-  running = false;
-  switching = false;
+  if (running && switching && retry_delay && (!max_retries || retries < max_retries))
+    {
+      retry_timer.start(retry_delay,0);
+      running = true;
+      switching = true;
+      TRACEPRINTF(t, 5, "Stopped, will restart in %d sec", retry_delay);
+    }
+  else
+    {
+      running = false;
+      switching = false;
+      TRACEPRINTF(t, 5, "Stopped");
+    }
   changed = time(NULL);
   TRACEPRINTF(t, 5, "Stopped");
   static_cast<Router&>(router).link_stopped(std::dynamic_pointer_cast<LinkConnect>(shared_from_this()));
