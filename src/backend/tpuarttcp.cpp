@@ -97,7 +97,7 @@ ex:
       fd = -1;
     }
   TPUART_Base::setstate(T_error);
-  stopped();
+  errored();
 }
 
 void

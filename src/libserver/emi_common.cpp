@@ -164,8 +164,8 @@ EMI_Common::recv_Data(CArray& c)
   const uint8_t *ind = getIndTypes();
   if (c.size() > 0 && c[0] == 0xA0)
     {
-      TRACEPRINTF (t, 2, "Stopped");
-      stopped();
+      TRACEPRINTF (t, 2, "got reset ind");
+      errored();
     }
   else if (c.size() > 0 && c[0] == ind[I_CONFIRM])
     {

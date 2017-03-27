@@ -69,7 +69,7 @@ LowLevelAdapter::send_L_Data(LDataPtr l)
   if (!iface)
     {
       ERRORPRINTF (t, E_ERROR, "Send: not running??");
-      stopped();
+      errored();
       return;
     }
   iface->send_L_Data(std::move(l));

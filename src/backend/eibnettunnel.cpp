@@ -534,7 +534,7 @@ void EIBNetIPTunnel::conntimeout_cb(ev::timer &w UNUSED, int revents UNUSED)
     {
       TRACEPRINTF (t, 1, "Connect timed out");
       is_stopped();
-      stopped();
+      errored();
       // EIBnet_ConnectRequest creq = get_creq();
       // creq.CRI[1] =
         // ((connect_busmonitor && support_busmonitor) ? 0x80 : 0x02);

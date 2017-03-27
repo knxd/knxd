@@ -291,7 +291,7 @@ USBLowLevelDriver::send_Data (CArray& l)
   if (out.size() > 0)
     {
       ERRORPRINTF (t, E_FATAL | 35, "Send while buffer not empty");
-      stopped(); // XXX signal async
+      errored(); // XXX signal async
       return;
     }
   out = l;
@@ -394,7 +394,7 @@ USBLowLevelDriver::StartUsbRecvTransfer()
   if (res)
     {
       ERRORPRINTF (t, E_ERROR | 32, "Error StartRecv: %s", libusb_error_name(res));
-      stopped();
+      errored();
       return;
     }
   TRACEPRINTF (t, 10, "StartRecv");
