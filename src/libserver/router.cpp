@@ -761,6 +761,8 @@ Router::unregisterLink(const LinkConnectPtr& link)
   links.erase(res);
   TRACEPRINTF (link->t, 3, "unregisterLink: %s", n);
   links_changed = true;
+  if (!in_link_loop)
+    state_trigger.send();
   return true;
 }
 

@@ -238,6 +238,7 @@ LinkConnect::setState(LConnState new_state)
         default: goto inval;
         } break;
     }
+  static_cast<Router&>(router).linkStateChanged(std::dynamic_pointer_cast<LinkConnect>(shared_from_this()));
   return;
 
 inval:
@@ -452,7 +453,6 @@ LinkConnect::started()
   setState(L_up);
   changed = time(NULL);
   TRACEPRINTF(t, 5, "Started");
-  static_cast<Router&>(router).linkStateChanged(std::dynamic_pointer_cast<LinkConnect>(shared_from_this()));
 }
 
 void
