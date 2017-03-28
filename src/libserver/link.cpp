@@ -108,15 +108,165 @@ LinkConnect::LinkConnect(BaseRouter& r, IniSectionPtr& c, TracePtr tr)
   retry_timer.set <LinkConnect,&LinkConnect::retry_timer_cb> (this);
 }
 
+const char *
+LinkConnect::stateName()
+{
+  switch(state)
+    {
+    case L_down:
+      return "down";
+    case L_going_down:
+      return ">> down";
+    case L_up:
+      return "up";
+    case L_going_up:
+      return ">> up";
+    case L_error:
+      return "error";
+    case L_wait_retry:
+      return "retry";
+    default:
+      return "?!?";
+    }
+}
+
+void
+LinkConnect::setState(LConnState new_state)
+{
+  if (state == new_state)
+    return;
+
+  LConnState old_state = state;
+  const char *osn = stateName();
+  state = new_state;
+  TRACEPRINTF(t, 5, "%s => %s", osn, stateName());
+
+  if (old_state == L_wait_retry)
+    retry_timer.stop();
+
+  switch(old_state)
+    {
+    case L_down:
+      switch(new_state)
+        {
+        case L_going_up:
+          start();
+          break;
+        case L_going_down: // redundant call to stop()
+          state = L_down;
+          break;
+        default: goto inval;
+        } break;
+    case L_going_down:
+      switch(new_state)
+        {
+        case L_error:
+          state = L_up_error;
+          break;
+        case L_down:
+          break;
+        default: goto inval;
+        } break;
+    case L_up:
+      switch(new_state)
+        {
+        case L_going_up: // redundant call to start()
+          state = L_up;
+          break;
+        case L_going_down:
+          stop();
+          break;
+        case L_error:
+          state = L_up_error;
+          break;
+        default: goto inval;
+        } break;
+    case L_going_up:
+      switch(new_state)
+        {
+        case L_up:
+          retries = 0;
+          break;
+        case L_going_down:
+          stop();
+          break;
+        case L_error:
+          state = L_up_error;
+          break;
+        default: goto inval;
+        } break;
+    case L_wait_retry:
+      switch(new_state)
+        {
+        case L_going_up:
+          start();
+          break;
+        case L_going_down:
+          TRACEPRINTF(t, 5, "retrying halted");
+          state = L_down;
+          break;
+        default: goto inval;
+        } break;
+    case L_error:
+      switch(new_state)
+        {
+        case L_wait_retry:
+          goto retry;
+        case L_error:
+          break;
+        default: goto inval;
+        } break;
+    case L_up_error:
+      switch(new_state)
+        {
+        case L_going_down:
+          state = L_going_down_error;
+          stop();
+          break;
+        case L_error:
+          break;
+        default: goto inval;
+        } break;
+    case L_going_down_error:
+      switch(new_state)
+        {
+        case L_down:
+          goto retry;
+          break;
+        case L_error:
+          break;
+        default: goto inval;
+        } break;
+    }
+  static_cast<Router&>(router).linkStateChanged(std::dynamic_pointer_cast<LinkConnect>(shared_from_this()));
+  return;
+
+inval:
+  ERRORPRINTF (t, E_ERROR, "invalid transition: %s => %s", osn, stateName());
+  abort();
+  return;
+
+retry:
+  if (!max_retries || retries < max_retries)
+    {
+      TRACEPRINTF (t, 5, "retry in %d sec", retry_delay);
+      state = L_wait_retry;
+      retry_timer.start (retry_delay,0);
+    }
+  else
+    {
+      TRACEPRINTF (t, 5, "retrying finished");
+      state = L_down;
+    }
+}
+
 void
 LinkConnect::retry_timer_cb (ev::timer &w UNUSED, int revents UNUSED)
 {
-  if (!running || !switching)
+  if (state != L_wait_retry)
     return;
-  running = false;
-  switching = false;
   retries++;
-  start();
+  setState(L_going_up);
 }
 
 void
@@ -140,11 +290,7 @@ LinkConnectSingle::setup()
 void
 LinkConnect::start()
 {
-  if (running || switching)
-    return;
   TRACEPRINTF(t, 5, "Starting");
-  running = false;
-  switching = true;
   send_more = true;
   changed = time(NULL);
   LinkConnect_::start();
@@ -160,12 +306,7 @@ LinkConnect_::start()
 void
 LinkConnect::stop()
 {
-  retry_timer.stop();
-  if (running && !switching)
-    retries = 0;
-
   TRACEPRINTF(t, 5, "Stopping");
-  switching = true;
   changed = time(NULL);
   LinkConnect_::stop();
 }
@@ -309,11 +450,9 @@ LinkConnect_::setup()
 void
 LinkConnect::started()
 {
-  running = true;
-  switching = false;
+  setState(L_up);
   changed = time(NULL);
   TRACEPRINTF(t, 5, "Started");
-  static_cast<Router&>(router).link_started(std::dynamic_pointer_cast<LinkConnect>(shared_from_this()));
 }
 
 void
@@ -326,28 +465,13 @@ LinkConnect::send_Next()
 void
 LinkConnect::stopped()
 {
-  if (running && switching && retry_delay && (!max_retries || retries < max_retries))
-    {
-      retry_timer.start(retry_delay,0);
-      running = true;
-      switching = true;
-      TRACEPRINTF(t, 5, "Stopped, will restart in %d sec", retry_delay);
-    }
-  else
-    {
-      running = false;
-      switching = false;
-      TRACEPRINTF(t, 5, "Stopped");
-    }
-  changed = time(NULL);
-  static_cast<Router&>(router).link_stopped(std::dynamic_pointer_cast<LinkConnect>(shared_from_this()));
+  setState(L_down);
 }
 
 void
 LinkConnect::errored()
 {
-  TRACEPRINTF(t, 5, "Errored");
-  static_cast<Router&>(router).link_errored(std::dynamic_pointer_cast<LinkConnect>(shared_from_this()));
+  setState(L_error);
 }
 
 void

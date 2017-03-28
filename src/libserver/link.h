@@ -352,11 +352,38 @@ public:
   virtual void addAddress (eibaddr_t addr) { send->addAddress(addr); }
 };
 
+/** The link connection state tells what the link's state is.
+
+  down => going_up => up => going_down => down
+             |        |          |
+    -        V        V          V
+             \- L_up_error  => L_going_down_error => L_wait_retry => L_going_up
+
+  Down arrows: errored() has been called
+ */
+typedef enum {
+    L_down,
+    L_going_down,
+    L_up,
+    L_going_up,
+    L_wait_retry,
+    L_error,
+    L_up_error,
+    L_going_down_error,
+} LConnState;
+
+typedef enum {
+    R_down,
+    R_other,
+    R_up,
+} LRouterState;
+
 /** A LinkConnect is something which the router knows about.
  * For non-servers, it holds a pointer to the driver and to the bottom of
  * the filter stack.
  * This contains the parts useable on a per-link filter chain.
  */
+
 class LinkConnect : public LinkConnect_
 {
 public:
@@ -373,10 +400,15 @@ public:
   /** address assigned to this link */
   eibaddr_t addr = 0;
 
-  /** Driver/Server is up */
-  bool running = false;
-  /** Driver/Server intends to be what @running says  */
-  bool switching = false;
+  /** current state */
+  LConnState state = L_down;
+  /** … and a controlled way to set it */
+  void setState(LConnState new_state);
+  /** … and code to print the state */
+  const char *stateName();
+
+  /** state which the router saw last */
+  LRouterState stateR;
 
   /** loop counter for the router */
   int seq = 0;
@@ -407,6 +439,8 @@ public:
   /** This is responsible for setting up the filters. Don't call it twice!
    * Precondition: set_driver() has been called. */
   virtual bool setup();
+
+  /* These just control the state machine */
   virtual void start();
   virtual void stop();
 
