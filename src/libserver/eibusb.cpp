@@ -23,7 +23,7 @@
 #include "cemi.h"
 #include "usblowlevel.h"
 
-USBConverterInterface::USBConverterInterface (LowLevelIface * p, IniSection& s)
+USBConverterInterface::USBConverterInterface (LowLevelIface * p, IniSectionPtr& s)
     : LowLevelFilter(p,s)
 {
   t->setAuxName("Conv");
@@ -128,7 +128,7 @@ out:
   return;
 }
 
-USBDriver::USBDriver (const LinkConnectPtr_& c, IniSection& s) : LowLevelAdapter (c,s)
+USBDriver::USBDriver (const LinkConnectPtr_& c, IniSectionPtr& s) : LowLevelAdapter (c,s)
 {
   t->setAuxName("Dr");
 }
@@ -169,7 +169,7 @@ USBDriver::timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
     {
       ERRORPRINTF (t, E_ERROR, "No reply to setup");
       version = vTIMEOUT;
-      stopped();
+      errored();
     }
 }
 
@@ -245,13 +245,13 @@ USBDriver::recv_Data(CArray& c)
       TRACEPRINTF (t, 2, "version x%02x not recognized", c[13]);
       version = vERROR;
       timeout.stop();
-      stopped();
+      errored();
       return;
     }
   timeout.stop();
   if(!make_EMI())
     {
-      stopped();
+      errored();
       return;
     }
 
@@ -314,7 +314,7 @@ USBDriver::setup ()
   version = cfgEMIVersion(cfg);
   if (version == vERROR)
     {
-      std::string v = cfg.value("version","");
+      std::string v = cfg->value("version","");
       ERRORPRINTF (t, E_ERROR, "EMI version %s not recognized",v);
       return false;
     }

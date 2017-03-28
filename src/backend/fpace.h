@@ -46,11 +46,13 @@ FILTER(PaceFilter,pace)
 {
   bool want_next = false;
   float delay;
+  float byte_delay;
+  size_t last_len;
   enum PSTATE state;
   ev::timer timer; void timer_cb(ev::timer &w, int revents);
 
 public:
-  PaceFilter (const LinkConnectPtr_& c, IniSection& s);
+  PaceFilter (const LinkConnectPtr_& c, IniSectionPtr& s);
   virtual ~PaceFilter ();
 
   virtual bool setup();

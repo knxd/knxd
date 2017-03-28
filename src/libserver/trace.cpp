@@ -99,19 +99,18 @@ error_level(std::string level, int def)
 void
 Trace::setup()
 {
-  assert(this->name.length() > 0);
   if (trace_namelen < this->name.length())
     trace_namelen = this->name.length();
-  timestamps = cfg.value("timestamps",timestamps);
-  layers = cfg.value("trace-mask",(int)layers);
-  int nlevel = error_level(cfg.value("error-level",""),level);
+  timestamps = cfg->value("timestamps",timestamps);
+  layers = cfg->value("trace-mask",(int)layers);
+  int nlevel = error_level(cfg->value("error-level",""),level);
   if (nlevel == -1)
     {
-      std::cerr << "Unrecognized logging level: " << cfg.value("error-level","") << std::endl;
+      std::cerr << "Unrecognized logging level: " << cfg->value("error-level","") << std::endl;
       return;
     }
   level = nlevel;
-  setAuxName(cfg.value("name",name));
+  setAuxName(cfg->value("name",name));
 }
 
 void
@@ -120,7 +119,7 @@ Trace::setAuxName(std::string name)
   if (name == this->name)
     return;
 
-  unsigned int len = this->name.length()+name.size()+(name.size()>0);
+  unsigned int len = this->name.length()+auxname.length()+(auxname.length()>0);
   this->auxname = name;
 
   if (trace_namelen < len)

@@ -30,11 +30,11 @@ class FT12CEMIDriver : public CEMIDriver
 {
   void cmdOpen(); 
 public:
-  FT12CEMIDriver (LowLevelDriver * i, LowLevelIface* c, IniSection& s) : CEMIDriver(i,c,s)
+  FT12CEMIDriver (LowLevelDriver * i, LowLevelIface* c, IniSectionPtr& s) : CEMIDriver(i,c,s)
     {
       t->setAuxName("ft12cemi");
     }
-  FT12CEMIDriver (LowLevelIface* c, IniSection& s) : CEMIDriver(c,s)
+  FT12CEMIDriver (LowLevelIface* c, IniSectionPtr& s) : CEMIDriver(c,s)
     {
       t->setAuxName("ft12cemi");
     }

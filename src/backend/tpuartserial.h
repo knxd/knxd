@@ -43,7 +43,7 @@ protected:
   void setstate(enum TSTATE state);
 
 public:
-  TPUARTSerial (const LinkConnectPtr_& c, IniSection& s);
+  TPUARTSerial (const LinkConnectPtr_& c, IniSectionPtr& s);
   virtual ~TPUARTSerial();
 
   bool setup();

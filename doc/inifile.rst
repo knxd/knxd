@@ -2,6 +2,8 @@
 INI file sections
 =================
 
+This document describes knxd's configuration file format.
+
 General considerations
 ======================
 
@@ -43,6 +45,61 @@ configuration file. These are now deprecated. A translation program,
 typically installed as ``/usr/lib/knxd_args``, will emit a correct
 configuration file when called with the old knxd's arguments.
 
+The following documentation mentions the old arguments' flags. Note that
+argument order is significant. All filters in front of -e|--eibaddr apply
+globally; filters after that apply to the driver or server following them.
+Filters at the end, i.e. after the last driver or server, apply to the
+systemd-socket-passed server(s). Modifiers like "--arg=name=value" apply to
+the filter, driver or server they're directly in front of.
+
+As an example, these arguments
+
+    knxd_args -e 1.2.3 -E 1.2.4:5 -D --arg=delay=50 -B pace -R --layer2=log -T -S -b tpuarts:/dev/ttyACM0 -f 9 -t 252 -B log
+
+generate this configuration file (re-ordered for clarity):
+
+    [main]
+    addr = 1.2.3
+    client-addrs = 1.2.4:5
+    connections = server,B.tpuarts
+    systemd = systemd
+
+    [B.tpuarts]
+    device = /dev/ttyACM0
+    driver = tpuarts
+
+    [server]
+    server = ets_router
+    discover = true
+    debug = debug-server
+    router = router
+    tunnel = tunnel
+
+    [debug-server]
+    name = mcast:knxd
+
+    [router]
+    filters = A.pace
+
+    [A.pace]
+    delay = 50
+    filter = pace
+
+    [tunnel]
+    filters = log
+
+    [systemd]
+    debug = debug-systemd
+    filters = log
+
+    [debug-systemd]
+    error-level = 0x9
+    trace-mask = 0xfc
+
+The config file generation code tries to keep the generated file reasonably
+simple. Thus the "log" filters (unlike the "pace" filter) don't have a
+section of their own because they don't have arguments.
+
 main
 ====
 
@@ -50,14 +107,14 @@ The main section controls configuration of the whole of knxd. Its name
 defaults to "main". An alternate main section may be named on the command
 line.
 
-  * name (string)
+  * name (string; -n|--Name)
 
     The name of this server. This name will be used in logging/trace output.
     It's also the default name used to announce knxd on multicast.
 
     Optional; defaults to "knxd".
 
-  * addr (string: KNX device address)
+  * addr (string: KNX device address; -e|--eibaddr)
 
     The KNX address of knxd itself. Used e.g. for requests originating at the
     group cache.
@@ -66,15 +123,18 @@ line.
 
     Mandatory.
 
-  * client-addrs (string: KNX device address plus length)
+  * client-addrs (string: KNX device address plus length; -E|--client-addrs)
 
-    Address range to be distributed to client connections.
+    Address range to be distributed to client connections. Note that the
+    length parameter indicates the number of addresses to be allocated.
 
-    Example: 1.2.4:5
+    Example: 1.2.3:5
 
-    Mandatory if you use the server code in knxd (if in doubt: yes, you do).
+    (This assigns addresses 1.2.3 through 1.2.7 to knxd's clients.)
 
-  * connections (string: list of section names)
+    Mandatory if you use knxd's server code (if in doubt: yes, you do).
+
+  * connections (string: list of section names; -b|--layer2 …)
 
     Comma-separated list of section names. Each named section describes
     either a device to exchange KNX packets with, or a server which a
@@ -82,7 +142,12 @@ line.
 
     Mandatory, as knxd is useless without any connections.
 
-  * systemd (string: section name)
+    On the command line, a --layer2= option compiles all preceding filter
+    and debug parameters into a config file section. This also applies to
+    the options --eibaddr (global data), --listen-tcp, --listen-local,
+    --Routing, --Tunnelling, --Server, and --Groupcache.
+
+  * systemd (string: section name; implied at the end of the argument list)
 
     Section name for describing connections managed by ``systemd.socket``.
 
@@ -95,13 +160,14 @@ line.
         error-level=fatal
 	
 
-  * cache (string: section name)
+  * cache (string: section name; -c|--GroupCache)
 
-    Section name for the group cache.
+    Section name for the group cache. See the `group cache` section at the
+    end of this document for details.
 
     Optional; mostly-required if you have a GUI that accesses KNX.
 
-  * force-broadcast (bool)
+  * force-broadcast (bool; --allow-forced-broadcast)
 
     Packets have a "hop count", which determines how many routers they may
     traverse until they're discarded. This mitigates the problems caused by
@@ -117,7 +183,7 @@ line.
 
     Optional; default false.
 
-  * unknown-ok (bool)
+  * unknown-ok (bool; -A|--arg=unknown-ok=true)
 
     Mark that arguments ``knxd`` doesn't know whould emit a warning instead
     of being fatal. This is useful if you want a config file that allows
@@ -125,7 +191,7 @@ line.
 
     Optional; default false, to catch typos and thinkos.
 
-  * stop-after-setup (bool)
+  * stop-after-setup (bool; -A|--arg=stop-after-setup=true)
 
     Usually, knxd exits if there are any fatal configuration errors. 
     This option will instruct it to terminate even if there are no errors.
@@ -139,30 +205,34 @@ Non-systemd options
 
 These options will be ignored when you start knxd with systemd.
 
-  * pidfile (string: file name)
+  * pidfile (string: file name; -p|--pid-file=FILENAME)
 
     File to write knxd's process ID to.
 
     Optional, default: false.
 
-  * background (bool)
+  * background (bool; -d|--daemon)
 
     Instructs knxd to fork itself to the background.
 
     Optional, default: false.
 
-  * logfile (string: file name)
+  * logfile (string: file name; -d|--daemon=FILENAME)
 
     Tells knxd to write its output to this file instead of stderr.
 
     Optional, default: /dev/stderr.
+    
+    The file is closed and re-opened when you send a SIGHUP signal to knxd.
+    
+    On the command line, this option implied forking to the background.
 
 Debugging and logging
 =====================
 
 You can selectively enable logging or tracing.
 
-  * debug (string: section name)
+  * debug (string: section name; implicit when using --error= or --trace=)
 
     This option, available in all sections, names the config file section
     where specific debugging options for this section can be configured.
@@ -172,7 +242,7 @@ You can selectively enable logging or tracing.
 
 A "debug" section may contain these options:
 
-  * error-level (string or int)
+  * error-level (string or int; -f|--error=LEVEL)
 
     The minimum severity level of error messages to be printed.
 
@@ -180,16 +250,53 @@ A "debug" section may contain these options:
 
     Optional; default: warning.
 
-  * trace-mask (int)
+  * trace-mask (int; -t|--trace=MASK)
 
     A bitmask corresponding to various types of loggable messages to help
     tracking down problems in knxd or one of its devices.
 
-    For the meaning of possible values, reasd the source code.
+    For the meaning of possible values, read the source code. Notable bit
+    positions:
+
+    * 0
+
+      byte-level tracing.
+
+    * 1 
+
+      Packet-level tracing.
+
+    * 2
+
+      Driver state transitions.
+
+      This level used to also be used for logging KNX packets in a
+      human-readable way; this has been subsumed by the "log" filter.
+
+    * 3
+
+      Dispatcher state transitions.
+
+      The dispatcher (src/libserver/router.cpp) is the heart of knxd. it
+      controls all drivers and decides to which drivers to re-distribute
+      incoming packets.
+
+    * 4
+
+      Anything that's not a driver and talks directly to the dispatcher
+      (group cache, high-level functions exposed by knxd's internal
+      protocol). Also some more dispatcher states.
+
+    * 6
+
+      Debugging of flow control issues.
 
     Optional; default: no tracing.
+    
+    TODO: decide on a reasonable set of message types and allow selecting
+    them by name.
 
-  * timestamps (bool)
+  * timestamps (bool; --no-timestamp)
 
     Flag whether messages should include timestamps (since the start of knxd).
 
@@ -214,12 +321,12 @@ interface's driver is configured. If a driver doesn't need any
 configuration you may just use the name of the driver. Thus,
 
     [main]
-    interfaces=foo,…
+    connections=foo,…
 
 and
 
     [main]
-    interfaces=my-driver,…
+    connections=my-driver,…
 
     [my-driver]
     driver=foo
@@ -227,7 +334,7 @@ and
 are equivalent, as are
 
     [main]
-    interfaces=my-driver,…
+    connections=my-driver,…
 
     [my-driver]
     driver=foo
@@ -236,32 +343,50 @@ are equivalent, as are
 and
 
     [main]
-    interfaces=foo,…
+    connections=foo,…
 
     [foo]
     some-options=true
+
+On the command line, driver options used to be added after the driver name,
+separated by colons. The order of options reflects this. For example, the
+driver "tpuarts" accepted "device" and "baudrate" options; the command line
+
+  -b tpuarts:/dev/ttyACM0:19200
+
+would be translated to a section
+
+  [X.tpuarts]
+  device=/dev/ttyACM0
+  baudrate=19200
 
 Common options
 --------------
 
 These options apply to all drivers and servers.
 
-  * ignore (bool)
+  * ignore (bool; --arg=ignore=true)
 
     The driver is configured, but not started up automatically.
 
     *Note*: Starting up knxd still fails if there is a configuration error.
 
-  * may-fail (bool)
+  * may-fail (bool; --arg=may-fail=true)
 
     The driver is started, but does not block starting to route packets.
 
-  * retry (int)
+  * retry-delay (int, --arg=retry-delay=NUM)
 
     If the driver fails to start (or dies), knxd will restart it after this
     many seconds.
 
     Default: zero: no restart.
+
+  * max-retry (int, --arg=max-retry=NUM)
+
+    The maximum number of retries before giving up.
+
+    Default: zero: infinite (if retry-delay is positive)
 
 If "retry" is active but "may-fail" is false, the driver must start
 correctly when knxd starts up. It will only be restarted once knxd is, or
@@ -328,11 +453,13 @@ You may need the "single" filter in front of this driver.
 
     Optional; by default, the OS will assign a free port.
 
-  * nat (bool)
+  * nat (bool; implied by using "iptn" instead of "ipt")
 
     Require network address translation.
 
     TODO: when would you need that?
+
+The following options are not recognized unless "nat" is set.
 
   * nat-ip (string: IP address)
   
@@ -346,6 +473,11 @@ You may need the "single" filter in front of this driver.
     
     Mandatory if "nat" is set, otherwise disallowed.
   
+iptn
+----
+
+See "ipt".
+
 usb
 ---
 
@@ -394,12 +526,16 @@ Warning: bus+device numbers may change after rebooting.
 
     It's an error to specify this option without also using "setting".
 
-  * send-timeout
+  * send-timeout (int; --send-delay=MSEC)
 
     USB devices confirm packet transmission. This option controls how long
     to wait until proceeding. A warning is printed when that happens.
 
     The default is 0.3 seconds.
+
+    Note that this driver's old "send-delay" option is misnamed, as the
+    timeout is pre-emted when the remote side signals that is has accepted
+    the packet.
 
 tpuarts
 -------
@@ -427,7 +563,13 @@ An older serial interface to KNX which wraps the EMI1 protocol in serial framing
 
 TODO: which devices use this?
 
-  * send-timeout
+  * baudrate (int)
+
+    Interface speed. This is interface specific, and configured in hardware.
+
+    Optional; the default is 19200.
+
+  * send-timeout (--arg=send-timeout=MSEC)
 
     EMI1 devices confirm packet transmission. This option controls how long
     to wait until proceeding. A warning is printed when that happens.
@@ -441,7 +583,13 @@ A newer serial interface to KNX.
 
 TODO: which devices use this?
 
-  * send-timeout
+  * baudrate (int)
+
+    Interface speed. This is interface specific, and configured in hardware.
+
+    Optional; the default is 19200.
+
+  * send-timeout (--arg=send-timeout=MSEC)
 
     CEMI devices confirm packet transmission. This option controls how long
     to wait until proceeding. A warning is printed when that happens.
@@ -478,7 +626,7 @@ More common options
 
 Some drivers accept these options.
 
-  * ack-group (bool)
+  * ack-group (bool; --tpuarts-ack-all-group)
 
     Accept all group-addressed packets, instead of checking which knxd can
     forward. This option is usually a no-op because knxd forwards all
@@ -489,7 +637,7 @@ Some drivers accept these options.
 
     Optional; default false.
 
-  * ack-individual (bool)
+  * ack-individual (bool; --tpuarts-ack-all-individual)
 
     Accept all device-addressed packets, instead of checking which knxd can
     forward. This option is not a no-op because, while knxd defaults to
@@ -501,14 +649,14 @@ Some drivers accept these options.
 
     Optional; default false.
 
-  * reset (bool)
+  * reset (bool; --tpuarts-disch-reset)
 
     Reset the device while connecting to it. This also affects
     reconnectiosn due to timeout.
 
     Optional; default false.
 
-  * monitor (bool)
+  * monitor (bool; --no-monitor)
 
     Use this device as a bus monitor.
 
@@ -527,6 +675,11 @@ Some drivers accept these options.
     There is no way to switch between bus monitoring and normal mode.
     This is intentional.
 
+    Before v0.12, knxd did not adequately distinguish between monitoring
+    and normal operation; instead, it switched the first interface without a
+    --no-monitor option to monitoring whenever a client wanted a bus
+    monitor. This no longer happens.
+
 Servers
 =======
 
@@ -539,15 +692,16 @@ Common options
 
 See the "Common options" section under "Drivers", above.
 
-router
-------
+ets_router
+----------
 
-The "router" server allows clients to discover knxd and to connect to it
+The "ets_router" server allows clients to discover knxd and to connect to it
 with the standardized KNX tunneling or routing protocols.
 
-*Do not* use the "router" server and the "ip" driver at the same time.
+*Do not* use this server and the "ip" driver at the same time (unless you
+specify different multicast addersses).
 
-  * tunnel (str)
+  * tunnel (str; -T|--Tunnelling)
 
     Allow client connections via tunneling. This is typically used by
     single devices or programs.
@@ -557,7 +711,7 @@ with the standardized KNX tunneling or routing protocols.
 
     Optional; tunneling is disabled if not set.
 
-  * router (str)
+  * router (str; -R|--Routing)
 
     Exchange packets via multicast. This is typically used by other KNX
     routers.
@@ -567,14 +721,14 @@ with the standardized KNX tunneling or routing protocols.
 
     Optional; multicast is disabled if not set.
 
-  * discover (bool)
+  * discover (bool; -D|--Discovery)
 
     Reply to KNX discovery packets. Programs like ETS send these packets to
     discover routers and tunnels.
 
     Optional; default false.
 
-  * multi-port (bool)
+  * multi-port (bool; --multi-port / --single-port)
 
     If set, instructs knxd to use a separate port for exchanging KNX data
     instead of using the default port. This allows two KNX routers (knxd or
@@ -586,66 +740,70 @@ with the standardized KNX tunneling or routing protocols.
 
     Optional; default false (for now).
 
-  * interface (string)
+  * interface (string; 3rd option of -S/--Server)
 
     The IP interfce to use. Useful if your KNX router has more than one IP
     interface.
 
     Optional; defaults to the interface with the default route.
 
-  * multicast-address (string: IP address)
+  * multicast-address (string: IP address; 1st option of -S/--Server)
 
     The multicast IP address to use.
 
     Optional; the default is 224.0.23.12.
   
-  * port (int)
+  * port (int; 2nd option of -S/--Server)
 
     The UDP port to listen on / transmit to.
 
     Optional; the default is 3671.
 
-  * name (string)
+  * name (string; not available)
 
     The server name announced in Discovery packets.
 
     Optional: default: the name configured in the "main" section, or "knxd".
 
-unix-socket
------------
+On the command line, this server was typically used as "-DTRS". The
+-S|--Server argument had to be used last and accepted the options mentioned
+above.
+
+knxd_unix
+---------
 
 Allow local knxd-specific clients to connect using a Unix-domain socket.
 
-  * path (string: file name)
+  * path (string: file name; 1st option to -u|--listen-local)
 
     Path to the socket file to use.
 
     Optional; default /run/knx.
 
-  * systemd-ignore
+  * systemd-ignore (bool; --arg=systemd-ignore=BOOL)
 
     Ignore this option when knxd is started via systemd.
 
     Optional; default "true" if no path option is used.
 
-tcp-socket
-----------
+knxd_tcp
+--------
 
 Allow remote knxd-specific clients to connect using a TCP socket.
 
-  * ip-address (string: IP address)
+  * ip-address (string: IP address; 1st option to -i|--listen-tcp)
 
     Bind to this address.
 
     Default: none, i.e. listen on all addresses the system is using.
 
-  * port (int)
+  * port (int; 2nd option to -i|--listen-tcp)
 
     TCP port to bind to.
 
     Optional; default 6720.
 
-  * systemd-ignore
+  * systemd-ignore (bool; --arg=systemd-ignore=BOOL)
 
     Ignore this option when knxd is started via systemd.
 
@@ -658,40 +816,64 @@ A filter is a module which is inserted between the knx router itself and a
 specific driver. You specify filters with a "filters=" option in the
 driver's or server's section.
 
+On the command line, -B|--filter=NAME told knxd to apply this filter to the
+next-specified driver.
+
 Each filter names a section where that filter is configured. If a filter
 doesn't need any configuration you may just use the name of the filter.
 Thus,
 
+    -B foo -B bar -b some-driver
+
+translates to
+
     [some-driver]
-    filters=foo,…
+    filters=foo,bar
 
-and
+which is equivalent to
 
-    [some-driver]
-    filters=my-filter,…
+    [my-driver]
+    driver=some-driver
+    filters=my-foo,my-bar
 
-    [my-filter]
+    [my-foo]
     filter=foo
 
-are equivalent, as are
+    [my-bar]
+    filter=bar
 
-    [some-driver]
+For a more elaborate example,
+
+    --arg=some-option --filter=foo --arg=an-option_a-value --layer2=some-driver
+
+translates to
+
+    [my-driver]
+    driver=some-driver
     filters=my-filter,…
+    an-option=a-value
 
     [my-filter]
     filter=foo
     some-option=true
 
-and
+If you just use
+
+    -B foo -b some-driver
+
+this can be simplified to
 
     [some-driver]
-    filters=foo,…
+    filters=foo
 
-    [foo]
-    some-option=true
+Of course, all of these examples also add the driver's section name
+("my-driver" or "some-driver") to the "connections=" parameter in the main
+section.
 
 Filters are applied in order; conceptually, the knx router is added at the
 beginning of the filter list, while the driver itself is at the end.
+Transmitted packets pass that chain from beginning to end, while received
+packets move the other way.
 
 If you specify filters on a server, each driver that's started by the
 server gets this set of filters.
@@ -705,6 +887,16 @@ address in order to re-address any replies (if they're addressed
 individually).
 
 The "single" filter may not be necessary unless you're programming devices with ETS.
+
+  * address (--arg=address=N.N.N)
+
+    The "single" filter typically uses knxd's address. However, that
+    address is also used for multicast and thus is on the wrong line.
+
+    Thus, you can use this option to assign a different address.
+
+If you use this filter behind an "ipt:" driver, the address it uses will be
+replaced with the one assigned by the remote server.
 
 queue
 -----
@@ -727,10 +919,28 @@ Limit the rate at which packets are transmitted to an interface.
 
     The delay between transmissions, in milliseconds.
     
-    Mandatory.
+    Optional. The default is 20 msec.
 
-Note that this filter acts globally, i.e. delays transmission to *all*
-interfaces, if there is no queue in front of it.
+  * delay-per-byte
+
+    Additional delay per byte of longer messages, in milliseconds.
+    
+    Optional; the default is 1 msec, which roughly corresponds to one byte
+    at 9600 baud (speed of the KNX bus).
+
+    Note that the fixed part of the protocol is ignored here: a "short
+    write" has an additional length delay of zero. The fixed-overhead part
+    of the KNX protocol should be factored into the per-message delay.
+
+The pace filter's timer starts when a packet has successfully been
+transmitted. Thus it should only be necessary in front of the multicast
+driver (which does not have transmission confirmation). However, there are
+buggy KNX interfaces out there which acknowledge reception of packets
+*before* checking whether they have free buffer space for more data …
+
+Note that knxd schedules packet transmission synchronously. Thus, this
+filter acts globally (it delays transmission to *all* interfaces) unless
+there is a ``queue`` filter in front of it.
 
 monitor
 -------
@@ -745,30 +955,30 @@ log
 
 This filter logs all packets passing through it to knxd's logging system.
 
-  * name
+  * name (string; --arg=name=NAME)
 
-    Set the output's name. The default is "log".
+    Set the output's name. The default is "logsection/driversection".
 
-  * recv
+  * recv (bool; --arg=recv=BOOL)
 
     Log incoming packets. Defaults to true.
 
-  * send
+  * send (bool; --arg=send=BOOL)
 
     Log outgoing packets. Defaults to true.
 
-  * state
+  * state (bool; --arg=state=BOOL)
 
     Log state transitions (link up/down). Defaults to true.
 
-  * addr
+  * addr (bool; --arg=addr=BOOL)
 
     Log address checks, i.e. whether the driver knows and/or accepts 
     a particular device or group address. Defaults to false.
 
-  * monitor
+  * monitor (bool; --arg=monitor=BOOL)
 
-    Log incoming bus monitor packets. Defaults to false.
+    Log bus monitor packets. Defaults to false.
 
 dummy
 -----
@@ -795,11 +1005,13 @@ If you don't want to use any parameters, you don't need to add the section:
 group cache
 -----------
 
-  * max-size
+  * max-size (int; option of -c|--GroupCache)
 
     The maximum number of messages that the group cache will store.
 
     Optional; no default = no limit. There are 65535 possible group addresses
     entries, so the recommended usage is to not specify a maximum unless
     knxd is running on an embedded system.
+
+    This is the optional parameter of the --GroupCache argument.
 

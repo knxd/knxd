@@ -44,7 +44,7 @@ typedef enum
   vTIMEOUT
 } EMIVer;
 
-EMIVer cfgEMIVersion(IniSection& s);
+EMIVer cfgEMIVersion(IniSectionPtr& s);
 
 /** EMI common backend code */
 class EMI_Common:public LowLevelFilter
@@ -62,6 +62,7 @@ protected:
   virtual EMIVer getVersion() = 0;
 private:
   bool wait_confirm = false;
+  bool wait_confirm_low = false;
   bool monitor = false;
 
   ev::timer timeout;
@@ -70,14 +71,15 @@ private:
   void read_cb(CArray *p);
 
 public:
-  EMI_Common (LowLevelIface* c, IniSection& s);
-  EMI_Common (LowLevelDriver * i, LowLevelIface* c, IniSection& s);
+  EMI_Common (LowLevelIface* c, IniSectionPtr& s);
+  EMI_Common (LowLevelDriver * i, LowLevelIface* c, IniSectionPtr& s);
   virtual ~EMI_Common ();
   bool setup();
   void started();
   void stop();
 
   void send_L_Data (LDataPtr l);
+  void send_Next();
 
   virtual CArray lData2EMI (uchar code, const LDataPtr &p)
   { return L_Data_ToEMI(code, p); }

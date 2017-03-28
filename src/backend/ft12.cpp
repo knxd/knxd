@@ -32,6 +32,7 @@ FT12cemiDriver::~FT12cemiDriver() {}
 bool
 FT12Driver::make_EMI()
 {
+  auto oif = iface;
   switch (getVersion())
     {
     case vEMI1:
@@ -52,6 +53,7 @@ FT12Driver::make_EMI()
       return false;
     }
 
+  oif->resetMaster(iface);
   return iface->setup();
 }
 
@@ -76,7 +78,7 @@ ex1:
   return false;
 }
 
-FT12serial::FT12serial (LowLevelIface* p, IniSection &s)
+FT12serial::FT12serial (LowLevelIface* p, IniSectionPtr& s)
     : LowLevelDriver(p,s)
 {
   t->setAuxName("ft12ser");
@@ -87,10 +89,10 @@ FT12serial::setup()
 {
   if(!LowLevelDriver::setup())
     return false;
-  dev = cfg.value("device","");
+  dev = cfg->value("device","");
   if (!dev.size())
     {
-      ERRORPRINTF (t, E_ERROR | 36, "Section '%s' requires a 'device=' entry", cfg.name);
+      ERRORPRINTF (t, E_ERROR | 36, "Section '%s' requires a 'device=' entry", cfg->name);
       return false;
     }
 
@@ -114,13 +116,13 @@ FT12serial::start()
     goto ex;
   if (tcgetattr (fd, &old))
     {
-      ERRORPRINTF (t, E_ERROR | 34, "%s: getattr_old: %s", cfg.name, strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 34, "%s: getattr_old: %s", cfg->name, strerror(errno));
       goto ex2;
     }
 
   if (tcgetattr (fd, &t1))
     {
-      ERRORPRINTF (t, E_ERROR | 34, "%s: getattr: %s", cfg.name, strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 34, "%s: getattr: %s", cfg->name, strerror(errno));
       goto ex2;
     }
   t1.c_cflag = CS8 | PARENB | CLOCAL | CREAD;
@@ -134,7 +136,7 @@ FT12serial::start()
 
   if (tcsetattr (fd, TCSAFLUSH, &t1))
     {
-      ERRORPRINTF (t, E_ERROR | 34, "%s: setattr: %s", cfg.name, strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 34, "%s: setattr: %s", cfg->name, strerror(errno));
       goto ex2;
     }
   set_low_latency (fd, &sold);
@@ -144,7 +146,6 @@ FT12serial::start()
   recvflag = 0;
   repeatcount = 0;
   TRACEPRINTF (t, 1, "Opened");
-  send_Next();
   LowLevelDriver::start();
   return;
 
@@ -182,8 +183,8 @@ FT12serial::setup_buffers()
 void
 FT12serial::error_cb()
 {
-  TRACEPRINTF (t, 2, "ERROR");
-  stop();
+  TRACEPRINTF (t, 2, "error from file descr");
+  errored();
 }
 
 void 
@@ -224,7 +225,6 @@ FT12serial::send_Data (CArray& l)
   unsigned i;
   t->TracePacket (1, "Send", l);
 
-  assert (l.size() <= 32);
   out.resize (l.size() + 7);
   out[0] = 0x68;
   out[1] = l.size() + 1;

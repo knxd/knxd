@@ -21,9 +21,10 @@
 #include "emi.h"
 #include "config.h"
 
-EIBNetIPRouter::EIBNetIPRouter (const LinkConnectPtr_& c, IniSection& s)
+EIBNetIPRouter::EIBNetIPRouter (const LinkConnectPtr_& c, IniSectionPtr& s)
   : BusDriver(c,s)
 {
+  t->setAuxName("ip");
 }
 
 void
@@ -98,12 +99,14 @@ EIBNetIPRouter::~EIBNetIPRouter ()
 bool
 EIBNetIPRouter::setup()
 {
+  if (!assureFilter("pace"))
+    return false;
   if(!BusDriver::setup())
     return false;
-  multicastaddr = cfg.value("multicast-address","224.0.23.12");
-  port = cfg.value("port",3671);
-  interface = cfg.value("interface","");
-  monitor = cfg.value("monitor",false);
+  multicastaddr = cfg->value("multicast-address","224.0.23.12");
+  port = cfg->value("port",3671);
+  interface = cfg->value("interface","");
+  monitor = cfg->value("monitor",false);
   return true;
 }
 
@@ -114,6 +117,7 @@ EIBNetIPRouter::send_L_Data (LDataPtr l)
   p.data = L_Data_ToCEMI (0x29, l);
   p.service = ROUTING_INDICATION;
   sock->Send (p);
+  send_Next();
 }
 
 void

@@ -80,13 +80,13 @@ public:
   /** last step, after hitting the global queue */
   void started();
   void stopped();
+  void errored();
 
   /** callbacks from LinkConnect */
-  void link_started(const LinkConnectPtr& link);
-  void link_stopped(const LinkConnectPtr& link);
+  void linkStateChanged(const LinkConnectPtr& link);
 
   /** register a new link. Must be fully linked and setup() must be OK. */
-  bool registerLink(const LinkConnectPtr& link);
+  bool registerLink(const LinkConnectPtr& link, bool transient = false);
   /** unregister a new link */
   bool unregisterLink(const LinkConnectPtr& link);
 
@@ -127,8 +127,8 @@ private:
   Factory<Filter>& filters;
   Factory<LowLevelDriver>& lowlevels;
 
-  bool do_server(ServerPtr &link, IniSection& s, const std::string& servername, bool quiet = false);
-  bool do_driver(LinkConnectPtr &link, IniSection& s, const std::string& servername, bool quiet = false);
+  bool do_server(ServerPtr &link, IniSectionPtr& s, const std::string& servername, bool quiet = false);
+  bool do_driver(LinkConnectPtr &link, IniSectionPtr& s, const std::string& servername, bool quiet = false);
 
   RouterLowPtr r_low;
   RouterHighPtr r_high;
@@ -147,15 +147,15 @@ private:
 
 public:
   /** Look up a filter by name */
-  FilterPtr get_filter(const LinkConnectPtr_ &link, IniSection& s, const std::string& filtername);
+  FilterPtr get_filter(const LinkConnectPtr_ &link, IniSectionPtr& s, const std::string& filtername);
 
   /** Look up a filter by name */
-  LowLevelDriver * get_lowlevel(LowLevelIface* parent, IniSection& s, const std::string& lowlevelname);
+  LowLevelDriver * get_lowlevel(LowLevelIface* parent, IniSectionPtr& s, const std::string& lowlevelname);
 
   /** Create a temporary dummy driver stack to test arguments for filters etc.
    * Testing the calling driver's config args is the caller#s job.
    */
-  bool checkStack(IniSection& cfg);
+  bool checkStack(IniSectionPtr& cfg);
 
   /** name of our main section */
   std::string main;
@@ -165,7 +165,10 @@ private:
   LinkConnectPtr setup_link(std::string& name);
 
   /** interfaces */
-  std::unordered_map<std::string, LinkConnectPtr> links;
+  std::unordered_map<int, LinkConnectPtr> links;
+
+  /** queue of interfaces which called linkChanged() */
+  Queue<LinkConnectPtr> linkChanges;
 
   // libev
   ev::async trigger;
@@ -174,6 +177,9 @@ private:
   void mtrigger_cb (ev::async &w, int revents);
   ev::async state_trigger;
   void state_trigger_cb (ev::async &w, int revents);
+  ev::timer start_timer;
+  void start_timer_cb (ev::timer &w, int revents);
+  float start_timeout;
 
   /** buffer queues for receiving from L2 */
   Queue < LDataPtr > buf;
@@ -297,6 +303,7 @@ public:
 
   virtual void started() { router->started(); }
   virtual void stopped() { router->stopped(); }
+  virtual void errored() { router->errored(); }
 };
 
 #endif

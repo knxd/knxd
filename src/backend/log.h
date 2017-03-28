@@ -30,7 +30,7 @@ FILTER(LogFilter,log)
   bool log_addr;
 
 public:
-  LogFilter (const LinkConnectPtr_& c, IniSection& s) : Filter(c,s) {}
+  LogFilter (const LinkConnectPtr_& c, IniSectionPtr& s) : Filter(c,s) {}
   virtual ~LogFilter ();
 
   virtual bool setup();
@@ -43,6 +43,7 @@ public:
   virtual void stop();
   virtual void started();
   virtual void stopped();
+  virtual void errored();
 
   virtual bool hasAddress (eibaddr_t addr);
   virtual void addAddress (eibaddr_t addr);

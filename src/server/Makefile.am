@@ -1,5 +1,5 @@
 bin_PROGRAMS = knxd 
-sbin_PROGRAMS = knxd_args
+libexec_PROGRAMS = knxd_args
 
 AM_CPPFLAGS=-I$(top_srcdir)/src/libserver -I$(top_srcdir)/src/backend -I$(top_srcdir)/src/common -I$(top_srcdir)/src/usb $(LIBUSB_CFLAGS) $(SYSTEMD_CFLAGS) -Wno-missing-field-initializers
 knxd_LDFLAGS=-Wl,--whole-archive,../backend/libbackend.a,../libserver/libserver.a,--no-whole-archive

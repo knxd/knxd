@@ -26,7 +26,7 @@
 class SystemdServer:public NetServer
 {
 public:
-  SystemdServer (BaseRouter& r, IniSection& s, int systemd_fd);
+  SystemdServer (BaseRouter& r, IniSectionPtr& s, int systemd_fd);
   virtual ~SystemdServer ();
 
   void start();

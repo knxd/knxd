@@ -32,7 +32,7 @@
 DRIVER_(FT12Driver,LowLevelAdapter,ft12)
 {
 public:
-  FT12Driver(const LinkConnectPtr_& c, IniSection& s) : LowLevelAdapter(c,s) {}
+  FT12Driver(const LinkConnectPtr_& c, IniSectionPtr& s) : LowLevelAdapter(c,s) {}
   virtual ~FT12Driver();
 
   bool setup();
@@ -44,7 +44,7 @@ private:
 DRIVER_(FT12cemiDriver, FT12Driver, ft12cemi)
 {
 public:
-  FT12cemiDriver(const LinkConnectPtr_& c, IniSection& s) : FT12Driver(c,s) {}
+  FT12cemiDriver(const LinkConnectPtr_& c, IniSectionPtr& s) : FT12Driver(c,s) {}
   virtual ~FT12cemiDriver();
 
   virtual EMIVer getVersion() { return vCEMI; }
@@ -90,7 +90,7 @@ class FT12serial : public LowLevelDriver
   void process_read(bool is_timeout);
 
 public:
-  FT12serial (LowLevelIface* parent, IniSection &s);
+  FT12serial (LowLevelIface* parent, IniSectionPtr& s);
   virtual ~FT12serial ();
   bool setup ();
   void start();

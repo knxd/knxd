@@ -86,7 +86,7 @@ protected:
   virtual void setstate(enum TSTATE new_state);
 
 public:
-  TPUART_Base (const LinkConnectPtr_& c, IniSection& s);
+  TPUART_Base (const LinkConnectPtr_& c, IniSectionPtr& s);
   virtual ~TPUART_Base ();
   bool setup();
   void start();

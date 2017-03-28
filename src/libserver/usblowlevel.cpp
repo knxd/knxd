@@ -28,14 +28,14 @@
 #include "usb.h"
 
 USBEndpoint
-parseUSBEndpoint (IniSection &s)
+parseUSBEndpoint (IniSectionPtr s)
 {
   USBEndpoint e;
-  e.bus = s.value("bus", -1);
-  e.device = s.value("device", -1);
-  e.config = s.value("config", -1);
-  e.altsetting = s.value("setting", -1);
-  e.interface = s.value("interface", -1);
+  e.bus = s->value("bus", -1);
+  e.device = s->value("device", -1);
+  e.config = s->value("config", -1);
+  e.altsetting = s->value("setting", -1);
+  e.interface = s->value("interface", -1);
   return e;
 }
 
@@ -150,7 +150,7 @@ detectUSBEndpoint (libusb_context *context, USBEndpoint e)
   return e2;
 }
 
-USBLowLevelDriver::USBLowLevelDriver (LowLevelIface* p, IniSection &s) : LowLevelDriver(p,s)
+USBLowLevelDriver::USBLowLevelDriver (LowLevelIface* p, IniSectionPtr& s) : LowLevelDriver(p,s)
 {
   t->setAuxName("usbL");
   read_trigger.set<USBLowLevelDriver,&USBLowLevelDriver::read_trigger_cb>(this);
@@ -217,7 +217,6 @@ USBLowLevelDriver::start()
     } 
   StartUsbRecvTransfer();
   state = sRunning;
-  send_Next();
   started();
   return;
 ex:
@@ -292,7 +291,7 @@ USBLowLevelDriver::send_Data (CArray& l)
   if (out.size() > 0)
     {
       ERRORPRINTF (t, E_FATAL | 35, "Send while buffer not empty");
-      stopped(); // XXX signal async
+      errored(); // XXX signal async
       return;
     }
   out = l;
@@ -329,15 +328,25 @@ USBLowLevelDriver::write_trigger_cb(ev::async &w UNUSED, int revents UNUSED)
   TRACEPRINTF (t, 10, "SendComplete %lx %d", (unsigned long)sendh, sendh->actual_length);
   if (sendh == nullptr)
     return;
-  if (sendh->status != LIBUSB_TRANSFER_COMPLETED)
+  if (sendh->status == LIBUSB_TRANSFER_COMPLETED)
     {
-      ERRORPRINTF (t, E_WARNING | 35, "SendError %lx %d", (unsigned long)sendh, sendh->status);
-      stop(); // TODO probably needs to be an async error
+      libusb_free_transfer (sendh);
+      send_retry = 0;
+      sendh = nullptr;
+      send_Next();
       return;
     }
-  libusb_free_transfer (sendh);
-  sendh = nullptr;
-  send_Next();
+  if (sendh->status == LIBUSB_TRANSFER_TIMED_OUT && ++send_retry < 3)
+    {
+      ERRORPRINTF (t, E_WARNING | 35, "SendError %lx timeout, retrying", (unsigned long)sendh);
+      libusb_free_transfer (sendh);
+      sendh = nullptr;
+      do_send();
+      return;
+    }
+  ERRORPRINTF (t, E_ERROR | 35, "SendError %lx status %d", (unsigned long)sendh, sendh->status);
+  errored(); // TODO probably needs to be an async error
+  return;
 }
 
 void
@@ -395,7 +404,7 @@ USBLowLevelDriver::StartUsbRecvTransfer()
   if (res)
     {
       ERRORPRINTF (t, E_ERROR | 32, "Error StartRecv: %s", libusb_error_name(res));
-      stopped();
+      errored();
       return;
     }
   TRACEPRINTF (t, 10, "StartRecv");

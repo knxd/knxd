@@ -128,7 +128,7 @@ void fork_args_helper()
       sprintf(s,"%s_args",argv[0]);
       execvp(s, argv);
 
-      execv(LIBEXECDIR "knxd_args", argv);
+      execv(LIBEXECDIR "/knxd_args", argv);
 
       die("could not exec knxd_args helper");
       exit(1);
@@ -333,22 +333,22 @@ main (int ac, char *ag[])
   int errl = i.parse(cfgfile);
   if (errl)
     die("Parse error of '%s' in line %d", cfgfile, errl);
-  IniSection &main = i[mainsection];
+  IniSectionPtr main = i[mainsection];
 
-  pidfile = main.value("pidfile","").c_str();
+  pidfile = main->value("pidfile","").c_str();
   if (num_fds)
     pidfile = "";
 
-  logfile = main.value("logfile","").c_str();
+  logfile = main->value("logfile","").c_str();
   if (num_fds)
     logfile = NULL;
 
-  background = main.value("background",false);
+  background = main->value("background",false);
   if (num_fds)
     background = false;
 
   if (!stop_now)
-    stop_now = main.value("stop-after-setup",false);
+    stop_now = main->value("stop-after-setup",false);
 
   if (logfile && *logfile)
     {

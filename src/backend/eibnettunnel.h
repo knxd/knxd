@@ -71,7 +71,7 @@ DRIVER(EIBNetIPTunnel,ipt)
   } 
 
 public:
-  EIBNetIPTunnel (const LinkConnectPtr_& c, IniSection& s);
+  EIBNetIPTunnel (const LinkConnectPtr_& c, IniSectionPtr& s);
   virtual ~EIBNetIPTunnel ();
   bool setup();
   void start();

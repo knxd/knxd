@@ -4,6 +4,70 @@ knxd (0.15.0-1) unstable; urgency=medium
 
  -- Matthias Urlichs <matthias@urlichs.de>  Fri, 17 Mar 2017 05:56:23 +0100
 
+knxd (0.14.7-1) unstable; urgency=medium
+
+  * Fix socket activation
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 27 Mar 2017 08:02:18 +0200
+
+knxd (0.14.6-1) unstable; urgency=medium
+
+  * Fix crash starting with systemd
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 26 Mar 2017 23:16:41 +0200
+
+knxd (0.14.5-1) unstable; urgency=medium
+
+  * Add an address= option to the "single" filter.
+    * Use the address which the ipt: driver receives from the server
+  * Force "pace" filter for multicast client+server
+  * Fix address check bug
+  * Fix argument parsing bug
+  * (Hopefully) fix remaining flow control issue
+  * Enhance logging
+  * Various smaller stuff
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 26 Mar 2017 15:09:42 +0200
+
+knxd (0.14.4-1) unstable; urgency=medium
+
+  * Auto-add a pace filter in front of the multicast sender.
+  * Add an address= option to the "single" filter.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 23 Mar 2017 04:13:18 +0100
+
+knxd (0.14.3-1) unstable; urgency=medium
+
+  * Various bug fixes.
+  * All drivers now implement flow control.
+  * "pace" filter:
+    * default to 20msec
+    * Add a delay-per-byte parameter (1 msec)
+  * log send_next stuff with layer 6
+  * document flags (specifically, correspondence of flags to config file)
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 23 Mar 2017 02:48:36 +0100
+
+knxd (0.14.2-1) unstable; urgency=medium
+
+  * send ft12* (serial) setup string
+  * fix systemd socket support
+  * allow using filters on servers
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 19 Mar 2017 23:59:23 +0100
+
+knxd (0.14.1-4) unstable; urgency=medium
+
+  * Actually install knxd_args correctly.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sat, 18 Mar 2017 20:44:38 +0100
+
+knxd (0.14.1-3) unstable; urgency=medium
+
+  * Actually install knxd_args.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 17 Mar 2017 21:02:34 +0100
+
 knxd (0.14.1-2) unstable; urgency=medium
 
   * don't install eibnet* tools

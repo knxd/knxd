@@ -22,7 +22,7 @@
 #include "client.h"
 
 bool
-CreateGroupCache (Router& r, IniSection& s)
+CreateGroupCache (Router& r, IniSectionPtr& s)
 {
   LinkConnectPtr c = LinkConnectPtr(new LinkConnect(r,s,r.t));
   GroupCachePtr cache;

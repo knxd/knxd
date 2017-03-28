@@ -1,4 +1,4 @@
-/*
+/*,
     EIBD eib bus access and management daemon
     Copyright (C) 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
 
@@ -26,6 +26,7 @@
 #include <typeinfo>
 #include <iostream>
 #include <ev++.h>
+#include <math.h>
 
 #ifdef HAVE_SYSTEMD
 #include <systemd/sd-daemon.h>
@@ -72,9 +73,9 @@ Router::Router (IniData& d, std::string sn) : BaseRouter(d)
                 , lowlevels(_lowlevels.Instance())
                 , main(sn)
 {
-  IniSection &s = ini[main];
-  t = TracePtr(new Trace(s, s.value("name","")));
-  servername = s.value("name","knxd");
+  IniSectionPtr s = ini[main];
+  t = TracePtr(new Trace(s, s->value("name","")));
+  servername = s->value("name","knxd");
 
   r_low = RouterLowPtr(new RouterLow(*this));
   r_high = RouterHighPtr(new RouterHigh(*this, r_low));
@@ -83,24 +84,32 @@ Router::Router (IniData& d, std::string sn) : BaseRouter(d)
   trigger.set<Router, &Router::trigger_cb>(this);
   mtrigger.set<Router, &Router::mtrigger_cb>(this);
   state_trigger.set<Router, &Router::state_trigger_cb>(this);
+  start_timer.set<Router, &Router::start_timer_cb>(this);
   trigger.start();
   mtrigger.start();
   state_trigger.start();
 
-  TRACEPRINTF (t, 4, "R state: initialized");
+  TRACEPRINTF (t, 4, "initialized");
 }
 
 bool
 Router::setup()
 {
   std::string x;
-  IniSection &s = ini[main];
-  TRACEPRINTF (t, 4, "R state: setting up");
+  const char *x2;
+  IniSectionPtr s = ini[main];
+  TRACEPRINTF (t, 4, "setting up");
 
-  force_broadcast = s.value("force-broadcast", false);
-  unknown_ok = s.value("unknown-ok", false);
+  force_broadcast = s->value("force-broadcast", false);
+  unknown_ok = s->value("unknown-ok", false);
 
-  x = s.value("addr","");
+  start_timeout = s->value("timeout",0);
+  if (std::isnan(start_timeout) || start_timeout < 0)
+    {
+      ERRORPRINTF (t, E_ERROR | 55, "timeout must be >0");
+      goto ex;
+    }
+  x = s->value("addr","");
   if (!x.size())
     {
       ERRORPRINTF (t, E_ERROR | 55, "There is no KNX addr= in section '%s'.", main);
@@ -109,7 +118,7 @@ Router::setup()
   if (!readaddr(x,addr))
     goto ex;
 
-  x = s.value("client-addrs","");
+  x = s->value("client-addrs","");
   if (x.size())
     {
       if (!readaddrblock(x,client_addrs_start,client_addrs_len))
@@ -121,8 +130,8 @@ Router::setup()
     }
 
     {
-      IniSection& gc = s.sub("cache",false);
-      if (gc.name.size() > 0)
+      IniSectionPtr gc = s->sub("cache",false);
+      if (gc->name.size() > 0)
         {
           if (!CreateGroupCache(*this, gc))
             goto ex;
@@ -134,10 +143,11 @@ Router::setup()
 
 #ifdef HAVE_SYSTEMD
   {
-    std::string sd_name = s.value("systemd","");
+    std::string sd_name = s->value("systemd","");
     if (sd_name.size() > 0)
       {
-        IniSection& sd = ini[sd_name];
+        // IniSectionPtr sd = ini[sd_name];
+        (void) ini[sd_name]; // set the section's "referenced" bit, for error checking
         int num_fds = sd_listen_fds(0);
         if( num_fds < 0 )
           {
@@ -148,13 +158,16 @@ Router::setup()
         // zero FDs from systemd is not a bug
         for( int fd = SD_LISTEN_FDS_START; fd < SD_LISTEN_FDS_START+num_fds; ++fd )
           {
+            IniSectionPtr sds = ini.add_auto(sd_name);
+
+            (*sds)["use"] = sd_name;
             if( sd_is_socket(fd, AF_UNSPEC, SOCK_STREAM, 1) <= 0 )
               {
                 ERRORPRINTF (t, E_ERROR | 55, "systemd socket %d is not a socket.", fd);
                 goto ex;
               }
 
-            ServerPtr sdp = ServerPtr(new SystemdServer(*this, sd, fd));
+            ServerPtr sdp = ServerPtr(new SystemdServer(*this, sds, fd));
             if (!sdp->setup())
               goto ex;
             registerLink(sdp);
@@ -165,7 +178,7 @@ Router::setup()
 
 #endif
 
-  x = s.value("connections","");
+  x = s->value("connections","");
   {
     size_t pos = 0;
     size_t comma = 0;
@@ -203,10 +216,10 @@ Router::setup()
   ITER(i,links)
     ERRORPRINTF (t, E_INFO | 55, "Connected: %s.", i->second->info(2));
 
-  TRACEPRINTF (t, 4, "R state: setup OK");
+  TRACEPRINTF (t, 4, "setup OK");
   return true;
 ex:
-  TRACEPRINTF (t, 4, "R state: setup BROKEN");
+  TRACEPRINTF (t, 4, "setup BROKEN");
   return false;
 }
 
@@ -221,7 +234,7 @@ unseen_lister(void *user,
 }
 
 bool
-Router::do_driver(LinkConnectPtr &link, IniSection& s, const std::string& drivername, bool quiet)
+Router::do_driver(LinkConnectPtr &link, IniSectionPtr& s, const std::string& drivername, bool quiet)
 {
   DriverPtr driver = nullptr;
 
@@ -242,19 +255,19 @@ Router::do_driver(LinkConnectPtr &link, IniSection& s, const std::string& driver
 
 
 FilterPtr
-Router::get_filter(const LinkConnectPtr_& link, IniSection& s, const std::string& filtername)
+Router::get_filter(const LinkConnectPtr_& link, IniSectionPtr& s, const std::string& filtername)
 {
   return FilterPtr(filters.create(filtername, link, s));
 }
 
 LowLevelDriver *
-Router::get_lowlevel(LowLevelIface* parent, IniSection& s, const std::string& lowlevelname)
+Router::get_lowlevel(LowLevelIface* parent, IniSectionPtr& s, const std::string& lowlevelname)
 {
   return lowlevels.create(lowlevelname, parent, s);
 }
 
 bool
-Router::do_server(ServerPtr &link, IniSection& s, const std::string& servername, bool quiet)
+Router::do_server(ServerPtr &link, IniSectionPtr& s, const std::string& servername, bool quiet)
 {
   link = ServerPtr(servers.create(servername, *this, s));
   if (link == nullptr)
@@ -271,9 +284,9 @@ Router::do_server(ServerPtr &link, IniSection& s, const std::string& servername,
 LinkConnectPtr
 Router::setup_link(std::string& name)
 {
-  IniSection& s = ini[name];
-  std::string servername = s.value("server","");
-  std::string drivername = s.value("driver","");
+  IniSectionPtr s = ini[name];
+  std::string servername = s->value("server","");
+  std::string drivername = s->value("driver","");
   LinkConnectPtr link = nullptr;
   ServerPtr server = nullptr;
 
@@ -281,9 +294,9 @@ Router::setup_link(std::string& name)
     return server;
   if (drivername.size() && do_driver(link, s,drivername))
     return link;
-  if (do_server(server, s,s.name, true))
-    return link;
-  if (do_driver(link, s,s.name, true))
+  if (do_server(server, s,s->name, true))
+    return server;
+  if (do_driver(link, s,s->name, true))
     return link;
   ERRORPRINTF (t, E_ERROR | 55, "Section '%s' has no known server nor driver.", name);
   return nullptr;
@@ -296,8 +309,10 @@ Router::start()
     return;
   want_up = true;
 
-  TRACEPRINTF (t, 4, "R state: trigger going up");
+  TRACEPRINTF (t, 4, "trigger going up");
   r_low->start();
+  if (start_timeout > 0)
+    start_timer.start(start_timeout);
 }
 
 void
@@ -314,30 +329,21 @@ Router::start_()
       links_changed = false;
       ITER(i,links)
         {
-          if (i->second->running || i->second->switching)
+          auto ii = i->second;
+          if (ii->ignore || ii->transient)
             continue;
-          if (i->second->ignore)
-            continue;
-          if (i->second->seq >= seq)
+          if (ii->seq >= seq)
             continue;
           seen = true;
-          i->second->seq = seq;
-          TRACEPRINTF (i->second->t, 3, "Start: %s", i->second->info(0));
-          i->second->start();
+          ii->seq = seq;
+          TRACEPRINTF (ii->t, 3, "Start: %s", ii->info(0));
+          ii->setState(L_going_up);
           if (links_changed)
             break;
         }
     }
   in_link_loop -= 1;
-  TRACEPRINTF (t, 4, "R state: going up triggered");
-}
-
-void
-Router::link_started(const LinkConnectPtr& link)
-{
-  TRACEPRINTF (link->t, 4, "R state: started");
-  state_trigger.send();
-  send_Next();
+  TRACEPRINTF (t, 4, "going up triggered");
 }
 
 void
@@ -345,42 +351,36 @@ Router::send_Next()
 {
   if (high_sending)
     {
-      TRACEPRINTF (t, 6, "SN: sending set");
+      TRACEPRINTF (t, 6, "sending set");
       return;
     }
   if (high_send_more)
     {
-      TRACEPRINTF (t, 6, "SN: send_more set");
+      TRACEPRINTF (t, 6, "send_more set");
       return;
     }
   ITER(i,links)
     {
-      if (!i->second->running || i->second->switching)
+      auto ii = i->second;
+      if (!ii->state != L_up)
         continue;
-      if (!i->second->send_more)
+      if (!ii->send_more)
         {
-          TRACEPRINTF (i->second->t, 6, "SN: still waiting");
+          TRACEPRINTF (ii->t, 6, "still waiting");
           return;
         }
     }
-  TRACEPRINTF (t, 6, "SN: OK");
+  TRACEPRINTF (t, 6, "OK");
   high_send_more = true;
   r_high->send_Next();
 }
 
 void
-Router::link_stopped(const LinkConnectPtr& link)
+Router::linkStateChanged(const LinkConnectPtr& link)
 {
-  TRACEPRINTF (link->t, 4, "R state: stopped");
+  TRACEPRINTF (link->t, 4, "%s", link->stateName());
+  linkChanges.push(link);
   state_trigger.send();
-
-  if(! want_up)
-    return;
-  if (link->may_fail)
-    return;
-  if (running_signal && link->retry_delay > 0)
-    return;
-  exitcode += 1;
 }
 
 void
@@ -393,13 +393,55 @@ Router::state_trigger_cb (ev::async &w UNUSED, int revents UNUSED)
   int n_going = 0;
   int n_down = 0;
 
+  TRACEPRINTF (t, 4, "check start");
+
+  while (!linkChanges.isempty())
+    {
+      LinkConnectPtr l = linkChanges.get();
+      if (!want_up && l->state != L_down)
+        l->setState(L_going_down); // again, for good measure
+    }
+
   ITER(i,links)
-    if (i->second->switching)
-      n_going++;
-    else if (i->second->running)
-      n_up++;
-    else if (!i->second->ignore)
-      n_down++;
+    {
+      auto ii = i->second;
+      LConnState lcs = ii->state;
+
+      if (ii->transient)
+        {
+          if (!want_up && lcs != L_down)
+            {
+              ii->setState(L_going_down);
+              n_going ++;
+            }
+          continue;
+        }
+
+      switch(lcs)
+        {
+        case L_down:
+        case L_error:
+          if (!ii->may_fail && !ii->ignore)
+            {
+              TRACEPRINTF (ii->t, 4, "is down");
+              n_down++;
+            }
+          break;
+        case L_up:
+          n_up++;
+          break;
+        case L_wait_retry:
+        case L_up_error:
+        case L_going_down_error:
+          if (ii->may_fail)
+            continue;
+        default:
+          TRACEPRINTF (ii->t, 4, "is %s", ii->stateName());
+          n_going++;
+          if (!want_up)
+            ii->setState(L_going_down);
+        }
+    }
 
   if (!n_going && n_down == 0 && n_up > 0)
     {
@@ -417,13 +459,25 @@ Router::state_trigger_cb (ev::async &w UNUSED, int revents UNUSED)
       all_running = false;
     }
 
-  if (want_up && exitcode > 0)
+  TRACEPRINTF (t, 4, "check end: want_up %d some %d>%d all %d>%d, going %d up %d down %d", want_up, osrn,some_running, oarn,all_running, n_going,n_up,n_down);
+  if (want_up && n_down > 0)
     stop();
 
   if (osrn && !some_running)
     r_high->stopped();
   else if (!oarn && all_running)
-    r_high->started();
+    {
+      r_high->started();
+      start_timer.stop();
+    }
+}
+
+void
+Router::start_timer_cb(ev::timer &w UNUSED, int revents UNUSED)
+{
+  ERRORPRINTF (t, E_ERROR, "Startup not successful.");
+  stop();
+  // TODO only halt failing drivers
 }
 
 void
@@ -433,7 +487,7 @@ Router::stop()
     return;
   want_up = false;
 
-  TRACEPRINTF (t, 4, "R state: trigger Going down");
+  TRACEPRINTF (t, 4, "trigger Going down");
   r_low->stop();
 }
 
@@ -457,16 +511,13 @@ Router::stop_()
       seen = false;
       ITER(i,links)
         {
-          if (i->second->running == i->second->switching)
-            continue; // already going down / down
-          if (i->second->seq >= seq)
+          auto ii = i->second;
+          if (ii->seq >= seq)
             continue; // already told it
-          // note that we're stopping even if already stopped, which is
-          // because this will kill its restart timer
-          TRACEPRINTF (i->second->t, 3, "Stop: %s", i->second->info(0));
+          TRACEPRINTF (ii->t, 4, "Stopping");
           seen = true;
-          i->second->seq = seq;
-          i->second->stop();
+          ii->seq = seq;
+          ii->setState(L_going_down);
           if (links_changed)
             break;
         }
@@ -486,19 +537,29 @@ Router::started()
   if (all_running && !running_signal)
     {
       running_signal = true;
-      TRACEPRINTF (t, 4, "R state: all drivers up");
+      TRACEPRINTF (t, 4, "all drivers up");
 #ifdef HAVE_SYSTEMD
       sd_notify(0,"READY=1");
 #endif
     }
 
-  TRACEPRINTF (t, 4, "R state: up");
+  TRACEPRINTF (t, 4, "up");
 }
 
 void
 Router::stopped()
 {
-  TRACEPRINTF (t, 4, "R state: down");
+  TRACEPRINTF (t, 4, "down");
+  if (want_up)
+    stop();
+  else
+    ev_break (EV_A_ EVBREAK_ALL);
+}
+
+void
+Router::errored()
+{
+  TRACEPRINTF (t, 4, "error");
   if (want_up)
     stop();
   else
@@ -508,11 +569,12 @@ Router::stopped()
 
 Router::~Router()
 {
-  TRACEPRINTF (t, 4, "R state: deleting");
+  TRACEPRINTF (t, 4, "deleting");
   cache = nullptr;
   trigger.stop();
   mtrigger.stop();
   state_trigger.stop();
+  start_timer.stop();
 
   R_ITER(i,vbusmonitor)
     ERRORPRINTF (t, E_WARNING | 55, "VBusmonitor '%s' didn't de-register!", i->cb->name);
@@ -526,7 +588,7 @@ Router::~Router()
 //    delete i->second;
   links.clear();
 
-  TRACEPRINTF (t, 4, "R state: deleted.");
+  TRACEPRINTF (t, 4, "deleted.");
 }
 
 void
@@ -543,22 +605,32 @@ Router::recv_L_Data (LDataPtr l, LinkConnect& link)
 
   // Unassigned source: set to link's, or our, address
   if (l->source == 0)
-    l->source = link.addr;
-  if (l->source == 0)
-    l->source = addr;
+    {
+      l->source = link.addr;
+      if (l->source == 0)
+        l->source = addr;
+    }
 
   if (l->source == addr)
-    { // locally generated, pass thru
-      // TODO mark interfaces which are local (currently just the group // cache)
-      // and reject those packets from other interfaces
+    { // locally generated?
+      if (!link.is_local)
+        { // Nope. Reject.
+          TRACEPRINTF (link.t, 3, "Packet not from us");
+          return;
+        }
     }
   else if (hasAddress (l->source, l2x))
     { // check if from the correct interface
       if (&*l2x != &link)
         {
-          TRACEPRINTF (link.t, 3, "Packet not from %d:%s: %s", link.t->seq, link.t->name, l->Decode (t));
+          TRACEPRINTF (link.t, 3, "Packet not from %d:%s: %s", l2x->t->seq, l2x->t->name, l->Decode (t));
           return;
         }
+    }
+  else if (client_addrs_len && l->source >= client_addrs_start && l->source < client_addrs_start+client_addrs_len)
+    {
+      TRACEPRINTF (link.t, 3, "Packet originally from closed local interface");
+      return;
     }
   else if (l->source != 0xFFFF) { // don't assign the "unprogrammed" address
     link.addAddress (l->source);
@@ -644,25 +716,34 @@ Router::registerVBusmonitor (L_Busmonitor_CallBack * c)
 }
 
 bool
-Router::registerLink(const LinkConnectPtr& link)
+Router::registerLink(const LinkConnectPtr& link, bool transient)
 {
   const std::string& n = link->name();
+  #if 1 // TODO tracing
+  link->pos = link->t->seq;
+  #else
+  static int pos = 0;
+  if (link->pos == 0)
+    link->pos = ++pos;
+  #endif
   auto res = links.emplace(std::piecewise_construct,
-                std::forward_as_tuple(n),
+                std::forward_as_tuple(link->pos),
                 std::forward_as_tuple(link));
   if (! res.second)
     {
-      TRACEPRINTF (link->t, 3, "registerLink: %s: already present", n);
+      ERRORPRINTF (link->t, E_ERROR, "registerLink: %d:%s: already present", link->pos,n);
       return false;
     }
-  TRACEPRINTF (link->t, 3, "registerLink: %s", n);
+  TRACEPRINTF (link->t, 3, "registerLink: %d:%s", link->pos,n);
   links_changed = true;
+  if (transient)
+    link->transient = true;
   if (want_up)
     {
       all_running = false;
       TRACEPRINTF (link->t, 3, "Start: %s", link->info(0));
       link->seq = seq;
-      link->start();
+      link->setState(L_going_up);
     }
   return true;
 }
@@ -671,15 +752,17 @@ bool
 Router::unregisterLink(const LinkConnectPtr& link)
 {
   const std::string& n = link->name();
-  auto res = links.find(n);
+  auto res = links.find(link->pos);
   if (res == links.end())
     {
-      TRACEPRINTF (link->t, 3, "unregisterLink: %s: not present", n);
+      ERRORPRINTF (link->t, E_ERROR, "unregisterLink: %d:%s: not present", link->pos,n);
       return false;
     }
   links.erase(res);
   TRACEPRINTF (link->t, 3, "unregisterLink: %s", n);
   links_changed = true;
+  if (!in_link_loop)
+    state_trigger.send();
   return true;
 }
 
@@ -844,7 +927,7 @@ Router::trigger_cb (ev::async &w UNUSED, int revents UNUSED)
           ITER (i,ignore)
             if (d1 == i->data)
               {
-                TRACEPRINTF (t, 9, "Repeated, discarded");
+                TRACEPRINTF (t, 9, "Drop: %s", l1->Decode (t));
                 goto next;
               }
         }
@@ -862,7 +945,7 @@ Router::trigger_cb (ev::async &w UNUSED, int revents UNUSED)
     }
 
   if (!low_send_more)
-    TRACEPRINTF (t, 6, "SN: wait L");
+    TRACEPRINTF (t, 6, "wait L");
 
   // Timestamps are ordered, so we scan for the first 
   timestamp_t tm = getTime ();
@@ -937,7 +1020,7 @@ Router::mtrigger_cb (ev::async &w UNUSED, int revents UNUSED)
 }
 
 bool
-Router::checkStack(IniSection& cfg)
+Router::checkStack(IniSectionPtr& cfg)
 {
   LinkConnectPtr conn = LinkConnectPtr(new LinkConnect(*this, cfg, t));
   DriverPtr dummy = DriverPtr(drivers.create("dummy",conn,cfg));
@@ -992,7 +1075,7 @@ void
 RouterLow::send_Next()
 {
   router->low_send_more = true;
-  TRACEPRINTF (t, 6, "SN: OK L");
+  TRACEPRINTF (t, 6, "OK L");
   router->trigger.send();
 }
 

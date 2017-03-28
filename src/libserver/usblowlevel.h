@@ -57,7 +57,7 @@ typedef enum {
 class USBLowLevelDriver : public LowLevelDriver
 {
 public:
-  USBLowLevelDriver (LowLevelIface* p, IniSection& s);
+  USBLowLevelDriver (LowLevelIface* p, IniSectionPtr& s);
   virtual ~USBLowLevelDriver ();
 private:
   libusb_device_handle *dev;
@@ -67,6 +67,8 @@ private:
 
   /** transmit buffer */
   CArray out;
+  /** transmit retry counter */
+  int send_retry = 0;
 
   UState state = sNone;
   bool stopping = false;

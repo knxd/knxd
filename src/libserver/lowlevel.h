@@ -57,6 +57,7 @@ public:
   virtual TracePtr tr() = 0;
   virtual void started() = 0;
   virtual void stopped() = 0;
+  virtual void errored() = 0;
   virtual void send_Next() = 0;
   virtual void recv_Data(CArray& c) = 0;
 
@@ -79,12 +80,12 @@ private:
 protected:
   LowLevelIface* master;
   /** configuration */
-  IniSection &cfg;
+  IniSectionPtr cfg;
   /** debug output */
   TracePtr t;
 
 public:
-  LowLevelDriver (LowLevelIface* parent, IniSection &s) : cfg(s)
+  LowLevelDriver (LowLevelIface* parent, IniSectionPtr& s) : cfg(s)
     {
       t = TracePtr(new Trace(*parent->tr(),s));
       t->setAuxName("LowD");
@@ -105,6 +106,7 @@ public:
 
   void started() { master->started(); }
   void stopped() { master->stopped(); }
+  void errored() { master->errored(); }
   void send_Next();
   void recv_L_Data(LDataPtr l) { master->recv_L_Data(std::move(l)); }
   void recv_L_Busmonitor(LBusmonPtr l) { master->recv_L_Busmonitor(std::move(l)); }
@@ -127,8 +129,8 @@ protected:
   bool inserted = false; // don't propagate setup()
 public:
   LowLevelDriver *iface;
-  LowLevelFilter (LowLevelIface* parent, IniSection &s) : LowLevelDriver(parent,s) {}
-  LowLevelFilter (LowLevelDriver* i, LowLevelIface* parent, IniSection &s)
+  LowLevelFilter (LowLevelIface* parent, IniSectionPtr& s) : LowLevelDriver(parent,s) {}
+  LowLevelFilter (LowLevelDriver* i, LowLevelIface* parent, IniSectionPtr& s)
       : LowLevelDriver(parent,s)
     {
       t->setAuxName("LowF");
@@ -160,7 +162,7 @@ protected:
 public:
   TracePtr tr() { return t; }
 
-  LowLevelAdapter(const LinkConnectPtr_& c, IniSection& s) : BusDriver(c,s),LowLevelIface()
+  LowLevelAdapter(const LinkConnectPtr_& c, IniSectionPtr& s) : BusDriver(c,s),LowLevelIface()
     {
       t->setAuxName("LowA");
     }
@@ -198,15 +200,7 @@ public:
         stopped();
     }
 
-  void send_L_Data(LDataPtr l)
-    {
-      if (!iface)
-        {
-          TRACEPRINTF (t, 9, "Send: discard (not running) %s", l->Decode (t));
-          return;
-        }
-      iface->send_L_Data(std::move(l));
-    }
+  void send_L_Data(LDataPtr l);
   void recv_L_Data(LDataPtr l) { BusDriver::recv_L_Data(std::move(l)); }
   void recv_L_Busmonitor(LBusmonPtr l) { BusDriver::recv_L_Busmonitor(std::move(l)); }
 
@@ -219,6 +213,7 @@ public:
 
   inline void started() { BusDriver::started(); }
   inline void stopped() { BusDriver::stopped(); }
+  inline void errored() { BusDriver::errored(); }
   inline void send_Next() { BusDriver::send_Next(); }
 };
 

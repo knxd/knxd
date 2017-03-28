@@ -23,15 +23,15 @@
 unsigned int maxPacketLen() { return 0x10; }
 
 EMIVer
-cfgEMIVersion(IniSection& s)
+cfgEMIVersion(IniSectionPtr& s)
 {
-  int v = s.value("version",vERROR);
+  int v = s->value("version",vERROR);
   if (v > vRaw || v < vERROR)
     return vERROR;
   else if (v != vERROR)
     return EMIVer(v);
 
-  std::string sv = s.value("version","");
+  std::string sv = s->value("version","");
   if (!sv.size())
     return vUnknown;
   else if (sv == "EMI1")
@@ -46,14 +46,14 @@ cfgEMIVersion(IniSection& s)
     return vERROR;
 }
 
-EMI_Common::EMI_Common (LowLevelDriver * i, LowLevelIface* c, IniSection& s) : LowLevelFilter(i,c,s)
+EMI_Common::EMI_Common (LowLevelDriver * i, LowLevelIface* c, IniSectionPtr& s) : LowLevelFilter(i,c,s)
 {
   timeout.set<EMI_Common, &EMI_Common::timeout_cb>(this);
   t->setAuxName("EMI_common");
   iface = i;
 }
 
-EMI_Common::EMI_Common (LowLevelIface* c, IniSection& s) : LowLevelFilter(c,s)
+EMI_Common::EMI_Common (LowLevelIface* c, IniSectionPtr& s) : LowLevelFilter(c,s)
 {
   t->setAuxName("EMIcommon");
 }
@@ -67,8 +67,8 @@ EMI_Common::setup()
     return false;
   if (!iface->setup ())
     return false;
-  send_timeout = cfg.value("send-timeout",300) / 1000.;
-  monitor = cfg.value("monitor",false);
+  send_timeout = cfg->value("send-timeout",300) / 1000.;
+  monitor = cfg->value("monitor",false);
 
   return true;
 }
@@ -106,15 +106,19 @@ EMI_Common::stop ()
 void
 EMI_Common::send_L_Data (LDataPtr l)
 {
-  if (wait_confirm)
-    ERRORPRINTF(t, E_ERROR, "EMI_common: send while waiting");
+  if (wait_confirm || wait_confirm_low)
+    {
+      ERRORPRINTF(t, E_ERROR, "EMI_common: send while waiting");
+      return;
+    }
     
   assert (l->data.size() >= 1);
-  /* discard long frames, as they are not supported by EMI 1 */
+  // discard long frames, they are not supported yet
+  // TODO add support for long frames!
   if (l->data.size() > maxPacketLen())
     {
       TRACEPRINTF (t, 2, "Oversize (%d), discarded", l->data.size());
-      send_Next();
+      LowLevelFilter::send_Next();
       return;
     }
   CArray pdu = lData2EMI (0x11, l);
@@ -122,9 +126,21 @@ EMI_Common::send_L_Data (LDataPtr l)
 }
 
 void
+EMI_Common::send_Next()
+{
+  // TODO add a want_*_low variable to account for lowlevel drivers which
+  // don't call send_Next. Currently: don't bother, as all of them do.
+  wait_confirm_low = false;
+  if (!wait_confirm)
+    LowLevelFilter::send_Next();
+}
+
+void
 EMI_Common::send_Data(CArray &pdu)
 {
   wait_confirm = true;
+  wait_confirm_low = true;
+  t->TracePacket (1, "SendEMI", pdu);
   timeout.start(send_timeout,0);
   iface->send_Data(pdu);
 }
@@ -133,9 +149,12 @@ void
 EMI_Common::timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
 {
   TRACEPRINTF (t, 1, "No confirm, continuing");
+  if (!wait_confirm)
+    return;
 
   wait_confirm = false;
-  send_Next();
+  if (!wait_confirm_low)
+    LowLevelFilter::send_Next();
 }
 
 void
@@ -143,24 +162,25 @@ EMI_Common::recv_Data(CArray& c)
 {
   t->TracePacket (1, "RecvEMI", c);
   const uint8_t *ind = getIndTypes();
-  if (c.size() == 1 && c[0] == 0xA0)
+  if (c.size() > 0 && c[0] == 0xA0)
     {
-      TRACEPRINTF (t, 2, "Stopped");
-      stopped();
+      TRACEPRINTF (t, 2, "got reset ind");
+      errored();
     }
-  else if (c.size() && c[0] == ind[I_CONFIRM])
+  else if (c.size() > 0 && c[0] == ind[I_CONFIRM])
     {
       if (wait_confirm)
         {
           TRACEPRINTF (t, 2, "Confirmed");
           wait_confirm = false;
           timeout.stop();
-          send_Next();
+          if (!wait_confirm_low)
+            LowLevelFilter::send_Next();
         }
       else
         TRACEPRINTF (t, 2, "spurious Confirm");
     }
-  else if (c.size() && c[0] == ind[I_DATA] && !monitor)
+  else if (c.size() > 0 && c[0] == ind[I_DATA] && !monitor)
     {
       LDataPtr p = EMI2lData (c);
       if (p)
