@@ -89,7 +89,7 @@ Router::Router (IniData& d, std::string sn) : BaseRouter(d)
   mtrigger.start();
   state_trigger.start();
 
-  TRACEPRINTF (t, 4, "R state: initialized");
+  TRACEPRINTF (t, 4, "initialized");
 }
 
 bool
@@ -98,7 +98,7 @@ Router::setup()
   std::string x;
   const char *x2;
   IniSectionPtr s = ini[main];
-  TRACEPRINTF (t, 4, "R state: setting up");
+  TRACEPRINTF (t, 4, "setting up");
 
   force_broadcast = s->value("force-broadcast", false);
   unknown_ok = s->value("unknown-ok", false);
@@ -216,10 +216,10 @@ Router::setup()
   ITER(i,links)
     ERRORPRINTF (t, E_INFO | 55, "Connected: %s.", i->second->info(2));
 
-  TRACEPRINTF (t, 4, "R state: setup OK");
+  TRACEPRINTF (t, 4, "setup OK");
   return true;
 ex:
-  TRACEPRINTF (t, 4, "R state: setup BROKEN");
+  TRACEPRINTF (t, 4, "setup BROKEN");
   return false;
 }
 
@@ -309,7 +309,7 @@ Router::start()
     return;
   want_up = true;
 
-  TRACEPRINTF (t, 4, "R state: trigger going up");
+  TRACEPRINTF (t, 4, "trigger going up");
   r_low->start();
   if (start_timeout > 0)
     start_timer.start(start_timeout);
@@ -343,7 +343,7 @@ Router::start_()
         }
     }
   in_link_loop -= 1;
-  TRACEPRINTF (t, 4, "R state: going up triggered");
+  TRACEPRINTF (t, 4, "going up triggered");
 }
 
 void
@@ -378,7 +378,7 @@ Router::send_Next()
 void
 Router::linkStateChanged(const LinkConnectPtr& link)
 {
-  TRACEPRINTF (link->t, 4, "R state: %s", link->stateName());
+  TRACEPRINTF (link->t, 4, "%s", link->stateName());
   linkChanges.push(link);
   state_trigger.send();
 }
@@ -393,7 +393,7 @@ Router::state_trigger_cb (ev::async &w UNUSED, int revents UNUSED)
   int n_going = 0;
   int n_down = 0;
 
-  TRACEPRINTF (t, 4, "R state: check start");
+  TRACEPRINTF (t, 4, "check start");
 
   while (!linkChanges.isempty())
     {
@@ -459,7 +459,7 @@ Router::state_trigger_cb (ev::async &w UNUSED, int revents UNUSED)
       all_running = false;
     }
 
-  TRACEPRINTF (t, 4, "R state: check end: want_up %d some %d>%d all %d>%d, going %d up %d down %d", want_up, osrn,some_running, oarn,all_running, n_going,n_up,n_down);
+  TRACEPRINTF (t, 4, "check end: want_up %d some %d>%d all %d>%d, going %d up %d down %d", want_up, osrn,some_running, oarn,all_running, n_going,n_up,n_down);
   if (want_up && n_down > 0)
     stop();
 
@@ -487,7 +487,7 @@ Router::stop()
     return;
   want_up = false;
 
-  TRACEPRINTF (t, 4, "R state: trigger Going down");
+  TRACEPRINTF (t, 4, "trigger Going down");
   r_low->stop();
 }
 
@@ -514,7 +514,7 @@ Router::stop_()
           auto ii = i->second;
           if (ii->seq >= seq)
             continue; // already told it
-          TRACEPRINTF (ii->t, 3, "Stop: %s", ii->info(0));
+          TRACEPRINTF (ii->t, 4, "Stopping");
           seen = true;
           ii->seq = seq;
           ii->setState(L_going_down);
@@ -537,19 +537,19 @@ Router::started()
   if (all_running && !running_signal)
     {
       running_signal = true;
-      TRACEPRINTF (t, 4, "R state: all drivers up");
+      TRACEPRINTF (t, 4, "all drivers up");
 #ifdef HAVE_SYSTEMD
       sd_notify(0,"READY=1");
 #endif
     }
 
-  TRACEPRINTF (t, 4, "R state: up");
+  TRACEPRINTF (t, 4, "up");
 }
 
 void
 Router::stopped()
 {
-  TRACEPRINTF (t, 4, "R state: down");
+  TRACEPRINTF (t, 4, "down");
   if (want_up)
     stop();
   else
@@ -559,7 +559,7 @@ Router::stopped()
 void
 Router::errored()
 {
-  TRACEPRINTF (t, 4, "R state: error");
+  TRACEPRINTF (t, 4, "error");
   if (want_up)
     stop();
   else
@@ -569,7 +569,7 @@ Router::errored()
 
 Router::~Router()
 {
-  TRACEPRINTF (t, 4, "R state: deleting");
+  TRACEPRINTF (t, 4, "deleting");
   cache = nullptr;
   trigger.stop();
   mtrigger.stop();
@@ -588,7 +588,7 @@ Router::~Router()
 //    delete i->second;
   links.clear();
 
-  TRACEPRINTF (t, 4, "R state: deleted.");
+  TRACEPRINTF (t, 4, "deleted.");
 }
 
 void
