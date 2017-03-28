@@ -1,3 +1,10 @@
+knxd (0.14.8-1) unstable; urgency=medium
+
+  * Fixed USB send timeout handling
+  * Handle retries
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Tue, 28 Mar 2017 12:22:04 +0200
+
 knxd (0.14.7-1) unstable; urgency=medium
 
   * Fix socket activation
