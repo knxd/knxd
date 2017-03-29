@@ -206,6 +206,8 @@ FT12serial::stop()
       close (fd);
       fd = -1;
     }
+
+  stopped();
 }
 
 FT12serial::~FT12serial ()
