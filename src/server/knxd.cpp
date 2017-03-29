@@ -385,7 +385,7 @@ main (int ac, char *ag[])
     hup.t = TracePtr(new Trace(*r->t));
     hup.t->setAuxName("reload");
     hup.logfile = logfile;
-    ev_signal_init (&hup.sighup, sighup_cb, SIGINT);
+    ev_signal_init (&hup.sighup, sighup_cb, SIGHUP);
     ev_signal_start (EV_A_ &hup.sighup);
   }
 
