@@ -207,7 +207,7 @@ FT12serial::stop()
       fd = -1;
     }
 
-  stopped();
+  LowLevelDriver::stop();
 }
 
 FT12serial::~FT12serial ()
