@@ -140,6 +140,34 @@ public:
   virtual void abort_send() { ERRORPRINTF (t, E_ERROR, "cannot abort"); }
 };
 
+
+/** base driver for talking to file descriptors */
+class FDdriver:public LowLevelDriver
+{
+protected:
+  /** device connection */
+  int fd = -1;
+
+  /** queueing */
+  SendBuf sendbuf;
+  RecvBuf recvbuf;
+  size_t read_cb(uint8_t *buf, size_t len);
+  void error_cb();
+
+  virtual void send_Data (CArray& c);
+
+  void setup_buffers();
+
+public:
+  FDdriver (LowLevelIface* parent, IniSectionPtr& s);
+  virtual ~FDdriver ();
+  bool setup();
+  void start();
+  void stop();
+};
+
+
+/** low-level filter: pass data to a driver, or tio another filter */
 class LowLevelFilter : public LowLevelDriver
 {
 protected:
