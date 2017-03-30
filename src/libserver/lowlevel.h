@@ -23,7 +23,23 @@
 #include "common.h"
 #include "link.h"
 #include "emi.h"
+#include "iobuf.h"
 
+/** Low level interface
+ *
+ * This code implements the basis for the interface between a driver and
+ * the actual hardware. In particular, we need rudimentary protocol
+ * layering (cEMI => ft12 => serial, or => EMI1 => ft12 => TCP => socat).
+ *
+ * This interface deals with encapsulating a KNX packet in an opaque data
+ * or packet stream. In contrast, the Filter/Driver interface is about
+ * manipulating and filtering structured KNX packets.
+ *
+ *
+ * Classes:
+ * 
+ * 
+ */
 typedef void (*packet_cb_t)(void *data, CArray *p);
 
 class LowLevelDriver;
@@ -48,7 +64,7 @@ class _cls : public _base
 
 #endif
 
-/** implements interface for a Driver to send packets for the EMI1/2 driver */
+/** common code for drivers / interfaces / adapters */
 class LowLevelIface
 {
 public:
@@ -66,6 +82,7 @@ public:
   virtual void recv_L_Busmonitor(LBusmonPtr l) = 0;
 };
 
+/** Code that passes incoming packets to actual hardware */
 class LowLevelDriver : public LowLevelIface
 {
 public:
@@ -155,6 +172,9 @@ public:
   virtual void send_L_Data(LDataPtr l) { iface->send_L_Data(std::move(l)); }
 };
 
+/** Base class for accepting a high-level KNX packet and forwarding it to
+ * a LowLevelDriver
+ */
 class LowLevelAdapter : public BusDriver, public LowLevelIface
 {
 protected:

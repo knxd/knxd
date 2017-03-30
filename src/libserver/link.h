@@ -31,7 +31,16 @@
 #include <vector>
 
 /*
- * This file contains class declarations for a link to the knxd router.
+ * This code implements the basis for the interface between the KNX router
+ * and individual drivers. In particular, we need packet filtering,
+ * logging, and/or flow control (router => queue => pace => log => driver).
+ *
+ * Thus, this interface is about * manipulating and filtering structured KNX packets.
+ * In contrast, the LowLevel interface deals with encapsulating a KNX
+ * packet in an opaque data or packet stream (and then manipulating that).
+ *
+ *
+ * Classes:
  * 
  * LinkBase: base class for all other modules. All LinkBase objects can
  *           accept packets to send.
