@@ -215,6 +215,8 @@ LinkConnect::setState(LConnState new_state)
           goto retry;
         case L_error:
           break;
+        case L_down:
+          goto retry;
         default: goto inval;
         } break;
     case L_up_error:
@@ -223,6 +225,9 @@ LinkConnect::setState(LConnState new_state)
         case L_going_down:
           state = L_going_down_error;
           stop();
+          break;
+        case L_down:
+          state = L_error;
           break;
         case L_error:
           break;
@@ -233,7 +238,6 @@ LinkConnect::setState(LConnState new_state)
         {
         case L_down:
           goto retry;
-          break;
         case L_error:
           break;
         default: goto inval;
@@ -257,7 +261,7 @@ retry:
   else
     {
       TRACEPRINTF (t, 5, "retrying finished");
-      state = L_down;
+      state = L_error;
     }
 }
 
