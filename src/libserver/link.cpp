@@ -174,6 +174,7 @@ LinkConnect::setState(LConnState new_state)
           state = L_up;
           break;
         case L_going_down:
+        case L_down:
           stop();
           break;
         case L_error:
