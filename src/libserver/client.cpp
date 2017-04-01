@@ -262,6 +262,8 @@ ClientConnection::read_cb (uint8_t *buf, size_t len)
               exit_conn();
               sendreject();
             }
+          else
+            a_conn->start();
         }
       else
         {

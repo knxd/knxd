@@ -43,8 +43,8 @@ public:
   virtual void recv_Data(uint8_t *buf, size_t len) = 0; // to socket
 
   virtual bool setup (uint8_t *buf,size_t len) = 0;
-  void start() { }
-  void stop() { }
+  virtual void start() { }
+  virtual void stop() { }
 };
 
 template<class TC>
