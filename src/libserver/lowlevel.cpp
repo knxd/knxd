@@ -17,6 +17,10 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#include <unistd.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <errno.h>
 #include "lowlevel.h"
 
 LowLevelIface::~LowLevelIface() {}
@@ -79,9 +83,97 @@ LowLevelAdapter::send_L_Data(LDataPtr l)
   if (!iface)
     {
       ERRORPRINTF (t, E_ERROR, "Send: not running??");
-      stopped();
+      errored();
       return;
     }
   iface->send_L_Data(std::move(l));
+}
+
+FDdriver::FDdriver (LowLevelIface* p, IniSectionPtr& s)
+	: sendbuf(), recvbuf(), LowLevelDriver (p,s)
+{
+  t->setAuxName("FD");
+}
+
+bool
+FDdriver::setup()
+{
+  if(!LowLevelDriver::setup())
+    return false;
+
+  return true;
+}
+
+void
+FDdriver::setup_buffers()
+{
+  TRACEPRINTF (t, 2, "Buffer Setup on fd %d", fd);
+  sendbuf.init(fd);
+  recvbuf.init(fd);
+  recvbuf.low_latency();
+
+  recvbuf.on_read.set<FDdriver,&FDdriver::read_cb>(this);
+  recvbuf.on_error.set<FDdriver,&FDdriver::error_cb>(this);
+  sendbuf.on_error.set<FDdriver,&FDdriver::error_cb>(this);
+
+  sendbuf.start();
+  recvbuf.start();
+}
+
+void
+FDdriver::error_cb()
+{
+  ERRORPRINTF (t, E_ERROR | 23, "Communication error: %s", strerror(errno));
+  errored();
+}
+
+FDdriver::~FDdriver ()
+{
+  TRACEPRINTF (t, 2, "Close");
+
+  if (fd != -1)
+    {
+      sendbuf.stop(true);
+      recvbuf.stop(true);
+      close (fd);
+    }
+}
+
+void
+FDdriver::send_Data(CArray &c)
+{
+  CArray *cp = new CArray(c);
+  t->TracePacket (0, "Write", c);
+  sendbuf.write(cp);
+}
+
+void
+FDdriver::start()
+{
+  setup_buffers();
+}
+
+void
+FDdriver::stop()
+{
+  if (fd >= -1)
+    {
+      sendbuf.stop(true);
+      recvbuf.stop(true);
+
+      close(fd);
+      fd = -1;
+    }
+  LowLevelDriver::stop();
+}
+
+size_t
+FDdriver::read_cb(uint8_t *buf, size_t len)
+{
+  t->TracePacket (0, "Read", len, buf);
+
+  CArray c(buf,len);
+  recv_Data(c);
+  return len;
 }
 

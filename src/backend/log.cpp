@@ -71,6 +71,14 @@ LogFilter::stopped()
   Filter::stopped();
 }
 
+void
+LogFilter::errored()
+{
+  if (log_state)
+    t->TracePrintf (0, "State errored");
+  Filter::errored();
+}
+
 
 void
 LogFilter::recv_L_Data (LDataPtr l)

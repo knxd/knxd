@@ -168,7 +168,7 @@ USBDriver::timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
     {
       ERRORPRINTF (t, E_ERROR, "No reply to setup");
       version = vTIMEOUT;
-      stopped();
+      errored();
     }
 }
 
@@ -244,13 +244,13 @@ USBDriver::recv_Data(CArray& c)
       TRACEPRINTF (t, 2, "version x%02x not recognized", c[13]);
       version = vERROR;
       timeout.stop();
-      stopped();
+      errored();
       return;
     }
   timeout.stop();
   if(!make_EMI())
     {
-      stopped();
+      errored();
       return;
     }
 

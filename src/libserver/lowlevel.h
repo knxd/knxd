@@ -23,7 +23,23 @@
 #include "common.h"
 #include "link.h"
 #include "emi.h"
+#include "iobuf.h"
 
+/** Low level interface
+ *
+ * This code implements the basis for the interface between a driver and
+ * the actual hardware. In particular, we need rudimentary protocol
+ * layering (cEMI => ft12 => serial, or => EMI1 => ft12 => TCP => socat).
+ *
+ * This interface deals with encapsulating a KNX packet in an opaque data
+ * or packet stream. In contrast, the Filter/Driver interface is about
+ * manipulating and filtering structured KNX packets.
+ *
+ *
+ * Classes:
+ * 
+ * 
+ */
 typedef void (*packet_cb_t)(void *data, CArray *p);
 
 class LowLevelDriver;
@@ -48,7 +64,7 @@ class _cls : public _base
 
 #endif
 
-/** implements interface for a Driver to send packets for the EMI1/2 driver */
+/** common code for drivers / interfaces / adapters */
 class LowLevelIface
 {
 public:
@@ -57,6 +73,7 @@ public:
   virtual TracePtr tr() = 0;
   virtual void started() = 0;
   virtual void stopped() = 0;
+  virtual void errored() = 0;
   virtual void send_Next() = 0;
   virtual void recv_Data(CArray& c) = 0;
 
@@ -65,6 +82,7 @@ public:
   virtual void recv_L_Busmonitor(LBusmonPtr l) = 0;
 };
 
+/** Code that passes incoming packets to actual hardware */
 class LowLevelDriver : public LowLevelIface
 {
 public:
@@ -106,6 +124,7 @@ public:
 
   void started() { master->started(); }
   void stopped() { master->stopped(); }
+  void errored() { master->errored(); }
   void send_Next();
   void recv_L_Data(LDataPtr l) { master->recv_L_Data(std::move(l)); }
   void recv_L_Busmonitor(LBusmonPtr l) { master->recv_L_Busmonitor(std::move(l)); }
@@ -126,6 +145,34 @@ public:
   virtual void abort_send() { ERRORPRINTF (t, E_ERROR, "cannot abort"); }
 };
 
+
+/** base driver for talking to file descriptors */
+class FDdriver:public LowLevelDriver
+{
+protected:
+  /** device connection */
+  int fd = -1;
+
+  /** queueing */
+  SendBuf sendbuf;
+  RecvBuf recvbuf;
+  size_t read_cb(uint8_t *buf, size_t len);
+  void error_cb();
+
+  virtual void send_Data (CArray& c);
+
+  void setup_buffers();
+
+public:
+  FDdriver (LowLevelIface* parent, IniSectionPtr& s);
+  virtual ~FDdriver ();
+  bool setup();
+  void start();
+  void stop();
+};
+
+
+/** low-level filter: pass data to a driver, or tio another filter */
 class LowLevelFilter : public LowLevelDriver
 {
 protected:
@@ -159,6 +206,9 @@ public:
   virtual void do_send_Local (CArray& l, bool raw = false);
 };
 
+/** Base class for accepting a high-level KNX packet and forwarding it to
+ * a LowLevelDriver
+ */
 class LowLevelAdapter : public BusDriver, public LowLevelIface
 {
 protected:
@@ -217,6 +267,7 @@ public:
 
   inline void started() { BusDriver::started(); }
   inline void stopped() { BusDriver::stopped(); }
+  inline void errored() { BusDriver::errored(); }
   inline void send_Next() { BusDriver::send_Next(); }
 };
 

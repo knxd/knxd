@@ -183,8 +183,8 @@ FT12serial::setup_buffers()
 void
 FT12serial::error_cb()
 {
-  TRACEPRINTF (t, 2, "ERROR");
-  stop();
+  TRACEPRINTF (t, 2, "error from file descr");
+  errored();
 }
 
 void 
@@ -206,6 +206,8 @@ FT12serial::stop()
       close (fd);
       fd = -1;
     }
+
+  LowLevelDriver::stop();
 }
 
 FT12serial::~FT12serial ()

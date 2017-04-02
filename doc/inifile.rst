@@ -375,12 +375,18 @@ These options apply to all drivers and servers.
 
     The driver is started, but does not block starting to route packets.
 
-  * retry (int, --arg=retry=NUM)
+  * retry-delay (int, --arg=retry-delay=NUM)
 
     If the driver fails to start (or dies), knxd will restart it after this
     many seconds.
 
     Default: zero: no restart.
+
+  * max-retry (int, --arg=max-retry=NUM)
+
+    The maximum number of retries before giving up.
+
+    Default: zero: infinite (if retry-delay is positive)
 
 If "retry" is active but "may-fail" is false, the driver must start
 correctly when knxd starts up. It will only be restarted once knxd is, or

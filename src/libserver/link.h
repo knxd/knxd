@@ -31,7 +31,16 @@
 #include <vector>
 
 /*
- * This file contains class declarations for a link to the knxd router.
+ * This code implements the basis for the interface between the KNX router
+ * and individual drivers. In particular, we need packet filtering,
+ * logging, and/or flow control (router => queue => pace => log => driver).
+ *
+ * Thus, this interface is about * manipulating and filtering structured KNX packets.
+ * In contrast, the LowLevel interface deals with encapsulating a KNX
+ * packet in an opaque data or packet stream (and then manipulating that).
+ *
+ *
+ * Classes:
  * 
  * LinkBase: base class for all other modules. All LinkBase objects can
  *           accept packets to send.
@@ -264,6 +273,8 @@ public:
   virtual void started() = 0;
   /** Note that this link has stopped */
   virtual void stopped() = 0;
+  /** Notify the router that this link has encountered a fatal error */
+  virtual void errored() = 0;
 
   /** Check whether this physical address has been seen on this link */
   virtual bool hasAddress (eibaddr_t addr) = 0;
@@ -350,11 +361,38 @@ public:
   virtual void addAddress (eibaddr_t addr) { send->addAddress(addr); }
 };
 
+/** The link connection state tells what the link's state is.
+
+  down => going_up => up => going_down => down
+             |        |          |
+    -        V        V          V
+             \- L_up_error  => L_going_down_error => L_wait_retry => L_going_up
+
+  Down arrows: errored() has been called
+ */
+typedef enum {
+    L_down,
+    L_going_down,
+    L_up,
+    L_going_up,
+    L_wait_retry,
+    L_error,
+    L_up_error,
+    L_going_down_error,
+} LConnState;
+
+typedef enum {
+    R_down,
+    R_other,
+    R_up,
+} LRouterState;
+
 /** A LinkConnect is something which the router knows about.
  * For non-servers, it holds a pointer to the driver and to the bottom of
  * the filter stack.
  * This contains the parts useable on a per-link filter chain.
  */
+
 class LinkConnect : public LinkConnect_
 {
 public:
@@ -371,10 +409,15 @@ public:
   /** address assigned to this link */
   eibaddr_t addr = 0;
 
-  /** Driver/Server is up */
-  bool running = false;
-  /** Driver/Server intends to be what @running says  */
-  bool switching = false;
+  /** current state */
+  LConnState state = L_down;
+  /** … and a controlled way to set it */
+  void setState(LConnState new_state);
+  /** … and code to print the state */
+  const char *stateName();
+
+  /** state which the router saw last */
+  LRouterState stateR;
 
   /** loop counter for the router */
   int seq = 0;
@@ -386,6 +429,7 @@ public:
   int retry_delay = 0;
   /** how often …? */
   int retries = 0;
+  int max_retries = 0;
 
 private:
   ev::timer retry_timer;
@@ -404,6 +448,8 @@ public:
   /** This is responsible for setting up the filters. Don't call it twice!
    * Precondition: set_driver() has been called. */
   virtual bool setup();
+
+  /* These just control the state machine */
   virtual void start();
   virtual void stop();
 
@@ -412,6 +458,7 @@ public:
 
   virtual void started();
   virtual void stopped();
+  virtual void errored();
   virtual void recv_L_Data (LDataPtr l); // { l3.recv_L_Data(std::move(l), this); }
   virtual void recv_L_Busmonitor (LBusmonPtr l); // { l3.recv_L_Busmonitor(std::move(l), this); }
   virtual void send_Next ();
@@ -531,6 +578,7 @@ public:
   virtual void send_Next ();
   virtual void started(); // recv->started()
   virtual void stopped(); // recv->stopped()
+  virtual void errored(); // recv->errored()
 
   /** Returns the filter's name, i.e. the config's filter= value */
   virtual const std::string& name();
@@ -613,6 +661,7 @@ public:
   virtual void send_Next ();
   virtual void started();
   virtual void stopped();
+  virtual void errored();
 
 public:
   virtual void send_L_Data(LDataPtr l) = 0;

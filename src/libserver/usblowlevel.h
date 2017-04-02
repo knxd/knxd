@@ -67,6 +67,8 @@ private:
 
   /** transmit buffer */
   CArray out;
+  /** transmit retry counter */
+  int send_retry = 0;
 
   UState state = sNone;
   bool stopping = false;
