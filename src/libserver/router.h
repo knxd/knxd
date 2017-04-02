@@ -245,6 +245,8 @@ private:
   bool readaddr (const std::string& addr, eibaddr_t& parsed);
   bool readaddrblock (const std::string& addr, eibaddr_t& parsed, int &len);
 
+  /** error checking */
+  bool has_send_more(LinkConnectPtr i);
 };
 
 /** global filter adapter, sending end */

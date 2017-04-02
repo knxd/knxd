@@ -957,6 +957,15 @@ Router::trigger_cb (ev::async &w UNUSED, int revents UNUSED)
       }
 }
 
+bool
+Router::has_send_more(LinkConnectPtr i)
+{
+  if (i->send_more)
+    return true;
+  ERRORPRINTF (i->t, E_FATAL | 51, "internal error: send_more is not set");
+  return false;
+}
+
 void
 Router::send_L_Data(LDataPtr l1)
 {
@@ -969,9 +978,14 @@ Router::send_L_Data(LDataPtr l1)
       // group.
       ITER(i, links)
         {
-          if (i->second->hasAddress(l1->source))
+          auto ii = i->second;
+          if (ii->state != L_up)
             continue;
-          if (l1->hopcount == 7 || i->second->checkGroupAddress(l1->dest))
+          if(!has_send_more(ii))
+            continue;
+          if (ii->hasAddress(l1->source))
+            continue;
+          if (l1->hopcount == 7 || ii->checkGroupAddress(l1->dest))
             i->second->send_L_Data (LDataPtr(new L_Data_PDU (*l1)));
         }
     }
@@ -996,9 +1010,14 @@ Router::send_L_Data(LDataPtr l1)
           }
       ITER (i, links)
         {
-          if (i->second->hasAddress (l1->source))
+          auto ii = i->second;
+          if (ii->state != L_up)
             continue;
-          if (l1->hopcount == 7 || found ? i->second->hasAddress (l1->dest) : i->second->checkAddress (l1->dest))
+          if(!has_send_more(ii))
+            continue;
+          if (ii->hasAddress (l1->source))
+            continue;
+          if (l1->hopcount == 7 || found ? ii->hasAddress (l1->dest) : ii->checkAddress (l1->dest))
             i->second->send_L_Data (LDataPtr(new L_Data_PDU (*l1)));
         }
     }
