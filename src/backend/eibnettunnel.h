@@ -77,6 +77,7 @@ public:
   void start();
   void stop();
   void is_stopped();
+  void restart();
 
   void send_L_Data (LDataPtr  l);
 };

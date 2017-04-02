@@ -33,16 +33,7 @@ EIBNetIPTunnel::EIBNetIPTunnel (const LinkConnectPtr_& c, IniSectionPtr& s)
 EIBNetIPTunnel::~EIBNetIPTunnel ()
 {
   TRACEPRINTF (t, 2, "Close");
-  if (sock && channel >= 0)
-    {
-      EIBnet_DisconnectRequest dreq;
-      dreq.nat = saddr.sin_addr.s_addr == 0;
-      dreq.caddr = saddr;
-      dreq.channel = channel;
-
-      EIBNetIPPacket p = dreq.ToPacket ();
-      sock->Send (p, caddr);
-    }
+  // restart();
   is_stopped();
 }
 
@@ -53,6 +44,13 @@ void EIBNetIPTunnel::is_stopped()
   trigger.stop();
   delete sock;
   sock = nullptr;
+}
+
+void EIBNetIPTunnel::stop()
+{
+  restart();
+  is_stopped();
+  BusDriver::stop();
 }
 
 bool
@@ -147,7 +145,7 @@ void
 EIBNetIPTunnel::error_cb ()
 {
   ERRORPRINTF (t, E_ERROR | 23, "Communication error: %s", strerror(errno));
-  stop();
+  errored();
 }
 
 void
@@ -174,7 +172,7 @@ EIBNetIPTunnel::read_cb (EIBNetIPPacket *p1)
             if (cresp.status == 0x23 && support_busmonitor && monitor)
               {
                 TRACEPRINTF (t, 1, "Disable busmonitor support");
-                stop();
+                restart();
                 return;
                 // support_busmonitor = false;
                 // connect_busmonitor = false;
@@ -261,18 +259,7 @@ EIBNetIPTunnel::read_cb (EIBNetIPPacket *p1)
             if (treq.seqno < rno)
               treq.seqno += 0x100;
             if (treq.seqno >= rno + 5)
-              {
-                EIBnet_DisconnectRequest dreq;
-                dreq.nat = saddr.sin_addr.s_addr == 0;
-                dreq.caddr = saddr;
-                dreq.channel = channel;
-
-                EIBNetIPPacket p = dreq.ToPacket ();
-                sock->Send (p, caddr);
-                sock->recvall = 0;
-                mod = 0;
-                conntimeout.start(0.1,0);
-              }
+              restart();
             break;
           }
         rno++;
@@ -391,16 +378,7 @@ EIBNetIPTunnel::read_cb (EIBNetIPPacket *p1)
           {
             TRACEPRINTF (t, 1,
                           "Connection State Response not connected");
-            EIBnet_DisconnectRequest dreq;
-            dreq.nat = saddr.sin_addr.s_addr == 0;
-            dreq.caddr = saddr;
-            dreq.channel = channel;
-
-            EIBNetIPPacket p = dreq.ToPacket ();
-            sock->Send (p, caddr);
-            sock->recvall = 0;
-            mod = 0;
-            conntimeout.start(0.1,0);
+            restart();
           }
         else
           TRACEPRINTF (t, 1,
@@ -460,7 +438,7 @@ EIBNetIPTunnel::read_cb (EIBNetIPPacket *p1)
         mod = 0;
         sock->recvall = 0;
         TRACEPRINTF (t, 1, "Disconnected");
-        stop();
+        restart();
         conntimeout.start(0.1,0);
         break;
       }
@@ -516,18 +494,7 @@ void EIBNetIPTunnel::conntimeout_cb(ev::timer &w UNUSED, int revents UNUSED)
       else
         {
           TRACEPRINTF (t, 1, "Disconnection because of errors");
-          EIBnet_DisconnectRequest dreq;
-          dreq.caddr = saddr;
-          dreq.channel = channel;
-
-          if (channel != -1)
-            {
-              EIBNetIPPacket p = dreq.ToPacket ();
-              sock->Send (p, caddr);
-            }
-          sock->recvall = 0;
-          mod = 0;
-          conntimeout.start(0.1,0);
+          restart();
         }
     }
   else
@@ -547,24 +514,23 @@ void EIBNetIPTunnel::conntimeout_cb(ev::timer &w UNUSED, int revents UNUSED)
 }
 
 void
-EIBNetIPTunnel::stop()
+EIBNetIPTunnel::restart()
 {
-  if (mod)
-    {
-      TRACEPRINTF (t, 1, "Disconnecting");
-      EIBnet_DisconnectRequest dreq;
-      dreq.caddr = saddr;
-      dreq.channel = channel;
+  if (mod == 0)
+    return;
+  TRACEPRINTF (t, 1, "Disconnecting");
+  EIBnet_DisconnectRequest dreq;
+  dreq.caddr = saddr;
+  dreq.channel = channel;
 
-      if (channel != -1)
-        {
-          EIBNetIPPacket p = dreq.ToPacket ();
-          sock->Send (p, caddr);
-        }
-      sock->recvall = 0;
-      mod = 0;
-      conntimeout.start(0.1,0);
+  if (channel != -1)
+    {
+      EIBNetIPPacket p = dreq.ToPacket ();
+      sock->Send (p, caddr);
     }
+  sock->recvall = 0;
+  mod = 0;
+  conntimeout.start(0.1,0);
 }
 
 void
@@ -576,7 +542,7 @@ EIBNetIPTunnel::timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
     {
       out.clear();
       TRACEPRINTF (t, 1, "Too many retransmits, disconnecting");
-      stop();
+      restart();
     }
   else
     TRACEPRINTF (t, 1, "Retry");
