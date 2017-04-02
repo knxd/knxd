@@ -63,6 +63,7 @@ DRIVER_(USBDriver,LowLevelAdapter,usb)
   bool make_EMI(LowLevelDriver* &ld);
   USBConverterInterface *usb_iface;
 
+  void sendLocal_done_cb(bool success);
 public:
   EMIVer version = vUnknown;
 
@@ -72,7 +73,7 @@ public:
   //void stop();
   void started();
   void stopped();
-  void send_Next();
+  void do_send_Next();
   bool make_EMI();
 
 };

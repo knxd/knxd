@@ -249,22 +249,6 @@ FT12serial::send_Data (CArray& l)
     trigger.send();
 }
 
-void
-FT12serial::SendReset ()
-{
-  TRACEPRINTF (t, 1, "SendReset");
-  out.resize (4);
-  out[0] = 0x10;
-  out[1] = 0x40;
-  out[2] = 0x40;
-  out[3] = 0x16;
-  sendflag = 0;
-  recvflag = 0;
-
-  if (!send_wait)
-    trigger.send();
-}
-
 size_t
 FT12serial::read_cb(uint8_t *buf, size_t len)
 {

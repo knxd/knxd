@@ -29,20 +29,51 @@ CEMIDriver::maxPacketLen()
   return 50;
 }
 
+CEMIDriver::CEMIDriver (LowLevelDriver *i, LowLevelIface* c, IniSectionPtr& s) : EMI_Common(i,c,s)
+{
+  t->setAuxName("CEMI");
+  sendLocal_done.set<CEMIDriver,&CEMIDriver::sendLocal_done_cb>(this);
+}
+CEMIDriver::CEMIDriver (LowLevelIface* c, IniSectionPtr& s) : EMI_Common(c,s)
+{
+  t->setAuxName("CEMI");
+  sendLocal_done.set<CEMIDriver,&CEMIDriver::sendLocal_done_cb>(this);
+}
 CEMIDriver::~CEMIDriver()
 {
 }
 
-void CEMIDriver::cmdEnterMonitor() {}
-void CEMIDriver::cmdLeaveMonitor() {}
-void CEMIDriver::cmdOpen() {}
-void CEMIDriver::cmdClose() {}
+void
+CEMIDriver::sendLocal_done_cb(bool success)
+{
+  if (!success || sendLocal_done_next == N_bad)
+    {
+      errored();
+      LowLevelFilter::stopped();
+    }
+  else if (sendLocal_done_next == N_down)
+    LowLevelFilter::stopped();
+  else if (sendLocal_done_next == N_up)
+    LowLevelFilter::started();
+  else if (sendLocal_done_next == N_reset)
+    EMI_Common::start();
+}
+
+void CEMIDriver::cmdEnterMonitor() { errored(); stopped(); }
+void CEMIDriver::cmdLeaveMonitor() { errored(); stopped(); }
+void CEMIDriver::cmdOpen() { LowLevelDriver::started(); }
+void CEMIDriver::cmdClose() { LowLevelDriver::stopped(); }
+
+void CEMIDriver::start()
+{
+  sendReset();
+}
 
 void CEMIDriver::sendReset()
 {
+  sendLocal_done_next = N_reset;
   const uchar t1[] = { 0x10, 0x40, 0x40, 0x16 };
-  iface->send_Local (CArray (t1, sizeof (t1)), true);
-
+  send_Local (CArray (t1, sizeof (t1)), true);
 }
 
 const uint8_t *

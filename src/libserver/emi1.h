@@ -31,15 +31,11 @@ class EMI1Driver:public EMI_Common
   void cmdClose();
   const uint8_t * getIndTypes();
   EMIVer getVersion() { return vEMI1; }
+  void sendLocal_done_cb(bool success);
+  enum { N_bad, N_up, N_down, N_open } sendLocal_done_next = N_bad;
 public:
-  EMI1Driver (LowLevelDriver * i, LowLevelIface* c, IniSectionPtr& s) : EMI_Common(i,c,s)
-    {
-      t->setAuxName("EMI1");
-    }
-  EMI1Driver (LowLevelIface* c, IniSectionPtr& s) : EMI_Common(c,s)
-    {
-      t->setAuxName("EMI1");
-    }
+  EMI1Driver (LowLevelDriver * i, LowLevelIface* c, IniSectionPtr& s);
+  EMI1Driver (LowLevelIface* c, IniSectionPtr& s);
   virtual ~EMI1Driver ();
 };
 

@@ -32,21 +32,18 @@ class CEMIDriver:public EMI_Common
   void cmdLeaveMonitor();
   void cmdOpen(); 
   void cmdClose();
+  void start(); // do sendReset
   const uint8_t * getIndTypes(); 
   EMIVer getVersion() { return vCEMI; }
 
   unsigned int maxPacketLen();
-
+  void sendLocal_done_cb(bool success);
+protected:
+  enum { N_bad, N_up, N_down, N_open, N_reset } sendLocal_done_next = N_bad;
 public:
   void sendReset() override;
-  CEMIDriver (LowLevelDriver *i, LowLevelIface* c, IniSectionPtr& s) : EMI_Common(i,c,s)
-    {
-      t->setAuxName("CEMI");
-    }
-  CEMIDriver (LowLevelIface* c, IniSectionPtr& s) : EMI_Common(c,s)
-    {
-      t->setAuxName("CEMI");
-    }
+  CEMIDriver (LowLevelDriver *i, LowLevelIface* c, IniSectionPtr& s);
+  CEMIDriver (LowLevelIface* c, IniSectionPtr& s);
   virtual ~CEMIDriver ();
 };
 

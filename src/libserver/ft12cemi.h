@@ -28,7 +28,6 @@
 /** CEMI backend */
 class FT12CEMIDriver : public CEMIDriver
 {
-  void start(); // do sendReset
   void cmdOpen(); 
 public:
   FT12CEMIDriver (LowLevelDriver * i, LowLevelIface* c, IniSectionPtr& s) : CEMIDriver(i,c,s)

@@ -23,12 +23,16 @@
 #include <errno.h>
 #include "lowlevel.h"
 
-LowLevelIface::~LowLevelIface() {}
 LowLevelAdapter::~LowLevelAdapter() {}
-
-LowLevelDriver::~LowLevelDriver()
+LowLevelDriver::~LowLevelDriver() {}
+LowLevelIface::~LowLevelIface()
 {
   local_timeout.stop();
+}
+
+LowLevelIface::LowLevelIface()
+{
+  sendLocal_done.set<LowLevelIface,&LowLevelIface::done_aborter>(this);
 }
 
 LowLevelFilter::~LowLevelFilter()
@@ -37,15 +41,19 @@ LowLevelFilter::~LowLevelFilter()
 }
 
 void
-LowLevelDriver::send_Local(CArray &d, bool raw)
+LowLevelIface::done_aborter(bool success)
+{
+  ERRORPRINTF (tr(), E_FATAL, "non-initialized send_Local callback");
+  abort();
+}
+
+void
+LowLevelIface::send_Local(CArray &d, bool raw)
 {
   assert(!is_local);
-  assert (!raw);
   is_local = true;
   local_timeout.start(0.9, 0);
   do_send_Local(d, raw);
-  while(is_local)
-    ev_run(EV_DEFAULT_ EVRUN_ONCE);
 }
 
 void
@@ -58,23 +66,24 @@ LowLevelFilter::do_send_Local(CArray &d, bool raw)
 }
 
 void
-LowLevelDriver::local_timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
+LowLevelIface::local_timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
 {
-  ERRORPRINTF (t, E_ERROR, "send_Local timed out!");
-  abort_send();
+  ERRORPRINTF (tr(), E_ERROR, "send_Local timed out!");
   is_local = false;
+  sendLocal_done(false);
 }
 
 void
-LowLevelDriver::send_Next()
+LowLevelIface::send_Next()
 {
   if (is_local)
     {
       local_timeout.stop();
       is_local = false;
+      sendLocal_done(true);
     }
   else
-    master->send_Next();
+    do_send_Next();
 }
 
 void

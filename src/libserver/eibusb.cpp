@@ -131,6 +131,7 @@ out:
 USBDriver::USBDriver (const LinkConnectPtr_& c, IniSectionPtr& s) : LowLevelAdapter (c,s)
 {
   t->setAuxName("Dr");
+  sendLocal_done.set<USBDriver,&USBDriver::sendLocal_done_cb>(this);
 }
 
 void
@@ -142,7 +143,7 @@ USBConverterInterface::send_Init()
     0x01, 0x13, 0x0a, 0x00, 0x08, 0x00, 0x02, 0x0f, 0x03, 0x00, 0x00, 0x05, 0x01
   };
   init[12] = version;
-  iface->send_Local (CArray (init, sizeof (init)));
+  send_Local (CArray (init, sizeof (init)), true);
 }
 
 void 
@@ -181,10 +182,10 @@ USBDriver::stopped()
 }
 
 void
-USBDriver::send_Next()
+USBDriver::do_send_Next()
 {
   if (version >= vEMI1 && version <= vCEMI)
-    LowLevelAdapter::send_Next();
+    BusDriver::send_Next();
 }
 
 void
@@ -193,8 +194,20 @@ USBDriver::xmit()
   const uchar ask[64] = {
     0x01, 0x13, 0x09, 0x00, 0x08, 0x00, 0x01, 0x0f, 0x01, 0x00, 0x00, 0x01
   };
-  iface->send_Local (CArray (ask, sizeof (ask)));
   timeout.start(1,0);
+  send_Local (CArray (ask, sizeof (ask)), true);
+}
+
+void
+USBDriver::sendLocal_done_cb(bool success)
+{
+  if (!success)
+    {
+      timeout.stop();
+      errored();
+    }
+  else if (version > vERROR && version < vRaw)
+    iface->started();
 }
 
 void
@@ -255,7 +268,6 @@ USBDriver::recv_Data(CArray& c)
     }
 
   TRACEPRINTF (t, 1, "Using EMI version %d", version);
-  iface->started();
   return;
 
 cont:

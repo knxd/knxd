@@ -20,6 +20,17 @@
 #include "emi1.h"
 #include "emi.h"
 
+EMI1Driver::EMI1Driver (LowLevelDriver * i, LowLevelIface* c, IniSectionPtr& s) : EMI_Common(i,c,s)
+{
+  t->setAuxName("EMI1");
+  sendLocal_done.set<EMI1Driver,&EMI1Driver::sendLocal_done_cb>(this);
+}
+EMI1Driver::EMI1Driver (LowLevelIface* c, IniSectionPtr& s) : EMI_Common(c,s)
+{
+  t->setAuxName("EMI1");
+  sendLocal_done.set<EMI1Driver,&EMI1Driver::sendLocal_done_cb>(this);
+}
+
 EMI1Driver::~EMI1Driver()
 {
 }
@@ -27,14 +38,37 @@ EMI1Driver::~EMI1Driver()
 void
 EMI1Driver::cmdEnterMonitor()
 {
+  sendLocal_done_next = N_up;
   const uchar t[] = { 0x46, 0x01, 0x00, 0x60, 0x90 };
   // pth_usleep (1000000);
   iface->send_Local (CArray (t, sizeof (t)));
 }
 
 void
+EMI1Driver::sendLocal_done_cb(bool success)
+{
+  if (!success || sendLocal_done_next == N_bad)
+    {
+      errored();
+      LowLevelFilter::stopped();
+    }
+  else if (sendLocal_done_next == N_down)
+    LowLevelFilter::stopped();
+  else if (sendLocal_done_next == N_up)
+    LowLevelFilter::started();
+  else if (sendLocal_done_next == N_open)
+    {
+      sendLocal_done_next = N_up;
+      const uchar t[] = { 0x46, 0x01, 0x00, 0x60, 0x12 };
+      iface->send_Local (CArray (t, sizeof (t)));
+    }
+
+}
+
+void
 EMI1Driver::cmdLeaveMonitor()
 {
+  sendLocal_done_next = N_down;
   uchar t[] = { 0x46, 0x01, 0x00, 0x60, 0xc0 };
   iface->send_Local (CArray (t, sizeof (t)));
   // pth_usleep (1000000);
@@ -43,15 +77,15 @@ EMI1Driver::cmdLeaveMonitor()
 void
 EMI1Driver::cmdOpen ()
 {
+  sendLocal_done_next = N_open;
   const uchar ta[] = { 0x46, 0x01, 0x01, 0x16, 0x00 }; // clear addr tab
-  const uchar t[] = { 0x46, 0x01, 0x00, 0x60, 0x12 };
   iface->send_Local (CArray (ta, sizeof (t)));
-  iface->send_Local (CArray (t, sizeof (t)));
 }
 
 void
 EMI1Driver::cmdClose ()
 {
+  sendLocal_done_next = N_down;
   uchar t[] = { 0x46, 0x01, 0x00, 0x60, 0xc0 };
   iface->send_Local (CArray (t, sizeof (t)));
 }

@@ -97,7 +97,6 @@ public:
   void stop();
 
   void send_Data (CArray& l);
-  void SendReset ();
 };
 
 #endif

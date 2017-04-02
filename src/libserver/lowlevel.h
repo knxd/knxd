@@ -68,18 +68,40 @@ class _cls : public _base
 class LowLevelIface
 {
 public:
+  LowLevelIface();
   virtual ~LowLevelIface();
 
   virtual TracePtr tr() = 0;
   virtual void started() = 0;
   virtual void stopped() = 0;
   virtual void errored() = 0;
-  virtual void send_Next() = 0;
   virtual void recv_Data(CArray& c) = 0;
+  virtual void send_Data(CArray& c) = 0;
 
   virtual void send_L_Data(LDataPtr l) = 0;
   virtual void recv_L_Data(LDataPtr l) = 0;
   virtual void recv_L_Busmonitor(LBusmonPtr l) = 0;
+
+  /** Callback for send_Local */
+  StateCallback sendLocal_done;
+  void done_aborter(bool); // catches non-initialized callbacks
+  void send_Next();
+
+  /** like send_Data but calls the sendLocal_done CB upon success */
+  void send_Local (CArray& l, bool raw = false);
+
+  /* adapters for non-lvalue calls */
+  inline void send_Local (CArray&& l, bool raw = false) { CArray lx = l; send_Local(lx, raw); }
+  inline void do_send_Local (CArray&& l, bool raw = false) { do_send_Local(l, raw); };
+  inline void send_Data (CArray&& l) { CArray lx = l; send_Data(lx); }
+
+protected:
+  bool is_local = false;
+private:
+  ev::timer local_timeout; void local_timeout_cb(ev::timer &w, int revents);
+
+  virtual void do_send_Local (CArray& l, bool raw = false) { assert(!raw); send_Data(l); };
+  virtual void do_send_Next() = 0;
 };
 
 /** Code that passes incoming packets to actual hardware */
@@ -89,11 +111,6 @@ public:
   typedef LowLevelIface* first_arg;
 
   TracePtr tr() { return t; }
-protected:
-  bool is_local = false;
-private:
-  ev::timer local_timeout; void local_timeout_cb(ev::timer &w, int revents);
-
 
 protected:
   LowLevelIface* master;
@@ -101,6 +118,8 @@ protected:
   IniSectionPtr cfg;
   /** debug output */
   TracePtr t;
+  /** Callback for send_Local */
+  StateCallback sendLocal_done;
 
 public:
   LowLevelDriver (LowLevelIface* parent, IniSectionPtr& s) : cfg(s)
@@ -108,7 +127,6 @@ public:
       t = TracePtr(new Trace(*parent->tr(),s));
       t->setAuxName("LowD");
       master = parent;
-      local_timeout.set<LowLevelDriver,&LowLevelDriver::local_timeout_cb>(this);
     }
 
   void resetMaster(LowLevelIface* parent)
@@ -125,21 +143,12 @@ public:
   void started() { master->started(); }
   void stopped() { master->stopped(); }
   void errored() { master->errored(); }
-  void send_Next();
+  void do_send_Next() { master->send_Next(); }
   void recv_L_Data(LDataPtr l) { master->recv_L_Data(std::move(l)); }
   void recv_L_Busmonitor(LBusmonPtr l) { master->recv_L_Busmonitor(std::move(l)); }
   void send_L_Data(LDataPtr l) { ERRORPRINTF (t, E_ERROR, "packet not coded: %s", l->Decode(t)); }
 
   /** sends a EMI frame asynchronous */
-  virtual void send_Data (CArray& l) = 0;
-
-  /** like send_Data but busy-waits for send_Next call */
-  void send_Local (CArray& l, bool raw = false);
-  virtual void do_send_Local (CArray& l, bool raw = false) { assert(!raw); send_Data(l); };
-
-  inline void send_Data (CArray&& l) { CArray lx = l; send_Data(lx); }
-  inline void send_Local (CArray&& l, bool raw = false) { CArray lx = l; send_Local(lx, raw); }
-  inline void do_send_Local (CArray&& l, bool raw = false) { send_Local(l, raw); };
   virtual void sendReset() {}
   virtual void recv_Data(CArray& c) { master->recv_Data(c); }
   virtual void abort_send() { ERRORPRINTF (t, E_ERROR, "cannot abort"); }
@@ -258,17 +267,13 @@ public:
   void recv_L_Data(LDataPtr l) { BusDriver::recv_L_Data(std::move(l)); }
   void recv_L_Busmonitor(LBusmonPtr l) { BusDriver::recv_L_Busmonitor(std::move(l)); }
 
-  void recv_Data(CArray& c)
-    {
-      t->TracePacket (0, "unknown data", c);
-      //LDataPtr l = EMI_to_L_Data (c, t);
-      //BusDriver::recv_L_Data(std::move(l));
-    }
+  void recv_Data(CArray& c) { t->TracePacket (0, "unknown data", c); }
+  void send_Data(CArray& c) { t->TracePacket (0, "unknown data", c); }
 
-  inline void started() { BusDriver::started(); }
-  inline void stopped() { BusDriver::stopped(); }
-  inline void errored() { BusDriver::errored(); }
-  inline void send_Next() { BusDriver::send_Next(); }
+  void started() { BusDriver::started(); }
+  void stopped() { BusDriver::stopped(); }
+  void errored() { BusDriver::errored(); }
+  void do_send_Next() { BusDriver::send_Next(); }
 };
 
 /** pointer to a functions, which creates a Low Level interface
