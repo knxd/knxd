@@ -116,17 +116,17 @@ LinkConnect::stateName()
     case L_down:
       return "down";
     case L_going_down:
-      return ">> down";
+      return ">down";
     case L_up:
       return "up";
     case L_going_up:
-      return ">> up";
+      return ">up";
     case L_error:
       return "down/error";
     case L_up_error:
       return "up/error";
     case L_going_down_error:
-      return ">> down/error";
+      return ">down/error";
     case L_wait_retry:
       return "error/retry";
     default:
