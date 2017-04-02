@@ -122,10 +122,15 @@ LinkConnect::stateName()
     case L_going_up:
       return ">> up";
     case L_error:
-      return "error";
+      return "down/error";
+    case L_up_error:
+      return "up/error";
+    case L_going_down_error:
+      return ">> down/error";
     case L_wait_retry:
-      return "retry";
+      return "error/retry";
     default:
+      abort();
       return "?!?";
     }
 }
@@ -161,7 +166,7 @@ LinkConnect::setState(LConnState new_state)
       switch(new_state)
         {
         case L_error:
-          state = L_up_error;
+          state = L_going_down_error;
           break;
         case L_down:
           break;
@@ -239,6 +244,9 @@ LinkConnect::setState(LConnState new_state)
         case L_down:
           goto retry;
         case L_error:
+          break;
+        case L_going_down:
+          state = L_going_down_error;
           break;
         default: goto inval;
         } break;

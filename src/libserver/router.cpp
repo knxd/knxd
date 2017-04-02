@@ -398,7 +398,7 @@ Router::state_trigger_cb (ev::async &w UNUSED, int revents UNUSED)
   while (!linkChanges.isempty())
     {
       LinkConnectPtr l = linkChanges.get();
-      if (!want_up && l->state != L_down)
+      if (!want_up && l->state != L_down && l->state < L_wait_retry)
         l->setState(L_going_down); // again, for good measure
     }
 
@@ -409,7 +409,7 @@ Router::state_trigger_cb (ev::async &w UNUSED, int revents UNUSED)
 
       if (ii->transient)
         {
-          if (!want_up && lcs != L_down)
+          if (!want_up && lcs != L_down && lcs != L_error)
             {
               ii->setState(L_going_down);
               n_going ++;
