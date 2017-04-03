@@ -196,6 +196,9 @@ LinkConnect::setState(LConnState new_state)
         case L_going_down:
           stop();
           break;
+        case L_down:
+          state = L_error;
+          break;
         case L_error:
           state = L_up_error;
           break;
@@ -219,6 +222,9 @@ LinkConnect::setState(LConnState new_state)
         case L_wait_retry:
           goto retry;
         case L_error:
+          break;
+        case L_going_down:
+          state = L_error;
           break;
         case L_down:
           goto retry;
