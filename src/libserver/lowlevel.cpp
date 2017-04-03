@@ -33,6 +33,7 @@ LowLevelIface::~LowLevelIface()
 LowLevelIface::LowLevelIface()
 {
   sendLocal_done.set<LowLevelIface,&LowLevelIface::done_aborter>(this);
+  local_timeout.set<LowLevelIface,&LowLevelIface::local_timeout_cb>(this);
 }
 
 LowLevelFilter::~LowLevelFilter()
