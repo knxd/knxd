@@ -32,7 +32,7 @@ class CEMIDriver:public EMI_Common
   void cmdLeaveMonitor();
   void cmdOpen(); 
   void cmdClose();
-  void start(); // do sendReset
+  void started(); // do sendReset
   const uint8_t * getIndTypes(); 
   EMIVer getVersion() { return vCEMI; }
 

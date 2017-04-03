@@ -56,7 +56,7 @@ CEMIDriver::sendLocal_done_cb(bool success)
   else if (sendLocal_done_next == N_up)
     LowLevelFilter::started();
   else if (sendLocal_done_next == N_reset)
-    EMI_Common::start();
+    EMI_Common::started();
 }
 
 void CEMIDriver::cmdEnterMonitor() { errored(); stopped(); }
@@ -64,7 +64,7 @@ void CEMIDriver::cmdLeaveMonitor() { errored(); stopped(); }
 void CEMIDriver::cmdOpen() { LowLevelDriver::started(); }
 void CEMIDriver::cmdClose() { LowLevelDriver::stopped(); }
 
-void CEMIDriver::start()
+void CEMIDriver::started()
 {
   sendReset();
 }
