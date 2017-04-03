@@ -218,32 +218,46 @@ FT12serial::~FT12serial ()
 void
 FT12serial::send_Data (CArray& l)
 {
+  do_send_Local (l, 0);
+}
+
+void
+FT12serial::do_send_Local (CArray& l, int raw)
+{
   if(out.size() > 0)
     {
       ERRORPRINTF (t, E_ERROR | 36, "Send while data");
       return;
     }
-  uchar c;
-  unsigned i;
-  t->TracePacket (1, "Send", l);
+  if (!raw)
+    {
+      uchar c;
+      unsigned i;
+      t->TracePacket (1, "Send", l);
 
-  out.resize (l.size() + 7);
-  out[0] = 0x68;
-  out[1] = l.size() + 1;
-  out[2] = l.size() + 1;
-  out[3] = 0x68;
-  if (sendflag)
-    out[4] = 0x53;
+      out.resize (l.size() + 7);
+      out[0] = 0x68;
+      out[1] = l.size() + 1;
+      out[2] = l.size() + 1;
+      out[3] = 0x68;
+      if (sendflag)
+        out[4] = 0x53;
+      else
+        out[4] = 0x73;
+      sendflag = !sendflag;
+
+      out.setpart (l.data(), 5, l.size());
+      c = out[4];
+      for (i = 0; i < l.size(); i++)
+        c += l[i];
+      out[out.size() - 2] = c;
+      out[out.size() - 1] = 0x16;
+    }
   else
-    out[4] = 0x73;
-  sendflag = !sendflag;
-
-  out.setpart (l.data(), 5, l.size());
-  c = out[4];
-  for (i = 0; i < l.size(); i++)
-    c += l[i];
-  out[out.size() - 2] = c;
-  out[out.size() - 1] = 0x16;
+    {
+      assert (raw == 1);
+      out = l;
+    }
 
   if (!send_wait)
     trigger.send();

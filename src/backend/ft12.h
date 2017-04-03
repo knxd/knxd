@@ -97,6 +97,7 @@ public:
   void stop();
 
   void send_Data (CArray& l);
+  void do_send_Local (CArray& l, int raw = 0);
 };
 
 #endif

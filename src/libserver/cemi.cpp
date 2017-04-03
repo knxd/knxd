@@ -73,7 +73,7 @@ void CEMIDriver::sendReset()
 {
   sendLocal_done_next = N_reset;
   const uchar t1[] = { 0x10, 0x40, 0x40, 0x16 };
-  send_Local (CArray (t1, sizeof (t1)), true);
+  send_Local (CArray (t1, sizeof (t1)), 2);
 }
 
 const uint8_t *
