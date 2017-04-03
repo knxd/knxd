@@ -50,4 +50,4 @@ endif
 
 libeibstack_a_SOURCES =$(COMMON) $(CORE) $(PDUs) $(MANAGEMENT) $(NETIP) $(FRONT_C) $(CACHE) $(BUSMON)
 
-libserver_a_SOURCES = server.h server.cpp localserver.h localserver.cpp inetserver.h inetserver.cpp $(SYSTEMD_SERVER) $(EIBNETIP) $(EMI) $(USB) llserial.h llserial.cpp
+libserver_a_SOURCES = server.h server.cpp localserver.h localserver.cpp inetserver.h inetserver.cpp $(SYSTEMD_SERVER) $(EIBNETIP) $(EMI) $(USB) llserial.h llserial.cpp lltcp.h lltcp.cpp
