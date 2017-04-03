@@ -143,7 +143,7 @@ USBConverterInterface::send_Init()
     0x01, 0x13, 0x0a, 0x00, 0x08, 0x00, 0x02, 0x0f, 0x03, 0x00, 0x00, 0x05, 0x01
   };
   init[12] = version;
-  send_Local (CArray (init, sizeof (init)), true);
+  send_Local (CArray (init, sizeof (init)), 1);
 }
 
 void 
@@ -195,7 +195,7 @@ USBDriver::xmit()
     0x01, 0x13, 0x09, 0x00, 0x08, 0x00, 0x01, 0x0f, 0x01, 0x00, 0x00, 0x01
   };
   timeout.start(1,0);
-  send_Local (CArray (ask, sizeof (ask)), true);
+  send_Local (CArray (ask, sizeof (ask)), 1);
 }
 
 void

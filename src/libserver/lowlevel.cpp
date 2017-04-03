@@ -49,7 +49,7 @@ LowLevelIface::done_aborter(bool success)
 }
 
 void
-LowLevelIface::send_Local(CArray &d, bool raw)
+LowLevelIface::send_Local(CArray &d, int raw)
 {
   assert(!is_local);
   is_local = true;
@@ -58,10 +58,10 @@ LowLevelIface::send_Local(CArray &d, bool raw)
 }
 
 void
-LowLevelFilter::do_send_Local(CArray &d, bool raw)
+LowLevelFilter::do_send_Local(CArray &d, int raw)
 {
   if (raw)
-    iface->send_Data(d);
+    iface->do_send_Local(d, raw-1);
   else
     send_Data(d);
 }

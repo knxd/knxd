@@ -88,11 +88,12 @@ public:
   void send_Next();
 
   /** like send_Data but calls the sendLocal_done CB upon success */
-  void send_Local (CArray& l, bool raw = false);
+  void send_Local (CArray& l, int raw = 0);
+  virtual void do_send_Local (CArray& l, int raw = 0) { assert(!raw); send_Data(l); };
 
   /* adapters for non-lvalue calls */
-  inline void send_Local (CArray&& l, bool raw = false) { CArray lx = l; send_Local(lx, raw); }
-  inline void do_send_Local (CArray&& l, bool raw = false) { do_send_Local(l, raw); };
+  inline void send_Local (CArray&& l, int raw = 0) { CArray lx = l; send_Local(lx, raw); }
+  inline void do_send_Local (CArray&& l, int raw = 0) { do_send_Local(l, raw); };
   inline void send_Data (CArray&& l) { CArray lx = l; send_Data(lx); }
 
 protected:
@@ -100,7 +101,6 @@ protected:
 private:
   ev::timer local_timeout; void local_timeout_cb(ev::timer &w, int revents);
 
-  virtual void do_send_Local (CArray& l, bool raw = false) { assert(!raw); send_Data(l); };
   virtual void do_send_Next() = 0;
 };
 
@@ -210,7 +210,7 @@ public:
   virtual void send_Data(CArray& c) { iface->send_Data(c); }
   virtual void abort_send() { iface->abort_send(); }
   virtual void send_L_Data(LDataPtr l) { iface->send_L_Data(std::move(l)); }
-  virtual void do_send_Local (CArray& l, bool raw = false);
+  virtual void do_send_Local (CArray& l, int raw = 0);
 };
 
 /** Base class for accepting a high-level KNX packet and forwarding it to
