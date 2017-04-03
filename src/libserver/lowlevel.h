@@ -118,8 +118,6 @@ protected:
   IniSectionPtr cfg;
   /** debug output */
   TracePtr t;
-  /** Callback for send_Local */
-  StateCallback sendLocal_done;
 
 public:
   LowLevelDriver (LowLevelIface* parent, IniSectionPtr& s) : cfg(s)
