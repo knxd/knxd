@@ -27,6 +27,23 @@
 #include "emi_common.h"
 #include "lowlatency.h"
 #include "link.h"
+#include "cemi.h"
+
+/** FT12-specific CEMI backend (separate commands for setup) */
+class FT12CEMIDriver : public CEMIDriver
+{
+  void cmdOpen(); 
+public:
+  FT12CEMIDriver (LowLevelDriver * i, LowLevelIface* c, IniSectionPtr& s) : CEMIDriver(i,c,s)
+    {
+      t->setAuxName("ft12cemi");
+    }
+  FT12CEMIDriver (LowLevelIface* c, IniSectionPtr& s) : CEMIDriver(c,s)
+    {
+      t->setAuxName("ft12cemi");
+    }
+  virtual ~FT12CEMIDriver ();
+};
 
 /** FT1.2 lowlevel driver*/
 DRIVER_(FT12Driver,LowLevelAdapter,ft12)

@@ -22,9 +22,11 @@
 #include <errno.h>
 
 #include "ft12.h"
+
+#include "emi.h"
 #include "emi1.h"
 #include "emi2.h"
-#include "ft12cemi.h"
+#include "cemi2.h"
 
 FT12Driver::~FT12Driver() {}
 FT12cemiDriver::~FT12cemiDriver() {}
@@ -402,3 +404,19 @@ FT12serial::trigger_cb (ev::async &w UNUSED, int revents UNUSED)
   send_wait = true;
   timer.start(0.2, 0);
 }
+
+
+
+FT12CEMIDriver::~FT12CEMIDriver()
+{
+}
+
+void
+FT12CEMIDriver::cmdOpen()
+{
+  sendLocal_done_next = N_up;
+  const uchar t1[] = { 0xF6, 0x00, 0x08, 0x01, 0x34, 0x10, 0x01, 0x00 };
+  iface->send_Local (CArray (t1, sizeof (t1)));
+}
+
+
