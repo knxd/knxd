@@ -26,7 +26,7 @@
 #include "emi.h"
 #include "emi1.h"
 #include "emi2.h"
-#include "cemi2.h"
+#include "cemi.h"
 
 FT12Driver::~FT12Driver() {}
 FT12cemiDriver::~FT12cemiDriver() {}

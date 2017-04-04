@@ -91,10 +91,15 @@ public:
   void send_Local (CArray& l, int raw = 0);
   virtual void do_send_Local (CArray& l, int raw = 0) { assert(!raw); send_Data(l); };
 
-  /* adapters for non-lvalue calls */
-  inline void send_Local (CArray&& l, int raw = 0) { CArray lx = l; send_Local(lx, raw); }
+  /* adapters for non-lvalue calls et al. */
   inline void do_send_Local (CArray&& l, int raw = 0) { do_send_Local(l, raw); };
+  inline void send_Local (CArray&& l, int raw = 0) { CArray lx = l; send_Local(lx, raw); }
   inline void send_Data (CArray&& l) { CArray lx = l; send_Data(lx); }
+  inline void recv_Data (CArray&& l) { CArray lx = l; recv_Data(lx); }
+  inline void send_Data (unsigned char c) { CArray ca(&c,1); send_Data(ca); }
+  inline void recv_Data (unsigned char c) { CArray ca(&c,1); recv_Data(ca); }
+  inline void send_Data (unsigned char *c, size_t len) { CArray ca(c,len); send_Data(ca); }
+  inline void recv_Data (unsigned char *c, size_t len) { CArray ca(c,len); send_Data(ca); }
 
 protected:
   bool is_local = false;

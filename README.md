@@ -25,6 +25,12 @@ Check [the Wiki page](https://github.com/knxd/knxd/wiki) for other version(s) to
 
 * 0.14
 
+  * Configuration
+
+    * There are no longer separate --enable-tpuarts and --enable-tpuarttcp
+      options. Instead, you control both with --enable-tpuart. (This is the
+      default anyway.)
+
   * Configuration file
 
     * includes a translator (knxd\_args) from options to config file
@@ -36,6 +42,12 @@ Check [the Wiki page](https://github.com/knxd/knxd/wiki) for other version(s) to
     * You may now use global filters.
 
     * USB handling updated
+
+    * Most device-specific drivers are now split into a top part which
+      translates KNX packets to wire format (usually CEMI), and a bottom
+      part which transmits/receives the actual data. This enables extensive
+      code sharing; knxd also can use TCP connections instead of actual
+      serial devices.
 
   * Startup sequencing fixed: KNX packets will not be routed
     until all interfaces are ready.

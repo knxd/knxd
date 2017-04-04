@@ -230,6 +230,7 @@ void driver_argsv(const char *arg, char *ap, ...)
 {
   va_list apl;
   va_start(apl, ap);
+  (*ini[link])["driver"] = arg;
 
   while(ap)
     {
@@ -260,7 +261,11 @@ void driver_args(const char *arg, char *ap)
   if(!strcmp(arg,"ip"))
     driver_argsv(arg,ap, "multicast-address","port","interface", NULL);
   else if(!strcmp(arg,"tpuarttcp"))
-    driver_argsv(arg,ap, "!ip-address","!dest-port", NULL);
+    {
+      if (!strcmp(arg,"tpuarttcp"))
+        arg = "tpuart";
+      driver_argsv(arg,ap, "!ip-address","!dest-port", NULL);
+    }
   else if(!strcmp(arg,"usb"))
     driver_argsv(arg,ap, "bus","device","config","interface", NULL);
   else if(!strcmp(arg,"ipt"))
@@ -268,11 +273,14 @@ void driver_args(const char *arg, char *ap)
   else if(!strcmp(arg,"iptn"))
     {
       driver_argsv("ipt",ap, "!ip-address","dest-port","src-port","nat-ip","data-port", NULL);
-      (*ini[link])["driver"] = "ipt";
       (*ini[link])["nat"] = "true";
     }
   else if(!strcmp(arg,"ft12") || !strcmp(arg,"ncn5120") || !strcmp(arg,"tpuarts") || !strcmp(arg,"ft12cemi"))
-    driver_argsv(arg,ap, "!device","baudrate", NULL);
+    {
+      if (!strcmp(arg,"tpuarts"))
+        arg = "tpuart";
+      driver_argsv(arg,ap, "!device","baudrate", NULL);
+    }
   else if(!strcmp(arg,"dummy"))
     driver_argsv(arg,ap, NULL);
   else
@@ -604,9 +612,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
         char *ap = strchr(arg,':');
         if (ap)
           *ap++ = '\0';
-        (*ini[link])["driver"] = arg;
-        if (ap)
-          driver_args(arg,ap);
+        driver_args(arg,ap);
         arguments->stack(link);
         break;
       }

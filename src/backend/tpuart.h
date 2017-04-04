@@ -23,6 +23,9 @@
 #include "eibnetip.h"
 #include "link.h"
 #include "lpdu.h"
+#include "lowlevel.h"
+#include "llserial.h"
+#include "lltcp.h"
 
 // also update SN() in tpuart.cpp
 enum TSTATE {
@@ -42,31 +45,50 @@ enum TSTATE {
   T_busmonitor = 30,
 };
 
-/** TPUART user mode driver */
-class TPUART_Base:public BusDriver
+class TPUARTserial : public LLserial
 {
+public:
+  TPUARTserial(LowLevelIface* a, IniSectionPtr& b) : LLserial(a,b) { t->setAuxName("TPU_ser"); }
+  virtual ~TPUARTserial();
 protected:
-  /** device connection */
-  int fd = -1;
-  /** queueing */
-  SendBuf sendbuf;
-  RecvBuf recvbuf;
-  size_t read_cb(uint8_t *buf, size_t len);
-  void error_cb();
+  void termios_settings (struct termios &t1)
+    {
+      t1.c_cflag = CS8 | CLOCAL | CREAD | PARENB;
+      t1.c_iflag = IGNBRK | INPCK | ISIG;
+      t1.c_oflag = 0;
+      t1.c_lflag = 0;
+      t1.c_cc[VTIME] = 1;
+      t1.c_cc[VMIN] = 0;
+    }
+  unsigned int default_baudrate() { return 19200; }
+};
+
+
+DRIVER_(TPUART,LowLevelAdapter,tpuart)
+{
+public:
+  TPUART(const LinkConnectPtr_& c, IniSectionPtr& s) : LowLevelAdapter(c,s) {}
+
+  virtual ~TPUART();
+
+  bool setup();
+
+protected:
+  void recv_Data(CArray &c);
 
   bool ackallgroup;
   bool ackallindividual;
 
   /** process a received frame */
   virtual void RecvLPDU (const uchar * data, int len);
-  void process_read(bool timed_out);
 
-  void setup_buffers();
   virtual void send_Next();
+  void do_send_Next();
   void send_again();
   void in_check();
 
-  virtual void dev_timer() = 0;
+  bool next_free = true; // OK to send next packet
+  bool send_wait = false; // waiting for OK to send next packet
 
   /** main loop state */
   ev::timer timer; void timer_cb(ev::timer &w, int revents);
@@ -86,13 +108,17 @@ protected:
   virtual void setstate(enum TSTATE new_state);
 
 public:
-  TPUART_Base (const LinkConnectPtr_& c, IniSectionPtr& s);
-  virtual ~TPUART_Base ();
-  bool setup();
   void start();
-  void stop();
+  void stopped();
 
   void send_L_Data (LDataPtr l);
+
+protected:
+  virtual LLserial * create_serial(LowLevelIface* parent, IniSectionPtr& s)
+  {
+    return new TPUARTserial(parent,s);
+  }
+
 };
 
 #endif

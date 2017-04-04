@@ -17,37 +17,24 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include "lowlatency.h"
+#ifndef LOW_LATENCY_H
+#define LOW_LATENCY_H
 
-#include <sys/ioctl.h>
-#include <string.h> // memcpy
+#include "config.h"
 
-void
-set_low_latency (int fd, low_latency_save * save)
-{
-  struct termios opts;
-
+#include <termios.h>
 #ifdef HAVE_LINUX_LOWLATENCY
-  struct serial_struct snew;
-  ioctl (fd, TIOCGSERIAL, &save->ser);
-  memcpy(&snew, &save->ser, sizeof(snew));
-  snew.flags |= ASYNC_LOW_LATENCY;
-  ioctl (fd, TIOCSSERIAL, &snew);
+#include <linux/serial.h>
 #endif
 
-  tcgetattr(fd, &save->term);
-  memcpy(&opts, &save->term, sizeof(opts));
-  opts.c_cc[VTIME] = 1;
-  opts.c_cc[VMIN] = 1;
-  tcsetattr(fd, TCSANOW, &opts);
-}
-
-void
-restore_low_latency (int fd, low_latency_save * save)
-{
+typedef struct {
+	struct termios term;
 #ifdef HAVE_LINUX_LOWLATENCY
-  ioctl (fd, TIOCSSERIAL, &save->ser);
+	serial_struct ser;
 #endif
-  ioctl (fd, TCSANOW, &save->term);
-}
+} low_latency_save;
 
+bool set_low_latency (int fd, low_latency_save * save);
+void restore_low_latency (int fd, low_latency_save * save);
+
+#endif // LOW_LATENCY_H

@@ -21,14 +21,35 @@
 #define SNCN5120_SERIAL_H
 #include <termios.h>
 #include "lowlatency.h"
-#include "tpuartserial.h"
 
-/** TPUART user mode driver */
-DRIVER_(NCN5120Serial,TPUARTSerial,ncn5120)
+#define NO_MAP
+#include "tpuart.h"
+
+class NCN5120serial : public TPUARTserial
 {
 public:
-  NCN5120Serial (const LinkConnectPtr_& c, IniSectionPtr& s);
-  virtual ~NCN5120Serial ();
+  NCN5120serial(LowLevelIface* a, IniSectionPtr& b) : TPUARTserial(a,b) { t->setAuxName("NCN_ser"); }
+  virtual ~NCN5120serial ();
+
+protected:
+  unsigned int default_baudrate() { return 38400; }
+  void termios_settings(struct termios &t1)
+    {
+      t1.c_cflag = CS8 | CLOCAL | CREAD;
+      t1.c_iflag = IGNBRK | INPCK | ISIG;
+      t1.c_oflag = 0;
+      t1.c_lflag = 0;
+      t1.c_cc[VTIME] = 1;
+      t1.c_cc[VMIN] = 0;
+    }
+};
+
+/** TPUART-derived driver */
+DRIVER_(NCN5120,TPUART,ncn5120)
+{
+public:
+  NCN5120 (const LinkConnectPtr_& c, IniSectionPtr& s) : TPUART(c,s) { t->setAuxName("NCN"); } ;
+  virtual ~NCN5120 ();
 
 protected:
   void termios_settings(struct termios &t);
@@ -36,6 +57,10 @@ protected:
   void setstate(enum TSTATE state);
 
   void RecvLPDU (const uchar * data, int len);
+  virtual LLserial * create_serial(LowLevelIface* parent, IniSectionPtr& s)
+    {
+      return new NCN5120serial(parent,s);
+    }
 };
 
 #endif

@@ -17,36 +17,41 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifndef TPUART_SERIAL_H
-#define TPUART_SERIAL_H
-#include <termios.h>
 #include "lowlatency.h"
-#include "tpuart.h"
 
-/** TPUART user mode driver */
-DRIVER_(TPUARTSerial,TPUART_Base,tpuarts)
+#include <sys/ioctl.h>
+#include <string.h> // memcpy
+
+bool
+set_low_latency (int fd, low_latency_save * save)
 {
-  /** old serial config */
-  low_latency_save sold;
-  /** old termios state */
-  struct termios old;
-  bool dischreset;
+  struct termios opts;
 
-  void dev_timer();
-  virtual void termios_settings (struct termios &t);
-  virtual unsigned int default_baudrate () { return 19200; }
-
-  std::string dev;
-  int baudrate;
-
-protected:
-  void setstate(enum TSTATE state);
-
-public:
-  TPUARTSerial (const LinkConnectPtr_& c, IniSectionPtr& s);
-  virtual ~TPUARTSerial();
-
-  bool setup();
-};
-
+#ifdef HAVE_LINUX_LOWLATENCY
+  struct serial_struct snew;
+  ioctl (fd, TIOCGSERIAL, &save->ser);
+  memcpy(&snew, &save->ser, sizeof(snew));
+  snew.flags |= ASYNC_LOW_LATENCY;
+  if(ioctl (fd, TIOCSSERIAL, &snew) < 0)
+    return false;
 #endif
+
+  tcgetattr(fd, &save->term);
+  memcpy(&opts, &save->term, sizeof(opts));
+  opts.c_cc[VTIME] = 1;
+  opts.c_cc[VMIN] = 1;
+  if (tcsetattr(fd, TCSANOW, &opts) < 0)
+    return false;
+
+  return true;
+}
+
+void
+restore_low_latency (int fd, low_latency_save * save)
+{
+#ifdef HAVE_LINUX_LOWLATENCY
+  ioctl (fd, TIOCSSERIAL, &save->ser);
+#endif
+  ioctl (fd, TCSANOW, &save->term);
+}
+

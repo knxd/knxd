@@ -26,45 +26,11 @@
 #include <sys/ioctl.h>
 #include <termios.h>
 #ifdef HAVE_LINUX_LOWLATENCY
-#include <linux/serial.h>
 #include <sys/ioctl.h>
 #include <string.h> // memcpy
 #endif
 
 #include "llserial.h"
-
-static inline bool
-set_low_latency (int fd, low_latency_save * save)
-{
-  struct termios opts;
-
-#ifdef HAVE_LINUX_LOWLATENCY
-  struct serial_struct snew;
-  ioctl (fd, TIOCGSERIAL, &save->ser);
-  memcpy(&snew, &save->ser, sizeof(snew));
-  snew.flags |= ASYNC_LOW_LATENCY;
-  if (ioctl (fd, TIOCSSERIAL, &snew) < 0)
-    return false;
-#endif
-
-  tcgetattr(fd, &save->term);
-  memcpy(&opts, &save->term, sizeof(opts));
-  opts.c_cc[VTIME] = 1;
-  opts.c_cc[VMIN] = 1;
-  if(tcsetattr(fd, TCSANOW, &opts) < 0)
-    return false;
-
-  return true;
-}
-
-static inline void
-restore_low_latency (int fd, low_latency_save * save)
-{
-#ifdef HAVE_LINUX_LOWLATENCY
-  ioctl (fd, TIOCSSERIAL, &save->ser);
-#endif
-  ioctl (fd, TCSANOW, &save->term);
-}
 
 static speed_t getbaud(int baud) {
   switch(baud)

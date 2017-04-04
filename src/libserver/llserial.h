@@ -23,15 +23,9 @@
 #include <termios.h>
 #include "iobuf.h"
 #include "lowlevel.h"
+#include "lowlatency.h"
 
 // also update SN() in tpuart.cpp
-
-struct low_latency_save {
-  struct termios term;
-#ifdef HAVE_LINUX_LOWLATENCY
-  serial_struct ser;
-#endif
-};
 
 /** TPUART user mode driver */
 class LLserial:public FDdriver
