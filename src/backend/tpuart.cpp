@@ -201,7 +201,7 @@ TPUART::send_again()
 }
 
 void
-TPUART::start()
+TPUART::started()
 {
   setstate(T_new);
   setstate(T_dev_start);
@@ -283,7 +283,12 @@ TPUART::timer_cb(ev::timer &w UNUSED, int revents UNUSED)
       break;
 
     case T_in_getstate:
-      if (retry > 5) {} // TODO error
+      if (retry > 5)
+        {
+          errored();
+          setstate(T_new);
+          return;
+        }
       setstate(state);
       break;
 
@@ -500,7 +505,7 @@ TPUART::setstate(enum TSTATE new_state)
 
   if (state < T_is_online && new_state >= T_is_online)
     {
-      started();
+      LowLevelAdapter::started();
       if (monitor)
         new_state = T_busmonitor;
       else if (new_state < T_busmonitor)

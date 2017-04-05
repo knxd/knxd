@@ -89,7 +89,7 @@ protected:
   virtual void setstate(enum TSTATE new_state);
 
 public:
-  void start();
+  void started();
   void stopped();
 
   void send_L_Data (LDataPtr l);
