@@ -87,8 +87,10 @@ protected:
   void send_again();
   void in_check();
 
-  bool next_free = true; // OK to send next packet
-  bool send_wait = false; // waiting for OK to send next packet
+  /** OK to send next packet */
+  bool next_free = true;
+  /** waiting for OK to send next packet */
+  bool send_wait = false;
 
   /** main loop state */
   ev::timer timer; void timer_cb(ev::timer &w, int revents);
