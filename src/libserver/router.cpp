@@ -430,9 +430,11 @@ Router::state_trigger_cb (ev::async &w UNUSED, int revents UNUSED)
         case L_up:
           n_up++;
           break;
-        case L_wait_retry:
         case L_up_error:
         case L_going_down_error:
+          ii->stop();
+          // FALL THRU
+        case L_wait_retry:
           if (ii->may_fail)
             continue;
         default:

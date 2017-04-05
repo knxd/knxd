@@ -197,8 +197,7 @@ LinkConnect::setState(LConnState new_state)
           stop();
           break;
         case L_down:
-          state = L_error;
-          break;
+          goto retry;
         case L_error:
           state = L_up_error;
           break;
