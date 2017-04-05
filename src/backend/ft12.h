@@ -34,11 +34,7 @@ class FT12CEMIDriver : public CEMIDriver
 {
   void cmdOpen(); 
 public:
-  FT12CEMIDriver (LowLevelDriver * i, LowLevelIface* c, IniSectionPtr& s) : CEMIDriver(i,c,s)
-    {
-      t->setAuxName("ft12cemi");
-    }
-  FT12CEMIDriver (LowLevelIface* c, IniSectionPtr& s) : CEMIDriver(c,s)
+  FT12CEMIDriver (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver * i = nullptr) : CEMIDriver(c,s,i)
     {
       t->setAuxName("ft12cemi");
     }
@@ -102,7 +98,7 @@ class FT12wrap : public LowLevelFilter
   void send_Next ();
 
 public:
-  FT12wrap (LowLevelIface* parent, IniSectionPtr& s);
+  FT12wrap (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i = nullptr);
   virtual ~FT12wrap ();
   void start ();
   void stop ();

@@ -310,6 +310,11 @@ public:
   /** packet buffer is empty */
   virtual void send_Next () = 0;
 
+  /** ask the system whether it knows this indiv address */
+  virtual bool checkSysAddress(eibaddr_t addr) = 0;
+  /** ask the system whether it knows this group address */
+  virtual bool checkSysGroupAddress(eibaddr_t addr) = 0;
+
   /** Call for drivers to find a filter, if it exists */
   virtual FilterPtr findFilter(std::string name UNUSED, bool skip_me UNUSED = false) { return nullptr; }
 
@@ -359,6 +364,8 @@ public:
   virtual bool checkGroupAddress (eibaddr_t addr) { return send->checkGroupAddress(addr); }
   virtual bool hasAddress (eibaddr_t addr) { return send->hasAddress(addr); }
   virtual void addAddress (eibaddr_t addr) { send->addAddress(addr); }
+  virtual bool checkSysAddress(eibaddr_t addr);
+  virtual bool checkSysGroupAddress(eibaddr_t addr);
 };
 
 /** The link connection state tells what the link's state is.
@@ -461,6 +468,8 @@ public:
   virtual void errored();
   virtual void recv_L_Data (LDataPtr l); // { l3.recv_L_Data(std::move(l), this); }
   virtual void recv_L_Busmonitor (LBusmonPtr l); // { l3.recv_L_Busmonitor(std::move(l), this); }
+  virtual bool checkSysAddress(eibaddr_t addr);
+  virtual bool checkSysGroupAddress(eibaddr_t addr);
   virtual void send_Next ();
 };
 
@@ -575,6 +584,8 @@ protected:
 public:
   virtual void recv_L_Data (LDataPtr l); // recv->recv_L_Data(std::move(l));
   virtual void recv_L_Busmonitor (LBusmonPtr l); // recv->recv_L_Busmonitor(std::move(l));
+  virtual bool checkSysAddress(eibaddr_t addr);
+  virtual bool checkSysGroupAddress(eibaddr_t addr);
   virtual void send_Next ();
   virtual void started(); // recv->started()
   virtual void stopped(); // recv->stopped()
@@ -658,6 +669,8 @@ protected:
 public:
   virtual void recv_L_Data (LDataPtr l);
   virtual void recv_L_Busmonitor (LBusmonPtr l);
+  virtual bool checkSysAddress(eibaddr_t addr);
+  virtual bool checkSysGroupAddress(eibaddr_t addr);
   virtual void send_Next ();
   virtual void started();
   virtual void stopped();

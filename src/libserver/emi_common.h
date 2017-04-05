@@ -71,8 +71,7 @@ private:
   void read_cb(CArray *p);
 
 public:
-  EMI_Common (LowLevelIface* c, IniSectionPtr& s);
-  EMI_Common (LowLevelDriver * i, LowLevelIface* c, IniSectionPtr& s);
+  EMI_Common (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i = nullptr);
   virtual ~EMI_Common ();
   bool setup();
   void started();

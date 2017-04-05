@@ -46,16 +46,11 @@ cfgEMIVersion(IniSectionPtr& s)
     return vERROR;
 }
 
-EMI_Common::EMI_Common (LowLevelDriver * i, LowLevelIface* c, IniSectionPtr& s) : LowLevelFilter(i,c,s)
+EMI_Common::EMI_Common (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i) : LowLevelFilter(c,s,i)
 {
   timeout.set<EMI_Common, &EMI_Common::timeout_cb>(this);
   t->setAuxName("EMI_common");
   iface = i;
-}
-
-EMI_Common::EMI_Common (LowLevelIface* c, IniSectionPtr& s) : LowLevelFilter(c,s)
-{
-  t->setAuxName("EMIcommon");
 }
 
 bool

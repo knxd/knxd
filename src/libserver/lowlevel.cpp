@@ -23,8 +23,13 @@
 #include <errno.h>
 #include "lowlevel.h"
 
-LowLevelAdapter::~LowLevelAdapter() {}
+LowLevelAdapter::~LowLevelAdapter()
+{
+  delete iface;
+}
+
 LowLevelDriver::~LowLevelDriver() {}
+
 LowLevelIface::~LowLevelIface()
 {
   local_timeout.stop();
@@ -161,6 +166,7 @@ void
 FDdriver::start()
 {
   setup_buffers();
+  LowLevelDriver::start();
 }
 
 void

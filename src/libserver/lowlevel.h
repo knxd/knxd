@@ -42,8 +42,10 @@
  */
 typedef void (*packet_cb_t)(void *data, CArray *p);
 
+#define NO_MAP_LL
+
 class LowLevelDriver;
-#ifdef NO_MAP
+#if defined(NO_MAP) || defined(NO_MAP_LL)
 #define LOWLEVEL(_cls,_name) \
 class _cls : public LowLevelDriver
 #define LOWLEVEL_(_cls,_base,_name) \
@@ -101,6 +103,12 @@ public:
   inline void send_Data (unsigned char *c, size_t len) { CArray ca(c,len); send_Data(ca); }
   inline void recv_Data (unsigned char *c, size_t len) { CArray ca(c,len); send_Data(ca); }
 
+  virtual FilterPtr findFilter(std::string name, bool skip_me = false) = 0;
+  virtual bool checkAddress(eibaddr_t addr) = 0;
+  virtual bool checkGroupAddress(eibaddr_t addr) = 0;
+  virtual bool checkSysAddress(eibaddr_t addr) = 0;
+  virtual bool checkSysGroupAddress(eibaddr_t addr) = 0;
+
 protected:
   bool is_local = false;
 private:
@@ -142,6 +150,26 @@ public:
   virtual bool setup () { return true; }
   virtual void start () { started(); }
   virtual void stop () { stopped(); }
+  virtual FilterPtr findFilter(std::string name, bool skip_me = false)
+    {
+      return master->findFilter(name,skip_me);
+    }
+  virtual bool checkAddress(eibaddr_t addr)
+    {
+      return master->checkAddress(addr);
+    }
+  virtual bool checkGroupAddress(eibaddr_t addr)
+    {
+      return master->checkGroupAddress(addr);
+    }
+  virtual bool checkSysAddress(eibaddr_t addr)
+    {
+      return master->checkSysAddress(addr);
+    }
+  virtual bool checkSysGroupAddress(eibaddr_t addr)
+    {
+      return master->checkSysGroupAddress(addr);
+    }
 
   void started() { master->started(); }
   void stopped() { master->stopped(); }
@@ -191,19 +219,23 @@ protected:
   bool inserted = false; // don't propagate setup()
 public:
   LowLevelDriver *iface;
-  LowLevelFilter (LowLevelIface* parent, IniSectionPtr& s) : LowLevelDriver(parent,s) {}
-  LowLevelFilter (LowLevelDriver* i, LowLevelIface* parent, IniSectionPtr& s)
+  LowLevelFilter (LowLevelIface* parent, IniSectionPtr& s, LowLevelDriver* i = nullptr)
       : LowLevelDriver(parent,s)
     {
       t->setAuxName("LowF");
-      iface = i;
-      inserted = true;
+      if (i != nullptr)
+        {
+          iface = i;
+          inserted = true;
+        }
     }
   virtual ~LowLevelFilter();
 
   virtual bool setup()
     {
       if (iface == nullptr)
+        return false;
+      if (!LowLevelDriver::setup())
         return false;
       if (inserted)
         return true;
@@ -277,6 +309,27 @@ public:
   void stopped() { BusDriver::stopped(); }
   void errored() { BusDriver::errored(); }
   void do_send_Next() { BusDriver::send_Next(); }
+
+  FilterPtr findFilter(std::string name, bool skip_me = false)
+    {
+      return BusDriver::findFilter(name,skip_me);
+    }
+  virtual bool checkAddress(eibaddr_t addr)
+    {
+      return BusDriver::checkAddress(addr);
+    }
+  virtual bool checkGroupAddress(eibaddr_t addr)
+    {
+      return BusDriver::checkGroupAddress(addr);
+    }
+  virtual bool checkSysAddress(eibaddr_t addr)
+    {
+      return BusDriver::checkSysAddress(addr);
+    }
+  virtual bool checkSysGroupAddress(eibaddr_t addr)
+    {
+      return BusDriver::checkSysGroupAddress(addr);
+    }
 };
 
 /** pointer to a functions, which creates a Low Level interface

@@ -20,12 +20,7 @@
 #include "emi2.h"
 #include "emi.h"
 
-EMI2Driver::EMI2Driver (LowLevelDriver * i, LowLevelIface* c, IniSectionPtr& s) : EMI_Common(i,c,s)
-{
-  t->setAuxName("EMI2");
-  sendLocal_done.set<EMI2Driver,&EMI2Driver::sendLocal_done_cb>(this);
-}
-EMI2Driver::EMI2Driver (LowLevelIface* c, IniSectionPtr& s) : EMI_Common(c,s)
+EMI2Driver::EMI2Driver (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i) : EMI_Common(c,s,i)
 {
   t->setAuxName("EMI2");
   sendLocal_done.set<EMI2Driver,&EMI2Driver::sendLocal_done_cb>(this);

@@ -1,5 +1,4 @@
-/*
-    SystemTera eib bus access driver
+/* SystemTera eib bus access driver
     Copyright (C) 2014 Patrik Pfaffenbauer <patrik.pfaffenbauer@p3.co.at>
 
     This program is free software; you can redistribute it and/or modify
@@ -25,6 +24,21 @@
 
 NCN5120::~NCN5120() { }
 
+class NCN5120wrap : public TPUARTwrap
+{
+public:
+  NCN5120wrap (LowLevelIface* parent, IniSectionPtr& s, LowLevelDriver* i = nullptr) : TPUARTwrap(parent,s,i) {}
+  virtual ~NCN5120wrap() {}
+
+protected:
+  void termios_settings(struct termios &t);
+  unsigned int default_baudrate();
+  void setstate(enum TSTATE state);
+  
+  void RecvLPDU (const uchar * data, int len);
+  virtual FDdriver * create_serial(LowLevelIface* parent, IniSectionPtr& s);
+};
+
 class NCN5120serial : public LLserial
 {
 public:
@@ -44,20 +58,27 @@ protected:
     }
 };
 
+LowLevelFilter * 
+NCN5120::create_wrapper(LowLevelIface* parent, IniSectionPtr& s, LowLevelDriver* i)
+{
+  return new NCN5120wrap(parent,s,i);
+}
+
+
 FDdriver *
-NCN5120::create_serial(LowLevelIface* parent, IniSectionPtr& s)
+NCN5120wrap::create_serial(LowLevelIface* parent, IniSectionPtr& s)
 {
   return new NCN5120serial(parent,s);
 }
 
-void NCN5120::RecvLPDU (const uchar * data, int len)
+void NCN5120wrap::RecvLPDU (const uchar * data, int len)
 {
     skip_char = true;
-    TPUART::RecvLPDU (data, len);
+    TPUARTwrap::RecvLPDU (data, len);
 }
 
 void
-NCN5120::setstate(enum TSTATE new_state)
+NCN5120wrap::setstate(enum TSTATE new_state)
 {
   if (new_state == T_in_setaddr && my_addr != 0)
     {
@@ -66,6 +87,6 @@ NCN5120::setstate(enum TSTATE new_state)
       LowLevelIface::send_Data(addrbuf, sizeof(addrbuf));
       new_state = T_in_getstate;
     }
-  TPUART::setstate(new_state);
+  TPUARTwrap::setstate(new_state);
 }
 

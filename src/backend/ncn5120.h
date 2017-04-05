@@ -31,14 +31,7 @@ DRIVER_(NCN5120,TPUART,ncn5120)
 public:
   NCN5120 (const LinkConnectPtr_& c, IniSectionPtr& s) : TPUART(c,s) { t->setAuxName("NCN"); } ;
   virtual ~NCN5120 ();
-
-protected:
-  void termios_settings(struct termios &t);
-  unsigned int default_baudrate();
-  void setstate(enum TSTATE state);
-
-  void RecvLPDU (const uchar * data, int len);
-  virtual FDdriver * create_serial(LowLevelIface* parent, IniSectionPtr& s);
+  LowLevelFilter * create_wrapper(LowLevelIface* parent, IniSectionPtr& s, LowLevelDriver* i = nullptr);
 };
 
 #endif

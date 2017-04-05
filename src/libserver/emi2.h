@@ -34,8 +34,7 @@ class EMI2Driver:public EMI_Common
   void sendLocal_done_cb(bool success);
   enum { N_bad, N_up, N_down, N_open, N_enter } sendLocal_done_next = N_bad;
 public:
-  EMI2Driver (LowLevelDriver * i, LowLevelIface* c, IniSectionPtr& s);
-  EMI2Driver (LowLevelIface* c, IniSectionPtr& s);
+  EMI2Driver (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i = nullptr);
   virtual ~EMI2Driver ();
 };
 

@@ -29,9 +29,6 @@
 enum TSTATE {
   T_new = 0,
   T_error,
-  T_dev_start = 3,
-  _T4,_T5,_T6,_T7,_T8,_T9,
-  T_dev_end = 10,
   T_start = 11,
   T_in_reset,
   T_in_setaddr,
@@ -47,10 +44,18 @@ DRIVER_(TPUART,LowLevelAdapter,tpuart)
 {
 public:
   TPUART(const LinkConnectPtr_& c, IniSectionPtr& s) : LowLevelAdapter(c,s) {}
-
   virtual ~TPUART();
 
   bool setup();
+protected:
+  virtual LowLevelFilter * create_wrapper(LowLevelIface* parent, IniSectionPtr& s, LowLevelDriver* i = nullptr);
+};
+
+class TPUARTwrap : public LowLevelFilter
+{
+public:
+  TPUARTwrap (LowLevelIface* parent, IniSectionPtr& s, LowLevelDriver* i = nullptr);
+  virtual ~TPUARTwrap();
 
 protected:
   void recv_Data(CArray &c);
@@ -89,6 +94,7 @@ protected:
   virtual void setstate(enum TSTATE new_state);
 
 public:
+  bool setup();
   void started();
   void stopped();
 

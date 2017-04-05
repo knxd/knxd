@@ -29,16 +29,12 @@ CEMIDriver::maxPacketLen()
   return 50;
 }
 
-CEMIDriver::CEMIDriver (LowLevelDriver *i, LowLevelIface* c, IniSectionPtr& s) : EMI_Common(i,c,s)
+CEMIDriver::CEMIDriver (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i) : EMI_Common(c,s,i)
 {
   t->setAuxName("CEMI");
   sendLocal_done.set<CEMIDriver,&CEMIDriver::sendLocal_done_cb>(this);
 }
-CEMIDriver::CEMIDriver (LowLevelIface* c, IniSectionPtr& s) : EMI_Common(c,s)
-{
-  t->setAuxName("CEMI");
-  sendLocal_done.set<CEMIDriver,&CEMIDriver::sendLocal_done_cb>(this);
-}
+
 CEMIDriver::~CEMIDriver()
 {
 }

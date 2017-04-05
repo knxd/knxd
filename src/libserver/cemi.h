@@ -42,8 +42,7 @@ protected:
   enum { N_bad, N_up, N_down, N_open, N_reset } sendLocal_done_next = N_bad;
 public:
   void sendReset() override;
-  CEMIDriver (LowLevelDriver *i, LowLevelIface* c, IniSectionPtr& s);
-  CEMIDriver (LowLevelIface* c, IniSectionPtr& s);
+  CEMIDriver (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i = nullptr);
   virtual ~CEMIDriver ();
 };
 

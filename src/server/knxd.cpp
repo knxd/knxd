@@ -106,7 +106,7 @@ static struct argp_option options[] = {
   {"stop", OPT_STOP_NOW, 0, OPTION_HIDDEN,
    "immediately stops the server after a successful start"},
   {"list", 'l', 0, 0,
-   "list known drivers, subdrivers, filters, or servers"},
+   "list known drivers, filters, or servers"},
   {0}
 };
 
@@ -283,14 +283,13 @@ main (int ac, char *ag[])
       static Factory<Server> _servers;
       static Factory<Driver> _drivers;
       static Factory<Filter> _filters;
-      static Factory<LowLevelDriver> _lowlevels;
 
       if (cfgfile == NULL)
         {
         x1:
           printf(""
             "Requires type of structure to list.\n"
-            "Either 'driver', 'subdriver', 'filter' or 'server'.\n"
+            "Either 'driver', 'filter' or 'server'.\n"
             );
         }
       else // if (mainsection == NULL)
@@ -303,11 +302,6 @@ main (int ac, char *ag[])
           else if (!strcmp(cfgfile, "filter"))
             {
               for(auto &m : _filters.Instance().map())
-                printf("%s\n",m.first.c_str());
-            }
-          else if (!strcmp(cfgfile, "subdriver"))
-            {
-              for(auto &m : _lowlevels.Instance().map())
                 printf("%s\n",m.first.c_str());
             }
           else if (!strcmp(cfgfile, "server"))

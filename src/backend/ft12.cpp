@@ -59,13 +59,13 @@ FT12Driver::make_EMI()
   switch (getVersion())
     {
     case vEMI1:
-      iface = new EMI1Driver (iface,this,cfg);
+      iface = new EMI1Driver (this,cfg, iface);
       break;
     case vEMI2:
-      iface = new EMI2Driver (iface,this,cfg);
+      iface = new EMI2Driver (this,cfg, iface);
       break;
     case vCEMI:
-      iface = new FT12CEMIDriver (iface,this,cfg);
+      iface = new FT12CEMIDriver (this,cfg, iface);
       break;
     case vRaw:
       return true;
@@ -85,9 +85,6 @@ FT12Driver::setup()
 {
   FDdriver *fdd;
 
-  if (!BusDriver::setup())
-    return false;
-  
   iface = new FT12wrap(this, cfg);
 
   if (cfg->value("device","").length() > 0)
@@ -111,7 +108,7 @@ FT12Driver::setup()
     }
   dynamic_cast<LowLevelFilter *>(iface)->iface = fdd;
 
-  if(!iface->setup())
+  if(!LowLevelAdapter::setup())
     goto ex1;
 
   if (!make_EMI())
@@ -125,8 +122,7 @@ ex1:
   return false;
 }
 
-FT12wrap::FT12wrap (LowLevelIface* p, IniSectionPtr& s)
-    : LowLevelFilter(p,s)
+FT12wrap::FT12wrap (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i) : LowLevelFilter(c,s,i)
 {
   t->setAuxName("ft12wrap");
 }

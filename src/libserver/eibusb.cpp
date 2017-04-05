@@ -287,13 +287,13 @@ USBDriver::make_EMI()
   switch (version)
     {
     case vEMI1:
-      iface = new EMI1Driver (iface,this,cfg);
+      iface = new EMI1Driver (this,cfg, iface);
       break;
     case vEMI2:
-      iface = new EMI2Driver (iface,this,cfg);
+      iface = new EMI2Driver (this,cfg, iface);
       break;
     case vCEMI:
-      iface = new CEMIDriver (iface,this,cfg);
+      iface = new CEMIDriver (this,cfg, iface);
       break;
     case vRaw:
       return true;

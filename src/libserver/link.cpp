@@ -499,6 +499,29 @@ LinkConnect::recv_L_Data (LDataPtr l)
   static_cast<Router&>(router).recv_L_Data(std::move(l), *this);
 }
 
+bool
+LinkConnect::checkSysAddress(eibaddr_t addr)
+{
+  return static_cast<Router&>(router).checkAddress(addr, std::dynamic_pointer_cast<LinkConnect>(shared_from_this()));
+}
+
+bool
+LinkConnect::checkSysGroupAddress(eibaddr_t addr)
+{ return static_cast<Router&>(router).checkGroupAddress(addr, std::dynamic_pointer_cast<LinkConnect>(shared_from_this()));
+}
+
+bool
+LinkConnect_::checkSysAddress(eibaddr_t addr)
+{
+  return static_cast<Router&>(router).checkAddress(addr, nullptr);
+}
+
+bool
+LinkConnect_::checkSysGroupAddress(eibaddr_t addr)
+{ return static_cast<Router&>(router).checkGroupAddress(addr, nullptr);
+}
+
+
 void
 LinkConnect::recv_L_Busmonitor (LBusmonPtr l)
 {
@@ -550,6 +573,24 @@ Driver::recv_L_Data (LDataPtr l)
     r->recv_L_Data(std::move(l));
 }
 
+bool
+Driver::checkSysAddress(eibaddr_t addr)
+{
+  auto r = recv.lock();
+  if (r == nullptr)
+    return false;
+  return r->checkSysAddress(addr);
+}
+
+bool
+Driver::checkSysGroupAddress(eibaddr_t addr)
+{
+  auto r = recv.lock();
+  if (r == nullptr)
+    return false;
+  return r->checkSysGroupAddress(addr);
+}
+
 void
 Filter::send_Next()
 {
@@ -564,6 +605,24 @@ Filter::recv_L_Data (LDataPtr l)
   auto r = recv.lock();
   if (r != nullptr)
     r->recv_L_Data(std::move(l));
+}
+
+bool
+Filter::checkSysAddress(eibaddr_t addr)
+{
+  auto r = recv.lock();
+  if (r == nullptr)
+    return false;
+  return r->checkSysAddress(addr);
+}
+
+bool
+Filter::checkSysGroupAddress(eibaddr_t addr)
+{
+  auto r = recv.lock();
+  if (r == nullptr)
+    return false;
+  return r->checkSysGroupAddress(addr);
 }
 
 void

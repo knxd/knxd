@@ -35,7 +35,6 @@
 static Factory<Server> _servers;
 static Factory<Driver> _drivers;
 static Factory<Filter> _filters;
-static Factory<LowLevelDriver> _lowlevels;
 
 bool unseen_lister(void *user, const IniSection& section, const std::string& name, const std::string& value);
 
@@ -70,7 +69,6 @@ Router::Router (IniData& d, std::string sn) : BaseRouter(d)
                 , servers(_servers.Instance())
                 , filters(_filters.Instance())
                 , drivers(_drivers.Instance())
-                , lowlevels(_lowlevels.Instance())
                 , main(sn)
 {
   IniSectionPtr s = ini[main];
@@ -258,12 +256,6 @@ FilterPtr
 Router::get_filter(const LinkConnectPtr_& link, IniSectionPtr& s, const std::string& filtername)
 {
   return FilterPtr(filters.create(filtername, link, s));
-}
-
-LowLevelDriver *
-Router::get_lowlevel(LowLevelIface* parent, IniSectionPtr& s, const std::string& lowlevelname)
-{
-  return lowlevels.create(lowlevelname, parent, s);
 }
 
 bool

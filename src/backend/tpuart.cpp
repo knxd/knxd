@@ -30,6 +30,8 @@
 #include "llserial.h"
 #include "lltcp.h"
 
+TPUART::~TPUART() {}
+
 class TPUARTserial : public LLserial
 {
 public:
@@ -48,8 +50,14 @@ protected:
   unsigned int default_baudrate() { return 19200; }
 };
 
+LowLevelFilter *
+TPUART::create_wrapper(LowLevelIface* parent, IniSectionPtr& s, LowLevelDriver* i)
+{
+  return new TPUARTwrap(parent,s, i);
+}
+
 FDdriver *
-TPUART::create_serial(LowLevelIface* parent, IniSectionPtr& s)
+TPUARTwrap::create_serial(LowLevelIface* parent, IniSectionPtr& s)
 {
   return new TPUARTserial(parent,s);
 }
@@ -63,8 +71,6 @@ static const char* SN(enum TSTATE s)
     {
     case T_new:            return "new";
     case T_error:          return "error";
-    case T_dev_start:      return "dev_start";
-    case T_dev_end:        return "dev_end";
     case T_start:          return "start";
     case T_in_reset:       return "in_reset";
     case T_in_setaddr:     return "in_setaddr";
@@ -84,18 +90,25 @@ static const char* SN(enum TSTATE s)
 bool
 TPUART::setup()
 {
+  iface = create_wrapper(this, cfg);
+
+  if (!LowLevelAdapter::setup())
+    return false;
+
+  return true;
+ex1:
+  delete iface;
+  iface = nullptr;
+  return false;
+}
+
+bool
+TPUARTwrap::setup()
+{
   ackallgroup = cfg->value("ack-group",false);
   ackallindividual = cfg->value("ack-individual",false);
   monitor = cfg->value("monitor",false);
 
-  FilterPtr single = findFilter("single");
-  if (single != nullptr)
-    {
-      std::shared_ptr<NatL2Filter> f = std::dynamic_pointer_cast<NatL2Filter>(single);
-      if (f)
-        my_addr = f->addr;
-    }
-  
   if (cfg->value("device","").length() > 0)
     {
       if (cfg->value("ip-address","").length() > 0 ||
@@ -115,20 +128,22 @@ TPUART::setup()
         }
       iface = new LLtcp(this, cfg);
     }
-  if (!LowLevelAdapter::setup())
+
+  FilterPtr single = findFilter("single");
+  if (single != nullptr)
+    {
+      std::shared_ptr<NatL2Filter> f = std::dynamic_pointer_cast<NatL2Filter>(single);
+      if (f)
+        my_addr = f->addr;
+    }
+  
+  if (!LowLevelFilter::setup())
     return false;
-  if(!iface->setup())
-    goto ex1;
 
   return true;
-
-ex1:
-  delete iface;
-  iface = nullptr;
-  return false;
 }
 
-TPUART::~TPUART ()
+TPUARTwrap::~TPUARTwrap ()
 {
   TRACEPRINTF (t, 2, "Close");
 
@@ -139,7 +154,7 @@ TPUART::~TPUART ()
 TPUARTserial::~TPUARTserial() {}
 
 void
-TPUART::send_L_Data (LDataPtr l)
+TPUARTwrap::send_L_Data (LDataPtr l)
 {
   assert(out.size() == 0);
   out = l->ToPacket ();
@@ -149,7 +164,7 @@ TPUART::send_L_Data (LDataPtr l)
 
 /* ignore low level send_Next -- just assume that this works */
 void
-TPUART::send_Next()
+TPUARTwrap::send_Next()
 {
   next_free = true;
   if (send_wait)
@@ -160,16 +175,16 @@ TPUART::send_Next()
 }
 
 void
-TPUART::do_send_Next()
+TPUARTwrap::do_send_Next()
 {
   out.clear();
   send_retry = 0;
   sendtimer.stop();
-  BusDriver::send_Next();
+  LowLevelFilter::send_Next();
 }
 
 void
-TPUART::send_again()
+TPUARTwrap::send_again()
 {
   if (out.size() > 0 && state > T_is_online && state < T_busmonitor)
     {
@@ -192,7 +207,7 @@ TPUART::send_again()
       z = (z - 1) * 2;
       w[z] = (w[z] & 0x3f) | 0x40;
       t->TracePacket (0, "Write", w);
-      LowLevelAdapter::send_Data(w);
+      LowLevelFilter::send_Data(w);
       sendtimer.start(2,0);
 
       // clear retry flag. for later comparison
@@ -201,22 +216,22 @@ TPUART::send_again()
 }
 
 void
-TPUART::started()
+TPUARTwrap::started()
 {
   setstate(T_new);
-  setstate(T_dev_start);
+  setstate(T_start);
 }
 
 void
-TPUART::stopped()
+TPUARTwrap::stopped()
 {
   setstate(T_new);
 
-  LowLevelAdapter::stopped();
+  LowLevelFilter::stopped();
 }
 
 void
-TPUART::RecvLPDU (const uchar * data, int len)
+TPUARTwrap::RecvLPDU (const uchar * data, int len)
 {
   t->TracePacket (1, "RecvLP", len, data);
   if (state == T_busmonitor)
@@ -240,8 +255,14 @@ TPUART::RecvLPDU (const uchar * data, int len)
     }
 }
 
+TPUARTwrap::TPUARTwrap(LowLevelIface* parent, IniSectionPtr& s, LowLevelDriver* i) : LowLevelFilter(parent,s,i)
+{
+  timer.set <TPUARTwrap,&TPUARTwrap::timer_cb> (this);
+  sendtimer.set <TPUARTwrap,&TPUARTwrap::sendtimer_cb> (this);
+}
+
 void
-TPUART::sendtimer_cb(ev::timer &w UNUSED, int revents UNUSED)
+TPUARTwrap::sendtimer_cb(ev::timer &w UNUSED, int revents UNUSED)
 {
   if (send_retry++ > 3)
     {
@@ -254,20 +275,10 @@ TPUART::sendtimer_cb(ev::timer &w UNUSED, int revents UNUSED)
 }
 
 void
-TPUART::timer_cb(ev::timer &w UNUSED, int revents UNUSED)
+TPUARTwrap::timer_cb(ev::timer &w UNUSED, int revents UNUSED)
 {
   switch(state)
     {
-    case T_dev_start:
-      setstate(T_start);
-      break;
-    case T_dev_start+2:
-      setstate((enum TSTATE)(T_start+3));
-      break;
-    case T_dev_start+3:
-      setstate(T_in_reset);
-      break;
-
     case T_error:
       stop();
       break;
@@ -324,7 +335,7 @@ TPUART::timer_cb(ev::timer &w UNUSED, int revents UNUSED)
 }
 
 void
-TPUART::in_check()
+TPUARTwrap::in_check()
 {
   bool ext = !(in[0] & 0x80);
 
@@ -338,20 +349,15 @@ TPUART::in_check()
           else
             {
               uchar c = 0x10;
-              auto cn = std::dynamic_pointer_cast<LinkConnect>(conn.lock());
-              if (cn != nullptr)
+              if ((in[ext ? 1 : 5] & 0x80) == 0)
                 {
-                  Router& r = static_cast<Router&>(cn->router);
-                  if ((in[ext ? 1 : 5] & 0x80) == 0)
-                    {
-                      if (ackallindividual || r.checkAddress ((in[3+ext] << 8) | in[4+ext], cn))
-                        c |= 0x1;
-                    }
-                  else
-                    {
-                      if (ackallgroup || r.checkGroupAddress ((in[3+ext] << 8) | in[4+ext]))
-                        c |= 0x1;
-                    }
+                  if (ackallindividual || checkSysAddress ((in[3+ext] << 8) | in[4+ext]))
+                    c |= 0x1;
+                }
+              else
+                {
+                  if (ackallgroup || checkSysGroupAddress ((in[3+ext] << 8) | in[4+ext]))
+                    c |= 0x1;
                 }
               TRACEPRINTF (t, 0, "SendAck %02X", c);
               LowLevelIface::send_Data(c);
@@ -383,7 +389,7 @@ TPUART::in_check()
 }
 
 void
-TPUART::recv_Data(CArray &c)
+TPUARTwrap::recv_Data(CArray &c)
 {
   uint8_t *buf = c.data();
   size_t len = c.size();
@@ -499,13 +505,13 @@ TPUART::recv_Data(CArray &c)
 }
 
 void
-TPUART::setstate(enum TSTATE new_state)
+TPUARTwrap::setstate(enum TSTATE new_state)
 {
   TRACEPRINTF (t, 8, "state: %s > %s", SN(state),SN(new_state));
 
   if (state < T_is_online && new_state >= T_is_online)
     {
-      LowLevelAdapter::started();
+      LowLevelFilter::started();
       if (monitor)
         new_state = T_busmonitor;
       else if (new_state < T_busmonitor)
