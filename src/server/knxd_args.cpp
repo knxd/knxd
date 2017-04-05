@@ -260,11 +260,12 @@ void driver_args(const char *arg, char *ap)
 {
   if(!strcmp(arg,"ip"))
     driver_argsv(arg,ap, "multicast-address","port","interface", NULL);
-  else if(!strcmp(arg,"tpuarttcp"))
+  else if(!strcmp(arg,"tpuarttcp") || !strcmp(arg,"ft12tcp") || !strcmp(arg,"ncn5120tcp") || !strcmp(arg,"ft12cemitcp"))
     {
-      if (!strcmp(arg,"tpuarttcp"))
-        arg = "tpuart";
-      driver_argsv(arg,ap, "!ip-address","!dest-port", NULL);
+      char cut[20];
+      strcpy(cut,arg);
+      cut[strlen(cut)-3] = 0; // drop the "tcp" at the end
+      driver_argsv(cut,ap, "!ip-address","!dest-port", NULL);
     }
   else if(!strcmp(arg,"usb"))
     driver_argsv(arg,ap, "bus","device","config","interface", NULL);

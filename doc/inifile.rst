@@ -66,7 +66,7 @@ generate this configuration file (re-ordered for clarity):
 
     [B.tpuarts]
     device = /dev/ttyACM0
-    driver = tpuarts
+    driver = tpuart
 
     [server]
     server = ets_router
@@ -350,13 +350,14 @@ and
 
 On the command line, driver options used to be added after the driver name,
 separated by colons. The order of options reflects this. For example, the
-driver "tpuarts" accepted "device" and "baudrate" options; the command line
+driver "tpuart" accepted "device" and "baudrate" options; the command line
 
   -b tpuarts:/dev/ttyACM0:19200
 
 would be translated to a section
 
   [X.tpuarts]
+  driver=tpuart
   device=/dev/ttyACM0
   baudrate=19200
 
@@ -537,7 +538,7 @@ Warning: bus+device numbers may change after rebooting.
     timeout is pre-emted when the remote side signals that is has accepted
     the packet.
 
-tpuarts
+tpuart
 -------
 
 A TPUART or TPUART-2 interface IC. These are typically connected using either
@@ -555,6 +556,27 @@ USB or (on Raspberry Pi-style computers) a built-in 3.3V serial port.
     Interface speed. This is interface specific, and configured in hardware.
 
     Optional; the default is 19200.
+
+Alternately you can use
+
+    ``socat -dddDx TCP-LISTEN:55332,reuseaddr /dev/ttyACM0,b19200,parenb,raw"``
+
+on a remote computer, and connect to it via TCP. The options to use are
+
+  * ip-address=REMOTE
+
+    The IP address (or host name) of the system ``socat`` runs on.
+
+    Mandatory.
+
+  * dest-port=PORTNR
+
+    The TCP port to connect to.
+
+    Mandatory; use whatever free port you used on ``socat``'s command line.
+
+On the command line, these drivers are called "tpuarts" and "tpuarttcp", for
+compatibility with earlier versions.
 
 ft12
 ----
@@ -576,6 +598,9 @@ TODO: which devices use this?
 
     The default is 0.3 seconds.
 
+As with "tpuart", this device can be used remotely. On the command line,
+the driver's name is "ft12tcp".
+
 ft12cemi
 --------
 
@@ -596,6 +621,9 @@ TODO: which devices use this?
 
     The default is 0.3 seconds.
 
+As with "tpuart", this device can be used remotely. On the command line,
+the driver's name is "ft12cemitcp".
+
 ncn5120
 -------
 
@@ -604,22 +632,8 @@ A mostly-TPUART2-compatible KNX interface IC.
 This driver uses the same options as "tpuarts". Its default baudrate is
 38400.
 
-tpuarttcp
----------
-
-A TPUART or TPUART-2 interface connected via a remote TCP socket.
-
-  * ip-address (string)
-  
-    The remote system's IP address (or host name).
-
-    Mandatory.
-
-  * dest-port (int)
-
-    The destination port to connect to.
-
-    Mandatory.
+As with "tpuart", this device can be used remotely. On the command line,
+the driver's name is "ncn5120tcp".
 
 More common options
 -------------------
