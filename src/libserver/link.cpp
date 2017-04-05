@@ -265,7 +265,7 @@ inval:
   return;
 
 retry:
-  if (!max_retries || retries < max_retries)
+  if (retry_delay > 0 && !max_retries || retries < max_retries)
     {
       TRACEPRINTF (t, 5, "retry in %d sec", retry_delay);
       state = L_wait_retry;
@@ -273,7 +273,8 @@ retry:
     }
   else
     {
-      TRACEPRINTF (t, 5, "retrying finished");
+      if (retry_delay > 0)
+        TRACEPRINTF (t, 5, "retrying finished");
       state = L_error;
     }
 }

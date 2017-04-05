@@ -374,7 +374,8 @@ These options apply to all drivers and servers.
 
   * may-fail (bool; --arg=may-fail=true)
 
-    The driver is started, but does not block starting to route packets.
+    If the driver doesn't initially start up, knxd will continue anyway
+    instead of terminating with an error.
 
   * retry-delay (int, --arg=retry-delay=NUM)
 
@@ -389,7 +390,7 @@ These options apply to all drivers and servers.
 
     Default: zero: infinite (if retry-delay is positive)
 
-If "retry" is active but "may-fail" is false, the driver must start
+If retrying is active but "may-fail" is false, the driver must start
 correctly when knxd starts up. It will only be restarted once knxd is, or
 rather has been, fully operative.
 
