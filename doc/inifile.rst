@@ -559,7 +559,7 @@ USB or (on Raspberry Pi-style computers) a built-in 3.3V serial port.
 
 Alternately you can use
 
-    ``socat -dddDx TCP-LISTEN:55332,reuseaddr /dev/ttyACM0,b19200,parenb,raw"``
+    socat TCP-LISTEN:55332,reuseaddr /dev/ttyACM0,b19200,parenb,raw
 
 on a remote computer, and connect to it via TCP. The options to use are
 
@@ -599,7 +599,9 @@ TODO: which devices use this?
     The default is 0.3 seconds.
 
 As with "tpuart", this device can be used remotely. On the command line,
-the driver's name is "ft12tcp".
+the driver's name is "ft12tcp". Use this command on the remote side:
+
+    socat TCP-LISTEN:55332,reuseaddr /dev/ttyACM0,b19200,parenb,raw
 
 ft12cemi
 --------
@@ -622,7 +624,9 @@ TODO: which devices use this?
     The default is 0.3 seconds.
 
 As with "tpuart", this device can be used remotely. On the command line,
-the driver's name is "ft12cemitcp".
+the driver's name is "ft12cemitcp". Use this command on the remote side:
+
+    socat TCP-LISTEN:55332,reuseaddr /dev/ttyACM0,b19200,parenb,raw
 
 ncn5120
 -------
@@ -633,7 +637,9 @@ This driver uses the same options as "tpuarts". Its default baudrate is
 38400.
 
 As with "tpuart", this device can be used remotely. On the command line,
-the driver's name is "ncn5120tcp".
+the driver's name is "ncn5120tcp". Use this command on the remote side:
+
+    socat TCP-LISTEN:55332,reuseaddr /dev/ttyACM0,b38400,raw
 
 More common options
 -------------------
