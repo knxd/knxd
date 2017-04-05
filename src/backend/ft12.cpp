@@ -27,6 +27,8 @@
 #include "emi1.h"
 #include "emi2.h"
 #include "cemi.h"
+
+#include "llserial.h"
 #include "lltcp.h"
 
 FT12Driver::~FT12Driver() {}

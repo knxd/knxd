@@ -24,7 +24,6 @@
 
 #include "iobuf.h"
 #include "lowlevel.h"
-#include "llserial.h"
 #include "emi_common.h"
 #include "lowlatency.h"
 #include "link.h"

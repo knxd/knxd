@@ -24,8 +24,6 @@
 #include "link.h"
 #include "lpdu.h"
 #include "lowlevel.h"
-#include "llserial.h"
-#include "lltcp.h"
 
 // also update SN() in tpuart.cpp
 enum TSTATE {
@@ -44,25 +42,6 @@ enum TSTATE {
   T_wait_keepalive,
   T_busmonitor = 30,
 };
-
-class TPUARTserial : public LLserial
-{
-public:
-  TPUARTserial(LowLevelIface* a, IniSectionPtr& b) : LLserial(a,b) { t->setAuxName("TPU_ser"); }
-  virtual ~TPUARTserial();
-protected:
-  void termios_settings (struct termios &t1)
-    {
-      t1.c_cflag = CS8 | CLOCAL | CREAD | PARENB;
-      t1.c_iflag = IGNBRK | INPCK | ISIG;
-      t1.c_oflag = 0;
-      t1.c_lflag = 0;
-      t1.c_cc[VTIME] = 1;
-      t1.c_cc[VMIN] = 0;
-    }
-  unsigned int default_baudrate() { return 19200; }
-};
-
 
 DRIVER_(TPUART,LowLevelAdapter,tpuart)
 {
@@ -116,10 +95,7 @@ public:
   void send_L_Data (LDataPtr l);
 
 protected:
-  virtual LLserial * create_serial(LowLevelIface* parent, IniSectionPtr& s)
-  {
-    return new TPUARTserial(parent,s);
-  }
+  virtual FDdriver * create_serial(LowLevelIface* parent, IniSectionPtr& s);
 
 };
 

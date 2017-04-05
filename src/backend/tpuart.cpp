@@ -30,6 +30,31 @@
 #include "llserial.h"
 #include "lltcp.h"
 
+class TPUARTserial : public LLserial
+{
+public:
+  TPUARTserial(LowLevelIface* a, IniSectionPtr& b) : LLserial(a,b) { t->setAuxName("TPU_ser"); }
+  virtual ~TPUARTserial();
+protected:
+  void termios_settings (struct termios &t1)
+    {
+      t1.c_cflag = CS8 | CLOCAL | CREAD | PARENB;
+      t1.c_iflag = IGNBRK | INPCK | ISIG;
+      t1.c_oflag = 0;
+      t1.c_lflag = 0;
+      t1.c_cc[VTIME] = 1;
+      t1.c_cc[VMIN] = 0;
+    }
+  unsigned int default_baudrate() { return 19200; }
+};
+
+FDdriver *
+TPUART::create_serial(LowLevelIface* parent, IniSectionPtr& s)
+{
+  return new TPUARTserial(parent,s);
+}
+
+
 static const char* SN(enum TSTATE s)
 {
   static int x = 0;
