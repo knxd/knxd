@@ -103,7 +103,7 @@ public:
   inline void send_Data (unsigned char *c, size_t len) { CArray ca(c,len); send_Data(ca); }
   inline void recv_Data (unsigned char *c, size_t len) { CArray ca(c,len); send_Data(ca); }
 
-  virtual FilterPtr findFilter(std::string name, bool skip_me = false) = 0;
+  virtual FilterPtr findFilter(std::string name) = 0;
   virtual bool checkAddress(eibaddr_t addr) = 0;
   virtual bool checkGroupAddress(eibaddr_t addr) = 0;
   virtual bool checkSysAddress(eibaddr_t addr) = 0;
@@ -150,9 +150,9 @@ public:
   virtual bool setup () { return true; }
   virtual void start () { started(); }
   virtual void stop () { stopped(); }
-  virtual FilterPtr findFilter(std::string name, bool skip_me = false)
+  virtual FilterPtr findFilter(std::string name)
     {
-      return master->findFilter(name,skip_me);
+      return master->findFilter(name);
     }
   virtual bool checkAddress(eibaddr_t addr)
     {
@@ -310,9 +310,9 @@ public:
   void errored() { BusDriver::errored(); }
   void do_send_Next() { BusDriver::send_Next(); }
 
-  FilterPtr findFilter(std::string name, bool skip_me = false)
+  FilterPtr findFilter(std::string name)
     {
-      return BusDriver::findFilter(name,skip_me);
+      return BusDriver::findFilter(name);
     }
   virtual bool checkAddress(eibaddr_t addr)
     {
