@@ -47,6 +47,11 @@ private:
   ev::timer reset_timer;
   void reset_timer_cb(ev::timer &w, int revents);
 
+  virtual CArray lData2EMI (uchar code, const LDataPtr &p) 
+  { return L_Data_ToCEMI(code, p); }
+  virtual LDataPtr EMI2lData (const CArray & data) 
+  { return CEMI_to_L_Data(data, t); }
+
 public:
   CEMIDriver (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i = nullptr);
   virtual ~CEMIDriver ();
