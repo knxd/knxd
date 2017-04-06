@@ -307,7 +307,7 @@ FT12wrap::process_read(bool is_timeout)
           if (akt[1] == akt[2] && akt[3] == 0x16)
             {
               uchar c1 = 0xE5;
-              LowLevelIface::send_Data(c1);
+              iface->send_Data(c1);
               if ((akt[1] == 0xF3 && !recvflag) ||
                   (akt[1] == 0xD3 && recvflag))
                 {
@@ -319,7 +319,7 @@ FT12wrap::process_read(bool is_timeout)
                   const uchar reset[1] = { 0xA0 };
                   CArray c = CArray (reset, sizeof (reset));
                   t->TracePacket (0, "RecvReset", c);
-                  recv_Data (c);
+                  LowLevelFilter::recv_Data (c);
                 }
             }
           akt.deletepart (0, 4);
@@ -350,7 +350,7 @@ FT12wrap::process_read(bool is_timeout)
             }
 
           c1 = 0xE5;
-          LowLevelIface::send_Data (c1);
+          iface->send_Data (c1);
 
           if (akt[4] == (recvflag ? 0xF3 : 0xD3))
             { // repeat packet?
@@ -368,7 +368,7 @@ FT12wrap::process_read(bool is_timeout)
               CArray *c = new CArray;
               c->setpart (akt.data() + 5, 0, len - 7);
               last = *c;
-              recv_Data (*c);
+              LowLevelFilter::recv_Data (*c);
             }
           akt.deletepart (0, len);
         }
@@ -404,7 +404,7 @@ FT12wrap::trigger_cb (ev::async &w UNUSED, int revents UNUSED)
     return;
 
   repeatcount++;
-  LowLevelIface::send_Data(out.data(), out.size());
+  iface->send_Data(out.data(), out.size());
   send_wait = true;
   timer.start(0.2, 0);
 }
@@ -426,7 +426,7 @@ FT12CEMIDriver::cmdOpen()
 {
   sendLocal_done_next = N_up;
   const uchar t1[] = { 0xF6, 0x00, 0x08, 0x01, 0x34, 0x10, 0x01, 0x00 };
-  iface->send_Local (CArray (t1, sizeof (t1)));
+  send_Local (CArray (t1, sizeof (t1)),1);
 }
 
 
