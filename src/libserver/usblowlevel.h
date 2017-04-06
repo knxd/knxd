@@ -83,7 +83,7 @@ private:
   void HandleReceiveUsb();
   virtual void reset();
   void do_send();
-  void send_Next();
+  void do_send_Next();
   void stop_();
 
   // need to do the trigger callbacks outside of libusb

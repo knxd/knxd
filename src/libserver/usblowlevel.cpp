@@ -345,10 +345,10 @@ USBLowLevelDriver::write_trigger_cb(ev::async &w UNUSED, int revents UNUSED)
 }
 
 void
-USBLowLevelDriver::send_Next()
+USBLowLevelDriver::do_send_Next()
 {
   out.clear();
-  LowLevelDriver::send_Next();
+  LowLevelDriver::do_send_Next();
 }
 
 void

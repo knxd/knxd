@@ -44,6 +44,7 @@ public:
   void sendReset() override;
   CEMIDriver (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i = nullptr);
   virtual ~CEMIDriver ();
+  void do_send_Next();
 };
 
 #endif  /* EIB_CEMI_H */

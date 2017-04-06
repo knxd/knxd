@@ -66,8 +66,8 @@ protected:
   /** process a received frame */
   virtual void RecvLPDU (const uchar * data, int len);
 
-  virtual void send_Next();
-  void do_send_Next();
+  virtual void do_send_Next();
+  void do__send_Next();
   void send_again();
   void in_check();
 

@@ -113,7 +113,7 @@ EMI_Common::send_L_Data (LDataPtr l)
   if (l->data.size() > maxPacketLen())
     {
       TRACEPRINTF (t, 2, "Oversize (%d), discarded", l->data.size());
-      LowLevelFilter::send_Next();
+      LowLevelFilter::do_send_Next();
       return;
     }
   CArray pdu = lData2EMI (0x11, l);
@@ -121,13 +121,11 @@ EMI_Common::send_L_Data (LDataPtr l)
 }
 
 void
-EMI_Common::send_Next()
+EMI_Common::do_send_Next()
 {
-  // TODO add a want_*_low variable to account for lowlevel drivers which
-  // don't call send_Next. Currently: don't bother, as all of them do.
   wait_confirm_low = false;
   if (!wait_confirm)
-    LowLevelFilter::send_Next();
+    LowLevelFilter::do_send_Next();
 }
 
 void
@@ -148,7 +146,7 @@ EMI_Common::timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
 
   wait_confirm = false;
   if (!wait_confirm_low)
-    LowLevelFilter::send_Next();
+    LowLevelFilter::do_send_Next();
 }
 
 void
@@ -168,7 +166,7 @@ EMI_Common::recv_Data(CArray& c)
           wait_confirm = false;
           timeout.stop();
           if (!wait_confirm_low)
-            LowLevelFilter::send_Next();
+            LowLevelFilter::do_send_Next();
         }
       else
         TRACEPRINTF (t, 2, "spurious Confirm");

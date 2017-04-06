@@ -95,7 +95,7 @@ class FT12wrap : public LowLevelFilter
   /** process incoming data */
   void process_read (bool is_timeout);
   void do_send_Next ();
-  void send_Next ();
+  void do__send_Next ();
   void stop_ ();
 
 public:

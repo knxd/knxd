@@ -78,7 +78,7 @@ public:
   void stop();
 
   void send_L_Data (LDataPtr l);
-  void send_Next();
+  void do_send_Next();
 
   virtual CArray lData2EMI (uchar code, const LDataPtr &p)
   { return L_Data_ToEMI(code, p); }

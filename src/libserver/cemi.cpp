@@ -72,6 +72,18 @@ void CEMIDriver::sendReset()
   send_Local (CArray (t1, sizeof (t1)), 2);
 }
 
+void CEMIDriver::do_send_Next()
+{
+  if (after_reset)
+    {
+      after_reset = false;
+      reset_timer.stop();
+      EMI_Common::started();
+    }
+  else
+    EMI_Common::do_send_Next();
+}
+
 const uint8_t *
 CEMIDriver::getIndTypes()
 { 

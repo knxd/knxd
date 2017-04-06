@@ -171,7 +171,7 @@ TPUARTwrap::send_L_Data (LDataPtr l)
 
 /* ignore low level send_Next -- just assume that this works */
 void
-TPUARTwrap::send_Next()
+TPUARTwrap::do_send_Next()
 {
   next_free = true;
   if (send_wait)
@@ -182,12 +182,12 @@ TPUARTwrap::send_Next()
 }
 
 void
-TPUARTwrap::do_send_Next()
+TPUARTwrap::do__send_Next()
 {
   out.clear();
   send_retry = 0;
   sendtimer.stop();
-  LowLevelFilter::send_Next();
+  LowLevelFilter::do_send_Next();
 }
 
 void
@@ -438,7 +438,7 @@ TPUARTwrap::recv_Data(CArray &c)
               TRACEPRINTF (t, 8, "ACK: but not sending");
               continue;
             }
-          do_send_Next();
+          do__send_Next();
           continue;
         }
       else if (c == 0xCB) // frame end, NCN5120
@@ -450,7 +450,7 @@ TPUARTwrap::recv_Data(CArray &c)
               TRACEPRINTF (t, 8, "NACK: but not sending");
               continue;
             }
-          do_send_Next();
+          do__send_Next();
           continue;
         }
       else if ((c & 0x17) == 0x13) // frame state indication, NCN5120

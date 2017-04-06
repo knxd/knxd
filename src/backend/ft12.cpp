@@ -258,7 +258,7 @@ FT12wrap::timer_cb(ev::timer &w UNUSED, int revents UNUSED)
 }
 
 void
-FT12wrap::send_Next()
+FT12wrap::do_send_Next()
 {
   next_free = true;
   if (akt.size() > 0)
@@ -275,11 +275,11 @@ FT12wrap::send_Next()
 }
 
 void
-FT12wrap::do_send_Next()
+FT12wrap::do__send_Next()
 {
   out.clear();
   sendtimer.stop();
-  LowLevelFilter::send_Next();
+  LowLevelFilter::do_send_Next();
 }
 
 void
@@ -297,7 +297,7 @@ FT12wrap::process_read(bool is_timeout)
           akt.deletepart (0, 1);
           timer.stop();
           send_wait = false;
-          do_send_Next();
+          do__send_Next();
           repeatcount = 0;
         }
       else if (akt[0] == 0x10)
