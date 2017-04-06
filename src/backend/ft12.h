@@ -96,6 +96,7 @@ class FT12wrap : public LowLevelFilter
   void process_read (bool is_timeout);
   void do_send_Next ();
   void send_Next ();
+  void stop_ ();
 
 public:
   FT12wrap (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i = nullptr);

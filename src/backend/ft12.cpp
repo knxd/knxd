@@ -171,22 +171,27 @@ FT12wrap::setup_buffers()
 }
 
 void 
-FT12wrap::stop()
+FT12wrap::stop_()
 {
   // XXX TODO add de-registration callback
 
   timer.stop();
   sendtimer.stop();
   trigger.stop();
+}
 
+void 
+FT12wrap::stop()
+{
   TRACEPRINTF (t, 1, "Close");
 
+  stop_();
   LowLevelFilter::stop();
 }
 
 FT12wrap::~FT12wrap ()
 {
-  stop ();
+  stop_ ();
 }
 
 void
