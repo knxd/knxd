@@ -467,7 +467,7 @@ TPUARTwrap::recv_Data(CArray &c)
               setstate(T_wait);
               break;
             case T_in_reset:
-              setstate(T_in_reset); // retry
+              // setstate(T_in_reset); // do not immediately retry
               break;
             case T_in_setaddr:
               if (c == 0x47)
