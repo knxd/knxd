@@ -288,15 +288,14 @@ FT12wrap::process_read(bool is_timeout)
   if (in_reader)
     return;
   in_reader = true;
+  timer.stop();
 
   t->TracePacket (1, "Processing", akt);
   while (akt.size() > 0 && next_free)
     {
       if (akt[0] == 0xE5 && send_wait)
         {
-          out.clear();
           akt.deletepart (0, 1);
-          timer.stop();
           send_wait = false;
           do__send_Next();
           repeatcount = 0;
