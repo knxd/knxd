@@ -409,6 +409,12 @@ FT12wrap::trigger_cb (ev::async &w UNUSED, int revents UNUSED)
   timer.start(0.2, 0);
 }
 
+void FT12wrap::sendReset()
+{
+  const uchar t1[] = { 0x10, 0x40, 0x40, 0x16 };
+  CArray l (t1, sizeof (t1));
+  do_send_Local (l, 1);
+}
 
 
 FT12CEMIDriver::~FT12CEMIDriver()

@@ -180,7 +180,7 @@ public:
   void send_L_Data(LDataPtr l) { ERRORPRINTF (t, E_ERROR, "packet not coded: %s", l->Decode(t)); }
 
   /** sends a EMI frame asynchronous */
-  virtual void sendReset() {}
+  virtual void sendReset() { send_Next(); }
   virtual void recv_Data(CArray& c) { master->recv_Data(c); }
   virtual void abort_send() { ERRORPRINTF (t, E_ERROR, "cannot abort"); }
 };

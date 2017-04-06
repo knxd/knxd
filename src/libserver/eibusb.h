@@ -43,7 +43,6 @@ public:
 
   void send_Data (CArray& l);
   void recv_Data (CArray& l);
-  //void sendReset ();
 
   void send_Init();
 

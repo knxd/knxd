@@ -107,6 +107,8 @@ public:
   void recv_Data (CArray &c);
   void send_Data (CArray& l);
   void do_send_Local (CArray& l, int raw = 0);
+
+  void sendReset();
 };
 
 #endif

@@ -33,6 +33,7 @@ CEMIDriver::CEMIDriver (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i) :
 {
   t->setAuxName("CEMI");
   sendLocal_done.set<CEMIDriver,&CEMIDriver::sendLocal_done_cb>(this);
+  reset_timer.set<CEMIDriver,&CEMIDriver::reset_timer_cb>(this);
 }
 
 CEMIDriver::~CEMIDriver()
@@ -62,14 +63,15 @@ void CEMIDriver::cmdClose() { LowLevelDriver::stopped(); }
 
 void CEMIDriver::started()
 {
+  after_reset = true;
+  reset_timer.start(0.5,0);
   sendReset();
 }
 
-void CEMIDriver::sendReset()
+void CEMIDriver::reset_timer_cb(ev::timer &w, int revents)
 {
-  sendLocal_done_next = N_reset;
-  const uchar t1[] = { 0x10, 0x40, 0x40, 0x16 };
-  send_Local (CArray (t1, sizeof (t1)), 2);
+  ERRORPRINTF(t, E_ERROR, "reset timed out");
+  errored();
 }
 
 void CEMIDriver::do_send_Next()

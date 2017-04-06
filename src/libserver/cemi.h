@@ -38,10 +38,16 @@ class CEMIDriver:public EMI_Common
 
   unsigned int maxPacketLen();
   void sendLocal_done_cb(bool success);
+
+  bool after_reset = false;
 protected:
   enum { N_bad, N_up, N_down, N_open, N_reset } sendLocal_done_next = N_bad;
+
+private:
+  ev::timer reset_timer;
+  void reset_timer_cb(ev::timer &w, int revents);
+
 public:
-  void sendReset() override;
   CEMIDriver (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i = nullptr);
   virtual ~CEMIDriver ();
   void do_send_Next();
