@@ -151,6 +151,7 @@ FT12wrap::start()
   sendflag = false;
   recvflag = false;
   next_free = true;
+  send_wait = false;
   in_reader = false;
 
   repeatcount = 0;
