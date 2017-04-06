@@ -45,7 +45,10 @@ public:
 DRIVER_(FT12Driver,LowLevelAdapter,ft12)
 {
 public:
-  FT12Driver(const LinkConnectPtr_& c, IniSectionPtr& s) : LowLevelAdapter(c,s) {}
+  FT12Driver(const LinkConnectPtr_& c, IniSectionPtr& s) : LowLevelAdapter(c,s)
+    {
+      t->setAuxName("ft12dr");
+    }
   virtual ~FT12Driver();
 
   bool setup();
@@ -57,7 +60,10 @@ private:
 DRIVER_(FT12cemiDriver, FT12Driver, ft12cemi)
 {
 public:
-  FT12cemiDriver(const LinkConnectPtr_& c, IniSectionPtr& s) : FT12Driver(c,s) {}
+  FT12cemiDriver(const LinkConnectPtr_& c, IniSectionPtr& s) : FT12Driver(c,s)
+    {
+      t->setAuxName("ft12drc");
+    }
   virtual ~FT12cemiDriver();
 
   virtual EMIVer getVersion() { return vCEMI; }

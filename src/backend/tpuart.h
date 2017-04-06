@@ -43,7 +43,10 @@ enum TSTATE {
 DRIVER_(TPUART,LowLevelAdapter,tpuart)
 {
 public:
-  TPUART(const LinkConnectPtr_& c, IniSectionPtr& s) : LowLevelAdapter(c,s) {}
+  TPUART(const LinkConnectPtr_& c, IniSectionPtr& s) : LowLevelAdapter(c,s)
+    {
+      t->setAuxName("tpuart");
+    }
   virtual ~TPUART();
 
   bool setup();

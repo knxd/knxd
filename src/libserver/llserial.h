@@ -40,7 +40,10 @@ class LLserial:public FDdriver
   int baudrate;
 
 public:
-  LLserial (LowLevelIface* parent, IniSectionPtr& s) : FDdriver(parent,s) { }
+  LLserial (LowLevelIface* parent, IniSectionPtr& s) : FDdriver(parent,s)
+    {
+      t->setAuxName("Serial");
+    }
   virtual ~LLserial ();
 
   bool setup();

@@ -130,7 +130,7 @@ out:
 
 USBDriver::USBDriver (const LinkConnectPtr_& c, IniSectionPtr& s) : LowLevelAdapter (c,s)
 {
-  t->setAuxName("Dr");
+  t->setAuxName("USBdr");
   sendLocal_done.set<USBDriver,&USBDriver::sendLocal_done_cb>(this);
 }
 

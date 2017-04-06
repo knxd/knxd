@@ -29,7 +29,10 @@ class LLtcp:public FDdriver
   uint16_t port;
 
 public:
-  LLtcp (LowLevelIface* parent, IniSectionPtr& s) : FDdriver(parent,s) { }
+  LLtcp (LowLevelIface* parent, IniSectionPtr& s) : FDdriver(parent,s)
+    {
+      t->setAuxName("TCP");
+    }
   virtual ~LLtcp ();
 
   bool setup();
