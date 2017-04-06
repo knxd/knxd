@@ -30,6 +30,7 @@
 
 #include "llserial.h"
 #include "lltcp.h"
+#include "log.h"
 
 FT12Driver::~FT12Driver() {}
 FT12cemiDriver::~FT12cemiDriver() {}
@@ -55,7 +56,6 @@ protected:
 bool
 FT12Driver::make_EMI()
 {
-  auto oif = iface;
   switch (getVersion())
     {
     case vEMI1:
@@ -68,7 +68,7 @@ FT12Driver::make_EMI()
       iface = new FT12CEMIDriver (this,cfg, iface);
       break;
     case vRaw:
-      return true;
+      break;
     case vUnknown:
       return false;
     default: 
@@ -76,7 +76,8 @@ FT12Driver::make_EMI()
       return false;
     }
 
-  oif->resetMaster(iface);
+  if (t->ShowPrint(0))
+    iface = new LLlog (this,cfg, iface);
   return iface->setup();
 }
 
@@ -87,26 +88,8 @@ FT12Driver::setup()
 
   iface = new FT12wrap(this, cfg);
 
-  if (cfg->value("device","").length() > 0)
-    {
-      if (cfg->value("ip-address","").length() > 0 ||
-          cfg->value("port",-1) != -1)
-        {
-          ERRORPRINTF (t, E_ERROR, "Don't specify both device and IP options!");
-          return false;
-        }
-      fdd = new FT12serial(iface, cfg);
-    }
-  else
-    {
-      if (cfg->value("baudrate",-1) != -1)
-        {
-          ERRORPRINTF (t, E_ERROR, "Don't specify both device and IP options!");
-          return false;
-        }
-      fdd = new LLtcp(iface, cfg);
-    }
-  dynamic_cast<LowLevelFilter *>(iface)->iface = fdd;
+  if (t->ShowPrint(0))
+    iface = new LLlog (this,cfg, iface);
 
   if(!LowLevelAdapter::setup())
     goto ex1;
@@ -117,8 +100,6 @@ FT12Driver::setup()
   return true;
 
 ex1:
-  delete iface;
-  iface = nullptr;
   return false;
 }
 
@@ -126,6 +107,39 @@ FT12wrap::FT12wrap (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i) : Low
 {
   t->setAuxName("ft12wrap");
 }
+
+bool
+FT12wrap::setup()
+{
+  if (cfg->value("device","").length() > 0)
+    {
+      if (cfg->value("ip-address","").length() > 0 ||
+          cfg->value("port",-1) != -1)
+        {
+          ERRORPRINTF (t, E_ERROR, "Don't specify both device and IP options!");
+          return false;
+        }
+      iface = new FT12serial(this, cfg);
+    }
+  else
+    {
+      if (cfg->value("baudrate",-1) != -1)
+        {
+          ERRORPRINTF (t, E_ERROR, "Don't specify both device and IP options!");
+          return false;
+        }
+      iface = new LLtcp(this, cfg);
+    }
+  
+  if (t->ShowPrint(0))
+    iface = new LLlog (this,cfg, iface);
+
+  if (!iface->setup())
+    return false;
+
+  return true;
+}
+
 
 void
 FT12wrap::start()
@@ -192,7 +206,6 @@ FT12wrap::do_send_Local (CArray& l, int raw)
     {
       uchar c;
       unsigned i;
-      t->TracePacket (1, "Send", l);
 
       out.resize (l.size() + 7);
       out[0] = 0x68;
@@ -228,7 +241,6 @@ FT12wrap::recv_Data(CArray &c)
   uint8_t *buf = c.data();
   size_t len = c.size();
 
-  t->TracePacket (0, "Read", len, buf);
   akt.setpart (buf, akt.size(), len);
   process_read(false);
 }
@@ -289,7 +301,6 @@ FT12wrap::process_read(bool is_timeout)
           if (akt[1] == akt[2] && akt[3] == 0x16)
             {
               uchar c1 = 0xE5;
-              t->TracePacket (0, "Send Ack", 1, &c1);
               LowLevelIface::send_Data(c1);
               if ((akt[1] == 0xF3 && !recvflag) ||
                   (akt[1] == 0xD3 && recvflag))
@@ -333,7 +344,6 @@ FT12wrap::process_read(bool is_timeout)
             }
 
           c1 = 0xE5;
-          t->TracePacket (0, "Send Ack", 1, &c1);
           LowLevelIface::send_Data (c1);
 
           if (akt[4] == (recvflag ? 0xF3 : 0xD3))
@@ -387,7 +397,6 @@ FT12wrap::trigger_cb (ev::async &w UNUSED, int revents UNUSED)
   if (out.size() == 0)
     return;
 
-  t->TracePacket (0, "Send", out);
   repeatcount++;
   LowLevelIface::send_Data(out.data(), out.size());
   send_wait = true;

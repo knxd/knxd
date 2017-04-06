@@ -158,7 +158,6 @@ void
 FDdriver::send_Data(CArray &c)
 {
   CArray *cp = new CArray(c);
-  t->TracePacket (0, "Write", c);
   sendbuf.write(cp);
 }
 
@@ -186,8 +185,6 @@ FDdriver::stop()
 size_t
 FDdriver::read_cb(uint8_t *buf, size_t len)
 {
-  t->TracePacket (0, "Read", len, buf);
-
   CArray c(buf,len);
   recv_Data(c);
   return len;

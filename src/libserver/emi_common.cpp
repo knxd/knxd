@@ -135,7 +135,6 @@ EMI_Common::send_Data(CArray &pdu)
 {
   wait_confirm = true;
   wait_confirm_low = true;
-  t->TracePacket (1, "SendEMI", pdu);
   timeout.start(send_timeout,0);
   iface->send_Data(pdu);
 }
@@ -155,7 +154,6 @@ EMI_Common::timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
 void
 EMI_Common::recv_Data(CArray& c)
 {
-  t->TracePacket (1, "RecvEMI", c);
   const uint8_t *ind = getIndTypes();
   if (c.size() > 0 && c[0] == 0xA0)
     {

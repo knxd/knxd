@@ -29,6 +29,7 @@
 #include "nat.h"
 #include "llserial.h"
 #include "lltcp.h"
+#include "log.h"
 
 TPUART::~TPUART() {}
 
@@ -92,6 +93,9 @@ TPUART::setup()
 {
   iface = create_wrapper(this, cfg);
 
+  if (t->ShowPrint(0))
+    iface = new LLlog (this,cfg, iface);
+
   if (!LowLevelAdapter::setup())
     return false;
 
@@ -128,6 +132,9 @@ TPUARTwrap::setup()
         }
       iface = new LLtcp(this, cfg);
     }
+
+  if (t->ShowPrint(0))
+    iface = new LLlog (this,cfg, iface);
 
   FilterPtr single = findFilter("single");
   if (single != nullptr)
@@ -206,7 +213,6 @@ TPUARTwrap::send_again()
         }
       z = (z - 1) * 2;
       w[z] = (w[z] & 0x3f) | 0x40;
-      t->TracePacket (0, "Write", w);
       LowLevelFilter::send_Data(w);
       sendtimer.start(2,0);
 
@@ -399,7 +405,6 @@ TPUARTwrap::recv_Data(CArray &c)
       t->TracePacket (0, "ReadDrop", len, buf);
       return; // discard
     }
-  t->TracePacket (0, "Read", len, buf);
 
   while(len--)
     {
