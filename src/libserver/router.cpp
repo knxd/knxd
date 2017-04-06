@@ -354,13 +354,17 @@ Router::send_Next()
   ITER(i,links)
     {
       auto ii = i->second;
-      if (!ii->state != L_up)
-        continue;
+      if (ii->state != L_up)
+        {
+          TRACEPRINTF (ii->t, 6, "not up");
+          continue;
+        }
       if (!ii->send_more)
         {
           TRACEPRINTF (ii->t, 6, "still waiting");
           return;
         }
+      TRACEPRINTF (ii->t, 6, "is OK");
     }
   TRACEPRINTF (t, 6, "OK");
   high_send_more = true;

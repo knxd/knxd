@@ -59,6 +59,8 @@ LowLevelIface::send_Local(CArray &d, int raw)
   assert(!is_local);
   is_local = true;
   local_timeout.start(0.9, 0);
+  TRACEPRINTF (tr(), 0, "send_Local init");
+
   do_send_Local(d, raw);
 }
 
@@ -84,6 +86,7 @@ LowLevelIface::send_Next()
 {
   if (is_local)
     {
+      TRACEPRINTF (tr(), 0, "send_Local done");
       local_timeout.stop();
       is_local = false;
       sendLocal_done(true);

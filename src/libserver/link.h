@@ -446,11 +446,7 @@ private:
 
 public:
   bool send_more = true;
-  virtual void send_L_Data (LDataPtr l)
-    {
-      send_more = false;
-      LinkConnect_::send_L_Data(std::move(l));
-    }
+  virtual void send_L_Data (LDataPtr l);
 
   /** This is responsible for setting up the filters. Don't call it twice!
    * Precondition: set_driver() has been called. */

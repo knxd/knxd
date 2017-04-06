@@ -478,7 +478,16 @@ void
 LinkConnect::send_Next()
 {
   send_more = true;
+  TRACEPRINTF(t, 6, "sendNext called, send_more set");
   static_cast<Router&>(router).send_Next();
+}
+
+void
+LinkConnect::send_L_Data (LDataPtr l)
+{
+  send_more = false;
+  TRACEPRINTF(t, 6, "sending, send_more clear");
+  LinkConnect_::send_L_Data(std::move(l));
 }
 
 void

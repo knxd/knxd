@@ -289,6 +289,7 @@ FT12wrap::process_read(bool is_timeout)
     return;
   in_reader = true;
 
+  t->TracePacket (1, "Processing", akt);
   while (akt.size() > 0 && next_free)
     {
       if (akt[0] == 0xE5 && send_wait)
@@ -299,6 +300,11 @@ FT12wrap::process_read(bool is_timeout)
           send_wait = false;
           do__send_Next();
           repeatcount = 0;
+        }
+      else if (akt[0] == 0xE5)
+        {
+          TRACEPRINTF (t, 0, "Spurious ACK");
+          akt.deletepart (0, 1);
         }
       else if (akt[0] == 0x10)
         {
@@ -384,7 +390,10 @@ FT12wrap::process_read(bool is_timeout)
     }
 
   if (akt.size())
-    timer.start(0.15,0);
+    {
+      t->TracePacket (1, "Processing: left", akt);
+      timer.start(0.15,0);
+    }
   in_reader = false;
 }
 
