@@ -512,7 +512,8 @@ TPUARTwrap::recv_Data(CArray &c)
 void
 TPUARTwrap::setstate(enum TSTATE new_state)
 {
-  TRACEPRINTF (t, 8, "state: %s > %s", SN(state),SN(new_state));
+  if (state != new_state)
+    TRACEPRINTF (t, 8, "state: %s > %s", SN(state),SN(new_state));
 
   if (state < T_is_online && new_state >= T_is_online)
     {
