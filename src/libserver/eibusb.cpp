@@ -278,7 +278,6 @@ cont:
 bool
 USBDriver::make_EMI()
 {
-  LowLevelDriver *oif = iface;
   if (version != vUnknown)
     {
       usb_iface->version = version;
@@ -309,11 +308,8 @@ USBDriver::make_EMI()
     {
       // delete only this, not the whole stack.
       dynamic_cast<LowLevelFilter *>(iface)->iface = nullptr;
-      delete iface;
-      iface = oif;
       return false;
     }
-  oif->resetMaster(iface);
   return true;
 }
 
