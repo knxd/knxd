@@ -64,6 +64,29 @@ LowLevelIface::send_Local(CArray &d, int raw)
   do_send_Local(d, raw);
 }
 
+LowLevelFilter::LowLevelFilter (LowLevelIface* parent, IniSectionPtr& s, LowLevelDriver* i)
+      : LowLevelDriver(parent,s)
+{
+  t->setAuxName("LowF");
+  if (i != nullptr)
+    {
+      i->resetMaster(this);
+      iface = i;
+      inserted = true;
+    }
+}
+
+bool LowLevelFilter::setup()
+{
+  if (iface == nullptr)
+    return false;
+  if (!LowLevelDriver::setup())
+    return false;
+  if (inserted)
+    return true;
+  return iface->setup();
+}
+
 void
 LowLevelFilter::do_send_Local(CArray &d, int raw)
 {

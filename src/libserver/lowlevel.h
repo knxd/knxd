@@ -218,29 +218,11 @@ class LowLevelFilter : public LowLevelDriver
 protected:
   bool inserted = false; // don't propagate setup()
 public:
-  LowLevelDriver *iface;
-  LowLevelFilter (LowLevelIface* parent, IniSectionPtr& s, LowLevelDriver* i = nullptr)
-      : LowLevelDriver(parent,s)
-    {
-      t->setAuxName("LowF");
-      if (i != nullptr)
-        {
-          iface = i;
-          inserted = true;
-        }
-    }
+  LowLevelDriver *iface = nullptr;
+  LowLevelFilter (LowLevelIface* parent, IniSectionPtr& s, LowLevelDriver* i = nullptr);
   virtual ~LowLevelFilter();
 
-  virtual bool setup()
-    {
-      if (iface == nullptr)
-        return false;
-      if (!LowLevelDriver::setup())
-        return false;
-      if (inserted)
-        return true;
-      return iface->setup();
-    }
+  virtual bool setup();
   virtual void start () { iface->start(); }
   virtual void stop () { iface->stop(); }
   virtual void sendReset() { iface->sendReset(); }
