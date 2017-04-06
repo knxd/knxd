@@ -1,3 +1,13 @@
+knxd (0.14.9-1) unstable; urgency=medium
+
+  * Move low-level logging to a separate class
+  * various state machine fixes
+  * fixed processing of CEMI packets
+  * refactored all serial interfaces to optionally run across TCP
+  * fixed ft12/xemi reset handling
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 06 Apr 2017 18:00:21 +0200
+
 knxd (0.14.8-1) unstable; urgency=medium
 
   * Fixed USB send timeout handling
