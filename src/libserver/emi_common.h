@@ -51,7 +51,6 @@ class EMI_Common:public LowLevelFilter
 {
 protected:
   /** driver to send/receive */
-  LowLevelDriver *iface;
   float send_timeout; // max wait for confirmation
 
   virtual void cmdEnterMonitor() = 0;

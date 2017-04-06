@@ -60,8 +60,6 @@ EMI_Common::setup()
     return false;
   if(!LowLevelFilter::setup())
     return false;
-  if (!iface->setup ())
-    return false;
   send_timeout = cfg->value("send-timeout",300) / 1000.;
   monitor = cfg->value("monitor",false);
 
@@ -70,9 +68,6 @@ EMI_Common::setup()
 
 EMI_Common::~EMI_Common ()
 {
-  TRACEPRINTF (t, 2, "Destroy");
-  if (iface)
-    delete iface;
 }
 
 void
