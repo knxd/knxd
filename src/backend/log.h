@@ -20,6 +20,7 @@
 #ifndef FILTER_H
 #define FILTER_H
 #include "link.h"
+#include "lowlevel.h"
 
 FILTER(LogFilter,log)
 {
@@ -49,8 +50,39 @@ public:
   virtual void addAddress (eibaddr_t addr);
   virtual bool checkAddress (eibaddr_t addr);
   virtual bool checkGroupAddress (eibaddr_t addr);
-
 };
 
+class LLlog : public LowLevelFilter
+{
+public:
+  LLlog (LowLevelIface* parent, IniSectionPtr& s, LowLevelDriver* i = nullptr);
+  virtual ~LLlog();
+
+  virtual FilterPtr findFilter(std::string name);
+  virtual bool checkAddress(eibaddr_t addr);
+  virtual bool checkGroupAddress(eibaddr_t addr);
+  virtual bool checkSysAddress(eibaddr_t addr);
+  virtual bool checkSysGroupAddress(eibaddr_t addr);
+
+  virtual bool setup();
+  virtual void start();
+  virtual void stop();
+  virtual void started();
+  virtual void stopped();
+  virtual void errored();
+  virtual void recv_L_Data(LDataPtr l);
+  virtual void recv_L_Busmonitor(LBusmonPtr l);
+  virtual void send_L_Data(LDataPtr l);
+  virtual void send_Data(CArray& c);
+  virtual void recv_Data(CArray& c);
+
+  /** sends a EMI frame asynchronous */
+  virtual void sendReset();
+  virtual void abort_send();
+
+  virtual void do_send_Next();
+  virtual void send_Local (CArray& l, int raw = 0);
+  virtual void do_send_Local (CArray& l, int raw = 0);
+};
 
 #endif

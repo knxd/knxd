@@ -150,3 +150,153 @@ LogFilter::checkGroupAddress (eibaddr_t addr)
   return res;
 }
 
+
+LLlog::LLlog (LowLevelIface* parent, IniSectionPtr& s, LowLevelDriver* i) : LowLevelFilter(parent,s,i)
+{
+  tr()->setAuxName("log");
+  tr()->TracePrintf (0, "Insert %d:%s / %d:%s", iface ? iface->tr()->seq : 0, iface ? iface->tr()->auxname : "??", parent->tr()->seq, parent->tr()->auxname);
+}
+
+LLlog::~LLlog()
+{
+  tr()->TracePrintf (0, "Closing");
+}
+
+void LLlog::do_send_Next()
+{
+  tr()->TracePrintf (0, "send_Next");
+  master->send_Next();
+}
+
+FilterPtr LLlog::findFilter(std::string name)
+{
+  FilterPtr x = master->findFilter(name);
+  tr()->TracePrintf (0, "Filter %s %sfound",name,x?"":"not ");
+  return x;
+}
+bool LLlog::checkAddress(eibaddr_t addr)
+{
+  bool x = master->checkAddress(addr);
+  tr()->TracePrintf (0, "Has Addr %s: %s",
+      FormatEIBAddr(addr), x ? "yes" : "no");
+  return x;
+}
+bool LLlog::checkGroupAddress(eibaddr_t addr)
+{
+  bool x = master->checkGroupAddress(addr);
+  tr()->TracePrintf (0, "Has Addr %s: %s",
+      FormatGroupAddr(addr), x ? "yes" : "no");
+  return x;
+}
+bool LLlog::checkSysAddress(eibaddr_t addr)
+{
+  bool x = master->checkSysAddress(addr);
+  tr()->TracePrintf (0, "Known Addr %s: %s",
+      FormatEIBAddr(addr), x ? "yes" : "no");
+  return x;
+}
+bool LLlog::checkSysGroupAddress(eibaddr_t addr)
+{
+  bool x = master->checkSysGroupAddress(addr);
+  tr()->TracePrintf (0, "Known Addr %s: %s",
+      FormatGroupAddr(addr), x ? "yes" : "no");
+  return x;
+}
+
+bool LLlog::setup ()
+{
+  bool x;
+  tr()->TracePrintf (0, "Setup");
+  x = iface->setup();
+  tr()->TracePrintf (0, "Setup OK: %s", x?"yes":"no");
+  return x;
+}
+
+void LLlog::start ()
+{
+  tr()->TracePrintf (0, "Start");
+  iface->start();
+}
+
+void LLlog::stop ()
+{
+  tr()->TracePrintf (0, "Stop");
+  iface->stop();
+}
+
+void LLlog::started ()
+{
+  tr()->TracePrintf (0, "Started");
+  master->started();
+}
+
+void LLlog::stopped ()
+{
+  tr()->TracePrintf (0, "Stopped");
+  master->stopped();
+}
+
+void LLlog::errored ()
+{
+  tr()->TracePrintf (0, "Errored");
+  master->errored();
+}
+
+void LLlog::recv_L_Data(LDataPtr l)
+{
+  tr()->TracePrintf (0, "Recv %s", l->Decode (t));
+  master->recv_L_Data(std::move(l));
+}
+
+void LLlog::send_L_Data(LDataPtr l)
+{
+  tr()->TracePrintf (0, "Send %s", l->Decode (t));
+  iface->send_L_Data(std::move(l));
+}
+
+void LLlog::recv_Data(CArray& l)
+{
+  tr()->TracePacket (0, "Recv", l);
+  master->recv_Data(l);
+}
+
+void LLlog::send_Data(CArray& l)
+{
+  tr()->TracePacket (0, "Send", l);
+  iface->send_Data(l);
+}
+
+void LLlog::send_Local(CArray& l, int raw)
+{
+  char x[15];
+  sprintf(x,"SendLocal %d",raw);
+  tr()->TracePacket (0, x, l);
+  iface->send_Local(l,raw);
+}
+
+void LLlog::do_send_Local(CArray& l, int raw)
+{
+  char x[15];
+  sprintf(x,"DoSendLocal %d",raw);
+  tr()->TracePacket (0, x, l);
+  iface->do_send_Local(l,raw);
+}
+
+void LLlog::recv_L_Busmonitor(LBusmonPtr l)
+{
+  tr()->TracePrintf (0, "Monitor %s", l->Decode (tr()));
+  master->recv_L_Busmonitor(std::move(l));
+}
+
+void LLlog::sendReset()
+{
+  tr()->TracePrintf (0, "Reset");
+  iface->sendReset();
+}
+
+void LLlog::abort_send()
+{
+  tr()->TracePrintf (0, "AbortSend");
+  iface->abort_send();
+}
+
