@@ -370,7 +370,7 @@ main (int ac, char *ag[])
   if (!r->setup())
     {
       ERRORPRINTF(r->t, E_FATAL,"Error setting up the KNX router.");
-      exit(1);
+      exit(2);
     }
   if (!strcmp(cfgfile, "-"))
     ERRORPRINTF(r->t, E_WARNING,"Consider using a config file.");
