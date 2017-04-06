@@ -107,6 +107,7 @@ class FT12wrap : public LowLevelFilter
 public:
   FT12wrap (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i = nullptr);
   virtual ~FT12wrap ();
+  bool setup ();
   void start ();
   void stop ();
 
