@@ -377,7 +377,7 @@ These options apply to all drivers and servers.
     If the driver doesn't initially start up, knxd will continue anyway
     instead of terminating with an error.
 
-  * retry-delay (int, --arg=retry-delay=NUM)
+  * retry-delay (int (seconds), --arg=retry-delay=NUM)
 
     If the driver fails to start (or dies), knxd will restart it after this
     many seconds.
@@ -390,9 +390,21 @@ These options apply to all drivers and servers.
 
     Default: zero: infinite (if retry-delay is positive)
 
+  * send-timeout (int (seconds), --arg=send-timeout=NUM)
+
+    Transmission timeout. If a driver does not indicate that it's ready for
+    the next transmission after this many seconds, it will be marked as
+    failing.
+
+    Note that this value is ineffective when using the "queue" filter.
+
+    Default: 10 seconds.
+
 If retrying is active but "may-fail" is false, the driver must start
-correctly when knxd starts up. It will only be restarted once knxd is, or
-rather has been, fully operative.
+correctly when knxd starts up. It will only be restarted once knxd is,
+or rather has been, fully operative.
+
+A restarting driver will not participate in packet transmission.
 
 dummy
 -----

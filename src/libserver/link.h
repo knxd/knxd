@@ -415,6 +415,8 @@ public:
   bool is_local = false;
   /** address assigned to this link */
   eibaddr_t addr = 0;
+  /** Timeout for transmission */
+  int send_timeout = 10;
 
   /** current state */
   LConnState state = L_down;
