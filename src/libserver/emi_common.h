@@ -44,6 +44,15 @@ typedef enum
   vTIMEOUT
 } EMIVer;
 
+typedef enum
+{
+  E_idle,
+  E_timed_out, // but still waiting for sendNext
+  // states after this mean that the timer is running
+  E_wait, // waiting for sendNext and confirm
+  E_wait_confirm, // sendNext did arrive but not the HL confirmation
+} E_state;
+
 EMIVer cfgEMIVersion(IniSectionPtr& s);
 
 /** EMI common backend code */
@@ -52,6 +61,7 @@ class EMI_Common:public LowLevelFilter
 protected:
   /** driver to send/receive */
   float send_timeout; // max wait for confirmation
+  int max_retries;
 
   virtual void cmdEnterMonitor() = 0;
   virtual void cmdLeaveMonitor() = 0;
@@ -60,12 +70,15 @@ protected:
   virtual const uint8_t * getIndTypes() = 0;
   virtual EMIVer getVersion() = 0;
 private:
-  bool wait_confirm = false;
-  bool wait_confirm_low = false;
+  E_state state;
+  bool wait_confirm = false; // waiting for high-level cinfirm
+  bool wait_confirm_low = false; // waiting for low_level confirm
   bool monitor = false;
 
   ev::timer timeout;
   void timeout_cb(ev::timer &w, int revents);
+  CArray out; // caches the packet to send
+  int retries;
 
   void read_cb(CArray *p);
 
@@ -73,6 +86,7 @@ public:
   EMI_Common (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i = nullptr);
   virtual ~EMI_Common ();
   bool setup();
+  void start();
   void started();
   void stop();
 

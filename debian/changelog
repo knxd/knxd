@@ -1,6 +1,7 @@
 knxd (0.14.10-0) UNRELEASED; urgency=medium
 
   * Augment the "pace" filter to also consider incoming packets
+  * Add packet send retry to EMI drivers
 
  -- Matthias Urlichs <matthias@urlichs.de>  Fri, 07 Apr 2017 13:20:48 +0200
 

@@ -495,6 +495,9 @@ You may need the "single" filter in front of this driver.
 
 You may need a UDEV rule that changes the USB device's ownership to knxd.
 
+These devices use one of three related protocols: EMI1, EMI2, or CEMI. The
+driver auto-detects wvich version to use.
+
 Warning: bus+device numbers may change after rebooting.
 
   * bus (int)
@@ -528,6 +531,16 @@ Warning: bus+device numbers may change after rebooting.
 
     It's an error to specify this option without also using "setting".
 
+  * version
+
+    The EMI protocol version to use (1, 2, or 3).
+
+    Default: None, the protocol to be used is auto-detected.
+
+The following options control repetition of unacknowledged packets. They
+also apply to the "ft12" and "ft12cemi" drivers which wrap EMI1 / CEMI data
+in a serial protocol.
+
   * send-timeout (int; --send-delay=MSEC)
 
     USB devices confirm packet transmission. This option controls how long
@@ -538,6 +551,13 @@ Warning: bus+device numbers may change after rebooting.
     Note that this driver's old "send-delay" option is misnamed, as the
     timeout is pre-emted when the remote side signals that is has accepted
     the packet.
+
+  * send-retries (int)
+
+    The number of times to repeat the transmission of a packet. If
+    (ultimately) unsuccessful, the packet will be discarded.
+
+    The default is 3.
 
 tpuart
 -------
@@ -604,6 +624,9 @@ the driver's name is "ft12tcp". Use this command on the remote side:
 
     socat TCP-LISTEN:55332,reuseaddr /dev/ttyACM0,b19200,parenb,raw
 
+The "send-timeout" and "send-retries" options, described above on the "usb"
+driver, can also be applied to this driver.
+
 ft12cemi
 --------
 
@@ -628,6 +651,9 @@ As with "tpuart", this device can be used remotely. On the command line,
 the driver's name is "ft12cemitcp". Use this command on the remote side:
 
     socat TCP-LISTEN:55332,reuseaddr /dev/ttyACM0,b19200,parenb,raw
+
+The "send-timeout" and "send-retries" options, described above on the "usb"
+driver, can also be applied to this driver.
 
 ncn5120
 -------

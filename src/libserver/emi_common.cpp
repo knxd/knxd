@@ -61,6 +61,7 @@ EMI_Common::setup()
   if(!LowLevelFilter::setup())
     return false;
   send_timeout = cfg->value("send-timeout",300) / 1000.;
+  max_retries = cfg->value("send-retries",3);
   monitor = cfg->value("monitor",false);
 
   return true;
@@ -68,6 +69,13 @@ EMI_Common::setup()
 
 EMI_Common::~EMI_Common ()
 {
+}
+
+void
+EMI_Common::start()
+{
+  state = E_idle;
+  LowLevelFilter::start();
 }
 
 void
@@ -96,7 +104,7 @@ EMI_Common::stop ()
 void
 EMI_Common::send_L_Data (LDataPtr l)
 {
-  if (wait_confirm || wait_confirm_low)
+  if (state != E_idle)
     {
       ERRORPRINTF(t, E_ERROR, "EMI_common: send while waiting");
       return;
@@ -112,22 +120,24 @@ EMI_Common::send_L_Data (LDataPtr l)
       return;
     }
   CArray pdu = lData2EMI (0x11, l);
+  out = pdu;
+  retries = 0;
   send_Data (pdu);
 }
 
 void
 EMI_Common::do_send_Next()
 {
-  wait_confirm_low = false;
-  if (!wait_confirm)
+  if (state == E_wait)
+    state = E_wait_confirm;
+  else if (state == E_idle)
     LowLevelFilter::do_send_Next();
 }
 
 void
 EMI_Common::send_Data(CArray &pdu)
 {
-  wait_confirm = true;
-  wait_confirm_low = true;
+  state = E_wait;
   timeout.start(send_timeout,0);
   iface->send_Data(pdu);
 }
@@ -135,13 +145,27 @@ EMI_Common::send_Data(CArray &pdu)
 void
 EMI_Common::timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
 {
-  TRACEPRINTF (t, 1, "No confirm, continuing");
-  if (!wait_confirm)
+  if (state <= E_timed_out)
     return;
+  if (state == E_wait)
+    {
+      state = E_timed_out;
+      errored();
+      return;
+    }
+  assert (state == E_wait_confirm);
+  if (++retries <= max_retries)
+    {
+      TRACEPRINTF (t, 1, "No confirm, repeating");
+      send_Data(out);
+      return;
+    }
 
-  wait_confirm = false;
-  if (!wait_confirm_low)
-    LowLevelFilter::do_send_Next();
+  // TODO raise an error instead?
+  ERRORPRINTF(t, E_WARNING, "EMI: No confirm, packet discarded");
+
+  state = E_idle;
+  LowLevelFilter::do_send_Next();
 }
 
 void
@@ -155,16 +179,15 @@ EMI_Common::recv_Data(CArray& c)
     }
   else if (c.size() > 0 && c[0] == ind[I_CONFIRM])
     {
-      if (wait_confirm)
+      if (state == E_wait_confirm)
         {
           TRACEPRINTF (t, 2, "Confirmed");
-          wait_confirm = false;
+          state = E_idle;
           timeout.stop();
-          if (!wait_confirm_low)
-            LowLevelFilter::do_send_Next();
+          LowLevelFilter::do_send_Next();
         }
       else
-        TRACEPRINTF (t, 2, "spurious Confirm");
+        TRACEPRINTF (t, 2, "spurious Confirm %d",(int)state);
     }
   else if (c.size() > 0 && c[0] == ind[I_DATA] && !monitor)
     {
