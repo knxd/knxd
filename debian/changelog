@@ -1,4 +1,4 @@
-knxd (0.14.10-0) UNRELEASED; urgency=medium
+knxd (0.14.10-1) unstable; urgency=medium
 
   * Augment the "pace" filter to also consider incoming packets
   * Add packet send retry to EMI drivers
