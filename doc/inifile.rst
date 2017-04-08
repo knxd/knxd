@@ -936,13 +936,13 @@ pace
 
 Limit the rate at which packets are transmitted to an interface.
 
-  * delay
+  * delay (float, msec)
 
-    The delay between transmissions, in milliseconds.
+    The delay between transmissions.
     
     Optional. The default is 20 msec.
 
-  * delay-per-byte
+  * delay-per-byte (float, msec)
 
     Additional delay per byte of longer messages, in milliseconds.
     
@@ -952,6 +952,16 @@ Limit the rate at which packets are transmitted to an interface.
     Note that the fixed part of the protocol is ignored here: a "short
     write" has an additional length delay of zero. The fixed-overhead part
     of the KNX protocol should be factored into the per-message delay.
+
+  * incoming (float, proportion)
+
+    Normally, the "pace" filter only considers outgoing packets. However,
+    since KNX is a bus, incoming data also need to be considered.
+
+    This parameter controls how much incoming data should contribute to the
+    filter's delay.
+
+    Optional. The default is 0.75.
 
 The pace filter's timer starts when a packet has successfully been
 transmitted. Thus it should only be necessary in front of the multicast

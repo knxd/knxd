@@ -50,7 +50,21 @@ PaceFilter::setup()
       ERRORPRINTF(t, E_ERROR, "The delay must be >0");
       return false;
     }
+  factor_in = cfg->value("incoming",0.75);
+  if (factor_in < 0)
+    {
+      ERRORPRINTF(t, E_ERROR, "The factor for incoming packets must be >=0");
+      return false;
+    }
   return true;
+}
+
+void
+PaceFilter::start()
+{
+  nr_in = 0;
+  size_in = 0;
+  Filter::start();
 }
 
 void
@@ -103,6 +117,13 @@ PaceFilter::timer_cb (ev::timer &w UNUSED, int revents UNUSED)
 {
   if (state != P_BUSY)
     return;
+  if (factor_in > 0 && nr_in > 0)
+    {
+      timer.start((size_in*byte_delay + nr_in*delay) * factor_in);
+      nr_in  = 0;
+      size_in = 0;
+      return;
+    }
   state = P_IDLE;
   Filter::send_Next();
 }
@@ -112,5 +133,13 @@ PaceFilter::send_L_Data (LDataPtr l)
 {
   last_len = l->data.size();
   Filter::send_L_Data(std::move(l));
+}
+
+void
+PaceFilter::recv_L_Data (LDataPtr l)
+{
+  nr_in += 1;
+  size_in = l->data.size();
+  Filter::recv_L_Data(std::move(l));
 }
 
