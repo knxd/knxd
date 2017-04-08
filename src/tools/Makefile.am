@@ -22,7 +22,6 @@ links=busmonitor1 busmonitor2 readindividual progmodeon progmodeoff \
       groupcachereadsync groupcacheread mwriteplain mrestart groupsocketwrite \
       groupsocketswrite \
       xpropread xpropwrite groupcachelastupdates busmonitor3 vbusmonitor3 \
-      eibread-cgi eibwrite-cgi \
       vbusmonitor1time
 
 install-exec-local:
