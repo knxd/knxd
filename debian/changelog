@@ -1,3 +1,9 @@
+knxd (0.12.15-2) unstable; urgency=medium
+
+  * Merge: Add knxd.socket to knxd.service's After= stanza
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 10 Apr 2017 17:40:35 +0200
+
 knxd (0.12.15-1) unstable; urgency=medium
 
   * Use a random source port for ipt:
@@ -334,6 +340,12 @@ knxd (0.11.1-1) unstable; urgency=medium
   * Refactor multicast to use a separate port for sending
 
  -- Matthias Urlichs <matthias@urlichs.de>  Sun, 28 Jun 2015 06:53:31 +0000
+
+knxd (0.10.18-4) stable; urgency=medium
+
+  * Add knxd.socket to knxd.service's After= stanza
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 10 Apr 2017 17:39:23 +0200
 
 knxd (0.10.18-3) stable; urgency=medium
 
