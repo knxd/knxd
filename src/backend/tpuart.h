@@ -23,14 +23,12 @@
 #include "eibnetip.h"
 #include "link.h"
 #include "lpdu.h"
+#include "lowlevel.h"
 
 // also update SN() in tpuart.cpp
 enum TSTATE {
   T_new = 0,
   T_error,
-  T_dev_start = 3,
-  _T4,_T5,_T6,_T7,_T8,_T9,
-  T_dev_end = 10,
   T_start = 11,
   T_in_reset,
   T_in_setaddr,
@@ -42,31 +40,44 @@ enum TSTATE {
   T_busmonitor = 30,
 };
 
-/** TPUART user mode driver */
-class TPUART_Base:public BusDriver
+DRIVER_(TPUART,LowLevelAdapter,tpuart)
 {
+public:
+  TPUART(const LinkConnectPtr_& c, IniSectionPtr& s) : LowLevelAdapter(c,s)
+    {
+      t->setAuxName("tpuart");
+    }
+  virtual ~TPUART();
+
+  bool setup();
 protected:
-  /** device connection */
-  int fd = -1;
-  /** queueing */
-  SendBuf sendbuf;
-  RecvBuf recvbuf;
-  size_t read_cb(uint8_t *buf, size_t len);
-  void error_cb();
+  virtual LowLevelFilter * create_wrapper(LowLevelIface* parent, IniSectionPtr& s, LowLevelDriver* i = nullptr);
+};
+
+class TPUARTwrap : public LowLevelFilter
+{
+public:
+  TPUARTwrap (LowLevelIface* parent, IniSectionPtr& s, LowLevelDriver* i = nullptr);
+  virtual ~TPUARTwrap();
+
+protected:
+  void recv_Data(CArray &c);
 
   bool ackallgroup;
   bool ackallindividual;
 
   /** process a received frame */
   virtual void RecvLPDU (const uchar * data, int len);
-  void process_read(bool timed_out);
 
-  void setup_buffers();
-  virtual void send_Next();
+  virtual void do_send_Next();
+  void do__send_Next();
   void send_again();
   void in_check();
 
-  virtual void dev_timer() = 0;
+  /** OK to send next packet */
+  bool next_free = true;
+  /** waiting for OK to send next packet */
+  bool send_wait = false;
 
   /** main loop state */
   ev::timer timer; void timer_cb(ev::timer &w, int revents);
@@ -86,13 +97,15 @@ protected:
   virtual void setstate(enum TSTATE new_state);
 
 public:
-  TPUART_Base (const LinkConnectPtr_& c, IniSection& s);
-  virtual ~TPUART_Base ();
   bool setup();
-  void start();
-  void stop();
+  void started();
+  void stopped();
 
   void send_L_Data (LDataPtr l);
+
+protected:
+  virtual FDdriver * create_serial(LowLevelIface* parent, IniSectionPtr& s);
+
 };
 
 #endif

@@ -21,21 +21,17 @@
 #define SNCN5120_SERIAL_H
 #include <termios.h>
 #include "lowlatency.h"
-#include "tpuartserial.h"
 
-/** TPUART user mode driver */
-DRIVER_(NCN5120Serial,TPUARTSerial,ncn5120)
+#define NO_MAP
+#include "tpuart.h"
+
+/** TPUART-derived driver */
+DRIVER_(NCN5120,TPUART,ncn5120)
 {
 public:
-  NCN5120Serial (const LinkConnectPtr_& c, IniSection& s);
-  virtual ~NCN5120Serial ();
-
-protected:
-  void termios_settings(struct termios &t);
-  unsigned int default_baudrate();
-  void setstate(enum TSTATE state);
-
-  void RecvLPDU (const uchar * data, int len);
+  NCN5120 (const LinkConnectPtr_& c, IniSectionPtr& s) : TPUART(c,s) { t->setAuxName("NCN"); } ;
+  virtual ~NCN5120 ();
+  LowLevelFilter * create_wrapper(LowLevelIface* parent, IniSectionPtr& s, LowLevelDriver* i = nullptr);
 };
 
 #endif

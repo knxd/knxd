@@ -144,45 +144,17 @@ dnl  AC_DEFINE(HAVE_PEI16s, 1 , [PEI16s enabled])
 dnl  NEED_EMI(pei16s)
 dnl fi
 
-AC_ARG_ENABLE(tpuarts,
-[  --enable-tpuarts	enable serial TPUART user driver backend],
+AC_ARG_ENABLE(tpuart,
+[  --enable-tpuarts	enable TPUART driver backends],
 [case "${enableval}" in
- yes) tpuarts=true ;;
-  no)  tpuarts=false ;;
+ yes) tpuart=true ;;
+  no)  tpuart=false ;;
    *) AC_MSG_ERROR(bad value ${enableval} for --enable-tpuarts) ;;
- esac],[tpuarts=true])
+ esac],[tpuart=true])
 
-AC_ARG_ENABLE(tpuarts-tcp,
-[  --enable-tpuarts-tcp	enable TPUART-over-TCP user driver backend],
-[case "${enableval}" in
- yes) tpuarts_tcp=true ;;
-  no)  tpuarts_tcp=false ;;
-   *) AC_MSG_ERROR(bad value ${enableval} for --enable-tpuarts-tcp) ;;
- esac],[tpuarts=true])
-
-AC_ARG_ENABLE(ncn5120,
-[  --enable-ncn5120                 enable NCN5120 backend],
-[case "${enableval}" in
- yes) ncn5120=true ;;
-  no)  ncn5120=false ;;
-   *) AC_MSG_ERROR(bad value ${enableval} for --enable-ncn5120) ;;
- esac],[ncn5120=true])
-
-AM_CONDITIONAL(HAVE_TPUART, test x$tpuarts = xtrue -o x$tpuarts_tcp = xtrue -o x$ncn5120 = xtrue)
-AM_CONDITIONAL(HAVE_TPUARTs, test x$tpuarts = xtrue -o x$ncn5120 = xtrue)
-AM_CONDITIONAL(HAVE_TPUARTs_TCP, test x$tpuarts_tcp = xtrue)
-AM_CONDITIONAL(HAVE_NCN5120, test x$ncn5120 = xtrue)
-if test x$tpuarts = xtrue -o x$tpuarts_tcp = xtrue -o x$ncn5120 = xtrue ; then
+AM_CONDITIONAL(HAVE_TPUART, test x$tpuart = xtrue)
+if test x$tpuart = xtrue ; then
  AC_DEFINE(HAVE_TPUART, 1 , [common TPUART code enabled])
-fi
-if test x$tpuarts = xtrue ; then
- AC_DEFINE(HAVE_TPUARTs, 1 , [TPUART (serial port) enabled])
-fi
-if test x$tpuarts_tcp = xtrue ; then
- AC_DEFINE(HAVE_TPUARTs_TCP, 1 , [TPUART-over-TCP enabled])
-fi
-if test x$ncn5120 = xtrue ; then
- AC_DEFINE(HAVE_NCN5120, 1 , [NCN5120 backend enabled])
 fi
 
 AC_ARG_ENABLE(eibnetip,

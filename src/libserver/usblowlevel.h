@@ -57,7 +57,7 @@ typedef enum {
 class USBLowLevelDriver : public LowLevelDriver
 {
 public:
-  USBLowLevelDriver (LowLevelIface* p, IniSection& s);
+  USBLowLevelDriver (LowLevelIface* p, IniSectionPtr& s);
   virtual ~USBLowLevelDriver ();
 private:
   libusb_device_handle *dev;
@@ -67,6 +67,8 @@ private:
 
   /** transmit buffer */
   CArray out;
+  /** transmit retry counter */
+  int send_retry = 0;
 
   UState state = sNone;
   bool stopping = false;
@@ -81,7 +83,7 @@ private:
   void HandleReceiveUsb();
   virtual void reset();
   void do_send();
-  void send_Next();
+  void do_send_Next();
   void stop_();
 
   // need to do the trigger callbacks outside of libusb
@@ -93,7 +95,6 @@ public:
   void start();
   void stop();
   void send_Data (CArray& l);
-  void sendReset ();
   void abort_send();
 
 

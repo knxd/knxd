@@ -22,12 +22,36 @@
 #include <errno.h>
 
 #include "ft12.h"
+
+#include "emi.h"
 #include "emi1.h"
 #include "emi2.h"
-#include "ft12cemi.h"
+#include "cemi.h"
+
+#include "llserial.h"
+#include "lltcp.h"
+#include "log.h"
 
 FT12Driver::~FT12Driver() {}
 FT12cemiDriver::~FT12cemiDriver() {}
+
+class FT12serial : public LLserial
+{
+public:
+  FT12serial(LowLevelIface* a, IniSectionPtr& b) : LLserial(a,b) { t->setAuxName("FT12_ser"); }
+  virtual ~FT12serial() {}
+protected:
+  void termios_settings (struct termios &t1)
+    {
+      t1.c_cflag = CS8 | CLOCAL | CREAD | PARENB;
+      t1.c_iflag = IGNBRK | INPCK | ISIG;
+      t1.c_oflag = 0;
+      t1.c_lflag = 0;
+      t1.c_cc[VTIME] = 1;
+      t1.c_cc[VMIN] = 0;
+    }
+  unsigned int default_baudrate() { return 19200; }
+};
 
 bool
 FT12Driver::make_EMI()
@@ -35,16 +59,16 @@ FT12Driver::make_EMI()
   switch (getVersion())
     {
     case vEMI1:
-      iface = new EMI1Driver (iface,this,cfg);
+      iface = new EMI1Driver (this,cfg, iface);
       break;
     case vEMI2:
-      iface = new EMI2Driver (iface,this,cfg);
+      iface = new EMI2Driver (this,cfg, iface);
       break;
     case vCEMI:
-      iface = new FT12CEMIDriver (iface,this,cfg);
+      iface = new FT12CEMIDriver (this,cfg, iface);
       break;
     case vRaw:
-      return true;
+      break;
     case vUnknown:
       return false;
     default: 
@@ -52,245 +76,234 @@ FT12Driver::make_EMI()
       return false;
     }
 
+  if (t->ShowPrint(0))
+    iface = new LLlog (this,cfg, iface);
   return iface->setup();
 }
 
 bool
 FT12Driver::setup()
 {
-  if (!BusDriver::setup())
-    return false;
-  
-  iface = new FT12serial(this, cfg);
-  if (!make_EMI())
+  FDdriver *fdd;
+
+  iface = new FT12wrap(this, cfg);
+
+  if (t->ShowPrint(0))
+    iface = new LLlog (this,cfg, iface);
+
+  if(!LowLevelAdapter::setup())
     goto ex1;
 
-  if(!iface->setup())
+  if (!make_EMI())
     goto ex1;
 
   return true;
 
 ex1:
-  delete iface;
-  iface = nullptr;
   return false;
 }
 
-FT12serial::FT12serial (LowLevelIface* p, IniSection &s)
-    : LowLevelDriver(p,s)
+FT12wrap::FT12wrap (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i) : LowLevelFilter(c,s,i)
 {
-  t->setAuxName("ft12ser");
+  t->setAuxName("ft12wrap");
 }
 
 bool
-FT12serial::setup()
+FT12wrap::setup()
 {
-  if(!LowLevelDriver::setup())
-    return false;
-  dev = cfg.value("device","");
-  if (!dev.size())
+  if (cfg->value("device","").length() > 0)
     {
-      ERRORPRINTF (t, E_ERROR | 36, "Section '%s' requires a 'device=' entry", cfg.name);
-      return false;
+      if (cfg->value("ip-address","").length() > 0 ||
+          cfg->value("port",-1) != -1)
+        {
+          ERRORPRINTF (t, E_ERROR, "Don't specify both device and IP options!");
+          return false;
+        }
+      iface = new FT12serial(this, cfg);
     }
+  else
+    {
+      if (cfg->value("baudrate",-1) != -1)
+        {
+          ERRORPRINTF (t, E_ERROR, "Don't specify both device and IP options!");
+          return false;
+        }
+      iface = new LLtcp(this, cfg);
+    }
+  
+  if (t->ShowPrint(0))
+    iface = new LLlog (this,cfg, iface);
+
+  if (!iface->setup())
+    return false;
 
   return true;
 }
 
+
 void
-FT12serial::start()
+FT12wrap::start()
 {
-  struct termios t1;
   TRACEPRINTF (t, 1, "Open");
 
-  fd = open (dev.c_str(), O_RDWR | O_NOCTTY | O_NDELAY | O_SYNC);
-  if (fd == -1)
-    goto ex;
-  set_low_latency (fd, &sold);
-  close (fd);
-
-  fd = open (dev.c_str(), O_RDWR | O_NOCTTY);
-  if (fd == -1)
-    goto ex;
-  if (tcgetattr (fd, &old))
-    {
-      ERRORPRINTF (t, E_ERROR | 34, "%s: getattr_old: %s", cfg.name, strerror(errno));
-      goto ex2;
-    }
-
-  if (tcgetattr (fd, &t1))
-    {
-      ERRORPRINTF (t, E_ERROR | 34, "%s: getattr: %s", cfg.name, strerror(errno));
-      goto ex2;
-    }
-  t1.c_cflag = CS8 | PARENB | CLOCAL | CREAD;
-  t1.c_iflag = IGNBRK | INPCK | ISIG;
-  t1.c_oflag = 0;
-  t1.c_lflag = 0;
-  t1.c_cc[VTIME] = 1;
-  t1.c_cc[VMIN] = 0;
-  cfsetospeed (&t1, B19200);
-  cfsetispeed (&t1, 0);
-
-  if (tcsetattr (fd, TCSAFLUSH, &t1))
-    {
-      ERRORPRINTF (t, E_ERROR | 34, "%s: setattr: %s", cfg.name, strerror(errno));
-      goto ex2;
-    }
-  set_low_latency (fd, &sold);
   setup_buffers();
 
-  sendflag = 0;
-  recvflag = 0;
+  sendflag = false;
+  recvflag = false;
+  next_free = true;
+  send_wait = false;
+  in_reader = false;
+
   repeatcount = 0;
   TRACEPRINTF (t, 1, "Opened");
-  send_Next();
-  LowLevelDriver::start();
+  LowLevelFilter::start();
   return;
-
-ex2:
-  if (fd > -1)
-    restore_low_latency (fd, &sold);
-ex:
-  if (fd >= -1)
-    {
-      close(fd);
-      fd = -1;
-    }
-  stopped();
 }
 
 void
-FT12serial::setup_buffers()
+FT12wrap::setup_buffers()
 {
-  sendbuf.init(fd);
-  recvbuf.init(fd);
+  timer.set <FT12wrap,&FT12wrap::timer_cb> (this);
+  sendtimer.set <FT12wrap,&FT12wrap::sendtimer_cb> (this);
 
-  recvbuf.on_read.set<FT12serial,&FT12serial::read_cb>(this);
-  recvbuf.on_error.set<FT12serial,&FT12serial::error_cb>(this);
-  sendbuf.on_error.set<FT12serial,&FT12serial::error_cb>(this);
-  timer.set <FT12serial,&FT12serial::timer_cb> (this);
-  sendtimer.set <FT12serial,&FT12serial::sendtimer_cb> (this);
-
-  trigger.set<FT12serial,&FT12serial::trigger_cb>(this);
+  trigger.set<FT12wrap,&FT12wrap::trigger_cb>(this);
   trigger.start();
-
-  sendbuf.start();
-  recvbuf.start();
-}
-
-void
-FT12serial::error_cb()
-{
-  TRACEPRINTF (t, 2, "ERROR");
-  stop();
 }
 
 void 
-FT12serial::stop()
+FT12wrap::stop_()
 {
   // XXX TODO add de-registration callback
 
-  recvbuf.stop();
-  sendbuf.stop();
   timer.stop();
   sendtimer.stop();
   trigger.stop();
-
-  TRACEPRINTF (t, 1, "Close");
-  if (fd != -1)
-    {
-      tcsetattr (fd, TCSAFLUSH, &old);
-      restore_low_latency (fd, &sold);
-      close (fd);
-      fd = -1;
-    }
 }
 
-FT12serial::~FT12serial ()
+void 
+FT12wrap::stop()
 {
-  stop ();
+  TRACEPRINTF (t, 1, "Close");
+
+  stop_();
+  LowLevelFilter::stop();
+}
+
+FT12wrap::~FT12wrap ()
+{
+  stop_ ();
 }
 
 void
-FT12serial::send_Data (CArray& l)
+FT12wrap::send_Data (CArray& l)
+{
+  do_send_Local (l, 0);
+}
+
+void
+FT12wrap::do_send_Local (CArray& l, int raw)
 {
   if(out.size() > 0)
     {
       ERRORPRINTF (t, E_ERROR | 36, "Send while data");
       return;
     }
-  uchar c;
-  unsigned i;
-  t->TracePacket (1, "Send", l);
+  if (!raw)
+    {
+      uchar c;
+      unsigned i;
 
-  assert (l.size() <= 32);
-  out.resize (l.size() + 7);
-  out[0] = 0x68;
-  out[1] = l.size() + 1;
-  out[2] = l.size() + 1;
-  out[3] = 0x68;
-  if (sendflag)
-    out[4] = 0x53;
+      out.resize (l.size() + 7);
+      out[0] = 0x68;
+      out[1] = l.size() + 1;
+      out[2] = l.size() + 1;
+      out[3] = 0x68;
+      if (sendflag)
+        out[4] = 0x53;
+      else
+        out[4] = 0x73;
+      sendflag = !sendflag;
+
+      out.setpart (l.data(), 5, l.size());
+      c = out[4];
+      for (i = 0; i < l.size(); i++)
+        c += l[i];
+      out[out.size() - 2] = c;
+      out[out.size() - 1] = 0x16;
+    }
   else
-    out[4] = 0x73;
-  sendflag = !sendflag;
-
-  out.setpart (l.data(), 5, l.size());
-  c = out[4];
-  for (i = 0; i < l.size(); i++)
-    c += l[i];
-  out[out.size() - 2] = c;
-  out[out.size() - 1] = 0x16;
+    {
+      assert (raw == 1);
+      out = l;
+    }
 
   if (!send_wait)
     trigger.send();
 }
 
 void
-FT12serial::SendReset ()
+FT12wrap::recv_Data(CArray &c)
 {
-  TRACEPRINTF (t, 1, "SendReset");
-  out.resize (4);
-  out[0] = 0x10;
-  out[1] = 0x40;
-  out[2] = 0x40;
-  out[3] = 0x16;
-  sendflag = 0;
-  recvflag = 0;
+  uint8_t *buf = c.data();
+  size_t len = c.size();
 
-  if (!send_wait)
-    trigger.send();
-}
-
-size_t
-FT12serial::read_cb(uint8_t *buf, size_t len)
-{
-  t->TracePacket (0, "Read", len, buf);
   akt.setpart (buf, akt.size(), len);
   process_read(false);
-  return len;
 }
 
 void
-FT12serial::timer_cb(ev::timer &w UNUSED, int revents UNUSED)
+FT12wrap::timer_cb(ev::timer &w UNUSED, int revents UNUSED)
 {
   process_read(true);
 }
 
 void
-FT12serial::process_read(bool is_timeout)
+FT12wrap::do_send_Next()
 {
-  while (akt.size() > 0)
+  next_free = true;
+  if (akt.size() > 0)
+    {
+      process_read(false);
+      if (!next_free)
+        return;
+    }
+  if (send_wait)
+    {
+      send_wait = false;
+      trigger.send();
+    }
+}
+
+void
+FT12wrap::do__send_Next()
+{
+  out.clear();
+  sendtimer.stop();
+  LowLevelFilter::do_send_Next();
+}
+
+void
+FT12wrap::process_read(bool is_timeout)
+{
+  if (in_reader)
+    return;
+  in_reader = true;
+  timer.stop();
+
+  t->TracePacket (1, "Processing", akt);
+  while (akt.size() > 0 && next_free)
     {
       if (akt[0] == 0xE5 && send_wait)
         {
-          out.clear();
           akt.deletepart (0, 1);
-          timer.stop();
           send_wait = false;
-          send_Next();
+          do__send_Next();
           repeatcount = 0;
+        }
+      else if (akt[0] == 0xE5)
+        {
+          TRACEPRINTF (t, 0, "Spurious ACK");
+          akt.deletepart (0, 1);
         }
       else if (akt[0] == 0x10)
         {
@@ -299,8 +312,7 @@ FT12serial::process_read(bool is_timeout)
           if (akt[1] == akt[2] && akt[3] == 0x16)
             {
               uchar c1 = 0xE5;
-              t->TracePacket (0, "Send Ack", 1, &c1);
-              sendbuf.write(&c1,1);
+              iface->send_Data(c1);
               if ((akt[1] == 0xF3 && !recvflag) ||
                   (akt[1] == 0xD3 && recvflag))
                 {
@@ -312,7 +324,7 @@ FT12serial::process_read(bool is_timeout)
                   const uchar reset[1] = { 0xA0 };
                   CArray c = CArray (reset, sizeof (reset));
                   t->TracePacket (0, "RecvReset", c);
-                  recv_Data (c);
+                  LowLevelFilter::recv_Data (c);
                 }
             }
           akt.deletepart (0, 4);
@@ -343,8 +355,7 @@ FT12serial::process_read(bool is_timeout)
             }
 
           c1 = 0xE5;
-          t->TracePacket (0, "Send Ack", 1, &c1);
-          sendbuf.write (&c1, 1);
+          iface->send_Data (c1);
 
           if (akt[4] == (recvflag ? 0xF3 : 0xD3))
             { // repeat packet?
@@ -362,7 +373,7 @@ FT12serial::process_read(bool is_timeout)
               CArray *c = new CArray;
               c->setpart (akt.data() + 5, 0, len - 7);
               last = *c;
-              recv_Data (*c);
+              LowLevelFilter::recv_Data (*c);
             }
           akt.deletepart (0, len);
         }
@@ -378,27 +389,52 @@ FT12serial::process_read(bool is_timeout)
     }
 
   if (akt.size())
-    timer.start(0.15,0);
+    {
+      t->TracePacket (1, "Processing: left", akt);
+      timer.start(0.15,0);
+    }
+  in_reader = false;
 }
 
 void
-FT12serial::sendtimer_cb(ev::timer &w UNUSED, int revents UNUSED)
+FT12wrap::sendtimer_cb(ev::timer &w UNUSED, int revents UNUSED)
 {
   send_wait = false;
   trigger.send();
 }
 
 void
-FT12serial::trigger_cb (ev::async &w UNUSED, int revents UNUSED)
+FT12wrap::trigger_cb (ev::async &w UNUSED, int revents UNUSED)
 {
-  if (send_wait)
+  if (send_wait || !next_free)
     return;
   if (out.size() == 0)
     return;
 
-  t->TracePacket (0, "Send", out);
   repeatcount++;
-  sendbuf.write(out.data(), out.size());
+  iface->send_Data(out.data(), out.size());
   send_wait = true;
   timer.start(0.2, 0);
 }
+
+void FT12wrap::sendReset()
+{
+  const uchar t1[] = { 0x10, 0x40, 0x40, 0x16 };
+  CArray l (t1, sizeof (t1));
+  do_send_Local (l, 1);
+}
+
+
+FT12CEMIDriver::~FT12CEMIDriver()
+{
+}
+
+void
+FT12CEMIDriver::cmdOpen()
+{
+  sendLocal_done_next = N_up;
+  const uchar t1[] = { 0xF6, 0x00, 0x08, 0x01, 0x34, 0x10, 0x01, 0x00 };
+  send_Local (CArray (t1, sizeof (t1)),1);
+}
+
+

@@ -17,37 +17,38 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#ifndef LLSERIAL
+#define LLSERIAL
+
+#include <termios.h>
+#include "iobuf.h"
+#include "lowlevel.h"
 #include "lowlatency.h"
 
-#include <sys/ioctl.h>
-#include <string.h> // memcpy
+// also update SN() in tpuart.cpp
 
-void
-set_low_latency (int fd, low_latency_save * save)
+/** TPUART user mode driver */
+class LLserial:public FDdriver
 {
-  struct termios opts;
+  low_latency_save sold;
+  struct termios old;
 
-#ifdef HAVE_LINUX_LOWLATENCY
-  struct serial_struct snew;
-  ioctl (fd, TIOCGSERIAL, &save->ser);
-  memcpy(&snew, &save->ser, sizeof(snew));
-  snew.flags |= ASYNC_LOW_LATENCY;
-  ioctl (fd, TIOCSSERIAL, &snew);
+  virtual void termios_settings (struct termios &t) = 0;
+  virtual unsigned int default_baudrate () = 0;
+
+  std::string dev;
+  int baudrate;
+
+public:
+  LLserial (LowLevelIface* parent, IniSectionPtr& s) : FDdriver(parent,s)
+    {
+      t->setAuxName("Serial");
+    }
+  virtual ~LLserial ();
+
+  bool setup();
+  void start();
+  void stop();
+};
+
 #endif
-
-  tcgetattr(fd, &save->term);
-  memcpy(&opts, &save->term, sizeof(opts));
-  opts.c_cc[VTIME] = 1;
-  opts.c_cc[VMIN] = 1;
-  tcsetattr(fd, TCSANOW, &opts);
-}
-
-void
-restore_low_latency (int fd, low_latency_save * save)
-{
-#ifdef HAVE_LINUX_LOWLATENCY
-  ioctl (fd, TIOCSSERIAL, &save->ser);
-#endif
-  ioctl (fd, TCSANOW, &save->term);
-}
-

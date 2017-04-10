@@ -38,7 +38,7 @@ FILTER(NatL2Filter,single)
 public:
   eibaddr_t addr;
 
-  NatL2Filter (const LinkConnectPtr_& c, IniSection& s) : Filter(c,s) {}
+  NatL2Filter (const LinkConnectPtr_& c, IniSectionPtr& s) : Filter(c,s) {}
   virtual ~NatL2Filter ();
 
   DriverPtr clone(DriverPtr l2);
@@ -49,6 +49,8 @@ public:
 
   void addReverseAddress (eibaddr_t src, eibaddr_t dest);
   eibaddr_t getDestinationAddress (eibaddr_t src);
+
+  void setAddress(eibaddr_t addr) { this->addr = addr; }
 };
 
 #endif

@@ -20,24 +20,20 @@
 #include "eibnettunnel.h"
 #include "emi.h"
 
-EIBNetIPTunnel::EIBNetIPTunnel (const LinkConnectPtr_& c, IniSection& s)
+#define NO_MAP
+#include "nat.h"
+
+
+EIBNetIPTunnel::EIBNetIPTunnel (const LinkConnectPtr_& c, IniSectionPtr& s)
   : BusDriver(c,s)
 {
+  t->setAuxName("ipt");
 }
 
 EIBNetIPTunnel::~EIBNetIPTunnel ()
 {
   TRACEPRINTF (t, 2, "Close");
-  if (sock && channel >= 0)
-    {
-      EIBnet_DisconnectRequest dreq;
-      dreq.nat = saddr.sin_addr.s_addr == 0;
-      dreq.caddr = saddr;
-      dreq.channel = channel;
-
-      EIBNetIPPacket p = dreq.ToPacket ();
-      sock->Send (p, caddr);
-    }
+  // restart();
   is_stopped();
 }
 
@@ -50,25 +46,36 @@ void EIBNetIPTunnel::is_stopped()
   sock = nullptr;
 }
 
+void EIBNetIPTunnel::stop()
+{
+  restart();
+  is_stopped();
+  BusDriver::stop();
+}
+
 bool
 EIBNetIPTunnel::setup()
 {
+  // Force queuing so that a broken or unreachable server can't disable the whole system
+  if (!assureFilter("queue", true))
+    return false;
+
   if (!BusDriver::setup())
     return false;
-  dest = cfg.value("ip-address","");
+  dest = cfg->value("ip-address","");
   if (!dest.size()) 
     {
-      ERRORPRINTF (t, E_ERROR | 23, "The 'ipt' driver, section %s, requires an 'ip-address=' option", cfg.name);
+      ERRORPRINTF (t, E_ERROR | 23, "The 'ipt' driver, section %s, requires an 'ip-address=' option", cfg->name);
       return false;
     }
-  port = cfg.value("dest-port",3671);
-  sport = cfg.value("src-port",0);
-  NAT = cfg.value("nat",false);
-  monitor = cfg.value("monitor",false);
+  port = cfg->value("dest-port",3671);
+  sport = cfg->value("src-port",0);
+  NAT = cfg->value("nat",false);
+  monitor = cfg->value("monitor",false);
   if(NAT)
     {
-      srcip = cfg.value("nat-ip","");
-      dataport = cfg.value("data-port",0);
+      srcip = cfg->value("nat-ip","");
+      dataport = cfg->value("data-port",0);
     }
   return true;
 }
@@ -119,11 +126,10 @@ EIBNetIPTunnel::start()
     sock->sendaddr = caddr;
     sock->Send (p);
   }
-  conntimeout.start(10,0);
+  conntimeout.start(CONNECT_REQUEST_TIMEOUT,0);
 
   TRACEPRINTF (t, 2, "Opened");
-  out.clear(); send_Next();
-  BusDriver::start();
+  out.clear();
   return;
 ex:
   if (sock) 
@@ -139,7 +145,7 @@ void
 EIBNetIPTunnel::error_cb ()
 {
   ERRORPRINTF (t, E_ERROR | 23, "Communication error: %s", strerror(errno));
-  stop();
+  errored();
 }
 
 void
@@ -166,7 +172,7 @@ EIBNetIPTunnel::read_cb (EIBNetIPPacket *p1)
             if (cresp.status == 0x23 && support_busmonitor && monitor)
               {
                 TRACEPRINTF (t, 1, "Disable busmonitor support");
-                stop();
+                restart();
                 return;
                 // support_busmonitor = false;
                 // connect_busmonitor = false;
@@ -186,9 +192,14 @@ EIBNetIPTunnel::read_cb (EIBNetIPPacket *p1)
             TRACEPRINTF (t, 1, "Recv wrong connection response");
             break;
           }
+
         auto cn = std::dynamic_pointer_cast<LinkConnect>(conn.lock());
         if (cn != nullptr)
           cn->setAddress((cresp.CRD[1] << 8) | cresp.CRD[2]);
+        auto f = findFilter("single");
+        if (f != nullptr)
+          std::dynamic_pointer_cast<NatL2Filter>(f)->setAddress((cresp.CRD[1] << 8) | cresp.CRD[2]);
+
         // TODO else reject
         daddr = cresp.daddr;
         if (!cresp.nat)
@@ -248,18 +259,7 @@ EIBNetIPTunnel::read_cb (EIBNetIPPacket *p1)
             if (treq.seqno < rno)
               treq.seqno += 0x100;
             if (treq.seqno >= rno + 5)
-              {
-                EIBnet_DisconnectRequest dreq;
-                dreq.nat = saddr.sin_addr.s_addr == 0;
-                dreq.caddr = saddr;
-                dreq.channel = channel;
-
-                EIBNetIPPacket p = dreq.ToPacket ();
-                sock->Send (p, caddr);
-                sock->recvall = 0;
-                mod = 0;
-                conntimeout.start(0.1,0);
-              }
+              restart();
             break;
           }
         rno++;
@@ -344,7 +344,8 @@ EIBNetIPTunnel::read_cb (EIBNetIPPacket *p1)
             sno++;
             if (sno > 0xff)
               sno = 0;
-            out.clear(); send_Next();
+            out.clear();
+            send_Next();
             mod = 1; trigger.send();
             retry = 0;
           }
@@ -377,16 +378,7 @@ EIBNetIPTunnel::read_cb (EIBNetIPPacket *p1)
           {
             TRACEPRINTF (t, 1,
                           "Connection State Response not connected");
-            EIBnet_DisconnectRequest dreq;
-            dreq.nat = saddr.sin_addr.s_addr == 0;
-            dreq.caddr = saddr;
-            dreq.channel = channel;
-
-            EIBNetIPPacket p = dreq.ToPacket ();
-            sock->Send (p, caddr);
-            sock->recvall = 0;
-            mod = 0;
-            conntimeout.start(0.1,0);
+            restart();
           }
         else
           TRACEPRINTF (t, 1,
@@ -446,7 +438,7 @@ EIBNetIPTunnel::read_cb (EIBNetIPPacket *p1)
         mod = 0;
         sock->recvall = 0;
         TRACEPRINTF (t, 1, "Disconnected");
-        stop();
+        restart();
         conntimeout.start(0.1,0);
         break;
       }
@@ -502,25 +494,14 @@ void EIBNetIPTunnel::conntimeout_cb(ev::timer &w UNUSED, int revents UNUSED)
       else
         {
           TRACEPRINTF (t, 1, "Disconnection because of errors");
-          EIBnet_DisconnectRequest dreq;
-          dreq.caddr = saddr;
-          dreq.channel = channel;
-
-          if (channel != -1)
-            {
-              EIBNetIPPacket p = dreq.ToPacket ();
-              sock->Send (p, caddr);
-            }
-          sock->recvall = 0;
-          mod = 0;
-          conntimeout.start(0.1,0);
+          restart();
         }
     }
   else
     {
       TRACEPRINTF (t, 1, "Connect timed out");
       is_stopped();
-      stopped();
+      errored();
       // EIBnet_ConnectRequest creq = get_creq();
       // creq.CRI[1] =
         // ((connect_busmonitor && support_busmonitor) ? 0x80 : 0x02);
@@ -533,24 +514,23 @@ void EIBNetIPTunnel::conntimeout_cb(ev::timer &w UNUSED, int revents UNUSED)
 }
 
 void
-EIBNetIPTunnel::stop()
+EIBNetIPTunnel::restart()
 {
-  if (mod)
-    {
-      TRACEPRINTF (t, 1, "Disconnecting");
-      EIBnet_DisconnectRequest dreq;
-      dreq.caddr = saddr;
-      dreq.channel = channel;
+  if (mod == 0)
+    return;
+  TRACEPRINTF (t, 1, "Disconnecting");
+  EIBnet_DisconnectRequest dreq;
+  dreq.caddr = saddr;
+  dreq.channel = channel;
 
-      if (channel != -1)
-        {
-          EIBNetIPPacket p = dreq.ToPacket ();
-          sock->Send (p, caddr);
-        }
-      sock->recvall = 0;
-      mod = 0;
-      conntimeout.start(0.1,0);
+  if (channel != -1)
+    {
+      EIBNetIPPacket p = dreq.ToPacket ();
+      sock->Send (p, caddr);
     }
+  sock->recvall = 0;
+  mod = 0;
+  conntimeout.start(0.1,0);
 }
 
 void
@@ -562,7 +542,7 @@ EIBNetIPTunnel::timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
     {
       out.clear();
       TRACEPRINTF (t, 1, "Too many retransmits, disconnecting");
-      stop();
+      restart();
     }
   else
     TRACEPRINTF (t, 1, "Retry");

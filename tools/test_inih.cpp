@@ -38,18 +38,18 @@ main(int argc, const char *argv[])
       exit(2);
     }
 
-  IniSection &a = i["main"];
-  if (a["foo"] != "bar")
+  IniSectionPtr a = i["main"];
+  if ((*a)["foo"] != "bar")
     {
-      std::cerr << "in section 'main': foo should be 'bar' but is '" << a["foo"] << "'" << std::endl;
+      std::cerr << "in section 'main': foo should be 'bar' but is '" << (*a)["foo"] << "'" << std::endl;
       exit(1);
     }
-  if (a.value("baz",99) != 42)
+  if (a->value("baz",99) != 42)
     {
-      std::cerr << "in section 'main': baz should be 42 but is " << a.value("baz",88) << std::endl;
+      std::cerr << "in section 'main': baz should be 42 but is " << a->value("baz",88) << std::endl;
       exit(1);
     }
-  if (!a.value("duh",false))
+  if (!a->value("duh",false))
     {
       std::cerr << "in section 'main': duh should be true" << std::endl;
       exit(1);

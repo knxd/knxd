@@ -13,7 +13,7 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 
 This version should be OK for general use.
 
-Check [the Wiki page](https://github.com/knxd/knxd/wiki) for the version(s) to use.
+Check [the Wiki page](https://github.com/knxd/knxd/wiki) for other version(s) to use.
 
 ## Known bugs
 
@@ -24,6 +24,12 @@ Check [the Wiki page](https://github.com/knxd/knxd/wiki) for the version(s) to u
 ### see https://github.com/knxd/knxd/blob/v0.12/README.md for earlier changes
 
 * 0.14
+
+  * Configuration
+
+    * There are no longer separate --enable-tpuarts and --enable-tpuarttcp
+      options. Instead, you control both with --enable-tpuart. (This is the
+      default anyway.)
 
   * Configuration file
 
@@ -36,6 +42,12 @@ Check [the Wiki page](https://github.com/knxd/knxd/wiki) for the version(s) to u
     * You may now use global filters.
 
     * USB handling updated
+
+    * Most device-specific drivers are now split into a top part which
+      translates KNX packets to wire format (usually CEMI), and a bottom
+      part which transmits/receives the actual data. This enables extensive
+      code sharing; knxd also can use TCP connections instead of actual
+      serial devices.
 
   * Startup sequencing fixed: KNX packets will not be routed
     until all interfaces are ready.
@@ -194,8 +206,8 @@ rebooting. The TPUART module is now back on ``ttyAMA0``.
   The old way of configuring knxd via a heap of position-dependent
   arguments is still supported.
 
-  You can use ``knxd_args <args-to-knxd>`` to emit a file that corresponds to
-  your old list of arguments.
+  You can use ``/usr/lib/knxd_args <args-to-knxd>`` to emit a file that
+  corresponds to your old list of arguments.
 
 * Not configuring client addresses for the knxd\_\* servers (options -i -u),
   systemd sockets, or the router's tunnel mode (-T) now results in that
@@ -206,11 +218,15 @@ rebooting. The TPUART module is now back on ``ttyAMA0``.
 * knxd will not start routing any packets unless startup is successful on
   all interfaces.
 
-  This means that it is now safe to use "socket activation" mode for
+  This means that it is now safe to use "socket activation" mode with
   systemd. Previously, knxd might have lost the initial packets.
 
 * Tracing no longer logs the actual decoded contents of packet.
   If you need that, use the "log" filter.
+
+* knxd now transmits data synchronously, i.e. individual drivers no longer
+  buffer data for transmission. If you don't want that, use the "queue"
+  filter on slow interfaces.
 
 ## Migrating to 0.12
 

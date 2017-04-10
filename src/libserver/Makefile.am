@@ -27,7 +27,7 @@ FRONTEND_C=client.h client.cpp connection.h connection.cpp
 FRONT_C=$(FRONTEND_C) $(MANAGEMENT_C)
 
 if HAVE_EMI
-EMI=emi_common.h emi_common.cpp emi1.h emi1.cpp emi2.h emi2.cpp cemi.h cemi.cpp ft12cemi.h ft12cemi.cpp
+EMI=emi_common.h emi_common.cpp emi1.h emi1.cpp emi2.h emi2.cpp cemi.h cemi.cpp
 else
 EMI=
 endif
@@ -50,4 +50,4 @@ endif
 
 libeibstack_a_SOURCES =$(COMMON) $(CORE) $(PDUs) $(MANAGEMENT) $(NETIP) $(FRONT_C) $(CACHE) $(BUSMON)
 
-libserver_a_SOURCES = server.h server.cpp localserver.h localserver.cpp inetserver.h inetserver.cpp $(SYSTEMD_SERVER) $(EIBNETIP) $(EMI) $(USB)
+libserver_a_SOURCES = server.h server.cpp localserver.h localserver.cpp inetserver.h inetserver.cpp $(SYSTEMD_SERVER) $(EIBNETIP) $(EMI) $(USB) llserial.h llserial.cpp lltcp.h lltcp.cpp lowlatency.h lowlatency.cpp

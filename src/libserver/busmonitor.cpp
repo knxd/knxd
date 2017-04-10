@@ -23,6 +23,7 @@
 A_Busmonitor::~A_Busmonitor ()
 {
   TRACEPRINTF (t, 7, "Close A_Busmonitor");
+  stop();
 }
 
 void
@@ -70,11 +71,6 @@ A_Busmonitor::setup (uint8_t *buf, size_t len)
   if (len != 2)
     {
       con->sendreject ();
-      return false;
-    }
-  if (!(v ? router.registerVBusmonitor (this) : router.registerBusmonitor (this)))
-    {
-      con->sendreject (EIB_CONNECTION_INUSE);
       return false;
     }
 

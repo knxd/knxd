@@ -106,7 +106,7 @@ static struct argp_option options[] = {
   {"stop", OPT_STOP_NOW, 0, OPTION_HIDDEN,
    "immediately stops the server after a successful start"},
   {"list", 'l', 0, 0,
-   "list known drivers, subdrivers, filters, or servers"},
+   "list known drivers, filters, or servers"},
   {0}
 };
 
@@ -128,7 +128,7 @@ void fork_args_helper()
       sprintf(s,"%s_args",argv[0]);
       execvp(s, argv);
 
-      execv(LIBEXECDIR "knxd_args", argv);
+      execv(LIBEXECDIR "/knxd_args", argv);
 
       die("could not exec knxd_args helper");
       exit(1);
@@ -283,14 +283,13 @@ main (int ac, char *ag[])
       static Factory<Server> _servers;
       static Factory<Driver> _drivers;
       static Factory<Filter> _filters;
-      static Factory<LowLevelDriver> _lowlevels;
 
       if (cfgfile == NULL)
         {
         x1:
           printf(""
             "Requires type of structure to list.\n"
-            "Either 'driver', 'subdriver', 'filter' or 'server'.\n"
+            "Either 'driver', 'filter' or 'server'.\n"
             );
         }
       else // if (mainsection == NULL)
@@ -303,11 +302,6 @@ main (int ac, char *ag[])
           else if (!strcmp(cfgfile, "filter"))
             {
               for(auto &m : _filters.Instance().map())
-                printf("%s\n",m.first.c_str());
-            }
-          else if (!strcmp(cfgfile, "subdriver"))
-            {
-              for(auto &m : _lowlevels.Instance().map())
                 printf("%s\n",m.first.c_str());
             }
           else if (!strcmp(cfgfile, "server"))
@@ -333,22 +327,22 @@ main (int ac, char *ag[])
   int errl = i.parse(cfgfile);
   if (errl)
     die("Parse error of '%s' in line %d", cfgfile, errl);
-  IniSection &main = i[mainsection];
+  IniSectionPtr main = i[mainsection];
 
-  pidfile = main.value("pidfile","").c_str();
+  pidfile = main->value("pidfile","").c_str();
   if (num_fds)
     pidfile = "";
 
-  logfile = main.value("logfile","").c_str();
+  logfile = main->value("logfile","").c_str();
   if (num_fds)
     logfile = NULL;
 
-  background = main.value("background",false);
+  background = main->value("background",false);
   if (num_fds)
     background = false;
 
   if (!stop_now)
-    stop_now = main.value("stop-after-setup",false);
+    stop_now = main->value("stop-after-setup",false);
 
   if (logfile && *logfile)
     {
@@ -376,7 +370,7 @@ main (int ac, char *ag[])
   if (!r->setup())
     {
       ERRORPRINTF(r->t, E_FATAL,"Error setting up the KNX router.");
-      exit(1);
+      exit(2);
     }
   if (!strcmp(cfgfile, "-"))
     ERRORPRINTF(r->t, E_WARNING,"Consider using a config file.");
@@ -385,7 +379,7 @@ main (int ac, char *ag[])
     hup.t = TracePtr(new Trace(*r->t));
     hup.t->setAuxName("reload");
     hup.logfile = logfile;
-    ev_signal_init (&hup.sighup, sighup_cb, SIGINT);
+    ev_signal_init (&hup.sighup, sighup_cb, SIGHUP);
     ev_signal_start (EV_A_ &hup.sighup);
   }
 

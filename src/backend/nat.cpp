@@ -31,17 +31,33 @@ NatL2Filter::setup()
   if (!Filter::setup())
     return false;
 
-  auto c = std::dynamic_pointer_cast<LinkConnect>(conn.lock());
-  if (c == nullptr)
+  std::string opt = cfg->value("address","");
+  if (opt.length() == 0)
     {
-      // either the parent has vanished, or the object is not a
-      // LinkConnect – which happens when you try to apply the filter
-      // globally. The former is exceedingly unlikely, but …
-      if (conn.lock() != nullptr)
-        ERRORPRINTF(t, E_ERROR, "%s: cannot be used globally");
-      return false;
+      auto c = std::dynamic_pointer_cast<LinkConnect>(conn.lock());
+      if (c == nullptr)
+        {
+          // either the parent has vanished, or the object is not a
+          // LinkConnect – which happens when you try to apply the filter
+          // globally. The former is exceedingly unlikely, but …
+          if (conn.lock() != nullptr)
+            ERRORPRINTF(t, E_ERROR, "%s: cannot be used globally");
+          return false;
+        }
+      addr = dynamic_cast<Router *>(&c->router)->addr;
     }
-  addr = dynamic_cast<Router *>(&c->router)->addr;
+  else
+    {
+      int a,b,c;
+      if (sscanf (opt.c_str(), "%d.%d.%d", &a, &b, &c) != 3 ||
+            a<0 || b<0 || c<0 || a>0x0f || b>0x0f || c>0xff)
+        {
+          ERRORPRINTF(t, E_ERROR, "Address must be #.#.#, not %s",a);
+          return false;
+        }
+      addr = (a << 12) | (b << 8) | c;
+    }
+
   return true;
 }
 

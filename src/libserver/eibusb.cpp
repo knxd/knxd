@@ -23,7 +23,7 @@
 #include "cemi.h"
 #include "usblowlevel.h"
 
-USBConverterInterface::USBConverterInterface (LowLevelIface * p, IniSection& s)
+USBConverterInterface::USBConverterInterface (LowLevelIface * p, IniSectionPtr& s)
     : LowLevelFilter(p,s)
 {
   t->setAuxName("Conv");
@@ -128,9 +128,10 @@ out:
   return;
 }
 
-USBDriver::USBDriver (const LinkConnectPtr_& c, IniSection& s) : LowLevelAdapter (c,s)
+USBDriver::USBDriver (const LinkConnectPtr_& c, IniSectionPtr& s) : LowLevelAdapter (c,s)
 {
-  t->setAuxName("Dr");
+  t->setAuxName("USBdr");
+  sendLocal_done.set<USBDriver,&USBDriver::sendLocal_done_cb>(this);
 }
 
 void
@@ -138,12 +139,11 @@ USBConverterInterface::send_Init()
 {
   TRACEPRINTF (t, 2, "send_Init %d",version);
 
-  iface->sendReset ();
   uchar init[64] = {
     0x01, 0x13, 0x0a, 0x00, 0x08, 0x00, 0x02, 0x0f, 0x03, 0x00, 0x00, 0x05, 0x01
   };
   init[12] = version;
-  iface->send_Local (CArray (init, sizeof (init)));
+  send_Local (CArray (init, sizeof (init)), 1);
 }
 
 void 
@@ -169,7 +169,7 @@ USBDriver::timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
     {
       ERRORPRINTF (t, E_ERROR, "No reply to setup");
       version = vTIMEOUT;
-      stopped();
+      errored();
     }
 }
 
@@ -182,10 +182,10 @@ USBDriver::stopped()
 }
 
 void
-USBDriver::send_Next()
+USBDriver::do_send_Next()
 {
   if (version >= vEMI1 && version <= vCEMI)
-    LowLevelAdapter::send_Next();
+    BusDriver::send_Next();
 }
 
 void
@@ -194,8 +194,20 @@ USBDriver::xmit()
   const uchar ask[64] = {
     0x01, 0x13, 0x09, 0x00, 0x08, 0x00, 0x01, 0x0f, 0x01, 0x00, 0x00, 0x01
   };
-  iface->send_Local (CArray (ask, sizeof (ask)));
   timeout.start(1,0);
+  send_Local (CArray (ask, sizeof (ask)), 1);
+}
+
+void
+USBDriver::sendLocal_done_cb(bool success)
+{
+  if (!success)
+    {
+      timeout.stop();
+      errored();
+    }
+  else if (version > vERROR && version < vRaw)
+    iface->started();
 }
 
 void
@@ -245,18 +257,17 @@ USBDriver::recv_Data(CArray& c)
       TRACEPRINTF (t, 2, "version x%02x not recognized", c[13]);
       version = vERROR;
       timeout.stop();
-      stopped();
+      errored();
       return;
     }
   timeout.stop();
   if(!make_EMI())
     {
-      stopped();
+      errored();
       return;
     }
 
   TRACEPRINTF (t, 1, "Using EMI version %d", version);
-  iface->started();
   return;
 
 cont:
@@ -267,7 +278,6 @@ cont:
 bool
 USBDriver::make_EMI()
 {
-  LowLevelDriver *oif = iface;
   if (version != vUnknown)
     {
       usb_iface->version = version;
@@ -276,13 +286,13 @@ USBDriver::make_EMI()
   switch (version)
     {
     case vEMI1:
-      iface = new EMI1Driver (iface,this,cfg);
+      iface = new EMI1Driver (this,cfg, iface);
       break;
     case vEMI2:
-      iface = new EMI2Driver (iface,this,cfg);
+      iface = new EMI2Driver (this,cfg, iface);
       break;
     case vCEMI:
-      iface = new CEMIDriver (iface,this,cfg);
+      iface = new CEMIDriver (this,cfg, iface);
       break;
     case vRaw:
       return true;
@@ -298,11 +308,8 @@ USBDriver::make_EMI()
     {
       // delete only this, not the whole stack.
       dynamic_cast<LowLevelFilter *>(iface)->iface = nullptr;
-      delete iface;
-      iface = oif;
       return false;
     }
-  oif->resetMaster(iface);
   return true;
 }
 
@@ -314,7 +321,7 @@ USBDriver::setup ()
   version = cfgEMIVersion(cfg);
   if (version == vERROR)
     {
-      std::string v = cfg.value("version","");
+      std::string v = cfg->value("version","");
       ERRORPRINTF (t, E_ERROR, "EMI version %s not recognized",v);
       return false;
     }

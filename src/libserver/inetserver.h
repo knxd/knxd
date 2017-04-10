@@ -31,7 +31,7 @@ protected:
   std::string addr;
 
 public:
-  InetServer (BaseRouter& r, IniSection& s);
+  InetServer (BaseRouter& r, IniSectionPtr& s);
   virtual ~InetServer ();
 
   bool setup();

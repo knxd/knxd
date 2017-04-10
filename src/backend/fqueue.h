@@ -30,9 +30,7 @@ supports it.
 #include "queue.h"
 
 enum QSTATE {
-    Q_DOWN,    // not running, not marked as requiring a queue
-    Q_DOWN_DO, // not running, marked as requiring a queue
-    Q_NOOP,    // running, not requiring a queue
+    Q_DOWN,    // not running
     Q_IDLE,    // no packet submitted
     Q_BUSY,    // packet submitted, not in send loop
     Q_SENDING, // packet submitted, in send loop
@@ -46,7 +44,7 @@ FILTER(QueueFilter,queue)
   void trigger_cb (ev::async &w, int revents);
 
 public:
-  QueueFilter (const LinkConnectPtr_& c, IniSection& s);
+  QueueFilter (const LinkConnectPtr_& c, IniSectionPtr& s);
   virtual ~QueueFilter ();
 
   virtual bool setup();

@@ -23,15 +23,15 @@
 unsigned int maxPacketLen() { return 0x10; }
 
 EMIVer
-cfgEMIVersion(IniSection& s)
+cfgEMIVersion(IniSectionPtr& s)
 {
-  int v = s.value("version",vERROR);
+  int v = s->value("version",vERROR);
   if (v > vRaw || v < vERROR)
     return vERROR;
   else if (v != vERROR)
     return EMIVer(v);
 
-  std::string sv = s.value("version","");
+  std::string sv = s->value("version","");
   if (!sv.size())
     return vUnknown;
   else if (sv == "EMI1")
@@ -46,16 +46,11 @@ cfgEMIVersion(IniSection& s)
     return vERROR;
 }
 
-EMI_Common::EMI_Common (LowLevelDriver * i, LowLevelIface* c, IniSection& s) : LowLevelFilter(i,c,s)
+EMI_Common::EMI_Common (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i) : LowLevelFilter(c,s,i)
 {
   timeout.set<EMI_Common, &EMI_Common::timeout_cb>(this);
   t->setAuxName("EMI_common");
   iface = i;
-}
-
-EMI_Common::EMI_Common (LowLevelIface* c, IniSection& s) : LowLevelFilter(c,s)
-{
-  t->setAuxName("EMIcommon");
 }
 
 bool
@@ -65,19 +60,22 @@ EMI_Common::setup()
     return false;
   if(!LowLevelFilter::setup())
     return false;
-  if (!iface->setup ())
-    return false;
-  send_timeout = cfg.value("send-timeout",300) / 1000.;
-  monitor = cfg.value("monitor",false);
+  send_timeout = cfg->value("send-timeout",300) / 1000.;
+  max_retries = cfg->value("send-retries",3);
+  monitor = cfg->value("monitor",false);
 
   return true;
 }
 
 EMI_Common::~EMI_Common ()
 {
-  TRACEPRINTF (t, 2, "Destroy");
-  if (iface)
-    delete iface;
+}
+
+void
+EMI_Common::start()
+{
+  state = E_idle;
+  LowLevelFilter::start();
 }
 
 void
@@ -106,25 +104,40 @@ EMI_Common::stop ()
 void
 EMI_Common::send_L_Data (LDataPtr l)
 {
-  if (wait_confirm)
-    ERRORPRINTF(t, E_ERROR, "EMI_common: send while waiting");
+  if (state != E_idle)
+    {
+      ERRORPRINTF(t, E_ERROR, "EMI_common: send while waiting");
+      return;
+    }
     
   assert (l->data.size() >= 1);
-  /* discard long frames, as they are not supported by EMI 1 */
+  // discard long frames, they are not supported yet
+  // TODO add support for long frames!
   if (l->data.size() > maxPacketLen())
     {
       TRACEPRINTF (t, 2, "Oversize (%d), discarded", l->data.size());
-      send_Next();
+      LowLevelFilter::do_send_Next();
       return;
     }
   CArray pdu = lData2EMI (0x11, l);
+  out = pdu;
+  retries = 0;
   send_Data (pdu);
+}
+
+void
+EMI_Common::do_send_Next()
+{
+  if (state == E_wait)
+    state = E_wait_confirm;
+  else if (state == E_idle)
+    LowLevelFilter::do_send_Next();
 }
 
 void
 EMI_Common::send_Data(CArray &pdu)
 {
-  wait_confirm = true;
+  state = E_wait;
   timeout.start(send_timeout,0);
   iface->send_Data(pdu);
 }
@@ -132,35 +145,51 @@ EMI_Common::send_Data(CArray &pdu)
 void
 EMI_Common::timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
 {
-  TRACEPRINTF (t, 1, "No confirm, continuing");
+  if (state <= E_timed_out)
+    return;
+  if (state == E_wait)
+    {
+      state = E_timed_out;
+      errored();
+      return;
+    }
+  assert (state == E_wait_confirm);
+  if (++retries <= max_retries)
+    {
+      TRACEPRINTF (t, 1, "No confirm, repeating");
+      send_Data(out);
+      return;
+    }
 
-  wait_confirm = false;
-  send_Next();
+  // TODO raise an error instead?
+  ERRORPRINTF(t, E_WARNING, "EMI: No confirm, packet discarded");
+
+  state = E_idle;
+  LowLevelFilter::do_send_Next();
 }
 
 void
 EMI_Common::recv_Data(CArray& c)
 {
-  t->TracePacket (1, "RecvEMI", c);
   const uint8_t *ind = getIndTypes();
-  if (c.size() == 1 && c[0] == 0xA0)
+  if (c.size() > 0 && c[0] == 0xA0)
     {
-      TRACEPRINTF (t, 2, "Stopped");
-      stopped();
+      TRACEPRINTF (t, 2, "got reset ind");
+      errored();
     }
-  else if (c.size() && c[0] == ind[I_CONFIRM])
+  else if (c.size() > 0 && c[0] == ind[I_CONFIRM])
     {
-      if (wait_confirm)
+      if (state == E_wait_confirm)
         {
           TRACEPRINTF (t, 2, "Confirmed");
-          wait_confirm = false;
+          state = E_idle;
           timeout.stop();
-          send_Next();
+          LowLevelFilter::do_send_Next();
         }
       else
-        TRACEPRINTF (t, 2, "spurious Confirm");
+        TRACEPRINTF (t, 2, "spurious Confirm %d",(int)state);
     }
-  else if (c.size() && c[0] == ind[I_DATA] && !monitor)
+  else if (c.size() > 0 && c[0] == ind[I_DATA] && !monitor)
     {
       LDataPtr p = EMI2lData (c);
       if (p)

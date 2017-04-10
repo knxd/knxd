@@ -1,8 +1,110 @@
+knxd (0.15.0-2) UNRELEASED; urgency=medium
+
+  * Merge v0.14
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 10 Apr 2017 17:41:54 +0200
+
 knxd (0.15.0-1) unstable; urgency=medium
 
   * Prepare for v0.16.
 
  -- Matthias Urlichs <matthias@urlichs.de>  Fri, 17 Mar 2017 05:56:23 +0100
+
+knxd (0.14.10-2) unstable; urgency=medium
+
+  * Merge: Add knxd.socket to knxd.service's After= stanza
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 10 Apr 2017 17:41:15 +0200
+
+knxd (0.14.10-1) unstable; urgency=medium
+
+  * Augment the "pace" filter to also consider incoming packets
+  * Add packet send retry to EMI drivers
+  * Add a "send-timeout" parameter to catch hanging drivers
+  * Don't overwrite eibread/write CGI programs.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 07 Apr 2017 13:20:48 +0200
+
+knxd (0.14.9-1) unstable; urgency=medium
+
+  * Move low-level logging to a separate class
+  * various state machine fixes
+  * fixed processing of CEMI packets
+  * refactored all serial interfaces to optionally run across TCP
+  * fixed ft12/xemi reset handling
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 06 Apr 2017 18:00:21 +0200
+
+knxd (0.14.8-1) unstable; urgency=medium
+
+  * Fixed USB send timeout handling
+  * Handle retries
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Tue, 28 Mar 2017 12:22:04 +0200
+
+knxd (0.14.7-1) unstable; urgency=medium
+
+  * Fix socket activation
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 27 Mar 2017 08:02:18 +0200
+
+knxd (0.14.6-1) unstable; urgency=medium
+
+  * Fix crash starting with systemd
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 26 Mar 2017 23:16:41 +0200
+
+knxd (0.14.5-1) unstable; urgency=medium
+
+  * Add an address= option to the "single" filter.
+    * Use the address which the ipt: driver receives from the server
+  * Force "pace" filter for multicast client+server
+  * Fix address check bug
+  * Fix argument parsing bug
+  * (Hopefully) fix remaining flow control issue
+  * Enhance logging
+  * Various smaller stuff
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 26 Mar 2017 15:09:42 +0200
+
+knxd (0.14.4-1) unstable; urgency=medium
+
+  * Auto-add a pace filter in front of the multicast sender.
+  * Add an address= option to the "single" filter.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 23 Mar 2017 04:13:18 +0100
+
+knxd (0.14.3-1) unstable; urgency=medium
+
+  * Various bug fixes.
+  * All drivers now implement flow control.
+  * "pace" filter:
+    * default to 20msec
+    * Add a delay-per-byte parameter (1 msec)
+  * log send_next stuff with layer 6
+  * document flags (specifically, correspondence of flags to config file)
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 23 Mar 2017 02:48:36 +0100
+
+knxd (0.14.2-1) unstable; urgency=medium
+
+  * send ft12* (serial) setup string
+  * fix systemd socket support
+  * allow using filters on servers
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 19 Mar 2017 23:59:23 +0100
+
+knxd (0.14.1-4) unstable; urgency=medium
+
+  * Actually install knxd_args correctly.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sat, 18 Mar 2017 20:44:38 +0100
+
+knxd (0.14.1-3) unstable; urgency=medium
+
+  * Actually install knxd_args.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 17 Mar 2017 21:02:34 +0100
 
 knxd (0.14.1-2) unstable; urgency=medium
 
@@ -32,6 +134,12 @@ knxd (0.14.1-1) unstable; urgency=medium
   * Rewrote USB and FT12 support to use "proper" stacking
 
  -- Matthias Urlichs <matthias@urlichs.de>  Thu, 23 Feb 2017 10:01:37 +0100
+
+knxd (0.12.15-2) unstable; urgency=medium
+
+  * Merge: Add knxd.socket to knxd.service's After= stanza
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 10 Apr 2017 17:40:35 +0200
 
 knxd (0.12.15-1) unstable; urgency=medium
 
@@ -369,6 +477,12 @@ knxd (0.11.1-1) unstable; urgency=medium
   * Refactor multicast to use a separate port for sending
 
  -- Matthias Urlichs <matthias@urlichs.de>  Sun, 28 Jun 2015 06:53:31 +0000
+
+knxd (0.10.18-4) stable; urgency=medium
+
+  * Add knxd.socket to knxd.service's After= stanza
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 10 Apr 2017 17:39:23 +0200
 
 knxd (0.10.18-3) stable; urgency=medium
 

@@ -29,14 +29,62 @@ CEMIDriver::maxPacketLen()
   return 50;
 }
 
+CEMIDriver::CEMIDriver (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i) : EMI_Common(c,s,i)
+{
+  t->setAuxName("CEMI");
+  sendLocal_done.set<CEMIDriver,&CEMIDriver::sendLocal_done_cb>(this);
+  reset_timer.set<CEMIDriver,&CEMIDriver::reset_timer_cb>(this);
+}
+
 CEMIDriver::~CEMIDriver()
 {
 }
 
-void CEMIDriver::cmdEnterMonitor() {}
-void CEMIDriver::cmdLeaveMonitor() {}
-void CEMIDriver::cmdOpen() {}
-void CEMIDriver::cmdClose() {}
+void
+CEMIDriver::sendLocal_done_cb(bool success)
+{
+  if (!success || sendLocal_done_next == N_bad)
+    {
+      errored();
+      LowLevelFilter::stopped();
+    }
+  else if (sendLocal_done_next == N_down)
+    LowLevelFilter::stopped();
+  else if (sendLocal_done_next == N_up)
+    LowLevelFilter::started();
+  else if (sendLocal_done_next == N_reset)
+    EMI_Common::started();
+}
+
+void CEMIDriver::cmdEnterMonitor() { errored(); stopped(); }
+void CEMIDriver::cmdLeaveMonitor() { errored(); stopped(); }
+void CEMIDriver::cmdOpen() { LowLevelDriver::started(); }
+void CEMIDriver::cmdClose() { LowLevelDriver::stopped(); }
+
+void CEMIDriver::started()
+{
+  after_reset = true;
+  reset_timer.start(0.5,0);
+  sendReset();
+}
+
+void CEMIDriver::reset_timer_cb(ev::timer &w, int revents)
+{
+  ERRORPRINTF(t, E_ERROR, "reset timed out");
+  errored();
+}
+
+void CEMIDriver::do_send_Next()
+{
+  if (after_reset)
+    {
+      after_reset = false;
+      reset_timer.stop();
+      EMI_Common::started();
+    }
+  else
+    EMI_Common::do_send_Next();
+}
 
 const uint8_t *
 CEMIDriver::getIndTypes()

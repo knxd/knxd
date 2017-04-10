@@ -26,7 +26,7 @@
 class ClientConnection;
 typedef std::shared_ptr<ClientConnection> ClientConnPtr;
 
-bool CreateGroupCache (Router& r, IniSection& s);
+bool CreateGroupCache (Router& r, IniSectionPtr& s);
 
 void GroupCacheRequest (ClientConnPtr c, uint8_t *buf, size_t len);
 

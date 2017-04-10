@@ -27,12 +27,28 @@
 #include "emi_common.h"
 #include "lowlatency.h"
 #include "link.h"
+#include "cemi.h"
+
+/** FT12-specific CEMI backend (separate commands for setup) */
+class FT12CEMIDriver : public CEMIDriver
+{
+  void cmdOpen(); 
+public:
+  FT12CEMIDriver (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver * i = nullptr) : CEMIDriver(c,s,i)
+    {
+      t->setAuxName("ft12cemi");
+    }
+  virtual ~FT12CEMIDriver ();
+};
 
 /** FT1.2 lowlevel driver*/
 DRIVER_(FT12Driver,LowLevelAdapter,ft12)
 {
 public:
-  FT12Driver(const LinkConnectPtr_& c, IniSection& s) : LowLevelAdapter(c,s) {}
+  FT12Driver(const LinkConnectPtr_& c, IniSectionPtr& s) : LowLevelAdapter(c,s)
+    {
+      t->setAuxName("ft12dr");
+    }
   virtual ~FT12Driver();
 
   bool setup();
@@ -44,31 +60,22 @@ private:
 DRIVER_(FT12cemiDriver, FT12Driver, ft12cemi)
 {
 public:
-  FT12cemiDriver(const LinkConnectPtr_& c, IniSection& s) : FT12Driver(c,s) {}
+  FT12cemiDriver(const LinkConnectPtr_& c, IniSectionPtr& s) : FT12Driver(c,s)
+    {
+      t->setAuxName("ft12drc");
+    }
   virtual ~FT12cemiDriver();
 
   virtual EMIVer getVersion() { return vCEMI; }
 };
 
-class FT12serial : public LowLevelDriver
+class FT12wrap : public LowLevelFilter
 {
-  /** old serial config */
-  low_latency_save sold;
-  /** device file name */
-  std::string dev;
-  /** file descriptor */
-  int fd;
+  /** send msg sequence 1-bit counter */
+  bool sendflag;
+  /** receive msg sequence 1-bit counter */
+  bool recvflag;
 
-  RecvBuf recvbuf;
-  SendBuf sendbuf;
-  size_t read_cb(uint8_t *buf, size_t len);
-  void error_cb();
-  /** saved termios */
-  struct termios old;
-  /** send state */
-  int sendflag;
-  /** recevie state */
-  int recvflag;
   /** packet send buffer */
   CArray out;
   /** frame in receiving */
@@ -77,8 +84,13 @@ class FT12serial : public LowLevelDriver
   CArray last;
   /** repeatcount of the transmitting frame */
   int repeatcount;
-  /** state */
+
+  /** waiting for ACK */
   bool send_wait;
+  /** send_Next received */
+  bool next_free = true;
+  /** protect against recursive call of process_read() */
+  bool in_reader = false;
 
   /** set up send and recv buffers, timers, etc. */
   void setup_buffers();
@@ -87,17 +99,23 @@ class FT12serial : public LowLevelDriver
   ev::timer timer; void timer_cb (ev::timer &w, int revents);
   ev::timer sendtimer; void sendtimer_cb (ev::timer &w, int revents);
   /** process incoming data */
-  void process_read(bool is_timeout);
+  void process_read (bool is_timeout);
+  void do_send_Next ();
+  void do__send_Next ();
+  void stop_ ();
 
 public:
-  FT12serial (LowLevelIface* parent, IniSection &s);
-  virtual ~FT12serial ();
+  FT12wrap (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i = nullptr);
+  virtual ~FT12wrap ();
   bool setup ();
-  void start();
-  void stop();
+  void start ();
+  void stop ();
 
+  void recv_Data (CArray &c);
   void send_Data (CArray& l);
-  void SendReset ();
+  void do_send_Local (CArray& l, int raw = 0);
+
+  void sendReset();
 };
 
 #endif

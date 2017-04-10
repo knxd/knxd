@@ -17,24 +17,24 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifndef TPUART_TCP_H
-#define TPUART_TCP_H
-#include "tpuart.h"
+#ifndef LOW_LATENCY_H
+#define LOW_LATENCY_H
 
-DRIVER_(TPUARTTCP,TPUART_Base,tpuarttcp)
+#include "config.h"
 
-{
-  void setstate(enum TSTATE new_state);
-  void dev_timer();
-
-  std::string dest;
-  uint16_t port;
-
-public:
-  TPUARTTCP (const LinkConnectPtr_& c, IniSection& s);
-  virtual ~TPUARTTCP () {}
-
-  bool setup();
-};
-
+#include <termios.h>
+#ifdef HAVE_LINUX_LOWLATENCY
+#include <linux/serial.h>
 #endif
+
+typedef struct {
+	struct termios term;
+#ifdef HAVE_LINUX_LOWLATENCY
+	serial_struct ser;
+#endif
+} low_latency_save;
+
+bool set_low_latency (int fd, low_latency_save * save);
+void restore_low_latency (int fd, low_latency_save * save);
+
+#endif // LOW_LATENCY_H

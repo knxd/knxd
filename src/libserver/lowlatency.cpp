@@ -1,9 +1,6 @@
 /*
     EIBD eib bus access and management daemon
     Copyright (C) 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
- 
-    cEMI support for USB
-    Copyright (C) 2013 Meik Felser <felser@cs.fau.de>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,25 +17,41 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifndef EIB_FT12CEMI_H
-#define EIB_FT12CEMI_H
+#include "lowlatency.h"
 
-#include "cemi.h"
+#include <sys/ioctl.h>
+#include <string.h> // memcpy
 
-/** CEMI backend */
-class FT12CEMIDriver : public CEMIDriver
+bool
+set_low_latency (int fd, low_latency_save * save)
 {
-  void cmdOpen(); 
-public:
-  FT12CEMIDriver (LowLevelDriver * i, LowLevelIface* c, IniSection& s) : CEMIDriver(i,c,s)
-    {
-      t->setAuxName("ft12cemi");
-    }
-  FT12CEMIDriver (LowLevelIface* c, IniSection& s) : CEMIDriver(c,s)
-    {
-      t->setAuxName("ft12cemi");
-    }
-  virtual ~FT12CEMIDriver ();
-};
+  struct termios opts;
 
-#endif  /* EIB_CEMI_H */
+#ifdef HAVE_LINUX_LOWLATENCY
+  struct serial_struct snew;
+  ioctl (fd, TIOCGSERIAL, &save->ser);
+  memcpy(&snew, &save->ser, sizeof(snew));
+  snew.flags |= ASYNC_LOW_LATENCY;
+  if(ioctl (fd, TIOCSSERIAL, &snew) < 0)
+    return false;
+#endif
+
+  tcgetattr(fd, &save->term);
+  memcpy(&opts, &save->term, sizeof(opts));
+  opts.c_cc[VTIME] = 1;
+  opts.c_cc[VMIN] = 1;
+  if (tcsetattr(fd, TCSANOW, &opts) < 0)
+    return false;
+
+  return true;
+}
+
+void
+restore_low_latency (int fd, low_latency_save * save)
+{
+#ifdef HAVE_LINUX_LOWLATENCY
+  ioctl (fd, TIOCSSERIAL, &save->ser);
+#endif
+  ioctl (fd, TCSANOW, &save->term);
+}
+

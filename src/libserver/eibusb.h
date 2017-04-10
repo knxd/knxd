@@ -34,7 +34,7 @@
 class USBConverterInterface : public LowLevelFilter
 {
 public:
-  USBConverterInterface (LowLevelIface* p, IniSection& s);
+  USBConverterInterface (LowLevelIface* p, IniSectionPtr& s);
   virtual ~USBConverterInterface ();
 
   bool setup (DriverPtr master);
@@ -43,7 +43,6 @@ public:
 
   void send_Data (CArray& l);
   void recv_Data (CArray& l);
-  //void sendReset ();
 
   void send_Init();
 
@@ -63,16 +62,17 @@ DRIVER_(USBDriver,LowLevelAdapter,usb)
   bool make_EMI(LowLevelDriver* &ld);
   USBConverterInterface *usb_iface;
 
+  void sendLocal_done_cb(bool success);
 public:
   EMIVer version = vUnknown;
 
-  USBDriver (const LinkConnectPtr_& c, IniSection& s);
+  USBDriver (const LinkConnectPtr_& c, IniSectionPtr& s);
   bool setup();
   //void start();
   //void stop();
   void started();
   void stopped();
-  void send_Next();
+  void do_send_Next();
   bool make_EMI();
 
 };

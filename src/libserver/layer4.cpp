@@ -51,6 +51,7 @@ T_Broadcast::send_L_Data (LDataPtr l)
       c.src = l->source;
       app->send(c);
     }
+  send_Next();
 }
 
 void
@@ -94,6 +95,7 @@ T_Group::send_L_Data (LDataPtr l)
       c.src = l->source;
       app->send(c);
     }
+  send_Next();
 }
 
 void
@@ -135,6 +137,7 @@ T_TPDU::send_L_Data (LDataPtr l)
   t.data = l->data;
   t.addr = l->source;
   app->send(t);
+  send_Next();
 }
 
 void
@@ -178,6 +181,7 @@ T_Individual::send_L_Data (LDataPtr l)
       c = t1->data;
       app->send(c);
     }
+  send_Next();
 }
 
 void
@@ -286,6 +290,7 @@ T_Connection::send_L_Data (LDataPtr l)
     default:
       /* ignore */ ;
     }
+  send_Next();
 }
 
 void
@@ -437,6 +442,7 @@ GroupSocket::send_L_Data (LDataPtr l)
       c.dst = l->dest;
       app->send(c);
     }
+  send_Next();
 }
 
 void

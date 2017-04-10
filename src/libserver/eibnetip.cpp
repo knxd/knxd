@@ -325,9 +325,9 @@ EIBNetIPSocket::io_recv_cb (ev::io &w UNUSED, int revents UNUSED)
   memset (&r, 0, sizeof (r));
 
   int i = recvfrom (fd, buf, sizeof (buf), 0, (struct sockaddr *) &r, &rl);
-  if (i == 0 || (i < 0 && errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR))
+  if (i < 0 && errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR)
     on_error();
-  else if (i > 0 && rl == sizeof (r))
+  else if (i >= 0 && rl == sizeof (r))
     {
       if (recvall == 1 || !memcmp (&r, &recvaddr, sizeof (r)) ||
           (recvall == 2 && memcmp (&r, &localaddr, sizeof (r))) ||

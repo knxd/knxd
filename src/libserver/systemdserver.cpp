@@ -26,7 +26,7 @@
  * systemd services are not controlled by the "usual" server logic,
  * so no SERVER macro here.
  */
-SystemdServer::SystemdServer (BaseRouter& r, IniSection& s, int systemd_fd)
+SystemdServer::SystemdServer (BaseRouter& r, IniSectionPtr& s, int systemd_fd)
     : NetServer(r,s)
 {
   t->setAuxName("systemd");
@@ -36,7 +36,7 @@ SystemdServer::SystemdServer (BaseRouter& r, IniSection& s, int systemd_fd)
 void
 SystemdServer::start()
 {
-  TRACEPRINTF (t, 8, "OpenSystemdSocket");
+  TRACEPRINTF (t, 8, "OpenSystemdSocket %d", fd);
   if (fd < 0)
     {
       stopped();
@@ -50,7 +50,7 @@ SystemdServer::start()
       return;
     }
 
-  TRACEPRINTF (t, 8, "SystemdSocket opened");
+  TRACEPRINTF (t, 8, "SystemdSocket %d opened", fd);
   NetServer::start();
 }
 
