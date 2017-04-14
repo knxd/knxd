@@ -129,7 +129,7 @@ LLserial::start()
       goto ex3;
     }
 
-  TRACEPRINTF (t, 2, "Openend");
+  TRACEPRINTF (t, 2, "Opened");
   FDdriver::start();
   return;
 
