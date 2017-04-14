@@ -19,6 +19,8 @@
 
 #include "lowlatency.h"
 
+#include <errno.h>
+
 #include <sys/ioctl.h>
 #include <string.h> // memcpy
 
@@ -32,8 +34,11 @@ set_low_latency (int fd, low_latency_save * save)
   ioctl (fd, TIOCGSERIAL, &save->ser);
   memcpy(&snew, &save->ser, sizeof(snew));
   snew.flags |= ASYNC_LOW_LATENCY;
-  if(ioctl (fd, TIOCSSERIAL, &snew) < 0)
-    return false;
+  // not all serial drivers support this call, so don't bail out on failure with ENOTTY
+  if(ioctl (fd, TIOCSSERIAL, &snew) < 0) {
+    if (errno != ENOTTY)
+      return false;
+  }
 #endif
 
   tcgetattr(fd, &save->term);
