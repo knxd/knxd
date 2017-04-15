@@ -371,7 +371,7 @@ EIBNetIPTunnel::on_recv_cb (EIBNetIPPacket *p1)
 	if (csresp.status == 0)
 	  {
 	    if (heartbeat > 0)
-	      heartbeat--;
+	      heartbeat = 0;
 	    else
 	      TRACEPRINTF (t, 1, this,
 			    "Duplicate Connection State Response");
