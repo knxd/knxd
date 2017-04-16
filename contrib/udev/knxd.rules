@@ -35,3 +35,5 @@ SUBSYSTEM=="usb",ENV{DEVTYPE}=="usb_device",ATTR{idVendor}=="135e", ATTR{idProdu
 SUBSYSTEM=="usb",ENV{DEVTYPE}=="usb_device",ATTR{idVendor}=="145c", ATTR{idProduct}=="1330",GROUP="knxd",MODE="0660"
 # ABB STOTZ-KONTAKT GmbH: KNX-USB Interface (REG)
 SUBSYSTEM=="usb",ENV{DEVTYPE}=="usb_device",ATTR{idVendor}=="147b", ATTR{idProduct}=="5120",GROUP="knxd",MODE="0660"
+# MDT SCN-USBR.01
+SUBSYSTEM=="usb",ENV{DEVTYPE}=="usb_device",ATTR{idVendor}=="16d0", ATTR{idProduct}=="0491",GROUP="knxd",MODE="0660"
