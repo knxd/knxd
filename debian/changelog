@@ -1,4 +1,4 @@
-knxd (0.15.0-2) UNRELEASED; urgency=medium
+knxd (0.15.0-3) UNRELEASED; urgency=medium
 
   * Merge v0.14
 
@@ -10,9 +10,9 @@ knxd (0.15.0-1) unstable; urgency=medium
 
  -- Matthias Urlichs <matthias@urlichs.de>  Fri, 17 Mar 2017 05:56:23 +0100
 
-knxd (0.14.10-2) unstable; urgency=medium
+knxd (0.14.11-1) unstable; urgency=medium
 
-  * Merge: Add knxd.socket to knxd.service's After= stanza
+  * Merge v0.12
 
  -- Matthias Urlichs <matthias@urlichs.de>  Mon, 10 Apr 2017 17:41:15 +0200
 
@@ -134,6 +134,15 @@ knxd (0.14.1-1) unstable; urgency=medium
   * Rewrote USB and FT12 support to use "proper" stacking
 
  -- Matthias Urlichs <matthias@urlichs.de>  Thu, 23 Feb 2017 10:01:37 +0100
+
+knxd (0.12.16-1) unstable; urgency=medium
+
+  * Heartbeat counter 
+  * add udev rule for MDT SCN-USBR.01
+  * Add knxd.socket to knxd.service's After= stanza
+  * cEMI: clear the address table
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 17 Apr 2017 09:00:47 +0200
 
 knxd (0.12.15-2) unstable; urgency=medium
 

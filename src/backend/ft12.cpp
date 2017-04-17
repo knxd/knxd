@@ -326,8 +326,12 @@ FT12wrap::process_read(bool is_timeout)
                   t->TracePacket (0, "RecvReset", c);
                   LowLevelFilter::recv_Data (c);
                 }
+              akt.deletepart (0, 4);
             }
-          akt.deletepart (0, 4);
+          else
+            {
+              akt.deletepart (0, 1);
+            }
         }
       else if (akt[0] == 0x68)
         {
@@ -337,6 +341,7 @@ FT12wrap::process_read(bool is_timeout)
             break;
           if (akt[1] != akt[2] || akt[3] != 0x68)
             {
+              akt.deletepart (0, 1);
               //receive error, try to resume
               goto err_out;
             }
@@ -378,14 +383,16 @@ FT12wrap::process_read(bool is_timeout)
           akt.deletepart (0, len);
         }
       else
-        /* if timeout OR an unknown byte, drop it. */
-        if (false)
-          {
-    err_out:
-            if (!is_timeout)
-              break;
-          }
-        akt.deletepart (0, 1);
+        {
+          /* if timeout OR an unknown byte, drop it. */
+          if (false)
+            {
+      err_out:
+              if (!is_timeout)
+                break;
+            }
+          akt.deletepart (0, 1);
+        }
     }
 
   if (akt.size())
