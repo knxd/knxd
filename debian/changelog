@@ -1,3 +1,12 @@
+knxd (0.12.16-1) unstable; urgency=medium
+
+  * Heartbeat counter 
+  * add udev rule for MDT SCN-USBR.01
+  * Add knxd.socket to knxd.service's After= stanza
+  * cEMI: clear the address table
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 17 Apr 2017 09:00:47 +0200
+
 knxd (0.12.15-2) unstable; urgency=medium
 
   * Merge: Add knxd.socket to knxd.service's After= stanza
