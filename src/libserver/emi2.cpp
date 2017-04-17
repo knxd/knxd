@@ -89,6 +89,31 @@ EMI2Driver::cmdClose ()
   send_Local (CArray (t, sizeof (t)),1);
 }
 
+void EMI2Driver::started()
+{
+  reset_ack_wait = true;
+  reset_timer.start(0.5, 0);
+  sendReset();
+}
+
+void EMI2Driver::reset_timer_cb(ev::timer& w, int revents)
+{
+  ERRORPRINTF(t, E_ERROR, "reset timed out");
+  errored();
+}
+
+void EMI2Driver::do_send_Next()
+{
+  if (reset_ack_wait)
+  {
+    reset_ack_wait = false;
+    reset_timer.stop();
+    EMI_Common::started();
+  }
+  else
+    EMI_Common::do_send_Next();
+}
+
 const uint8_t *
 EMI2Driver::getIndTypes()
 {

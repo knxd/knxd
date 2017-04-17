@@ -188,7 +188,7 @@ EIBNetIPSocket::EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr,
   else
     io_recv.start(fd, ev::READ);
 
-  TRACEPRINTF (t, 0, "Openend");
+  TRACEPRINTF (t, 0, "Opened");
 }
 
 EIBNetIPSocket::~EIBNetIPSocket ()
