@@ -82,7 +82,7 @@ LLtcp::start()
   setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof (reuse));
   setsockopt (fd, IPPROTO_TCP, TCP_NODELAY, &nodelay, sizeof (nodelay));
 
-  TRACEPRINTF (t, 2, "Openend");
+  TRACEPRINTF (t, 2, "Opened");
   FDdriver::start();
   return;
 
