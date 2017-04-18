@@ -55,7 +55,6 @@ A KNX daemon and tools supporting it.
 %{_bindir}/eibnetsearch
 %{_bindir}/knxd
 %{_bindir}/knxtool
-%{_bindir}/findknxusb
 
 # /usr/include
 %{_includedir}/eibclient.h
