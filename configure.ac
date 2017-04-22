@@ -145,11 +145,11 @@ dnl  NEED_EMI(pei16s)
 dnl fi
 
 AC_ARG_ENABLE(tpuart,
-[  --enable-tpuarts	enable TPUART driver backends],
+[  --enable-tpuart	enable TPUART driver backends],
 [case "${enableval}" in
  yes) tpuart=true ;;
   no)  tpuart=false ;;
-   *) AC_MSG_ERROR(bad value ${enableval} for --enable-tpuarts) ;;
+   *) AC_MSG_ERROR(bad value ${enableval} for --enable-tpuart) ;;
  esac],[tpuart=true])
 
 AM_CONDITIONAL(HAVE_TPUART, test x$tpuart = xtrue)
