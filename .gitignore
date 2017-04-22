@@ -140,7 +140,6 @@ Makefile
 /src/tools/eibread-cgi
 /src/tools/eibwrite-cgi
 /src/server/knxd_args
-/src/common/paths.h
 /tools/test_inih
 /src/tools/knxtool
 /libev/
