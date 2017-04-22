@@ -33,11 +33,15 @@ void die (const char *msg, ...) __attribute__((noreturn));
 void
 die (const char *msg, ...)
 {
+  int serrno = errno;
   va_list ap;
   va_start (ap, msg);
   vfprintf (stderr, msg, ap);
   va_end (ap);
-  fprintf (stderr, ": %s\n", strerror (errno));
+  if (serrno)
+    fprintf (stderr, ": %s\n", strerror (serrno));
+  else
+    putc('\n', stderr);
   exit (1);
 }
 
