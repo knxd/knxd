@@ -251,6 +251,12 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <fmt/format.h>], [fmt::format("The ans
 sh ${ac_aux_dir}/tools/get_libfmt || exit 1
 CPPFLAGS="$CPPFLAGS -I$(pwd)/libfmt"
 LDFLAGS="$LDFLAGS -L$(pwd)/libfmt/fmt"
+
+AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <fmt/format.h>], [fmt::format("The answer is {}", 42);
+])],
+[],
+[AC_MSG_ERROR([libfmt just built is not usable!?!])])
+
     ]
     )
 AC_DEFINE(HAVE_FMT, 1, [ String formatting library installed. ])
