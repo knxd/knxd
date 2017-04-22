@@ -248,7 +248,7 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <fmt/format.h>], [fmt::format("The ans
 ])],
     [HAVE_FMT=1],                                           
     [
-sh ${ac_aux_dir}/tools/get_libfmt || exit 1
+CC=${CC} CXX=${CXX} sh ${ac_aux_dir}/tools/get_libfmt || exit 1
 CPPFLAGS="$CPPFLAGS -I$(pwd)/libfmt"
 LDFLAGS="$LDFLAGS -L$(pwd)/libfmt/fmt"
 
