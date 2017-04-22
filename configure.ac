@@ -128,7 +128,7 @@ AC_ARG_ENABLE(dummy,
  esac],[dummy=true])
 AM_CONDITIONAL(HAVE_DUMMY, test x$dummy = xtrue)
 if test x$dummy = xtrue ; then
- AC_DEFINE(HAVE_DUMMY, 1 , [FT1.2 enabled])
+ AC_DEFINE(HAVE_DUMMY, 1 , [dummy enabled])
 fi
 
 dnl AC_ARG_ENABLE(pei16s,
