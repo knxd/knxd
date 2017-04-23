@@ -128,7 +128,7 @@ AC_ARG_ENABLE(dummy,
  esac],[dummy=true])
 AM_CONDITIONAL(HAVE_DUMMY, test x$dummy = xtrue)
 if test x$dummy = xtrue ; then
- AC_DEFINE(HAVE_DUMMY, 1 , [FT1.2 enabled])
+ AC_DEFINE(HAVE_DUMMY, 1 , [dummy enabled])
 fi
 
 dnl AC_ARG_ENABLE(pei16s,
@@ -145,11 +145,11 @@ dnl  NEED_EMI(pei16s)
 dnl fi
 
 AC_ARG_ENABLE(tpuart,
-[  --enable-tpuarts	enable TPUART driver backends],
+[  --enable-tpuart	enable TPUART driver backends],
 [case "${enableval}" in
  yes) tpuart=true ;;
   no)  tpuart=false ;;
-   *) AC_MSG_ERROR(bad value ${enableval} for --enable-tpuarts) ;;
+   *) AC_MSG_ERROR(bad value ${enableval} for --enable-tpuart) ;;
  esac],[tpuart=true])
 
 AM_CONDITIONAL(HAVE_TPUART, test x$tpuart = xtrue)
@@ -248,10 +248,15 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <fmt/format.h>], [fmt::format("The ans
 ])],
     [HAVE_FMT=1],                                           
     [
-sh tools/get_libfmt || exit 1
-CFLAGS="$CFLAGS -I$(pwd)/libfmt"
-CXXFLAGS="$CXXFLAGS -I$(pwd)/libfmt"
+CC=${CC} CXX=${CXX} sh ${ac_aux_dir}/tools/get_libfmt || exit 1
+CPPFLAGS="$CPPFLAGS -I$(pwd)/libfmt"
 LDFLAGS="$LDFLAGS -L$(pwd)/libfmt/fmt"
+
+AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <fmt/format.h>], [fmt::format("The answer is {}", 42);
+])],
+[],
+[AC_MSG_ERROR([libfmt just built is not usable!?!])])
+
     ]
     )
 AC_DEFINE(HAVE_FMT, 1, [ String formatting library installed. ])
@@ -306,7 +311,6 @@ src/client/def/Makefile src/client/c/Makefile src/client/java/Makefile src/clien
 src/client/perl/Makefile src/client/python/Makefile src/client/pascal/Makefile src/client/ruby/Makefile src/client/lua/Makefile src/client/go/Makefile
 src/tools/eibnet/Makefile src/tools/bcu/Makefile src/usb/Makefile src/tools/Makefile systemd/Makefile systemd/knxd.service systemd/knxd.socket
 tools/Makefile
-src/common/paths.h
 )
 
 AC_CONFIG_MACRO_DIR([m4])

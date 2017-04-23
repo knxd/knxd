@@ -29,7 +29,6 @@
 #include <ev++.h>
 #include "router.h"
 #include "version.h"
-#include "paths.h"
 #include "link.h"
 
 #ifdef HAVE_SYSTEMD
