@@ -469,6 +469,19 @@ Router::state_trigger_cb (ev::async &w UNUSED, int revents UNUSED)
   TRACEPRINTF (t, 4, "check end: want_up %d some %d>%d all %d>%d, going %d up %d down %d", want_up, osrn,some_running, oarn,all_running, n_going,n_up,n_down);
   if (want_up && n_down > 0)
     {
+      // Hard report errors
+      ITER(i,links)
+        {
+          auto ii = i->second;
+          LConnState lcs = ii->state;
+          switch(lcs)
+            {
+            case L_down:
+            case L_error:
+              if (!ii->may_fail && !ii->ignore)
+                ERRORPRINTF (ii->t, E_FATAL, "Link down, terminating");
+            }
+        }
       exitcode = 1;
       stop();
     }
