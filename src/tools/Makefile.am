@@ -1,8 +1,9 @@
 AM_CPPFLAGS=-I$(top_srcdir)/src/include -I$(top_srcdir)/src/common
 
-bin_PROGRAMS=knxtool eibread-cgi eibwrite-cgi
+bin_PROGRAMS=knxtool
 
 proglibdir=$(libexecdir)/knxd
+proglib_PROGRAMS=eibread-cgi eibwrite-cgi
 
 LDADD=../client/c/libeibclient.la
 knxtool_SOURCES=common.h common.c knxtool.c 

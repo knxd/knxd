@@ -23,6 +23,8 @@
 #define NO_MAP
 #include "nat.h"
 
+#define HEARTBEAT 10
+#define N_HEARTBEAT 5
 
 EIBNetIPTunnel::EIBNetIPTunnel (const LinkConnectPtr_& c, IniSectionPtr& s)
   : BusDriver(c,s)
@@ -217,7 +219,7 @@ EIBNetIPTunnel::read_cb (EIBNetIPPacket *p1)
         rno = 0;
         sock->recvaddr2 = daddr;
         sock->recvall = 3;
-        conntimeout.start(30,0);
+        conntimeout.start(HEARTBEAT,0);
         heartbeat = 0;
         BusDriver::start();
         break;
@@ -478,7 +480,7 @@ void EIBNetIPTunnel::conntimeout_cb(ev::timer &w UNUSED, int revents UNUSED)
 {
   if (mod)
     {
-      if (heartbeat < 5)
+      if (heartbeat < N_HEARTBEAT)
         {
           EIBnet_ConnectionStateRequest csreq;
           csreq.nat = saddr.sin_addr.s_addr == 0;
@@ -489,11 +491,11 @@ void EIBNetIPTunnel::conntimeout_cb(ev::timer &w UNUSED, int revents UNUSED)
           TRACEPRINTF (t, 1, "Heartbeat");
           sock->Send (p, caddr);
           heartbeat++;
-          conntimeout.start(30,0);
+          conntimeout.start(HEARTBEAT,0);
         }
       else
         {
-          TRACEPRINTF (t, 1, "Disconnection because of errors");
+          ERRORPRINTF (t, E_ERROR, "Heartbeat messages unanswered");
           restart();
         }
     }
