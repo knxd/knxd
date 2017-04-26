@@ -288,7 +288,7 @@ USBLowLevelDriver::~USBLowLevelDriver ()
 void
 USBLowLevelDriver::send_Data (CArray& l)
 {
-  if (out.size() > 0)
+  if (sendh != nullptr)
     {
       ERRORPRINTF (t, E_FATAL | 35, "Send while buffer not empty");
       errored(); // XXX signal async
