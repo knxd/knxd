@@ -86,7 +86,7 @@ public:
 
   /** Callback for send_Local */
   StateCallback sendLocal_done;
-  void done_aborter(bool); // catches non-initialized callbacks
+  void sendLocal_done_cb(bool); // default: ignore success, abort on error
   void send_Next();
 
   /** like send_Data but calls the sendLocal_done CB upon success */

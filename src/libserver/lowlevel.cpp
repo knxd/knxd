@@ -37,7 +37,7 @@ LowLevelIface::~LowLevelIface()
 
 LowLevelIface::LowLevelIface()
 {
-  sendLocal_done.set<LowLevelIface,&LowLevelIface::done_aborter>(this);
+  sendLocal_done.set<LowLevelIface,&LowLevelIface::sendLocal_done_cb>(this);
   local_timeout.set<LowLevelIface,&LowLevelIface::local_timeout_cb>(this);
 }
 
@@ -47,10 +47,10 @@ LowLevelFilter::~LowLevelFilter()
 }
 
 void
-LowLevelIface::done_aborter(bool success)
+LowLevelIface::sendLocal_done_cb(bool success)
 {
-  ERRORPRINTF (tr(), E_FATAL, "non-initialized send_Local callback");
-  abort();
+  if (!success)
+    errored();
 }
 
 void
