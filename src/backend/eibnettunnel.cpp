@@ -218,7 +218,8 @@ EIBNetIPTunnel::read_cb (EIBNetIPPacket *p1)
         rno = 0;
         sock->recvaddr2 = daddr;
         sock->recvall = 3;
-        conntimeout.start(heartbeat_time,0);
+        if (heartbeat_time)
+          conntimeout.start(heartbeat_time,0);
         heartbeat = 0;
         BusDriver::start();
         break;
@@ -490,7 +491,8 @@ void EIBNetIPTunnel::conntimeout_cb(ev::timer &w UNUSED, int revents UNUSED)
           TRACEPRINTF (t, 1, "Heartbeat");
           sock->Send (p, caddr);
           heartbeat++;
-          conntimeout.start(heartbeat_time,0);
+          if (heartbeat_time)
+            conntimeout.start(heartbeat_time,0);
         }
       else
         {
