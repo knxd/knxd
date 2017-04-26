@@ -86,8 +86,6 @@ EMI_Common::started()
     cmdEnterMonitor();
   else
     cmdOpen();
-
-  LowLevelFilter::started();
 }
 
 void
@@ -98,7 +96,6 @@ EMI_Common::stop ()
     cmdLeaveMonitor();
   else
     cmdClose();
-  LowLevelFilter::stop();
 }
 
 void
