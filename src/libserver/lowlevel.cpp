@@ -97,6 +97,15 @@ LowLevelFilter::do_send_Local(CArray &d, int raw)
 }
 
 void
+LowLevelAdapter::do_send_Local(CArray &d, int raw)
+{
+  if (raw)
+    iface->do_send_Local(d, raw-1);
+  else
+    send_Data(d);
+}
+
+void
 LowLevelIface::local_timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
 {
   ERRORPRINTF (tr(), E_ERROR, "send_Local timed out!");

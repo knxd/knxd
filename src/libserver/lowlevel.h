@@ -291,6 +291,7 @@ public:
   void stopped() { BusDriver::stopped(); }
   void errored() { BusDriver::errored(); }
   void do_send_Next() { BusDriver::send_Next(); }
+  void do_send_Local(CArray &d, int raw);
 
   FilterPtr findFilter(std::string name)
     {
