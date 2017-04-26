@@ -59,7 +59,7 @@ CEMIDriver::sendLocal_done_cb(bool success)
 void CEMIDriver::cmdEnterMonitor() { errored(); stopped(); }
 void CEMIDriver::cmdLeaveMonitor() { errored(); stopped(); }
 void CEMIDriver::cmdOpen() { LowLevelDriver::started(); }
-void CEMIDriver::cmdClose() { LowLevelDriver::stopped(); }
+void CEMIDriver::cmdClose() { LowLevelDriver::stop(); }
 
 void CEMIDriver::started()
 {

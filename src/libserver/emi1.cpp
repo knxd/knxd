@@ -48,7 +48,7 @@ EMI1Driver::sendLocal_done_cb(bool success)
       LowLevelFilter::stopped();
     }
   else if (sendLocal_done_next == N_down)
-    LowLevelFilter::stopped();
+    LowLevelFilter::stop();
   else if (sendLocal_done_next == N_up)
     LowLevelFilter::started();
   else if (sendLocal_done_next == N_open)
