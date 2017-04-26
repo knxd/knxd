@@ -57,7 +57,6 @@ EMI1Driver::sendLocal_done_cb(bool success)
       const uchar t[] = { 0x46, 0x01, 0x00, 0x60, 0x12 };
       send_Local (CArray (t, sizeof (t)),1);
     }
-
 }
 
 void
@@ -80,9 +79,26 @@ EMI1Driver::cmdOpen ()
 void
 EMI1Driver::cmdClose ()
 {
+  if (wait_confirm_low)
+    {
+      sendLocal_done_next = N_want_close;
+      return;
+    }
   sendLocal_done_next = N_down;
   uchar t[] = { 0x46, 0x01, 0x00, 0x60, 0xc0 };
   send_Local (CArray (t, sizeof (t)),1);
+}
+
+void
+EMI1Driver::do_send_Next ()
+{
+  if (sendLocal_done_next == N_want_close)
+    {
+      wait_confirm_low = false;
+      cmdClose();
+      return;
+    }
+  EMI_Common::do_send_Next();
 }
 
 const uint8_t *

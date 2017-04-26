@@ -37,7 +37,7 @@ class EMI2Driver:public EMI_Common
   EMIVer getVersion() { return vEMI2; }
   void sendLocal_done_cb(bool success);
   void reset_timer_cb(ev::timer& w, int revents);
-  enum { N_bad, N_up, N_down, N_open, N_enter } sendLocal_done_next = N_bad;
+  enum { N_bad, N_up, N_want_close, N_want_leave, N_down, N_open, N_enter } sendLocal_done_next = N_bad;
 public:
   EMI2Driver (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i = nullptr);
   virtual ~EMI2Driver ();

@@ -27,6 +27,7 @@ USBConverterInterface::USBConverterInterface (LowLevelIface * p, IniSectionPtr& 
     : LowLevelFilter(p,s)
 {
   t->setAuxName("Conv");
+  sendLocal_done.set<USBConverterInterface,&USBConverterInterface::sendLocal_done_cb>(this);
   iface = new USBLowLevelDriver(this, s);
 }
 
@@ -146,6 +147,15 @@ USBConverterInterface::send_Init()
   send_Local (CArray (init, sizeof (init)), 1);
 }
 
+void
+USBConverterInterface::sendLocal_done_cb(bool success)
+{
+  if (!success)
+    errored();
+  else
+    LowLevelFilter::started();
+}
+
 void 
 USBDriver::started()
 {
@@ -206,6 +216,12 @@ USBDriver::sendLocal_done_cb(bool success)
       timeout.stop();
       errored();
     }
+  else if (wait_make)
+    {
+      wait_make = false;
+      if(!make_EMI())
+        errored();
+    }
   else if (version > vERROR && version < vRaw)
     iface->started();
 }
@@ -260,14 +276,23 @@ USBDriver::recv_Data(CArray& c)
       errored();
       return;
     }
+
   timeout.stop();
+  TRACEPRINTF (t, 1, "Using EMI version %d", version);
+
+  if (is_local) // the inquiry's send_local has not yet been acked
+    {
+      TRACEPRINTF (t, 0, "version x%02x recognized, delayed", c[13]);
+      wait_make = true;
+      return;
+    }
+
   if(!make_EMI())
     {
       errored();
       return;
     }
 
-  TRACEPRINTF (t, 1, "Using EMI version %d", version);
   return;
 
 cont:
