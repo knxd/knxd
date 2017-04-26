@@ -449,6 +449,11 @@ Hardware IP interfaces frequently use this feature.
 
 You may need the "single" filter in front of this driver.
 
+Note that some of these devices exhibit an implementation bug: after 3.5
+weeks an internal timer overruns (the number of milliseconds exceeds 2³¹).
+If this happens, add a "retry-delay" option to cause knxd to reconnect
+instead of terminating.
+
   * ip-address (string: IP address)
 
     The address (or host name) of the tunnel server to connect to.
@@ -472,6 +477,20 @@ You may need the "single" filter in front of this driver.
     Require network address translation.
 
     TODO: when would you need that?
+
+  * heartbeat-time (int; seconds)
+
+    Timer for periodically checking whether the server is still connected
+    to us.
+
+    The default is 30.
+
+  * heartbeat-retries
+
+    Retry timer for coping with lost heartbeat packets.
+
+    The default is 3. If more consecutive heartbeat packets are unanswered,
+    the interface will be considered failed.
 
 The following options are not recognized unless "nat" is set.
 

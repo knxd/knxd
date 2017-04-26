@@ -23,9 +23,6 @@
 #define NO_MAP
 #include "nat.h"
 
-#define HEARTBEAT 10
-#define N_HEARTBEAT 5
-
 EIBNetIPTunnel::EIBNetIPTunnel (const LinkConnectPtr_& c, IniSectionPtr& s)
   : BusDriver(c,s)
 {
@@ -79,6 +76,8 @@ EIBNetIPTunnel::setup()
       srcip = cfg->value("nat-ip","");
       dataport = cfg->value("data-port",0);
     }
+  heartbeat_time = cfg->value("heartbeat-timer",30);
+  heartbeat_limit = cfg->value("heartbeat-retries",3);
   return true;
 }
 
@@ -219,7 +218,7 @@ EIBNetIPTunnel::read_cb (EIBNetIPPacket *p1)
         rno = 0;
         sock->recvaddr2 = daddr;
         sock->recvall = 3;
-        conntimeout.start(HEARTBEAT,0);
+        conntimeout.start(heartbeat_time,0);
         heartbeat = 0;
         BusDriver::start();
         break;
@@ -480,7 +479,7 @@ void EIBNetIPTunnel::conntimeout_cb(ev::timer &w UNUSED, int revents UNUSED)
 {
   if (mod)
     {
-      if (heartbeat < N_HEARTBEAT)
+      if (heartbeat < heartbeat_limit)
         {
           EIBnet_ConnectionStateRequest csreq;
           csreq.nat = saddr.sin_addr.s_addr == 0;
@@ -491,7 +490,7 @@ void EIBNetIPTunnel::conntimeout_cb(ev::timer &w UNUSED, int revents UNUSED)
           TRACEPRINTF (t, 1, "Heartbeat");
           sock->Send (p, caddr);
           heartbeat++;
-          conntimeout.start(HEARTBEAT,0);
+          conntimeout.start(heartbeat_time,0);
         }
       else
         {

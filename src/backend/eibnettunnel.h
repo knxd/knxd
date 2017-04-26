@@ -46,6 +46,8 @@ DRIVER(EIBNetIPTunnel,ipt)
   int rno = 0;
   int sno = 0;
   int heartbeat = 0;
+  int heartbeat_time;
+  int heartbeat_limit;
   int retry = 0;
 
   ev::timer timeout; void timeout_cb(ev::timer &w, int revents);
