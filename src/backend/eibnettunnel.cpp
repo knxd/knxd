@@ -168,8 +168,7 @@ EIBNetIPTunnel::read_cb (EIBNetIPPacket *p1)
           }
         if (cresp.status != 0)
           {
-            TRACEPRINTF (t, 1, "Connect failed with error %02X",
-                          cresp.status);
+            TRACEPRINTF (t, 1, "Connect failed with error %02X", cresp.status);
             if (cresp.status == 0x23 && support_busmonitor && monitor)
               {
                 TRACEPRINTF (t, 1, "Disable busmonitor support");
@@ -371,21 +370,23 @@ EIBNetIPTunnel::read_cb (EIBNetIPPacket *p1)
         if (csresp.status == 0)
           {
             if (heartbeat > 0)
-              heartbeat = 0;
+              {
+                heartbeat = 0;
+                TRACEPRINTF (t, 1, "got Connection State Response");
+              }
             else
-              TRACEPRINTF (t, 1,
-                            "Duplicate Connection State Response");
+              TRACEPRINTF (t, 1, "Duplicate Connection State Response");
           }
         else if (csresp.status == 0x21)
           {
-            TRACEPRINTF (t, 1,
-                          "Connection State Response not connected");
+            TRACEPRINTF (t, 1, "Connection State Response: not connected");
             restart();
           }
         else
-          TRACEPRINTF (t, 1,
-                        "Connection State Response Error %02x",
-                        csresp.status);
+          {
+            TRACEPRINTF (t, 1, "Connection State Response Error %02x", csresp.status);
+            errored();
+          }
         break;
       }
     case DISCONNECT_REQUEST:
@@ -446,8 +447,7 @@ EIBNetIPTunnel::read_cb (EIBNetIPPacket *p1)
       }
     default:
     err:
-      TRACEPRINTF (t, 1, "Recv unexpected service %04X",
-                    p1->service);
+      TRACEPRINTF (t, 1, "Recv unexpected service %04X", p1->service);
     }
   delete p1;
 }
