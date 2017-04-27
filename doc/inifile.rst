@@ -478,7 +478,7 @@ instead of terminating.
 
     TODO: when would you need that?
 
-  * heartbeat-time (int; seconds)
+  * heartbeat-timer (int; seconds)
 
     Timer for periodically checking whether the server is still connected
     to us.
