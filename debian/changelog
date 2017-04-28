@@ -1,3 +1,12 @@
+knxd (0.14.13-1) unstable; urgency=medium
+
+  * tunnel client: Added heartbeat config options
+    * including ability to turn it off
+  * USB fixed
+    * problems caused by recent ft12/cemi fixes
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 28 Apr 2017 21:01:10 +0200
+
 knxd (0.14.12-1) unstable; urgency=medium
 
   * Report a fatal error if a link-down state causes knxd to terminate
