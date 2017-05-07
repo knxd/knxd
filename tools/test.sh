@@ -68,7 +68,7 @@ KNX1=$!
 trap 'echo T1; rm -f $L1 $L2 $E1 $E2 $EF; kill $KNX1; wait' 0 1 2
 
 sleep 2
-knxd -n K2 -B log -t 0xfffc -f 9 -e 4.2.0 -E 4.2.1:5 -D -B log -T -B log -R --Server=:$PORT2 -B log -u$S2 -B log -b ip:224.99.98.97:$PORT &
+knxd -n K2 -B log -t 0xfffc -f 9 -e 4.2.0 -E 4.2.1:5 -D -B log -T -B log -R --Server=224.99.98.96:$PORT2 -B log -u$S2 -B log -b ip:224.99.98.97:$PORT &
 KNX2=$!
 sleep 2
 knxd -n K3 -B log -t 0xfffc -f 9 -e 4.3.0 -E 4.3.1:5 -B log -u$S3 -B log -b ipt:localhost:$PORT2:$((10001 + $$)) &
