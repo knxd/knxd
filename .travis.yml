@@ -24,3 +24,4 @@ addons:
     - g++-5
     - libev-dev
     - libusb-1.0-0-dev
+    - strace
