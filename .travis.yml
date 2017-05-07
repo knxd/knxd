@@ -5,9 +5,7 @@ script:
   - sh -x bootstrap.sh
   - env CFLAGS="-Wall -Wextra -Wno-reorder" CPPFLAGS="-Wall -Wextra -Wno-reorder" ./configure --disable-systemd
   - make
-  - strace -f -s300 -o/tmp/bla sh tools/test.sh || true
-  - cat /tmp/bla
-  - exit 1
+  - sh tools/test.sh
 notifications:
   email:
     on_success: change
