@@ -573,6 +573,7 @@ TPUARTwrap::setstate(enum TSTATE new_state)
 
     case T_is_online:
       new_state = T_wait;
+      do__send_Next();
       // fall thru
     case T_wait:
       timer.start(10,0);
