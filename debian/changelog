@@ -1,3 +1,10 @@
+knxd (0.14.14-1) unstable; urgency=medium
+
+  * Stupid error department.
+  * Fix testing (somewhat)
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 12 May 2017 08:10:33 +0200
+
 knxd (0.14.13-1) unstable; urgency=medium
 
   * tunnel client: Added heartbeat config options
