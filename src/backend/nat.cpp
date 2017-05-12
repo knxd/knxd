@@ -72,6 +72,7 @@ NatL2Filter::send_L_Data (LDataPtr  l)
   if (l->AddrType == IndividualAddress)
     addReverseAddress (l->source, l->dest);
   l->source = addr;
+  Filter::send_L_Data (std::move(l));
 }
 
 
