@@ -231,13 +231,14 @@ void driver_argsv(const char *arg, char *ap, ...)
   va_list apl;
   va_start(apl, ap);
   (*ini[link])["driver"] = arg;
+  char *pa = NULL;
 
   while(ap)
     {
       char *p2 = strchr(ap,':');
       if (p2)
         *p2++ = '\0';
-      char *pa = va_arg(apl, char *);
+      pa = va_arg(apl, char *);
       if (!pa)
         {
           if (!*ap && !p2)
@@ -250,10 +251,13 @@ void driver_argsv(const char *arg, char *ap, ...)
         (*ini[link])[pa] = ap;
       ap = p2;
     }
-    char *pa = va_arg(apl, char *);
-    if (pa && *pa == '!')
-      die("%s requires an argument (%s)", arg,pa+1);
-    va_end(apl);
+  if (pa != NULL)
+    {
+      char *pa = va_arg(apl, char *);
+      if (pa && *pa == '!')
+        die("%s requires an argument (%s)", arg,pa+1);
+    }
+  va_end(apl);
 }
 
 void driver_args(const char *arg, char *ap)

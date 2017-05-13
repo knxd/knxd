@@ -1,3 +1,10 @@
+knxd (0.14.15-1) unstable; urgency=medium
+
+  * Error parsing arguments.
+    Can't call va_arg after it returns NULL.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sat, 13 May 2017 20:32:27 +0200
+
 knxd (0.14.14-1) unstable; urgency=medium
 
   * Stupid error department.

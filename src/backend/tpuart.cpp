@@ -470,11 +470,11 @@ TPUARTwrap::recv_Data(CArray &c)
               // setstate(T_in_reset); // do not immediately retry
               break;
             case T_in_setaddr:
-              if (c == 0x47)
-                {
-                  ERRORPRINTF (t, E_ERROR | 62, "TPUART detected. Hardware ACK not supported.");
-                  my_addr = 0;
-                }
+              // if (c == 0x47)
+              //   {
+              //     ERRORPRINTF (t, E_ERROR | 62, "TPUART detected. Hardware ACK not supported.");
+              //     my_addr = 0;
+              //   }
               setstate(T_in_getstate);
               break;
             case T_in_getstate:
@@ -545,11 +545,17 @@ TPUARTwrap::setstate(enum TSTATE new_state)
     case T_in_setaddr:
       if (my_addr)
         {
-          uchar c = 0x28;
-          TRACEPRINTF (t, 0, "SendAddr %02X", c);
-          LowLevelIface::send_Data(c);
-          timer.start(0.2,0);
-          break;
+          if(1) {
+            uint8_t addrbuf[3] = { 0x28, (uint8_t)((my_addr>>8)&0xFF), (uint8_t)(my_addr&0xFF) };
+            TRACEPRINTF (t, 0, "SendAddr %02X%02X", addrbuf[1],addrbuf[2]);
+            LowLevelIface::send_Data(CArray(addrbuf, sizeof(addrbuf)));
+          } else {
+            uchar c = 0x28;
+            TRACEPRINTF (t, 0, "SendAddr %02X", c);
+            LowLevelIface::send_Data(c);
+            timer.start(0.2,0);
+            break;
+          }
         }
       new_state = T_in_getstate;
       TRACEPRINTF (t, 8, "addr zero: %s > %s", SN(state),SN(new_state));
