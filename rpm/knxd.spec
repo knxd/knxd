@@ -4,7 +4,7 @@
 #
 Summary:      A KNX daemon and tools
 Name:         knxd
-Version:      0.12.10
+Version:      0.12.16
 Release:      0%{?dist}
 Group:        Applications/Interpreters
 Source:       %{name}-%{version}.tar.gz
@@ -250,6 +250,10 @@ fi
 %verifyscript
 
 %changelog
+* Tue May 16 2017 Michael Kefeder <m.kefeder@gmail.com> 0.12.16
+- builds on CentOS 7
+- builds on OpenSUSE 13
+
 * Thu Feb 09 2017 Michael Kefeder <m.kefeder@gmail.com> 0.12.10
 - libev based release 0.12.10
 - improved user add/del in spec file
