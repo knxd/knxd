@@ -29,7 +29,7 @@
 #include "inifile.h"
 
 #include "config.h"
-#if HAVE_FMT_PRINTF
+#ifdef HAVE_FMT_PRINTF
 #include <fmt/printf.h>
 #endif
 

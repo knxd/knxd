@@ -1,0 +1,6 @@
+option(INSTALL_EXAMPLES "Enable installation of examples" OFF)
+if(INSTALL_EXAMPLES)
+  file(GLOB EXAMPLE_SOURCES *.c)
+  install(FILES ${EXAMPLE_SOURCES} DESTINATION ${CMAKE_INSTALL_DOCDIR}/examples)
+  install(DIRECTORY python DESTINATION ${CMAKE_INSTALL_DOCDIR}/examples)
+endif()

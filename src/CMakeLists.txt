@@ -1,0 +1,11 @@
+include_directories(common include ${PROJECT_BINARY_DIR} ${FMT_INCLUDE_DIRS})
+
+add_subdirectory(common)
+add_subdirectory(include)
+add_subdirectory(client)
+add_subdirectory(usb)
+add_subdirectory(libserver)
+add_subdirectory(backend)
+add_subdirectory(server)
+add_subdirectory(tools)
+add_subdirectory(examples)
