@@ -23,9 +23,11 @@ Requires: libusb-1_0
 %endif
 Requires: systemd
 Requires: libev
-Requires: fmt
 
+%if %{defined fedora}
+Requires: fmt
 BuildRequires: fmt-devel
+%endif
 BuildRequires: systemd
 BuildRequires: systemd-devel
 BuildRequires: libev-devel
@@ -197,3 +199,4 @@ fi
 %changelog
 * Wed May 17 2017 Michael Kefeder <m.kefeder@gmail.com> 0.14.15
 - builds on Fedora 25
+- builds on openSUSE LEAP 43.2
