@@ -130,7 +130,6 @@ Makefile
 /systemd/*.socket
 /stamp-h1
 /autom4te.cache
-/rpm/knxd.spec
 /version.h
 /src/tools/eibread-cgi
 /src/tools/eibwrite-cgi
