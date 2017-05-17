@@ -25,8 +25,7 @@
 #include <map>
 #include <unordered_map>
 
-#include "layer3.h"
-#include "layer2.h"
+#include "link.h"
 #include "client.h"
 
 class GroupCache;
@@ -67,7 +66,7 @@ typedef std::map<uint32_t, eibaddr_t> SeqMap;
 /** map group addresses to cache entries */
 typedef std::unordered_map<eibaddr_t, GroupCacheEntry> CacheMap;
 
-class GroupCache:public Layer2virtual
+class GroupCache:public Driver
 {
   Array < GroupCacheReader * > reader;
   /** The Cache */
@@ -76,10 +75,17 @@ class GroupCache:public Layer2virtual
   bool enable = false;
   /** max size of cache */
   uint16_t maxsize;
+  /** cached copy of main address */
+  eibaddr_t addr;
 
 public: // but only for GroupCacheReader
-  bool init(Layer3 *l3);
-  bool hasGroupAddress (eibaddr_t addr UNUSED) { return true; }
+  bool setup();
+  void start();
+  void stop();
+  bool checkGroupAddress (eibaddr_t addr UNUSED) { return true; }
+  bool checkAddress (eibaddr_t addr UNUSED) { return false; }
+  bool hasAddress (eibaddr_t addr ) { return addr == this->addr; }
+  void addAddress (eibaddr_t addr UNUSED) { }
 
 private:
   ev::async remtrigger; void remtrigger_cb(ev::async &w, int revents);
@@ -88,7 +94,7 @@ private:
 
 public:
   /** constructor */
-  GroupCache (TracePtr t, uint16_t maxsize = 256);
+  GroupCache (const LinkConnectPtr& c, IniSectionPtr& s);
   /** destructor */
   virtual ~GroupCache ();
   /** Feed data to the cache */

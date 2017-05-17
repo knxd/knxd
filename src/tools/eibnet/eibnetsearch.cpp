@@ -148,7 +148,7 @@ main (int ac, char *ag[])
   if (!GetHostIP (NULL, &caddr, a))
     die ("Host not found");
   caddr.sin_port = htons (dport);
-  if (!GetSourceAddress (&caddr, &saddr))
+  if (!GetSourceAddress (TracePtr(new Trace(t,a)), &caddr, &saddr))
     die ("No route found");
   saddr.sin_port = htons (sport);
   sock = new EIBNetIPSocket (saddr, 0, t);
@@ -157,7 +157,7 @@ main (int ac, char *ag[])
   sock->recvall = 1;
   if (!sock->init ())
     die ("IP initialisation failed");
-  sock->on_recv.set<recv_me>();
+  sock->on_read.set<recv_me>();
 
   EIBnet_SearchRequest req;
   EIBNetIPPacket *p1;

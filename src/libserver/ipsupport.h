@@ -27,14 +27,15 @@
 class Trace;
 
 /** resolve host name */
-int GetHostIP (TracePtr t, struct sockaddr_in *sock, const char *Name);
+bool GetHostIP (TracePtr t, struct sockaddr_in *sock, const std::string& name);
 /** gets source address for a route */
-int GetSourceAddress (const struct sockaddr_in *dest,
+bool GetSourceAddress (TracePtr t, 
+                      const struct sockaddr_in *dest,
 		      struct sockaddr_in *src);
 /** convert a to EIBnet/IP format */
 CArray IPtoEIBNetIP (const struct sockaddr_in *a, bool nat);
 /** convert EIBnet/IP IP Address to a */
-int EIBnettoIP (const CArray & buf, struct sockaddr_in *a,
+bool EIBnettoIP (const CArray & buf, struct sockaddr_in *a,
 		const struct sockaddr_in *src, bool & nat);
 bool compareIPAddress (const struct sockaddr_in &a,
 		       const struct sockaddr_in &b);

@@ -25,7 +25,7 @@
 
 /** implement a generic FIFO queue*/
 template < typename _T >
-class Queue : std::queue<_T>
+class Queue : public std::queue<_T>
 {
 public:
   typedef typename std::queue<_T>::value_type value_type;
@@ -40,24 +40,29 @@ public:
   using std::queue<_T>::pop;
   using std::queue<_T>::push;
 
+  inline void clear()
+    {
+      while (!isempty())
+        pop();
+    }
 
   inline void put (value_type && el)
-  {
-    std::queue<_T>::push(std::move(el));
-  }
+    {
+      std::queue<_T>::push(std::move(el));
+    }
 
   inline _T get ()
-  {
-    value_type v = std::move(std::queue<_T>::front());
-    std::queue<_T>::pop();
-    return v;
-  }
+    {
+      value_type v = std::move(std::queue<_T>::front());
+      std::queue<_T>::pop();
+      return v;
+    }
 
   /** return true, if the queue is empty */
   inline bool isempty () const
-  {
-    return std::queue<_T>::empty();
-  }
+    {
+      return std::queue<_T>::empty();
+    }
 
 };
 

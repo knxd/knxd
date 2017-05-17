@@ -18,145 +18,183 @@
 */
 
 #include "connection.h"
+#include "server.h"
 #include "trace.h"
 
-A_Base::~A_Base()
+template<class C>
+A_Base<C>::~A_Base()
 {
 }
 
-A_Broadcast::A_Broadcast (ClientConnPtr cc, uint8_t *buf,size_t len)
+A_Broadcast::A_Broadcast (ClientConnPtr cc) : A_Base<T_BroadcastPtr>(cc)
 {
-  TracePtr t = TracePtr(new Trace(*cc->t, cc->t->name+":"+FormatEIBAddr(cc->addr)));
+  t->setAuxName("Base");
   TRACEPRINTF (t, 7, "OpenBroadcast");
-  c = nullptr;
-  addr = cc->addr;
+}
+
+/* TODO refactor this mess */
+
+bool
+A_Broadcast::setup(uint8_t *buf,size_t len)
+{
   if (len != 5)
     {
       TRACEPRINTF (t, 7, "OpenBroadcast size bad %d", len);
-      return;
+      return false;
     }
-  c = T_BroadcastPtr(new T_Broadcast (t, buf[4] != 0));
-  if (!c->init (this, cc->l3))
+  lc = LinkConnectSinglePtr(new LinkConnectSingle(con->server, con->server->cfg, t));
+  lc->setAddress(con->addr);
+  c = T_BroadcastPtr(new T_Broadcast (this, lc, buf[4] != 0));
+  lc->set_driver(c);
+  if (!lc->setup())
     {
       TRACEPRINTF (t, 7, "OpenBroadcast init bad");
-      return;
+      return false;
     }
-  cc->sendmessage (2, buf);
-  con = cc;
+  con->sendmessage (2, buf);
   TRACEPRINTF (t, 7, "OpenBroadcast complete");
+  return true;
 }
 
-A_Group::A_Group (ClientConnPtr cc, uint8_t *buf,size_t len)
+A_Group::A_Group (ClientConnPtr cc) : A_Base(cc)
 {
-  TracePtr t = TracePtr(new Trace(*cc->t, cc->t->name+":"+FormatEIBAddr(cc->addr)));
+  t->setAuxName("Group");
   TRACEPRINTF (t, 7, "OpenGroup");
-  c = nullptr;
-  addr = cc->addr;
+}
+
+bool
+A_Group::setup(uint8_t *buf,size_t len)
+{
   if (len != 5)
     {
       TRACEPRINTF (t, 7, "OpenGroup size bad %d", len);
-      return;
+      return false;
     }
-  c = T_GroupPtr(new T_Group (t, (buf[2] << 8) | (buf[3]),
-		 buf[4] != 0));
-  if (!c->init (this, cc->l3))
+  lc = LinkConnectSinglePtr(new LinkConnectSingle(con->server, con->server->cfg, t));
+  lc->setAddress(con->addr);
+  c = T_GroupPtr(new T_Group (this, lc, (buf[2] << 8) | (buf[3]), buf[4] != 0));
+  lc->set_driver(c);
+  if (!lc->setup())
     {
       TRACEPRINTF (t, 7, "OpenGroup init bad");
-      return;
+      return false;
     }
-  cc->sendmessage (2, buf);
-  con = cc;
+  con->sendmessage (2, buf);
   TRACEPRINTF (t, 7, "OpenGroup complete");
+  return true;
 }
 
-A_TPDU::A_TPDU (ClientConnPtr cc, uint8_t *buf,size_t len)
+A_TPDU::A_TPDU (ClientConnPtr cc) : A_Base(cc)
 {
-  TracePtr t = TracePtr(new Trace(*cc->t, cc->t->name+":"+FormatEIBAddr(cc->addr)));
+  t->setAuxName("TPDU");
   TRACEPRINTF (t, 7, "OpenTPDU");
-  c = nullptr;
-  addr = cc->addr;
+}
+bool
+A_TPDU::setup(uint8_t *buf,size_t len)
+{
   if (len != 5)
     {
       TRACEPRINTF (t, 7, "OpenTPDU size bad %d", len);
-      return;
+      return false;
     }
-  c = T_TPDUPtr(new T_TPDU (t, (buf[2] << 8) | (buf[3])));
-  if (!c->init (this, cc->l3))
+  lc = LinkConnectSinglePtr(new LinkConnectSingle(con->server, con->server->cfg, t));
+  lc->setAddress(con->addr);
+  c = T_TPDUPtr(new T_TPDU (this, lc, (buf[2] << 8) | (buf[3])));
+  lc->set_driver(c);
+  if (!lc->setup())
     {
       TRACEPRINTF (t, 7, "OpenTPDU init bad");
-      return;
+      return false;
     }
-  cc->sendmessage (2, buf);
-  con = cc;
+  con->sendmessage (2, buf);
   TRACEPRINTF (t, 7, "OpenTPDU complete");
+  return true;
 }
 
-A_Individual::A_Individual (ClientConnPtr cc, uint8_t *buf,size_t len)
+A_Individual::A_Individual (ClientConnPtr cc) : A_Base(cc)
 {
-  TracePtr t = TracePtr(new Trace(*cc->t, cc->t->name+":"+FormatEIBAddr(cc->addr)));
+  t->setAuxName("Ind");
   TRACEPRINTF (t, 7, "OpenIndividual");
-  c = nullptr;
-  addr = cc->addr;
+}
+
+bool
+A_Individual::setup(uint8_t *buf,size_t len)
+{
   if (len != 5)
     {
       TRACEPRINTF (t, 7, "OpenIndividual size bad %d", len);
-      return;
+      return false;
     }
+  lc = LinkConnectSinglePtr(new LinkConnectSingle(con->server, con->server->cfg, t));
+  lc->setAddress(con->addr);
   c = T_IndividualPtr(
-    new T_Individual (t, (buf[2] << 8) | (buf[3]),
+    new T_Individual (this, lc, (buf[2] << 8) | (buf[3]),
 		      buf[4] != 0));
-  if (!c->init (this, cc->l3))
+  lc->set_driver(c);
+  if (!lc->setup())
     {
       TRACEPRINTF (t, 7, "OpenIndividual init bad");
-      return;
+      return false;
     }
-  cc->sendmessage (2, buf);
-  con = cc;
+  con->sendmessage (2, buf);
   TRACEPRINTF (t, 7, "OpenIndividual complete");
+  return true;
 }
 
-A_Connection::A_Connection (ClientConnPtr cc, uint8_t *buf,size_t len)
+A_Connection::A_Connection (ClientConnPtr cc) : A_Base(cc)
 {
-  TracePtr t = TracePtr(new Trace(*cc->t, cc->t->name+":"+FormatEIBAddr(cc->addr)));
+  t->setAuxName("Conn");
   TRACEPRINTF (t, 7, "OpenConnection");
-  c = nullptr;
-  addr = cc->addr;
+}
+
+bool
+A_Connection::setup(uint8_t *buf,size_t len)
+{
   if (len != 5)
     {
       TRACEPRINTF (t, 7, "OpenConnection size bad %d", len);
-      return;
+      return false;
     }
-  c = T_ConnectionPtr(new T_Connection (t, (buf[2] << 8) | (buf[3])));
-  if (!c->init (this, cc->l3))
+  lc = LinkConnectSinglePtr(new LinkConnectSingle(con->server, con->server->cfg, t));
+  lc->setAddress(con->addr);
+  c = T_ConnectionPtr(new T_Connection (this, lc, (buf[2] << 8) | (buf[3])));
+  lc->set_driver(c);
+  if (!lc->setup())
     {
       TRACEPRINTF (t, 7, "OpenConnection init bad");
-      return;
+      return false;
     }
-  cc->sendmessage (2, buf);
-  con = cc;
+  con->sendmessage (2, buf);
   TRACEPRINTF (t, 7, "OpenConnection complete");
+  return true;
 }
 
-A_GroupSocket::A_GroupSocket (ClientConnPtr cc, uint8_t *buf,size_t len)
+A_GroupSocket::A_GroupSocket (ClientConnPtr cc) : A_Base(cc)
 {
-  TracePtr t = TracePtr(new Trace(*cc->t, cc->t->name+":"+FormatEIBAddr(cc->addr)));
+  t->setAuxName("GS");
   TRACEPRINTF (t, 7, "OpenGroupSocket");
-  c = nullptr;
-  addr = cc->addr;
+}
+
+bool
+A_GroupSocket::setup(uint8_t *buf,size_t len)
+{
   if (len != 5)
     {
       TRACEPRINTF (t, 7, "OpenGroupSocket size bad %d", len);
-      return;
+      return false;
     }
-  c = GroupSocketPtr(new GroupSocket (t, buf[4] != 0));
-  if (!c->init (this, cc->l3))
+  lc = LinkConnectSinglePtr(new LinkConnectSingle(con->server, con->server->cfg, t));
+  lc->setAddress(con->addr);
+  c = GroupSocketPtr(new GroupSocket (this, lc, buf[4] != 0));
+  lc->set_driver(c);
+  if (!lc->setup())
     {
       TRACEPRINTF (t, 7, "OpenGroupSocket init bad");
-      return;
+      return false;
     }
-  cc->sendmessage (2, buf);
-  con = cc;
+  con->sendmessage (2, buf);
   TRACEPRINTF (t, 7, "OpenGroupSocket complete");
+  return true;
 }
 
 A_Broadcast::~A_Broadcast ()
@@ -202,81 +240,81 @@ A_GroupSocket::~A_GroupSocket ()
 }
 
 void
-A_Broadcast::recv(uint8_t *buf, size_t len)
+A_Broadcast::recv_Data(uint8_t *buf, size_t len)
 {
   if (len < 2 || EIBTYPE (buf) != EIB_APDU_PACKET)
     {
-      on_error_cb();
+      on_error();
       return;
     }
   con->t->TracePacket (7, "recv Broadcast", len - 2, buf + 2);
-  c->recv (CArray (buf + 2, len - 2));
+  c->recv_Data (CArray (buf + 2, len - 2));
 }
 
 void
-A_Group::recv(uint8_t *buf, size_t len)
+A_Group::recv_Data(uint8_t *buf, size_t len)
 {
   if (len < 2 || EIBTYPE (buf) != EIB_APDU_PACKET)
     {
-      on_error_cb();
+      on_error();
       return;
     }
   con->t->TracePacket (7, "recv Group", len - 2, buf + 2);
-  c->recv (CArray (buf + 2, len - 2));
+  c->recv_Data (CArray (buf + 2, len - 2));
 }
 
 void
-A_TPDU::recv(uint8_t *buf, size_t len)
+A_TPDU::recv_Data(uint8_t *buf, size_t len)
 {
   if (len < 4 || EIBTYPE (buf) != EIB_APDU_PACKET)
     {
-      on_error_cb();
+      on_error();
       return;
     }
   con->t->TracePacket (7, "recv TPDU", len - 4, buf + 4);
   TpduComm p;
   p.data = CArray (buf + 4, len - 4);
   p.addr = (buf[2] << 8) | (buf[3]);
-  c->recv (p);
+  c->recv_Data (p);
 }
 
 void
-A_Individual::recv(uint8_t *buf, size_t len)
+A_Individual::recv_Data(uint8_t *buf, size_t len)
 {
   if (len < 2 || EIBTYPE (buf) != EIB_APDU_PACKET)
     {
-      on_error_cb();
+      on_error();
       return;
     }
   con->t->TracePacket (7, "recv Indiv", len - 2, buf + 2);
-  c->recv (CArray (buf + 2, len - 2));
+  c->recv_Data (CArray (buf + 2, len - 2));
 }
 
 void
-A_Connection::recv(uint8_t *buf, size_t len)
+A_Connection::recv_Data(uint8_t *buf, size_t len)
 {
   if (len < 2 || EIBTYPE (buf) != EIB_APDU_PACKET)
     {
-      on_error_cb();
+      on_error();
       return;
     }
   con->t->TracePacket (7, "recv Conn", len - 2, buf + 2);
-  c->recv (CArray (buf + 2, len - 2));
+  c->recv_Data (CArray (buf + 2, len - 2));
 }
 
 void
-A_GroupSocket::recv(uint8_t *buf, size_t len)
+A_GroupSocket::recv_Data(uint8_t *buf, size_t len)
 {
   if (len < 4 || EIBTYPE (buf) != EIB_GROUP_PACKET)
     {
-      on_error_cb();
+      on_error();
       return;
     }
   con->t->TracePacket (7, "recv GroupSock", len - 4, buf + 4);
   GroupAPDU p;
   p.data = CArray (buf + 4, len - 4);
   p.dst = (buf[2] << 8) | (buf[3]);
-  c->recv (p);
+  c->recv_Data (p);
 }
 
 void

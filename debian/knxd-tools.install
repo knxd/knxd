@@ -1,5 +1,3 @@
-/usr/bin/eibnetdescribe
-/usr/bin/eibnetsearch
 /usr/bin/knxtool
 /usr/lib/knxd/
 /usr/lib/*/libeibclient.so.*

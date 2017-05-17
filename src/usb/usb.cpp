@@ -21,14 +21,15 @@
 #include <errno.h>
 #include <sys/poll.h>
 #include "usb.h"
+#include "types.h"
 
-static void pollfd_added_cb (int fd, short events, void *user_data)
+static void pollfd_added_cb (int fd UNUSED, short events UNUSED, void *user_data)
 {
   USBLoop *loop = static_cast<USBLoop *>(user_data);
   loop->setup();
 }
 
-static void pollfd_removed_cb (int fd, void *user_data)
+static void pollfd_removed_cb (int fd UNUSED, void *user_data)
 {
   USBLoop *loop = static_cast<USBLoop *>(user_data);
   loop->setup();
@@ -44,9 +45,13 @@ USBLoop::USBLoop (TracePtr tr)
       return;
     }
 
+  if(t->ShowPrint(10))
+    libusb_set_debug(context,LIBUSB_LOG_LEVEL_DEBUG);
+  else
+    libusb_set_debug(context,LIBUSB_LOG_LEVEL_ERROR);
+
   tm.set<USBLoop, &USBLoop::timer_cb>(this);
-  libusb_set_pollfd_notifiers 	(context,
-  pollfd_added_cb,pollfd_removed_cb, this);
+  libusb_set_pollfd_notifiers (context, pollfd_added_cb,pollfd_removed_cb, this);
   setup();
   TRACEPRINTF (t, 10, "USBLoop-Create");
 }
@@ -61,7 +66,10 @@ void USBLoop::timer()
 void USBLoop::setup()
 {
   ITER(i,fds)
-    delete *i;
+    {
+      (*i)->stop();
+      delete *i;
+    }
   fds.clear();
   const struct libusb_pollfd **usb_fds = libusb_get_pollfds(context);
   const struct libusb_pollfd **orig_usb_fds = usb_fds;
@@ -73,6 +81,7 @@ void USBLoop::setup()
           io->set<USBLoop, &USBLoop::io_cb>(this);
           io->start(it->fd,ev::READ);
           fds.push_back(io);
+          TRACEPRINTF (t, 10, "USBLoop read %d",it->fd);
         }
       if (it->events & POLLOUT)
         {
@@ -80,6 +89,7 @@ void USBLoop::setup()
           io->set<USBLoop, &USBLoop::io_cb>(this);
           io->start(it->fd,ev::WRITE);
           fds.push_back(io);
+          TRACEPRINTF (t, 10, "USBLoop write %d",it->fd);
         }
     }
   free(orig_usb_fds);
@@ -87,14 +97,19 @@ void USBLoop::setup()
 
 USBLoop::~USBLoop ()
 {
-  ITER(i,fds)
-    delete *i;
   if (context)
     libusb_exit (context);
+  tm.stop();
+  ITER(i,fds)
+    {
+      (*i)->stop();
+      delete *i;
+    }
+  fds.clear();
 }
 
 void
-USBLoop::timer_cb (ev::timer &w, int revents)
+USBLoop::timer_cb (ev::timer &w UNUSED, int revents UNUSED)
 {
   struct timeval tv1 = {0,0};
   libusb_handle_events_timeout (context, &tv1);
@@ -102,8 +117,9 @@ USBLoop::timer_cb (ev::timer &w, int revents)
 }
 
 void
-USBLoop::io_cb (ev::io &w, int revents)
+USBLoop::io_cb (ev::io &w UNUSED, int revents UNUSED)
 {
+  // TRACEPRINTF (t, 10, "USBLoop hit %d", w.fd);
   struct timeval tv1 = {0,0};
   libusb_handle_events_timeout (context, &tv1);
   timer();

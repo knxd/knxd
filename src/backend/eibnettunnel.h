@@ -20,10 +20,10 @@
 #ifndef EIBNET_TUNNEL_H
 #define EIBNET_TUNNEL_H
 
-#include "layer2.h"
+#include "link.h"
 #include "eibnetip.h"
 
-class EIBNetIPTunnel:public Layer2
+DRIVER(EIBNetIPTunnel,ipt)
 {
   EIBNetIPSocket *sock;
   struct sockaddr_in caddr;
@@ -31,29 +31,33 @@ class EIBNetIPTunnel:public Layer2
   struct sockaddr_in saddr;
   struct sockaddr_in raddr;
 
-  Queue < CArray > send_q;
-  int dataport;
+  CArray out;
   bool NAT;
+  bool monitor;
+  std::string dest;
+  uint16_t port;
+  uint16_t sport;
+  std::string srcip;
+  uint16_t dataport;
+
 // main loop internal vars
   int channel = -1;
   int mod = 0;
   int rno = 0;
   int sno = 0;
   int heartbeat = 0;
-  int drop = 0;
+  int heartbeat_time;
+  int heartbeat_limit;
   int retry = 0;
 
-  float send_delay;
   ev::timer timeout; void timeout_cb(ev::timer &w, int revents);
-  ev::timer sendtimeout; void sendtimeout_cb(ev::timer &w, int revents);
   ev::timer conntimeout; void conntimeout_cb(ev::timer &w, int revents);
   ev::async trigger; void trigger_cb(ev::async &w, int revents);
   
   bool support_busmonitor;
   bool connect_busmonitor;
-  void on_recv_cb(EIBNetIPPacket *p);
-
-  const char *Name() { return "eibnettunnel"; }
+  void read_cb(EIBNetIPPacket *p);
+  void error_cb();
 
   inline EIBnet_ConnectRequest get_creq() { 
     EIBnet_ConnectRequest creq;
@@ -69,13 +73,13 @@ class EIBNetIPTunnel:public Layer2
   } 
 
 public:
-  EIBNetIPTunnel (const char *dest, int port, int sport, const char *srcip,
-                  int dataport, L2options *opt);
+  EIBNetIPTunnel (const LinkConnectPtr_& c, IniSectionPtr& s);
   virtual ~EIBNetIPTunnel ();
-  bool init (Layer3 *l3);
-
-  bool enterBusmonitor ();
-  bool leaveBusmonitor ();
+  bool setup();
+  void start();
+  void stop();
+  void is_stopped();
+  void restart();
 
   void send_L_Data (LDataPtr  l);
 };

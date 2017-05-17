@@ -5,7 +5,7 @@
 export LD_LIBRARY_PATH=src/client/c/.libs${LD_LIBRARY_PATH:+:}$LD_LIBRARY_PATH
 
 set -ex
-export PATH="$(pwd)/src/tools/.libs:$(pwd)/src/tools:$(pwd)/src/server/.libs:$(pwd)/src/server:$PATH"
+export PATH="$(pwd)/src/tools/.libs:$(pwd)/src/tools:$(pwd)/src/server/.libs:$(pwd)/src/server:$(pwd)/src/server:$PATH"
 
 EF=$(tempfile)
 
@@ -22,7 +22,7 @@ if knxd -e 1.2.3 --stop-right-now -b dummy: >$EF 2>&1; then
 	exit 1
 fi
 
-if ! knxd -e 1.2.3 --stop-right-now -b dummy: -b dummy: >$EF 2>&1; then
+if ! knxd -B log -e 1.2.3 --stop-right-now -b dummy: -b dummy: >$EF 2>&1; then
 	echo "Bad argument C" >&2
 	cat $EF 2>&1
 	exit 1
@@ -63,15 +63,15 @@ E5=$(tempfile)
 PORT=$((9999 + $$))
 PORT2=$((9998 + $$))
 
-knxd -n K1 -t 0xfffc -f 9 -e 4.1.0 -E 4.1.1:5 -c -u$S1 --multi-port -DTR --Server=224.99.98.97:$PORT -bdummy: &
+knxd -n K1 -B log -t 0xfffc -f 9 -e 4.1.0 -E 4.1.1:5 -B log -c -B log -u$S1 --multi-port -D -B log -A delay=200 -B pace -R -B log -T --Server=224.99.98.97:$PORT -bdummy: &
 KNX1=$!
 trap 'echo T1; rm -f $L1 $L2 $E1 $E2 $EF; kill $KNX1; wait' 0 1 2
 
 sleep 2
-knxd -n K2 -t 0xffff -f 9 -e 4.2.0 -E 4.2.1:5 -DTR --Server=:$PORT2 -u$S2 -b ip:224.99.98.97:$PORT &
+knxd -n K2 -B log -t 0xfffc -f 9 -e 4.2.0 -E 4.2.1:5 -D -B log -T -B log -R --Server=224.99.98.96:$PORT2 -B log -u$S2 -B log -b ip:224.99.98.97:$PORT &
 KNX2=$!
 sleep 2
-knxd -n K3 -t 0xffff -f 9 -e 4.3.0 -E 4.3.1:5 -u$S3 -b ipt:localhost:$PORT2:$((10001 + $$)) &
+knxd -n K3 -B log -t 0xfffc -f 9 -e 4.3.0 -E 4.3.1:5 -B log -u$S3 -B log -b ipt:localhost:$PORT2:$((10001 + $$)) &
 KNX3=$!
 #read RETURN
 trap 'echo T2; rm -f $L1 $L2 $E1 $E2 $EF; kill $KNX1 $KNX2 $KNX3; wait' 0 1 2

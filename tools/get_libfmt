@@ -1,0 +1,9 @@
+#!/bin/bash
+echo using CC=$CC
+echo using CXX=$CXX
+set -ex
+test -d libfmt || git clone https://github.com/fmtlib/fmt libfmt
+cd libfmt
+git pull
+cmake .
+make fmt

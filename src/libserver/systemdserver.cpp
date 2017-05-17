@@ -22,20 +22,53 @@
 #include <sys/socket.h>
 #include "systemdserver.h"
 
-SystemdServer::SystemdServer (TracePtr tr, int systemd_fd):
-Server (tr)
+/*
+ * systemd services are not controlled by the "usual" server logic,
+ * so no SERVER macro here.
+ */
+SystemdServer::SystemdServer (BaseRouter& r, IniSectionPtr& s, int systemd_fd)
+    : NetServer(r,s)
 {
-  TRACEPRINTF (tr, 8, "OpenSystemdSocket");
-
+  t->setAuxName("systemd");
   fd = systemd_fd;
-  if (listen (fd, 10) == -1)
+}
+
+void
+SystemdServer::start()
+{
+  TRACEPRINTF (t, 8, "OpenSystemdSocket %d", fd);
+  if (fd < 0)
     {
-      ERRORPRINTF (tr, E_ERROR | 19, "OpenSystemdSocket: listen: %s", strerror(errno));
-      close (fd);
-      fd = -1;
+      stopped();
       return;
     }
 
-  TRACEPRINTF (tr, 8, "SystemdSocket opened");
+  if (listen (fd, 10) == -1)
+    {
+      ERRORPRINTF (t, E_ERROR | 19, "OpenSystemdSocket: listen: %s", strerror(errno));
+      NetServer::stop();
+      return;
+    }
+
+  TRACEPRINTF (t, 8, "SystemdSocket %d opened", fd);
+  NetServer::start();
+}
+
+void
+SystemdServer::stop()
+{
+//** actually, we can't, because we can't re-open. So fake it.
+//  if (fd > -1)
+//    {
+//      close(fd);
+//      fd = -1;
+//    }
+  NetServer::stop();
+}
+
+SystemdServer::~SystemdServer()
+{
+  if (fd >= 0)
+    close(fd);
 }
 

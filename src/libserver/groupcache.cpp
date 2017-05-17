@@ -21,13 +21,15 @@
 #include "tpdu.h"
 #include "apdu.h"
 
-GroupCache::GroupCache (TracePtr t, uint16_t maxsize)
-	: Layer2virtual(t)
+GroupCache::GroupCache (const LinkConnectPtr& c, IniSectionPtr& s)
+	: Driver(c,s)
 {
+  t->setAuxName("G");
   TRACEPRINTF (t, 4, "GroupCacheInit");
   enable = 0;
-  this->maxsize = maxsize ? maxsize : 0xFFFF;
   remtrigger.set<GroupCache, &GroupCache::remtrigger_cb>(this);
+  addr = c->router.addr;
+  c->is_local = true;
 }
 
 GroupCache::~GroupCache ()
@@ -43,13 +45,27 @@ GroupCache::~GroupCache ()
 }
 
 bool
-GroupCache::init(Layer3 *l3)
+GroupCache::setup()
 {
-  if (!Layer2::init(l3))
+  if (!Driver::setup())
     return false;
-  l3 = l3->registerLayer2(shared_from_this());
   remtrigger.start();
+  this->maxsize = cfg->value("max-size", 0xFFFF);
   return true;
+}
+
+void
+GroupCache::start()
+{
+  enable = true;
+  Driver::start();
+}
+
+void
+GroupCache::stop()
+{
+  enable = false;
+  Driver::stop();
 }
 
 void
@@ -90,6 +106,7 @@ GroupCache::send_L_Data (LDataPtr l)
 	    }
 	}
     }
+  send_Next();
 }
 
 bool
@@ -103,7 +120,6 @@ GroupCache::Start ()
 void
 GroupCache::Clear ()
 {
-  unsigned int i;
   TRACEPRINTF (t, 4, "GroupCacheClear");
   cache.clear();
 }
@@ -161,13 +177,13 @@ GroupCache::updated(GroupCacheEntry &c)
 }
 
 void
-GroupCache::remove (GroupCacheReader * entry)
+GroupCache::remove (GroupCacheReader * entry UNUSED)
 {
   remtrigger.send();
 }
 
 void
-GroupCache::remtrigger_cb(ev::async &w, int revents)
+GroupCache::remtrigger_cb(ev::async &w UNUSED, int revents UNUSED)
 {
   // erase() doesn't do reverse iterators
   //R_ITER(i,reader)
@@ -200,7 +216,7 @@ public:
     timeout.set<GCReader,&GCReader::timeout_cb>(this);
     timeout.start(Timeout,0);
   }
-  ~GCReader()
+  virtual ~GCReader()
     {
       if (stopped)
         return;
@@ -221,7 +237,7 @@ private:
     stop();
   }
 
-  void timeout_cb(ev::timer &w, int revents)
+  void timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
   {
     if (stopped)
       return;
@@ -273,15 +289,15 @@ GroupCache::Read (eibaddr_t addr, unsigned Timeout, uint16_t age,
   T_DATA_XXX_REQ_PDU tpdu;
   LDataPtr l;
 
-  GCReader *gcr = new GCReader(this,addr,Timeout,age, cb,cc);
+  new GCReader(this,addr,Timeout,age, cb,cc);
 
   tpdu.data = apdu.ToPacket ();
-  l = LDataPtr(new L_Data_PDU (shared_from_this()));
+  l = LDataPtr(new L_Data_PDU ());
   l->data = tpdu.ToPacket ();
   l->source = 0;
   l->dest = addr;
   l->AddrType = GroupAddress;
-  l3->recv_L_Data (std::move(l));
+  recv_L_Data (std::move(l));
 }
 
 class GCTracker : protected GroupCacheReader
@@ -303,7 +319,7 @@ public:
     timeout.set<GCTracker,&GCTracker::timeout_cb>(this);
     timeout.start(Timeout,0);
   }
-  ~GCTracker() {
+  virtual ~GCTracker() {
       a.clear();
   }
   void stop()
@@ -314,7 +330,7 @@ public:
       GroupCacheReader::stop();
   }
 private:
-  void updated(GroupCacheEntry &c)
+  void updated(GroupCacheEntry &c UNUSED)
   {
     if (stopped)
       return;
@@ -322,7 +338,7 @@ private:
     handler();
   }
 
-  void timeout_cb(ev::timer &w, int revents)
+  void timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
   {
     if (stopped)
       return;
@@ -354,11 +370,12 @@ GroupCache::LastUpdates (uint16_t start, uint8_t Timeout,
     GCLastCallback cb, ClientConnPtr cc)
 {
   uint32_t st;
-  if (seq > 0xFFFF && start > (st&0xFFFF))
-    st = (seq&~0xFFFF) - 0x10000 + start;
+  // counter wraparound
+  st = (seq&~0xFFFF) + start;
+  if (st > seq)
+    st -= 0x10000;
   else
-    st = start;
-  new GCTracker(this, st, Timeout, cb,cc);
+    new GCTracker(this, st, Timeout, cb,cc);
 }
 
 void

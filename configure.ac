@@ -37,6 +37,7 @@ AC_PROG_LEX
 AM_PROG_AS
 AC_PROG_RANLIB
 AC_PROG_LIBTOOL
+AC_LANG_CPLUSPLUS
 
 AC_CHECK_HEADERS([sys/time.h sys/select.h])
 AX_CXX_COMPILE_STDCXX(11)
@@ -46,7 +47,7 @@ GMP_PROG_EXEEXT_FOR_BUILD
 CC_FOR_BUILD_OPTS
 
 dnl AC_COMPILER_OPTION(nortti,[-fno-rtti],[-fno-rtti],CXXFLAGS="$CXXFLAGS -fno-rtti")
-AC_COMPILER_OPTION(stdc,[-std=c++0x],[-std=c++0x],CXXFLAGS="$CXXFLAGS -std=c++0x")
+AC_COMPILER_OPTION(stdc,[-std=c++0x],[-std=c++0x],CXXFLAGS="$CXXFLAGS -std=c++0x -Wno-subobject-linkage")
 dnl libev++ requires exceptions
 dnl AC_COMPILER_OPTION(noexceptions,[-fno-exceptions],[-fno-exceptions],CXXFLAGS="$CXXFLAGS -fno-exceptions")
 
@@ -127,7 +128,7 @@ AC_ARG_ENABLE(dummy,
  esac],[dummy=true])
 AM_CONDITIONAL(HAVE_DUMMY, test x$dummy = xtrue)
 if test x$dummy = xtrue ; then
- AC_DEFINE(HAVE_DUMMY, 1 , [FT1.2 enabled])
+ AC_DEFINE(HAVE_DUMMY, 1 , [dummy enabled])
 fi
 
 dnl AC_ARG_ENABLE(pei16s,
@@ -143,45 +144,17 @@ dnl  AC_DEFINE(HAVE_PEI16s, 1 , [PEI16s enabled])
 dnl  NEED_EMI(pei16s)
 dnl fi
 
-AC_ARG_ENABLE(tpuarts,
-[  --enable-tpuarts	enable serial TPUART user driver backend],
+AC_ARG_ENABLE(tpuart,
+[  --enable-tpuart	enable TPUART driver backends],
 [case "${enableval}" in
- yes) tpuarts=true ;;
-  no)  tpuarts=false ;;
-   *) AC_MSG_ERROR(bad value ${enableval} for --enable-tpuarts) ;;
- esac],[tpuarts=true])
+ yes) tpuart=true ;;
+  no)  tpuart=false ;;
+   *) AC_MSG_ERROR(bad value ${enableval} for --enable-tpuart) ;;
+ esac],[tpuart=true])
 
-AC_ARG_ENABLE(tpuarts-tcp,
-[  --enable-tpuarts-tcp	enable TPUART-over-TCP user driver backend],
-[case "${enableval}" in
- yes) tpuarts_tcp=true ;;
-  no)  tpuarts_tcp=false ;;
-   *) AC_MSG_ERROR(bad value ${enableval} for --enable-tpuarts-tcp) ;;
- esac],[tpuarts=true])
-
-AC_ARG_ENABLE(ncn5120,
-[  --enable-ncn5120                 enable NCN5120 backend],
-[case "${enableval}" in
- yes) ncn5120=true ;;
-  no)  ncn5120=false ;;
-   *) AC_MSG_ERROR(bad value ${enableval} for --enable-ncn5120) ;;
- esac],[ncn5120=true])
-
-AM_CONDITIONAL(HAVE_TPUART, test x$tpuarts = xtrue -o x$tpuarts_tcp = xtrue -o x$ncn5120 = xtrue)
-AM_CONDITIONAL(HAVE_TPUARTs, test x$tpuarts = xtrue -o x$ncn5120 = xtrue)
-AM_CONDITIONAL(HAVE_TPUARTs_TCP, test x$tpuarts_tcp = xtrue)
-AM_CONDITIONAL(HAVE_NCN5120, test x$ncn5120 = xtrue)
-if test x$tpuarts = xtrue -o x$tpuarts_tcp = xtrue -o x$ncn5120 = xtrue ; then
+AM_CONDITIONAL(HAVE_TPUART, test x$tpuart = xtrue)
+if test x$tpuart = xtrue ; then
  AC_DEFINE(HAVE_TPUART, 1 , [common TPUART code enabled])
-fi
-if test x$tpuarts = xtrue ; then
- AC_DEFINE(HAVE_TPUARTs, 1 , [TPUART (serial port) enabled])
-fi
-if test x$tpuarts_tcp = xtrue ; then
- AC_DEFINE(HAVE_TPUARTs_TCP, 1 , [TPUART-over-TCP enabled])
-fi
-if test x$ncn5120 = xtrue ; then
- AC_DEFINE(HAVE_NCN5120, 1 , [NCN5120 backend enabled])
 fi
 
 AC_ARG_ENABLE(eibnetip,
@@ -270,6 +243,27 @@ fi
 
 AM_CONDITIONAL(HAVE_EMI, test x$need_emi = xyes)
 
+LIBS="-lfmt $LIBS"
+AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <fmt/format.h>], [fmt::format("The answer is {}", 42);
+])],
+    [HAVE_FMT=1],                                           
+    [
+CC=${CC} CXX=${CXX} sh ${ac_aux_dir}/tools/get_libfmt || exit 1
+CPPFLAGS="$CPPFLAGS -I$(pwd)/libfmt"
+LDFLAGS="$LDFLAGS -L$(pwd)/libfmt/fmt"
+
+AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <fmt/format.h>], [fmt::format("The answer is {}", 42);
+])],
+[],
+[AC_MSG_ERROR([libfmt just built is not usable!?!])])
+
+    ]
+    )
+AC_DEFINE(HAVE_FMT, 1, [ String formatting library installed. ])
+AC_CHECK_HEADER([fmt/printf.h],
+AC_DEFINE(HAVE_FMT_PRINTF, 1, [ fmt/printf.h header found ])
+)
+
 AC_CHECK_LIB([ev], [ev_run],,[AC_MSG_ERROR([libev not found])])
 EV_LIBS="-lev"
 AC_SUBST([EV_LIBS])
@@ -316,8 +310,6 @@ src/Makefile src/include/Makefile  src/client/Makefile src/examples/Makefile src
 src/client/def/Makefile src/client/c/Makefile src/client/java/Makefile src/client/php/Makefile src/client/cs/Makefile
 src/client/perl/Makefile src/client/python/Makefile src/client/pascal/Makefile src/client/ruby/Makefile src/client/lua/Makefile src/client/go/Makefile
 src/tools/eibnet/Makefile src/tools/bcu/Makefile src/usb/Makefile src/tools/Makefile systemd/Makefile systemd/knxd.service systemd/knxd.socket
-rpm/Makefile rpm/knxd.spec
-tools/Makefile
 )
 
 AC_CONFIG_MACRO_DIR([m4])

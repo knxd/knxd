@@ -29,9 +29,11 @@
 /** sets the type of a eibd packet*/
 #define EIBSETTYPE(buf,type) do{(buf)[0]=((type)>>8)&0xff;(buf)[1]=(type)&0xff;}while(0)
 
-class Server;
-class Layer3;
-class A_Base;
+class NetServer;
+typedef std::shared_ptr<NetServer> NetServerPtr;
+
+class Router;
+class A__Base;
 
 /** implements a client connection */
 class ClientConnection : public std::enable_shared_from_this<ClientConnection>
@@ -39,30 +41,31 @@ class ClientConnection : public std::enable_shared_from_this<ClientConnection>
   /** client connection */
   int fd;
 public:
+  bool running = false;
+
   /** Layer 3 interface */
-  Layer3 *l3;
+  Router &router;
   /** my address */
   eibaddr_t addr;
   /** debug output */
   TracePtr t;
-protected:
-  /** server */
-  Server *s;
+  /** server creating this connection */
+  NetServerPtr server;
 
+protected:
   /** sending */
   SendBuf sendbuf;
   RecvBuf recvbuf;
-  A_Base *a_conn = 0;
-
-  const char *Name() { return "client"; }
+  A__Base *a_conn = 0;
 
   void exit_conn();
 
 public:
-  ClientConnection (Server * s, int fd);
+  ClientConnection (NetServerPtr s, int fd);
   virtual ~ClientConnection ();
-  bool start();
-  void stop(bool no_server=false);
+  bool setup();
+  void start();
+  void stop();
 
   size_t read_cb(uint8_t *buf, size_t len);
   void error_cb();

@@ -69,7 +69,6 @@ CArray T_UNKNOWN_PDU::ToPacket ()
 String T_UNKNOWN_PDU::Decode (TracePtr t UNUSED)
 {
   String s ("Unknown TPDU: ");
-  unsigned i;
 
   if (pdu.size() == 0)
     return "empty TPDU";

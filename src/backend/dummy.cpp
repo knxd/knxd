@@ -17,67 +17,8 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include <unistd.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <sys/ioctl.h>
 #include "dummy.h"
-#include "layer3.h"
 
-DummyL2Driver::DummyL2Driver (L2options *opt) : Layer2 (opt)
-{
-  TRACEPRINTF (t, 2, "Open");
-}
-
-bool
-DummyL2Driver::init (Layer3 *l3)
-{
-    addGroupAddress(0);
-    return Layer2::init(l3);
-}
-
-
-DummyL2Driver::~DummyL2Driver ()
-{
-  TRACEPRINTF (t, 2, "Close");
-}
-
-void
-DummyL2Driver::send_L_Data (LDataPtr l)
-{
-  TRACEPRINTF (t, 2, "Send %s", l->Decode ().c_str());
-  if ((mode & BUSMODE_MONITOR) && l->getType () == L_Data)
-  if (mode & BUSMODE_MONITOR)
-    {
-      LBusmonPtr l2 = LBusmonPtr(new L_Busmonitor_PDU (shared_from_this()));
-      l2->pdu.set (l->ToPacket ());
-      l3->recv_L_Busmonitor (std::move(l2));
-    }
-}
-
-DummyL2Filter::DummyL2Filter (L2options *opt, Layer2Ptr l2) : Layer23 (l2)
-{
-  TRACEPRINTF (t, 2, "OpenFilter");
-}
-
-void
-DummyL2Filter::send_L_Data (LDataPtr l)
-{
-  TRACEPRINTF (t, 2, "Passing %s", l->Decode ().c_str());
-  Layer23::send_L_Data (std::move(l));
-}
-
-DummyL2Filter::~DummyL2Filter ()
-{
-  TRACEPRINTF (t, 2, "CloseFilter");
-}
-
-Layer2Ptr
-DummyL2Filter::clone (Layer2Ptr l2)
-{
-    Layer2Ptr c = Layer2Ptr(new DummyL2Filter(NULL, l2));
-    // now copy our settings to c. In this case there's nothing to copy.
-    return c;
-}
+DummyL2Driver::~DummyL2Driver() { }
+DummyL2Filter::~DummyL2Filter() { }
 

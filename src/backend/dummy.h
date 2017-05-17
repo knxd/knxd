@@ -19,31 +19,30 @@
 
 #ifndef DUMMY_H
 #define DUMMY_H
-#include "layer2.h"
-#include "layer23.h"
+#include "link.h"
 
 /** dummy L2 driver, does nothing */
-class DummyL2Driver:public Layer2
+DRIVER(DummyL2Driver,dummy)
 {
-  const char *Name() { return "Dummy"; }
 public:
-  DummyL2Driver (L2options *opt);
-  ~DummyL2Driver ();
-  bool init (Layer3 *l3);
+  DummyL2Driver (const LinkConnectPtr_& c, IniSectionPtr& s) : BusDriver(c,s) {}
+  virtual ~DummyL2Driver ();
 
-  void send_L_Data (LDataPtr l);
+  void send_L_Data (LDataPtr l UNUSED) { send_Next(); }
+  bool setup()
+    {
+      if (!BusDriver::setup())
+        return false;
+      return true;
+    }
 };
 
 /** dummy L2 filter, is transparent */
-class DummyL2Filter:public Layer23
+FILTER(DummyL2Filter,dummy)
 {
-  const char *Name() { return "Dummy"; }
 public:
-  DummyL2Filter (L2options *opt, Layer2Ptr l2);
-  ~DummyL2Filter ();
-  Layer2Ptr clone(Layer2Ptr l2);
-
-  void send_L_Data (LDataPtr l);
+  DummyL2Filter (const LinkConnectPtr_& c, IniSectionPtr& s) : Filter(c,s) {}
+  virtual ~DummyL2Filter ();
 };
 
 #endif

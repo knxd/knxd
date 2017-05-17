@@ -166,7 +166,7 @@ void readConfig()
 {
   char fname[] = "/etc/wiregate/eibga.conf";
   FILE* fp;       /*Declare file pointer variable*/
-  char *buf[BUFSIZE], *tok;
+  char buf[BUFSIZE], *tok;
   //char *buf, *tok;
   int hg,mg,ga;
   int currentga=0,ptr;
@@ -272,7 +272,6 @@ main ()
   int i,j;
   eibaddr_t dest;
   eibaddr_t src;
-  uint32_t end;
   uchar buf[300];
   uchar buf_gread[200];
   char outbuf[10000];
@@ -297,23 +296,24 @@ main ()
   strcpy(outptr,"{\"d\": {");
   outptr += strlen(outptr);
 
-#if 0 // bus enumeration takes much too long and is most likely a client bug
-  if (lastpos==0) //initial read
+  if (lastpos==0 ) //initial read
   {
-    for (i = 0; i < UINT16; i++)
+    for (i = 1; i < UINT16; i++) // skip all-zero GA
     {
-      if ((subscribedGA[i>>3]&(1<<(i&7))) || (subscribedGA[0] | 1)) //this is HEAVY g=all reads ALL this will take LONG!
+      if (subscribedGA[i>>3]&(1<<(i&7)))
       {
         dest = i;
         len_gread = EIB_Cache_Read_Sync (con, dest, &src, sizeof (buf_gread), buf_gread, 0);
         //printf("%d/%d/%d",(dest >> 11) & 0x1f, (dest >> 8) & 0x07, dest & 0xff); //debug
         //printf(" %d len %d %c",dest,len_gread,buf_gread[1]); //debug
-        if (len_gread != -1)
+        if (len_gread >= 0)
         {
           if (buf_gread[1] & 0xC0)
           {
-            if (outptr != outbuf)
+            if (seen)
               *outptr++ = ',';
+            else
+              seen = 1;
 
             if (len_gread == 2)
             {
@@ -329,25 +329,20 @@ main ()
             }
             *outptr++ = '"';
           }
+          seenGA[i>>3] |= 1<<(i&7);
         } else {
           //printf ("read failed!\n");
         }
       }
     }
   }
-#endif
 
   memset(seenGA,0,sizeof(seenGA));
 
   while ((!seen || lastpos <1) && difftime(time(NULL), tstart) < timeout) {
-    len = EIB_Cache_LastUpdates2 (con, lastpos, timeout, sizeof (buf), buf, &end);
+    len = EIB_Cache_LastUpdates2 (con, lastpos, timeout, sizeof (buf), buf, &lastpos);
     if (len == -1)
       cgidie ("Read failed");
-
-    if (end < lastpos) //counter wrap
-      lastpos = 1;
-    else
-      lastpos = end;
 
     for (i = 0; i < len; i += 2)
       {
@@ -391,7 +386,7 @@ main ()
         }
       }
     if (outptr != outbuf)
-      printf ("%s},\"i\":%d}\n",outbuf,end);
+      printf ("%s},\"i\":%d}\n",outbuf,lastpos);
   }
   EIBClose (con);
   return 0;

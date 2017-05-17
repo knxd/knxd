@@ -29,6 +29,13 @@
 
 #include "config.h"
 
+#define CONST const
+#ifdef __GNUC__
+#define UNUSED __attribute__((unused))
+#else
+#define UNUSED 
+#endif
+
 /** unsigned char */
 typedef uint8_t uchar;
 

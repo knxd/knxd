@@ -20,10 +20,15 @@
 #include "eibnetrouter.h"
 #include "emi.h"
 #include "config.h"
-#include "layer3.h"
 
-EIBNetIPRouter::EIBNetIPRouter (const char *multicastaddr, int port,
-                                const char *iface, L2options *opt) : Layer2 (opt)
+EIBNetIPRouter::EIBNetIPRouter (const LinkConnectPtr_& c, IniSectionPtr& s)
+  : BusDriver(c,s)
+{
+  t->setAuxName("ip");
+}
+
+void
+EIBNetIPRouter::start()
 {
   struct sockaddr_in baddr;
   struct ip_mreq mcfg;
@@ -38,16 +43,19 @@ EIBNetIPRouter::EIBNetIPRouter (const char *multicastaddr, int port,
   sock = new EIBNetIPSocket (baddr, 1, t);
   if (!sock->init ())
     goto err_out;
-  sock->on_recv.set<EIBNetIPRouter,&EIBNetIPRouter::on_recv_cb>(this);
+  sock->on_recv.set<EIBNetIPRouter,&EIBNetIPRouter::read_cb>(this);
 
-  if (iface)
-    sock->SetInterface(iface);
+  if (! sock->SetInterface(interface))
+    {
+      ERRORPRINTF (t, E_ERROR | 58, "interface %s not recognized", interface);
+      goto err_out;
+    }
 
   sock->recvall = 2;
   if (GetHostIP (t, &sock->sendaddr, multicastaddr) == 0)
     goto err_out;
   sock->sendaddr.sin_port = htons (port);
-  if (!GetSourceAddress (&sock->sendaddr, &sock->localaddr))
+  if (!GetSourceAddress (t, &sock->sendaddr, &sock->localaddr))
     goto err_out;
   sock->localaddr.sin_port = sock->sendaddr.sin_port;
 
@@ -56,43 +64,64 @@ EIBNetIPRouter::EIBNetIPRouter (const char *multicastaddr, int port,
   if (!sock->SetMulticast (mcfg))
     goto err_out;
   TRACEPRINTF (t, 2, "Opened");
+  BusDriver::start();
   return;
 
 err_out:
   delete sock;
   sock = 0;
-  return;
+  stopped();
+}
+
+void
+EIBNetIPRouter::stop()
+{
+  stop_();
+  BusDriver::stop();
+}
+
+void
+EIBNetIPRouter::stop_()
+{
+  if (sock)
+    {
+      delete sock;
+      sock = nullptr;
+    }
 }
 
 EIBNetIPRouter::~EIBNetIPRouter ()
 {
+  stop_();
   TRACEPRINTF (t, 2, "Destroy");
-  if (sock)
-    delete sock;
 }
 
 bool
-EIBNetIPRouter::init (Layer3 *l3)
+EIBNetIPRouter::setup()
 {
-  if (sock == 0)
+  if (!assureFilter("pace"))
     return false;
-  if (! addGroupAddress(0))
+  if(!BusDriver::setup())
     return false;
-  return Layer2::init (l3);
+  multicastaddr = cfg->value("multicast-address","224.0.23.12");
+  port = cfg->value("port",3671);
+  interface = cfg->value("interface","");
+  monitor = cfg->value("monitor",false);
+  return true;
 }
 
 void
 EIBNetIPRouter::send_L_Data (LDataPtr l)
 {
-  TRACEPRINTF (t, 2, "Send %s", l->Decode ().c_str());
   EIBNetIPPacket p;
   p.data = L_Data_ToCEMI (0x29, l);
   p.service = ROUTING_INDICATION;
   sock->Send (p);
+  send_Next();
 }
 
 void
-EIBNetIPRouter::on_recv_cb(EIBNetIPPacket *p)
+EIBNetIPRouter::read_cb(EIBNetIPPacket *p)
 {
   if (p->service != ROUTING_INDICATION)
     {
@@ -113,20 +142,18 @@ EIBNetIPRouter::on_recv_cb(EIBNetIPPacket *p)
       return;
     }
 
-  LDataPtr c = CEMI_to_L_Data (p->data, shared_from_this());
+  LDataPtr c = CEMI_to_L_Data (p->data, t);
   delete p;
   if (c)
     {
-      TRACEPRINTF (t, 2, "Recv %s", c->Decode ().c_str());
-      if (mode & BUSMODE_UP)
+      if (!monitor)
+        recv_L_Data (std::move(c));
+      else
         {
-          l3->recv_L_Data (std::move(c));
-          return;
+          LBusmonPtr p1 = LBusmonPtr(new L_Busmonitor_PDU ());
+          p1->pdu = c->ToPacket ();
+          recv_L_Busmonitor (std::move(p1));
         }
-      LBusmonPtr p1 = LBusmonPtr(new L_Busmonitor_PDU (shared_from_this()));
-      p1->pdu = c->ToPacket ();
-      l3->recv_L_Busmonitor (std::move(p1));
-      return;
     }
 }
 

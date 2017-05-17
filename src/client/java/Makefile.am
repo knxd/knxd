@@ -24,7 +24,7 @@ javadir=$(datadir)/java
 java_DATA = eibclient.jar
 
 result.inc : $(top_srcdir)/common/eibloadresult.h
-	cat $<  |grep IMG_ |sed -e 's/#define \(IMG_[A-Z_0-9]\+\)  \+\([0-9]\+\)/public static final int \1 = \2;/g' > $@
+	sed -ne 's/#define \(IMG_[A-Z_0-9]\+\)  \+\([0-9]\+\)/public static final int \1 = \2;/p' $< > $@
 
 EIBConnection.post : result.inc
 

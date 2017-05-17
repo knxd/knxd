@@ -22,32 +22,72 @@
 
 #include "cemi.h"
 #include "emi.h"
-#include "layer3.h"
 
 unsigned int
-CEMILayer2::maxPacketLen()
+CEMIDriver::maxPacketLen()
 {
   return 50;
 }
 
-CEMILayer2::~CEMILayer2()
+CEMIDriver::CEMIDriver (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i) : EMI_Common(c,s,i)
+{
+  t->setAuxName("CEMI");
+  sendLocal_done.set<CEMIDriver,&CEMIDriver::sendLocal_done_cb>(this);
+  reset_timer.set<CEMIDriver,&CEMIDriver::reset_timer_cb>(this);
+}
+
+CEMIDriver::~CEMIDriver()
 {
 }
 
-bool
-CEMILayer2::enterBusmonitor ()
+void
+CEMIDriver::sendLocal_done_cb(bool success)
 {
-  TRACEPRINTF (t, 2, "(CEMILayer2)  OpenBusmon not implemented");
-  return false;
+  if (!success || sendLocal_done_next == N_bad)
+    {
+      errored();
+      LowLevelFilter::stopped();
+    }
+  else if (sendLocal_done_next == N_down)
+    LowLevelFilter::stopped();
+  else if (sendLocal_done_next == N_up)
+    LowLevelFilter::started();
+  else if (sendLocal_done_next == N_reset)
+    EMI_Common::started();
 }
 
-void CEMILayer2::cmdEnterMonitor() {}
-void CEMILayer2::cmdLeaveMonitor() {}
-void CEMILayer2::cmdOpen() {}
-void CEMILayer2::cmdClose() {}
+void CEMIDriver::cmdEnterMonitor() { errored(); stopped(); }
+void CEMIDriver::cmdLeaveMonitor() { errored(); stopped(); }
+void CEMIDriver::cmdOpen() { LowLevelDriver::started(); }
+void CEMIDriver::cmdClose() { LowLevelDriver::stop(); }
+
+void CEMIDriver::started()
+{
+  after_reset = true;
+  reset_timer.start(0.5,0);
+  sendReset();
+}
+
+void CEMIDriver::reset_timer_cb(ev::timer &w, int revents)
+{
+  ERRORPRINTF(t, E_ERROR, "reset timed out");
+  errored();
+}
+
+void CEMIDriver::do_send_Next()
+{
+  if (after_reset)
+    {
+      after_reset = false;
+      reset_timer.stop();
+      EMI_Common::started();
+    }
+  else
+    EMI_Common::do_send_Next();
+}
 
 const uint8_t *
-CEMILayer2::getIndTypes()
+CEMIDriver::getIndTypes()
 { 
   static const uint8_t indTypes[] = { 0x2E, 0x29, 0x2B };
   return indTypes;
