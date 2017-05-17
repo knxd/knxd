@@ -1,10 +1,10 @@
 ###############################################################################
 #
-# Package header
+# Spec file for knxd 0.14.0 or later
 #
 Summary:      A KNX daemon and tools
 Name:         knxd
-Version:      0.12.16
+Version:      0.14.15
 Release:      0%{?dist}
 Group:        Applications/Interpreters
 Source:       %{name}-%{version}.tar.gz
@@ -14,8 +14,8 @@ Vendor:       smurf
 License:      GPL
 Packager:     Michael Kefeder <m.kefeder@gmail.com>
 
-%if 0%{?rhel} >= 7
-# libusb-1.0 is in libusbx package on RHEL
+%if 0%{?rhel} >= 7 || %{defined fedora}
+# libusb-1.0 is in libusbx package on Redhat based distros
 Requires: libusbx
 %endif
 %if %{defined suse_version}
@@ -24,12 +24,14 @@ Requires: libusb-1_0
 Requires: systemd
 Requires: libev
 
-%if 0%{?rhel} >= 7 || %{defined suse_version}
+%if %{defined fedora}
+Requires: fmt
+BuildRequires: fmt-devel
+%endif
 BuildRequires: systemd
 BuildRequires: systemd-devel
 BuildRequires: libev-devel
-%endif
-%if 0%{?rhel} >= 7
+%if 0%{?rhel} >= 7 || %{defined fedora}
 BuildRequires: libusbx-devel
 %endif
 %if %{defined suse_version}
@@ -73,8 +75,6 @@ A KNX daemon and tools supporting it.
 %config(noreplace) %{_sysconfdir}/knxd.conf
 
 # /usr/bin
-%{_bindir}/eibnetdescribe
-%{_bindir}/eibnetsearch
 %{_bindir}/knxd
 %{_bindir}/knxtool
 %{_bindir}/findknxusb
@@ -117,6 +117,7 @@ A KNX daemon and tools supporting it.
 %{_libexecdir}/knxd/groupsresponse
 %{_libexecdir}/knxd/groupswrite
 %{_libexecdir}/knxd/groupwrite
+%{_libexecdir}/knxd_args
 %{_libexecdir}/knxd/madcread
 %{_libexecdir}/knxd/maskver
 %{_libexecdir}/knxd/mmaskver
@@ -158,60 +159,6 @@ A KNX daemon and tools supporting it.
 %{_datarootdir}/knxd/EIBConnection.rb
 %{_datarootdir}/knxd/EIBD.pas
 %{_datarootdir}/knxd/eibclient.php
-%{_datarootdir}/knxd/examples/busmonitor1.c
-%{_datarootdir}/knxd/examples/busmonitor2.c
-%{_datarootdir}/knxd/examples/busmonitor3.c
-%{_datarootdir}/knxd/examples/eibread-cgi.c
-%{_datarootdir}/knxd/examples/eibwrite-cgi.c
-%{_datarootdir}/knxd/examples/groupcacheclear.c
-%{_datarootdir}/knxd/examples/groupcachedisable.c
-%{_datarootdir}/knxd/examples/groupcacheenable.c
-%{_datarootdir}/knxd/examples/groupcachelastupdates.c
-%{_datarootdir}/knxd/examples/groupcacheread.c
-%{_datarootdir}/knxd/examples/groupcachereadsync.c
-%{_datarootdir}/knxd/examples/groupcacheremove.c
-%{_datarootdir}/knxd/examples/grouplisten.c
-%{_datarootdir}/knxd/examples/groupread.c
-%{_datarootdir}/knxd/examples/groupreadresponse.c
-%{_datarootdir}/knxd/examples/groupresponse.c
-%{_datarootdir}/knxd/examples/groupsocketlisten.c
-%{_datarootdir}/knxd/examples/groupsocketread.c
-%{_datarootdir}/knxd/examples/groupsocketswrite.c
-%{_datarootdir}/knxd/examples/groupsocketwrite.c
-%{_datarootdir}/knxd/examples/groupsresponse.c
-%{_datarootdir}/knxd/examples/groupswrite.c
-%{_datarootdir}/knxd/examples/groupwrite.c
-%{_datarootdir}/knxd/examples/madcread.c
-%{_datarootdir}/knxd/examples/maskver.c
-%{_datarootdir}/knxd/examples/mmaskver.c
-%{_datarootdir}/knxd/examples/mpeitype.c
-%{_datarootdir}/knxd/examples/mprogmodeoff.c
-%{_datarootdir}/knxd/examples/mprogmodeon.c
-%{_datarootdir}/knxd/examples/mprogmodestatus.c
-%{_datarootdir}/knxd/examples/mprogmodetoggle.c
-%{_datarootdir}/knxd/examples/mpropdesc.c
-%{_datarootdir}/knxd/examples/mpropread.c
-%{_datarootdir}/knxd/examples/mpropscan.c
-%{_datarootdir}/knxd/examples/mpropscanpoll.c
-%{_datarootdir}/knxd/examples/mpropwrite.c
-%{_datarootdir}/knxd/examples/mread.c
-%{_datarootdir}/knxd/examples/mrestart.c
-%{_datarootdir}/knxd/examples/msetkey.c
-%{_datarootdir}/knxd/examples/mwrite.c
-%{_datarootdir}/knxd/examples/mwriteplain.c
-%{_datarootdir}/knxd/examples/progmodeoff.c
-%{_datarootdir}/knxd/examples/progmodeon.c
-%{_datarootdir}/knxd/examples/progmodestatus.c
-%{_datarootdir}/knxd/examples/progmodetoggle.c
-%{_datarootdir}/knxd/examples/readindividual.c
-%{_datarootdir}/knxd/examples/vbusmonitor1.c
-%{_datarootdir}/knxd/examples/vbusmonitor1poll.c
-%{_datarootdir}/knxd/examples/vbusmonitor1time.c
-%{_datarootdir}/knxd/examples/vbusmonitor2.c
-%{_datarootdir}/knxd/examples/vbusmonitor3.c
-%{_datarootdir}/knxd/examples/writeaddress.c
-%{_datarootdir}/knxd/examples/xpropread.c
-%{_datarootdir}/knxd/examples/xpropwrite.c
 
 %if %{undefined suse_version}
 %exclude
@@ -250,16 +197,6 @@ fi
 %verifyscript
 
 %changelog
-* Tue May 16 2017 Michael Kefeder <m.kefeder@gmail.com> 0.12.16
-- builds on CentOS 7
-- builds on OpenSUSE 13
-
-* Thu Feb 09 2017 Michael Kefeder <m.kefeder@gmail.com> 0.12.10
-- libev based release 0.12.10
-- improved user add/del in spec file
-- builds on OpenSUSE 13
-
-* Mon Jan 09 2017 Michael Kefeder <m.kefeder@gmail.com> 0.11.18-0
-- Initial spec file created and tested on CentOS 7
-- remove users only on uninstall in %postun hook
-- use normal specfile layout
+* Wed May 17 2017 Michael Kefeder <m.kefeder@gmail.com> 0.14.15
+- builds on Fedora 25
+- builds on openSUSE LEAP 43.2
