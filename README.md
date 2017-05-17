@@ -122,6 +122,24 @@ On Debian:
     cd ..
     sudo dpkg -i knxd_*.deb knxd-tools_*.deb
 
+### Test failures
+
+The build script runs a comprehensive set of tests to make sure that knxd
+actually works. It obviously can't test codee talking to directly-connected
+hardware, but the core parts are exercised.
+
+If the test fails:
+
+* Do you have a default route?
+
+* Are you filtering local multicasts to 224.99.98.97?
+
+* Is something on your network echoing multicast packets? (Yes, that happens.)
+
+The test pass OK on Travis (or at least they should pass).
+
+If you can't figure out the cause of the failure, please open an issue.
+
 ### Daemon Configuration
 
 Daemon configuration differs depending on whether you use systemd.
