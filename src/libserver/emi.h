@@ -21,19 +21,18 @@
 #define EIB_EMI_H
 
 #include "lpdu.h"
-#include "layer2.h"
 
 /** convert L_Data_PDU to CEMI frame */
 CArray L_Data_ToCEMI (uchar code, const LDataPtr & p);
 /** create L_Data_PDU out of a CEMI frame */
-LDataPtr CEMI_to_L_Data (const CArray & data, Layer2Ptr l2);
+LDataPtr CEMI_to_L_Data (const CArray & data, TracePtr t);
 
-LBusmonPtr CEMI_to_Busmonitor (const CArray & data, Layer2Ptr l2);
+LBusmonPtr CEMI_to_Busmonitor (const CArray & data, DriverPtr l2);
 CArray Busmonitor_to_CEMI (uchar code, const LBusmonPtr &p, int no);
 
 /** convert L_Data_PDU to EMI1/2 frame */
 CArray L_Data_ToEMI (uchar code, const LDataPtr & p);
 /** create L_Data_PDU out of a EMI1/2 frame */
-LDataPtr EMI_to_L_Data (const CArray & data, Layer2Ptr l2);
+LDataPtr EMI_to_L_Data (const CArray & data, TracePtr t);
 
 #endif

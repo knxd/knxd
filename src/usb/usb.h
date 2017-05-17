@@ -21,8 +21,9 @@
 #define USB_H
 
 #include <ev++.h>
+#include <libusb.h>
+
 #include "trace.h"
-#include "libusb.h"
 
 class USBLoop
 {
@@ -39,7 +40,7 @@ public:
   libusb_context *context;
 
   USBLoop (TracePtr tr);
-  ~USBLoop ();
+  virtual ~USBLoop ();
 
   void setup();
 };

@@ -201,8 +201,6 @@ CArray A_Unknown_PDU::ToPacket ()
 String A_Unknown_PDU::Decode (TracePtr tr UNUSED)
 {
   String s ("Unknown APDU: ");
-  unsigned
-    i;
 
   if (pdu.size() == 0)
     return "empty APDU";
@@ -299,8 +297,6 @@ CArray A_GroupValue_Response_PDU::ToPacket ()
 
 String A_GroupValue_Response_PDU::Decode (TracePtr tr UNUSED)
 {
-  unsigned
-    i;
   assert (!issmall || (data.size() == 1 && (data[0] & 0xC0) == 0));
   String
   s ("A_GroupValue_Response ");

@@ -64,26 +64,26 @@ L_Data_ToCEMI (uchar code, const LDataPtr & l1)
 }
 
 LDataPtr
-CEMI_to_L_Data (const CArray & data, Layer2Ptr l2)
+CEMI_to_L_Data (const CArray & data, TracePtr t)
 {
   if (data.size() < 2)
     {
-      TRACEPRINTF (l2->t, 7, "packet too short (%d)", data.size());
+      TRACEPRINTF (t, 7, "packet too short (%d)", data.size());
       return nullptr;
     }
   unsigned start = data[1] + 2;
   if (data.size() < 7 + start)
     {
-      TRACEPRINTF (l2->t, 7, "start too large (%d/%d)", data.size(),start);
+      TRACEPRINTF (t, 7, "start too large (%d/%d)", data.size(),start);
       return nullptr;
     }
   if (data.size() < 7 + start + data[6 + start] + 1)
     {
-      TRACEPRINTF (l2->t, 7, "packet too short (%d/%d)", data.size(), 7 + start + data[6 + start] + 1);
+      TRACEPRINTF (t, 7, "packet too short (%d/%d)", data.size(), 7 + start + data[6 + start] + 1);
       return nullptr;
     }
 
-  LDataPtr c = LDataPtr(new L_Data_PDU (l2));
+  LDataPtr c = LDataPtr(new L_Data_PDU ());
   c->source = (data[start + 2] << 8) | (data[start + 3]);
   c->dest = (data[start + 4] << 8) | (data[start + 5]);
   c->data.set (data.data() + start + 7, data[6 + start] + 1);
@@ -110,14 +110,14 @@ CEMI_to_L_Data (const CArray & data, Layer2Ptr l2)
   c->AddrType = (data[start + 1] & 0x80) ? GroupAddress : IndividualAddress;
   if (!(data[start] & 0x80) && (data[start + 1] & 0x0f))
     {
-      TRACEPRINTF (l2->t, 7, "Length? invalid (%02x%02x)", data[start],data[start+1]);
+      TRACEPRINTF (t, 7, "Length? invalid (%02x%02x)", data[start],data[start+1]);
       return 0;
     }
   return c;
 }
 
 LBusmonPtr
-CEMI_to_Busmonitor (const CArray & data, Layer2Ptr l2)
+CEMI_to_Busmonitor (const CArray & data, DriverPtr l2 UNUSED)
 {
   if (data.size() < 2)
     return nullptr;
@@ -125,8 +125,9 @@ CEMI_to_Busmonitor (const CArray & data, Layer2Ptr l2)
   if (data.size() < 1 + start)
     return nullptr;
 
-  LBusmonPtr c = LBusmonPtr(new L_Busmonitor_PDU (l2));
+  LBusmonPtr c = LBusmonPtr(new L_Busmonitor_PDU ());
   c->pdu.set (data.data() + start, data.size() - start);
+  // TODO add l2 so that we can tell which driver did it
   return c;
 }
 
@@ -189,9 +190,9 @@ L_Data_ToEMI (uchar code, const LDataPtr & l1)
 }
 
 LDataPtr
-EMI_to_L_Data (const CArray & data, Layer2Ptr l2)
+EMI_to_L_Data (const CArray & data, TracePtr t UNUSED)
 {
-  LDataPtr c = LDataPtr(new L_Data_PDU (l2));
+  LDataPtr c = LDataPtr(new L_Data_PDU ());
   unsigned len;
 
   if (data.size() < 8)

@@ -28,7 +28,7 @@ void SendBuf::write(const CArray *data)
   if (!ready)
     {
       ssize_t len = ::write(fd, data->data(), data->size());
-      if (len == data->size())
+      if (len == (ssize_t)data->size())
         {
           delete data;
           return;
@@ -45,7 +45,7 @@ void SendBuf::write(const CArray *data)
 }
 
 void
-SendBuf::io_cb (ev::io &w, int revents)
+SendBuf::io_cb (ev::io &w UNUSED, int revents UNUSED)
 {
     while (sendbuf || !sendqueue.isempty()) {
         if (sendbuf) {
@@ -57,7 +57,7 @@ SendBuf::io_cb (ev::io &w, int revents)
             } else {
                 if (i == 0 || (errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR)) {
                     io.stop();
-                    on_error_cb();
+                    on_error();
                 }
                 return;
             }
@@ -73,10 +73,11 @@ SendBuf::io_cb (ev::io &w, int revents)
     }
     ready = false;
     io.stop();
+    on_next();
 }
 
 void
-RecvBuf::io_cb (ev::io &w, int revents)
+RecvBuf::io_cb (ev::io &w UNUSED, int revents UNUSED)
 {
     bool some = false;
     while(sizeof(recvbuf) > recvpos) {
@@ -86,7 +87,7 @@ RecvBuf::io_cb (ev::io &w, int revents)
                 break;
 	    if (i == 0 || (errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR)) {
 		io.stop();
-		on_error_cb();
+		on_error();
 	    }
 	    break;
 	}
@@ -101,11 +102,11 @@ RecvBuf::io_cb (ev::io &w, int revents)
 void RecvBuf::feed_out()
 {
     while (running && recvpos > 0) {
-        size_t i = on_recv_cb(recvbuf,recvpos);
+        size_t i = on_read(recvbuf,recvpos);
         if (i == 0) {
             if (recvpos == sizeof(recvbuf)) {
                 io.stop();
-                on_error_cb();
+                on_error();
             }
             return;
         }
@@ -146,16 +147,20 @@ SendBuf::start()
 }
 
 void
-RecvBuf::stop()
+RecvBuf::stop(bool clear)
 {
     if (!running)
         running = false;
     io.stop();
+    if (clear)
+      fd = -1;
 }
 
 void
-SendBuf::stop()
+SendBuf::stop(bool clear)
 {
     io.stop();
+    if (clear)
+      fd = -1;
 }
 

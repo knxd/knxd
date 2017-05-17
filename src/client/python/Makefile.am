@@ -11,7 +11,7 @@ EXTRA_DIST = io.inc
 CLEANFILES = gen.inc EIBConnection.py result.inc
 
 result.inc : $(top_srcdir)/src/common/eibloadresult.h
-	cat $<  |grep IMG_ |sed -e 's/#define \(IMG_[A-Z_0-9]\+\)  \+\([0-9]\+\)/\1 = \2/g' > $@
+	sed -ne 's/#define \(IMG_[A-Z_0-9]\+\)  \+\([0-9]\+\)/\1 = \2/p' $< > $@
 
 noinst_PROGRAMS = gen
 

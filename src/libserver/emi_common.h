@@ -20,7 +20,8 @@
 #ifndef EIB_EMI_COMMON_H
 #define EIB_EMI_COMMON_H
 
-#include "layer2.h"
+#include "link.h"
+#include "router.h"
 #include "lowlevel.h"
 #include "emi.h"
 #include "ev++.h"
@@ -31,54 +32,78 @@ typedef enum {
     I_BUSMON = 2,
 } indTypes;
 
+typedef enum
+{
+  vERROR,
+  vEMI1 = 1,
+  vEMI2 = 2,
+  vCEMI = 3,
+  vRaw,
+  vUnknown,
+  vDiscovery,
+  vTIMEOUT
+} EMIVer;
+
+typedef enum
+{
+  E_idle,
+  E_timed_out, // but still waiting for sendNext
+  // states after this mean that the timer is running
+  E_wait, // waiting for sendNext and confirm
+  E_wait_confirm, // sendNext did arrive but not the HL confirmation
+} E_state;
+
+EMIVer cfgEMIVersion(IniSectionPtr& s);
+
 /** EMI common backend code */
-class EMI_Common:public Layer2
+class EMI_Common:public LowLevelFilter
 {
 protected:
   /** driver to send/receive */
-  LowLevelDriver *iface;
-  /** input queue */
-  Queue < LDataPtr >send_q;
-  float send_delay;
-
-  void Send (LDataPtr l);
-  virtual const char *Name() = 0;
+  float send_timeout; // max wait for confirmation
+  int max_retries;
 
   virtual void cmdEnterMonitor() = 0;
   virtual void cmdLeaveMonitor() = 0;
   virtual void cmdOpen() = 0;
   virtual void cmdClose() = 0;
   virtual const uint8_t * getIndTypes() = 0;
+  virtual EMIVer getVersion() = 0;
 private:
-  bool wait_confirm = false;
-
-  ev::async trigger;
-  void trigger_cb (ev::async &w, int revents);
+  E_state state;
+  bool wait_confirm = false; // waiting for high-level cinfirm
+protected:
+  bool wait_confirm_low = false; // waiting for low_level confirm
+private:
+  bool monitor = false;
 
   ev::timer timeout;
   void timeout_cb(ev::timer &w, int revents);
+  CArray out; // caches the packet to send
+  int retries;
 
-  void on_recv_cb(CArray *p);
+  void read_cb(CArray *p);
 
 public:
-  EMI_Common (LowLevelDriver * i, L2options *opt);
-  ~EMI_Common ();
-  bool init (Layer3 *l3);
-  Layer2Ptr real_l2 = nullptr;
+  EMI_Common (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i = nullptr);
+  virtual ~EMI_Common ();
+  bool setup();
+  void start();
+  void started();
+  void stop();
 
   void send_L_Data (LDataPtr l);
-
-  virtual bool enterBusmonitor ();
-  bool leaveBusmonitor ();
+  void do_send_Next();
 
   virtual CArray lData2EMI (uchar code, const LDataPtr &p)
   { return L_Data_ToEMI(code, p); }
-  virtual LDataPtr EMI2lData (const CArray & data, Layer2Ptr l2)
-  { return EMI_to_L_Data(data,l2); }
+  virtual LDataPtr EMI2lData (const CArray & data)
+  { return EMI_to_L_Data(data, t); }
 
   virtual unsigned int maxPacketLen() { return 0x10; }
-  bool Open ();
-  bool Close ();
+
+  void recv_Data(CArray& c);
+  void send_Data(CArray& c);
 };
 
 typedef std::shared_ptr<EMI_Common> EMIPtr;

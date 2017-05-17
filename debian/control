@@ -10,6 +10,8 @@ Build-Depends: debhelper (>= 7.0.0),
   debianutils,
   dh-systemd | base-files (<< 8),
   libev-dev,
+  libfmt3-dev | cmake (>= 2.8.12),
+  libfmt3-dev | git,
 Build-Conflicts: libsystemd-daemon-dev (<< 200)
 Standards-Version: 3.9.4
 Homepage: https://github.com/Makki1/knxd

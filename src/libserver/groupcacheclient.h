@@ -20,12 +20,13 @@
 #ifndef GROUPCACHECLIENT_H
 #define GROUPCACHECLIENT_H
 
-#include "layer3.h"
+#include "link.h"
+#include "router.h"
 
 class ClientConnection;
 typedef std::shared_ptr<ClientConnection> ClientConnPtr;
 
-bool CreateGroupCache (Layer3 * l3, TracePtr t, bool enable, uint16_t maxsize = 0);
+bool CreateGroupCache (Router& r, IniSectionPtr& s);
 
 void GroupCacheRequest (ClientConnPtr c, uint8_t *buf, size_t len);
 

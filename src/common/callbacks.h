@@ -28,13 +28,14 @@
 #include <ev++.h>
 
 typedef size_t (*data_cb_t)(void *data, uint8_t *buf, size_t len);
-typedef void (*err_cb_t)(void *data);
+typedef void (*info_cb_t)(void *data);
+typedef void (*state_cb_t)(void *data, bool success);
 
-class error_cb {
-    err_cb_t cb_code = 0;
+class InfoCallback {
+    info_cb_t cb_code = 0;
     void *cb_data = 0;
 
-    void set_ (const void *data, err_cb_t cb)
+    void set_ (const void *data, info_cb_t cb)
     {
       this->cb_data = (void *)data;
       this->cb_code = cb;
@@ -59,7 +60,36 @@ public:
     }
 };
 
-class recv_cb {
+class StateCallback {
+    state_cb_t cb_code = 0;
+    void *cb_data = 0;
+
+    void set_ (const void *data, state_cb_t cb)
+    {
+      this->cb_data = (void *)data;
+      this->cb_code = cb;
+    }
+
+public:
+    // method callback
+    template<class K, void (K::*method)(bool success)>
+    void set (K *object)
+    {
+      set_ (object, method_thunk<K, method>);
+    }
+
+    template<class K, void (K::*method)(bool success)>
+    static void method_thunk (void *arg, bool success)
+    {
+      (static_cast<K *>(arg)->*method) (success);
+    }
+
+    void operator()(bool success) {
+        (*cb_code)(cb_data, success);
+    }
+};
+
+class DataCallback {
     data_cb_t cb_code = 0;
     void *cb_data = 0;
 

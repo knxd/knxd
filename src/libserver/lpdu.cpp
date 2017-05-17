@@ -20,37 +20,32 @@
 #include <stdio.h>
 #include "lpdu.h"
 #include "tpdu.h"
-#include "layer2.h"
 
 LPDUPtr
-LPDU::fromPacket (const CArray & c, Layer2Ptr layer2)
+LPDU::fromPacket (const CArray & c, TracePtr t UNUSED)
 {
   LPDUPtr l = nullptr;
   if (c.size() >= 1)
     {
       if (c[0] == 0xCC)
-	l = LPDUPtr(new L_ACK_PDU (layer2));
+	l = LPDUPtr(new L_ACK_PDU ());
       else if (c[0] == 0xC0)
-	l = LPDUPtr(new L_BUSY_PDU (layer2));
+	l = LPDUPtr(new L_BUSY_PDU ());
       else if (c[0] == 0x0C)
-	l = LPDUPtr(new L_NACK_PDU (layer2));
+	l = LPDUPtr(new L_NACK_PDU ());
       else if ((c[0] & 0x53) == 0x10)
-	l = LPDUPtr(new L_Data_PDU (layer2));
+	l = LPDUPtr(new L_Data_PDU ());
     }
   if (l && l->init (c))
-    {
-      l->l2 = layer2;
-      return l;
-    }
-  l = LPDUPtr(new L_Unknown_PDU (layer2));
+    return l;
+  l = LPDUPtr(new L_Unknown_PDU ());
   l->init (c);
-  l->l2 = layer2;
   return l;
 }
 
 /* L_NACK */
 
-L_NACK_PDU::L_NACK_PDU (Layer2Ptr layer2) : LPDU(layer2)
+L_NACK_PDU::L_NACK_PDU () : LPDU()
 {
 }
 
@@ -69,14 +64,14 @@ CArray L_NACK_PDU::ToPacket ()
   return CArray (&c, 1);
 }
 
-String L_NACK_PDU::Decode ()
+String L_NACK_PDU::Decode (TracePtr t UNUSED)
 {
   return "NACK";
 }
 
 /* L_ACK */
 
-L_ACK_PDU::L_ACK_PDU (Layer2Ptr layer2) : LPDU(layer2)
+L_ACK_PDU::L_ACK_PDU () : LPDU()
 {
 }
 
@@ -90,19 +85,18 @@ L_ACK_PDU::init (const CArray & c)
 
 CArray L_ACK_PDU::ToPacket ()
 {
-  uchar
-    c = 0xCC;
+  uchar c = 0xCC;
   return CArray (&c, 1);
 }
 
-String L_ACK_PDU::Decode ()
+String L_ACK_PDU::Decode (TracePtr t UNUSED)
 {
   return "ACK";
 }
 
 /* L_BUSY */
 
-L_BUSY_PDU::L_BUSY_PDU (Layer2Ptr layer2) : LPDU(layer2)
+L_BUSY_PDU::L_BUSY_PDU () : LPDU()
 {
 }
 
@@ -116,19 +110,18 @@ L_BUSY_PDU::init (const CArray & c)
 
 CArray L_BUSY_PDU::ToPacket ()
 {
-  uchar
-    c = 0xC0;
+  uchar c = 0xC0;
   return CArray (&c, 1);
 }
 
-String L_BUSY_PDU::Decode ()
+String L_BUSY_PDU::Decode (TracePtr t UNUSED)
 {
   return "BUSY";
 }
 
 /* L_Unknown  */
 
-L_Unknown_PDU::L_Unknown_PDU (Layer2Ptr layer2) : LPDU(layer2)
+L_Unknown_PDU::L_Unknown_PDU () : LPDU()
 {
 }
 
@@ -146,10 +139,9 @@ L_Unknown_PDU::ToPacket ()
 }
 
 String
-L_Unknown_PDU::Decode ()
+L_Unknown_PDU::Decode (TracePtr t UNUSED)
 {
   String s ("Unknown LPDU: ");
-  unsigned i;
 
   if (pdu.size() == 0)
     return "empty LPDU";
@@ -162,7 +154,7 @@ L_Unknown_PDU::Decode ()
 
 /* L_Busmonitor  */
 
-L_Busmonitor_PDU::L_Busmonitor_PDU (Layer2Ptr layer2) : LPDU(layer2)
+L_Busmonitor_PDU::L_Busmonitor_PDU () : LPDU()
 {
   struct timeval tv;
   gettimeofday(&tv,NULL);
@@ -184,10 +176,9 @@ L_Busmonitor_PDU::ToPacket ()
 }
 
 String
-L_Busmonitor_PDU::Decode ()
+L_Busmonitor_PDU::Decode (TracePtr t)
 {
   String s ("LPDU: ");
-  unsigned i;
 
   if (pdu.size() == 0)
     return "empty LPDU";
@@ -195,14 +186,14 @@ L_Busmonitor_PDU::Decode ()
   ITER (i,pdu)
     addHex (s, *i);
   s += ":";
-  LPDUPtr l = LPDU::fromPacket (pdu, l2);
-  s += l->Decode ();
+  LPDUPtr l = LPDU::fromPacket (pdu, t);
+  s += l->Decode (t);
   return s;
 }
 
 /* L_Data */
 
-L_Data_PDU::L_Data_PDU (Layer2Ptr layer2) : LPDU(layer2)
+L_Data_PDU::L_Data_PDU () : LPDU()
 {
   prio = PRIO_LOW;
   repeated = 0;
@@ -346,7 +337,7 @@ CArray L_Data_PDU::ToPacket ()
   return pdu;
 }
 
-String L_Data_PDU::Decode ()
+String L_Data_PDU::Decode (TracePtr t)
 {
   assert (data.size() >= 1);
   assert (data.size() <= 0xff);
@@ -382,7 +373,7 @@ String L_Data_PDU::Decode ()
                     FormatEIBAddr (dest));
   s += " hops: ";
   addHex (s, hopcount);
-  TPDUPtr d = TPDU::fromPacket (data, l2->t);
-  s += d->Decode (l2->t);
+  TPDUPtr d = TPDU::fromPacket (data, t);
+  s += d->Decode (t);
   return s;
 }

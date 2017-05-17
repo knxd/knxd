@@ -22,25 +22,21 @@
 #include "client.h"
 
 bool
-CreateGroupCache (Layer3 * l3, TracePtr t, bool enable, uint16_t maxsize)
+CreateGroupCache (Router& r, IniSectionPtr& s)
 {
+  LinkConnectPtr c = LinkConnectPtr(new LinkConnect(r,s,r.t));
   GroupCachePtr cache;
-  if (l3->getCache())
+  if (r.getCache())
     return false;
-  cache = GroupCachePtr(new GroupCache (t, maxsize));
-  if (!cache->init (l3))
+  cache = GroupCachePtr(new GroupCache (c,s));
+  c->set_driver(cache);
+  if (!c->setup())
     return false;
-  if (enable)
-    if (!cache->Start ())
-      return false;
-  l3->setCache(cache);
-  return true;
-}
 
-void
-DeleteGroupCache (Layer3 * l3)
-{
-  l3->setCache(nullptr);
+  if (!r.registerLink(c))
+    return false;
+  r.setCache(cache);
+  return true;
 }
 
 void
@@ -99,7 +95,8 @@ GroupCacheRequest (ClientConnPtr c, uint8_t *buf, size_t len)
 {
   eibaddr_t dst;
   uint16_t age = 0;
-  GroupCachePtr cache = c->l3 ? c->l3->getCache() : 0;
+  Router& r = c->router;
+  GroupCachePtr cache = r.getCache();
 
   if (!cache)
     {

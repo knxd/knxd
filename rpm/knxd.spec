@@ -43,6 +43,18 @@ BuildRequires: libusb-1_0-devel
 %if %{undefined _sysusersdir} && %{defined suse_version}
 %define _sysusersdir /usr/lib/sysusers.d
 %endif
+%if 0%{?rhel} >= 7
+BuildRequires: libusbx-devel
+%endif
+%if %{defined suse_version}
+BuildRequires: systemd-rpm-macros
+%{?systemd_requires}
+BuildRequires: libusb-1_0-devel
+%endif
+# Opensuse 13 systemd-rpm-macros does not define that!?
+%if %{undefined _sysusersdir} && %{defined suse_version}
+%define _sysusersdir /usr/lib/sysusers.d
+%endif
 
 ###############################################################################
 %description
@@ -200,3 +212,17 @@ fi
 * Wed May 17 2017 Michael Kefeder <m.kefeder@gmail.com> 0.14.15
 - builds on Fedora 25
 - builds on openSUSE LEAP 43.2
+
+* Tue May 16 2017 Michael Kefeder <m.kefeder@gmail.com> 0.12.16
+- builds on CentOS 7
+- builds on OpenSUSE 13
+
+* Thu Feb 09 2017 Michael Kefeder <m.kefeder@gmail.com> 0.12.10
+- libev based release 0.12.10
+- improved user add/del in spec file
+- builds on OpenSUSE 13
+
+* Mon Jan 09 2017 Michael Kefeder <m.kefeder@gmail.com> 0.11.18-0
+- Initial spec file created and tested on CentOS 7
+- remove users only on uninstall in %postun hook
+- use normal specfile layout

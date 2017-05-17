@@ -20,52 +20,62 @@
 #ifndef EIB_USB_EMI_H
 #define EIB_USB_EMI_H
 
-#include "layer2.h"
+#include "link.h"
 #include "lowlevel.h"
 #include "emi_common.h"
 
-/** USBConverterInterface */
-class USBConverterInterface:public LowLevelDriver
+/*
+ * The driver stack is: USB driver > [C]EMI[12] wrapper > USBConverterInterface > USBLowLevelDriver
+ */
+
+/** The USBConverterInterface's job is to add the appropriate USB header to
+ * the [C]EMI[12] frame on sending / remove that from incoming data
+ */
+class USBConverterInterface : public LowLevelFilter
 {
-  LowLevelDriver *i;
-  EMIVer v;
 public:
-  USBConverterInterface (LowLevelDriver * iface, TracePtr tr,
-                          EMIVer ver);
+  USBConverterInterface (LowLevelIface* p, IniSectionPtr& s);
   virtual ~USBConverterInterface ();
-  bool init ();
 
-  void Send_Packet (CArray l);
+  bool setup (DriverPtr master);
+  //void start ();
+  //void stop ();
 
-  void SendReset ();
+  void send_Data (CArray& l);
+  void recv_Data (CArray& l);
 
-  EMIVer getEMIVer ();
+  void send_Init();
+  void sendLocal_done_cb(bool success);
 
-private:
-  void on_recv_cb(CArray *p);
-
+  EMIVer version = vRaw;
 };
 
-LowLevelDriver *initUSBDriver (LowLevelDriver * i,
-					TracePtr tr);
-
 /** USB backend */
-class USBLayer2:public Layer2
+DRIVER_(USBDriver,LowLevelAdapter,usb)
 {
-  /** EMI */
-  EMIPtr emi;
+  // for EMI version discovery
+  ev::timer timeout;
+  int cnt = 0;
+  void timeout_cb(ev::timer &w, int revents);
+  void xmit();
+  void recv(CArray *r1);
+  void recv_Data(CArray& c);
+  bool wait_make = false;
+  USBConverterInterface *usb_iface;
 
+  void sendLocal_done_cb(bool success);
 public:
-  USBLayer2 (LowLevelDriver * i, L2options *opt);
-  bool init (Layer3 * l3);
+  EMIVer version = vUnknown;
 
-  void send_L_Data (LDataPtr l);
+  USBDriver (const LinkConnectPtr_& c, IniSectionPtr& s);
+  bool setup();
+  //void start();
+  //void stop();
+  void started();
+  void stopped();
+  void do_send_Next();
+  bool make_EMI();
 
-  bool enterBusmonitor ();
-  bool leaveBusmonitor ();
-
-  bool Open ();
-  bool Close ();
 };
 
 #endif

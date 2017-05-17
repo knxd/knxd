@@ -23,45 +23,56 @@
 #include <errno.h>
 #include <sys/ioctl.h>
 #include "nat.h"
-#include "layer3.h"
-
-NatL2Filter::NatL2Filter (L2options *opt, Layer2Ptr l2) : Layer23 (l2)
-{
-  TRACEPRINTF (t, 2, "OpenFilter");
-}
+#include "router.h"
 
 bool
-NatL2Filter::init (Layer3 *l3)
+NatL2Filter::setup()
 {
-  addr = l3->getDefaultAddr();
-  return Layer23::init(l3);
+  if (!Filter::setup())
+    return false;
+
+  std::string opt = cfg->value("address","");
+  if (opt.length() == 0)
+    {
+      auto c = std::dynamic_pointer_cast<LinkConnect>(conn.lock());
+      if (c == nullptr)
+        {
+          // either the parent has vanished, or the object is not a
+          // LinkConnect – which happens when you try to apply the filter
+          // globally. The former is exceedingly unlikely, but …
+          if (conn.lock() != nullptr)
+            ERRORPRINTF(t, E_ERROR, "%s: cannot be used globally");
+          return false;
+        }
+      addr = dynamic_cast<Router *>(&c->router)->addr;
+    }
+  else
+    {
+      int a,b,c;
+      if (sscanf (opt.c_str(), "%d.%d.%d", &a, &b, &c) != 3 ||
+            a<0 || b<0 || c<0 || a>0x0f || b>0x0f || c>0xff)
+        {
+          ERRORPRINTF(t, E_ERROR, "Address must be #.#.#, not %s",a);
+          return false;
+        }
+      addr = (a << 12) | (b << 8) | c;
+    }
+
+  return true;
 }
 
 NatL2Filter::~NatL2Filter ()
 {
-  TRACEPRINTF (t, 2, "CloseFilter");
-}
-
-Layer2Ptr
-NatL2Filter::clone (Layer2Ptr l2)
-{
-  Layer2Ptr c = Layer2Ptr(new NatL2Filter(NULL, l2));
-  // now copy our settings to c. In this case there's nothing to copy,
-  // because each interface has its own NAT table.
-  return c;
 }
 
 void
 NatL2Filter::send_L_Data (LDataPtr  l)
 {
   /* Sending a packet to this interface: record address pair, clear source */
-  if (l->getType () == L_Data)
-    {
-      if (l->AddrType == IndividualAddress)
-        addReverseAddress (l->source, l->dest);
-      l->source = addr;
-    }
-  l2->send_L_Data (std::move(l));
+  if (l->AddrType == IndividualAddress)
+    addReverseAddress (l->source, l->dest);
+  l->source = addr;
+  Filter::send_L_Data (std::move(l));
 }
 
 
@@ -71,12 +82,12 @@ NatL2Filter::recv_L_Data (LDataPtr  l)
   /* Receiving a packet from this interface: reverse-lookup real destination from source */
   if (l->source == addr)
     {
-      TRACEPRINTF (t, 5, "drop packet from %s", FormatEIBAddr (l->source).c_str());
+      TRACEPRINTF (t, 5, "drop packet from %s", FormatEIBAddr (l->source));
       return;
     }
   if (l->AddrType == IndividualAddress)
     l->dest = getDestinationAddress (l->source);
-  Layer23::recv_L_Data (std::move(l));
+  Filter::recv_L_Data (std::move(l));
 }
 
 void NatL2Filter::addReverseAddress (eibaddr_t src, eibaddr_t dest)
@@ -86,13 +97,13 @@ void NatL2Filter::addReverseAddress (eibaddr_t src, eibaddr_t dest)
       {
         if (i->src != src)
 	  {
-	    TRACEPRINTF (t, 5, "from %s to %s", FormatEIBAddr (src).c_str(), FormatEIBAddr (dest).c_str());
+	    TRACEPRINTF (t, 5, "from %s to %s", FormatEIBAddr (src), FormatEIBAddr (dest));
             i->src = src;
 	  }
         return;
       }
 
-  TRACEPRINTF (t, 5, "from %s to %s", FormatEIBAddr (src).c_str(), FormatEIBAddr (dest).c_str());
+  TRACEPRINTF (t, 5, "from %s to %s", FormatEIBAddr (src), FormatEIBAddr (dest));
   phys_comm srcdest = (phys_comm) { .src=src, .dest=dest };
   revaddr.push_back(srcdest);
 }

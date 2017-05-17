@@ -20,22 +20,28 @@
 #ifndef EIBNET_ROUTER_H
 #define EIBNET_ROUTER_H
 
-#include "layer2.h"
+#include "link.h"
 #include "eibnetip.h"
 
 /** EIBnet/IP routing backend */
-class EIBNetIPRouter:public Layer2
+DRIVER(EIBNetIPRouter,ip)
 {
   /** EIBnet/IP socket */
   EIBNetIPSocket *sock;
 
-  const char *Name() { return "eibnetrouter"; }
-  void on_recv_cb(EIBNetIPPacket *p);
+  std::string interface;
+  std::string multicastaddr;
+  uint16_t port;
+  bool monitor;
+
+  void read_cb(EIBNetIPPacket *p);
+  void stop_();
 public:
-  EIBNetIPRouter (const char *multicastaddr, int port,
-                  const char *iface, L2options *opt);
+  EIBNetIPRouter (const LinkConnectPtr_& c, IniSectionPtr& s);
   virtual ~EIBNetIPRouter ();
-  bool init (Layer3 *l3);
+  bool setup();
+  void start();
+  void stop();
 
   void send_L_Data (LDataPtr l);
 

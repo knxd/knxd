@@ -7,7 +7,7 @@ BUILT_SOURCES = EIBConnection.cs
 EXTRA_DIST = arg.def complete.inc def.def errno.inc help.inc io.inc lic.inc EIBConnection.pre
 
 result.inc : $(top_srcdir)/src/common/eibloadresult.h
-	cat $<  |grep IMG_ |sed -e 's/#define \(IMG_[A-Z_0-9]\+\)  \+\([0-9]\+\)/public const int \1 = \2;/g' > $@
+	sed -ne 's/#define \(IMG_[A-Z_0-9]\+\)  \+\([0-9]\+\)/public const int \1 = \2;/p' $< > $@
 
 EIBConnection.post : result.inc
 

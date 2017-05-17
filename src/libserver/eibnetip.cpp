@@ -95,14 +95,14 @@ IPtoEIBNetIP (const struct sockaddr_in * a, bool nat)
   return buf;
 }
 
-int
+bool
 EIBnettoIP (const CArray & buf, struct sockaddr_in *a,
 	    const struct sockaddr_in *src, bool & nat)
 {
   int ip, port;
   memset (a, 0, sizeof (*a));
   if (buf[0] != 0x8 || buf[1] != 0x1)
-    return 1;
+    return true;
   ip = (buf[2] << 24) | (buf[3] << 16) | (buf[4] << 8) | (buf[5]);
   port = (buf[6] << 8) | (buf[7]);
 #ifdef HAVE_SOCKADDR_IN_LEN
@@ -121,7 +121,7 @@ EIBnettoIP (const CArray & buf, struct sockaddr_in *a,
   else
     a->sin_addr.s_addr = htonl (ip);
 
-  return 0;
+  return false;
 }
 
 EIBNetIPSocket::EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr,
@@ -139,7 +139,9 @@ EIBNetIPSocket::EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr,
 
   io_send.set<EIBNetIPSocket, &EIBNetIPSocket::io_send_cb>(this);
   io_recv.set<EIBNetIPSocket, &EIBNetIPSocket::io_recv_cb>(this);
-  on_recv.set<EIBNetIPSocket, &EIBNetIPSocket::on_recv_cb>(this); // dummy
+  on_recv.set<EIBNetIPSocket, &EIBNetIPSocket::recv_cb>(this); // dummy
+  on_error.set<EIBNetIPSocket, &EIBNetIPSocket::error_cb>(this); // dummy
+  on_next.set<EIBNetIPSocket, &EIBNetIPSocket::next_cb>(this); // dummy
 
   fd = socket (AF_INET, SOCK_DGRAM, 0);
   if (fd == -1)
@@ -186,7 +188,7 @@ EIBNetIPSocket::EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr,
   else
     io_recv.start(fd, ev::READ);
 
-  TRACEPRINTF (t, 0, "Openend");
+  TRACEPRINTF (t, 0, "Opened");
 }
 
 EIBNetIPSocket::~EIBNetIPSocket ()
@@ -279,11 +281,12 @@ EIBNetIPSocket::Send (EIBNetIPPacket p, struct sockaddr_in addr)
 }
 
 void
-EIBNetIPSocket::io_send_cb (ev::io &w, int revents)
+EIBNetIPSocket::io_send_cb (ev::io &w UNUSED, int revents UNUSED)
 {
   if (send_q.isempty ())
     {
       io_send.stop();
+      on_next();
       return;
     }
   const struct _EIBNetIP_Send s = send_q.front ();
@@ -306,13 +309,14 @@ EIBNetIPSocket::io_send_cb (ev::io &w, int revents)
               t->TracePacket (0, "EIBnetSocket:drop", p);
               send_q.get ();
               send_error = 0;
+              on_error();
             }
         }
     }
 }
 
 void
-EIBNetIPSocket::io_recv_cb (ev::io &w, int revents)
+EIBNetIPSocket::io_recv_cb (ev::io &w UNUSED, int revents UNUSED)
 {
   uchar buf[255];
   socklen_t rl;
@@ -321,7 +325,9 @@ EIBNetIPSocket::io_recv_cb (ev::io &w, int revents)
   memset (&r, 0, sizeof (r));
 
   int i = recvfrom (fd, buf, sizeof (buf), 0, (struct sockaddr *) &r, &rl);
-  if (i > 0 && rl == sizeof (r))
+  if (i < 0 && errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR)
+    on_error();
+  else if (i >= 0 && rl == sizeof (r))
     {
       if (recvall == 1 || !memcmp (&r, &recvaddr, sizeof (r)) ||
           (recvall == 2 && memcmp (&r, &localaddr, sizeof (r))) ||
@@ -332,6 +338,8 @@ EIBNetIPSocket::io_recv_cb (ev::io &w, int revents)
             EIBNetIPPacket::fromPacket (CArray (buf, i), r);
           if (p)
             on_recv(p);
+          else
+            t->TracePacket (0, "Parse?", i, buf);
         }
       else
         t->TracePacket (0, "Dropped", i, buf);
@@ -339,12 +347,17 @@ EIBNetIPSocket::io_recv_cb (ev::io &w, int revents)
 }
 
 bool
-EIBNetIPSocket::SetInterface(const char *iface)
+EIBNetIPSocket::SetInterface(std::string& iface)
 {
-  struct sockaddr_in sa = {0};
-  struct ip_mreqn addr = {{0}};
+  struct sockaddr_in sa;
+  struct ip_mreqn addr;
 
-  addr.imr_ifindex = if_nametoindex(iface);
+  memset (&sa, 0, sizeof(sa));
+  memset (&addr, 0, sizeof(addr));
+
+  if (iface.size() == 0)
+    return true;
+  addr.imr_ifindex = if_nametoindex(iface.c_str());
   return
     setsockopt(fd, IPPROTO_IP, IP_MULTICAST_IF, &addr, sizeof(addr)) >= 0;
 }

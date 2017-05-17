@@ -71,8 +71,6 @@ Makefile
 /src/examples/busmonitor1
 /src/examples/busmonitor2
 /src/examples/busmonitor3
-/src/examples/eibread-cgi
-/src/examples/eibwrite-cgi
 /src/examples/groupcacheclear
 /src/examples/groupcachedisable
 /src/examples/groupcacheenable
@@ -91,7 +89,6 @@ Makefile
 /src/examples/groupsresponse
 /src/examples/groupswrite
 /src/examples/groupwrite
-/src/examples/knxtool
 /src/examples/madcread
 /src/examples/maskver
 /src/examples/mmaskver
@@ -138,10 +135,11 @@ Makefile
 /systemd/*.socket
 /stamp-h1
 /autom4te.cache
-/rpm/knxd.spec
 /version.h
 /src/tools/eibread-cgi
 /src/tools/eibwrite-cgi
-/src/tools/knxtool
-/tools/test_inih
 /src/server/knxd_args
+/tools/test_inih
+/src/tools/knxtool
+/libev/
+/libfmt/

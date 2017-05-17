@@ -22,7 +22,8 @@
 
 Layer7_Broadcast::Layer7_Broadcast (TracePtr tr)
 {
-  t = tr;
+  t = TracePtr(new Trace(*tr));
+  t->setAuxName("L7");
   TRACEPRINTF (t, 5, "L7Broadcast Open");
 }
 
@@ -31,10 +32,10 @@ Layer7_Broadcast::~Layer7_Broadcast ()
   TRACEPRINTF (t, 5, "L7Broadcast Close");
 }
 
-bool Layer7_Broadcast::init (Layer3 * l3)
+bool Layer7_Broadcast::setup();
 {
   l4 = T_BroadcastPtr(new T_Broadcast (t, 0));
-  if (!l4->init (this, l3))
+  if (!l4->setup (this))
     {
       TRACEPRINTF (t, 5, "L7Broadcast init bad");
       l4 = 0;
@@ -85,10 +86,10 @@ Layer7_Connection::~Layer7_Connection ()
 {
 }
 
-bool Layer7_Connection::init (Layer3 * l3)
+bool Layer7_Connection::setup()
 {
   l4 = T_ConnectionPtr(new T_Connection (t, dest));
-  if (!l4->init (this, l3))
+  if (!l4->setup (this))
     {
       TRACEPRINTF (t, 5, "L7Connection init bad");
       l4 = 0;
@@ -387,10 +388,10 @@ Layer7_Individual::~Layer7_Individual ()
 {
 }
 
-bool Layer7_Individual::init (Layer3 * l3)
+bool Layer7_Individual::setup()
 {
   l4 = T_IndividualPtr(new T_Individual (t, dest, false));
-  if (!l4->init (l3))
+  if (!l4->setup ())
     {
       TRACEPRINTF (t, 5, "L7Individual init bad");
       l4 = 0;

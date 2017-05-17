@@ -1,9 +1,0 @@
-usr/include
-usr/lib/libeibclient.la
-usr/lib/libeibclient.a
-usr/lib/libeibclient.so
-usr/share/bcusdk/eibclient.php
-usr/share/bcusdk/EIBConnection.cs
-usr/share/bcusdk/EIBConnection.pm
-usr/share/bcusdk/EIBConnection.py
-usr/share/bcusdk/EIBD.pas

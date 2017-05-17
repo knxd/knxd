@@ -19,193 +19,192 @@
 
 #include "emi.h"
 #include "emi_common.h"
-#include "layer3.h"
 
 unsigned int maxPacketLen() { return 0x10; }
 
-EMI_Common::EMI_Common (LowLevelDriver * i, 
-                        L2options *opt) : Layer2(opt)
+EMIVer
+cfgEMIVersion(IniSectionPtr& s)
 {
-  TRACEPRINTF (t, 2, "Open");
+  int v = s->value("version",vERROR);
+  if (v > vRaw || v < vERROR)
+    return vERROR;
+  else if (v != vERROR)
+    return EMIVer(v);
+
+  std::string sv = s->value("version","");
+  if (!sv.size())
+    return vUnknown;
+  else if (sv == "EMI1")
+    return vEMI1;
+  else if (sv == "EMI2")
+    return vEMI2;
+  else if (sv == "CEMI")
+    return vCEMI;
+  else if (sv == "raw")
+    return vRaw;
+  else
+    return vERROR;
+}
+
+EMI_Common::EMI_Common (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i) : LowLevelFilter(c,s,i)
+{
+  timeout.set<EMI_Common, &EMI_Common::timeout_cb>(this);
+  t->setAuxName("EMI_common");
   iface = i;
-  if (opt && opt->send_delay) {
-    send_delay = opt->send_delay / 1000;
-    opt->send_delay = 0;
-  } else
-    send_delay = 0;
-
-  if (!iface->init ())
-    {
-      delete iface;
-      iface = 0;
-      return;
-    }
-  trigger.set<EMI_Common, &EMI_Common::trigger_cb>(this);
-  trigger.start();
-  iface->on_recv.set<EMI_Common,&EMI_Common::on_recv_cb>(this);
-
-  TRACEPRINTF (t, 2, "Opened");
 }
 
 bool
-EMI_Common::init (Layer3 * l3)
+EMI_Common::setup()
 {
-  if (iface == 0)
+  if (iface == nullptr)
     return false;
-  if (! addGroupAddress(0))
+  if(!LowLevelFilter::setup())
     return false;
-  return Layer2::init (l3);
+  send_timeout = cfg->value("send-timeout",300) / 1000.;
+  max_retries = cfg->value("send-retries",3);
+  monitor = cfg->value("monitor",false);
+
+  return true;
 }
 
 EMI_Common::~EMI_Common ()
 {
-  TRACEPRINTF (t, 2, "Destroy");
-  trigger.stop();
-  if (iface)
-    delete iface;
 }
 
-bool
-EMI_Common::enterBusmonitor ()
+void
+EMI_Common::start()
 {
-  if (!Layer2::enterBusmonitor ())
-    return false;
-  TRACEPRINTF (t, 2, "OpenBusmon");
-  iface->SendReset ();
-  cmdEnterMonitor();
-
-  // TODO: EMI1/EMI2: wait for queue-empty?
-  return true;
+  state = E_idle;
+  LowLevelFilter::start();
 }
 
-bool
-EMI_Common::leaveBusmonitor ()
+void
+EMI_Common::started()
 {
-  if (!Layer2::leaveBusmonitor ())
-    return false;
-  TRACEPRINTF (t, 2, "CloseBusmon");
-  cmdLeaveMonitor();
-  // TODO: EMI1/EMI2: wait for queue-empty?
-  return true;
-}
-
-bool
-EMI_Common::Open ()
-{
-  if (!Layer2::Open ())
-    return false;
   TRACEPRINTF (t, 2, "OpenL2");
-  iface->SendReset ();
-  cmdOpen();
-
-  return true;
+  if (monitor)
+    cmdEnterMonitor();
+  else
+    cmdOpen();
 }
 
-bool
-EMI_Common::Close ()
+void
+EMI_Common::stop ()
 {
-  if (!Layer2::Close ())
-    return false;
   TRACEPRINTF (t, 2, "CloseL2");
-  cmdClose();
-  return true;
+  if (monitor)
+    cmdLeaveMonitor();
+  else
+    cmdClose();
 }
 
 void
 EMI_Common::send_L_Data (LDataPtr l)
 {
-  TRACEPRINTF (t, 2, "Send %s", l->Decode ().c_str());
+  if (state != E_idle)
+    {
+      ERRORPRINTF(t, E_ERROR, "EMI_common: send while waiting");
+      return;
+    }
+    
   assert (l->data.size() >= 1);
-  /* discard long frames, as they are not supported by EMI 1 */
+  // discard long frames, they are not supported yet
+  // TODO add support for long frames!
   if (l->data.size() > maxPacketLen())
     {
       TRACEPRINTF (t, 2, "Oversize (%d), discarded", l->data.size());
+      LowLevelFilter::do_send_Next();
       return;
     }
-  assert ((l->hopcount & 0xf8) == 0);
-
-  send_q.push (std::move(l));
-  if (!wait_confirm)
-    trigger.send();
-}
-
-void
-EMI_Common::timeout_cb(ev::timer &w, int revents)
-{
-  wait_confirm = false;
-  if (!send_q.isempty())
-    trigger.send();
-}
-void
-
-EMI_Common::Send (LDataPtr l)
-{
-  TRACEPRINTF (t, 1, "Send %s", l->Decode ().c_str());
-
   CArray pdu = lData2EMI (0x11, l);
-  iface->Send_Packet (pdu);
+  out = pdu;
+  retries = 0;
+  send_Data (pdu);
 }
 
 void
-EMI_Common::trigger_cb (ev::async &w, int revents)
+EMI_Common::do_send_Next()
 {
-  if (wait_confirm)
+  if (state == E_wait)
+    state = E_wait_confirm;
+  else if (state == E_idle)
+    LowLevelFilter::do_send_Next();
+}
+
+void
+EMI_Common::send_Data(CArray &pdu)
+{
+  state = E_wait;
+  timeout.start(send_timeout,0);
+  iface->send_Data(pdu);
+}
+
+void
+EMI_Common::timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
+{
+  if (state <= E_timed_out)
     return;
-  while (!send_q.isempty())
+  if (state == E_wait)
     {
-      Send(send_q.get());
-      if (send_delay)
-        {
-          timeout.start(send_delay,0);
-          wait_confirm = true;
-          return;
-        }
-    }
-}
-
-void
-EMI_Common::on_recv_cb(CArray *c)
-{
-  t->TracePacket (1, "RecvEMI", *c);
-  const uint8_t *ind = getIndTypes();
-  if (c->size() == 1 && (*c)[0] == 0xA0 && (mode & BUSMODE_UP))
-    {
-      TRACEPRINTF (t, 2, "Reopen");
-      busmode_t old_mode = mode;
-      mode = BUSMODE_DOWN;
-      if (Open ())
-        mode = old_mode; // restore VMONITOR
-    }
-  if (c->size() == 1 && (*c)[0] == 0xA0 && mode == BUSMODE_MONITOR)
-    {
-      TRACEPRINTF (t, 2, "Reopen Busmonitor");
-      mode = BUSMODE_DOWN;
-      enterBusmonitor ();
-    }
-  if (c->size() && (*c)[0] == ind[I_CONFIRM])
-    wait_confirm = false;
-  if (c->size() && (*c)[0] == ind[I_DATA] && (mode & BUSMODE_UP))
-    {
-      LDataPtr p = EMI2lData (*c, real_l2 ? real_l2 : shared_from_this());
-      if (p)
-        {
-          delete c;
-          TRACEPRINTF (t, 2, "Recv %s", p->Decode ().c_str());
-          l3->recv_L_Data (std::move(p));
-          return;
-        }
-    }
-  if (c->size() > 4 && (*c)[0] == ind[I_BUSMON] && mode == BUSMODE_MONITOR)
-    {
-      LBusmonPtr p = LBusmonPtr(new L_Busmonitor_PDU (real_l2 ? real_l2 : shared_from_this()));
-      p->status = (*c)[1];
-      p->timestamp = ((*c)[2] << 24) | ((*c)[3] << 16);
-      p->pdu.set (c->data() + 4, c->size() - 4);
-      delete c;
-      TRACEPRINTF (t, 2, "Recv %s", p->Decode ().c_str());
-      l3->recv_L_Busmonitor (std::move(p));
+      state = E_timed_out;
+      errored();
       return;
     }
-  delete c;
+  assert (state == E_wait_confirm);
+  if (++retries <= max_retries)
+    {
+      TRACEPRINTF (t, 1, "No confirm, repeating");
+      send_Data(out);
+      return;
+    }
+
+  // TODO raise an error instead?
+  ERRORPRINTF(t, E_WARNING, "EMI: No confirm, packet discarded");
+
+  state = E_idle;
+  LowLevelFilter::do_send_Next();
+}
+
+void
+EMI_Common::recv_Data(CArray& c)
+{
+  const uint8_t *ind = getIndTypes();
+  if (c.size() > 0 && c[0] == 0xA0)
+    {
+      TRACEPRINTF (t, 2, "got reset ind");
+      errored();
+    }
+  else if (c.size() > 0 && c[0] == ind[I_CONFIRM])
+    {
+      if (state == E_wait_confirm)
+        {
+          TRACEPRINTF (t, 2, "Confirmed");
+          state = E_idle;
+          timeout.stop();
+          LowLevelFilter::do_send_Next();
+        }
+      else
+        TRACEPRINTF (t, 2, "spurious Confirm %d",(int)state);
+    }
+  else if (c.size() > 0 && c[0] == ind[I_DATA] && !monitor)
+    {
+      LDataPtr p = EMI2lData (c);
+      if (p)
+        master->recv_L_Data (std::move(p));
+      else
+        t->TracePacket (2, "unparseable EMI data", c);
+    }
+  else if (c.size() > 4 && c[0] == ind[I_BUSMON] && monitor)
+    {
+      LBusmonPtr p = LBusmonPtr(new L_Busmonitor_PDU ());
+      p->status = c[1];
+      p->timestamp = (c[2] << 24) | (c[3] << 16);
+      p->pdu.set (c.data() + 4, c.size() - 4);
+      master->recv_L_Busmonitor (std::move(p));
+    }
+  else
+    {
+      TRACEPRINTF (t, 2, "unknown data");
+    }
 }
 

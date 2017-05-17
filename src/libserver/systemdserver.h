@@ -23,10 +23,14 @@
 #include "server.h"
 
 /** implements a server listening on a systemd provided file descriptor */
-class SystemdServer:public Server
+class SystemdServer:public NetServer
 {
 public:
-  SystemdServer (TracePtr tr, int systemd_fd);
+  SystemdServer (BaseRouter& r, IniSectionPtr& s, int systemd_fd);
+  virtual ~SystemdServer ();
+
+  void start();
+  void stop();
 };
 
 #endif

@@ -41,26 +41,26 @@
 #include <net/route.h>
 #endif
 
-int
-GetHostIP (TracePtr t, struct sockaddr_in *sock, const char *Name)
+bool
+GetHostIP (TracePtr t, struct sockaddr_in *sock, const std::string& name)
 {
   struct hostent *h;
-  if (!Name)
-    return 0;
+  if (name.size() == 0)
+    return false;
   memset (sock, 0, sizeof (*sock));
-  h = gethostbyname (Name);
+  h = gethostbyname (name.c_str());
   if (!h)
     {
       if (t)
-        ERRORPRINTF (t, E_ERROR | 50, NULL, "Resolving %s failed: %s", Name, hstrerror(h_errno));
-      return 0;
+        ERRORPRINTF (t, E_ERROR | 50, "Resolving %s failed: %s", name, hstrerror(h_errno));
+      return false;
     }
 #ifdef HAVE_SOCKADDR_IN_LEN
   sock->sin_len = sizeof (*sock);
 #endif
   sock->sin_family = h->h_addrtype;
   sock->sin_addr.s_addr = (*((unsigned long *) h->h_addr_list[0]));
-  return 1;
+  return true;
 }
 
 #ifdef HAVE_LINUX_NETLINK
@@ -71,8 +71,8 @@ typedef struct
   char data[1000];
 } r_req;
 
-int
-GetSourceAddress (const struct sockaddr_in *dest, struct sockaddr_in *src)
+bool
+GetSourceAddress (TracePtr t UNUSED, const struct sockaddr_in *dest, struct sockaddr_in *src)
 {
   int s;
   int l;
@@ -122,8 +122,8 @@ err_out:
 #endif
 
 #ifdef HAVE_WINDOWS_IPHELPER
-int
-GetSourceAddress (const struct sockaddr_in *dest, struct sockaddr_in *src)
+bool
+GetSourceAddress (TracePtr t, const struct sockaddr_in *dest, struct sockaddr_in *src)
 {
   DWORD d = 0;
   PMIB_IPADDRTABLE tab;
@@ -182,8 +182,8 @@ SA_SIZE (struct sockaddr *sa)
 }
 #endif
 
-int
-GetSourceAddress (const struct sockaddr_in *dest, struct sockaddr_in *src)
+bool
+GetSourceAddress (TracePtr t, const struct sockaddr_in *dest, struct sockaddr_in *src)
 {
   int s;
   r_req req;

@@ -33,19 +33,21 @@
 #include "groupcacheclient.h"
 #endif
 
-ClientConnection::ClientConnection (Server *s, int fd) : sendbuf(fd),recvbuf(fd)
+ClientConnection::ClientConnection (NetServerPtr s, int fd) : router(static_cast<Router&>(s->router)), sendbuf(fd),recvbuf(fd)
 {
-  TRACEPRINTF (s->t, 8, "ClientConnection Init");
-  this->t = TracePtr(new Trace(*s->t, s->t->name));
-  this->l3 = s->l3;
-  this->addr = l3->get_client_addr(this->t);
+  t = TracePtr(new Trace(*(s->t)));
+  t->setAuxName("CConn");
+  server = s;
+
+  TRACEPRINTF (t, 8, "ClientConnection Init");
+  Router& router = static_cast<Router &>(s->router);
+  this->addr = router.get_client_addr(this->t);
 
   this->fd = fd;
-  this->s = s;
 
-  recvbuf.on_recv_cb.set<ClientConnection,&ClientConnection::read_cb>(this);
-  recvbuf.on_error_cb.set<ClientConnection,&ClientConnection::error_cb>(this);
-  sendbuf.on_error_cb.set<ClientConnection,&ClientConnection::error_cb>(this);
+  recvbuf.on_read.set<ClientConnection,&ClientConnection::read_cb>(this);
+  recvbuf.on_error.set<ClientConnection,&ClientConnection::error_cb>(this);
+  sendbuf.on_error.set<ClientConnection,&ClientConnection::error_cb>(this);
 }
 
 ClientConnection::~ClientConnection ()
@@ -62,8 +64,18 @@ ClientConnection::error_cb ()
 }
 
 bool
+ClientConnection::setup()
+{
+  return true;
+}
+
+void
 ClientConnection::start()
 {
+  if (running)
+    return;
+  if (fd == -1)
+    return;
   sendbuf.start();
   recvbuf.start();
 
@@ -71,36 +83,31 @@ ClientConnection::start()
     {
       sendreject (EIB_RESET_CONNECTION);
       stop();
-      return false;
+      return;
     }
-  return true;
+  running = true;
 }
 
 void
-ClientConnection::stop(bool no_server)
+ClientConnection::stop()
 {
   if (addr)
     {
-      TRACEPRINTF (t, 8, "ClientConnection %s closing", FormatEIBAddr (addr).c_str());
-      l3->release_client_addr(addr);
+      TRACEPRINTF (t, 8, "ClientConnection %s closing", FormatEIBAddr (addr));
+      Router *router = static_cast<Router *>(&server->router);
+      router->release_client_addr(addr);
       addr = 0;
     }
+  exit_conn();
+  server->deregister(shared_from_this());
 
-  if (no_server)
-    s = nullptr;
-  if (a_conn)
-    {
-      delete a_conn;
-      a_conn = nullptr;
-    }
   if (fd == -1)
     return;
-  if (! no_server)
-    s->deregister (shared_from_this());
   sendbuf.stop();
   recvbuf.stop();
   close (fd);
   fd = -1;
+  running = false;
 }
 
 void
@@ -108,16 +115,25 @@ ClientConnection::exit_conn()
 {
   if (! a_conn)
     return;
+  a_conn->stop();
+  if (a_conn->lc != nullptr)
+    {
+      router.unregisterLink(a_conn->lc);
+      a_conn->lc = nullptr;
+    }
+  TRACEPRINTF (t, 8, "Exiting");
   delete a_conn;
   a_conn = 0;
 }
+
+#define SFT std::static_pointer_cast<ClientConnection>(shared_from_this())
 
 size_t
 ClientConnection::read_cb (uint8_t *buf, size_t len)
 {
   if (len < 2)
     return 0;
-  int xlen = (buf[0] << 8) | (buf[1]);
+  unsigned int xlen = (buf[0] << 8) | (buf[1]);
   if (len < xlen+2)
     return 0;
   buf += 2;
@@ -131,7 +147,7 @@ ClientConnection::read_cb (uint8_t *buf, size_t len)
         sendreject (EIB_RESET_CONNECTION);
       }
     else
-      a_conn->recv(buf,xlen);
+      a_conn->recv_Data(buf,xlen);
     return xlen+2;
   }
 
@@ -139,80 +155,80 @@ ClientConnection::read_cb (uint8_t *buf, size_t len)
     {
 #ifdef HAVE_BUSMONITOR
     case EIB_OPEN_BUSMONITOR:
-      a_conn = new A_Busmonitor (shared_from_this(), false, false, buf,xlen);
+      a_conn = new A_Busmonitor (SFT, false, false);
       goto new_a_conn;
 
     case EIB_OPEN_BUSMONITOR_TEXT:
-      a_conn = new A_Text_Busmonitor (shared_from_this(), false, buf,xlen);
+      a_conn = new A_Text_Busmonitor (SFT, false);
       goto new_a_conn;
 
     case EIB_OPEN_BUSMONITOR_TS:
-      a_conn = new A_Busmonitor (shared_from_this(), false, true, buf,xlen);
+      a_conn = new A_Busmonitor (SFT, false, true);
       goto new_a_conn;
 
     case EIB_OPEN_VBUSMONITOR:
-      a_conn = new A_Busmonitor (shared_from_this(), true, false, buf,xlen);
+      a_conn = new A_Busmonitor (SFT, true, false);
       goto new_a_conn;
 
     case EIB_OPEN_VBUSMONITOR_TEXT:
-      a_conn = new A_Text_Busmonitor (shared_from_this(), true, buf,xlen);
+      a_conn = new A_Text_Busmonitor (SFT, true);
       goto new_a_conn;
 
     case EIB_OPEN_VBUSMONITOR_TS:
-      a_conn = new A_Busmonitor (shared_from_this(), true, true, buf,xlen);
+      a_conn = new A_Busmonitor (SFT, true, true);
       goto new_a_conn;
 #endif
     case EIB_OPEN_T_BROADCAST:
-      a_conn = new A_Broadcast (shared_from_this(), buf,xlen);
+      a_conn = new A_Broadcast (SFT);
       goto new_a_conn;
 
     case EIB_OPEN_T_GROUP:
-      a_conn = new A_Group (shared_from_this(), buf,xlen);
+      a_conn = new A_Group (SFT);
       goto new_a_conn;
 
     case EIB_OPEN_T_INDIVIDUAL:
-      a_conn = new A_Individual (shared_from_this(), buf,xlen);
+      a_conn = new A_Individual (SFT);
       goto new_a_conn;
 
     case EIB_OPEN_T_TPDU:
-      a_conn = new A_TPDU (shared_from_this(), buf,xlen);
+      a_conn = new A_TPDU (SFT);
       goto new_a_conn;
 
     case EIB_OPEN_T_CONNECTION:
-      a_conn = new A_Connection (shared_from_this(), buf,xlen);
+      a_conn = new A_Connection (SFT);
       goto new_a_conn;
 
     case EIB_OPEN_GROUPCON:
-      a_conn = new A_GroupSocket (shared_from_this(), buf,xlen);
+      a_conn = new A_GroupSocket (SFT);
       goto new_a_conn;
 
 #ifdef HAVE_MANAGEMENT
     case EIB_M_INDIVIDUAL_ADDRESS_READ:
-      ReadIndividualAddresses (shared_from_this(), buf,xlen);
+      a_conn = new ReadIndividualAddresses (SFT);
       break;
 
     case EIB_PROG_MODE:
-      ChangeProgMode (shared_from_this(), buf,xlen);
+      a_conn = new ChangeProgMode (SFT);
       break;
 
     case EIB_MASK_VERSION:
-      GetMaskVersion (shared_from_this(), buf,xlen);
+      a_conn = new GetMaskVersion (SFT);
       break;
 
     case EIB_M_INDIVIDUAL_ADDRESS_WRITE:
-      WriteIndividualAddress (shared_from_this(), buf,xlen);
+      a_conn = new WriteIndividualAddress (SFT);
       break;
 
     case EIB_MC_CONNECTION:
-      a_conn = new ManagementConnection (shared_from_this(), buf,xlen);
+      a_conn = new ManagementConnection (SFT);
       goto new_a_conn;
 
     case EIB_MC_INDIVIDUAL:
-      a_conn = new ManagementIndividual (shared_from_this());
+      a_conn = new ManagementIndividual (SFT);
       goto new_a_conn;
 
     case EIB_LOAD_IMAGE:
-      LoadImage (shared_from_this(), buf,xlen);
+      a_conn = new LoadImage (SFT);
       break;
 #endif
 
@@ -225,7 +241,7 @@ ClientConnection::read_cb (uint8_t *buf, size_t len)
     case EIB_CACHE_READ_NOWAIT:
     case EIB_CACHE_LAST_UPDATES:
     case EIB_CACHE_LAST_UPDATES_2:
-      GroupCacheRequest (shared_from_this(), buf,xlen);
+      GroupCacheRequest (SFT, buf,xlen);
       break;
 #endif
 
@@ -238,12 +254,25 @@ ClientConnection::read_cb (uint8_t *buf, size_t len)
       break;
 
     new_a_conn:
-      a_conn->on_error_cb.set<ClientConnection,&ClientConnection::exit_conn>(this);
+      a_conn->on_error.set<ClientConnection,&ClientConnection::exit_conn>(this);
+      if (a_conn->setup(buf,xlen))
+        {
+          if (a_conn->lc != nullptr && !router.registerLink(a_conn->lc, true))
+            {
+              exit_conn();
+              sendreject();
+            }
+          else
+            a_conn->start();
+        }
+      else
+        {
+          TRACEPRINTF (t, 8, "Error setting up conn, msg=x%x",msg);
+          exit_conn();
+          sendreject();
+        }
       break;
     }
-
-  if (a_conn && !a_conn->is_connected()) // had an error
-    exit_conn();
 
   return xlen+2;
 }
@@ -267,8 +296,6 @@ ClientConnection::sendreject (int type)
 void
 ClientConnection::sendmessage (int size, const uchar * msg)
 {
-  int i;
-  int start;
   uchar head[2];
   assert (size >= 2);
   head[0] = (size >> 8) & 0xff;
