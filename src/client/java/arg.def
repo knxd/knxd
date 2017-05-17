@@ -40,6 +40,7 @@ EIBC_LICENSE(
 #define AGARG_UINT8a(name, args) byte name KAG ## args
 #define AGARG_UINT8b(name, args) byte name KAG ## args
 #define AGARG_UINT16(name, args) short name KAG ## args
+#define AGARG_UINT32(name, args) short name KAG ## args
 #define AGARG_OUTUINT8(name, args) Int8 name KAG ## args
 #define AGARG_OUTUINT8a(name, args) Int8 name KAG ## args
 #define AGARG_OUTUINT16(name, args) Int16 name KAG ## args
@@ -59,6 +60,7 @@ EIBC_LICENSE(
 #define ALARG_UINT8a(name, args) name KAL ## args
 #define ALARG_UINT8b(name, args) name KAL ## args
 #define ALARG_UINT16(name, args) name KAL ## args
+#define ALARG_UINT32(name, args) name KAL ## args
 #define ALARG_OUTUINT8(name, args) name KAL ## args
 #define ALARG_OUTUINT8a(name, args) name KAL ## args
 #define ALARG_OUTUINT16(name, args) name KAL ## args

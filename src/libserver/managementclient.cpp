@@ -22,28 +22,28 @@
 #include "loadimage.h"
 
 void
-ReadIndividualAddresses (ClientConnection * c, pth_event_t stop)
+ReadIndividualAddresses (ClientConnPtr c, uint8_t *buf, size_t len)
 {
   Layer7_Broadcast b (c->t);
   if (!b.init (c->l3))
     {
-      c->sendreject (stop, EIB_PROCESSING_ERROR);
+      c->sendreject (EIB_PROCESSING_ERROR);
       return;
     }
   CArray erg;
   Array < eibaddr_t > e = b.A_IndividualAddress_Read (c->t);
-  erg.resize (2 + 2 * e ());
+  erg.resize (2 + 2 * e.size());
   EIBSETTYPE (erg, EIB_M_INDIVIDUAL_ADDRESS_READ);
-  for (unsigned i = 0; i < e (); i++)
+  for (unsigned i = 0; i < e.size(); i++)
     {
       erg[2 + i * 2] = (e[i] >> 8) & 0xff;
       erg[2 + i * 2 + 1] = (e[i]) & 0xff;
     }
-  c->sendmessage (erg (), erg.array (), stop);
+  c->sendmessage (erg.size(), erg.data());
 }
 
 void
-ChangeProgMode (ClientConnection * c, pth_event_t stop)
+ChangeProgMode (ClientConnPtr c, uint8_t *buf, size_t len)
 {
   eibaddr_t dest;
   uchar res[3];
@@ -52,52 +52,52 @@ ChangeProgMode (ClientConnection * c, pth_event_t stop)
   res[2] = 0;
   if (c->size < 5)
     {
-      c->sendreject (stop);
+      c->sendreject ();
       return;
     }
   dest = (c->buf[2] << 8) | (c->buf[3]);
   Management_Connection m = Management_Connection (c->t, dest);
   if (!m.init (c->l3))
     {
-      c->sendreject (stop, EIB_PROCESSING_ERROR);
+      c->sendreject (EIB_PROCESSING_ERROR);
       return;
     }
   switch (c->buf[4])
     {
     case 0:
       if (m.X_Progmode_Off () == -1)
-	c->sendreject (stop);
+	c->sendreject ();
       else
-	c->sendmessage (3, res, stop);
+	c->sendmessage (3, res);
       break;
     case 1:
       if (m.X_Progmode_On () == -1)
-	c->sendreject (stop);
+	c->sendreject ();
       else
-	c->sendmessage (3, res, stop);
+	c->sendmessage (3, res);
       break;
     case 2:
       if (m.X_Progmode_Toggle () == -1)
-	c->sendreject (stop);
+	c->sendreject ();
       else
-	c->sendmessage (3, res, stop);
+	c->sendmessage (3, res);
       break;
     case 3:
       if ((i = m.X_Progmode_Status ()) == -1)
-	c->sendreject (stop);
+	c->sendreject ();
       else
 	{
 	  res[2] = i;
-	  c->sendmessage (3, res, stop);
+	  c->sendmessage (3, res);
 	}
       break;
     default:
-      c->sendreject (stop);
+      c->sendreject ();
     }
 }
 
 void
-GetMaskVersion (ClientConnection * c, pth_event_t stop)
+GetMaskVersion (ClientConnPtr c, uint8_t *buf, size_t len)
 {
   eibaddr_t dest;
   uchar res[4];
@@ -106,7 +106,7 @@ GetMaskVersion (ClientConnection * c, pth_event_t stop)
   res[2] = 0;
   if (c->size < 4)
     {
-      c->sendreject (stop);
+      c->sendreject ();
       return;
     }
 
@@ -114,27 +114,27 @@ GetMaskVersion (ClientConnection * c, pth_event_t stop)
   Management_Connection m = Management_Connection (c->t, dest);
   if (!m.init (c->l3))
     {
-      c->sendreject (stop, EIB_PROCESSING_ERROR);
+      c->sendreject (EIB_PROCESSING_ERROR);
       return;
     }
   if (m.A_Device_Descriptor_Read (maskver) == -1)
-    c->sendreject (stop);
+    c->sendreject ();
   else
     {
       res[2] = (maskver >> 8) & 0xff;
       res[3] = (maskver) & 0xff;
-      c->sendmessage (4, res, stop);
+      c->sendmessage (4, res);
     }
 }
 
 void
-WriteIndividualAddress (ClientConnection * c, pth_event_t stop)
+WriteIndividualAddress (ClientConnPtr c, uint8_t *buf, size_t len)
 {
   eibaddr_t dest;
   uint16_t maskver;
   if (c->size < 4)
     {
-      c->sendreject (stop);
+      c->sendreject ();
       return;
     }
 
@@ -142,31 +142,31 @@ WriteIndividualAddress (ClientConnection * c, pth_event_t stop)
   Layer7_Broadcast b (c->t);
   if (!b.init (c->l3))
     {
-      c->sendreject (stop, EIB_PROCESSING_ERROR);
+      c->sendreject (EIB_PROCESSING_ERROR);
       return;
     }
   {
     Management_Connection m = Management_Connection (c->t, dest);
     if (!m.init (c->l3))
       {
-	c->sendreject (stop, EIB_PROCESSING_ERROR);
+	c->sendreject (EIB_PROCESSING_ERROR);
 	return;
       }
     if (m.A_Device_Descriptor_Read (maskver) != -1)
       {
-	c->sendreject (stop, EIB_ERROR_ADDR_EXISTS);
+	c->sendreject (EIB_ERROR_ADDR_EXISTS);
 	return;
       }
   }
   Array < eibaddr_t > addr = b.A_IndividualAddress_Read (c->t);
-  if (addr () > 1)
+  if (addr.size() > 1)
     {
-      c->sendreject (stop, EIB_ERROR_MORE_DEVICE);
+      c->sendreject (EIB_ERROR_MORE_DEVICE);
       return;
     }
-  if (addr () == 0)
+  if (addr.size() == 0)
     {
-      c->sendreject (stop, EIB_ERROR_TIMEOUT);
+      c->sendreject (EIB_ERROR_TIMEOUT);
       return;
     }
   b.A_IndividualAddress_Write (dest);
@@ -176,24 +176,23 @@ WriteIndividualAddress (ClientConnection * c, pth_event_t stop)
   Management_Connection m1 = Management_Connection (c->t, dest);
   if (!m1.init (c->l3))
     {
-      c->sendreject (stop, EIB_PROCESSING_ERROR);
+      c->sendreject (EIB_PROCESSING_ERROR);
       return;
     }
   if (m1.A_Device_Descriptor_Read (maskver) == -1)
     {
-      c->sendreject (stop, EIB_PROCESSING_ERROR);
+      c->sendreject (EIB_PROCESSING_ERROR);
       return;
     }
   if (m1.X_Progmode_Off () == -1)
     {
-      c->sendreject (stop, EIB_PROCESSING_ERROR);
+      c->sendreject (EIB_PROCESSING_ERROR);
       return;
     }
-  c->sendreject (stop, EIB_M_INDIVIDUAL_ADDRESS_WRITE);
+  c->sendreject (EIB_M_INDIVIDUAL_ADDRESS_WRITE);
 }
 
-void
-ManagementConnection (ClientConnection * c, pth_event_t stop)
+ManagementConnection::ManagementConnection (ClientConnPtr c, uint8_t *buf, size_t len)
 {
   eibaddr_t dest;
   uint16_t maskver;
@@ -204,7 +203,7 @@ ManagementConnection (ClientConnection * c, pth_event_t stop)
 
   if (c->size < 4)
     {
-      c->sendreject (stop);
+      c->sendreject ();
       return;
     }
 
@@ -212,25 +211,25 @@ ManagementConnection (ClientConnection * c, pth_event_t stop)
   Management_Connection m = Management_Connection (c->t, dest);
   if (!m.init (c->l3))
     {
-      c->sendreject (stop, EIB_PROCESSING_ERROR);
+      c->sendreject (EIB_PROCESSING_ERROR);
       return;
     }
   if (m.A_Device_Descriptor_Read (maskver) == -1)
     {
-      c->sendreject (stop);
+      c->sendreject ();
       return;
     }
-  c->sendreject (stop, EIB_MC_CONNECTION);
+  c->sendreject (EIB_MC_CONNECTION);
   do
     {
-      i = c->readmessage (stop);
+      i = c->readmessage ();
       if (i != -1)
 	switch (EIBTYPE (c->buf))
 	  {
 	  case EIB_MC_PROG_MODE:
 	    if (c->size < 3)
 	      {
-		c->sendreject (stop);
+		c->sendreject ();
 		break;
 	      }
 	    EIBSETTYPE (buf, EIB_MC_PROG_MODE);
@@ -239,78 +238,78 @@ ManagementConnection (ClientConnection * c, pth_event_t stop)
 	      {
 	      case 0:
 		if (m.X_Progmode_Off () == -1)
-		  c->sendreject (stop);
+		  c->sendreject ();
 		else
-		  c->sendmessage (3, buf, stop);
+		  c->sendmessage (3, buf);
 		break;
 	      case 1:
 		if (m.X_Progmode_On () == -1)
-		  c->sendreject (stop);
+		  c->sendreject ();
 		else
-		  c->sendmessage (3, buf, stop);
+		  c->sendmessage (3, buf);
 		break;
 	      case 2:
 		if (m.X_Progmode_Toggle () == -1)
-		  c->sendreject (stop);
+		  c->sendreject ();
 		else
-		  c->sendmessage (3, buf, stop);
+		  c->sendmessage (3, buf);
 		break;
 	      case 3:
 		if ((i = m.X_Progmode_Status ()) == -1)
-		  c->sendreject (stop);
+		  c->sendreject ();
 		else
 		  {
 		    buf[2] = i;
-		    c->sendmessage (3, buf, stop);
+		    c->sendmessage (3, buf);
 		  }
 		break;
 	      default:
-		c->sendreject (stop);
+		c->sendreject ();
 	      }
 	    break;
 	  case EIB_MC_MASK_VERSION:
 	    if (m.A_Device_Descriptor_Read (maskver) == -1)
-	      c->sendreject (stop);
+	      c->sendreject ();
 	    else
 	      {
 		EIBSETTYPE (buf, EIB_MC_MASK_VERSION);
 		buf[2] = (maskver >> 8) & 0xff;
 		buf[3] = (maskver) & 0xff;
-		c->sendmessage (4, buf, stop);
+		c->sendmessage (4, buf);
 	      }
 	    break;
 	  case EIB_MC_PEI_TYPE:
 	    if (m.X_Get_PEIType (val) == -1)
-	      c->sendreject (stop);
+	      c->sendreject ();
 	    else
 	      {
 		EIBSETTYPE (buf, EIB_MC_PEI_TYPE);
 		buf[2] = (val >> 8) & 0xff;
 		buf[3] = (val) & 0xff;
-		c->sendmessage (4, buf, stop);
+		c->sendmessage (4, buf);
 	      }
 	    break;
 	  case EIB_MC_ADC_READ:
 	    if (c->size < 4)
 	      {
-		c->sendreject (stop);
+		c->sendreject ();
 		break;
 	      }
 	    if (m.A_ADC_Read (c->buf[2], c->buf[3], val) == -1)
-	      c->sendreject (stop);
+	      c->sendreject ();
 	    else
 	      {
 		EIBSETTYPE (buf, EIB_MC_ADC_READ);
 		buf[2] = (val >> 8) & 0xff;
 		buf[3] = (val) & 0xff;
-		c->sendmessage (4, buf, stop);
+		c->sendmessage (4, buf);
 	      }
 	    break;
 
 	  case EIB_MC_READ:
 	    if (c->size < 6)
 	      {
-		c->sendreject (stop);
+		c->sendreject ();
 		break;
 	      }
 	    {
@@ -318,13 +317,13 @@ ManagementConnection (ClientConnection * c, pth_event_t stop)
 	      unsigned len = (c->buf[4] << 8) | (c->buf[5]);
 	      CArray data, erg;
 	      if (m.X_Memory_Read_Block (addr, len, data) == -1)
-		c->sendreject (stop);
+		c->sendreject ();
 	      else
 		{
 		  erg.resize (6);
 		  EIBSETTYPE (erg, EIB_MC_READ);
 		  erg.setpart (data, 2);
-		  c->sendmessage (erg (), erg.array (), stop);
+		  c->sendmessage (erg.size(), erg.data());
 		}
 	    }
 	    break;
@@ -332,7 +331,7 @@ ManagementConnection (ClientConnection * c, pth_event_t stop)
 	  case EIB_MC_WRITE:
 	    if (c->size < 6)
 	      {
-		c->sendreject (stop);
+		c->sendreject ();
 		break;
 	      }
 	    {
@@ -340,23 +339,23 @@ ManagementConnection (ClientConnection * c, pth_event_t stop)
 	      unsigned len = (c->buf[4] << 8) | (c->buf[5]);
 	      if (c->size < len + 6)
 		{
-		  c->sendreject (stop);
+		  c->sendreject ();
 		  break;
 		}
 	      i = m.X_Memory_Write_Block (addr, CArray (c->buf + 6, len));
 	      if (i == -2)
-		c->sendreject (stop, EIB_ERROR_VERIFY);
+		c->sendreject (EIB_ERROR_VERIFY);
 	      else if (i != 0)
-		c->sendreject (stop, EIB_PROCESSING_ERROR);
+		c->sendreject (EIB_PROCESSING_ERROR);
 	      else
-		c->sendreject (stop, EIB_MC_WRITE);
+		c->sendreject (EIB_MC_WRITE);
 	    }
 	    break;
 
 	  case EIB_MC_PROP_READ:
 	    if (c->size < 7)
 	      {
-		c->sendreject (stop);
+		c->sendreject ();
 		break;
 	      }
 	    {
@@ -364,13 +363,13 @@ ManagementConnection (ClientConnection * c, pth_event_t stop)
 	      if (m.A_Property_Read (c->buf[2], c->buf[3],
 				     (c->buf[4] << 8) | c->buf[5], c->buf[6],
 				     data) == -1)
-		c->sendreject (stop);
+		c->sendreject ();
 	      else
 		{
 		  erg.resize (2);
 		  EIBSETTYPE (erg, EIB_MC_PROP_READ);
 		  erg.setpart (data, 2);
-		  c->sendmessage (erg (), erg.array (), stop);
+		  c->sendmessage (erg.size(), erg.data());
 		}
 	    }
 	    break;
@@ -378,7 +377,7 @@ ManagementConnection (ClientConnection * c, pth_event_t stop)
 	  case EIB_MC_PROP_WRITE:
 	    if (c->size < 7)
 	      {
-		c->sendreject (stop);
+		c->sendreject ();
 		break;
 	      }
 	    {
@@ -387,13 +386,13 @@ ManagementConnection (ClientConnection * c, pth_event_t stop)
 				      (c->buf[4] << 8) | c->buf[5], c->buf[6],
 				      CArray (c->buf + 7, c->size - 7),
 				      erg) == -1)
-		c->sendreject (stop);
+		c->sendreject ();
 	      else
 		{
 		  erg.resize (2);
 		  EIBSETTYPE (erg, EIB_MC_PROP_WRITE);
 		  erg.setpart (data, 2);
-		  c->sendmessage (erg (), erg.array (), stop);
+		  c->sendmessage (erg.size(), erg.data());
 		}
 	    }
 	    break;
@@ -401,7 +400,7 @@ ManagementConnection (ClientConnection * c, pth_event_t stop)
 	  case EIB_MC_AUTHORIZE:
 	    if (c->size < 6)
 	      {
-		c->sendreject (stop);
+		c->sendreject ();
 		break;
 	      }
 	    EIBSETTYPE (buf, EIB_MC_AUTHORIZE);
@@ -409,41 +408,41 @@ ManagementConnection (ClientConnection * c, pth_event_t stop)
 	      (c->buf[2] << 24) | (c->buf[3] << 16) | (c->buf[4] << 8) |
 	      (c->buf[5]);
 	    if (m.A_Authorize (key, buf[2]) == -1)
-	      c->sendreject (stop);
+	      c->sendreject ();
 	    else
-	      c->sendmessage (3, buf, stop);
+	      c->sendmessage (3, buf);
 	    break;
 
 	  case EIB_MC_KEY_WRITE:
 	    if (c->size < 7)
 	      {
-		c->sendreject (stop);
+		c->sendreject ();
 		break;
 	      }
 	    key =
 	      (c->buf[2] << 24) | (c->buf[3] << 16) | (c->buf[4] << 8) |
 	      (c->buf[5]);
 	    if (m.A_KeyWrite (key, *(c->buf + 6)) == -1)
-	      c->sendreject (stop);
+	      c->sendreject ();
 	    else
-	      c->sendreject (stop, EIB_MC_KEY_WRITE);
+	      c->sendreject (EIB_MC_KEY_WRITE);
 	    break;
 
 	  case EIB_MC_PROP_DESC:
 	    if (c->size < 4)
 	      {
-		c->sendreject (stop);
+		c->sendreject ();
 		break;
 	      }
 	    if (m.A_Property_Desc (c->buf[2], c->buf[3], 0, buf[2], maskver,
 				   buf[5]) == -1)
-	      c->sendreject (stop);
+	      c->sendreject ();
 	    else
 	      {
 		EIBSETTYPE (buf, EIB_MC_PROP_DESC);
 		buf[3] = (maskver >> 8) & 0xff;
 		buf[4] = (maskver) & 0xff;
-		c->sendmessage (6, buf, stop);
+		c->sendmessage (6, buf);
 	      }
 	    break;
 
@@ -451,22 +450,24 @@ ManagementConnection (ClientConnection * c, pth_event_t stop)
 	    {
 	      Array < PropertyInfo > p;
 	      if (m.X_PropertyScan (p) == -1)
-		c->sendreject (stop);
+		c->sendreject ();
 	      else
 		{
 		  CArray erg;
-		  erg.resize (2 + p () * 6);
+		  erg.resize (2 + p.size() * 6);
 		  EIBSETTYPE (erg, EIB_MC_PROP_SCAN);
-		  for (unsigned i = 0; i < p (); i++)
+		  unsigned int ii = 0;
+		  ITER( i,p)
 		    {
-		      erg[i * 6 + 2] = p[i].obj;
-		      erg[i * 6 + 3] = p[i].property;
-		      erg[i * 6 + 4] = p[i].type;
-		      erg[i * 6 + 5] = (p[i].count >> 8) & 0xff;
-		      erg[i * 6 + 6] = (p[i].count) & 0xff;
-		      erg[i * 6 + 7] = p[i].access;
+		      erg[ii + 2] = i->obj;
+		      erg[ii + 3] = i->property;
+		      erg[ii + 4] = i->type;
+		      erg[ii + 5] = (i->count >> 8) & 0xff;
+		      erg[ii + 6] = (i->count) & 0xff;
+		      erg[ii + 7] = i->access;
+			  ii += 6;
 		    }
-		  c->sendmessage (erg (), erg.array (), stop);
+		  c->sendmessage (erg.size(), erg.data());
 		}
 	    }
 	    break;
@@ -477,13 +478,13 @@ ManagementConnection (ClientConnection * c, pth_event_t stop)
 
 	  case EIB_MC_RESTART:
 	    m.A_Restart ();
-	    c->sendreject (stop, EIB_MC_RESTART);
+	    c->sendreject (EIB_MC_RESTART);
 	    break;
 
 	  case EIB_MC_WRITE_NOVERIFY:
 	    if (c->size < 6)
 	      {
-		c->sendreject (stop);
+		c->sendreject ();
 		break;
 	      }
 	    {
@@ -491,33 +492,33 @@ ManagementConnection (ClientConnection * c, pth_event_t stop)
 	      unsigned len = (c->buf[4] << 8) | (c->buf[5]);
 	      if (c->size < len + 6)
 		{
-		  c->sendreject (stop);
+		  c->sendreject ();
 		  break;
 		}
 	      i = m.A_Memory_Write_Block (addr, CArray (c->buf + 6, len));
 	      if (i != 0)
-		c->sendreject (stop, EIB_PROCESSING_ERROR);
+		c->sendreject (EIB_PROCESSING_ERROR);
 	      else
-		c->sendreject (stop, EIB_MC_WRITE_NOVERIFY);
+		c->sendreject (EIB_MC_WRITE_NOVERIFY);
 	    }
 	    break;
 
 	  default:
-	    c->sendreject (stop);
+	    c->sendreject ();
 	  }
     }
   while (i != -1);
 }
 
 void
-ManagementIndividual (ClientConnection * c, pth_event_t stop)
+ManagementIndividual (ClientConnPtr c, uint8_t *buf, size_t len)
 {
   eibaddr_t dest;
   int i;
 
   if (c->size < 4)
     {
-      c->sendreject (stop);
+      c->sendreject ();
       return;
     }
 
@@ -525,20 +526,20 @@ ManagementIndividual (ClientConnection * c, pth_event_t stop)
   Management_Individual m (c->t, dest);
   if (!m.init (c->l3))
     {
-      c->sendreject (stop, EIB_PROCESSING_ERROR);
+      c->sendreject (EIB_PROCESSING_ERROR);
       return;
     }
-  c->sendreject (stop, EIB_MC_INDIVIDUAL);
+  c->sendreject (EIB_MC_INDIVIDUAL);
   do
     {
-      i = c->readmessage (stop);
+      i = c->readmessage ();
       if (i != -1)
 	switch (EIBTYPE (c->buf))
 	  {
 	  case EIB_MC_PROP_READ:
 	    if (c->size < 7)
 	      {
-		c->sendreject (stop);
+		c->sendreject ();
 		break;
 	      }
 	    {
@@ -546,13 +547,13 @@ ManagementIndividual (ClientConnection * c, pth_event_t stop)
 	      if (m.A_Property_Read (c->buf[2], c->buf[3],
 				     (c->buf[4] << 8) | c->buf[5], c->buf[6],
 				     data) == -1)
-		c->sendreject (stop);
+		c->sendreject ();
 	      else
 		{
 		  erg.resize (2);
 		  EIBSETTYPE (erg, EIB_MC_PROP_READ);
 		  erg.setpart (data, 2);
-		  c->sendmessage (erg (), erg.array (), stop);
+		  c->sendmessage (erg.size(), erg.data());
 		}
 	    }
 	    break;
@@ -560,7 +561,7 @@ ManagementIndividual (ClientConnection * c, pth_event_t stop)
 	  case EIB_MC_PROP_WRITE:
 	    if (c->size < 7)
 	      {
-		c->sendreject (stop);
+		c->sendreject ();
 		break;
 	      }
 	    {
@@ -569,13 +570,13 @@ ManagementIndividual (ClientConnection * c, pth_event_t stop)
 				      (c->buf[4] << 8) | c->buf[5], c->buf[6],
 				      CArray (c->buf + 7, c->size - 7),
 				      erg) == -1)
-		c->sendreject (stop);
+		c->sendreject ();
 	      else
 		{
 		  erg.resize (2);
 		  EIBSETTYPE (erg, EIB_MC_PROP_WRITE);
 		  erg.setpart (data, 2);
-		  c->sendmessage (erg (), erg.array (), stop);
+		  c->sendmessage (erg.size(), erg.data());
 		}
 	    }
 	    break;
@@ -585,14 +586,14 @@ ManagementIndividual (ClientConnection * c, pth_event_t stop)
 	    break;
 
 	  default:
-	    c->sendreject (stop);
+	    c->sendreject ();
 	  }
     }
   while (i != -1);
 }
 
 void
-LoadImage (ClientConnection * c, pth_event_t stop)
+LoadImage (ClientConnPtr c, uint8_t *buf, size_t len)
 {
   uchar buf[200];
   CArray img (c->buf + 2, c->size - 2);
@@ -607,7 +608,7 @@ LoadImage (ClientConnection * c, pth_event_t stop)
       EIBSETTYPE (buf, EIB_LOAD_IMAGE);
       buf[2] = (r >> 8) & 0xff;
       buf[3] = (r) & 0xff;
-      c->sendmessage (4, buf, stop);
+      c->sendmessage (4, buf);
       return;
     }
   {
@@ -646,23 +647,23 @@ LoadImage (ClientConnection * c, pth_event_t stop)
 
 	/*load the data from 0x103 to 0x10C */
 	if (m.X_Memory_Write_Block (0x0103,
-				    CArray (i->code.array () + 0x03,
+				    CArray (i->code.data() + 0x03,
 					    10)) != 0)
 	  goto out;
 
 	/*load the data from 0x10E to 0x115 */
 	if (m.X_Memory_Write_Block (0x010E,
-				    CArray (i->code.array () + 0x0E, 8)) != 0)
+				    CArray (i->code.data() + 0x0E, 8)) != 0)
 	  goto out;
 
 	/*load the data from 0x119H to eeprom end */
 	r = IMG_LOAD_MAIN;
 	if (m.X_Memory_Write_Block (0x119,
-				    CArray (i->code.array () + 0x19,
-					    i->code () - 0x19)) != 0)
+				    CArray (i->code.data() + 0x19,
+					    i->code.size() - 0x19)) != 0)
 	  goto out;
 
-	if (m.X_Memory_Write_Block (0x0100, CArray (i->code.array (), 1)) !=
+	if (m.X_Memory_Write_Block (0x0100, CArray (i->code.data(), 1)) !=
 	    0)
 	  goto out;
 
@@ -675,7 +676,7 @@ LoadImage (ClientConnection * c, pth_event_t stop)
 	/* set the length of the address table */
 	r = IMG_FINALIZE_ADDR_TAB;
 	if (m.X_Memory_Write_Block (0x0116,
-				    CArray (i->code.array () + 0x16, 1)) != 0)
+				    CArray (i->code.data() + 0x16, 1)) != 0)
 	  goto out;
 
 	/* reset all error flags in the BCU (0x10D = 0xFF) */
@@ -716,23 +717,23 @@ LoadImage (ClientConnection * c, pth_event_t stop)
 	      goto out;
 	  }
 
-	for (j = 0; j < i->load (); j++)
+	ITER (j, i->load)
 	  {
-	    r = i->load[j].error;
-	    if (i->load[j].obj != 0xff)
+	    r = j->error;
+	    if (j->obj != 0xff)
 	      {
-		if (m.A_Property_Write (i->load[j].obj, i->load[j].prop,
-					i->load[j].start, 1, i->load[j].req,
+		if (m.A_Property_Write (j->obj, j->prop,
+					j->start, 1, j->req,
 					erg) == -1)
 		  goto out;
-		if (erg != i->load[j].result)
+		if (erg != j->result)
 		  goto out;
 	      }
-	    if (i->load[j].memaddr != 0xffff)
-	      if (m.X_Memory_Write_Block (i->load[j].memaddr,
-					  CArray (i->code.array () +
-						  i->load[j].memaddr - 0x100,
-						  i->load[j].len)) != 0)
+	    if (j->memaddr != 0xffff)
+	      if (m.X_Memory_Write_Block (j->memaddr,
+					  CArray (i->code.data() +
+						  j->memaddr - 0x100,
+						  j->len)) != 0)
 		goto out;
 	  }
 
@@ -750,5 +751,6 @@ out:
   EIBSETTYPE (buf, EIB_LOAD_IMAGE);
   buf[2] = (r >> 8) & 0xff;
   buf[3] = (r) & 0xff;
-  c->sendmessage (4, buf, stop);
+  c->sendmessage (4, buf);
 }
+

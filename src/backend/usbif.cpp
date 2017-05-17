@@ -184,94 +184,107 @@ detectUSBEndpoint (libusb_context *context, USBEndpoint e)
   return e2;
 }
 
-USBLowLevelDriver::USBLowLevelDriver (const char *Dev, Trace * tr)
+USBLowLevelDriver::USBLowLevelDriver (const char *Dev, TracePtr tr) : LowLevelDriver(tr)
 {
-  t = tr;
   loop = new USBLoop (tr);
-  pth_sem_init (&in_signal);
-  pth_sem_init (&out_signal);
-  pth_sem_init (&send_empty);
-  pth_sem_init (&recv_signal);
-  pth_sem_set_value (&send_empty, 1);
-  getwait = pth_event (PTH_EVENT_SEM, &out_signal);
 
   if (!loop->context)
     return;
-  TRACEPRINTF (t, 1, this, "Detect");
+
+  trigger.set<USBLowLevelDriver,&USBLowLevelDriver::trigger_cb>(this);
+  trigger.start();
+  TRACEPRINTF (t, 1, "Detect");
   USBEndpoint e = parseUSBEndpoint (Dev);
   d = detectUSBEndpoint (loop->context, e);
   state = 0;
   if (d.dev == 0)
     return;
-  TRACEPRINTF (t, 1, this, "Using %d:%d:%d:%d:%d (%d:%d)",
+  TRACEPRINTF (t, 1, "Using %d:%d:%d:%d:%d (%d:%d)",
 	       libusb_get_bus_number (d.dev),
 	       libusb_get_device_address (d.dev), d.config, d.altsetting,
 	       d.interface, d.sendep, d.recvep);
   if (libusb_open (d.dev, &dev) < 0)
     {
-      ERRORPRINTF (t, E_ERROR | 28, this, "USBLowLevelDriver: init libusb: %s", strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 28, "USBLowLevelDriver: init libusb: %s", strerror(errno));
       return;
     }
   libusb_unref_device (d.dev);
   state = 1;
-  TRACEPRINTF (t, 1, this, "Open");
+  TRACEPRINTF (t, 1, "Open");
   libusb_detach_kernel_driver (dev, d.interface);
   if (libusb_set_configuration (dev, d.config) < 0)
     {
-      ERRORPRINTF (t, E_ERROR | 29, this, "USBLowLevelDriver: setup config: %s", strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 29, "USBLowLevelDriver: setup config: %s", strerror(errno));
       return;
     }
   if (libusb_claim_interface (dev, d.interface) < 0)
     {
-      ERRORPRINTF (t, E_ERROR | 30, this, "USBLowLevelDriver: claim interface: %s", strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 30, "USBLowLevelDriver: claim interface: %s", strerror(errno));
       return;
     }
   if (libusb_set_interface_alt_setting (dev, d.interface, d.altsetting) < 0)
     {
-      ERRORPRINTF (t, E_ERROR | 31, this, "USBLowLevelDriver: altsetting: %s", strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 31, "USBLowLevelDriver: altsetting: %s", strerror(errno));
       return;
     }
-  TRACEPRINTF (t, 1, this, "Claimed");
+  TRACEPRINTF (t, 1, "Claimed");
   state = 2;
   connection_state = true;
 
-  Start ();
-  TRACEPRINTF (t, 1, this, "Opened");
+  TRACEPRINTF (t, 1, "Opened");
 }
 
 USBLowLevelDriver::~USBLowLevelDriver ()
 {
-  TRACEPRINTF (t, 1, this, "Close");
-  Stop ();
-  pth_event_free (getwait, PTH_FREE_THIS);
+  TRACEPRINTF (t, 1, "Close");
+  running = false;
+  if (sendh)
+    libusb_cancel_transfer (sendh);
+  if (recvh)
+    libusb_cancel_transfer (recvh);
+  while (sendh || recvh)
+    ev_run(EV_DEFAULT_ EVRUN_ONCE);
 
-  TRACEPRINTF (t, 1, this, "Release");
+  TRACEPRINTF (t, 1, "Release");
   if (state > 0)
     {
       libusb_release_interface (dev, d.interface);
       libusb_attach_kernel_driver (dev, d.interface);
     }
-  TRACEPRINTF (t, 1, this, "Close");
   if (state > 0)
     libusb_close (dev);
   delete loop;
+  TRACEPRINTF (t, 1, "Closed");
 }
 
 bool
 USBLowLevelDriver::init ()
 {
-  return state == 2;
+  if (state != 2)
+    return false;
+  // may be called a second time
+  if (running)
+    return true;
+
+  recvh = libusb_alloc_transfer (0);
+  if (!recvh)
+    {
+      ERRORPRINTF (t, E_ERROR | 34, "Error AllocRecv: %s", strerror(errno));
+      return false;
+    } 
+  running = true;
+  StartUsbRecvTransfer();
+  return true;
 }
 
 void
 USBLowLevelDriver::Send_Packet (CArray l)
 {
   CArray pdu;
-  t->TracePacket (1, this, "Send", l);
+  t->TracePacket (1, "Send", l);
 
-  inqueue.put (l);
-  pth_sem_set_value (&send_empty, 0);
-  pth_sem_inc (&in_signal, TRUE);
+  send_q.put (std::move(l));
+  trigger.send();
 }
 
 void
@@ -279,56 +292,34 @@ USBLowLevelDriver::SendReset ()
 {
 }
 
-bool
-USBLowLevelDriver::Send_Queue_Empty ()
-{
-  return inqueue.isempty ();
-}
-
-pth_sem_t *
-USBLowLevelDriver::Send_Queue_Empty_Cond ()
-{
-  return &send_empty;
-}
-
-CArray *
-USBLowLevelDriver::Get_Packet (pth_event_t stop)
-{
-  if (stop != NULL)
-    pth_event_concat (getwait, stop, NULL);
-
-  pth_wait (getwait);
-
-  if (stop != NULL)
-    pth_event_isolate (getwait);
-
-  if (pth_event_status (getwait) == PTH_STATUS_OCCURRED)
-    {
-      pth_sem_dec (&out_signal);
-      CArray *c = outqueue.get ();
-      t->TracePacket (1, this, "Recv", *c);
-      return c;
-    }
-  else
-    return 0;
-}
-
-LowLevelDriver::EMIVer USBLowLevelDriver::getEMIVer ()
+EMIVer USBLowLevelDriver::getEMIVer ()
 {
   return vRaw;
 }
 
-struct usb_complete
-{
-  pth_sem_t signal;
-};
-
 void
 usb_complete_send (struct libusb_transfer *transfer)
 {
-  struct usb_complete *
-    complete = (struct usb_complete *) transfer->user_data;
-  pth_sem_inc (&complete->signal, 0);
+  USBLowLevelDriver *
+    instance = (USBLowLevelDriver *) transfer->user_data;
+  instance->CompleteSend(transfer);
+}
+
+void
+USBLowLevelDriver::CompleteSend(struct libusb_transfer *transfer)
+{
+  assert(transfer == sendh);
+  if (sendh->status != LIBUSB_TRANSFER_COMPLETED)
+    ERRORPRINTF (t, E_WARNING | 35, "SendError %d", sendh->status);
+  else
+    {
+      TRACEPRINTF (t, 0, "SendComplete %d",
+                    sendh->actual_length);
+      send_q.get ();
+    }
+  libusb_free_transfer (sendh);
+  sendh = nullptr;
+  trigger.send();
 }
 
 void
@@ -340,63 +331,55 @@ usb_complete_recv (struct libusb_transfer *transfer)
 }
 
 void 
-USBLowLevelDriver::CompleteReceive(struct libusb_transfer *recvh)
+USBLowLevelDriver::CompleteReceive(struct libusb_transfer *transfer)
 {
-  if (pth_event_status (stop) != PTH_STATUS_OCCURRED)
+  assert (transfer == recvh);
+  FinishUsbRecvTransfer();
+  if (running)
+    StartUsbRecvTransfer();
+  else if (recvh)
     {
-      FinishUsbRecvTransfer(recvh);
-      StartUsbRecvTransfer(recvh);
+      libusb_free_transfer (recvh);
+      recvh = nullptr;
     }
-  pth_sem_inc (&recv_signal, 0);
 }
 
 
 void 
-USBLowLevelDriver::StartUsbRecvTransfer(struct libusb_transfer *recvh)
+USBLowLevelDriver::StartUsbRecvTransfer()
 {
   libusb_fill_interrupt_transfer (recvh, dev, d.recvep, recvbuf,
                                   sizeof (recvbuf), usb_complete_recv,
-                                  this, 30000);
+                                  this, 0);
   if (libusb_submit_transfer (recvh))
     {
-      ERRORPRINTF (t, E_ERROR | 32, this, "Error StartRecv: %s", strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 32, "Error StartRecv: %s", strerror(errno));
           startUsbRecvTransferFailed = true;
       return;
     }
-  TRACEPRINTF (t, 0, this, "StartRecv");
+  TRACEPRINTF (t, 0, "StartRecv");
 }
 
 void
-USBLowLevelDriver::FinishUsbRecvTransfer(struct libusb_transfer *recvh)
+USBLowLevelDriver::FinishUsbRecvTransfer()
 {
   if (recvh->status != LIBUSB_TRANSFER_COMPLETED)
-    ERRORPRINTF (t, E_WARNING | 33, this, "RecvError %d", recvh->status);
+    ERRORPRINTF (t, E_WARNING | 33, "RecvError %d", recvh->status);
   else
     {
-      TRACEPRINTF (t, 0, this, "RecvComplete %d",
+      TRACEPRINTF (t, 0, "RecvComplete %d",
 		   recvh->actual_length);
       ReceiveUsb();
-      pth_sem_inc (&out_signal, 1);
     }
 }
 
-bool is_connection_state(uchar *recvbuf)
+inline bool is_connection_state(uint8_t *recvbuf)
 {
-  return recvbuf[0] == 0x01 &&
-         recvbuf[1] == 0x13 &&
-         recvbuf[2] == 0x0A &&
-         recvbuf[3] == 0x00 &&
-	 recvbuf[4] == 0x08 &&
-	 recvbuf[5] == 0x00 &&
-	 recvbuf[6] == 0x02 &&
-	 recvbuf[7] == 0x0F &&
-	 recvbuf[8] == 0x04 &&
-	 recvbuf[9] == 0x00 &&
-	 recvbuf[10] == 0x00 &&
-         recvbuf[11] == 0x03;
+  uint8_t wanted[] = { 0x01,0x13,0x0A,0x00,0x08,0x00,0x02,0x0F,0x04,0x00,0x00,0x03 };
+  return !memcmp(recvbuf, wanted, sizeof(wanted));
 }
 
-bool get_connection_state(uchar *recvbuf)
+bool get_connection_state(uint8_t *recvbuf)
 {
   return recvbuf[12] & 0x1;
 }
@@ -406,125 +389,37 @@ USBLowLevelDriver::ReceiveUsb()
 {
   CArray res;
   res.set (recvbuf, sizeof (recvbuf));
-  t->TracePacket (0, this, "RecvUSB", res);
-  outqueue.put (new CArray (res));
+  t->TracePacket (0, "RecvUSB", res);
+  on_recv (new CArray (res));
   if (is_connection_state(recvbuf))
     connection_state = get_connection_state(recvbuf);
 }
 
 void
-USBLowLevelDriver::Run (pth_sem_t * stop1)
+USBLowLevelDriver::trigger_cb(ev::async &w, int revents)
 {
-  stop = pth_event (PTH_EVENT_SEM, stop1);
-  pth_event_t input = pth_event (PTH_EVENT_SEM, &in_signal);
-  struct libusb_transfer *sendh = 0;
-  struct libusb_transfer *recvh = 0;
-  struct usb_complete sendc;
-  pth_event_t sende = pth_event (PTH_EVENT_SEM, &in_signal);
-  pth_event_t recve = pth_event (PTH_EVENT_SEM, &in_signal);
-  bool waiting_for_receive_transfer = 0;
+  if (sendh || !connection_state || send_q.isempty())
+    return;
 
-  pth_sem_init (&sendc.signal);
-
-  startUsbRecvTransferFailed = false;
-  recvh = libusb_alloc_transfer (0);
-  if (!recvh)
+  const CArray & c = send_q.front ();
+  t->TracePacket (0, "Send", c);
+  memset (sendbuf, 0, sizeof (sendbuf));
+  memcpy (sendbuf, c.data(),
+          (c.size() > sizeof (sendbuf) ? sizeof (sendbuf) : c.size()));
+  sendh = libusb_alloc_transfer (0);
+  if (!sendh)
     {
-      ERRORPRINTF (t, E_ERROR | 34, this, "Error AllocRecv: %s", strerror(errno));
-      startUsbRecvTransferFailed = true;
+      ERRORPRINTF (t, E_ERROR | 36, "Error AllocSend");
+      return;
     }
-  else 
+  libusb_fill_interrupt_transfer (sendh, dev, d.sendep, sendbuf,
+                                  sizeof (sendbuf), usb_complete_send,
+                                  this, 1000);
+  if (libusb_submit_transfer (sendh))
     {
-      StartUsbRecvTransfer(recvh);
+      ERRORPRINTF (t, E_ERROR | 37, "Error StartSend");
+      return;
     }
-		
-  while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
-    {
-      if (!waiting_for_receive_transfer) 
-	{
-	  if (startUsbRecvTransferFailed)
-            break;
-	  waiting_for_receive_transfer = true;
-	  pth_event (PTH_EVENT_SEM | PTH_MODE_REUSE | PTH_UNTIL_DECREMENT,
-		     recve, &recv_signal);
-	}
-      if (pth_event_status (recve) == PTH_STATUS_OCCURRED)
-	{
-	  waiting_for_receive_transfer = false;
-	  continue;
-	}
-      if (sendh && pth_event_status (sende) == PTH_STATUS_OCCURRED)
-	{
-	  if (sendh->status != LIBUSB_TRANSFER_COMPLETED)
-	    ERRORPRINTF (t, E_WARNING | 35, this, "SendError %d", sendh->status);
-	  else
-	    {
-	      TRACEPRINTF (t, 0, this, "SendComplete %d",
-			   sendh->actual_length);
-	      pth_sem_dec (&in_signal);
-	      inqueue.get ();
-	      if (inqueue.isempty ())
-		pth_sem_set_value (&send_empty, 1);
-	    }
-	  libusb_free_transfer (sendh);
-	  sendh = 0;
-	  continue;
-	}
-      if (!sendh && !inqueue.isempty () && connection_state)
-	{
-	  const CArray & c = inqueue.top ();
-	  t->TracePacket (0, this, "Send", c);
-	  memset (sendbuf, 0, sizeof (sendbuf));
-	  memcpy (sendbuf, c.array (),
-		  (c () > sizeof (sendbuf) ? sizeof (sendbuf) : c ()));
-	  sendh = libusb_alloc_transfer (0);
-	  if (!sendh)
-	    {
-	      ERRORPRINTF (t, E_ERROR | 36, this, "Error AllocSend");
-	      break;
-	    }
-	  libusb_fill_interrupt_transfer (sendh, dev, d.sendep, sendbuf,
-					  sizeof (sendbuf), usb_complete_send,
-					  &sendc, 1000);
-	  if (libusb_submit_transfer (sendh))
-	    {
-	      ERRORPRINTF (t, E_ERROR | 37, this, "Error StartSend");
-	      break;
-	    }
-	  TRACEPRINTF (t, 0, this, "StartSend");
-	  pth_event (PTH_EVENT_SEM | PTH_MODE_REUSE | PTH_UNTIL_DECREMENT,
-		     sende, &sendc.signal);
-	  continue;
-	}
-
-      if (recvh)
-	pth_event_concat (stop, recve, NULL);
-      if (sendh)
-	pth_event_concat (stop, sende, NULL);
-      else
-	pth_event_concat (stop, input, NULL);
-
-      pth_wait (stop);
-
-      pth_event_isolate (sende);
-      pth_event_isolate (recve);
-      pth_event_isolate (input);
-    }
-
-  if (sendh)
-    {
-      libusb_cancel_transfer (sendh);
-      pth_wait (sende);
-      libusb_free_transfer (sendh);
-    }
-  if (recvh)
-    {
-      libusb_cancel_transfer (recvh);
-      pth_wait (recve);
-      libusb_free_transfer (recvh);
-    }
-  pth_event_free (stop, PTH_FREE_THIS);
-  pth_event_free (input, PTH_FREE_THIS);
-  pth_event_free (sende, PTH_FREE_THIS);
-  pth_event_free (recve, PTH_FREE_THIS);
+  TRACEPRINTF (t, 0, "StartSend");
 }
+

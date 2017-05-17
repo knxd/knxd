@@ -33,6 +33,7 @@ EIBC_LICENSE(
 #define KAGARG_UINT8a(name, args) printf(", "); AGARG_UINT8a (name, args)
 #define KAGARG_UINT8b(name, args) printf(", "); AGARG_UINT8b (name, args)
 #define KAGARG_UINT16(name, args) printf(", "); AGARG_UINT16 (name, args)
+#define KAGARG_UINT32(name, args) printf(", "); AGARG_UINT32 (name, args)
 #define KAGARG_OUTUINT8(name, args) printf(", "); AGARG_OUTUINT8 (name, args)
 #define KAGARG_OUTUINT8a(name, args) printf(", "); AGARG_OUTUINT8a (name, args)
 #define KAGARG_OUTUINT16(name, args) printf(", "); AGARG_OUTUINT16 (name, args)
@@ -52,6 +53,7 @@ EIBC_LICENSE(
 #define KALARG_UINT8a(name, args) printf(", "); ALARG_UINT8a (name, args)
 #define KALARG_UINT8b(name, args) printf(", "); ALARG_UINT8b (name, args)
 #define KALARG_UINT16(name, args) printf(", "); ALARG_UINT16 (name, args)
+#define KALARG_UINT32(name, args) printf(", "); ALARG_UINT32 (name, args)
 #define KALARG_OUTUINT8(name, args) printf(", "); ALARG_OUTUINT8 (name, args)
 #define KALARG_OUTUINT8a(name, args) printf(", "); ALARG_OUTUINT8a (name, args)
 #define KALARG_OUTUINT16(name, args) printf(", "); ALARG_OUTUINT16 (name, args)
@@ -78,6 +80,7 @@ EIBC_LICENSE(
 #define AGARG_UINT8a(name, args) printf("%s", #name);  KAG ## args
 #define AGARG_UINT8b(name, args) printf("%s", #name);  KAG ## args
 #define AGARG_UINT16(name, args) printf("%s", #name);  KAG ## args
+#define AGARG_UINT32(name, args) printf("%s", #name);  KAG ## args
 #define AGARG_OUTUINT8(name, args) printf("%s", #name);  KAG ## args
 #define AGARG_OUTUINT8a(name, args) printf("%s", #name);  KAG ## args
 #define AGARG_OUTUINT16(name, args) printf("%s", #name);  KAG ## args
@@ -97,6 +100,7 @@ EIBC_LICENSE(
 #define ALARG_UINT8a(name, args) printf("%s", #name);  KAL ## args
 #define ALARG_UINT8b(name, args) printf("%s", #name);  KAL ## args
 #define ALARG_UINT16(name, args) printf("%s", #name);  KAL ## args
+#define ALARG_UINT32(name, args) printf("%s", #name);  KAL ## args
 #define ALARG_OUTUINT8(name, args) printf("%s", #name);  KAL ## args
 #define ALARG_OUTUINT8a(name, args) printf("%s", #name);  KAL ## args
 #define ALARG_OUTUINT16(name, args) printf("%s", #name);  KAL ## args

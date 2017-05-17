@@ -19,41 +19,22 @@
 
 #ifndef TPUART_TCP_H
 #define TPUART_TCP_H
-#include <netinet/in.h>
-#include "eibnetip.h"
-#include "layer2.h"
-#include "lpdu.h"
+#include "tpuart.h"
+
+
 
 /** TPUART user mode driver */
-class TPUARTTCPLayer2Driver:public Layer2, private Thread
+class TPUARTTCPLayer2Driver:public TPUART_Base
 {
-  /** TCP/IP connection */
-  int fd;
-  /** semaphore for inqueue */
-  pth_sem_t in_signal;
-  /** input queue */
-  Queue < LPDU * >inqueue;
-  /** output queue */
-  bool ackallgroup;
-  bool ackallindividual;
-  bool dischreset;
-
-  /** process a received frame */
-  void RecvLPDU (const uchar * data, int len);
-  void Run (pth_sem_t * stop);
   const char *Name() { return "tpuarts"; }
+  void setstate(enum TSTATE new_state);
+  void dev_timer();
+
 public:
   TPUARTTCPLayer2Driver (const char *dest, int port, L2options *opt);
-  ~TPUARTTCPLayer2Driver ();
-  bool init (Layer3 *l3);
+  ~TPUARTTCPLayer2Driver () {}
 
-  void Send_L_Data (LPDU * l);
-
-  bool enterBusmonitor ();
-  bool leaveBusmonitor ();
-
-  bool Open ();
-  bool Send_Queue_Empty ();
+  bool init(Layer3 *l3);
 };
 
 #endif

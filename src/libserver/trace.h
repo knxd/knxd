@@ -22,16 +22,8 @@
 
 #include <stdarg.h>
 #include <sys/time.h>
+#include <memory>
 #include "common.h"
-
-#define TRACE_LEVEL_0 0x01
-#define TRACE_LEVEL_1 0x02
-#define TRACE_LEVEL_2 0x04
-#define TRACE_LEVEL_3 0x08
-#define TRACE_LEVEL_4 0x10
-#define TRACE_LEVEL_5 0x20
-#define TRACE_LEVEL_6 0x40
-#define TRACE_LEVEL_7 0x80
 
 #define LEVEL_FATAL 0
 #define LEVEL_CRITICAL 1
@@ -59,16 +51,19 @@ class Trace
   unsigned int level;
   /** when did we start up? */
   struct timeval started;
+  /** print timestamps when tracing */
+  bool timestamps = true;
 
   /** print the common header */
   void TraceHeader (int layer);
 
 public:
-  /** name and number of this tracer */
+  /** name(s) and number of this tracer */
+  std::string &servername;
   std::string name;
   unsigned int seq;
 
-  Trace (const char *name)
+  Trace (std::string &server, const char *name) : servername(server)
   {
     layers = 0;
     level = 0;
@@ -79,12 +74,13 @@ public:
     gettimeofday(&started, NULL);
   }
 
-  Trace (Trace *orig, std::string name)
+  Trace (Trace &orig, std::string name) : servername(orig.servername)
   {
-    this->layers = orig->layers;
-    this->level = orig->level;
+    this->layers = orig.layers;
+    this->level = orig.level;
     this->name = name;
-    this->started = orig->started;
+    this->started = orig.started;
+    this->timestamps = orig.timestamps;
     this->seq = ++trace_seq;
     if (trace_namelen < this->name.length())
       trace_namelen = this->name.length();
@@ -99,6 +95,11 @@ public:
     layers = l;
   }
 
+  virtual void SetTimestamps (bool l)
+  {
+    timestamps = l;
+  }
+
   /** sets error level */
   virtual void SetErrorLevel (int l)
   {
@@ -107,44 +108,40 @@ public:
 
   /** prints a message with a hex dump unconditional
    * @param layer level of the message
-   * @param inst pointer to the source
    * @param msg Message
    * @param Len length of the data
    * @param data pointer to the data
    */
-  virtual void TracePacketUncond (int layer, void *inst, const char *msg,
+  virtual void TracePacketUncond (int layer, const char *msg,
 				  int Len, const uchar * data);
   /** prints a message with a hex dump
    * @param layer level of the message
-   * @param inst pointer to the source
    * @param msg Message
    * @param Len length of the data
    * @param data pointer to the data
    */
-  void TracePacket (int layer, void *inst, const char *msg, int Len,
+  void TracePacket (int layer, const char *msg, int Len,
 		    const uchar * data)
   {
     if (!ShowPrint (layer))
       return;
-    TracePacketUncond (layer, inst, msg, Len, data);
+    TracePacketUncond (layer, msg, Len, data);
   }
   /** prints a message with a hex dump
    * @param layer level of the message
-   * @param inst pointer to the source
    * @param msg Message
    * @param c array with the data
    */
-  void TracePacket (int layer, void *inst, const char *msg, const CArray & c)
+  void TracePacket (int layer, const char *msg, const CArray & c)
   {
-    TracePacket (layer, inst, msg, c (), c.array ());
+    TracePacket (layer, msg, c.size(), c.data());
   }
 
   /** like printf for this trace
    * @param layer level of the message
-   * @param inst pointer to the source
    * @param msg Message
    */
-  virtual void TracePrintf (int layer, void *inst, const char *msg, ...);
+  virtual void TracePrintf (int layer, const char *msg, ...);
 
   /** like printf for errors
    * @param msgid message id
@@ -177,9 +174,11 @@ public:
   }
 };
 
-#define TRACEPRINTF(trace, layer, inst, msg, args...) do { if ((trace)->ShowPrint(layer)) (trace)->TracePrintf(layer, inst, msg, ##args); } while (0)
-#define ERRORPRINTF(trace, msgid, inst, msg, args...) do { \
-      if ((trace)->ShowPrint(((msgid)>>24)&0x0f)) (trace)->TracePrintf(((msgid)>>24)&0x0f, inst, msg, ##args); \
+typedef std::shared_ptr<Trace> TracePtr;
+
+
+#define TRACEPRINTF(trace, layer, msg, args...) do { if ((trace)->ShowPrint(layer)) (trace)->TracePrintf(layer, msg, ##args); } while (0)
+#define ERRORPRINTF(trace, msgid, msg, args...) do { \
       if ((trace)->ShowError(msgid)) (trace)->ErrorPrintfUncond(msgid, msg, ##args); \
    } while (0)
 

@@ -23,100 +23,105 @@
 #include "layer4.h"
 #include "client.h"
 
-/** implements client interface to a broadcast connection */
-class A_Broadcast:private Thread
+class A_Base
 {
-  ClientConnection *con;
+  void on_error() {}
+protected:
+  ClientConnPtr con = 0; // left NULL on constructor error
+public:
+  error_cb on_error_cb;
+
+  A_Base() {
+    on_error_cb.set<A_Base,&A_Base::on_error>(this);
+  }
+  virtual ~A_Base();
+  inline bool is_connected() { return con != 0; }
+  virtual void recv(uint8_t *buf, size_t len) = 0; // to socket
+};
+
+/** implements client interface to a broadcast connection */
+class A_Broadcast:public T_Reader<BroadcastComm>, public A_Base
+{
   T_BroadcastPtr c;
 
-  void Run (pth_sem_t * stop);
   const char *Name() { return "broadcast"; }
 public:
-  A_Broadcast (ClientConnection * cc);
+  A_Broadcast (ClientConnPtr cc, uint8_t *buf,size_t len);
   ~A_Broadcast ();
 
-  /** start processing */
-  void Do (pth_event_t stop);
+  void send(BroadcastComm &); // from socket
+  void recv(uint8_t *buf, size_t len); // to socket
 };
 
 /** implements client interface to a group connection */
-class A_Group:private Thread
+class A_Group:public T_Reader<GroupComm>, public A_Base
 {
-  ClientConnection *con;
   T_GroupPtr c;
 
-  void Run (pth_sem_t * stop);
   const char *Name() { return "group"; }
 public:
-  A_Group (ClientConnection * cc);
+  A_Group (ClientConnPtr cc, uint8_t *buf,size_t len);
   ~A_Group ();
 
-  /** start processing */
-  void Do (pth_event_t stop);
+  void send(GroupComm &); // from socket
+  void recv(uint8_t *buf, size_t len); // to socket
 };
 
 /** implements client interface to a raw connection */
-class A_TPDU:private Thread
+class A_TPDU:public T_Reader<TpduComm>, public A_Base
 {
-  ClientConnection *con;
   T_TPDUPtr c;
 
-  void Run (pth_sem_t * stop);
   const char *Name() { return "tpdu"; }
 public:
-  A_TPDU (ClientConnection * cc);
+  A_TPDU (ClientConnPtr cc, uint8_t *buf,size_t len);
   ~A_TPDU ();
 
-  /** start processing */
-  void Do (pth_event_t stop);
+  void send(TpduComm &); // from socket
+  void recv(uint8_t *buf, size_t len); // to socket
 };
 
 /** implements client interface to a T_Indivdual connection */
-class A_Individual:private Thread
+class A_Individual:public T_Reader<CArray>, public A_Base
 {
-  ClientConnection *con;
   T_IndividualPtr c;
 
-  void Run (pth_sem_t * stop);
   const char *Name() { return "individual"; }
 public:
-  A_Individual (ClientConnection * cc);
+  A_Individual (ClientConnPtr cc, uint8_t *buf,size_t len);
   ~A_Individual ();
 
-  /** start processing */
-  void Do (pth_event_t stop);
+  void send(CArray &); // from socket
+  void recv(uint8_t *buf, size_t len); // to socket
 };
 
 /** implements client interface to a T_Connection connection */
-class A_Connection:private Thread
+class A_Connection:public T_Reader<CArray>, public A_Base
 {
-  ClientConnection *con;
   T_ConnectionPtr c;
 
-  void Run (pth_sem_t * stop);
   const char *Name() { return "connection"; }
 public:
-  A_Connection (ClientConnection * cc);
+  A_Connection (ClientConnPtr cc, uint8_t *buf,size_t len);
   ~A_Connection ();
 
-  /** start processing */
-  void Do (pth_event_t stop);
+  void send(CArray &); // from socket
+  void recv(uint8_t *buf, size_t len); // to socket
 };
 
 /** implements client interface to a group socket */
-class A_GroupSocket:private Thread
+class A_GroupSocket:public T_Reader<GroupAPDU>, public A_Base
 {
-  ClientConnection *con;
   GroupSocketPtr c;
 
-  void Run (pth_sem_t * stop);
   const char *Name() { return "groupsocket"; }
 public:
-  A_GroupSocket (ClientConnection * cc);
+  A_GroupSocket (ClientConnPtr cc, uint8_t *buf,size_t len);
   ~A_GroupSocket ();
 
   /** start processing */
-  void Do (pth_event_t stop);
+  void send(GroupAPDU &);
+  void recv(uint8_t *buf, size_t len);
 };
 
 #endif

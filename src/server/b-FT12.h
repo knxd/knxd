@@ -21,6 +21,7 @@
 #define C_FT12_H
 
 #include "ft12.h"
+#include "ft12cemi.h"
 #include "emi2.h"
 #include "layer3.h"
 
@@ -33,6 +34,17 @@ inline Layer2Ptr
 ft12_Create (const char *dev, L2options *opt)
 {
   return std::shared_ptr<EMI2Layer2>(new EMI2Layer2 (new FT12LowLevelDriver (dev, opt->t), opt));
+}
+
+#define FT12CEMI_URL "ft12cemi:/dev/ttySx\n"
+#define FT12CEMI_DOC "ft12cemi connects over a serial line with the FT1.2+cEMI Protocol\n\n"
+#define FT12CEMI_PREFIX "ft12cemi"
+#define FT12CEMI_CREATE ft12cemi_Create
+
+inline Layer2Ptr 
+ft12cemi_Create (const char *dev, L2options *opt)
+{
+  return std::shared_ptr<FT12CEMILayer2>(new FT12CEMILayer2 (new FT12LowLevelDriver (dev, opt->t), opt));
 }
 
 #endif

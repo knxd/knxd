@@ -76,10 +76,10 @@ struct _EIBConnection
 /** extracts TYPE code of an eibd packet */
 #define EIBTYPE(con) (((con)->buf[0]<<8)|((con)->buf[1]))
 /** sets TYPE code for an eibd packet*/
-#define EIBSETTYPE(buf,type) do{(buf)[0]=(type>>8)&0xff;(buf)[1]=(type)&0xff;}while(0)
+#define EIBSETTYPE(buf,type) do{(buf)[0]=((type)>>8)&0xff;(buf)[1]=(type)&0xff;}while(0)
 
 /** set EIB address */
-#define EIBSETADDR(buf,type) do{(buf)[0]=(type>>8)&0xff;(buf)[1]=(type)&0xff;}while(0)
+#define EIBSETADDR(buf,type) do{(buf)[0]=((type)>>8)&0xff;(buf)[1]=(type)&0xff;}while(0)
 
 int _EIB_SendRequest (EIBConnection * con, unsigned int size, uchar * data);
 int _EIB_CheckRequest (EIBConnection * con, int block);
@@ -269,6 +269,12 @@ int _EIB_GetRequest (EIBConnection * con);
 	ibuf[offset] = ((value) >> 8) & 0xff; \
 	ibuf[offset + 1] = ((value)) & 0xff;
 
+#define EIBC_SETUINT32(value, offset) \
+	ibuf[offset] = ((value) >> 24) & 0xff; \
+	ibuf[offset + 1] = ((value) >> 16) & 0xff; \
+	ibuf[offset + 2] = ((value) >> 8) & 0xff; \
+	ibuf[offset + 3] = ((value)) & 0xff;
+
 #define EIBC_SETLEN(value, offset) \
 	ibuf[offset] = ((value) >> 8) & 0xff; \
 	ibuf[offset + 1] = ((value)) & 0xff;
@@ -307,6 +313,7 @@ int _EIB_GetRequest (EIBConnection * con);
 #define AGARG_UINT8a(name, args) uint8_t name KAG ## args
 #define AGARG_UINT8b(name, args) uint8_t name KAG ## args
 #define AGARG_UINT16(name, args) uint16_t name KAG ## args
+#define AGARG_UINT32(name, args) uint32_t name KAG ## args
 #define AGARG_OUTUINT8(name, args) uint8_t *name KAG ## args
 #define AGARG_OUTUINT8a(name, args) uint8_t *name KAG ## args
 #define AGARG_OUTUINT16(name, args) uint16_t *name KAG ## args
@@ -326,6 +333,7 @@ int _EIB_GetRequest (EIBConnection * con);
 #define ALARG_UINT8a(name, args) name KAL ## args
 #define ALARG_UINT8b(name, args) name KAL ## args
 #define ALARG_UINT16(name, args) name KAL ## args
+#define ALARG_UINT32(name, args) name KAL ## args
 #define ALARG_OUTUINT8(name, args) name KAL ## args
 #define ALARG_OUTUINT8a(name, args) name KAL ## args
 #define ALARG_OUTUINT16(name, args) name KAL ## args

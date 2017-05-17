@@ -203,6 +203,12 @@
 	printf("  ibuf[%d] := ((%s shr 8) And $ff);\n", offset, #name); \
 	printf("  ibuf[%d] := ((%s) And $ff);\n", offset+1, #name);
 
+#define EIBC_SETUINT32(name, offset) \
+	printf("  ibuf[%d] := ((%s shr 24) And $ff);\n", offset, #name); \
+	printf("  ibuf[%d] := ((%s shr 16) And $ff);\n", offset+1, #name); \
+	printf("  ibuf[%d] := ((%s shr 8) And $ff);\n", offset+2, #name); \
+	printf("  ibuf[%d] := ((%s) And $ff);\n", offset+3, #name);
+
 #define EIBC_SETLEN(name, offset) \
 	printf("  ibuf[%d] := ((%s shr 8) And $ff);\n", offset, name); \
 	printf("  ibuf[%d] := ((%s) And $ff);\n", offset+1, name);

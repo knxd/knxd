@@ -46,51 +46,40 @@ typedef struct
 USBEndpoint parseUSBEndpoint (const char *addr);
 USBDevice detectUSBEndpoint (USBEndpoint e);
 
-class USBLowLevelDriver:public LowLevelDriver, private Thread
+class USBLowLevelDriver:public LowLevelDriver
 {
   libusb_device_handle *dev;
   /* libusb event loop */
   USBLoop *loop;
   USBDevice d;
-  /** debug output */
-  Trace *t;
-  /** semaphore for inqueue */
-  pth_sem_t in_signal;
-  /** semaphore for outqueue */
-  pth_sem_t out_signal;
-  /** input queue */
-  Queue < CArray > inqueue;
-  /** output queue */
-  Queue < CArray * >outqueue;
-  /** event to wait for outqueue */
-  pth_event_t getwait;
-  /** semaphore to signal empty sendqueue */
-  pth_sem_t send_empty;
-  /** semaphore to signal that data has been received */
-  pth_sem_t recv_signal;
-  pth_event_t stop;
-  int state;
-  bool connection_state;
-  uchar sendbuf[64];
-  uchar recvbuf[64];
-  bool startUsbRecvTransferFailed;
+  bool running = false;
 
-  void Run (pth_sem_t * stop);
+  ev::async trigger;
+  void trigger_cb(ev::async &w, int revents);
+  /** transmit queue */
+  Queue < CArray > send_q;
+  int state;
+  bool connection_state = false;
+  uint8_t sendbuf[64];
+  uint8_t recvbuf[64];
+  bool startUsbRecvTransferFailed = false;
+
+  struct libusb_transfer *sendh = 0;
+  struct libusb_transfer *recvh = 0;
+
   const char *Name() { return "usbif"; }
-  void StartUsbRecvTransfer(struct libusb_transfer *recvh);
-  void FinishUsbRecvTransfer(struct libusb_transfer *recvh);
+  void StartUsbRecvTransfer();
+  void FinishUsbRecvTransfer();
   void ReceiveUsb();
 
 public:
-  USBLowLevelDriver (const char *device, Trace * tr);
+  USBLowLevelDriver (const char *device, TracePtr tr);
   ~USBLowLevelDriver ();
   bool init ();
   void CompleteReceive(struct libusb_transfer *recvh);
+  void CompleteSend(struct libusb_transfer *recvh);
 
   void Send_Packet (CArray l);
-  bool Send_Queue_Empty ();
-  pth_sem_t *Send_Queue_Empty_Cond ();
-  CArray *Get_Packet (pth_event_t stop);
   void SendReset ();
   EMIVer getEMIVer ();
 };

@@ -23,11 +23,11 @@
 #include "layer3.h"
 
 EIBNetIPRouter::EIBNetIPRouter (const char *multicastaddr, int port,
-				eibaddr_t a UNUSED, L2options *opt) : Layer2 (opt)
+                                const char *iface, L2options *opt) : Layer2 (opt)
 {
   struct sockaddr_in baddr;
   struct ip_mreq mcfg;
-  TRACEPRINTF (t, 2, this, "Open");
+  TRACEPRINTF (t, 2, "Open");
   memset (&baddr, 0, sizeof (baddr));
 #ifdef HAVE_SOCKADDR_IN_LEN
   baddr.sin_len = sizeof (baddr);
@@ -38,6 +38,11 @@ EIBNetIPRouter::EIBNetIPRouter (const char *multicastaddr, int port,
   sock = new EIBNetIPSocket (baddr, 1, t);
   if (!sock->init ())
     goto err_out;
+  sock->on_recv.set<EIBNetIPRouter,&EIBNetIPRouter::on_recv_cb>(this);
+
+  if (iface)
+    sock->SetInterface(iface);
+
   sock->recvall = 2;
   if (GetHostIP (t, &sock->sendaddr, multicastaddr) == 0)
     goto err_out;
@@ -50,9 +55,9 @@ EIBNetIPRouter::EIBNetIPRouter (const char *multicastaddr, int port,
   mcfg.imr_interface.s_addr = htonl (INADDR_ANY);
   if (!sock->SetMulticast (mcfg))
     goto err_out;
-  Start ();
-  TRACEPRINTF (t, 2, this, "Opened");
+  TRACEPRINTF (t, 2, "Opened");
   return;
+
 err_out:
   delete sock;
   sock = 0;
@@ -61,8 +66,7 @@ err_out:
 
 EIBNetIPRouter::~EIBNetIPRouter ()
 {
-  TRACEPRINTF (t, 2, this, "Destroy");
-  Stop ();
+  TRACEPRINTF (t, 2, "Destroy");
   if (sock)
     delete sock;
 }
@@ -78,68 +82,51 @@ EIBNetIPRouter::init (Layer3 *l3)
 }
 
 void
-EIBNetIPRouter::Send_L_Data (LPDU * l)
+EIBNetIPRouter::send_L_Data (LDataPtr l)
 {
-  TRACEPRINTF (t, 2, this, "Send %s", l->Decode ()());
-  if (l->getType () != L_Data)
-    {
-      delete l;
-      return;
-    }
-  L_Data_PDU *l1 = (L_Data_PDU *) l;
+  TRACEPRINTF (t, 2, "Send %s", l->Decode ().c_str());
   EIBNetIPPacket p;
-  p.data = L_Data_ToCEMI (0x29, *l1);
+  p.data = L_Data_ToCEMI (0x29, l);
   p.service = ROUTING_INDICATION;
   sock->Send (p);
-  delete l;
 }
 
 void
-EIBNetIPRouter::Run (pth_sem_t * stop1)
+EIBNetIPRouter::on_recv_cb(EIBNetIPPacket *p)
 {
-  pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
-  while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
+  if (p->service != ROUTING_INDICATION)
     {
-      EIBNetIPPacket *p = sock->Get (stop);
-      if (p)
-	{
-	  if (p->service != ROUTING_INDICATION)
-	    {
-	      delete p;
-	      continue;
-	    }
-	  if (p->data () < 2 || p->data[0] != 0x29)
-	    {
-              if (p->data () < 2)
-                {
-	          TRACEPRINTF (t, 2, this, "No payload (%d)", p->data ());
-                }
-              else
-                {
-	          TRACEPRINTF (t, 2, this, "Payload not L_Data.ind (%02x)", p->data[0]);
-                }
-	      delete p;
-	      continue;
-	    }
-	  const CArray data = p->data;
-	  delete p;
-	  L_Data_PDU *c = CEMI_to_L_Data (data, shared_from_this());
-	  if (c)
-	    {
-	      TRACEPRINTF (t, 2, this, "Recv %s", c->Decode ()());
-	      if (mode & BUSMODE_UP)
-		{
-		  l3->recv_L_Data (c);
-		  continue;
-		}
-	      L_Busmonitor_PDU *p1 = new L_Busmonitor_PDU (shared_from_this());
-	      p1->pdu = c->ToPacket ();
-	      delete c;
-	      l3->recv_L_Data (p1);
-	      continue;
-	    }
-	}
+      delete p;
+      return;
     }
-  pth_event_free (stop, PTH_FREE_THIS);
+  if (p->data.size() < 2 || p->data[0] != 0x29)
+    {
+      if (p->data.size() < 2)
+        {
+          TRACEPRINTF (t, 2, "No payload (%d)", p->data.size());
+        }
+      else
+        {
+          TRACEPRINTF (t, 2, "Payload not L_Data.ind (%02x)", p->data[0]);
+        }
+      delete p;
+      return;
+    }
+
+  LDataPtr c = CEMI_to_L_Data (p->data, shared_from_this());
+  delete p;
+  if (c)
+    {
+      TRACEPRINTF (t, 2, "Recv %s", c->Decode ().c_str());
+      if (mode & BUSMODE_UP)
+        {
+          l3->recv_L_Data (std::move(c));
+          return;
+        }
+      LBusmonPtr p1 = LBusmonPtr(new L_Busmonitor_PDU (shared_from_this()));
+      p1->pdu = c->ToPacket ();
+      l3->recv_L_Busmonitor (std::move(p1));
+      return;
+    }
 }
 

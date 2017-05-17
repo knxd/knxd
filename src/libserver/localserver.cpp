@@ -23,41 +23,62 @@
 #include <errno.h>
 #include "localserver.h"
 
-LocalServer::LocalServer (Trace * tr, const char *path):
+LocalServer::LocalServer (TracePtr tr, const char *path):
 Server (tr)
 {
   struct sockaddr_un addr;
-  TRACEPRINTF (tr, 8, this, "OpenLocalSocket %s", path);
+  TRACEPRINTF (tr, 8, "OpenLocalSocket %s", path);
   addr.sun_family = AF_LOCAL;
   strncpy (addr.sun_path, path, sizeof (addr.sun_path));
 
   fd = socket (AF_LOCAL, SOCK_STREAM, 0);
   if (fd == -1)
     {
-      ERRORPRINTF (tr, E_ERROR | 15, this, "OpenLocalSocket %s: socket: %s", path, strerror(errno));
+      ERRORPRINTF (tr, E_ERROR | 15, "OpenLocalSocket %s: socket: %s", path, strerror(errno));
       return;
     }
 
-  unlink (path);
   if (bind (fd, (struct sockaddr *) &addr, sizeof (addr)) == -1)
     {
-      ERRORPRINTF (tr, E_ERROR | 16, this, "OpenLocalSocket %s: bind: %s", path, strerror(errno));
-      close (fd);
-      fd = -1;
-      return;
+      /* 
+       * dead file? 
+       */
+      if (errno == EADDRINUSE)
+        {
+          if (connect(fd, (struct sockaddr *) &addr, sizeof (addr)) == 0)
+            {
+          ex:
+              ERRORPRINTF (tr, E_ERROR | 16, "OpenLocalSocket %s: bind: %s", path, strerror(errno));
+              close (fd);
+              fd = -1;
+              return;
+            }
+          else if (errno == ECONNREFUSED)
+            {
+              unlink (path);
+              if (bind (fd, (struct sockaddr *) &addr, sizeof (addr)) == -1)
+                goto ex;
+            }
+          else
+            {
+              ERRORPRINTF (tr, E_ERROR | 18, "Existing socket %s: connect: %s", path, strerror(errno));
+              close (fd);
+              fd = -1;
+              return;
+            }
+        }
     }
 
   if (listen (fd, 10) == -1)
     {
-      ERRORPRINTF (tr, E_ERROR | 17, this, "OpenLocalSocket %s: listen: %s", path, strerror(errno));
+      ERRORPRINTF (tr, E_ERROR | 17, "OpenLocalSocket %s: listen: %s", path, strerror(errno));
       close (fd);
       fd = -1;
       return;
     }
 
   this->path = path;
-  TRACEPRINTF (tr, 8, this, "LocalSocket opened");
-  Start ();
+  TRACEPRINTF (tr, 8, "LocalSocket opened");
 }
 
 LocalServer::~LocalServer ()

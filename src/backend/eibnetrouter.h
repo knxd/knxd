@@ -24,20 +24,20 @@
 #include "eibnetip.h"
 
 /** EIBnet/IP routing backend */
-class EIBNetIPRouter:public Layer2, private Thread
+class EIBNetIPRouter:public Layer2
 {
   /** EIBnet/IP socket */
   EIBNetIPSocket *sock;
 
-  void Run (pth_sem_t * stop);
   const char *Name() { return "eibnetrouter"; }
+  void on_recv_cb(EIBNetIPPacket *p);
 public:
-  EIBNetIPRouter (const char *multicastaddr, int port, eibaddr_t a,
-                  L2options *opt);
+  EIBNetIPRouter (const char *multicastaddr, int port,
+                  const char *iface, L2options *opt);
   virtual ~EIBNetIPRouter ();
   bool init (Layer3 *l3);
 
-  void Send_L_Data (LPDU * l);
+  void send_L_Data (LDataPtr l);
 
 };
 

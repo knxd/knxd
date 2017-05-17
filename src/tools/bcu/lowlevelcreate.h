@@ -20,9 +20,6 @@
 #ifdef HAVE_FT12
 L2_NAME (FT12)
 #endif
-#ifdef HAVE_PEI16s
-  L2_NAME (PEI16s)
-#endif
 #ifdef HAVE_USB
   L2_NAME (USB)
 #endif

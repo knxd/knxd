@@ -23,58 +23,44 @@
 #include "client.h"
 
 /** reads all individual address of devices in the programming mode 
- * @param l3 Layer 3 interface
- * @param t debug output
  * @param c client connection
- * @param stop if occurs, function should abort
  */
-void ReadIndividualAddresses (ClientConnection * c, pth_event_t stop);
+void ReadIndividualAddresses (ClientConnPtr c, uint8_t *buf, size_t len);
 /** change programming mode of a device
- * @param l3 Layer 3 interface
- * @param t debug output
  * @param c client connection
- * @param stop if occurs, function should abort
  */
-void ChangeProgMode (ClientConnection * c, pth_event_t stop);
+void ChangeProgMode (ClientConnPtr c, uint8_t *buf, size_t len);
 
 /** read the mask version of a device
- * @param l3 Layer 3 interface
- * @param t debug output
  * @param c client connection
- * @param stop if occurs, function should abort
  */
-void GetMaskVersion (ClientConnection * c, pth_event_t stop);
+void GetMaskVersion (ClientConnPtr c, uint8_t *buf, size_t len);
 
 /** write a individual address 
- * @param l3 Layer 3 interface
- * @param t debug output
  * @param c client connection
- * @param stop if occurs, function should abort
  */
-void WriteIndividualAddress (ClientConnection * c, pth_event_t stop);
+void WriteIndividualAddress (ClientConnPtr c, uint8_t *buf, size_t len);
 
 /** opens and handles a management connection
- * @param l3 Layer 3 interface
- * @param t debug output
  * @param c client connection
- * @param stop if occurs, function should abort
  */
-void ManagementConnection (ClientConnection * c, pth_event_t stop);
+void ManagementConnection (ClientConnPtr c);
+class ManagementConnection : public A_Base {
+  ManagementConnection (ClientConnPtr c, uint8_t *buf, size_t len);
+  void recv(uint8_t *buf, size_t len);
+};
 
 /** Loads an image in a BCU
- * @param l3 Layer 3 interface
- * @param t debug output
  * @param c client connection
- * @param stop if occurs, function should abort
  */
-void LoadImage (ClientConnection * c, pth_event_t stop);
+void LoadImage (ClientConnPtr c, uint8_t *buf, size_t len);
 
 /** opens and handles a individual connection
- * @param l3 Layer 3 interface
- * @param t debug output
  * @param c client connection
- * @param stop if occurs, function should abort
  */
-void ManagementIndividual (ClientConnection * c, pth_event_t stop);
+class ManagementIndividual : public A_Base {
+  ManagementIndividual (ClientConnPtr c, uint8_t *buf, size_t len);
+  void recv(uint8_t *buf, size_t len);
+};
 
 #endif

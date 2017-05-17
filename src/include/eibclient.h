@@ -864,6 +864,9 @@ int EIB_Cache_Read (EIBConnection * con, eibaddr_t dest,
 int EIB_Cache_LastUpdates (EIBConnection * con, uint16_t start,
 			   uint8_t timeout, int max_len, uint8_t * buf,
 			   uint16_t * end);
+int EIB_Cache_LastUpdates2 (EIBConnection * con, uint32_t start,
+			    uint8_t timeout, int max_len, uint8_t * buf,
+			    uint32_t * end);
 
 /** Enable Group Cache - asynchronous.
  * \param con eibd connection
@@ -927,6 +930,9 @@ int EIB_Cache_Read_async (EIBConnection * con, eibaddr_t dest,
 int EIB_Cache_LastUpdates_async (EIBConnection * con, uint16_t start,
 				 uint8_t timeout, int max_len, uint8_t * buf,
 				 uint16_t * end);
+int EIB_Cache_LastUpdates2_async (EIBConnection * con, uint32_t start,
+				  uint8_t timeout, int max_len, uint8_t * buf,
+				  uint32_t * end);
 
 
 __END_DECLS

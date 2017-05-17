@@ -26,7 +26,7 @@
 class LocalServer:public Server
 {
 public:
-  LocalServer (Trace * tr, const char *path);
+  LocalServer (TracePtr tr, const char *path);
   ~LocalServer ();
 private:
   const char *path;

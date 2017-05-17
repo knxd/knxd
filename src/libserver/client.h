@@ -22,49 +22,58 @@
 
 #include "common.h"
 #include "eibtypes.h"
+#include "iobuf.h"
 
 /** reads the type of a eibd packet */
 #define EIBTYPE(buf) (((buf)[0]<<8)|((buf)[1]))
 /** sets the type of a eibd packet*/
-#define EIBSETTYPE(buf,type) do{(buf)[0]=(type>>8)&0xff;(buf)[1]=(type)&0xff;}while(0)
+#define EIBSETTYPE(buf,type) do{(buf)[0]=((type)>>8)&0xff;(buf)[1]=(type)&0xff;}while(0)
 
 class Server;
 class Layer3;
+class A_Base;
+
 /** implements a client connection */
-class ClientConnection:public Thread
+class ClientConnection : public std::enable_shared_from_this<ClientConnection>
 {
   /** client connection */
   int fd;
 public:
   /** Layer 3 interface */
   Layer3 *l3;
+  /** my address */
+  eibaddr_t addr;
   /** debug output */
-  Trace *t;
+  TracePtr t;
 protected:
   /** server */
   Server *s;
-  /** buffer length*/
-  unsigned buflen;
 
-  void Run (pth_sem_t * stop);
+  /** sending */
+  SendBuf sendbuf;
+  RecvBuf recvbuf;
+  A_Base *a_conn = 0;
+
   const char *Name() { return "client"; }
+
+  void exit_conn();
+
 public:
   ClientConnection (Server * s, int fd);
   virtual ~ClientConnection ();
-  /** reads a message and stores it in buf; aborts if stop occurs */
-  int readmessage (pth_event_t stop);
-  /** send a message and aborts if stop occurs */
-  int sendmessage (int size, const uchar * msg, pth_event_t stop);
-  /** send a reject; aborts if stop occurs */
-  int sendreject (pth_event_t stop);
-  /** sends a reject with the code code; aborts, if stop occurs */
-  int sendreject (pth_event_t stop, int code);
+  bool start();
+  void stop(bool no_server=false);
 
+  size_t read_cb(uint8_t *buf, size_t len);
+  void error_cb();
 
-  /** buffer*/
-  uchar *buf;
-  /** message length */
-  unsigned size;
+  /** send a message */
+  void sendmessage (int size, const uchar * msg);
+  /** send a reject */
+  void sendreject ();
+  /** sends a reject with code @code */
+  void sendreject (int code);
 };
+typedef std::shared_ptr<ClientConnection> ClientConnPtr;
 
 #endif

@@ -18,49 +18,61 @@
 */
 
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <ev++.h>
 #include "server.h"
 #include "client.h"
 
 
-BaseServer::BaseServer (Trace * tr)
-	: Layer2virtual (new Trace(tr, tr->name))
+BaseServer::BaseServer (TracePtr tr)
+	: Layer2virtual (tr)
 {
 }
 
 BaseServer::~BaseServer ()
 {
-  TRACEPRINTF (t, 8, this, "StopBaseServer");
-  Stop ();
+  TRACEPRINTF (t, 8, "StopBaseServer");
   if (l3)
     l3->deregisterServer (this);
 }
 
 Server::~Server ()
 {
-  TRACEPRINTF (t, 8, this, "StopServer");
-  Stop ();
-  for (unsigned int i = 0; i < connections (); i++)
-    connections[i]->StopDelete ();
-  while (connections () != 0)
-    pth_yield (0);
+  TRACEPRINTF (t, 8, "StopServer");
+  io.stop();
+  cleanup.stop();
+  ITER(i,connections)
+    (*i)->stop(true);
 
   if (fd != -1)
     close (fd);
 }
 
-bool
-Server::deregister (ClientConnection * con)
+void
+Server::deregister (ClientConnPtr con)
 {
-  for (unsigned i = 0; i < connections (); i++)
-    if (connections[i] == con)
-      {
-	connections.deletepart (i, 1);
-	return 1;
-      }
-  return 0;
+  cleanup_q.push(con);
+  cleanup.send();
 }
 
-Server::Server (Trace * tr)
+void
+Server::cleanup_cb (ev::async &w, int revents)
+{
+  while (!cleanup_q.isempty())
+    {
+      ClientConnPtr con = cleanup_q.get();
+
+      ITER(i, connections)
+        if (*i == con)
+          {
+	    connections.erase (i);
+	    break;
+          }
+    }
+}
+
+Server::Server (TracePtr tr)
     : BaseServer (tr)
 {
   fd = -1;
@@ -71,27 +83,30 @@ Server::init (Layer3 *l3)
 {
   if (fd == -1)
     return false;
+  set_non_blocking(fd);
+  io.set<Server, &Server::io_cb>(this);
+  io.start(fd,ev::READ);
+  cleanup.set<Server, &Server::cleanup_cb>(this);
+  cleanup.start();
+
   return BaseServer::init(l3);
 }
 
 void
-Server::Run (pth_sem_t * stop1)
+Server::io_cb (ev::io &w, int revents)
 {
-  pth_event_t stop = pth_event (PTH_EVENT_SEM, stop1);
-  while (pth_event_status (stop) != PTH_STATUS_OCCURRED)
+  int cfd;
+  cfd = accept (fd, NULL,NULL);
+  if (cfd != -1)
     {
-      int cfd;
-      cfd = pth_accept_ev (fd, 0, 0, stop);
-      if (cfd != -1)
-	{
-	  TRACEPRINTF (t, 8, this, "New Connection");
-	  setupConnection (cfd);
-	  ClientConnection *c = new ClientConnection (this, cfd);
-	  connections.setpart (&c, connections (), 1);
-	  c->Start ();
-	}
+      TRACEPRINTF (t, 8, "New Connection");
+      setupConnection (cfd);
+      ClientConnPtr c = std::shared_ptr<ClientConnection>(new ClientConnection (this, cfd));
+      if (c->start())
+        connections.push_back(c);
     }
-  pth_event_free (stop, PTH_FREE_THIS);
+  else if (errno != EWOULDBLOCK && errno != EAGAIN && errno != EINTR)
+    ERRORPRINTF (t, E_ERROR | 51, "Accept %s: %s", Name(), strerror(errno));
 }
 
 void
