@@ -7,7 +7,7 @@
 
 EAPI="5"
 
-inherit eutils autotools git-2 user
+inherit eutils autotools git-r3 user
 
 DESCRIPTION="Provides an interface to the EIB / KNX bus (latest git)"
 HOMEPAGE="https://github.com/knxd/knxd"
@@ -17,7 +17,11 @@ SLOT="9999"
 KEYWORDS=""
 IUSE="eibd ft12 tpuarts eibnetip eibnetiptunnel eibnetipserver usb groupcache java ncn5120 dummy"
 
-DEPEND="usb? ( dev-libs/libusb )"
+DEPEND="dev-libs/libfmt
+	dev-libs/libev
+    usb? ( dev-libs/libusb )
+    java? ( virtual/jdk )
+	"
 
 EGIT_REPO_URI="https://github.com/knxd/knxd.git"
 

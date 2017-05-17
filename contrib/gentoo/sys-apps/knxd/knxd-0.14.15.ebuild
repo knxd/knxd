@@ -31,8 +31,6 @@ src_prepare() {
 }
 
 src_configure() {
-#  works for me with the pth tests
-#        --without-pth-test \
     econf \
         $(use_enable ft12) \
         $(use_enable tpuarts) \
