@@ -15,13 +15,13 @@ HOMEPAGE="https://github.com/Makki1/knxd"
 LICENSE="GPL-2"
 SLOT="0"
 KEYWORDS=""
-IUSE="eibd ft12 tpuarts eibnetip eibnetiptunnel eibnetipserver usb groupcache java ncn5120 dummy"
+IUSE="eibd ft12 tpuart eibnetip eibnetiptunnel eibnetipserver usb java dummy systemd"
 
 DEPEND="dev-libs/libfmt
-	dev-libs/libev
+    dev-libs/libev
     usb? ( dev-libs/libusb )
     java? ( virtual/jdk )
-	"
+    "
 
 EGIT_REPO_URI="https://github.com/knxd/knxd.git"
 EGIT_COMMIT="v${PV}"
@@ -32,15 +32,14 @@ src_prepare() {
 
 src_configure() {
     econf \
+        $(use_enable systemd) \
         $(use_enable ft12) \
-        $(use_enable tpuarts) \
+        $(use_enable tpuart) \
         $(use_enable eibnetip) \
         $(use_enable eibnetiptunnel) \
         $(use_enable eibnetipserver) \
         $(use_enable usb) \
-        $(use_enable java) \
-        $(use_enable ncn5120) \
-        $(use_enable groupcache) || die "econf failed"
+        $(use_enable java) || die "econf failed"
 
 }
 
