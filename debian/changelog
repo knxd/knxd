@@ -1,3 +1,9 @@
+knxd (0.14.15-2) unstable; urgency=medium
+
+  * Enable building without group cache
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 17 May 2017 20:04:00 +0200
+
 knxd (0.14.15-1) unstable; urgency=medium
 
   * Error parsing arguments.

@@ -46,6 +46,12 @@ if knxd -e 1.2.3 --stop-right-now -T -b dummy: -b dummy: >$EF 2>&1; then
 	exit 1
 fi
 
+if ! knxd -e 1.2.3 --stop-right-now -c -b dummy: -b dummy: >$EF 2>&1; then
+  echo "Group cache disabled – tests skipped – proceed on your own!"
+  rm -f $EF
+  exit 0
+fi
+
 S1=$(tempfile); rm $S1
 S2=$(tempfile); rm $S2
 S3=$(tempfile); rm $S3

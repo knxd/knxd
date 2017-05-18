@@ -22,7 +22,9 @@
 #include "sys/socket.h"
 #include "systemdserver.h"
 #include "lowlevel.h"
+#ifdef HAVE_GROUPCACHE
 #include "groupcacheclient.h"
+#endif
 #include <typeinfo>
 #include <iostream>
 #include <ev++.h>
@@ -127,6 +129,7 @@ Router::setup()
         *i = false;
     }
 
+#ifdef HAVE_GROUPCACHE
     {
       IniSectionPtr gc = s->sub("cache",false);
       if (gc->name.size() > 0)
@@ -135,6 +138,7 @@ Router::setup()
             goto ex;
         }
     }
+#endif
 
   if (!r_low->setup())
     return false;
