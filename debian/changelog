@@ -1,3 +1,9 @@
+knxd (0.14.16-1) unstable; urgency=medium
+
+  * Bugfixes
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 31 May 2017 07:16:05 +0200
+
 knxd (0.14.15-2) unstable; urgency=medium
 
   * Enable building without group cache
