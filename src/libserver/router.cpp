@@ -1090,6 +1090,29 @@ Router::hasClientAddrs(bool complain)
 }
 
 void
+RouterHigh::started()
+{
+  if (is_started)
+    return;
+  is_started = true;
+  Driver::started();
+}
+
+void
+RouterHigh::stopped()
+{
+  is_started = false;
+  Driver::stopped();
+}
+
+void
+RouterHigh::errored()
+{
+  is_started = false;
+  Driver::errored();
+}
+
+void
 RouterHigh::recv_L_Data (LDataPtr l)
 {
   auto r = recv.lock();

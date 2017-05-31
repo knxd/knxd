@@ -282,6 +282,13 @@ public:
 
   virtual void start() { router->start_(); }
   virtual void stop() { router->stop_(); }
+
+  /** prevent dup calls to started() */
+  bool is_started = false;
+  virtual void started();
+  virtual void stopped();
+  virtual void errored();
+
 };
 
 /** global filter adapter, receiving end */
