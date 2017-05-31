@@ -276,6 +276,7 @@ retry:
       if (retry_delay > 0)
         TRACEPRINTF (t, 5, "retrying finished");
       state = L_error;
+      static_cast<Router&>(router).linkStateChanged(std::dynamic_pointer_cast<LinkConnect>(shared_from_this()));
     }
 }
 
