@@ -1,25 +1,100 @@
-language: cpp
-compiler: gcc
+# Use new trusty images, should yield newer compilers and packages
+sudo: false
 dist: trusty
+language: cpp
+
+matrix:
+  include:
+    - compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-4.9
+            - libev-dev
+            - libusb-1.0.0-dev
+      env:
+        - MYCC=gcc-4.9
+        - MYCXX=g++-4.9
+    - compiler: gcc
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-5
+            - libev-dev
+            - libusb-1.0.0-dev
+      env:
+        - MYCC=gcc-5
+        - MYCXX=g++-5
+    - compiler: clang
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.6
+          packages:
+            - clang-3.6
+            - libev-dev
+            - libusb-1.0.0-dev
+      env:
+        - MYCC=clang-3.6
+        - MYCXX=clang++-3.6
+    - compiler: clang
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-precise-3.7
+          packages:
+            - clang-3.7
+            - libev-dev
+            - libusb-1.0.0-dev
+      env:
+        - MYCC=clang-3.7
+        - MYCXX=clang++-3.7
+
+install:
+  ############################################################################
+  # All the dependencies are installed in ${TRAVIS_BUILD_DIR}/deps/
+  ############################################################################
+  - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
+  - mkdir -p ${DEPS_DIR} && cd ${DEPS_DIR}
+
+  ############################################################################
+  # Install a recent CMake
+  ############################################################################
+  - |
+    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+      CMAKE_URL="https://cmake.org/files/v3.7/cmake-3.7.2-Linux-x86_64.tar.gz"
+      mkdir cmake && travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
+      export PATH=${DEPS_DIR}/cmake/bin:${PATH}
+    else
+      brew upgrade cmake || brew install cmake
+    fi
+  - cmake --version
+
+before_script:
+  ############################################################################
+  # Set the git identity (for pushing the documentation and the benchmarks)
+  ############################################################################
+  - git config --global user.name "Travis bot"
+  - git config --global user.email "<>"
+
+  ############################################################################
+  # Go back to the root of the project and setup the build directory
+  ############################################################################
+  - cd ${TRAVIS_BUILD_DIR}
+  - (mkdir build && cd build && cmake .. -DCMAKE_CXX_COMPILER=$MYCXX -DCMAKE_C_COMPILER=$MYCC)
+
 script:
-  - sh -x bootstrap.sh
-  - env CFLAGS="-Wall -Wextra -Wno-reorder" CPPFLAGS="-Wall -Wextra -Wno-reorder" ./configure --disable-systemd
+  - cd build
   - make
-  - sh tools/test.sh
+  - ctest
+
 notifications:
   email:
     on_success: change
     on_failure: always
-sudo: false
-install:
-  - if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
-addons:
-  apt:
-    sources:
-    - ubuntu-toolchain-r-test
-    packages:
-    - gcc-5
-    - g++-5
-    - libev-dev
-    - libusb-1.0-0-dev
-    - strace

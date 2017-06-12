@@ -20,9 +20,10 @@
 #include "inifile.h"
 
 #include <assert.h>
+#include <stdlib.h>
 #include <iostream>
 
-main(int argc, const char *argv[])
+int main(int argc, const char *argv[])
 {
   if(argc < 2) 
     {
@@ -66,5 +67,5 @@ main(int argc, const char *argv[])
         }
     }
   std::cerr << "All tests completed correctly." << std::endl;
-  exit(0);
+  return 0;
 }
