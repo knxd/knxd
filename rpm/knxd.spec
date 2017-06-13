@@ -57,9 +57,13 @@ A KNX daemon and tools supporting it.
 
 ###############################################################################
 %build
+%if %{defined fedora}
 mkdir build
 cd build
 %cmake -DCMAKE_INSTALL_LIBDIR:PATH=%{_libdir} -DCMAKE_INSTALL_SYSCONFDIR:PATH=%{_sysconfdir} ..
+%else
+%cmake -DCMAKE_INSTALL_SYSCONFDIR:PATH=%{_sysconfdir} -DCMAKE_INSTALL_LIBEXECDIR:PATH="lib/"
+%endif%
 %if %{defined suse_version}
   make
 %else
@@ -204,6 +208,7 @@ fi
 * Tue Jun 13 2017 Michael Kefeder <m.kefeder@gmail.com> 0.16.0
 - moved to cmake build
 - builds on Fedora 25
+- builds on openSUSE LEAP 43.2
 
 * Wed May 17 2017 Michael Kefeder <m.kefeder@gmail.com> 0.14.15
 - builds on Fedora 25
