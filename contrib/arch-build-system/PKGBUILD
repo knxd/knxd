@@ -2,8 +2,8 @@
 # Contributor: vapourismo <ole at vprsm dot de>
 _pkgname=knxd
 pkgname='knxd-git'
-pkgver=449.ra241b3d
-pkgrel=4
+pkgver=1555.rae8e3d1
+pkgrel=1
 pkgdesc='A server which provides an interface to a KNX/EIB installation'
 license=('GPL')
 
@@ -11,9 +11,9 @@ arch=('i686' 'x86_64' 'arm' 'armv6h' 'armv7h')
 conflicts=('knxd' 'eibd')
 provides=('knxd')
 replaces=('eibd')
-depends=('gcc-libs')
+depends=('gcc-libs' 'libusb' 'fmt' 'libev')
 optdepends=('libsystemd' 'libusb')
-makedepends=('git' 'libtool' 'autoconf' 'automake')
+makedepends=('cmake')
 
 source=("git://github.com/knxd/${_pkgname}.git")
 sha512sums=('SKIP')
@@ -26,19 +26,13 @@ pkgver() {
 
 build() {
 	cd "$srcdir/$_pkgname"
-	./bootstrap.sh
-	./configure \
-      --prefix="/usr" \
-      --sysconfdir=/etc \
-      --libdir=/usr/lib \
-      --libexecdir=/usr/lib \
-      --enable-usb
-	make
+	cmake -Bbuild -H. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_INSTALL_LIBEXECDIR=lib -DCMAKE_INSTALL_SYSCONFDIR=/etc -DENABLE_USB=ON
+	make -Cbuild
 }
 
 package() {
   backup=(etc/knxd.conf)
 
 	cd "$srcdir/$_pkgname"
-	make DESTDIR="$pkgdir/" install
+	make DESTDIR="$pkgdir/" -Cbuild install
 }
