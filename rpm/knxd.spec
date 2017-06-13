@@ -4,7 +4,7 @@
 #
 Summary:      A KNX daemon and tools
 Name:         knxd
-Version:      0.14.15
+Version:      0.16.0
 Release:      0%{?dist}
 Group:        Applications/Interpreters
 Source:       %{name}-%{version}.tar.gz
@@ -31,6 +31,7 @@ BuildRequires: fmt-devel
 BuildRequires: systemd
 BuildRequires: systemd-devel
 BuildRequires: libev-devel
+BuildRequires: cmake
 %if 0%{?rhel} >= 7 || %{defined fedora}
 BuildRequires: libusbx-devel
 %endif
@@ -51,11 +52,14 @@ A KNX daemon and tools supporting it.
 ###############################################################################
 # preparation for build
 %prep
-%autosetup -n %{name}-%{version}
+#%autosetup -n %{name}-%{version}
+%setup -q
 
 ###############################################################################
 %build
-%configure
+mkdir build
+cd build
+%cmake -DCMAKE_INSTALL_LIBDIR:PATH=%{_libdir} -DCMAKE_INSTALL_SYSCONFDIR:PATH=%{_sysconfdir} ..
 %if %{defined suse_version}
   make
 %else
@@ -64,6 +68,7 @@ A KNX daemon and tools supporting it.
 
 ###############################################################################
 %install
+cd build
 %make_install
 
 ###############################################################################
@@ -85,7 +90,6 @@ A KNX daemon and tools supporting it.
 %{_includedir}/eibtypes.h
 
 %{_libdir}/libeibclient.a
-%{_libdir}/libeibclient.la
 %{_libdir}/libeibclient.so
 %{_libdir}/libeibclient.so.0
 %{_libdir}/libeibclient.so.0.0.0
@@ -197,6 +201,10 @@ fi
 %verifyscript
 
 %changelog
+* Tue Jun 13 2017 Michael Kefeder <m.kefeder@gmail.com> 0.16.0
+- moved to cmake build
+- builds on Fedora 25
+
 * Wed May 17 2017 Michael Kefeder <m.kefeder@gmail.com> 0.14.15
 - builds on Fedora 25
 - builds on openSUSE LEAP 43.2
