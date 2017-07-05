@@ -48,12 +48,15 @@ char *const *argv;
 
 LOOP_RESULT loop;
 
-/** aborts program with a printf like message */
-void die (const char *msg, ...);
-
 void usage()
 {
-  die("Usage: knxd configfile [main-section]");
+  fprintf(stderr,"Usage: knxd configfile [main_section]\n");
+  fprintf(stderr,"Please consult /usr/share/doc/knxd/inifile.rst\n");
+
+  if (pidfile)
+    unlink (pidfile);
+
+  exit (2);
 }
 
 // The NOQUEUE options are deprecated
