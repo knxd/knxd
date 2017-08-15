@@ -552,12 +552,19 @@ public:
 #ifdef NO_MAP
 #define FILTER(_cls,_name) \
 class _cls : public Filter
+#define FILTER_(_cls,_base,_name) \
+class _cls : public _base
 #else
 #define FILTER(_cls,_name) \
 static constexpr const char _cls##_name[] = #_name; \
 class _cls; \
 static AutoRegister<_cls,Filter,_cls##_name> _auto_F##_name; \
 class _cls : public Filter
+#define FILTER_(_cls,_base,_name) \
+static constexpr const char _cls##_name[] = #_name; \
+class _cls; \
+static AutoRegister<_cls,Filter,_cls##_name> _auto_F##_name; \
+class _cls : public _base
 #endif
 
 

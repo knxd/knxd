@@ -964,8 +964,6 @@ a single device. Thus, on outgoing packets knxd will remember the sender's
 address in order to re-address any replies (if they're addressed
 individually).
 
-The "single" filter may not be necessary unless you're programming devices with ETS.
-
   * address (--arg=address=N.N.N)
 
     The "single" filter typically uses knxd's address. However, that
@@ -975,6 +973,23 @@ The "single" filter may not be necessary unless you're programming devices with 
 
 If you use this filter behind an "ipt:" driver, the address it uses will be
 replaced with the one assigned by the remote server.
+
+remap
+-----
+
+This filter allows knxd to connect to devices which internally use
+somewhat-random addresses. This may happen when a remote system reconnects
+and re-uses its old address instead of the new one.
+Thus, on incoming packets knxd will remember the sender's
+address in order to re-address any replies (if they're addressed
+individually).
+
+This filter can also be used to connect remote networks with
+physical addresses that collide with whatever is connected to the rest of
+knxd.
+
+Unlike the "single" filter, "remap" does not take an address parameter
+because its whole point is to use the address assigned to the link by knxd.
 
 queue
 -----

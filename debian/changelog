@@ -1,3 +1,9 @@
+knxd (0.14.17-1) unstable; urgency=medium
+
+  * Add a "remap" filter (the inverse of "single").
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Tue, 15 Aug 2017 03:40:51 +0200
+
 knxd (0.14.16-1) unstable; urgency=medium
 
   * Bugfixes

@@ -30,9 +30,12 @@ typedef struct {
   eibaddr_t dest;
 } phys_comm;
 
+
 FILTER(NatL2Filter,single)
 {
-  /** source addresses when the destination is my own */
+  /** Fakes local source addresses so that knxd appears as a single KNX
+   * device to the remote side */
+protected:
   Array < phys_comm > revaddr; // TODO: replace with a map
 
 public:
@@ -51,6 +54,20 @@ public:
   eibaddr_t getDestinationAddress (eibaddr_t src);
 
   void setAddress(eibaddr_t addr) { this->addr = addr; }
+};
+
+FILTER_(MapL2Filter,NatL2Filter,remap)
+{
+  /** Fakes remote source addresses so that a remote link appears as a
+   single KNX device to knxd  */
+public:
+  MapL2Filter (const LinkConnectPtr_& c, IniSectionPtr& s) : NatL2Filter(c,s) {}
+  virtual ~MapL2Filter ();
+
+  bool setup();
+
+  void recv_L_Data (LDataPtr l);
+  void send_L_Data (LDataPtr l);
 };
 
 #endif
