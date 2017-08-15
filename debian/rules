@@ -33,6 +33,9 @@ override_dh_install: debian/knxd.install debian/knxd.socket debian/knxd.service
 #	mkdir -p debian/knxd/usr/share/doc/knxd/examples
 #	install debian/knxd.udev debian/knxd/usr/share/doc/knxd/examples/70-knxd.rules.sample
 
+override_dh_compress:
+	dh_compress -X.rst
+
 debian/knxd.install: debian/knxd.install.in
 	cp $^ $@
 	grep -qs 'HAVE_SYSTEMD_TRUE.*#' config.status || cat $@.systemd >> $@
