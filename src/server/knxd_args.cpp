@@ -57,7 +57,7 @@ typedef struct {
 #define OPT_MULTI_PORT 10
 #define OPT_NO_TIMESTAMP 11
 
-#define OPT_ARG(_arg,_state,_default) (arg ? arg : \
+#define OPT_ARG(_arg,_state,_default) (_arg ? _arg : \
         (state->argv[state->next] && state->argv[state->next][0] && (state->argv[state->next][0] != '-')) ?  \
             state->argv[state->next++] : _default)
 
@@ -562,10 +562,10 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
     case 'd':
       {
-        const char *arg = OPT_ARG(arg,state,NULL);
+        const char *file = OPT_ARG(arg,state,NULL);
         (*ini["main"])["background"] = "true";
-        if (arg)
-          (*ini["main"])["logfile"] = arg;
+        if (file)
+          (*ini["main"])["logfile"] = file;
       }
       break;
     case 'c':
