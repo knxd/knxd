@@ -6,7 +6,7 @@
 
 pidfile="/run/knxd/knxd-@SLOT@.pid"
 command="/usr/bin/knxd"
-command_args="--pid-file=${pidfile} -d ${KNXD_LOGFILE} ${KNXD_OPTS}"
+command_args="--pid-file=${pidfile} --daemon=${KNXD_LOGFILE} ${KNXD_OPTS}"
 start_stop_daemon_args="-u ${KNXD_USER}"
 description="Daemon for accessing the EIB/KNX bus"
 
