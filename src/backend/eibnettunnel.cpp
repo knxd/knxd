@@ -71,10 +71,12 @@ EIBNetIPTunnel::setup()
   sport = cfg->value("src-port",0);
   NAT = cfg->value("nat",false);
   monitor = cfg->value("monitor",false);
-  if(NAT)
+  srcip = cfg->value("nat-ip","");
+  dataport = cfg->value("data-port",0);
+  if (NAT && (srcip.size() || dataport))
     {
-      srcip = cfg->value("nat-ip","");
-      dataport = cfg->value("data-port",0);
+      ERRORPRINTF (t, E_ERROR | 23, "section %s: nat-ip and data-port only work when 'nat' is true", cfg->name);
+      return false;
     }
   heartbeat_time = cfg->value("heartbeat-timer",30);
   heartbeat_limit = cfg->value("heartbeat-retries",3);
@@ -99,7 +101,6 @@ EIBNetIPTunnel::start()
   if (!GetSourceAddress (t, &caddr, &raddr))
     goto ex;
   raddr.sin_port = htons (sport);
-  NAT = false;
   sock = new EIBNetIPSocket (raddr, (sport != 0), t);
   if (!sock->init ())
     goto ex;
@@ -111,7 +112,6 @@ EIBNetIPTunnel::start()
       if (!GetHostIP (t, &saddr, srcip))
                 goto ex;
       saddr.sin_port = htons (sport);
-      NAT = true;
     }
   else
     saddr = raddr;
