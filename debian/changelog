@@ -1,3 +1,10 @@
+knxd (0.14.18-1) unstable; urgency=medium
+
+  * Fixed argument parser code.
+  * Promoted to Stable.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 21 Aug 2017 05:43:49 +0200
+
 knxd (0.14.17-1) unstable; urgency=medium
 
   * Add a "remap" filter (the inverse of "single").
