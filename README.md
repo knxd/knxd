@@ -25,7 +25,7 @@ Check [the Wiki page](https://github.com/knxd/knxd/wiki) for other version(s) to
 
 * 0.14
 
-  * Configuration
+  * Code configuration
 
     * There are no longer separate --enable-tpuarts and --enable-tpuarttcp
       options. Instead, you control both with --enable-tpuart. (This is the
@@ -35,7 +35,7 @@ Check [the Wiki page](https://github.com/knxd/knxd/wiki) for other version(s) to
 
     * includes a translator (knxd\_args) from options to config file
     
-    * Most (if not all) settings are still usable via the command line
+    * All settings are still usable via the command line
 
   * Complete stack refactored
 
@@ -61,17 +61,16 @@ Check [the Wiki page](https://github.com/knxd/knxd/wiki) for other version(s) to
 
   * use libfmt for sane and type-safe formatting of error and trace messages
 
-  * logging packets is now done with a filter
+  * packet-level "logging" calls in various drivers have been removed
 
-    * packet-level "logging" calls in various drivers have been removed
+    * logging packets is now done with the new "log" filter
 
-  * Complain loudly (and early) if knxd needs -E / client-addrs=X.Y.Z:N
-
-  * There is now a "log" filter. Logging of complete packets
-    (inconsistently bit 1, 2, or 8 of the tracing mask) has been removed
-    from individual drivers.
+    * Logging of complete packets (inconsistently bit 1, 2, or 8 of the
+      tracing mask) has been removed
 
     This also applies to global packet logging.
+
+  * Complain loudly (and early) if knxd needs -E / client-addrs=X.Y.Z:N
 
   * knxd can restart links when they fail, or start to come up.
 
@@ -80,7 +79,7 @@ Check [the Wiki page](https://github.com/knxd/knxd/wiki) for other version(s) to
     There is no longer a way to switch between these modes;
     "knxtool busmonitor" will no longer change the state of any interface.
 
-  * Queuing and flow control.
+  * Queuing and flow control
 
     Previously, all drivers implemented their own queueing for
     outgoing packets, resulting in duplicate code and hidden errors.
@@ -88,7 +87,13 @@ Check [the Wiki page](https://github.com/knxd/knxd/wiki) for other version(s) to
     In v0.14, the main queueing system will pace packets for the slowest device.
     If you don't want that, use the "queue" filter on the slow device(s).
 
-    Output queues in drivers have been removed.
+    All queues in individual drivers have been removed.
+
+  * EMI handling refactored
+
+    This eliminated some common code, found a couple of bugs, and lets us
+    use a common logging module (controlled by bit 0 of the tracing mask)
+    for comprehensive packet debugging.
 
 ## Building
 
@@ -122,10 +127,15 @@ On Debian:
     cd ..
     sudo dpkg -i knxd_*.deb knxd-tools_*.deb
 
+Additions for other Linux versions are very welcome.
+
+On MacOS or Windows, please use a Linux VM.
+I have no way to test OS-specific patches.
+
 ### Test failures
 
 The build script runs a comprehensive set of tests to make sure that knxd
-actually works. It obviously can't test codee talking to directly-connected
+actually works. It obviously can't test code talking to directly-connected
 hardware, but the core parts are exercised.
 
 If the test fails:
@@ -136,7 +146,7 @@ If the test fails:
 
 * Is something on your network echoing multicast packets? (Yes, that happens.)
 
-The test pass OK on Travis (or at least they should pass).
+The tests pass OK on Travis (or at least they should pass).
 
 If you can't figure out the cause of the failure, please open an issue.
 
@@ -172,34 +182,40 @@ Therefore, you do this:
 * Copy the following line to ``/etc/udev/rules.d/70-knxd.rules``:
 
   ```
-  ACTION=="add", SUBSYSTEM=="tty", ATTRS{idVendor}=="03eb", ATTRS{idProduct}=="204b", KERNELS=="something", SYMLINK+="ttyKNX1", OWNER="knxd"
+  ACTION=="add", SUBSYSTEM=="tty", ATTRS{idVendor}=="03eb", ATTRS{idProduct}=="204b", KERNELS=="something", SYMLINK+="knx1", OWNER="knxd"
   ```
 
   Of course you need to replace the ``something`` with whatever ``udevadm`` displayed.
-  An example file may be in ``/lib/udev/rules.d/``.
+  An example file should be in ``/lib/udev/rules.d/``.
 
 * Run ``udevadm test /sys/bus/usb/drivers/cdc_acm/*/tty/ttyACM0``.
 
-* verify that ``/dev/ttyKNX1`` exists and belongs to "knxd":
+* verify that ``/dev/knx1`` exists and belongs to "knxd":
   
-  ``ls -lL /dev/ttyKNX1``
+  ``ls -lL /dev/knx1``
 
-* add ``-b tpuarts:/dev/ttyKNX1`` to the options in ``/etc/knxd.conf``.
+* add ``-b tpuarts:/dev/knx1`` to the options in ``/etc/knxd.conf``.
 
-If you have a second TPUART, repeat with "ttyACM1" and "ttyKNX2".
+If you have a second TPUART, repeat with "ttyACM1" and "knx2".
 
 You'll have to update your rule if you ever plug your TPUART into a different USB port.
 This is intentional.
+
+### Adding any other USB interface
+
+These interfaces should be covered by the `udev` file knxd installs in
+``/lib/udev/rules``. Simply use ``-b usb:`` to talk to it, assuming you
+don't have more than one.
 
 ### Adding a TPUART serial interface to the Raspberry Pi
 
 The console is /dev/ttyAMA0. The udev line is
 
   ```
-  ACTION=="add", SUBSYSTEM=="tty", KERNELS="ttyAMA0", SYMLINK+="ttyKNX1", OWNER="knxd"
+  ACTION=="add", SUBSYSTEM=="tty", KERNELS="ttyAMA0", SYMLINK+="knx1", OWNER="knxd"
   ```
 
-This rule creates a symlink /dev/ttyKNX1 which points to the console. The
+This rule creates a symlink ``/dev/knx1`` which points to the console. The
 knxd configuration will use that symlink.
 
 You need to disable the serial console. Edit ``/boot/cmdline.txt`` and
