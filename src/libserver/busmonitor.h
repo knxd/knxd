@@ -33,7 +33,7 @@ class A_Busmonitor:public L_Busmonitor_CallBack, public A__Base
   /** should provide timestamps */
   bool ts;
   /** registered? */
-  bool running;
+  bool running = false;
 
 protected:
   /** Layer 3 Interface*/

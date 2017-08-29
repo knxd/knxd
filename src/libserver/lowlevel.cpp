@@ -37,7 +37,7 @@ LowLevelIface::~LowLevelIface()
 
 LowLevelIface::LowLevelIface()
 {
-  sendLocal_done.set<LowLevelIface,&LowLevelIface::done_aborter>(this);
+  sendLocal_done.set<LowLevelIface,&LowLevelIface::sendLocal_done_cb>(this);
   local_timeout.set<LowLevelIface,&LowLevelIface::local_timeout_cb>(this);
 }
 
@@ -47,10 +47,10 @@ LowLevelFilter::~LowLevelFilter()
 }
 
 void
-LowLevelIface::done_aborter(bool success)
+LowLevelIface::sendLocal_done_cb(bool success)
 {
-  ERRORPRINTF (tr(), E_FATAL, "non-initialized send_Local callback");
-  abort();
+  if (!success)
+    errored();
 }
 
 void
@@ -59,7 +59,7 @@ LowLevelIface::send_Local(CArray &d, int raw)
   assert(!is_local);
   is_local = true;
   local_timeout.start(0.9, 0);
-  TRACEPRINTF (tr(), 0, "send_Local init");
+  TRACEPRINTF (tr(), 0, "starting send_Local");
 
   do_send_Local(d, raw);
 }
@@ -89,6 +89,15 @@ bool LowLevelFilter::setup()
 
 void
 LowLevelFilter::do_send_Local(CArray &d, int raw)
+{
+  if (raw)
+    iface->do_send_Local(d, raw-1);
+  else
+    send_Data(d);
+}
+
+void
+LowLevelAdapter::do_send_Local(CArray &d, int raw)
 {
   if (raw)
     iface->do_send_Local(d, raw-1);

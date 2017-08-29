@@ -22,7 +22,9 @@
 #include "sys/socket.h"
 #include "systemdserver.h"
 #include "lowlevel.h"
+#ifdef HAVE_GROUPCACHE
 #include "groupcacheclient.h"
+#endif
 #include <typeinfo>
 #include <iostream>
 #include <ev++.h>
@@ -31,6 +33,72 @@
 #ifdef HAVE_SYSTEMD
 #include <systemd/sd-daemon.h>
 #endif
+
+/** global filter adapter, sending end */
+class RouterHigh : public Driver
+{
+  Router* router;
+public:
+  RouterHigh(Router& r, const RouterLowPtr& rl);
+  virtual ~RouterHigh() {}
+
+  virtual void recv_L_Data (LDataPtr l);
+  virtual void recv_L_Busmonitor (LBusmonPtr l);
+  virtual void send_L_Data (LDataPtr l)
+    {
+      router->send_L_Data(std::move(l));
+    }
+  virtual bool checkAddress (eibaddr_t addr)
+    {
+      LinkConnectPtr link = nullptr;
+      return router->checkAddress(addr, link);
+    }
+  virtual bool checkGroupAddress (eibaddr_t addr)
+    {
+      LinkConnectPtr link = nullptr;
+      return router->checkGroupAddress(addr, link);
+    }
+  virtual bool hasAddress (eibaddr_t addr)
+    {
+      LinkConnectPtr link = nullptr;
+      return router->hasAddress(addr, link);
+    }
+  virtual void addAddress (eibaddr_t addr)
+    {
+      if (addr != router->addr)
+        ERRORPRINTF (t, E_ERROR, "%s filter: Trying to add address %s", router->main, FormatEIBAddr(addr));
+    }
+
+  virtual void start() { router->start_(); }
+  virtual void stop() { router->stop_(); }
+
+  /** prevent dup calls to started() */
+  bool is_started = false;
+  virtual void started();
+  virtual void stopped();
+  virtual void errored();
+
+};
+
+/** global filter adapter, receiving end */
+class RouterLow : public LinkConnect_
+{
+public:
+  Router* router;
+  RouterLow(Router& r);
+  virtual ~RouterLow() {}
+
+  virtual void recv_L_Data (LDataPtr l) { router->queue_L_Data (std::move(l)); }
+  virtual void recv_L_Busmonitor (LBusmonPtr l) { router->queue_L_Busmonitor (std::move(l)); }
+  virtual void send_Next ();
+
+  virtual void start() { send->start(); }
+  virtual void stop() { send->stop(); }
+
+  virtual void started() { router->started(); }
+  virtual void stopped() { router->stopped(); }
+  virtual void errored() { router->errored(); }
+};
 
 static Factory<Server> _servers;
 static Factory<Driver> _drivers;
@@ -127,6 +195,7 @@ Router::setup()
         *i = false;
     }
 
+#ifdef HAVE_GROUPCACHE
     {
       IniSectionPtr gc = s->sub("cache",false);
       if (gc->name.size() > 0)
@@ -135,6 +204,7 @@ Router::setup()
             goto ex;
         }
     }
+#endif
 
   if (!r_low->setup())
     return false;
@@ -469,6 +539,19 @@ Router::state_trigger_cb (ev::async &w UNUSED, int revents UNUSED)
   TRACEPRINTF (t, 4, "check end: want_up %d some %d>%d all %d>%d, going %d up %d down %d", want_up, osrn,some_running, oarn,all_running, n_going,n_up,n_down);
   if (want_up && n_down > 0)
     {
+      // Hard report errors
+      ITER(i,links)
+        {
+          auto ii = i->second;
+          LConnState lcs = ii->state;
+          switch(lcs)
+            {
+            case L_down:
+            case L_error:
+              if (!ii->may_fail && !ii->ignore)
+                ERRORPRINTF (ii->t, E_FATAL, "Link down, terminating");
+            }
+        }
       exitcode = 1;
       stop();
     }
@@ -1070,6 +1153,29 @@ Router::hasClientAddrs(bool complain)
     ERRORPRINTF (t, E_ERROR | 51, "You need a client-addrs=X.Y.Z:N option in your %s section.", main);
   return false;
 
+}
+
+void
+RouterHigh::started()
+{
+  if (is_started)
+    return;
+  is_started = true;
+  Driver::started();
+}
+
+void
+RouterHigh::stopped()
+{
+  is_started = false;
+  Driver::stopped();
+}
+
+void
+RouterHigh::errored()
+{
+  is_started = false;
+  Driver::errored();
 }
 
 void

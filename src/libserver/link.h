@@ -359,7 +359,6 @@ public:
   /** You can't unlink the root of the chain … */
   virtual void unlink() { assert(false); }
 
-  virtual void send_L_Data (LDataPtr l) { send->send_L_Data(std::move(l)); }
   virtual bool checkAddress (eibaddr_t addr) { return send->checkAddress(addr); }
   virtual bool checkGroupAddress (eibaddr_t addr) { return send->checkGroupAddress(addr); }
   virtual bool hasAddress (eibaddr_t addr) { return send->hasAddress(addr); }
@@ -370,12 +369,11 @@ public:
 
 /** The link connection state tells what the link's state is.
 
-  down => going_up => up => going_down => down
-             |        |          |
-    -        V        V          V
-             \- L_up_error  => L_going_down_error => L_wait_retry => L_going_up
-
-  Down arrows: errored() has been called
+  down => going_up => up => going_down => down     _ L_error
+             |        |          |                /  (if no (more) retry)
+  errored::  V        V          V               /
+             \- L_up_error => L_going_down_error => L_wait_retry => L_going_up
+                                                    (if retry)
  */
 typedef enum {
     L_down,
@@ -554,12 +552,19 @@ public:
 #ifdef NO_MAP
 #define FILTER(_cls,_name) \
 class _cls : public Filter
+#define FILTER_(_cls,_base,_name) \
+class _cls : public _base
 #else
 #define FILTER(_cls,_name) \
 static constexpr const char _cls##_name[] = #_name; \
 class _cls; \
 static AutoRegister<_cls,Filter,_cls##_name> _auto_F##_name; \
 class _cls : public Filter
+#define FILTER_(_cls,_base,_name) \
+static constexpr const char _cls##_name[] = #_name; \
+class _cls; \
+static AutoRegister<_cls,Filter,_cls##_name> _auto_F##_name; \
+class _cls : public _base
 #endif
 
 

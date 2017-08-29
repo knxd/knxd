@@ -23,7 +23,6 @@
 #define NO_MAP
 #include "nat.h"
 
-
 EIBNetIPTunnel::EIBNetIPTunnel (const LinkConnectPtr_& c, IniSectionPtr& s)
   : BusDriver(c,s)
 {
@@ -77,6 +76,8 @@ EIBNetIPTunnel::setup()
       srcip = cfg->value("nat-ip","");
       dataport = cfg->value("data-port",0);
     }
+  heartbeat_time = cfg->value("heartbeat-timer",30);
+  heartbeat_limit = cfg->value("heartbeat-retries",3);
   return true;
 }
 
@@ -167,8 +168,7 @@ EIBNetIPTunnel::read_cb (EIBNetIPPacket *p1)
           }
         if (cresp.status != 0)
           {
-            TRACEPRINTF (t, 1, "Connect failed with error %02X",
-                          cresp.status);
+            TRACEPRINTF (t, 1, "Connect failed with error %02X", cresp.status);
             if (cresp.status == 0x23 && support_busmonitor && monitor)
               {
                 TRACEPRINTF (t, 1, "Disable busmonitor support");
@@ -217,7 +217,8 @@ EIBNetIPTunnel::read_cb (EIBNetIPPacket *p1)
         rno = 0;
         sock->recvaddr2 = daddr;
         sock->recvall = 3;
-        conntimeout.start(30,0);
+        if (heartbeat_time)
+          conntimeout.start(heartbeat_time,0);
         heartbeat = 0;
         BusDriver::start();
         break;
@@ -369,21 +370,23 @@ EIBNetIPTunnel::read_cb (EIBNetIPPacket *p1)
         if (csresp.status == 0)
           {
             if (heartbeat > 0)
-              heartbeat = 0;
+              {
+                heartbeat = 0;
+                TRACEPRINTF (t, 1, "got Connection State Response");
+              }
             else
-              TRACEPRINTF (t, 1,
-                            "Duplicate Connection State Response");
+              TRACEPRINTF (t, 1, "Duplicate Connection State Response");
           }
         else if (csresp.status == 0x21)
           {
-            TRACEPRINTF (t, 1,
-                          "Connection State Response not connected");
+            TRACEPRINTF (t, 1, "Connection State Response: not connected");
             restart();
           }
         else
-          TRACEPRINTF (t, 1,
-                        "Connection State Response Error %02x",
-                        csresp.status);
+          {
+            TRACEPRINTF (t, 1, "Connection State Response Error %02x", csresp.status);
+            errored();
+          }
         break;
       }
     case DISCONNECT_REQUEST:
@@ -444,8 +447,7 @@ EIBNetIPTunnel::read_cb (EIBNetIPPacket *p1)
       }
     default:
     err:
-      TRACEPRINTF (t, 1, "Recv unexpected service %04X",
-                    p1->service);
+      TRACEPRINTF (t, 1, "Recv unexpected service %04X", p1->service);
     }
   delete p1;
 }
@@ -478,7 +480,7 @@ void EIBNetIPTunnel::conntimeout_cb(ev::timer &w UNUSED, int revents UNUSED)
 {
   if (mod)
     {
-      if (heartbeat < 5)
+      if (heartbeat < heartbeat_limit)
         {
           EIBnet_ConnectionStateRequest csreq;
           csreq.nat = saddr.sin_addr.s_addr == 0;
@@ -489,11 +491,12 @@ void EIBNetIPTunnel::conntimeout_cb(ev::timer &w UNUSED, int revents UNUSED)
           TRACEPRINTF (t, 1, "Heartbeat");
           sock->Send (p, caddr);
           heartbeat++;
-          conntimeout.start(30,0);
+          if (heartbeat_time)
+            conntimeout.start(heartbeat_time,0);
         }
       else
         {
-          TRACEPRINTF (t, 1, "Disconnection because of errors");
+          ERRORPRINTF (t, E_ERROR, "Heartbeat messages unanswered");
           restart();
         }
     }

@@ -72,6 +72,7 @@ NatL2Filter::send_L_Data (LDataPtr  l)
   if (l->AddrType == IndividualAddress)
     addReverseAddress (l->source, l->dest);
   l->source = addr;
+  Filter::send_L_Data (std::move(l));
 }
 
 
@@ -114,5 +115,54 @@ eibaddr_t NatL2Filter::getDestinationAddress (eibaddr_t src)
       return i->src;
 
   return 0;
+}
+
+bool
+MapL2Filter::setup()
+{
+  if (!Filter::setup())
+    return false;
+
+  auto c = std::dynamic_pointer_cast<LinkConnect>(conn.lock());
+  if (c == nullptr)
+    {
+      // either the parent has vanished, or the object is not a
+      // LinkConnect – which happens when you try to apply the filter
+      // globally. The former is exceedingly unlikely, but …
+      if (conn.lock() != nullptr)
+        ERRORPRINTF(t, E_ERROR, "%s: cannot be used globally");
+      return false;
+    }
+  addr = c->addr;
+
+  return true;
+}
+
+MapL2Filter::~MapL2Filter ()
+{
+}
+
+void
+MapL2Filter::send_L_Data (LDataPtr  l)
+{
+  /* Sending a packet to this interface: reverse-lookup real destination from source */
+  if (l->AddrType == IndividualAddress)
+    {
+      l->dest = getDestinationAddress (l->source);
+      if (l->dest == 0)
+        l->dest = addr;
+    }
+  Filter::send_L_Data (std::move(l));
+}
+
+
+void
+MapL2Filter::recv_L_Data (LDataPtr  l)
+{
+  /* Receiving a packet from this interface: record address pair, clear source */
+  if (l->AddrType == IndividualAddress)
+    addReverseAddress (l->source, l->dest);
+  l->source = addr;
+  Filter::recv_L_Data (std::move(l));
 }
 

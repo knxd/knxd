@@ -72,7 +72,9 @@ protected:
 private:
   E_state state;
   bool wait_confirm = false; // waiting for high-level cinfirm
+protected:
   bool wait_confirm_low = false; // waiting for low_level confirm
+private:
   bool monitor = false;
 
   ev::timer timeout;

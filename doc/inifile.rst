@@ -449,6 +449,11 @@ Hardware IP interfaces frequently use this feature.
 
 You may need the "single" filter in front of this driver.
 
+Note that some of these devices exhibit an implementation bug: after 3.5
+weeks an internal timer overruns (the number of milliseconds exceeds 2³¹).
+If this happens, add a "retry-delay" option to cause knxd to reconnect
+instead of terminating.
+
   * ip-address (string: IP address)
 
     The address (or host name) of the tunnel server to connect to.
@@ -472,6 +477,20 @@ You may need the "single" filter in front of this driver.
     Require network address translation.
 
     TODO: when would you need that?
+
+  * heartbeat-timer (int; seconds)
+
+    Timer for periodically checking whether the server is still connected
+    to us.
+
+    The default is 30.
+
+  * heartbeat-retries
+
+    Retry timer for coping with lost heartbeat packets.
+
+    The default is 3. If more consecutive heartbeat packets are unanswered,
+    the interface will be considered failed.
 
 The following options are not recognized unless "nat" is set.
 
@@ -945,8 +964,6 @@ a single device. Thus, on outgoing packets knxd will remember the sender's
 address in order to re-address any replies (if they're addressed
 individually).
 
-The "single" filter may not be necessary unless you're programming devices with ETS.
-
   * address (--arg=address=N.N.N)
 
     The "single" filter typically uses knxd's address. However, that
@@ -956,6 +973,23 @@ The "single" filter may not be necessary unless you're programming devices with 
 
 If you use this filter behind an "ipt:" driver, the address it uses will be
 replaced with the one assigned by the remote server.
+
+remap
+-----
+
+This filter allows knxd to connect to devices which internally use
+somewhat-random addresses. This may happen when a remote system reconnects
+and re-uses its old address instead of the new one.
+Thus, on incoming packets knxd will remember the sender's
+address in order to re-address any replies (if they're addressed
+individually).
+
+This filter can also be used to connect remote networks with
+physical addresses that collide with whatever is connected to the rest of
+knxd.
+
+Unlike the "single" filter, "remap" does not take an address parameter
+because its whole point is to use the address assigned to the link by knxd.
 
 queue
 -----

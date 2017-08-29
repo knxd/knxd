@@ -1,6 +1,0 @@
-#ifndef PATHS_INC
-#define PATHS_INC
-
-#define LIBEXECDIR "@libexecdir@"
-
-#endif

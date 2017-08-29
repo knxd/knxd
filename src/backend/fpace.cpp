@@ -96,15 +96,19 @@ PaceFilter::stopped()
 void
 PaceFilter::send_Next()
 {
-
   switch(state)
     {
     case P_DOWN:
       want_next = true;
       break;
     case P_IDLE:
-      state = P_BUSY;
-      timer.start(last_len*byte_delay + delay);
+      {
+        float this_delay;
+        state = P_BUSY;
+        this_delay = last_len*byte_delay + delay;
+        TRACEPRINTF (t, 2, "out 1/%d: delay for %.3f sec", last_len, this_delay);
+        timer.start(this_delay);
+      }
       break;
     case P_BUSY:
       ERRORPRINTF(t, E_WARNING, "send_next on busy pacer?");
@@ -116,14 +120,20 @@ void
 PaceFilter::timer_cb (ev::timer &w UNUSED, int revents UNUSED)
 {
   if (state != P_BUSY)
-    return;
+    {
+      TRACEPRINTF (t, 2, "state: not busy ??");
+      return;
+    }
   if (factor_in > 0 && nr_in > 0)
     {
-      timer.start((size_in*byte_delay + nr_in*delay) * factor_in);
+      float this_delay = (size_in*byte_delay + nr_in*delay) * factor_in;
+      TRACEPRINTF (t, 2, "in %d/%d: delay more, for %.3f sec", nr_in,size_in, this_delay);
+      timer.start(this_delay);
       nr_in  = 0;
       size_in = 0;
       return;
     }
+  TRACEPRINTF (t, 2, "delay done");
   state = P_IDLE;
   Filter::send_Next();
 }

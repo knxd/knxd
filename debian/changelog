@@ -1,8 +1,8 @@
-knxd (0.15.0-3) UNRELEASED; urgency=medium
+knxd (0.15.0-5) experimental; urgency=medium
 
   * Merge v0.14
 
- -- Matthias Urlichs <matthias@urlichs.de>  Mon, 10 Apr 2017 17:41:54 +0200
+ -- Matthias Urlichs <matthias@urlichs.de>  Tue, 29 Aug 2017 08:24:40 +0200
 
 knxd (0.15.0-1) unstable; urgency=medium
 
@@ -10,6 +10,70 @@ knxd (0.15.0-1) unstable; urgency=medium
 
  -- Matthias Urlichs <matthias@urlichs.de>  Fri, 17 Mar 2017 05:56:23 +0100
 
+knxd (0.14.18-1) unstable; urgency=medium
+
+  * Fixed argument parser code.
+  * Promoted to Stable.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 21 Aug 2017 05:43:49 +0200
+
+knxd (0.14.17-1) unstable; urgency=medium
+
+  * Add a "remap" filter (the inverse of "single").
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Tue, 15 Aug 2017 03:40:51 +0200
+
+knxd (0.14.16-1) unstable; urgency=medium
+
+  * Bugfixes
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 31 May 2017 07:16:05 +0200
+
+knxd (0.14.15-2) unstable; urgency=medium
+
+  * Enable building without group cache
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 17 May 2017 20:04:00 +0200
+
+knxd (0.14.15-1) unstable; urgency=medium
+
+  * Error parsing arguments.
+    Can't call va_arg after it returns NULL.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sat, 13 May 2017 20:32:27 +0200
+
+knxd (0.14.14-1) unstable; urgency=medium
+
+  * Stupid error department.
+  * Fix testing (somewhat)
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 12 May 2017 08:10:33 +0200
+
+knxd (0.14.13-1) unstable; urgency=medium
+
+  * tunnel client: Added heartbeat config options
+    * including ability to turn it off
+  * USB fixed
+    * problems caused by recent ft12/cemi fixes
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 28 Apr 2017 21:01:10 +0200
+
+knxd (0.14.12-1) unstable; urgency=medium
+
+  * Report a fatal error if a link-down state causes knxd to terminate
+  * Fix cross building
+  * Fix libexecdir substitution
+  * Fix a couple of typos
+  * mention journalctl in knxd.conf comments (*sigh*)
+  * drop findknxusb binary from RPM package (no longer necessary)
+  * serial-port handling is more permissive of ioctl errors
+  * more improvements for ft12
+    * Add reset handling to EMI2
+    * fix some FT1.2 corner cases regarding lost bytes
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 23 Apr 2017 10:48:18 +0200
+
+>>>>>>> v0.14
 knxd (0.14.11-1) unstable; urgency=medium
 
   * Merge v0.12
@@ -31,7 +95,7 @@ knxd (0.14.9-1) unstable; urgency=medium
   * various state machine fixes
   * fixed processing of CEMI packets
   * refactored all serial interfaces to optionally run across TCP
-  * fixed ft12/xemi reset handling
+  * fixed ft12/cemi reset handling
 
  -- Matthias Urlichs <matthias@urlichs.de>  Thu, 06 Apr 2017 18:00:21 +0200
 

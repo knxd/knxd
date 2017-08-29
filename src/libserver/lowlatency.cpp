@@ -36,7 +36,7 @@ set_low_latency (int fd, low_latency_save * save)
   snew.flags |= ASYNC_LOW_LATENCY;
   // not all serial drivers support this call, so don't bail out on failure with ENOTTY
   if(ioctl (fd, TIOCSSERIAL, &snew) < 0) {
-    if (errno != ENOTTY)
+    if (errno != ENOTTY && errno != EOPNOTSUPP)
       return false;
   }
 #endif

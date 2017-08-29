@@ -39,7 +39,7 @@ EMI2Driver::sendLocal_done_cb(bool success)
       LowLevelFilter::stopped();
     }
   else if (sendLocal_done_next == N_down)
-    LowLevelFilter::stopped();
+    LowLevelFilter::stop();
   else if (sendLocal_done_next == N_up)
     LowLevelFilter::started();
   else if (sendLocal_done_next == N_open)
@@ -68,6 +68,11 @@ EMI2Driver::cmdEnterMonitor ()
 void
 EMI2Driver::cmdLeaveMonitor ()
 {
+  if (wait_confirm_low)
+    {
+      sendLocal_done_next = N_want_leave;
+      return;
+    }
   sendLocal_done_next = N_down;
   uchar t[] = { 0xa9, 0x1E, 0x12, 0x34, 0x56, 0x78, 0x9a };
   send_Local (CArray (t, sizeof (t)),1);
@@ -84,6 +89,11 @@ EMI2Driver::cmdOpen ()
 void
 EMI2Driver::cmdClose ()
 {
+  if (wait_confirm_low)
+    {
+      sendLocal_done_next = N_want_close;
+      return;
+    }
   sendLocal_done_next = N_down;
   uchar t[] = { 0xa9, 0x1E, 0x12, 0x34, 0x56, 0x78, 0x9a };
   send_Local (CArray (t, sizeof (t)),1);
@@ -105,11 +115,21 @@ void EMI2Driver::reset_timer_cb(ev::timer& w, int revents)
 void EMI2Driver::do_send_Next()
 {
   if (reset_ack_wait)
-  {
-    reset_ack_wait = false;
-    reset_timer.stop();
-    EMI_Common::started();
-  }
+    {
+      reset_ack_wait = false;
+      reset_timer.stop();
+      EMI_Common::started();
+    }
+  else if (sendLocal_done_next == N_want_close)
+    {
+      wait_confirm_low = false;
+      cmdClose();
+    }
+  else if (sendLocal_done_next == N_want_leave)
+    {
+      wait_confirm_low = false;
+      cmdLeaveMonitor();
+    }
   else
     EMI_Common::do_send_Next();
 }

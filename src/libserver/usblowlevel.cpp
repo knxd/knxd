@@ -288,7 +288,7 @@ USBLowLevelDriver::~USBLowLevelDriver ()
 void
 USBLowLevelDriver::send_Data (CArray& l)
 {
-  if (out.size() > 0)
+  if (sendh != nullptr)
     {
       ERRORPRINTF (t, E_FATAL | 35, "Send while buffer not empty");
       errored(); // XXX signal async
@@ -340,6 +340,7 @@ USBLowLevelDriver::write_trigger_cb(ev::async &w UNUSED, int revents UNUSED)
       return;
     }
   ERRORPRINTF (t, E_ERROR | 35, "SendError %lx status %d", (unsigned long)sendh, sendh->status);
+  sendh = nullptr;
   errored(); // TODO probably needs to be an async error
   return;
 }
@@ -375,7 +376,12 @@ USBLowLevelDriver::read_trigger_cb(ev::async &w UNUSED, int revents UNUSED)
     return;
 
   if (recvh->status != LIBUSB_TRANSFER_COMPLETED)
-    ERRORPRINTF (t, E_WARNING | 33, "RecvError %d", recvh->status);
+    {
+      ERRORPRINTF (t, E_WARNING | 33, "RecvError %d", recvh->status);
+      recvh = nullptr;
+      errored();
+      return;
+    }
   else
     HandleReceiveUsb();
 

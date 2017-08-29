@@ -32,7 +32,8 @@ class EMI1Driver:public EMI_Common
   const uint8_t * getIndTypes();
   EMIVer getVersion() { return vEMI1; }
   void sendLocal_done_cb(bool success);
-  enum { N_bad, N_up, N_down, N_open } sendLocal_done_next = N_bad;
+  enum { N_bad, N_up, N_want_close, N_down, N_open } sendLocal_done_next = N_bad;
+  void do_send_Next();
 public:
   EMI1Driver (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i = nullptr);
   virtual ~EMI1Driver ();

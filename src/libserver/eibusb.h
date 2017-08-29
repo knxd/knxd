@@ -45,6 +45,7 @@ public:
   void recv_Data (CArray& l);
 
   void send_Init();
+  void sendLocal_done_cb(bool success);
 
   EMIVer version = vRaw;
 };
@@ -59,7 +60,7 @@ DRIVER_(USBDriver,LowLevelAdapter,usb)
   void xmit();
   void recv(CArray *r1);
   void recv_Data(CArray& c);
-  bool make_EMI(LowLevelDriver* &ld);
+  bool wait_make = false;
   USBConverterInterface *usb_iface;
 
   void sendLocal_done_cb(bool success);
