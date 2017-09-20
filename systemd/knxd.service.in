@@ -1,5 +1,6 @@
 [Unit]
 Description=KNX Daemon
+Requires=network-online.target
 After=network.target knxd.socket
 
 [Service]
