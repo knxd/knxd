@@ -13,5 +13,5 @@ Restart=on-failure
 RestartSec=10
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=multi-user.target network-online.target
 Also=knxd.socket
