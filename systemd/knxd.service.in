@@ -1,6 +1,5 @@
 [Unit]
 Description=KNX Daemon
-Requires=network-online.target
 After=network.target knxd.socket
 
 [Service]
@@ -14,5 +13,5 @@ Restart=on-failure
 RestartSec=10
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=multi-user.target network-online.target
 Also=knxd.socket
