@@ -1,3 +1,9 @@
+knxd (0.14.19-2) unstable; urgency=medium
+
+  * Added a Requires= entry to knxd.socket
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Tue, 24 Oct 2017 00:23:12 +0200
+
 knxd (0.14.19-1) unstable; urgency=medium
 
   * merged minor bug fixes
