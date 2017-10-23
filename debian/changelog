@@ -1,3 +1,9 @@
+knxd (0.14.19-1) unstable; urgency=medium
+
+  * merged minor bug fixes
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 23 Oct 2017 07:19:06 +0200
+
 knxd (0.14.18-1) unstable; urgency=medium
 
   * Fixed argument parser code.
