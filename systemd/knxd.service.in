@@ -1,6 +1,7 @@
 [Unit]
 Description=KNX Daemon
 After=network.target knxd.socket
+Requires=knxd.socket
 
 [Service]
 EnvironmentFile=@sysconfdir@/knxd.conf
