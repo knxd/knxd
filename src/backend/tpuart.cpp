@@ -218,6 +218,15 @@ TPUARTwrap::send_again()
 
       // clear retry flag. for later comparison
       out[0] &=~ 0x20;
+
+      //recalc checksum
+      z = out.size() -1;
+      out[z] = out[0];
+      for (i = 1; i < z; i++)
+      {
+          out[z] ^= out[i];
+      }
+      out[z] = ~out[z];
     }
 }
 
