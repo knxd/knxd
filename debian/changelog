@@ -1,4 +1,4 @@
-knxd (0.15.0-5) experimental; urgency=medium
+knxd (0.15.0-6) experimental; urgency=medium
 
   * Merge v0.14
 
@@ -9,6 +9,24 @@ knxd (0.15.0-1) unstable; urgency=medium
   * Prepare for v0.16.
 
  -- Matthias Urlichs <matthias@urlichs.de>  Fri, 17 Mar 2017 05:56:23 +0100
+
+knxd (0.14.20-1) unstable; urgency=medium
+
+  * tpuart: retransmit buffer; fix checksum
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 31 Dec 2017 16:09:32 +0100
+
+knxd (0.14.19-2) unstable; urgency=medium
+
+  * Added a Requires= entry to knxd.socket
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Tue, 24 Oct 2017 00:23:12 +0200
+
+knxd (0.14.19-1) unstable; urgency=medium
+
+  * merged minor bug fixes
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 23 Oct 2017 07:19:06 +0200
 
 knxd (0.14.18-1) unstable; urgency=medium
 
