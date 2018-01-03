@@ -346,22 +346,38 @@ main (int ac, char *ag[])
   if (!stop_now)
     stop_now = main->value("stop-after-setup",false);
 
-  if (logfile && *logfile)
+  { // handle stdin/out/err
+    int fd = open("/dev/null", O_RDONLY);
+    if (fd != 0)
+      {
+        close (0);
+        dup2 (fd, 0);
+      }
+    if (logfile && *logfile)
+      {
+        close (fd);
+        fd = open (logfile, O_WRONLY | O_APPEND | O_CREAT, 0660);
+        if (fd == -1)
+          die ("Can not open file %s", logfile);
+      }
+    // don't redirect to /dev/null when systemd logging is in effect
+    if (logfile && *logfile || !num_fds)
+      {
+        close (1);
+        dup2 (fd, 1);
+        close (2);
+        dup2 (fd, 2);
+      }
+    close (fd);
+  }
+
+  if (background)
     {
-      int fd = open (logfile, O_WRONLY | O_APPEND | O_CREAT, 0660);
-      if (fd == -1)
-        die ("Can not open file %s", logfile);
       int i = fork ();
       if (i < 0)
         die ("fork failed");
       if (i > 0)
         exit (0);
-      close (1);
-      close (2);
-      close (0);
-      dup2 (fd, 1);
-      dup2 (fd, 2);
-      close (fd);
       setsid ();
     }
 
