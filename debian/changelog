@@ -1,3 +1,9 @@
+knxd (0.14.22-1) unstable; urgency=medium
+
+  * Set port number in tunnel connect requests
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 08 Jan 2018 23:45:03 +0100
+
 knxd (0.14.21-1) unstable; urgency=medium
 
   * Fix handling of stdin/out/err and forking
