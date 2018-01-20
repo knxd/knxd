@@ -1,3 +1,9 @@
+knxd (0.14.23-1) unstable; urgency=medium
+
+  * Fix stdout/stderr redirect logic.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sat, 20 Jan 2018 18:36:17 +0100
+
 knxd (0.14.22-1) unstable; urgency=medium
 
   * Set port number in tunnel connect requests

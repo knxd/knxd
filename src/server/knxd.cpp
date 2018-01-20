@@ -65,8 +65,10 @@ void usage()
 /** number of file descriptors passed in by systemd */
 #ifdef HAVE_SYSTEMD
 int num_fds;
+bool using_systemd;
 #else
 const int num_fds = 0;
+const bool using_systemd = false;
 #endif
 
 /** aborts program with a printf like message */
@@ -262,9 +264,10 @@ main (int ac, char *ag[])
 #endif
 
 #ifdef HAVE_SYSTEMD
+  using_systemd = (getenv("JOURNAL_STREAM") != NULL) && (getppid() == 1);
   num_fds = sd_listen_fds(0);
   if( num_fds < 0 )
-    die("Error getting fds from systemd.");
+    die("Error getting sockets from systemd.");
 #endif
 #ifdef EV_TRACE
   ev_timer_init (&timer, timeout_cb, 1., 10.);
@@ -332,15 +335,15 @@ main (int ac, char *ag[])
   IniSectionPtr main = i[mainsection];
 
   pidfile = main->value("pidfile","").c_str();
-  if (num_fds)
+  if (using_systemd)
     pidfile = "";
 
   logfile = main->value("logfile","").c_str();
-  if (num_fds)
+  if (using_systemd)
     logfile = NULL;
 
   background = main->value("background",false);
-  if (num_fds)
+  if (using_systemd)
     background = false;
 
   if (!stop_now)
@@ -348,27 +351,22 @@ main (int ac, char *ag[])
 
   { // handle stdin/out/err
     int fd = open("/dev/null", O_RDONLY);
-    if (fd != 0)
-      {
-        close (0);
-        dup2 (fd, 0);
-      }
+    dup2 (fd, 0);
+
+    // don't redirect if started by systemd
     if (logfile && *logfile)
       {
-        close (fd);
+        if (fd > 0)
+          close (fd);
         fd = open (logfile, O_WRONLY | O_APPEND | O_CREAT, 0660);
         if (fd == -1)
           die ("Can not open file %s", logfile);
-      }
-    // don't redirect to /dev/null when systemd logging is in effect
-    if (logfile && *logfile || !num_fds)
-      {
-        close (1);
+
         dup2 (fd, 1);
-        close (2);
         dup2 (fd, 2);
       }
-    close (fd);
+    if (fd > 2)
+      close (fd);
   }
 
   if (background)
