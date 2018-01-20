@@ -53,7 +53,7 @@ void usage()
   fprintf(stderr,"Usage: knxd configfile [main_section]\n");
   fprintf(stderr,"Please consult /usr/share/doc/knxd/inifile.rst\n");
 
-  if (pidfile)
+  if (pidfile && *pidfile)
     unlink (pidfile);
 
   exit (2);
@@ -86,7 +86,7 @@ die (const char *msg, ...)
     fprintf (stderr, "\n");
   va_end (ap);
 
-  if (pidfile)
+  if (pidfile && *pidfile)
     unlink (pidfile);
 
   exit (1);
@@ -98,7 +98,7 @@ const char *argp_program_version = "knxd " REAL_VERSION;
 static char doc[] =
   "knxd -- a commonication stack for EIB/KNX\n"
   "(C) 2005-2015 Martin Koegler <mkoegler@auto.tuwien.ac.at> et al.\n"
-  "(C) 2016-2017 Matthias Urlichs <matthias@urlichs.de>\n"
+  "(C) 2016-2018 Matthias Urlichs <matthias@urlichs.de>\n"
   "\n"
   "Usage: knxd configfile [main-section]\n"
   "\n"
@@ -232,11 +232,10 @@ sighup_cb (EV_P_ ev_signal *w, int revents UNUSED)
         ERRORPRINTF (hup->t, E_ERROR | 21, "can't open log file %s", hup->logfile);
         return;
       }
-      close (1);
-      close (2);
       dup2 (fd, 1);
       dup2 (fd, 2);
-      close (fd);
+      if (fd > 2)
+        close (fd);
     }
 }
 
@@ -334,17 +333,9 @@ main (int ac, char *ag[])
     die("Parse error of '%s' in line %d", cfgfile, errl);
   IniSectionPtr main = i[mainsection];
 
-  pidfile = main->value("pidfile","").c_str();
-  if (using_systemd)
-    pidfile = "";
-
-  logfile = main->value("logfile","").c_str();
-  if (using_systemd)
-    logfile = NULL;
-
-  background = main->value("background",false);
-  if (using_systemd)
-    background = false;
+  pidfile = using_systemd ? NULL : main->value("pidfile","").c_str();
+  logfile = using_systemd ? NULL : main->value("logfile","").c_str();
+  background = using_systemd ? false : main->value("background",false);
 
   if (!stop_now)
     stop_now = main->value("stop-after-setup",false);
