@@ -174,7 +174,7 @@ parse_opt (int key, char *arg, struct argp_state *state UNUSED)
 
     case ARGP_KEY_NO_ARGS:
       if (!do_list)
-        usage();
+        fork_args_helper();
       return 0;
 
     case ARGP_KEY_ARGS:
@@ -282,6 +282,13 @@ main (int ac, char *ag[])
     }
 
   argp_parse (&argp, ac, ag, ARGP_NO_EXIT | ARGP_NO_ERRS | ARGP_IN_ORDER, &index, NULL);
+
+  if (ac > 1 && (!strncmp(ag[1], "--h",3) || !strncmp(ag[1], "--u",3))) {
+    for (std::string line; std::getline(std::cin, line);) {
+        std::cout << line << std::endl;
+    }
+    exit(0);
+  }
 
   if (do_list)
     {
