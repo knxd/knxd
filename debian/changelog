@@ -1,3 +1,9 @@
+knxd (0.14.24-2) unstable; urgency=medium
+
+  * libfmt fetch script correction
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 11 Feb 2018 20:03:04 +0100
+
 knxd (0.14.24-1) unstable; urgency=medium
 
   * Use 4.x branch of libfmt
