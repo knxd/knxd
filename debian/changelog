@@ -1,3 +1,9 @@
+knxd (0.14.24-1) unstable; urgency=medium
+
+  * Use 4.x branch of libfmt
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 11 Feb 2018 18:02:43 +0100
+
 knxd (0.14.23-1) unstable; urgency=medium
 
   * Fix stdout/stderr redirect logic.
