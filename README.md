@@ -103,19 +103,21 @@ On Debian:
     # If "dpkg-buildpackage" complains about missing packages
     # ("Unmet build dependencies"): install them
     # (apt-get install …) and try that step again.
-    # If it wants "x | y", try just x; install y if that doesn't work.
+    # If it wants "x | y", try to install just x; install y if that doesn't work.
     # Also, if it complains about conflicting packages, remove them (duh).
 
-    # first, install build tools and get the source code
+    # first, install build tools and dependencies
     sudo apt-get install git-core build-essential
+
+    # now get the source code
     git clone https://github.com/knxd/knxd.git
 
     # now build+install knxd
     cd knxd
     git checkout master
     dpkg-buildpackage -b -uc
-    # To repeat: if this fails because of missing dependencies,
-    # fix them instead of using dpkg-buildpackage's "-d" option.
+    # To repeat: if this step fails because of missing dependencies,
+    # fix them and try again! See this section's first paragraph, above.
     cd ..
     sudo dpkg -i knxd_*.deb knxd-tools_*.deb
 
@@ -127,10 +129,11 @@ On Debian:
     cd ..
     sudo dpkg -i knxd_*.deb knxd-tools_*.deb
 
-Additions for other Linux versions are very welcome.
+Additions for other Linux distributions are very welcome.
 
 On MacOS or Windows, please use a Linux VM.
-I have no way to test OS-specific patches.
+If somebody would like to submit patches for Mac OSX or Windows, go ahead
+and create a pull request, but please be prepared to maintain your code.
 
 ### Test failures
 
@@ -142,11 +145,9 @@ If the test fails:
 
 * Do you have a default route?
 
-* Are you filtering local multicasts to 224.99.98.97?
+* Are you filtering packets to 224.99.98.97, or to UDP port 3671?
 
 * Is something on your network echoing multicast packets? (Yes, that happens.)
-
-The tests pass OK on Travis (or at least they should pass).
 
 If you can't figure out the cause of the failure, please open an issue.
 
@@ -230,10 +231,16 @@ port to be somewhat unreliable. If this happens, disable bluetooth by adding
   dtoverlay=pi3-disable-bt
   ```
 
-to ``/boot/config.txt``, executing ``systemctl disable hciuart``, and
+to ``/boot/config.txt``, run ``systemctl disable hciuart``, and
 rebooting. The TPUART module is now back on ``ttyAMA0``.
 
 ## Migrating to 0.14
+
+* If you build knxd yourself: install the ``libfmt-dev`` package, if
+  possible.
+  
+  The knxd build process will try to download and build libfmt when that
+  package is not present.
 
 * knxd is now configured with a .ini-style configuration file.
 
@@ -243,11 +250,8 @@ rebooting. The TPUART module is now back on ``ttyAMA0``.
   You can use ``/usr/lib/knxd_args <args-to-knxd>`` to emit a file that
   corresponds to your old list of arguments.
 
-* Not configuring client addresses for the knxd\_\* servers (options -i -u),
-  systemd sockets, or the router's tunnel mode (-T) now results in that
-  service not being offered at all, instead of only failing when a client
-  connects. An error message is emitted. The multicast server will not
-  start at all, and systemd startup will fail.
+* Not configuring client addresses is now a hard error if you use the knxd\_\*
+  servers (options -i -u), systemd sockets, or the router's tunnel mode.
 
 * knxd will not start routing any packets unless startup is successful on
   all interfaces.
@@ -255,8 +259,11 @@ rebooting. The TPUART module is now back on ``ttyAMA0``.
   This means that it is now safe to use "socket activation" mode with
   systemd. Previously, knxd might have lost the initial packets.
 
+* knxd can now attach filters to a single interface, or to the core
+  (i.e. all packets get filtered).
+
 * Tracing no longer logs the actual decoded contents of packet.
-  If you need that, use the "log" filter.
+  If you need that, use a "log" filter appropriately.
 
 * knxd now transmits data synchronously, i.e. individual drivers no longer
   buffer data for transmission. If you don't want that, use the "queue"

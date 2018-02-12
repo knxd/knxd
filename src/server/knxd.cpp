@@ -53,7 +53,7 @@ void usage()
   fprintf(stderr,"Usage: knxd configfile [main_section]\n");
   fprintf(stderr,"Please consult /usr/share/doc/knxd/inifile.rst\n");
 
-  if (pidfile)
+  if (pidfile && *pidfile)
     unlink (pidfile);
 
   exit (2);
@@ -65,8 +65,10 @@ void usage()
 /** number of file descriptors passed in by systemd */
 #ifdef HAVE_SYSTEMD
 int num_fds;
+bool using_systemd;
 #else
 const int num_fds = 0;
+const bool using_systemd = false;
 #endif
 
 /** aborts program with a printf like message */
@@ -84,7 +86,7 @@ die (const char *msg, ...)
     fprintf (stderr, "\n");
   va_end (ap);
 
-  if (pidfile)
+  if (pidfile && *pidfile)
     unlink (pidfile);
 
   exit (1);
@@ -96,7 +98,7 @@ const char *argp_program_version = "knxd " REAL_VERSION;
 static char doc[] =
   "knxd -- a commonication stack for EIB/KNX\n"
   "(C) 2005-2015 Martin Koegler <mkoegler@auto.tuwien.ac.at> et al.\n"
-  "(C) 2016-2017 Matthias Urlichs <matthias@urlichs.de>\n"
+  "(C) 2016-2018 Matthias Urlichs <matthias@urlichs.de>\n"
   "\n"
   "Usage: knxd configfile [main-section]\n"
   "\n"
@@ -230,11 +232,10 @@ sighup_cb (EV_P_ ev_signal *w, int revents UNUSED)
         ERRORPRINTF (hup->t, E_ERROR | 21, "can't open log file %s", hup->logfile);
         return;
       }
-      close (1);
-      close (2);
       dup2 (fd, 1);
       dup2 (fd, 2);
-      close (fd);
+      if (fd > 2)
+        close (fd);
     }
 }
 
@@ -262,9 +263,10 @@ main (int ac, char *ag[])
 #endif
 
 #ifdef HAVE_SYSTEMD
+  using_systemd = (getenv("JOURNAL_STREAM") != NULL) && (getppid() == 1);
   num_fds = sd_listen_fds(0);
   if( num_fds < 0 )
-    die("Error getting fds from systemd.");
+    die("Error getting sockets from systemd.");
 #endif
 #ifdef EV_TRACE
   ev_timer_init (&timer, timeout_cb, 1., 10.);
@@ -331,37 +333,40 @@ main (int ac, char *ag[])
     die("Parse error of '%s' in line %d", cfgfile, errl);
   IniSectionPtr main = i[mainsection];
 
-  pidfile = main->value("pidfile","").c_str();
-  if (num_fds)
-    pidfile = "";
-
-  logfile = main->value("logfile","").c_str();
-  if (num_fds)
-    logfile = NULL;
-
-  background = main->value("background",false);
-  if (num_fds)
-    background = false;
+  pidfile = using_systemd ? NULL : main->value("pidfile","").c_str();
+  logfile = using_systemd ? NULL : main->value("logfile","").c_str();
+  background = using_systemd ? false : main->value("background",false);
 
   if (!stop_now)
     stop_now = main->value("stop-after-setup",false);
 
-  if (logfile && *logfile)
+  { // handle stdin/out/err
+    int fd = open("/dev/null", O_RDONLY);
+    dup2 (fd, 0);
+
+    // don't redirect if started by systemd
+    if (logfile && *logfile)
+      {
+        if (fd > 0)
+          close (fd);
+        fd = open (logfile, O_WRONLY | O_APPEND | O_CREAT, 0660);
+        if (fd == -1)
+          die ("Can not open file %s", logfile);
+
+        dup2 (fd, 1);
+        dup2 (fd, 2);
+      }
+    if (fd > 2)
+      close (fd);
+  }
+
+  if (background)
     {
-      int fd = open (logfile, O_WRONLY | O_APPEND | O_CREAT, 0660);
-      if (fd == -1)
-        die ("Can not open file %s", logfile);
       int i = fork ();
       if (i < 0)
         die ("fork failed");
       if (i > 0)
         exit (0);
-      close (1);
-      close (2);
-      close (0);
-      dup2 (fd, 1);
-      dup2 (fd, 2);
-      close (fd);
       setsid ();
     }
 

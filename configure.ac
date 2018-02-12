@@ -249,8 +249,16 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <fmt/format.h>], [fmt::format("The ans
     [HAVE_FMT=1],                                           
     [
 CC=${CC} CXX=${CXX} sh ${ac_aux_dir}/tools/get_libfmt || exit 1
+if test -d libfmt/include/fmt ; then 
+CPPFLAGS="$CPPFLAGS -I$(pwd)/libfmt/include"
+else
 CPPFLAGS="$CPPFLAGS -I$(pwd)/libfmt"
+fi
+if test -f libfmt/libfmt.a ; then
+LDFLAGS="$LDFLAGS -L$(pwd)/libfmt"
+else
 LDFLAGS="$LDFLAGS -L$(pwd)/libfmt/fmt"
+fi
 
 AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <fmt/format.h>], [fmt::format("The answer is {}", 42);
 ])],

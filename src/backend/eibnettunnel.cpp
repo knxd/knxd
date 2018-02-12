@@ -103,6 +103,7 @@ EIBNetIPTunnel::start()
   sock = new EIBNetIPSocket (raddr, (sport != 0), t);
   if (!sock->init ())
     goto ex;
+  raddr.sin_port = sock->port();
   sock->on_recv.set<EIBNetIPTunnel,&EIBNetIPTunnel::read_cb>(this);
   sock->on_error.set<EIBNetIPTunnel,&EIBNetIPTunnel::error_cb>(this);
 
