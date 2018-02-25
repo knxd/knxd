@@ -419,7 +419,7 @@ ip
 This driver attaches to the multicast system. It is a minimal version of
 the "router" server's routing code (no tunnel server, no discovery).
 
-Never use this driver and the "router" server on the same multicast
+Never use this driver and the "ets_router" server on the same multicast
 address.
 
   * multicast-address (string: IP address)
@@ -777,7 +777,7 @@ The "ets_router" server allows clients to discover knxd and to connect to it
 with the standardized KNX tunneling or routing protocols.
 
 *Do not* use this server and the "ip" driver at the same time (unless you
-specify different multicast addersses).
+specify different multicast addresses).
 
   * tunnel (str; -T|--Tunnelling)
 
