@@ -60,7 +60,11 @@ IniSection::value(const std::string& name, const std::string& def)
 const std::string
 IniSection::value(const std::string& name, const char *def)
 {
-  std::string s = def;
+  std::string s="";  
+  if(def)
+  {
+     s=value(name,std::string(def));
+  }
   return value(name,s);
 }
 
