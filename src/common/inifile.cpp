@@ -61,7 +61,7 @@ const std::string
 IniSection::value(const std::string& name, const char *def)
 {
   std::string s="";  
-  if(def && *def)
+  if(def)
   {
      s=value(name,std::string(def));
   }
