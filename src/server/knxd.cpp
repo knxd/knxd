@@ -333,8 +333,10 @@ main (int ac, char *ag[])
     die("Parse error of '%s' in line %d", cfgfile, errl);
   IniSectionPtr main = i[mainsection];
 
-  pidfile = using_systemd ? NULL : main->value("pidfile","").c_str();
-  logfile = using_systemd ? NULL : main->value("logfile","").c_str();
+  std::string PidFile=main->value("pidfile","");
+  pidfile = using_systemd ? NULL : PidFile.c_str(); 
+  std::string Logfile=main->value("logfile","");
+  logfile = using_systemd ? NULL : Logfile.c_str(); 
   background = using_systemd ? false : main->value("background",false);
 
   if (!stop_now)
