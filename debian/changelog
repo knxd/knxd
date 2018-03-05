@@ -1,3 +1,40 @@
+knxd (0.14.24-3) unstable; urgency=medium
+
+  * libfmt fetch script correction
+    need to fetch before checking out 4.x branch
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 12 Feb 2018 09:45:25 +0100
+
+knxd (0.14.24-2) unstable; urgency=medium
+
+  * libfmt fetch script correction
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 11 Feb 2018 20:03:04 +0100
+
+knxd (0.14.24-1) unstable; urgency=medium
+
+  * Use 4.x branch of libfmt
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 11 Feb 2018 18:02:43 +0100
+
+knxd (0.14.23-1) unstable; urgency=medium
+
+  * Fix stdout/stderr redirect logic.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sat, 20 Jan 2018 18:36:17 +0100
+
+knxd (0.14.22-1) unstable; urgency=medium
+
+  * Set port number in tunnel connect requests
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 08 Jan 2018 23:45:03 +0100
+
+knxd (0.14.21-1) unstable; urgency=medium
+
+  * Fix handling of stdin/out/err and forking
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 03 Jan 2018 13:17:14 +0100
+
 knxd (0.14.20-1) unstable; urgency=medium
 
   * tpuart: retransmit buffer; fix checksum
