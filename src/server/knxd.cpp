@@ -40,8 +40,8 @@ bool stop_now = false;
 bool do_list = false;
 bool background = false;
 bool stopping = false;
-const char *pidfile = NULL;
-const char *logfile = NULL;
+char *pidfile = NULL;
+char *logfile = NULL;
 const char *cfgfile = NULL;
 const char *mainsection = NULL;
 char *const *argv;
@@ -333,9 +333,23 @@ main (int ac, char *ag[])
     die("Parse error of '%s' in line %d", cfgfile, errl);
   IniSectionPtr main = i[mainsection];
 
-  pidfile = using_systemd ? NULL : main->value("pidfile","").c_str();
-  logfile = using_systemd ? NULL : main->value("logfile","").c_str();
-  background = using_systemd ? false : main->value("background",false);
+  if(!using_systemd)
+  {
+
+      std::string PidFile = main->value("pidfile","");
+      
+      pidfile = new char[ PidFile.length()+1 ];
+      strncpy(pidfile, PidFile.c_str(), PidFile.length());
+      pidfile[ PidFile.length() ] = '\0';
+
+      std::string LogFile = main->value("logfile","");
+      
+      logfile = new char[ LogFile.length()+1 ];
+      strncpy(logfile, LogFile.c_str(),LogFile.length());
+      logfile[ LogFile.length() ] = '\0';
+
+      background=main->value("background",false);
+  }
 
   if (!stop_now)
     stop_now = main->value("stop-after-setup",false);
