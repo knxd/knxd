@@ -43,6 +43,7 @@ Description: Tools to use knxd
 
 Package: knxd-dev
 Architecture: all
+Depends: ${misc:Depends}
 Description: Development files for knxd
  KNX is a standard prototocol for home and building control.
  .
