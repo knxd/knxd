@@ -10,6 +10,7 @@
 Makefile.in
 Makefile
 .libs
+.pc
 /aclocal.m4
 /compile
 /config.guess
