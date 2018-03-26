@@ -45,12 +45,22 @@ char *logfile = NULL;
 const char *cfgfile = NULL;
 const char *mainsection = NULL;
 char *const *argv;
+int argc;
 
 LOOP_RESULT loop;
 
 void usage()
 {
-  fprintf(stderr,"Usage: knxd configfile [main_section]\n");
+  if (argc > 1) {
+    char *s = (char *)malloc(strlen(argv[0])+7);
+    sprintf(s,"%s_args",argv[0]);
+    execvp(s, argv);
+
+    execv(LIBEXECDIR "/knxd_args", argv);
+  }
+
+  fprintf(stderr,"Usage: knxd [-l?V] [--list] [--help] [--usage] [--version]\n");
+  fprintf(stderr,"       knxd configfile [main_section]\n");
   fprintf(stderr,"Please consult /usr/share/doc/knxd/inifile.rst\n");
 
   if (pidfile && *pidfile)
@@ -93,7 +103,7 @@ die (const char *msg, ...)
 }
 
 /** version */
-const char *argp_program_version = "knxd " REAL_VERSION;
+//const char *argp_program_version = "knxd " REAL_VERSION;
 /** documentation */
 static char doc[] =
   "knxd -- a commonication stack for EIB/KNX\n"
@@ -111,6 +121,8 @@ static struct argp_option options[] = {
    "immediately stops the server after a successful start"},
   {"list", 'l', 0, 0,
    "list known drivers, filters, or servers"},
+  {"version", 'V', 0, 0,
+   "show version"},
   {0}
 };
 
@@ -159,6 +171,10 @@ parse_opt (int key, char *arg, struct argp_state *state UNUSED)
     case 'l':
       do_list = true;
       break;
+
+    case 'V':
+      fprintf(stderr,"knxd %s\n",REAL_VERSION);
+      exit(0);
 
     case ARGP_KEY_ARG:
       if (cfgfile == NULL)
@@ -246,6 +262,7 @@ main (int ac, char *ag[])
   setlinebuf(stdout);
 
   argv = ag;
+  argc = ac;
 
 // set up libev
   loop = ev_default_loop(EVFLAG_AUTO | EVFLAG_NOSIGMASK | EVBACKEND_SELECT);
