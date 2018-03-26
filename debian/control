@@ -20,7 +20,7 @@ Vcs-Browser: https://github.com/knxd/knxd
 
 Package: knxd
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libusb-1.0-0 (>= 1.0.10), lsb-base
+Depends: ${shlibs:Depends}, ${misc:Depends}, libusb-1.0-0 (>= 1.0.10), lsb-base, adduser
 Replaces: eibd, eibd-server
 Conflicts: eibd, eibd-server
 Description: A daemon to access the KNX bus
