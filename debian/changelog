@@ -1,3 +1,15 @@
+knxd (0.15.0-7) experimental; urgency=medium
+
+  * Merge v0.14
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 12 Feb 2018 09:48:30 +0100
+
+knxd (0.15.0-1) unstable; urgency=medium
+
+  * Prepare for v0.16.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 17 Mar 2017 05:56:23 +0100
+
 knxd (0.14.24-3) unstable; urgency=medium
 
   * libfmt fetch script correction
@@ -116,6 +128,7 @@ knxd (0.14.12-1) unstable; urgency=medium
 
  -- Matthias Urlichs <matthias@urlichs.de>  Sun, 23 Apr 2017 10:48:18 +0200
 
+>>>>>>> v0.14
 knxd (0.14.11-1) unstable; urgency=medium
 
   * Merge v0.12
