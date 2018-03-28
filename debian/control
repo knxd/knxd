@@ -13,14 +13,14 @@ Build-Depends: debhelper (>= 7.0.0),
   libfmt-dev | libfmt3-dev | cmake (>= 2.8.12),
   libfmt-dev | libfmt3-dev | git,
 Build-Conflicts: libsystemd-daemon-dev (<< 200)
-Standards-Version: 3.9.4
+Standards-Version: 4.1.3
 Homepage: https://github.com/knxd/knxd
 Vcs-Git: https://github.com/knxd/knxd.git
-#Vcs-Browser: 
+Vcs-Browser: https://github.com/knxd/knxd
 
 Package: knxd
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libusb-1.0-0 (>= 1.0.10), lsb-base
+Depends: ${shlibs:Depends}, ${misc:Depends}, libusb-1.0-0 (>= 1.0.10), lsb-base, adduser
 Replaces: eibd, eibd-server
 Conflicts: eibd, eibd-server
 Description: A daemon to access the KNX bus
@@ -42,7 +42,8 @@ Description: Tools to use knxd
  daemon.
 
 Package: knxd-dev
-Architecture: all
+Architecture: any
+Depends: ${misc:Depends}
 Description: Development files for knxd
  KNX is a standard prototocol for home and building control.
  .
