@@ -956,25 +956,25 @@ void ConnState::config_request(EIBnet_ConfigRequest &r1, EIBNetIPSocket *isock)
 {
   EIBnet_ConfigACK r2;
   if (rno == ((r1.seqno + 1) & 0xff))
-    {
-      r2.channel = r1.channel;
-      r2.seqno = r1.seqno;
-      isock->Send (r2.ToPacket (), daddr);
-      return;
-    }
+  {
+    r2.channel = r1.channel;
+    r2.seqno = r1.seqno;
+    isock->Send (r2.ToPacket (), daddr);
+    return;
+  }
   if (rno != r1.seqno)
-    {
-      TRACEPRINTF (t, 8, "Wrong sequence %d<->%d",
-		   r1.seqno, rno);
-      return;
-    }
+  {
+    TRACEPRINTF (t, 8, "Wrong sequence %d<->%d",
+	   r1.seqno, rno);
+    return;
+  }
   r2.channel = r1.channel;
   r2.seqno = r1.seqno;
   if (type == CT_CONFIG && r1.CEMI.size() > 1)
-    {
-      if (r1.CEMI[0] == 0xFC) // M_PropRead.req
-	{
-	  if (r1.CEMI.size() == 7)
+  {
+    if (r1.CEMI[0] == 0xFC) // M_PropRead.req
+	  {
+	    if (r1.CEMI.size() == 7)
 	    {
 	      CArray res, CEMI;
 	      int obj = (r1.CEMI[1] << 8) | r1.CEMI[2];
@@ -985,17 +985,17 @@ void ConnState::config_request(EIBnet_ConfigRequest &r1, EIBNetIPSocket *isock)
 	      res.resize (1);
 	      res[0] = 0;
 	      if (obj == 0 && objno == 0)
-		{
-		  if (prop == 0)
 		    {
-		      res.resize (2);
-		      res[0] = 0;
-		      res[1] = 0;
-		      start = 0;
+		      if (prop == 0)
+		      {
+  		      res.resize (2);
+  		      res[0] = 0;
+  		      res[1] = 0;
+  		      start = 0;
+		      }
+		      else
+		        count = 0;
 		    }
-		  else
-		    count = 0;
-		}
         else if (obj == 8 && objno == 1 && prop == 0x33) {
           // PID_ROUTING_COUNT, hard-coded
           res.resize(2);
@@ -1022,7 +1022,7 @@ void ConnState::config_request(EIBnet_ConfigRequest &r1, EIBNetIPSocket *isock)
           }
         }
 	      else
-		count = 0;
+		      count = 0;
 	      CEMI.resize (6 + res.size());
 	      CEMI[0] = 0xFB;
 	      CEMI[1] = (obj >> 8) & 0xff;
@@ -1035,15 +1035,15 @@ void ConnState::config_request(EIBnet_ConfigRequest &r1, EIBNetIPSocket *isock)
 	      r2.status = E_NO_ERROR;
 
 	      out.push (CEMI);
-              if (! retries)
-		send_trigger.send();
+        if (! retries)
+		      send_trigger.send();
 	    }
 	  else
 	    r2.status = E_DATA_CONNECTION;
 	}
-      else
-	r2.status = E_DATA_CONNECTION;
-    }
+  else
+	  r2.status = E_DATA_CONNECTION;
+  }
   else
     r2.status = E_TUNNELING_LAYER;
   rno++;
