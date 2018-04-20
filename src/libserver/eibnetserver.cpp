@@ -996,6 +996,31 @@ void ConnState::config_request(EIBnet_ConfigRequest &r1, EIBNetIPSocket *isock)
 		  else
 		    count = 0;
 		}
+        else if (obj == 8 && objno == 1 && prop == 0x33) {
+          // PID_ROUTING_COUNT, hard-coded
+          res.resize(2);
+          res[1] = 2;
+        }
+        else if (obj == 0 && objno == 1 && prop == 0x0b) {
+          // PID_SERIAL_NUMBER, hard-coded
+          res.resize(6);
+          res[1] = 0x02;
+          res[2] = 0x84;
+          res[3] = 0x07;
+          res[4] = 0xff;
+          res[5] = 0x50;
+        }
+        else if (obj == 0x0b && objno == 1 && prop == 0x35) {
+          // PID_ERROR_FLAGS, hard-coded
+          res.resize(2);
+          if (start == 1) {
+            res[0] = 0x11;
+            res[1] = 0x08;
+          }
+          else {
+            res[1] = 0x01;
+          }
+        }
 	      else
 		count = 0;
 	      CEMI.resize (6 + res.size());
