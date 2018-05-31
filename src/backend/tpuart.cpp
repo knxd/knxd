@@ -216,8 +216,11 @@ TPUARTwrap::send_again()
       LowLevelFilter::send_Data(w);
       sendtimer.start(2,0);
 
-      // clear retry flag. for later comparison
-      out[0] &=~ 0x20;
+      if (out[0] & 0x20) {
+        // clear retry flag. for later comparison
+        out[0] ^= 0x20;
+        out[out.size()-1] ^= 0x20; // fix the checksum
+      }
     }
 }
 

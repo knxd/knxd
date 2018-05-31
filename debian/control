@@ -10,13 +10,12 @@ Build-Depends: debhelper (>= 7.0.0),
   debianutils,
   dh-systemd | base-files (<< 8),
   libev-dev,
-  libfmt3-dev | cmake (>= 2.8.12),
-  libfmt3-dev | ca-certificates,
-  libfmt3-dev | git,
+  libfmt-dev | libfmt3-dev | cmake (>= 2.8.12),
+  libfmt-dev | libfmt3-dev | git,
 Build-Conflicts: libsystemd-daemon-dev (<< 200)
 Standards-Version: 3.9.4
-Homepage: https://github.com/Makki1/knxd
-Vcs-Git: https://github.com/Makki1/knxd.git
+Homepage: https://github.com/knxd/knxd
+Vcs-Git: https://github.com/knxd/knxd.git
 #Vcs-Browser: 
 
 Package: knxd
@@ -25,7 +24,7 @@ Depends: ${shlibs:Depends}, ${misc:Depends}, libusb-1.0-0 (>= 1.0.10), lsb-base
 Replaces: eibd, eibd-server
 Conflicts: eibd, eibd-server
 Description: A daemon to access the KNX bus
- KNX is a standard prototocol for home and buildin control.
+ KNX is a standard prototocol for home and building control.
  .
  This package contains the daemon to access the physical bus,
  monitor and forward messages, etc.
@@ -37,7 +36,7 @@ Recommends: knxd
 Replaces: eibd-clients, eibd-server, libeibclient0, knxd-examples
 Conflicts: eibd-clients, eibd-server, libeibclient0
 Description: Tools to use knxd
- KNX is a standard prototocol for home and buildin control.
+ KNX is a standard prototocol for home and building control.
  .
  This package contains command-line tools to communicate with the KNX
  daemon.
@@ -45,7 +44,7 @@ Description: Tools to use knxd
 Package: knxd-dev
 Architecture: all
 Description: Development files for knxd
- KNX is a standard prototocol for home and buildin control.
+ KNX is a standard prototocol for home and building control.
  .
  These are the development files for knxd clients.
 

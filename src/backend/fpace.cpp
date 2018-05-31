@@ -127,7 +127,7 @@ PaceFilter::timer_cb (ev::timer &w UNUSED, int revents UNUSED)
   if (factor_in > 0 && nr_in > 0)
     {
       float this_delay = (size_in*byte_delay + nr_in*delay) * factor_in;
-      TRACEPRINTF (t, 2, "in %d/%d: delay more, for %.3f sec", nr_in,size_in, this_delay);
+      TRACEPRINTF (t, 2, "in %d/%d %f/%f/%f: delay more, for %.3f sec", nr_in,size_in, delay,byte_delay,factor_in, this_delay);
       timer.start(this_delay);
       nr_in  = 0;
       size_in = 0;

@@ -15,7 +15,7 @@ HOMEPAGE="https://github.com/knxd/knxd"
 LICENSE="GPL-2"
 SLOT="9999"
 KEYWORDS=""
-IUSE="eibd ft12 tpuarts eibnetip eibnetiptunnel eibnetipserver usb groupcache java ncn5120 dummy"
+IUSE="eibd ft12 tpuarts eibnetip eibnetiptunnel eibnetipserver usb groupcache java ncn5120 dummy systemd"
 
 DEPEND="dev-libs/libfmt
 	dev-libs/libev
@@ -31,6 +31,7 @@ src_prepare() {
 
 src_configure() {
     econf \
+        $(use_enable systemd) \
         $(use_enable ft12) \
         $(use_enable tpuarts) \
         $(use_enable eibnetip) \
