@@ -280,7 +280,7 @@ void driver_args(const char *arg, char *ap)
       driver_argsv("ipt",ap, "!ip-address","dest-port","src-port","nat-ip","data-port", NULL);
       (*ini[link])["nat"] = "true";
     }
-  else if(!strcmp(arg,"ft12") || !strcmp(arg,"ncn5120") || !strcmp(arg,"tpuarts") || !strcmp(arg,"ft12cemi"))
+  else if(!strcmp(arg,"ft12") || !strcmp(arg,"ncn5120") || !strcmp(arg,"tpuarts") || !strcmp(arg,"ft12cemi") || !strcmp(arg,"tpuart"))
     {
       if (!strcmp(arg,"tpuarts"))
         arg = "tpuart";
