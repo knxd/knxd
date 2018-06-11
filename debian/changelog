@@ -1,3 +1,11 @@
+knxd (0.14.25-1) unstable; urgency=medium
+
+  * Fix drivers:
+    - registration of NCN5120
+    - alias "tpuarts" for "tpuart" (the latter was listed but didn't work)
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 11 Jun 2018 10:29:50 +0200
+
 knxd (0.14.24-3) unstable; urgency=medium
 
   * libfmt fetch script correction
