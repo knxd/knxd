@@ -29,7 +29,7 @@ set_low_latency (int fd, low_latency_save * save)
 {
   struct termios opts;
 
-#ifdef HAVE_LINUX_LOWLATENCY
+#ifdef HAVE_LINUX_LOWLATENCY___DO___NOT___USE
   struct serial_struct snew;
   ioctl (fd, TIOCGSERIAL, &save->ser);
   memcpy(&snew, &save->ser, sizeof(snew));
@@ -54,7 +54,7 @@ set_low_latency (int fd, low_latency_save * save)
 void
 restore_low_latency (int fd, low_latency_save * save)
 {
-#ifdef HAVE_LINUX_LOWLATENCY
+#ifdef HAVE_LINUX_LOWLATENCY___DO___NOT___USE
   ioctl (fd, TIOCSSERIAL, &save->ser);
 #endif
   ioctl (fd, TCSANOW, &save->term);

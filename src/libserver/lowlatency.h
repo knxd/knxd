@@ -23,13 +23,13 @@
 #include "config.h"
 
 #include <termios.h>
-#ifdef HAVE_LINUX_LOWLATENCY
+#ifdef HAVE_LINUX_LOWLATENCY___DO___NOT___USE
 #include <linux/serial.h>
 #endif
 
 typedef struct {
 	struct termios term;
-#ifdef HAVE_LINUX_LOWLATENCY
+#ifdef HAVE_LINUX_LOWLATENCY___DO___NOT___USE
 	serial_struct ser;
 #endif
 } low_latency_save;

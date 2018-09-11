@@ -25,7 +25,7 @@
 #include <errno.h>
 #include <sys/ioctl.h>
 #include <termios.h>
-#ifdef HAVE_LINUX_LOWLATENCY
+#ifdef HAVE_LINUX_LOWLATENCY___DO___NOT___USE
 #include <sys/ioctl.h>
 #include <string.h> // memcpy
 #endif
