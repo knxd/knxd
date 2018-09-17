@@ -318,6 +318,8 @@ public:
     this->start = start;
     timeout.set<GCTracker,&GCTracker::timeout_cb>(this);
     timeout.start(Timeout,0);
+    if (start != gc->seq)
+      handler();
   }
   virtual ~GCTracker() {
       a.clear();
