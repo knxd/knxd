@@ -100,7 +100,7 @@ GroupCache::send_L_Data (LDataPtr l)
               c->second.src = l->source;
               c->second.data = t1->data;
               c->second.recvtime = time (0);
-              c->second.seq = ++seq;
+              c->second.seq = seq++;
               cache_seq.emplace(c->second.seq,c->first);
               updated(c->second);
 	    }
