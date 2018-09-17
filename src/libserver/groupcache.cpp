@@ -374,8 +374,7 @@ GroupCache::LastUpdates (uint16_t start, uint8_t Timeout,
   st = (seq&~0xFFFF) + start;
   if (st > seq)
     st -= 0x10000;
-  else
-    new GCTracker(this, st, Timeout, cb,cc);
+  new GCTracker(this, st, Timeout, cb,cc);
 }
 
 void
