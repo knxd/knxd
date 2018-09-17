@@ -352,7 +352,7 @@ main ()
           continue;
         seenGA[dest>>3] |= 1<<((dest&7));
 
-        if ((subscribedGA[dest>>3]&(1<<((dest&7)))) || (subscribedGA[0] | 1))
+        if ((subscribedGA[dest>>3]&(1<<((dest&7)))) || (subscribedGA[0] & 1))
         {
           // read value from cache
           len_gread = EIB_Cache_Read (con, dest, &src, sizeof(buf_gread), buf_gread);
