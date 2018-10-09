@@ -132,7 +132,7 @@
 
    public function EIBClose()
    {
-     if ($socket === FALSE)
+     if ($this->socket === FALSE)
        {
 	 $this->errno = self::EBADF;
 	 return -1;
