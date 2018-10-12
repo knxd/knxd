@@ -96,7 +96,7 @@ public:
     { this->write_only = write_only; }
 
   bool checkAddress(eibaddr_t addr) { return !write_only && addr == this->getAddress(); }
-  bool checkGroupAddress(eibaddr_t addr UNUSED) { return !write_only; }
+  virtual bool checkGroupAddress(eibaddr_t addr UNUSED) { return !write_only; }
 };
 
 /** Broadcast Layer 4 connection */
@@ -141,6 +141,9 @@ public:
   void send_L_Data (LDataPtr l);
   /** send APDU to L3 */
   void recv_Data (const CArray & c);
+
+  virtual bool checkGroupAddress(eibaddr_t addr) { return (addr == groupaddr); }
+
 };
 typedef std::shared_ptr<T_Group> T_GroupPtr;
 
