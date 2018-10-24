@@ -291,9 +291,21 @@ A "debug" section may contain these options:
     Debugging of flow control issues.
 
   Optional; default: no tracing.
+
+  Thus, if you want to debug packet-level tracing and flow control, you'd
+  use ``trace-mask=0x42``. If you don't know what is happening and want a
+  full debug log, ``0xffe`` is often useful.
+
+  .. Note::
+
+      "packet-level tracing" does *not* include the data / control messages
+      that are exchanged between the KNXD core and one of its drivers. You
+      should thus also add ``-B log``.
   
-  TODO: decide on a reasonable set of message types and allow selecting
-  them by name.
+  .. TODO::
+
+      decide on a reasonable set of message types and allow selecting them
+      by name.
 
 * timestamps (bool; ``--no-timestamp``)
 
