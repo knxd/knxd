@@ -301,11 +301,11 @@ A "debug" section may contain these options:
       "packet-level tracing" does *not* include the data / control messages
       that are exchanged between the KNXD core and one of its drivers. You
       should thus also add ``-B log``.
-  
-  .. TODO::
+ 
+.. Note::
 
-      decide on a reasonable set of message types and allow selecting them
-      by name.
+    TODO: decide on a reasonable set of message types and allow selecting them
+    by name.
 
 * timestamps (bool; ``--no-timestamp``)
 
@@ -741,7 +741,7 @@ Some drivers accept these options.
 * reset (bool; ``--tpuarts-disch-reset``)
 
   Reset the device while connecting to it. This also affects
-  reconnectiosn due to timeout.
+  reconnections due to timeout.
 
   Optional; default false.
 
