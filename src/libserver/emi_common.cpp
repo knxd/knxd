@@ -103,7 +103,7 @@ EMI_Common::send_L_Data (LDataPtr l)
 {
   if (state != E_idle)
     {
-      ERRORPRINTF(t, E_ERROR, "EMI_common: send while waiting");
+      ERRORPRINTF(t, E_ERROR | 59, "EMI_common: send while waiting");
       return;
     }
     
@@ -159,7 +159,7 @@ EMI_Common::timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
     }
 
   // TODO raise an error instead?
-  ERRORPRINTF(t, E_WARNING, "EMI: No confirm, packet discarded");
+  ERRORPRINTF(t, E_WARNING | 119, "EMI: No confirm, packet discarded");
 
   state = E_idle;
   LowLevelFilter::do_send_Next();

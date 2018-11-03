@@ -146,7 +146,7 @@ ex:
 void
 EIBNetIPTunnel::error_cb ()
 {
-  ERRORPRINTF (t, E_ERROR | 23, "Communication error: %s", strerror(errno));
+  ERRORPRINTF (t, E_ERROR | 20, "Communication error: %s", strerror(errno));
   errored();
 }
 
@@ -497,7 +497,7 @@ void EIBNetIPTunnel::conntimeout_cb(ev::timer &w UNUSED, int revents UNUSED)
         }
       else
         {
-          ERRORPRINTF (t, E_ERROR, "Heartbeat messages unanswered");
+          ERRORPRINTF (t, E_ERROR | 10, "Heartbeat messages unanswered");
           restart();
         }
     }

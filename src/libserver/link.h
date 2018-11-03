@@ -543,7 +543,7 @@ public:
   /** Servers don't accept data */
   virtual void send_L_Data (LDataPtr l UNUSED) {}
   virtual bool hasAddress (eibaddr_t addr UNUSED) { return false; }
-  virtual void addAddress (eibaddr_t addr) { ERRORPRINTF(t,E_ERROR|99,"Tried to add address %s to %s", FormatEIBAddr(addr), cfg->name); }
+  virtual void addAddress (eibaddr_t addr) { ERRORPRINTF(t,E_ERROR | 65,"Tried to add address %s to %s", FormatEIBAddr(addr), cfg->name); }
   virtual bool checkAddress (eibaddr_t addr UNUSED) { return false; }
   virtual bool checkGroupAddress (eibaddr_t addr UNUSED) { return false; }
 };
@@ -754,7 +754,7 @@ protected:
   virtual void addAddress(eibaddr_t addr)
     {
       if (addr != this->_addr)
-        ERRORPRINTF(t,E_WARNING,"%s: Addr mismatch: %s vs. %s", this->name(), FormatEIBAddr (addr), FormatEIBAddr (this->_addr));
+        ERRORPRINTF(t,E_WARNING | 120,"%s: Addr mismatch: %s vs. %s", this->name(), FormatEIBAddr (addr), FormatEIBAddr (this->_addr));
     }
   virtual bool checkAddress(eibaddr_t addr) { return addr == this->_addr; }
   virtual bool checkGroupAddress (eibaddr_t addr UNUSED) { return true; }

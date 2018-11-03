@@ -45,7 +45,7 @@ SystemdServer::start()
 
   if (listen (fd, 10) == -1)
     {
-      ERRORPRINTF (t, E_ERROR | 19, "OpenSystemdSocket: listen: %s", strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 98, "OpenSystemdSocket: listen: %s", strerror(errno));
       NetServer::stop();
       return;
     }

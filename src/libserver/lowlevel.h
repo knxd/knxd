@@ -177,12 +177,12 @@ public:
   void do_send_Next() { master->send_Next(); }
   void recv_L_Data(LDataPtr l) { master->recv_L_Data(std::move(l)); }
   void recv_L_Busmonitor(LBusmonPtr l) { master->recv_L_Busmonitor(std::move(l)); }
-  void send_L_Data(LDataPtr l) { ERRORPRINTF (t, E_ERROR, "packet not coded: %s", l->Decode(t)); }
+  void send_L_Data(LDataPtr l) { ERRORPRINTF (t, E_ERROR | 78, "packet not coded: %s", l->Decode(t)); }
 
   /** sends a EMI frame asynchronous */
   virtual void sendReset() { send_Next(); }
   virtual void recv_Data(CArray& c) { master->recv_Data(c); }
-  virtual void abort_send() { ERRORPRINTF (t, E_ERROR, "cannot abort"); }
+  virtual void abort_send() { ERRORPRINTF (t, E_ERROR | 79, "cannot abort"); }
 };
 
 

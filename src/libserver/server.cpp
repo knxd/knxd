@@ -121,7 +121,7 @@ NetServer::io_cb (ev::io &w UNUSED, int revents UNUSED)
         connections.push_back(c);
     }
   else if (errno != EWOULDBLOCK && errno != EAGAIN && errno != EINTR)
-    ERRORPRINTF (t, E_ERROR | 51, "Accept %s: %s", name(), strerror(errno));
+    ERRORPRINTF (t, E_ERROR | 97, "Accept %s: %s", name(), strerror(errno));
 }
 
 bool
