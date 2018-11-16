@@ -620,6 +620,12 @@ USB or (on Raspberry Pi-style computers) a built-in 3.3V serial port.
 
   Optional; the default is 19200.
 
+* low-latency (bool)
+
+  Try to set serial latency even lower.
+
+  This defaults to off because it doesn't work on every serial interface.
+
 Alternately you can use::
 
     socat TCP-LISTEN:55332,reuseaddr /dev/ttyACM0,b19200,parenb,raw
@@ -654,6 +660,12 @@ TODO: which devices use this?
 
   Optional; the default is 19200.
 
+* low-latency (bool)
+
+  Try to set serial latency even lower.
+
+  This defaults to off because it doesn't work on every serial interface.
+
 * send-timeout (``--arg=send-timeout=MSEC``)
 
   EMI1 devices confirm packet transmission. This option controls how long
@@ -681,6 +693,12 @@ TODO: which devices use this?
   Interface speed. This is interface specific, and configured in hardware.
 
   Optional; the default is 19200.
+
+* low-latency (bool)
+
+  Try to set serial latency even lower.
+
+  This defaults to off because it doesn't work on every serial interface.
 
 * send-timeout (int; ``--arg=send-timeout=MSEC``)
 

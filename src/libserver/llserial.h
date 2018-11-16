@@ -38,6 +38,7 @@ class LLserial:public FDdriver
 
   std::string dev;
   int baudrate;
+  bool low_latency;
 
 public:
   LLserial (LowLevelIface* parent, IniSectionPtr& s) : FDdriver(parent,s)

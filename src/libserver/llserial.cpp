@@ -68,6 +68,7 @@ LLserial::setup()
       ERRORPRINTF (t, E_ERROR | 66, "Wrong baudrate= config");
       return false;
     }
+  low_latency = cfg->value("low-latency",false);
 
   return true;
 }
@@ -85,7 +86,7 @@ LLserial::start()
       goto ex1;
     }
 
-  if (!set_low_latency (fd, &sold))
+  if (!set_low_latency (fd, &sold, low_latency))
     {
       ERRORPRINTF (t, E_ERROR | 68, "low_latency %s failed: %s", dev, strerror(errno));
       goto ex2;
@@ -146,7 +147,7 @@ void
 LLserial::stop()
 {
   if (fd >= 0)
-    restore_low_latency (fd, &sold);
+    restore_low_latency (fd, &sold, low_latency);
   FDdriver::stop();
 }
 
