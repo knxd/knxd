@@ -103,7 +103,7 @@ EMI_Common::send_L_Data (LDataPtr l)
 {
   if (state != E_idle)
     {
-      ERRORPRINTF(t, E_ERROR | 59, "EMI_common: send while waiting");
+      ERRORPRINTF(t, E_ERROR | 59, "EMI_common: send while waiting (%d)", state);
       return;
     }
     
