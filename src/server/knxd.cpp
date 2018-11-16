@@ -40,17 +40,27 @@ bool stop_now = false;
 bool do_list = false;
 bool background = false;
 bool stopping = false;
-const char *pidfile = NULL;
-const char *logfile = NULL;
+char *pidfile = NULL;
+char *logfile = NULL;
 const char *cfgfile = NULL;
 const char *mainsection = NULL;
 char *const *argv;
+int argc;
 
 LOOP_RESULT loop;
 
 void usage()
 {
-  fprintf(stderr,"Usage: knxd configfile [main_section]\n");
+  if (argc > 1) {
+    char *s = (char *)malloc(strlen(argv[0])+7);
+    sprintf(s,"%s_args",argv[0]);
+    execvp(s, argv);
+
+    execv(LIBEXECDIR "/knxd_args", argv);
+  }
+
+  fprintf(stderr,"Usage: knxd [-l?V] [--list] [--help] [--usage] [--version]\n");
+  fprintf(stderr,"       knxd configfile [main_section]\n");
   fprintf(stderr,"Please consult /usr/share/doc/knxd/inifile.rst\n");
 
   if (pidfile && *pidfile)
@@ -93,7 +103,7 @@ die (const char *msg, ...)
 }
 
 /** version */
-const char *argp_program_version = "knxd " REAL_VERSION;
+//const char *argp_program_version = "knxd " REAL_VERSION;
 /** documentation */
 static char doc[] =
   "knxd -- a commonication stack for EIB/KNX\n"
@@ -111,6 +121,8 @@ static struct argp_option options[] = {
    "immediately stops the server after a successful start"},
   {"list", 'l', 0, 0,
    "list known drivers, filters, or servers"},
+  {"version", 'V', 0, 0,
+   "show version"},
   {0}
 };
 
@@ -159,6 +171,10 @@ parse_opt (int key, char *arg, struct argp_state *state UNUSED)
     case 'l':
       do_list = true;
       break;
+
+    case 'V':
+      fprintf(stderr,"knxd %s\n",REAL_VERSION);
+      exit(0);
 
     case ARGP_KEY_ARG:
       if (cfgfile == NULL)
@@ -246,6 +262,7 @@ main (int ac, char *ag[])
   setlinebuf(stdout);
 
   argv = ag;
+  argc = ac;
 
 // set up libev
   loop = ev_default_loop(EVFLAG_AUTO | EVFLAG_NOSIGMASK | EVBACKEND_SELECT);
@@ -333,9 +350,23 @@ main (int ac, char *ag[])
     die("Parse error of '%s' in line %d", cfgfile, errl);
   IniSectionPtr main = i[mainsection];
 
-  pidfile = using_systemd ? NULL : main->value("pidfile","").c_str();
-  logfile = using_systemd ? NULL : main->value("logfile","").c_str();
-  background = using_systemd ? false : main->value("background",false);
+  if(!using_systemd)
+  {
+
+      std::string PidFile = main->value("pidfile","");
+      
+      pidfile = new char[ PidFile.length()+1 ];
+      strncpy(pidfile, PidFile.c_str(), PidFile.length());
+      pidfile[ PidFile.length() ] = '\0';
+
+      std::string LogFile = main->value("logfile","");
+      
+      logfile = new char[ LogFile.length()+1 ];
+      strncpy(logfile, LogFile.c_str(),LogFile.length());
+      logfile[ LogFile.length() ] = '\0';
+
+      background=main->value("background",false);
+  }
 
   if (!stop_now)
     stop_now = main->value("stop-after-setup",false);
@@ -372,15 +403,15 @@ main (int ac, char *ag[])
 
   Router *r = new Router(i,mainsection);
 
-  ERRORPRINTF (r->t, E_INFO | 0, "%s:%s", REAL_VERSION, arg_str);
+  ERRORPRINTF (r->t, E_INFO | 131, "%s:%s", REAL_VERSION, arg_str);
 
   if (!r->setup())
     {
-      ERRORPRINTF(r->t, E_FATAL,"Error setting up the KNX router.");
+      ERRORPRINTF(r->t, E_FATAL | 109, "Error setting up the KNX router.");
       exit(2);
     }
   if (!strcmp(cfgfile, "-"))
-    ERRORPRINTF(r->t, E_WARNING,"Consider using a config file.");
+    ERRORPRINTF(r->t, E_WARNING | 125,"Consider using a config file.");
 
   if (background) {
     hup.t = TracePtr(new Trace(*r->t));
@@ -393,7 +424,7 @@ main (int ac, char *ag[])
   signal (SIGPIPE, SIG_IGN);
 
   if (getuid () == 0)
-    ERRORPRINTF (r->t, E_WARNING | 20, "knxd should not run as root");
+    ERRORPRINTF (r->t, E_WARNING | 126, "knxd should not run as root");
 
   if (!stop_now)
     {
@@ -424,7 +455,7 @@ main (int ac, char *ag[])
 #ifdef HAVE_SYSTEMD
   sd_notify(0,"STOPPING=1");
 #endif
-  ERRORPRINTF(r->t, E_NOTICE,"Shutting down.");
+  ERRORPRINTF(r->t, E_NOTICE | 128, "Shutting down.");
 
   stopping = false; // re-set by a second signal
   r->stop();

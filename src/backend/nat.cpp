@@ -41,7 +41,7 @@ NatL2Filter::setup()
           // LinkConnect – which happens when you try to apply the filter
           // globally. The former is exceedingly unlikely, but …
           if (conn.lock() != nullptr)
-            ERRORPRINTF(t, E_ERROR, "%s: cannot be used globally");
+            ERRORPRINTF(t, E_ERROR | 7, "%s: cannot be used globally");
           return false;
         }
       addr = dynamic_cast<Router *>(&c->router)->addr;
@@ -52,7 +52,7 @@ NatL2Filter::setup()
       if (sscanf (opt.c_str(), "%d.%d.%d", &a, &b, &c) != 3 ||
             a<0 || b<0 || c<0 || a>0x0f || b>0x0f || c>0xff)
         {
-          ERRORPRINTF(t, E_ERROR, "Address must be #.#.#, not %s",a);
+          ERRORPRINTF(t, E_ERROR | 8, "Address must be #.#.#, not %s",a);
           return false;
         }
       addr = (a << 12) | (b << 8) | c;
@@ -130,7 +130,7 @@ MapL2Filter::setup()
       // LinkConnect – which happens when you try to apply the filter
       // globally. The former is exceedingly unlikely, but …
       if (conn.lock() != nullptr)
-        ERRORPRINTF(t, E_ERROR, "%s: cannot be used globally");
+        ERRORPRINTF(t, E_ERROR | 9, "%s: cannot be used globally");
       return false;
     }
   addr = c->addr;

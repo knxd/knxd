@@ -796,7 +796,7 @@ EIBnetServer::recv_cb (EIBNetIPPacket *p)
 void
 EIBnetServer::error_cb ()
 {
-  ERRORPRINTF (t, E_ERROR | 23, "Communication error: %s", strerror(errno));
+  ERRORPRINTF (t, E_ERROR | 46, "Communication error: %s", strerror(errno));
   stop();
 }
 
@@ -857,7 +857,7 @@ void
 EIBnetDriver::error_cb ()
 {
   EIBnetServer &parent = *std::static_pointer_cast<EIBnetServer>(server);
-  ERRORPRINTF (t, E_ERROR | 23, "Communication error (driver): %s", strerror(errno));
+  ERRORPRINTF (t, E_ERROR | 47, "Communication error (driver): %s", strerror(errno));
   parent.stop();
 }
 

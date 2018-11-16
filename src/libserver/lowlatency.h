@@ -34,7 +34,7 @@ typedef struct {
 #endif
 } low_latency_save;
 
-bool set_low_latency (int fd, low_latency_save * save);
-void restore_low_latency (int fd, low_latency_save * save);
+bool set_low_latency (int fd, low_latency_save * save, bool really);
+void restore_low_latency (int fd, low_latency_save * save, bool really);
 
 #endif // LOW_LATENCY_H

@@ -70,7 +70,7 @@ void CEMIDriver::started()
 
 void CEMIDriver::reset_timer_cb(ev::timer &w, int revents)
 {
-  ERRORPRINTF(t, E_ERROR, "reset timed out");
+  ERRORPRINTF(t, E_ERROR | 44, "reset timed out");
   errored();
 }
 

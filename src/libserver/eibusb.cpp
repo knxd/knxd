@@ -45,7 +45,7 @@ USBConverterInterface::send_Data (CArray& l)
     }
   if (version < vEMI1 || version > vCEMI)
     {
-      ERRORPRINTF (t, E_ERROR, "EMI version %s during send",version);
+      ERRORPRINTF (t, E_ERROR | 48, "EMI version %s during send",version);
       return;
     }
   t->TracePacket (0, "Send-EMI", l);
@@ -177,7 +177,7 @@ USBDriver::timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
     xmit();
   else
     {
-      ERRORPRINTF (t, E_ERROR, "No reply to setup");
+      ERRORPRINTF (t, E_ERROR | 49, "No reply to setup");
       version = vTIMEOUT;
       errored();
     }
@@ -347,13 +347,13 @@ USBDriver::setup ()
   if (version == vERROR)
     {
       std::string v = cfg->value("version","");
-      ERRORPRINTF (t, E_ERROR, "EMI version %s not recognized",v);
+      ERRORPRINTF (t, E_ERROR | 56, "EMI version %s not recognized",v);
       return false;
     }
 
   if (iface != nullptr)
     {
-      ERRORPRINTF (t, E_WARNING, "interface in setup??");
+      ERRORPRINTF (t, E_WARNING | 118, "interface in setup??");
       delete iface;
     }
   usb_iface = new USBConverterInterface(this,cfg);

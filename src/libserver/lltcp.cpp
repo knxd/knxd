@@ -46,7 +46,7 @@ LLtcp::setup()
     }
   if (port == 0)
     {
-      ERRORPRINTF (t, E_ERROR | 52, "%s: 'port=<num>' required", cfg->name);
+      ERRORPRINTF (t, E_ERROR | 72, "%s: 'port=<num>' required", cfg->name);
       return false;
     }
 
@@ -62,7 +62,7 @@ LLtcp::start()
 
   if (!GetHostIP (t, &addr, dest.c_str()))
     {
-      ERRORPRINTF (t, E_ERROR | 52, "Lookup of %s failed: %s", dest, strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 73, "Lookup of %s failed: %s", dest, strerror(errno));
       goto ex1;
     }
   addr.sin_port = htons (port);
@@ -70,7 +70,7 @@ LLtcp::start()
   fd = socket (AF_INET, SOCK_STREAM, 0);
   if (fd == -1)
     {
-      ERRORPRINTF (t, E_ERROR | 52, "Opening %s:%d failed: %s", dest,port, strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 74, "Opening %s:%d failed: %s", dest,port, strerror(errno));
       goto ex1;
     }
 

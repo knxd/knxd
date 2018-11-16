@@ -24,6 +24,7 @@
 
 #define NO_MAP
 #include "tpuart.h"
+#undef NO_MAP
 
 /** TPUART-derived driver */
 DRIVER_(NCN5120,TPUART,ncn5120)

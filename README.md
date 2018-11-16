@@ -168,6 +168,10 @@ You need to either change their configuration, or add "-u /tmp/eib"
 to knxd's options.
 (This was the default for "-u" before version 0.11.)
 
+### New ".ini" configuration file
+
+
+
 ### Adding a TPUART USB interface
 
 If you attach a (properly programmed) TUL (http://busware.de/tiki-index.php?page=TUL) to your computer, it'll show up as ``/dev/ttyACM0``.

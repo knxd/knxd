@@ -66,7 +66,7 @@ public:
   virtual void addAddress (eibaddr_t addr)
     {
       if (addr != router->addr)
-        ERRORPRINTF (t, E_ERROR, "%s filter: Trying to add address %s", router->main, FormatEIBAddr(addr));
+        ERRORPRINTF (t, E_ERROR | 80, "%s filter: Trying to add address %s", router->main, FormatEIBAddr(addr));
     }
 
   virtual void start() { router->start_(); }
@@ -113,7 +113,7 @@ Router::readaddr (const std::string& addr, eibaddr_t& parsed)
   int a, b, c;
   if (sscanf (addr.c_str(), "%d.%d.%d", &a, &b, &c) != 3)
     {
-      ERRORPRINTF (t, E_ERROR | 55, "'%s' is not a device address. Use X.Y.Z format.", addr);
+      ERRORPRINTF (t, E_ERROR | 81, "'%s' is not a device address. Use X.Y.Z format.", addr);
       return false;
     }
   parsed = ((a & 0x0f) << 12) | ((b & 0x0f) << 8) | (c & 0xff);
@@ -126,7 +126,7 @@ Router::readaddrblock (const std::string& addr, eibaddr_t& parsed, int &len)
   int a, b, c;
   if (sscanf (addr.c_str(), "%d.%d.%d:%d", &a, &b, &c, &len) != 4)
     {
-      ERRORPRINTF (t, E_ERROR | 55, "An address block needs to look like X.Y.Z:N, not '%s'.", addr);
+      ERRORPRINTF (t, E_ERROR | 82, "An address block needs to look like X.Y.Z:N, not '%s'.", addr);
       return false;
     }
   parsed = ((a & 0x0f) << 12) | ((b & 0x0f) << 8) | (c & 0xff);
@@ -172,13 +172,13 @@ Router::setup()
   start_timeout = s->value("timeout",0);
   if (std::isnan(start_timeout) || start_timeout < 0)
     {
-      ERRORPRINTF (t, E_ERROR | 55, "timeout must be >0");
+      ERRORPRINTF (t, E_ERROR | 83, "timeout must be >0");
       goto ex;
     }
   x = s->value("addr","");
   if (!x.size())
     {
-      ERRORPRINTF (t, E_ERROR | 55, "There is no KNX addr= in section '%s'.", main);
+      ERRORPRINTF (t, E_ERROR | 84, "There is no KNX addr= in section '%s'.", main);
       goto ex;
     }
   if (!readaddr(x,addr))
@@ -219,7 +219,7 @@ Router::setup()
         int num_fds = sd_listen_fds(0);
         if( num_fds < 0 )
           {
-            ERRORPRINTF (t, E_ERROR | 55, "Error getting fds from systemd.");
+            ERRORPRINTF (t, E_ERROR | 85, "Error getting fds from systemd.");
             goto ex;
           }
 
@@ -231,7 +231,7 @@ Router::setup()
             (*sds)["use"] = sd_name;
             if( sd_is_socket(fd, AF_UNSPEC, SOCK_STREAM, 1) <= 0 )
               {
-                ERRORPRINTF (t, E_ERROR | 55, "systemd socket %d is not a socket.", fd);
+                ERRORPRINTF (t, E_ERROR | 86, "systemd socket %d is not a socket.", fd);
                 goto ex;
               }
 
@@ -269,12 +269,12 @@ Router::setup()
 
   if (links.size() == 0)
     {
-      ERRORPRINTF (t, E_ERROR | 55, "No connections in section '%s'.", main);
+      ERRORPRINTF (t, E_ERROR | 87, "No connections in section '%s'.", main);
       goto ex;
     }
   if (links.size() == 1)
     {
-      ERRORPRINTF (t, E_ERROR | 55, "Only one connection in section '%s'.", main);
+      ERRORPRINTF (t, E_ERROR | 88, "Only one connection in section '%s'.", main);
       goto ex;
     }
 
@@ -282,7 +282,7 @@ Router::setup()
     goto ex;
 
   ITER(i,links)
-    ERRORPRINTF (t, E_INFO | 55, "Connected: %s.", i->second->info(2));
+    ERRORPRINTF (t, E_INFO | 129, "Connected: %s.", i->second->info(2));
 
   TRACEPRINTF (t, 4, "setup OK");
   return true;
@@ -296,7 +296,7 @@ unseen_lister(void *user,
     const IniSection& section, const std::string& name, const std::string& value)
 {
   Router *r = (Router *)user;
-  ERRORPRINTF (r->t, r->unknown_ok ? E_WARNING : E_FATAL, "Section '%s': unrecognized argument '%s = %s'",
+  ERRORPRINTF (r->t, (r->unknown_ok ? E_WARNING : E_FATAL) | 104, "Section '%s': unrecognized argument '%s = %s'",
       section.name, name, value);
   return !r->unknown_ok;
 }
@@ -311,7 +311,7 @@ Router::do_driver(LinkConnectPtr &link, IniSectionPtr& s, const std::string& dri
   if (driver == nullptr)
     {
       if(!quiet)
-        ERRORPRINTF (t, E_ERROR | 55, "Driver '%s' not found.", drivername);
+        ERRORPRINTF (t, E_ERROR | 89, "Driver '%s' not found.", drivername);
       link = nullptr;
       return false;
     }
@@ -335,7 +335,7 @@ Router::do_server(ServerPtr &link, IniSectionPtr& s, const std::string& serverna
   if (link == nullptr)
     {
       if(!quiet)
-        ERRORPRINTF (t, E_ERROR | 55, "Server '%s' not found.", servername);
+        ERRORPRINTF (t, E_ERROR | 90, "Server '%s' not found.", servername);
       return false;
     }
   if (!link->setup())
@@ -360,7 +360,7 @@ Router::setup_link(std::string& name)
     return server;
   if (do_driver(link, s,s->name, true))
     return link;
-  ERRORPRINTF (t, E_ERROR | 55, "Section '%s' has no known server nor driver.", name);
+  ERRORPRINTF (t, E_ERROR | 91, "Section '%s' has no known server nor driver.", name);
   return nullptr;
 }
 
@@ -549,7 +549,7 @@ Router::state_trigger_cb (ev::async &w UNUSED, int revents UNUSED)
             case L_down:
             case L_error:
               if (!ii->may_fail && !ii->ignore)
-                ERRORPRINTF (ii->t, E_FATAL, "Link down, terminating");
+                ERRORPRINTF (ii->t, E_FATAL | 105, "Link down, terminating");
             }
         }
       exitcode = 1;
@@ -568,7 +568,7 @@ Router::state_trigger_cb (ev::async &w UNUSED, int revents UNUSED)
 void
 Router::start_timer_cb(ev::timer &w UNUSED, int revents UNUSED)
 {
-  ERRORPRINTF (t, E_ERROR, "Startup not successful.");
+  ERRORPRINTF (t, E_ERROR | 92, "Startup not successful.");
   stop();
   // TODO only halt failing drivers
 }
@@ -824,7 +824,7 @@ Router::registerLink(const LinkConnectPtr& link, bool transient)
                 std::forward_as_tuple(link));
   if (! res.second)
     {
-      ERRORPRINTF (link->t, E_ERROR, "registerLink: %d:%s: already present", link->pos,n);
+      ERRORPRINTF (link->t, E_ERROR | 93, "registerLink: %d:%s: already present", link->pos,n);
       return false;
     }
   TRACEPRINTF (link->t, 3, "registerLink: %d:%s", link->pos,n);
@@ -848,7 +848,7 @@ Router::unregisterLink(const LinkConnectPtr& link)
   auto res = links.find(link->pos);
   if (res == links.end())
     {
-      ERRORPRINTF (link->t, E_ERROR, "unregisterLink: %d:%s: not present", link->pos,n);
+      ERRORPRINTF (link->t, E_ERROR | 94, "unregisterLink: %d:%s: not present", link->pos,n);
       return false;
     }
   links.erase(res);
@@ -978,12 +978,12 @@ Router::release_client_addr(eibaddr_t addr)
   int pos = addr - client_addrs_start;
   if (pos >= client_addrs_len)
     {
-      ERRORPRINTF (t, E_ERROR | 3, "Release BAD2 %s", FormatEIBAddr (addr));
+      ERRORPRINTF (t, E_ERROR | 95, "Release BAD2 %s", FormatEIBAddr (addr));
       return;
     }
   if (!client_addrs[pos])
     {
-      ERRORPRINTF (t, E_ERROR | 3, "Release free addr %s", FormatEIBAddr (addr));
+      ERRORPRINTF (t, E_ERROR | 96, "Release free addr %s", FormatEIBAddr (addr));
       return;
     }
 
@@ -1055,7 +1055,7 @@ Router::has_send_more(LinkConnectPtr i)
 {
   if (i->send_more)
     return true;
-  ERRORPRINTF (i->t, E_FATAL | 51, "internal error: send_more is not set");
+  ERRORPRINTF (i->t, E_FATAL | 106, "internal error: send_more is not set");
   return false;
 }
 
