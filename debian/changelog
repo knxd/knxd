@@ -4,6 +4,8 @@ knxd (0.14.26-1) unstable; urgency=medium
     Thanks to dallmair@github.
   * Finally submit to Debian.
     Closes: #860016, #549901
+  * Fix some group cache problems.
+    Thanks to dallmair@github.
 
  -- Matthias Urlichs <matthias@urlichs.de>  Thu, 22 Nov 2018 21:10:49 +0100
 
