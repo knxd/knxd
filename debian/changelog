@@ -1,3 +1,12 @@
+knxd (0.14.26-1) unstable; urgency=medium
+
+  * Fix Debian packaging issues.
+    Thanks to dallmair@github.
+  * Finally submit to Debian.
+    Closes: #860016, #549901
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 22 Nov 2018 21:10:49 +0100
+
 knxd (0.14.25-1) unstable; urgency=medium
 
   * Fix drivers:
