@@ -1,7 +1,7 @@
-knxd (0.14.27-3) unstable; urgency=medium
+knxd (0.14.28) unstable; urgency=medium
 
   * Revert debian/version uptick
-  * revert switch to quilt format (ugh)
+  * Use native packaging
 
  -- Matthias Urlichs <matthias@urlichs.de>  Fri, 23 Nov 2018 07:43:27 +0100
 
