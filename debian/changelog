@@ -1,3 +1,10 @@
+knxd (0.14.27-2) unstable; urgency=medium
+
+  * Test run is not authoritative
+    it uses multicast, which might blocked or firewalled off
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 23 Nov 2018 07:31:06 +0100
+
 knxd (0.14.27-1) unstable; urgency=medium
 
   * Fix Debian packaging issues.
