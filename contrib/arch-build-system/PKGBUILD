@@ -13,7 +13,7 @@ provides=('knxd')
 replaces=('eibd')
 depends=('gcc-libs')
 optdepends=('libsystemd' 'libusb')
-makedepends=('cmake' 'git' 'libtool' 'autoconf' 'automake')
+makedepends=('fmt' 'git' 'libtool' 'autoconf' 'automake')
 
 source=("git://github.com/knxd/${_pkgname}.git")
 sha512sums=('SKIP')
