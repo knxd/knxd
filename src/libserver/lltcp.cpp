@@ -25,6 +25,9 @@
 #include <errno.h>
 #include <netinet/tcp.h>
 #include <netinet/in.h>
+#ifdef __FreeBSD__
+#include <sys/socket.h>
+#endif
 
 #include "ipsupport.h"
 #include "lltcp.h"
