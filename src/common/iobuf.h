@@ -29,9 +29,8 @@
 #include <assert.h>
 #include <ev++.h>
 #include <queue.h>
-#ifdef __FreeBSD__
 #include <errno.h>
-#endif
+
 void set_non_blocking(int fd);
 
 class SendBuf
