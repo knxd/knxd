@@ -28,7 +28,7 @@
 #include <netinet/in.h>
 #include <string.h>
 #include <memory>
-#ifdef __FreeBSD__
+#ifndef SIOCGIFHWADDR
 #include <sys/sysctl.h>
 #include <net/if_dl.h>
 #endif
@@ -485,45 +485,50 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
 		continue;
 	      if (ifr.ifr_flags & IFF_LOOPBACK) // don't count loopback
 		continue;
-#ifndef __FreeBSD__
+#ifdef SIOCGIFHWADDR
 	      if (ioctl(sock_mac, SIOCGIFHWADDR, &ifr))
 		continue;
 	      if (ifr.ifr_hwaddr.sa_family != ARPHRD_ETHER)
 		continue;
 	      memcpy(mac_address, ifr.ifr_hwaddr.sa_data, sizeof(mac_address));
-#endif
-#ifdef __FreeBSD__
-int mib[6];
-size_t len;
-char *buf;
-unsigned char *ptr;
-struct if_msghdr	*ifm;
-struct sockaddr_dl	*sdl;
-mib[0] = CTL_NET;
-mib[1] = AF_ROUTE;
-mib[2] = 0;
-mib[3] = AF_LINK;
-mib[4] = NET_RT_IFLIST;
-if ((mib[5] = if_nametoindex(ifr.ifr_name)) == 0) {
-  perror("if_nametoindex error");
-  exit(2);
-}
-if (sysctl(mib, 6, NULL, &len, NULL, 0) < 0) {
-  perror("sysctl 1 error");
-  exit(3);
-}
+#else
+	      /* for FreeBSD, doesn't have ioctl SIOCGIFHWADDR */
+	      int mib[6];
+	      size_t len;
+	      char *buf;
+	      unsigned char *ptr;
+	      struct if_msghdr	*ifm;
+	      struct sockaddr_dl	*sdl;
 
-buf = new char[len];
+	      mib[0] = CTL_NET;
+	      mib[1] = AF_ROUTE;
+	      mib[2] = 0;
+	      mib[3] = AF_LINK;
+	      mib[4] = NET_RT_IFLIST;
 
-if (sysctl(mib, 6, buf, &len, NULL, 0) < 0) {
-  perror("sysctl 2 error");
-  exit(5);
-}
+	      if ((mib[5] = if_nametoindex(ifr.ifr_name)) == 0)
+	      {
+	        TRACEPRINTF(t, 2, "get_mac_address if_nametoindex error");
+	        goto out;
+	      }
+	      if (sysctl(mib, 6, NULL, &len, NULL, 0) < 0)
+	      {
+	        TRACEPRINTF(t, 2, "get_mac_address sysctl 1 error");
+	        goto out;
+	      }
 
-ifm = (struct if_msghdr *)buf;
-sdl = (struct sockaddr_dl *)(ifm + 1);
-ptr = (unsigned char *)LLADDR(sdl);
-memcpy(mac_address, ptr, sizeof(mac_address));
+	      buf = new char[len];
+
+	      if (sysctl(mib, 6, buf, &len, NULL, 0) < 0)
+	      {
+	        TRACEPRINTF(t, 2, "get_mac_address sysctl 2 error");
+	        goto out;
+	      }
+
+	      ifm = (struct if_msghdr *)buf;
+	      sdl = (struct sockaddr_dl *)(ifm + 1);
+	      ptr = (unsigned char *)LLADDR(sdl);
+	      memcpy(mac_address, ptr, sizeof(mac_address));
 #endif
 	      break;
 	    }
