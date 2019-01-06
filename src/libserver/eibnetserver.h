@@ -26,7 +26,7 @@
 #include "link.h"
 #include "server.h"
 #include "lpdu.h"
-#ifdef __FreeBSD__
+#ifndef IFHWADDRLEN
 #define IFHWADDRLEN 6
 #endif
 
