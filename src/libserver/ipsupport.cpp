@@ -169,8 +169,6 @@ typedef struct
 } r_req;
 
 #ifndef HAVE_SA_SIZE
-// it is defined in FreeBSD, todo fix configure?
-#ifndef __FreeBSD__
 static int
 SA_SIZE (struct sockaddr *sa)
 {
@@ -182,7 +180,6 @@ SA_SIZE (struct sockaddr *sa)
     }
   return len;
 }
-#endif
 #endif
 
 bool
