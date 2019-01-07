@@ -4,7 +4,13 @@ if test -f /usr/local/lib/libeibclient.so.0 ; then
 	echo "*** Remove them before building or installing knxd." >&2
 	exit 1
 fi
-libtoolize --copy --force --install && \
+case `uname` in
+	Darwin*)
+		LIBTOOLIZE=glibtoolize ;;
+	*)
+		LIBTOOLIZE=libtoolize ;;
+esac
+$LIBTOOLIZE --copy --force --install && \
 	aclocal -I m4 --force && \
 	autoheader && \
 	automake --add-missing --copy --force-missing && \
