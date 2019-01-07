@@ -25,7 +25,7 @@ dnl ##    SUCH DAMAGE.
 
 AC_PREREQ(2.59)
 
-AC_INIT(knxd, m4_esyscmd(sh ./tools/version.sh))
+AC_INIT(knxd, m4_esyscmd(sh -c "./tools/version.sh | tr -d '\n'"))
 AM_INIT_AUTOMAKE([foreign])
 
 AC_CANONICAL_HOST
