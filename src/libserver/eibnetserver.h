@@ -26,7 +26,9 @@
 #include "link.h"
 #include "server.h"
 #include "lpdu.h"
-
+#ifndef IFHWADDRLEN
+#define IFHWADDRLEN 6
+#endif
 
 class EIBnetServer;
 typedef std::shared_ptr<EIBnetServer> EIBnetServerPtr;

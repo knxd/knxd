@@ -64,7 +64,12 @@ AC_CHECK_HEADER(linux/usbdevice_fs.h,[AC_DEFINE(OS_LINUX, 1, [Linux usb availabl
 AC_CHECK_HEADER(iphlpapi.h,[AC_DEFINE(HAVE_WINDOWS_IPHELPER, 1,[Windows IPHelper available]) 
   LIBS="-liphlpapi $LIBS"; have_source_info=yes],[],[-])
 
-AC_CHECK_DECL(SA_SIZE,[AC_DEFINE(HAVE_SA_SIZE, 1,[SA_SIZE function available])],[],[#include <net/route.h>])
+AC_CHECK_DECL(SA_SIZE,[AC_DEFINE(HAVE_SA_SIZE, 1,[SA_SIZE function available])],[],[
+  #include <stdint.h>
+  #include <sys/socket.h>
+  #include <net/if.h>
+  #include <net/route.h>
+		       ])
 have_bsd_source_info=no
 AC_CHECK_DECL(__FreeBSD__,[have_bsd_source_info=yes],[],[])
 AC_CHECK_DECL(__APPLE__,[have_bsd_source_info=yes],[],[])

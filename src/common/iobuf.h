@@ -29,6 +29,7 @@
 #include <assert.h>
 #include <ev++.h>
 #include <queue.h>
+#include <errno.h>
 
 void set_non_blocking(int fd);
 
