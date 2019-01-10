@@ -7,7 +7,6 @@ Build-Depends: debhelper (>= 10),
   libusb-1.0-0-dev (>= 1.0.9),
   pkg-config,
   libsystemd-dev (>= 228) | libsystemd-daemon-dev (>= 200) | base-files (<< 8),
-  dh-systemd | base-files (<< 8),
   libev-dev,
   libfmt-dev | libfmt3-dev | cmake (>= 2.8.12),
   libfmt-dev | libfmt3-dev | git,
@@ -22,7 +21,7 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, libusb-1.0-0 (>= 1.0.10), lsb-base, adduser
 Replaces: eibd, eibd-server
 Conflicts: eibd, eibd-server
-Description: A daemon to access the KNX bus
+Description: daemon to access the KNX bus
  KNX is a standard protocol for home and building control.
  .
  This package contains the daemon to access the physical bus,
@@ -34,7 +33,7 @@ Depends: ${shlibs:Depends}, ${misc:Depends}, libusb-1.0-0
 Recommends: knxd
 Replaces: eibd-clients, eibd-server, libeibclient0, knxd-examples
 Conflicts: eibd-clients, eibd-server, libeibclient0
-Description: Tools to use knxd
+Description: tools to use knxd
  KNX is a standard protocol for home and building control.
  .
  This package contains command-line tools to communicate with the KNX
@@ -43,7 +42,7 @@ Description: Tools to use knxd
 Package: knxd-dev
 Architecture: any
 Depends: ${misc:Depends}
-Description: Development files for knxd
+Description: development files for knxd
  KNX is a standard protocol for home and building control.
  .
  These are the development files for knxd clients.

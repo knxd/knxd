@@ -4,44 +4,44 @@ Source: https://github.com/knxd/knxd
 
 Files: *
 Copyright:
- © 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
- © 2014-2019 Matthias Urlichs <matthias@urlichs.de>
+ Â© 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
+ Â© 2014-2019 Matthias Urlichs <matthias@urlichs.de>
 License: GPL-2.0+
 
 Files: contrib/arch-build-system/*
 Copyright:
- © 2015 Ole Krueger <ole@vprsm.de>
- © 2015-2018 Claus Klingberg <cjk@pobox.com>
+ Â© 2015 Ole Krueger <ole@vprsm.de>
+ Â© 2015-2018 Claus Klingberg <cjk@pobox.com>
 License: GPL-2.0+
 
 Files: contrib/gentoo/*
 Copyright:
- © 2015 Marc Joliet <marcec@gmx.de>
- © 2015-2017 Michael Kefeder <m.kefeder@gmail.com>
- © 2015-2017 Matthias Urlichs <matthias@urlichs.de>
+ Â© 2015 Marc Joliet <marcec@gmx.de>
+ Â© 2015-2017 Michael Kefeder <m.kefeder@gmail.com>
+ Â© 2015-2017 Matthias Urlichs <matthias@urlichs.de>
 License: GPL-2.0+
 
 Files: contrib/udev/*
 Copyright:
- © 2015 Sven Fischer <svenihoney@users.noreply.github.com>
- © 2017 Matthias Urlichs <matthias@urlichs.de>
+ Â© 2015 Sven Fischer <svenihoney@users.noreply.github.com>
+ Â© 2017 Matthias Urlichs <matthias@urlichs.de>
 License: GPL-2.0+
 
 Files: debian/*
 Copyright:
- © 2014 Timo Wingender <knxd@timo-wingender.de>
- © 2015-2019 Matthias Urlichs <matthias@urlichs.de>
+ Â© 2014 Timo Wingender <knxd@timo-wingender.de>
+ Â© 2015-2019 Matthias Urlichs <matthias@urlichs.de>
 License: GPL-2.0+
 
 File: m4/ax_cxx_compile_stdcxx.m4
 Copyright:
- © 2008 Benjamin Kosnik <bkoz@redhat.com>
- © 2012 Zack Weinberg <zackw@panix.com>
- © 2013 Roy Stogner <roystgnr@ices.utexas.edu>
- © 2014, 2015 Google Inc.; contributed by Alexey Sokolov <sokolov@google.com>
- © 2015 Paul Norman <penorman@mac.com>
- © 2015 Moritz Klammler <moritz@klammler.eu>
- © 2016 Krzesimir Nowak <qdlacz@gmail.com>
+ Â© 2008 Benjamin Kosnik <bkoz@redhat.com>
+ Â© 2012 Zack Weinberg <zackw@panix.com>
+ Â© 2013 Roy Stogner <roystgnr@ices.utexas.edu>
+ Â© 2014, 2015 Google Inc.; contributed by Alexey Sokolov <sokolov@google.com>
+ Â© 2015 Paul Norman <penorman@mac.com>
+ Â© 2015 Moritz Klammler <moritz@klammler.eu>
+ Â© 2016 Krzesimir Nowak <qdlacz@gmail.com>
 License:
  Copying and distribution of this file, with or without modification, are
  permitted in any medium without royalty provided the copyright notice
@@ -50,61 +50,61 @@ License:
 
 File: m4/ccforbuild.m4
 Copyright:
- © 2000-2006 Free Software Foundation, Inc.
+ Â© 2000-2006 Free Software Foundation, Inc.
 License: LGPL-2.1+
 
 File: m4/compileroption.m4
 Copyright:
- © 1999-2006 Ralf S. Engelschall <rse@engelschall.com>
+ Â© 1999-2006 Ralf S. Engelschall <rse@engelschall.com>
 License: LGPL-2.1+
 
 File: m4/features.m4
 Copyright:
- © 2014 Luis R. Rodriguez <mcgrof@suse.com>
+ Â© 2014 Luis R. Rodriguez <mcgrof@suse.com>
 License: AGPL-3.0+
 
 File: m4/paths.m4
 Copyright:
- © 2014 Luis R. Rodriguez <mcgrof@suse.com>
+ Â© 2014 Luis R. Rodriguez <mcgrof@suse.com>
 License: GPL-2.0+
 
 File: m4/systemd.m4
 Copyright:
- © 2014 Luis R. Rodriguez <mcgrof@suse.com>
- © 2015 Marc Joliet <marcec@gmx.de>
+ Â© 2014 Luis R. Rodriguez <mcgrof@suse.com>
+ Â© 2015 Marc Joliet <marcec@gmx.de>
 License: GPL-2.0+
 
 Files: res/*
 Copyright:
- © 2017 Joerg Mattiello <dev@mjoe.org>
+ Â© 2017 Joerg Mattiello <dev@mjoe.org>
 License: GPL-2.0+
 
 Files: rpm/*
 Copyright:
- © 2015 Juergen Sauermann <juergen.sauermann@t-online.de>
- © 2016-2017 Michael Kefeder <m.kefeder@gmail.com>
- © 2017 Matthias Urlichs <matthias@urlichs.de>
+ Â© 2015 Juergen Sauermann <juergen.sauermann@t-online.de>
+ Â© 2016-2017 Michael Kefeder <m.kefeder@gmail.com>
+ Â© 2017 Matthias Urlichs <matthias@urlichs.de>
 License: GPL-2.0+
 
 Files: src/backend/ncn5120.cpp
 Copyright:
- © 2014-2015 Patrik Pfaffenbauer <patrik.pfaffenbauer@p3.co.at>
- © 2015-2017 Matthias Urlichs <matthias@urlichs.de>
+ Â© 2014-2015 Patrik Pfaffenbauer <patrik.pfaffenbauer@p3.co.at>
+ Â© 2015-2017 Matthias Urlichs <matthias@urlichs.de>
 License: GPL-2.0+
 
 Files: src/client/{lua,ruby}/*
 Copyright:
- © 2014 Elias Karakoulakis <elias.karakoulakis@gmail.com>
+ Â© 2014 Elias Karakoulakis <elias.karakoulakis@gmail.com>
 License: GPL-2.0+
 
 Files: src/client/go/*
 Copyright:
- © 2017 buergi <buergi@users.noreply.github.com>
+ Â© 2017 buergi <buergi@users.noreply.github.com>
 License: GPL-2.0+
 
 Files: src/common/inih.*
 Copyright:
- © 2009 Ben Hoyt <benhoyt@users.noreply.github.com>
+ Â© 2009 Ben Hoyt <benhoyt@users.noreply.github.com>
 License: BSD-3-clause
  All rights reserved.
  .
@@ -133,42 +133,42 @@ License: BSD-3-clause
 
 File: src/examples/vbusmonitor1time.c
 Copyright:
- © 2005-2008 Martin Koegler <mkoegler@auto.tuwien.ac.at>
- © 2010 Michael Markstaller <michael@markstaller.de>
+ Â© 2005-2008 Martin Koegler <mkoegler@auto.tuwien.ac.at>
+ Â© 2010 Michael Markstaller <michael@markstaller.de>
 License: GPL-2.0+
 
 Files: src/libserver/cemi.*
 Copyright:
- © 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
- © 2013 Meik Felser <felser@cs.fau.de>
+ Â© 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
+ Â© 2013 Meik Felser <felser@cs.fau.de>
 License: GPL-2.0+
 
 Files: src/libserver/systemdserver.*
 Copyright:
- © 2015 Marc Joliet <marcec@gmx.de>
+ Â© 2015 Marc Joliet <marcec@gmx.de>
 License: GPL-2.0+
 
 Files: src/server/*
 Copyright:
- © 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
- © 2014 Michael Markstaller <michael@markstaller.de>
+ Â© 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
+ Â© 2014 Michael Markstaller <michael@markstaller.de>
 License: GPL-2.0+
 
 File: src/tools/eib{read,write}-cgi.c
 Copyright:
- © 2005-2010 Martin Koegler <mkoegler@auto.tuwien.ac.at>
- © 2010 Michael Markstaller <michael@markstaller.de>
+ Â© 2005-2010 Martin Koegler <mkoegler@auto.tuwien.ac.at>
+ Â© 2010 Michael Markstaller <michael@markstaller.de>
 License: GPL-2.0+
 
 Files: systemd/*
 Copyright:
- © 2015 Marc Joliet <marcec@gmx.de>
- © 2015-2017 Matthias Urlichs <matthias@urlichs.de>
+ Â© 2015 Marc Joliet <marcec@gmx.de>
+ Â© 2015-2017 Matthias Urlichs <matthias@urlichs.de>
 License: GPL-2.0+
 
 File: tools/list_AUTHORS
 Copyright:
- © 2015 Richard Hartmann <richih@debian.org>
+ Â© 2015 Richard Hartmann <richih@debian.org>
 License: GPL-2.0+
 
 License: GPL-2.0+
@@ -201,7 +201,7 @@ License: LGPL-2.1+
  .
  You should have received a copy of the GNU Lesser General Public
  License along with this library; if not, write to the Free Software
- Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301,
  USA, or contact Ralf S. Engelschall <rse@engelschall.com>.
  .
  On Debian systems, the complete text of the GNU Lesser General Public
