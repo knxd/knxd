@@ -607,7 +607,6 @@ parse_opt (int key, char *arg, struct argp_state *state)
     case 'N':
       arguments->l2opts.flags |= FLAG_B_NO_MONITOR;
       break;
-    case ARGP_KEY_ARG:
     case 'b':
       {
         if (arguments->want_server)
@@ -644,6 +643,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
       if (arguments->l2opts.flags || arguments->l2opts.send_delay)
 	die ("You provided flags after specifying an interface.");
       break;
+
+    case ARGP_KEY_ARG:
+      die ("knxd does not accept arguments without flags. Do you mean '--layer2=%s' ?", arg);
 
     default:
       return ARGP_ERR_UNKNOWN;

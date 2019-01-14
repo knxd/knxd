@@ -23,6 +23,13 @@ Check [the Wiki page](https://github.com/knxd/knxd/wiki) for other version(s) to
 
 ### see https://github.com/knxd/knxd/blob/v0.12/README.md for earlier changes
 
+* 0.16
+
+  * "-b"/"--layer2" is no longer optional
+
+    This resolves an ambiguity with "-u" / "-i", which take an optional
+    argument.
+
 * 0.14
 
   * Code configuration
