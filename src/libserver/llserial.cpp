@@ -135,7 +135,7 @@ LLserial::start()
   return;
 
 ex3:
-  restore_low_latency (fd, &sold);
+  restore_low_latency (fd, &sold, low_latency);
 ex2:
   close (fd);
   fd = -1;

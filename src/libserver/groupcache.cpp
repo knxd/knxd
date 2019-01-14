@@ -100,7 +100,7 @@ GroupCache::send_L_Data (LDataPtr l)
               c->second.src = l->source;
               c->second.data = t1->data;
               c->second.recvtime = time (0);
-              c->second.seq = ++seq;
+              c->second.seq = seq++;
               cache_seq.emplace(c->second.seq,c->first);
               updated(c->second);
 	    }
@@ -318,6 +318,8 @@ public:
     this->start = start;
     timeout.set<GCTracker,&GCTracker::timeout_cb>(this);
     timeout.start(Timeout,0);
+    if (start != gc->seq)
+      handler();
   }
   virtual ~GCTracker() {
       a.clear();
@@ -374,8 +376,7 @@ GroupCache::LastUpdates (uint16_t start, uint8_t Timeout,
   st = (seq&~0xFFFF) + start;
   if (st > seq)
     st -= 0x10000;
-  else
-    new GCTracker(this, st, Timeout, cb,cc);
+  new GCTracker(this, st, Timeout, cb,cc);
 }
 
 void

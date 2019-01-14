@@ -1,10 +1,4 @@
-knxd (0.15.0-8) experimental; urgency=medium
-
-  * Merge v0.14
-
- -- Matthias Urlichs <matthias@urlichs.de>  Fri, 16 Nov 2018 14:55:29 +0100
-
-knxd (0.15.0-7) experimental; urgency=medium
+knxd (0.15.0-9) experimental; urgency=medium
 
   * Merge v0.14
 
@@ -15,6 +9,32 @@ knxd (0.15.0-1) unstable; urgency=medium
   * Prepare for v0.16.
 
  -- Matthias Urlichs <matthias@urlichs.de>  Fri, 17 Mar 2017 05:56:23 +0100
+
+knxd (0.14.28) unstable; urgency=medium
+
+  * Revert debian/version uptick
+  * Use native packaging
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 23 Nov 2018 07:43:27 +0100
+
+knxd (0.14.27-2) unstable; urgency=medium
+
+  * Test run is not authoritative
+    it uses multicast, which might blocked or firewalled off
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 23 Nov 2018 07:31:06 +0100
+
+knxd (0.14.27-1) unstable; urgency=medium
+
+  * Fix Debian packaging issues.
+    Thanks to dallmair@github.
+  * Finally submit to Debian.
+    Closes: #860016, #549901
+  * Fix some group cache problems.
+    Thanks to dallmair@github.
+  * Compile fix.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 22 Nov 2018 21:10:49 +0100
 
 knxd (0.14.25-1) unstable; urgency=medium
 

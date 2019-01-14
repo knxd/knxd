@@ -1,9 +1,10 @@
 #!/bin/sh
+set -e
 
 case "$1" in
         configure)
-		addgroup --system knxd || true
-		adduser --system --disabled-login --home /var/lib/knxd --ingroup knxd knxd || true
+		addgroup --system knxd
+		adduser --system --disabled-login --home /var/lib/knxd --ingroup knxd knxd
 		## for updates
 		if ! test -d /var/lib/knxd ; then
 			mkdir /var/lib/knxd

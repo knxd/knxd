@@ -25,6 +25,7 @@
 #include <errno.h>
 #include <netinet/tcp.h>
 #include <netinet/in.h>
+#include <sys/socket.h>
 
 #include "ipsupport.h"
 #include "lltcp.h"
