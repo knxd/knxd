@@ -10,7 +10,7 @@ EAPI="5"
 inherit eutils autotools git-r3 user
 
 DESCRIPTION="Provides an interface to the EIB / KNX bus"
-HOMEPAGE="https://github.com/Makki1/knxd"
+HOMEPAGE="https://github.com/knxd/knxd"
 
 LICENSE="GPL-2"
 SLOT="0"
