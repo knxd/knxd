@@ -3,8 +3,10 @@
 <pkgmetadata>
 	<use>
 		<flag name="eibd"> Install the eib daemon </flag>
+		<flag name="pei16s"> experimental PEI16 driver </flag>
 		<flag name="ft12"> Add support for FT1.2 </flag>
 		<flag name="ncn5120"> Add support for NCN5120 </flag>
+		<flag name="tpuart"> Add support for TPUART (user mode) </flag>
 		<flag name="tpuarts"> Add support for TPUART (user mode) </flag>
 		<flag name="dummy"> Add support for a dummy interface (for testing)</flag>
 		<flag name="eibnetip"> Add support for EIBNet/IP (aka KNXNet/IP) </flag>
