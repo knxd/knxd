@@ -3,13 +3,36 @@ Upstream-Name: knxd
 Source: https://github.com/knxd/knxd
 
 Files: *
-Copyright: 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
-Copyright: 2014-2015 Matthias Urlichs <matthias@urlichs.de>
+Copyright: 2005-2019 knxd project members (see AUTHORS file)
 License: GPL-2.0+
 
 Files: debian/*
 Copyright: 2014 Timo <knxd@timo-wingender.de>
+Copyright: 2015-2019 Matthias Urlichs <smurf@debian.org>
 License: GPL-2.0+
+
+Files: src/client/ruby/hexdump.rb
+Copyright: 2004 by Tilo Sloboda <tools@unixgods.org>
+License: Artistic
+
+License: Artistic
+ Freely available under the terms of the OpenSource "Artistic License"
+ in combination with the Addendum A (below)
+ .
+ In case you did not get a copy of the license along with the software,
+ it is also available at:   http://www.unixgods.org/~tilo/artistic-license.html
+ .
+ Addendum A:
+ THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM IS WITH YOU!
+ SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING,
+ REPAIR OR CORRECTION.
+ .
+ IN NO EVENT WILL THE COPYRIGHT HOLDERS  BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY GENERAL,
+ SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE USE OR INABILITY
+ TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED TO LOSS OF DATA OR DATA BEING RENDERED
+ INACCURATE OR USELESS OR LOSSES SUSTAINED BY YOU OR THIRD PARTIES OR A FAILURE OF THE PROGRAM
+ TO OPERATE WITH ANY OTHER PROGRAMS), EVEN IF THE COPYRIGHT HOLDERS OR OTHER PARTY HAS BEEN
+ ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
 
 License: GPL-2.0+
  This package is free software; you can redistribute it and/or modify

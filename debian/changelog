@@ -1,4 +1,10 @@
-knxd (0.14.28) unstable; urgency=medium
+knxd (0.14.29-1) unstable; urgency=medium
+
+  * Addressed Debian ftpmaster concerns.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sat, 19 Jan 2019 13:54:56 +0100
+
+knxd (0.14.28-1) unstable; urgency=medium
 
   * Revert debian/version uptick
   * Use native packaging
