@@ -2,7 +2,7 @@ knxd (0.14.29-1) unstable; urgency=medium
 
   * Addressed Debian ftpmaster concerns.
 
- -- Matthias Urlichs <matthias@urlichs.de>  Sat, 19 Jan 2019 13:54:56 +0100
+ -- Matthias Urlichs <matthias@urlichs.de>  Sat, 19 Jan 2019 14:09:08 +0100
 
 knxd (0.14.28-1) unstable; urgency=medium
 
