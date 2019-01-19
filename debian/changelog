@@ -1,4 +1,4 @@
-knxd (0.15.0-9) experimental; urgency=medium
+knxd (0.15.0-10) experimental; urgency=medium
 
   * Merge v0.14
 
@@ -10,7 +10,13 @@ knxd (0.15.0-1) unstable; urgency=medium
 
  -- Matthias Urlichs <matthias@urlichs.de>  Fri, 17 Mar 2017 05:56:23 +0100
 
-knxd (0.14.28) unstable; urgency=medium
+knxd (0.14.29-1) unstable; urgency=medium
+
+  * Addressed Debian ftpmaster concerns.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sat, 19 Jan 2019 14:35:42 +0100
+
+knxd (0.14.28-1) unstable; urgency=medium
 
   * Revert debian/version uptick
   * Use native packaging
