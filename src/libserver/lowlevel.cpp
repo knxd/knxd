@@ -58,7 +58,7 @@ LowLevelIface::send_Local(CArray &d, int raw)
 {
   assert(!is_local);
   is_local = true;
-  local_timeout.start(0.9, 0);
+  local_timeout.start(1.5, 0);
   TRACEPRINTF (tr(), 0, "starting send_Local");
 
   do_send_Local(d, raw);
@@ -108,7 +108,7 @@ LowLevelAdapter::do_send_Local(CArray &d, int raw)
 void
 LowLevelIface::local_timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
 {
-  ERRORPRINTF (tr(), E_ERROR, "send_Local timed out!");
+  ERRORPRINTF (tr(), E_ERROR | 75, "send_Local timed out!");
   is_local = false;
   sendLocal_done(false);
 }
@@ -132,7 +132,7 @@ LowLevelAdapter::send_L_Data(LDataPtr l)
 {
   if (!iface)
     {
-      ERRORPRINTF (t, E_ERROR, "Send: not running??");
+      ERRORPRINTF (t, E_ERROR | 76, "Send: not running??");
       errored();
       return;
     }
@@ -173,7 +173,7 @@ FDdriver::setup_buffers()
 void
 FDdriver::error_cb()
 {
-  ERRORPRINTF (t, E_ERROR | 23, "Communication error: %s", strerror(errno));
+  ERRORPRINTF (t, E_ERROR | 77, "Communication error: %s", strerror(errno));
   errored();
 }
 

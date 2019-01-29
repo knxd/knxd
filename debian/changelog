@@ -1,3 +1,43 @@
+knxd (0.14.29-1) unstable; urgency=medium
+
+  * Addressed Debian ftpmaster concerns.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sat, 19 Jan 2019 14:35:42 +0100
+
+knxd (0.14.28-1) unstable; urgency=medium
+
+  * Revert debian/version uptick
+  * Use native packaging
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 23 Nov 2018 07:43:27 +0100
+
+knxd (0.14.27-2) unstable; urgency=medium
+
+  * Test run is not authoritative
+    it uses multicast, which might blocked or firewalled off
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 23 Nov 2018 07:31:06 +0100
+
+knxd (0.14.27-1) unstable; urgency=medium
+
+  * Fix Debian packaging issues.
+    Thanks to dallmair@github.
+  * Finally submit to Debian.
+    Closes: #860016, #549901
+  * Fix some group cache problems.
+    Thanks to dallmair@github.
+  * Compile fix.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 22 Nov 2018 21:10:49 +0100
+
+knxd (0.14.25-1) unstable; urgency=medium
+
+  * Fix drivers:
+    - registration of NCN5120
+    - alias "tpuarts" for "tpuart" (the latter was listed but didn't work)
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 11 Jun 2018 10:29:50 +0200
+
 knxd (0.14.24-3) unstable; urgency=medium
 
   * libfmt fetch script correction

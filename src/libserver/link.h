@@ -499,26 +499,22 @@ public:
   virtual void addAddress (eibaddr_t addr) { assert (addr == 0 || addr == this->addr); }
 };
 
-#ifdef NO_MAP
-#define SERVER(_cls,_name) \
+#define DSERVER(_cls,_name) \
 class _cls : public Server
-#define SERVER_(_cls,_base,_name) \
+#define DSERVER_(_cls,_base,_name) \
 class _cls : public _base
 
-#else
-#define SERVER(_cls,_name) \
+#define RSERVER(_cls,_name) \
 static constexpr const char _cls##_name[] = #_name; \
 class _cls; \
 static AutoRegister<_cls,Server,_cls##_name> _auto_S##_name; \
 class _cls : public Server
 
-#define SERVER_(_cls,_base,_name) \
+#define RSERVER_(_cls,_base,_name) \
 static constexpr const char _cls##_name[] = #_name; \
 class _cls; \
 static AutoRegister<_cls,Server,_cls##_name> _auto_S##_name; \
 class _cls : public _base
-
-#endif
 
 
 /** A server is a LinkConnect which doesn't itself send packets.
@@ -543,30 +539,28 @@ public:
   /** Servers don't accept data */
   virtual void send_L_Data (LDataPtr l UNUSED) {}
   virtual bool hasAddress (eibaddr_t addr UNUSED) { return false; }
-  virtual void addAddress (eibaddr_t addr) { ERRORPRINTF(t,E_ERROR|99,"Tried to add address %s to %s", FormatEIBAddr(addr), cfg->name); }
+  virtual void addAddress (eibaddr_t addr) { ERRORPRINTF(t,E_ERROR | 65,"Tried to add address %s to %s", FormatEIBAddr(addr), cfg->name); }
   virtual bool checkAddress (eibaddr_t addr UNUSED) { return false; }
   virtual bool checkGroupAddress (eibaddr_t addr UNUSED) { return false; }
 };
 
 
-#ifdef NO_MAP
-#define FILTER(_cls,_name) \
+#define DFILTER(_cls,_name) \
 class _cls : public Filter
-#define FILTER_(_cls,_base,_name) \
+#define DFILTER_(_cls,_base,_name) \
 class _cls : public _base
-#else
-#define FILTER(_cls,_name) \
-static constexpr const char _cls##_name[] = #_name; \
-class _cls; \
-static AutoRegister<_cls,Filter,_cls##_name> _auto_F##_name; \
-class _cls : public Filter
-#define FILTER_(_cls,_base,_name) \
-static constexpr const char _cls##_name[] = #_name; \
-class _cls; \
-static AutoRegister<_cls,Filter,_cls##_name> _auto_F##_name; \
-class _cls : public _base
-#endif
 
+#define RFILTER(_cls,_name) \
+static constexpr const char _cls##_name[] = #_name; \
+class _cls; \
+static AutoRegister<_cls,Filter,_cls##_name> _auto_F##_name; \
+class _cls : public Filter
+
+#define RFILTER_(_cls,_base,_name) \
+static constexpr const char _cls##_name[] = #_name; \
+class _cls; \
+static AutoRegister<_cls,Filter,_cls##_name> _auto_F##_name; \
+class _cls : public _base
 
 /** filters are inserted between a link's LinkConnect object and the actual
  * driver. They may modify, log, … the data flowing through them. */
@@ -631,25 +625,22 @@ public:
   virtual FilterPtr findFilter(std::string name, bool skip_me = false);
 };
 
-#ifdef NO_MAP
-#define DRIVER(_cls,_name) \
+#define DDRIVER(_cls,_name) \
 class _cls : public BusDriver
-#define DRIVER_(_cls,_base,_name) \
+#define DDRIVER_(_cls,_base,_name) \
 class _cls : public _base
 
-#else
-#define DRIVER(_cls,_name) \
+#define RDRIVER(_cls,_name) \
 static constexpr const char _cls##_name[] = #_name; \
 class _cls; \
 static AutoRegister<_cls,Driver,_cls##_name> _auto_D_##_name; \
 class _cls : public BusDriver
 
-#define DRIVER_(_cls,_base,_name) \
+#define RDRIVER_(_cls,_base,_name) \
 static constexpr const char _cls##_name[] = #_name; \
 class _cls; \
 static AutoRegister<_cls,Driver,_cls##_name> _auto_D_##_name; \
 class _cls : public _base
-#endif
 
 class Driver : public LinkBase
 {
@@ -754,10 +745,12 @@ protected:
   virtual void addAddress(eibaddr_t addr)
     {
       if (addr != this->_addr)
-        ERRORPRINTF(t,E_WARNING,"%s: Addr mismatch: %s vs. %s", this->name(), FormatEIBAddr (addr), FormatEIBAddr (this->_addr));
+        ERRORPRINTF(t,E_WARNING | 120,"%s: Addr mismatch: %s vs. %s", this->name(), FormatEIBAddr (addr), FormatEIBAddr (this->_addr));
     }
   virtual bool checkAddress(eibaddr_t addr) { return addr == this->_addr; }
   virtual bool checkGroupAddress (eibaddr_t addr UNUSED) { return true; }
 };
+
+#include "driver_remap.h"
 
 #endif

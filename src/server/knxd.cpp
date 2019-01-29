@@ -403,15 +403,15 @@ main (int ac, char *ag[])
 
   Router *r = new Router(i,mainsection);
 
-  ERRORPRINTF (r->t, E_INFO | 0, "%s:%s", REAL_VERSION, arg_str);
+  ERRORPRINTF (r->t, E_INFO | 131, "%s:%s", REAL_VERSION, arg_str);
 
   if (!r->setup())
     {
-      ERRORPRINTF(r->t, E_FATAL,"Error setting up the KNX router.");
+      ERRORPRINTF(r->t, E_FATAL | 109, "Error setting up the KNX router.");
       exit(2);
     }
   if (!strcmp(cfgfile, "-"))
-    ERRORPRINTF(r->t, E_WARNING,"Consider using a config file.");
+    ERRORPRINTF(r->t, E_WARNING | 125,"Consider using a config file.");
 
   if (background) {
     hup.t = TracePtr(new Trace(*r->t));
@@ -424,7 +424,7 @@ main (int ac, char *ag[])
   signal (SIGPIPE, SIG_IGN);
 
   if (getuid () == 0)
-    ERRORPRINTF (r->t, E_WARNING | 20, "knxd should not run as root");
+    ERRORPRINTF (r->t, E_WARNING | 126, "knxd should not run as root");
 
   if (!stop_now)
     {
@@ -455,7 +455,7 @@ main (int ac, char *ag[])
 #ifdef HAVE_SYSTEMD
   sd_notify(0,"STOPPING=1");
 #endif
-  ERRORPRINTF(r->t, E_NOTICE,"Shutting down.");
+  ERRORPRINTF(r->t, E_NOTICE | 128, "Shutting down.");
 
   stopping = false; // re-set by a second signal
   r->stop();

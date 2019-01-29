@@ -49,3 +49,4 @@ endif
 
 #override_dh_auto_test:
 	#bash tools/test.sh
+	# test run is not authoritative because it uses multicast

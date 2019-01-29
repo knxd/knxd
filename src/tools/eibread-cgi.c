@@ -296,6 +296,8 @@ main ()
   strcpy(outptr,"{\"d\": {");
   outptr += strlen(outptr);
 
+  memset(seenGA,0,sizeof(seenGA));
+
   if (lastpos==0 ) //initial read
   {
     for (i = 1; i < UINT16; i++) // skip all-zero GA
@@ -337,8 +339,6 @@ main ()
     }
   }
 
-  memset(seenGA,0,sizeof(seenGA));
-
   while ((!seen || lastpos <1) && difftime(time(NULL), tstart) < timeout) {
     len = EIB_Cache_LastUpdates2 (con, lastpos, timeout, sizeof (buf), buf, &lastpos);
     if (len == -1)
@@ -352,7 +352,7 @@ main ()
           continue;
         seenGA[dest>>3] |= 1<<((dest&7));
 
-        if ((subscribedGA[dest>>3]&(1<<((dest&7)))) || (subscribedGA[0] | 1))
+        if ((subscribedGA[dest>>3]&(1<<((dest&7)))) || (subscribedGA[0] & 1))
         {
           // read value from cache
           len_gread = EIB_Cache_Read (con, dest, &src, sizeof(buf_gread), buf_gread);
@@ -385,9 +385,8 @@ main ()
           }
         }
       }
-    if (outptr != outbuf)
-      printf ("%s},\"i\":%d}\n",outbuf,lastpos);
   }
+  printf ("%s},\"i\":%d}\n",outbuf,lastpos);
   EIBClose (con);
   return 0;
 }

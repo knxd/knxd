@@ -118,7 +118,7 @@ TPUARTwrap::setup()
       if (cfg->value("ip-address","").length() > 0 ||
           cfg->value("port",-1) != -1)
         {
-          ERRORPRINTF (t, E_ERROR, "Don't specify both device and IP options!");
+            ERRORPRINTF (t, E_ERROR | 25, "Don't specify both device and IP options!");
           return false;
         }
       iface = create_serial(this, cfg);
@@ -127,7 +127,7 @@ TPUARTwrap::setup()
     {
       if (cfg->value("baudrate",-1) != -1)
         {
-          ERRORPRINTF (t, E_ERROR, "Don't specify both device and IP options!");
+          ERRORPRINTF (t, E_ERROR | 33, "Don't specify both device and IP options!");
           return false;
         }
       iface = new LLtcp(this, cfg);
@@ -275,7 +275,7 @@ TPUARTwrap::sendtimer_cb(ev::timer &w UNUSED, int revents UNUSED)
 {
   if (send_retry++ > 3)
     {
-      ERRORPRINTF (t, E_ERROR, "send timeout: too many retries");
+      ERRORPRINTF (t, E_ERROR | 43, "send timeout: too many retries");
       setstate(T_error);
       return;
     } // TODO error
@@ -462,7 +462,7 @@ TPUARTwrap::recv_Data(CArray &c)
         {
           TRACEPRINTF (t, 8, "State: %02X", c);
           if (c != 0x07)
-            ERRORPRINTF (t, E_WARNING | 63, "TPUART error state x%02X", c);
+            ERRORPRINTF (t, E_WARNING | 116, "TPUART error state x%02X", c);
 
           switch(state)
             {
@@ -485,7 +485,7 @@ TPUARTwrap::recv_Data(CArray &c)
               break;
 
             default:
-              ERRORPRINTF (t, E_WARNING | 63, "TPUART state %s should not happen", SN(state));
+              ERRORPRINTF (t, E_WARNING | 117, "TPUART state %s should not happen", SN(state));
               break;
             }
         }

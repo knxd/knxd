@@ -36,9 +36,9 @@ class EIBBuffer {
 
 class EIBAddr {
 	public $addr;
-	function _construct($a=0)
+	function _construct($val=0)
 	  {
-	    $this->addr=$a;
+	    $this->addr=$val;
 	  }
 
 }
@@ -47,7 +47,7 @@ class EIBInt8 {
 	public $data;
 	function _construct($val=0)
 	  {
-	    $this->data=$a;
+	    $this->data=$val;
 	  }
 }
 
@@ -55,7 +55,7 @@ class EIBInt16 {
 	public $data;
 	function _construct($val=0)
 	  {
-	    $this->data=$a;
+	    $this->data=$val;
 	  }
 
 }
@@ -64,7 +64,7 @@ class EIBInt32 {
 	public $data;
 	function _construct($val=0)
 	  {
-	    $this->data=$a;
+	    $this->data=$val;
 	  }
 
 }

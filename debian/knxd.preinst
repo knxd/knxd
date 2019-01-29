@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 if test -f /usr/local/lib/libeibclient.so.0 ; then
     echo "*** You have old eibd libraries lying around in /usr/local/lib." >&2

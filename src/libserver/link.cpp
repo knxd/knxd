@@ -260,7 +260,7 @@ LinkConnect::setState(LConnState new_state)
   return;
 
 inval:
-  ERRORPRINTF (t, E_ERROR, "invalid transition: %s => %s", osn, stateName());
+  ERRORPRINTF (t, E_ERROR | 60, "invalid transition: %s => %s", osn, stateName());
   abort();
   return;
 
@@ -412,7 +412,7 @@ LinkConnect_::setup()
   DriverPtr dr = driver; // .lock();
   if(dr == nullptr)
     {
-      ERRORPRINTF (t, E_ERROR | 55, "No driver in %s. Refusing.", cfg->name);
+      ERRORPRINTF (t, E_ERROR | 61, "No driver in %s. Refusing.", cfg->name);
       return false;
     }
 
@@ -438,7 +438,7 @@ LinkConnect_::setup()
               }
             if(!dr->push_filter(link))
               {
-                ERRORPRINTF (t, E_ERROR | 32, "Linking filter '%s' failed.", name);
+                ERRORPRINTF (t, E_ERROR | 63, "Linking filter '%s' failed.", name);
                 return false;
               }
           }
@@ -453,7 +453,7 @@ LinkConnect_::setup()
     {
       if (!s->setup())
         {
-          ERRORPRINTF (t, E_ERROR | 32, "%s: setup %s: failed", cfg->name, s->cfg->name);
+          ERRORPRINTF (t, E_ERROR | 64, "%s: setup %s: failed", cfg->name, s->cfg->name);
           return false;
         }
       if (s == dr)
@@ -461,14 +461,14 @@ LinkConnect_::setup()
       auto ps = std::dynamic_pointer_cast<Filter>(s);
       if (ps == nullptr)
         {
-          ERRORPRINTF (t, E_FATAL | 32, "%s: setup %s: no driver", cfg->name, s->cfg->name);
+          ERRORPRINTF (t, E_FATAL | 102, "%s: setup %s: no driver", cfg->name, s->cfg->name);
           return false;
         }
       s = ps->send;
     }
   if (s == nullptr)
     {
-      ERRORPRINTF (t, E_FATAL | 33, "%s: setup: no driver", cfg->name);
+      ERRORPRINTF (t, E_FATAL | 103, "%s: setup: no driver", cfg->name);
       return false;
     }
   return true;

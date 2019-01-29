@@ -35,25 +35,25 @@ PaceFilter::setup()
 {
   if (findFilter("queue", true) == nullptr
       && std::dynamic_pointer_cast<LinkConnect>(conn.lock()) != nullptr)
-    ERRORPRINTF(t, E_NOTICE, "The 'pace' filter without a queue acts globally.");
+    ERRORPRINTF(t, E_NOTICE | 127, "The 'pace' filter without a queue acts globally.");
   if (!Filter::setup())
     return false;
   delay = cfg->value("delay",15)/1000.;
   if (delay <= 0)
     {
-      ERRORPRINTF(t, E_ERROR, "The delay must be >0");
+      ERRORPRINTF(t, E_ERROR | 19, "The delay must be >0");
       return false;
     }
   byte_delay = cfg->value("delay-per-byte",1)/1000.;
   if (byte_delay < 0)
     {
-      ERRORPRINTF(t, E_ERROR, "The delay must be >0");
+      ERRORPRINTF(t, E_ERROR | 1, "The delay must be >0");
       return false;
     }
   factor_in = cfg->value("incoming",0.75);
   if (factor_in < 0)
     {
-      ERRORPRINTF(t, E_ERROR, "The factor for incoming packets must be >=0");
+      ERRORPRINTF(t, E_ERROR | 2, "The factor for incoming packets must be >=0");
       return false;
     }
   return true;
@@ -78,7 +78,7 @@ PaceFilter::started()
       state = P_IDLE;
       break;
     default:
-      ERRORPRINTF(t, E_WARNING, "state %d??", state);
+      ERRORPRINTF(t, E_WARNING | 110, "state %d??", state);
       break;
     }
   Filter::started();
@@ -111,7 +111,7 @@ PaceFilter::send_Next()
       }
       break;
     case P_BUSY:
-      ERRORPRINTF(t, E_WARNING, "send_next on busy pacer?");
+      ERRORPRINTF(t, E_WARNING | 111, "send_next on busy pacer?");
       break;
     }
 }
