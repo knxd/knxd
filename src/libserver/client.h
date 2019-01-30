@@ -20,6 +20,8 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
+#include <msgpack.hpp>
+
 #include "common.h"
 #include "eibtypes.h"
 #include "iobuf.h"
@@ -35,6 +37,13 @@ typedef std::shared_ptr<NetServer> NetServerPtr;
 class Router;
 class A__Base;
 
+struct mp_ {
+  //msgpack::sbuffer buffer;
+  //msgpack::packer<msgpack::sbuffer> pk(buffer);
+  msgpack::unpacker unpacker;
+};
+typedef std::unique_ptr<struct mp_> mp_p;
+
 /** implements a client connection */
 class ClientConnection : public std::enable_shared_from_this<ClientConnection>
 {
@@ -42,6 +51,8 @@ class ClientConnection : public std::enable_shared_from_this<ClientConnection>
   int fd;
 public:
   bool running = false;
+  bool msgpack = false;
+  bool msgpack_checked = false;
 
   /** Layer 3 interface */
   Router &router;
@@ -60,6 +71,14 @@ protected:
 
   void exit_conn();
 
+  mp_p mp;
+  bool process_mp(msgpack::object obj);
+  void mp_error(uint16_t eid, char *emsg);
+  void mp_format_error(uint16_t eid, char *emsg)
+    {
+      mp_error(1,"Invalid data format");
+    }
+
 public:
   ClientConnection (NetServerPtr s, int fd);
   virtual ~ClientConnection ();
@@ -68,6 +87,8 @@ public:
   void stop();
 
   size_t read_cb(uint8_t *buf, size_t len);
+  size_t read_cb_msgpack(uint8_t *buf, size_t len);
+  size_t read_cb_legacy(uint8_t *buf, size_t len);
   void error_cb();
 
   /** send a message */

@@ -133,6 +133,80 @@ ClientConnection::read_cb (uint8_t *buf, size_t len)
 {
   if (len < 2)
     return 0;
+  if (! msgpack_checked)
+    {
+        if (len < 4)
+          return 0;
+        msgpack_checked = true;
+        if (!memcmp(buf, "\x92\xA4\x4B\x4E", 4)) {
+          msgpack = true;
+          mp = mp_p(new mp_()); // only allocate when msgpack-ing
+          mp->unpacker.reserve_buffer(4096);
+        }
+    }
+  if (msgpack)
+    return read_cb_msgpack(buf, len);
+  else
+    return read_cb_legacy(buf, len);
+}
+
+bool
+ClientConnection::process_mp(msgpack::object obj)
+{
+  if (obj.type == msgpack::type::MAP) 
+		{
+			
+		}
+  elif (obj.type != msgpack::type::ARRAY || 
+        obj.via.array.size != 2 ||
+        dynamic_cast<std::string>(obj.via.array[0]) != "KNXi" ||
+        obj.via.array[1].type != msgpack::type::MAP ||
+        true) 
+		{
+      mp_format_error();
+			return false;
+		}
+  else
+    {
+      auto m = obj.via.array[1].via.map
+			for (int i = 0; i < m.size; i++)
+				{
+          std::string *k = dynamic_cast<str::string *>(m.ptr[0].val);
+          if (k == NULL)
+            {
+							return false;
+            }
+          if (*k == "v")
+					  {
+            }
+          else // not recognized
+            {
+              return false;
+						}
+				}
+    }
+}
+
+size_t
+ClientConnection::read_cb_msgpack (uint8_t *buf, size_t len)
+{
+  mp->unpacker.reserve_buffer(len);
+  memcpy(mp->unpacker.buffer(), buf, len);
+  mp->unpacker.buffer_consumed(len);
+
+  msgpack::object_handle oh;
+  while(mp->unpacker.next(oh))
+    {
+      msgpack::object obj = oh.get();
+      process_mp(obj);
+    }
+  return len;
+}
+
+
+size_t
+ClientConnection::read_cb_legacy (uint8_t *buf, size_t len)
+{
   unsigned int xlen = (buf[0] << 8) | (buf[1]);
   if (len < xlen+2)
     return 0;

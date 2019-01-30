@@ -61,7 +61,7 @@ The initial message will look like this::
 
 This translates to a binary string which always starts with::
 
-    92 a4 4B 4E 58 69 …
+    92 A4 4B 4E 58 69 …
 
 which is illegal in the context of the legacy protocol.
 
@@ -335,9 +335,13 @@ contents of the error message's parameter list is given in parentheses.
 
   Reserved.
 
-* 1-99
+* 1
 
-  Reserved for protocol-specified use by clients.
+  Data format error
+
+* 2-99
+
+  Reserved for protocol errors.
 
 * 100
 
