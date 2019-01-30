@@ -1,3 +1,9 @@
+knxd (0.14.29-3) unstable; urgency=medium
+
+  * Remove homedir after purge. Closes: #920832
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 30 Jan 2019 14:55:52 +0100
+
 knxd (0.14.29-2) unstable; urgency=medium
 
   * Path fix. Closes: #919912
