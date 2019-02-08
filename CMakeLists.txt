@@ -18,6 +18,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # Load in the needed CMake modules
 include(CheckIncludeFiles)
+include(CheckIncludeFileCXX)
 include(CheckSymbolExists)
 include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
@@ -38,8 +39,8 @@ if(NOT GIT_VERSION)
   string(REPLACE "knxd (" "" KNXD_VERSION "${DEB_VERSION}")
 else()
   # Use the git version
-  string(REGEX REPLACE "v([^-]+)-[0-9]+-g(.*)" "\\1:\\2" TOOL_VERSION "${GIT_VERSION}")
-  string(REGEX REPLACE "v([^-]+)-[0-9]+-g(.*)" "\\1" KNXD_VERSION "${GIT_VERSION}")
+  string(REGEX REPLACE "v?([^-]+)-[0-9]+-g(.*)" "\\1:\\2" TOOL_VERSION "${GIT_VERSION}")
+  string(REGEX REPLACE "v?([^-]+)-[0-9]+-g(.*)" "\\1" KNXD_VERSION "${GIT_VERSION}")
 endif()
 
 # Set up the project
@@ -178,14 +179,14 @@ option(ENABLE_GROUPCACHE "Enable Group Cache" ON)
 set(HAVE_GROUPCACHE ${ENABLE_GROUPCACHE})
 
 #Find the fmt package, downloading of not found TBD
-find_package(fmt QUIET)
+find_package(fmt CONFIG)
 if(NOT fmt_FOUND)
   # Get the FMT from github
   message(STATUS "FMT not found, get it via git by ExternalProject_Add(fmt) TBD...")
   include(ExternalFmt)
   set(HAVE_FMT_PRINTF true)
 else()
-  check_include_files(fmt/printf.h HAVE_FMT_PRINTF)
+  check_include_file_cxx(fmt/printf.h HAVE_FMT_PRINTF)
 endif()
 set(HAVE_FMT TRUE)
 
