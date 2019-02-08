@@ -1,7 +1,7 @@
 include_directories(${PROJECT_SOURCE_DIR}/src/libserver ${PROJECT_SOURCE_DIR}/src/backend )
 
 add_executable(knxd knxd.cpp)
-target_link_libraries(knxd -Wl,--whole-archive backend server -Wl,--no-whole-archive eibstack common usb ${LIBEV_LIBRARIES} fmt)
+target_link_libraries(knxd -Wl,--whole-archive backend server -Wl,--no-whole-archive eibstack common usb ${LIBEV_LIBRARIES})
 target_compile_definitions(knxd PRIVATE -DLIBEXECDIR="${CMAKE_INSTALL_PREFIX}/lib/${PACKAGE_NAME}")
 
 # Only with CMake > 3.1

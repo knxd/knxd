@@ -8,7 +8,7 @@ endif()
 
 if(HAVE_USB)
   add_library(usb STATIC ${EIBD_USB})
-  target_link_libraries(usb fmt)
+  target_link_libraries(usb fmt::fmt)
   target_include_directories(usb PUBLIC ${USB_INCLUDES})
 
   add_executable(findknxusb findknxusb.cpp)

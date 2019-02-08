@@ -41,4 +41,4 @@ add_library(eibstack STATIC ${COMMON} ${CORE} ${PDUs} ${MANAGEMENT} ${NETIP} ${F
 add_library(server STATIC server.cpp localserver.cpp inetserver.cpp
   llserial.cpp lltcp.cpp lowlatency.cpp
   ${SYSTEMD_SERVER} ${EIBNETIP} ${EMI} ${USB})
-target_link_libraries(server fmt)
+target_link_libraries(server fmt::fmt)
