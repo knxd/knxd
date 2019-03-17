@@ -1,3 +1,10 @@
+knxd (0.14.29-4) unstable; urgency=medium
+
+  * Add dependency from knxd-dev to -tools (for libeibclient.so)
+    Closes:#924188
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 17 Mar 2019 16:06:48 +0100
+
 knxd (0.14.29-3) unstable; urgency=medium
 
   * Remove homedir after purge. Closes: #920832

@@ -41,7 +41,8 @@ Description: tools to use knxd
 
 Package: knxd-dev
 Architecture: any
-Depends: ${misc:Depends}
+Depends: ${misc:Depends},
+  knxd-tools (= ${binary:Version})
 Description: development files for knxd
  KNX is a standard protocol for home and building control.
  .
