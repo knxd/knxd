@@ -20,7 +20,7 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
-#include <msgpack.hpp>
+#include "knxi.pb.h"
 
 #include "common.h"
 #include "eibtypes.h"
@@ -37,13 +37,6 @@ typedef std::shared_ptr<NetServer> NetServerPtr;
 class Router;
 class A__Base;
 
-struct mp_ {
-  //msgpack::sbuffer buffer;
-  //msgpack::packer<msgpack::sbuffer> pk(buffer);
-  msgpack::unpacker unpacker;
-};
-typedef std::unique_ptr<struct mp_> mp_p;
-
 /** implements a client connection */
 class ClientConnection : public std::enable_shared_from_this<ClientConnection>
 {
@@ -51,8 +44,10 @@ class ClientConnection : public std::enable_shared_from_this<ClientConnection>
   int fd;
 public:
   bool running = false;
-  bool msgpack = false;
-  bool msgpack_checked = false;
+  bool protobuf = false;
+  bool protobuf_checked = false;
+  bool protobuf_client = false; // other side is a client
+   protobuf_client = false; // other side is a client
 
   /** Layer 3 interface */
   Router &router;
@@ -71,13 +66,8 @@ protected:
 
   void exit_conn();
 
-  mp_p mp;
-  bool process_mp(msgpack::object obj);
-  void mp_error(uint16_t eid, char *emsg);
-  void mp_format_error(uint16_t eid, char *emsg)
-    {
-      mp_error(1,"Invalid data format");
-    }
+  void process_pb(KNXiMessage &msg);
+  void pb_error(uint16_t eid, char *emsg);
 
 public:
   ClientConnection (NetServerPtr s, int fd);

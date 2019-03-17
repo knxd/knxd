@@ -41,7 +41,7 @@ Use cases
 
 * subscribing / querying the group cache
 
-* fix support for programming mode and other Layer 7 and management
+* support programming mode and other Layer 7 and management
   functions that had to be removed along with ``pthsem``
 
 * any use case which requires authorization or encryption
@@ -49,35 +49,72 @@ Use cases
 Implementation
 ==============
 
-``KNXi`` is based on `msgpack
-<https://github.com/msgpack/msgpack/blob/master/spec.md>`_, a lean protocol
-that is easy to analyze and extend (if necessary). For message compactness,
-keys are shortened to their initial letter (or letters, if they contain a
-hyphen) unless indicated otherwise.
+``KNXi`` is based on `protobuf
+<https://developers.google.com/protocol-buffers/>`_.
 
-The initial message will look like this::
+The protocol will also run on port 6720. The old and new protocols are
+distinguished by the fact that the first byte of each message of the old
+protocol is always zero, while our use of protobuf ensures that it is not.
 
-    ["KNXi", {'v':[0,1]} ]
+The protobuf declaration is in ``src/knxi.proto``. All messages are of type ``KNXiMessage``.
 
-This translates to a binary string which always starts with::
+Common fields
++++++++++++++
 
-    92 A4 4B 4E 58 69 …
+A ``KNXiMessage`` contains of two integers and a single ("oneof")
+sub-message.
 
-which is illegal in the context of the legacy protocol.
+seq
+---
 
-The server replies with a similar message.
+Every packet contains a sequence number.
+
+The system opening a connection shall use even sequence numbers.
+Every sender's sequence numbers must be strictly monotonic. 
+
+force_ack
+---------
+
+If set, the message's recipient shall reply with an ``ack`` message.
+This reply shall be generated as close to the target as possible.
+
+On replies, this flag shall be set if the message has been finally
+delivered. Otherwise the reply signals that the message has been forwarded
+to a broadcast or otherwise un-acknowledgable channel.
+
+channel
+-------
+
+Some requests, e.g. starting to listen to a group address, will result in multiple messages. 
+A channel is used to group these messages.
+
+The message acknowledging the opening of a channel will assign a free channel.
+Sender's and receiver's channel numbers are independent. 
+
+Hello
++++++
+
+The initial message shall be a HelloMessage. This document defines the "KNXi" protocol, version 1.0.
+
+The server replies with a similar message. If there is no timely reply, the
+client may retry using the old protocol.
+
+This message shall not contain ``seq`` or ``channel`` fields.
 
 Initial messages contain these keys:
 
+* protocol
+
+  Must be ``KNXi``.
+
 * version
 
-  The protocol version. This document describes version 0.1. Version
-  numbers are sequences of integers.
+  The protocol version, as a sequence of integers. This document describes version 1.0.
 
-* role
+* client
 
-  Role (c/s (client or server)). By convention, the node initiating the TCP
-  connection is the client, unless indicated otherwise.
+  A flag which the sender sets if it is a client. Servers do not set this
+  flag.
 
 * id
 
@@ -89,7 +126,7 @@ Initial messages contain these keys:
   IDs shall be ASCII strings. Servers should read their ID from their
   configuration; clients may generate a random UUID.
 
-* agent-name
+* agent
 
   The program name of the sender.
 
@@ -98,280 +135,180 @@ Initial messages contain these keys:
   The sender's program version, as a sequence of integers. Newer versions
   must have a higher (or longer) version number.
 
-* address
+* addr
 
   The KNX address which the client wishes to use, or which the server
   assigns to it. When two servers connect, each transmits its own address.
 
-* phys-addrs
+  This is not ambiguous because a server never connects to a client, and
+  the connecting system always transmits the first message.
 
-  Physical addresses which the server sending this message knows to be
-  located on some of its ports. This is a list of addresses or
-  ``[start,end]`` address ranges.
+* Flags
 
-  XXX: TODO: Should registration of known addresses be fatal?
+  A number of flags which reoprt available features or change behavior.
 
-* features
+  This document declares the following flags:
 
-  A map of features which the sending node wishes the recipient to
-  support.
-
-  This document declares the following features:
-
-  * groupcache
+  * has_groupcache
 
     The server shall support per-group caching of messages.
 
-  * subscription
+  * has_subscribe
 
-    The server shall support subscribing to individual group addresses, or
-    ranges thereof.
+    The server shall support subscribing to individual
+    group addresses, or ranges thereof.
 
-  * address assignment
+  * has_management
+
+    The server shall support Layer7 or management features.
+
+  * no_address
 
     Clients which do not require an address, e.g. because they only need to
-    read the group cache, 
+    read the group cache, set this flag.
 
-  * management
+    A server which supports this flag will echo it, and transmit its own
+    KNX address in the ``addr`` field.
 
-    The server shall support management features.
+  If a flag is unknown or not supported, the connection shall be terminated
+  with a fatal error.
 
-If a feature is not supported, the recipient shall reply with error
-message 101 (the missing feature shall be the first parameter) and close
-the connection.
+Options
++++++++
 
-All other messages shall consist of a mapping that may contain the
-following keys:
+Reserved, currently empty.
 
-* action
+Data
+++++
 
-  The presence of this key indicates a request.
+A single KNX message. This is reserved for "write".
 
-  Most ``action`` message must contain a new, unique sequence number. See below.
+* src
 
-  Some actions may consist of multiple messages. In this case the first
-  message must contain a ``state:begin`` element; the last ``state:end``.
-  A one-element sequence shall contain none of these. A zero-element
-  message is simply missing.
+  The sender of the message (2-byte string: physical address).
 
-  The same rule applies to replies.
+* dst
 
-  See next section for possible values of this field.
+  The destination of the message (2-byte string: physical or group address)
 
-* seqnum
+  This field may be missing if the message appears on a channel that
+  monitors exactly one group, or if it is destined for a client's assigned
+  address.
 
-  A sequence number.
+* to_group
 
-  If both partners initially transmitted IDs, the node which sent the
-  lexically-larger ID shall use even sequence numbers; otherwise the client
-  shall do so.
+  A flag. If set, ``dst`` is a group address.
 
-  Sequence numbers should be consecutive ``uint`` values. They should not
-  be reused. If they are, sequence numbers that are still in use must be
-  skipped.
+* data
 
-  Most actions require sequence numbers, in order to associate replies with
-  the request that generated it.
+  The message's bytes.
 
-* state
+* short
 
-  This field may contain the values ``b`` (begin) or ``e`` (end).
-  A ``begin`` value starts a multi-reply sequence, ``end`` terminates it.
-  A node must not send more messages with this seqnum after sending an
-  ``end``.
+  A flag. If set, the message shall be transmitted as a short message. In
+  this case the data field must be one byte long and the value must be <
+  ``0x3F``.
 
-  TODO: Use states ``pause`` and ``continue`` for flow control?
+* cached
 
-* error
+  The data in this message is from the server's cache.
 
-  Exception value. This element shall contain a list, containing
+  When set in a query, directs the server to answer from its cache if
+  possible.
 
-  * a severity number (0=trace 1=debug 2=note 3=info 4=warning 5=error
-    6=fatal 7=abort). Errors >=5, transmitted without a sequence number,
-    will close the connection.
+ack
++++
 
-  * an error number, which may be used to find the corresponding code on
-    the server
+A message consisting of a single boolean value. If set, acknowledges the
+``Data`` message sent with the same ``seq`` number. If cleared, sending was
+unsiccessful, e.g. because the message was not acknowledged by the
+recipient.
 
-  * a human-readable error message
+query
++++++
 
-  * parameter(s) required to interpret the error message.
+A query message, e.g. a "read" message.
 
-  An error message without a sequence number terminates a connection.
+This has the same fields as a ``Data`` message.
 
-* message
+res
++++
 
-  KNX data to be transmitted. Unless otherwise specified, this element
-  shall contain the byte string (msgpack: ``bin``) to be transmitted.
-  
-  A one-byte message that shall be transmitted as a short KNX message must
-  be encoded as a ``uint8`` value; unuseable bits must be clear.
+A result message, e.g. the result of a "read" message.
 
-* source
+This has the same fields as a ``Data`` message.
 
-  Physical source address. If missing, the server uses the address
-  assigned to the connection.
+monitor
++++++++
 
-* dest
+Continually monitor ``data`` messages from this source / to this destination.
 
-  Destination address.
+If ``cached`` is set, reply with an initial set of messages from the group cache.
 
-* timeout
+The destination address may consist of four bytes; in that case the second
+address is the (inclusive) end of the range to be monitored.
 
-  An integer (milliseconds) indicating how long to wait for an answer.
-  The default is zero.
+If both source and destination are given, both must match.
+
+This message must be replied to with an ``ack``, that ``ack``'s channel
+number is used to associate messages with the monitoring command.
+
+err
++++
+
+Signals an error to the partner. The error message is supposed to be human
+readable. Parameters are error specific and will be interpolated into the
+message.
+
+close
++++++
+
+Close a channel. 
 
 Addressing
 ==========
 
-All KNX addresses are transmitted as two-byte extension (``fixext 2``
-according to the msgpack spec). Physical addresses shall use type code 1,
-group addresses use type code 2.
+All KNX addresses are transmitted as two-byte binary strings.
 
-Actions
-=======
-
-A node which does not implement an action must reply with an error
-message. Some basic actions, most notably immediate packet data, may be
-transmitted without a seqnum if explicitly allowed.
-
-stop
-----
-
-This is the only action that uses an existing sequence number; it
-directs the stream with that seqnum to terminate.
-
-The opposing node nust acknowledge the termination with a ``state:end``
-message.
-
-If sent without a seqnum, this message indictes an intent to terminate the
-connection cleanly (as opposed to simply closing it). The recipient should
-close all data streams and then reply with a similar message.
-
-write
------
-
-Send the ``message`` to the ``dest`` or ``group``.
-
-If the message is stored as a ``uint8`` number, the message is a short
-write; bits that do not fit in a short message must be clear.
-
-This message may be sent without a seqnum.
-
-read
-----
-
-This message contains an unsolicited ``read`` message.
-
-This message may be sent without a seqnum.
-
-query
------
-
-Request to read the value at the given (group) address.
-
-The destination address field may contain a list of addresses or ``[begin,end]``
-pairs, which queries all of the given addresses or address ranges.
-
-If the timeout is >0, knxd will wait for the answer and return it to the
-client. Otherwise it will acknowledge having transmitted the query; the
-answer will (or will not) arrive in a separate ``read`` message if the
-client subscribed to the group.
-
-If the timeout is negative, the group cache will be consulted. If the
-value is not cached, a timeout of -1 results in an error; otherwise the
-timeout is treated as if its value was ``(2-timeout)``.
-
-A missing destination field is regarded as encompassing the complete
-address range. However, to avoid flooding the bus erroneously, it can only
-be used with a timeout of zero.
-
-This message may be sent without a seqnum if a single destination address
-and no timeout are given.
-
-subscribe
----------
-
-As ``query``, but also transmit new messages directed at the group(s) in
-question.
-
-This action runs until terminated. A seqnum is required.
-
-A simple monitoring client would thus send::
-
-    { 'a':'s', 's':1 }
-
-monitor
--------
-
-Request to receive messages involving a given physical address.
-
-If no address is given, the server's complete traffic is monitored.
+Some commands accept an address range; in that case the address is four
+bytes long and the second half designates the last address in the range.
 
 trace
 -----
 
 Request to receive log messages from the server.
 
-The ``filter`` element shall contain the trace level, or a two-integer
-array with the trace level and a bitmask (server subsystems to trace).
-
-TODO: replace the second element with a server-specific list of subsystem names.
-
+This message is formatted like an error message; however, only
+``severity``, ``subsys`` and ``code`` may be set (the latter only if
+``subsys`` is present). The severity is a minimum requirement; other
+parameters must match exactly.
 
 Errors
 ======
 
-Error messages shall be transmitted in a message containing a valid
-sequence number. If that is not possible, either because the error has not
-been triggered by a request or because the initial message was invalid, the
-error's seqnum shall be missing and the protocol connection shall be
-terminated after sending the error message.
+Error replies (other than those forwarded by tracing) shall contain the
+problem message's ``seq`` and ``channel``. If they are sent as a reaction
+to a reply, using ``seq`` that is not possible (protocol violation); in
+that case ``param2`` shall be used and ``param2_is_seq`` shall be set.
 
-The following error numbers are defined by this protocol. Any requisite
-contents of the error message's parameter list is given in parentheses.
+Spontaneous error messages shall use the normal rules for the sender's
+``seq``.
 
-* 0
+Error subsys+code shall uniquely identify a single error message. The
+following substitutions are used:
 
-  Reserved.
+* {s}
 
-* 1
+  Seq of problem message
 
-  Data format error
+* {c}
 
-* 2-99
+  Channel of problem message.
 
-  Reserved for protocol errors.
+* {1} to {4}
 
-* 100
+  Parameters 1 through 4, if set.
 
-  Your address is already allocated. (address)
 
-* 101
-
-  Unsupported feature. (feature name)
-
-* 102
-
-  Sequence number is in use. (seqnum)
-
-* 103
-
-  Sequence number is odd/even. (seqnum)
-
-* 104-999
-
-  Reserved.
-
-* 1000-9999
-
-  server-specific.
-
-* 10000…19999
-
-  Client-specific.
-
-* 20000…
-
-  Reserved.
+Error messages are described in ``src/errors.cpp``.
 

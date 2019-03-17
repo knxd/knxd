@@ -131,36 +131,39 @@ ClientConnection::exit_conn()
 size_t
 ClientConnection::read_cb (uint8_t *buf, size_t len)
 {
-  if (len < 2)
-    return 0;
-  if (! msgpack_checked)
+  if (! protobuf_checked)
     {
-        if (len < 4)
-          return 0;
-        msgpack_checked = true;
-        if (!memcmp(buf, "\x92\xA4\x4B\x4E", 4)) {
-          msgpack = true;
-          mp = mp_p(new mp_()); // only allocate when msgpack-ing
-          mp->unpacker.reserve_buffer(4096);
-        }
+      if (len < 3)
+        return 0;
+      protobuf = (buf[2] != 0);
+      protobuf_checked = true;
     }
-  if (msgpack)
-    return read_cb_msgpack(buf, len);
+  if (protobuf)
+    return read_cb_protobuf(buf, len);
   else
     return read_cb_legacy(buf, len);
 }
 
 bool
-ClientConnection::process_mp(msgpack::object obj)
+ClientConnection::process_pb(KNXiMessage& msg)
 {
-  if (obj.type == msgpack::type::MAP) 
+  if (msg.has_hello())
+    {
+    }
+  else
+    {
+      pb_error(S_CONN, 2, "Message type not known");
+      stop();
+    }
+
+  if (obj.type == protobuf::type::MAP) 
 		{
 			
 		}
-  elif (obj.type != msgpack::type::ARRAY || 
+  elif (obj.type != protobuf::type::ARRAY || 
         obj.via.array.size != 2 ||
         dynamic_cast<std::string>(obj.via.array[0]) != "KNXi" ||
-        obj.via.array[1].type != msgpack::type::MAP ||
+        obj.via.array[1].type != protobuf::type::MAP ||
         true) 
 		{
       mp_format_error();
@@ -188,25 +191,33 @@ ClientConnection::process_mp(msgpack::object obj)
 }
 
 size_t
-ClientConnection::read_cb_msgpack (uint8_t *buf, size_t len)
+ClientConnection::read_cb_protobuf (uint8_t *buf, size_t len)
 {
-  mp->unpacker.reserve_buffer(len);
-  memcpy(mp->unpacker.buffer(), buf, len);
-  mp->unpacker.buffer_consumed(len);
+  if (len < 2)
+    return 0;
+  unsigned int xlen = (buf[0] << 8) | (buf[1]);
+  if (len < xlen+2)
+    return 0;
 
-  msgpack::object_handle oh;
-  while(mp->unpacker.next(oh))
+  MNXiMessage msg;
+
+  if !(msg.ParseFromArray(buf+2,xlen))
     {
-      msgpack::object obj = oh.get();
-      process_mp(obj);
+      pb_error(S_CONN, 1, "Request not parseable")
+      stop();
+      return 0;
     }
-  return len;
+  process_pb(msg);
+  return xlen+2;
 }
 
 
 size_t
 ClientConnection::read_cb_legacy (uint8_t *buf, size_t len)
 {
+  if (len < 4)
+    return 0;
+
   unsigned int xlen = (buf[0] << 8) | (buf[1]);
   if (len < xlen+2)
     return 0;
@@ -370,6 +381,9 @@ ClientConnection::sendreject (int type)
 void
 ClientConnection::sendmessage (int size, const uchar * msg)
 {
+  assert(protobuf_checked);
+  assert(!protobuf);
+
   uchar head[2];
   assert (size >= 2);
   head[0] = (size >> 8) & 0xff;
