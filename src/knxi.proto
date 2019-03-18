@@ -1,0 +1,105 @@
+syntax = "proto3";
+
+option optimize_for = LITE_RUNTIME;
+
+enum Flags {
+    DEFAULT_Flag = 0;
+    HAS_GROUPCACHE = 1;
+    HAS_SUBSCRIBE = 2;
+    HAS_MANAGEMENT = 3;
+
+    _MANDATORY_END = 100;
+    NO_ADDRESS = 101;
+}
+
+message HelloMessage {
+    string protocol = 1; // "KNXi"
+    repeated int32 protocol_version = 2;
+    bool client = 3; // if clear, the sender is a server
+    string id = 4;
+    string agent = 5;
+    repeated int32 agent_version = 6;
+    bytes addr = 7; // MUST be length==2 if set
+    repeated Flags flags = 8;
+}
+
+enum Severity {
+    DEFAULT_Severity = 0;
+    TRACE = 1;
+    DEBUG = 2;
+    INFO = 3;
+    NOTE = 4;
+    WARN = 5;
+    ERROR = 6;
+    FATAL = 7;
+    ABORT = 8;
+}
+
+message OptionsMessage {
+}
+
+message DataMessage {
+    bytes src = 1; // MUST be length==2
+    bytes dst = 2; // MUST be length==2
+    bytes data = 3; // must exist and non-empty
+
+    bool short = 10; // if set, assert len(data)==1 and data[0]<64
+    bool to_group = 11; // destination is a group address?
+    bool cached = 12; // from cache, i.e. not current
+}
+
+// layer 7 / management features  TODO
+enum MgmtAction {
+    DEFAULT_Action = 0;
+    OPEN = 1;
+    CLOSE = 2;
+}
+
+message MgmtMessage { // TODO
+    MgmtAction action = 1;
+    bytes src = 2; // MUST be length==2 if set; action specific
+    bytes dst = 3; // MUST be length==2 if set; action specific
+}
+
+message ErrorMessage {
+    // An error. All fields are required.
+    Severity severity = 1;
+    uint32 subsys = 2; // some subsystem-specific error code
+    uint32 code = 3; // some subsystem-specific error code
+    string text = 4; // human readable, mapped to subsys/code
+    bool your_channel = 5; // the message's channel is the receiver's
+
+    // The following fields may contain error specific data.
+    // They may be interpolated into the error text with {1} … {4} placeholders.
+    uint32 param1 = 10;
+    uint64 param2 = 11;
+    string param3 = 12;
+    bytes param4 = 13; // Address. MUST be length==2 (or 4) if set; error specific
+    bool param2_is_seq = 14; // address type flag
+    bool param4_is_group = 15; // address type flag
+
+}
+
+message KNXiMessage {
+  uint64 seq = 1;
+  uint32 channel = 2;
+  bool force_ack = 3;
+
+  oneof msg {
+    HelloMessage hello = 8;
+    OptionsMessage opts = 20;
+
+    DataMessage data = 9; // simple "write" message
+    DataMessage query = 21; // read request
+    DataMessage res = 22; // result with data
+    DataMessage monitor = 23; // monitor address
+
+    bool ack = 10; // bare ack/nack
+    ErrorMessage err = 24;
+    bool close = 25; // close channel. True if the channel is the receiver's
+
+    ErrorMessage trace = 99; // opens a possibly-filtered log message channel
+    MgmtMessage manage = 100; // TODO
+
+  }
+}

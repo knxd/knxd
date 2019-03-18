@@ -36,6 +36,7 @@ protected:
 public:
   virtual ~NetServer ();
   bool ignore_when_systemd = false;
+  bool followip = false;
 
 private:
   ev::io io; void io_cb (ev::io &w, int revents);

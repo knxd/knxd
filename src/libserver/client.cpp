@@ -131,8 +131,93 @@ ClientConnection::exit_conn()
 size_t
 ClientConnection::read_cb (uint8_t *buf, size_t len)
 {
+  if (! protobuf_checked)
+    {
+      if (len < 3)
+        return 0;
+      protobuf = (buf[2] != 0);
+      protobuf_checked = true;
+    }
+  if (protobuf)
+    return read_cb_protobuf(buf, len);
+  else
+    return read_cb_legacy(buf, len);
+}
+
+bool
+ClientConnection::process_pb(KNXiMessage& msg)
+{
+  if (msg.has_hello())
+    {
+    }
+  else
+    {
+      pb_error(S_CONN, 2, "Message type not known");
+      stop();
+    }
+
+  if (obj.type == protobuf::type::MAP) 
+		{
+			
+		}
+  elif (obj.type != protobuf::type::ARRAY || 
+        obj.via.array.size != 2 ||
+        dynamic_cast<std::string>(obj.via.array[0]) != "KNXi" ||
+        obj.via.array[1].type != protobuf::type::MAP ||
+        true) 
+		{
+      mp_format_error();
+			return false;
+		}
+  else
+    {
+      auto m = obj.via.array[1].via.map
+			for (int i = 0; i < m.size; i++)
+				{
+          std::string *k = dynamic_cast<str::string *>(m.ptr[0].val);
+          if (k == NULL)
+            {
+							return false;
+            }
+          if (*k == "v")
+					  {
+            }
+          else // not recognized
+            {
+              return false;
+						}
+				}
+    }
+}
+
+size_t
+ClientConnection::read_cb_protobuf (uint8_t *buf, size_t len)
+{
   if (len < 2)
     return 0;
+  unsigned int xlen = (buf[0] << 8) | (buf[1]);
+  if (len < xlen+2)
+    return 0;
+
+  MNXiMessage msg;
+
+  if !(msg.ParseFromArray(buf+2,xlen))
+    {
+      pb_error(S_CONN, 1, "Request not parseable")
+      stop();
+      return 0;
+    }
+  process_pb(msg);
+  return xlen+2;
+}
+
+
+size_t
+ClientConnection::read_cb_legacy (uint8_t *buf, size_t len)
+{
+  if (len < 4)
+    return 0;
+
   unsigned int xlen = (buf[0] << 8) | (buf[1]);
   if (len < xlen+2)
     return 0;
@@ -296,6 +381,9 @@ ClientConnection::sendreject (int type)
 void
 ClientConnection::sendmessage (int size, const uchar * msg)
 {
+  assert(protobuf_checked);
+  assert(!protobuf);
+
   uchar head[2];
   assert (size >= 2);
   head[0] = (size >> 8) & 0xff;

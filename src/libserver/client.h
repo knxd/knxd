@@ -20,6 +20,8 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
+#include "knxi.pb.h"
+
 #include "common.h"
 #include "eibtypes.h"
 #include "iobuf.h"
@@ -42,6 +44,10 @@ class ClientConnection : public std::enable_shared_from_this<ClientConnection>
   int fd;
 public:
   bool running = false;
+  bool protobuf = false;
+  bool protobuf_checked = false;
+  bool protobuf_client = false; // other side is a client
+   protobuf_client = false; // other side is a client
 
   /** Layer 3 interface */
   Router &router;
@@ -60,6 +66,9 @@ protected:
 
   void exit_conn();
 
+  void process_pb(KNXiMessage &msg);
+  void pb_error(uint16_t eid, char *emsg);
+
 public:
   ClientConnection (NetServerPtr s, int fd);
   virtual ~ClientConnection ();
@@ -68,6 +77,8 @@ public:
   void stop();
 
   size_t read_cb(uint8_t *buf, size_t len);
+  size_t read_cb_msgpack(uint8_t *buf, size_t len);
+  size_t read_cb_legacy(uint8_t *buf, size_t len);
   void error_cb();
 
   /** send a message */

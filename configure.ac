@@ -54,6 +54,7 @@ AX_LOCAL_EXPAND_CONFIG
 AX_ENABLE_SYSTEMD
 
 AC_CHECK_HEADER(argp.h,,[AC_MSG_ERROR([argp_parse not found])])
+AC_CHECK_HEADER(msgpack.hpp,,[AC_MSG_ERROR([msgpack library not found])])
 AC_SEARCH_LIBS(argp_parse,argp,,[AC_MSG_ERROR([argp_parse not found])])
 AC_CHECK_HEADER(linux/serial.h,[AC_DEFINE(HAVE_LINUX_LOWLATENCY, 1 , [Linux low latency mode enabled])],[AC_MSG_WARN([No supported low latency mode found])])
 have_source_info=no
