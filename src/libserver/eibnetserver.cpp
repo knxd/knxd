@@ -643,7 +643,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
           goto out;
         }
       r2.channel = r1.channel;
-      r2.status = 0x21;
+      r2.status = E_CONNECTION_ID;
       ITER(i, connections)
 	if ((*i)->channel == r1.channel)
 	  {
@@ -667,7 +667,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
           t->TracePacket (2, "unparseable DISCONNECT_REQUEST", p1->data);
           goto out;
         }
-      r2.status = 0x21;
+      r2.status = E_CONNECTION_ID;
       r2.channel = r1.channel;
       ITER(i,connections)
 	if ((*i)->channel == r1.channel)
