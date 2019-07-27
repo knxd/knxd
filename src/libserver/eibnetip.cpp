@@ -192,7 +192,11 @@ EIBNetIPSocket::port ()
     return -1;
   if (sa.sin_family != AF_INET)
     {
+#ifdef ENODATA      
       errno = ENODATA;
+#else
+      errno = 9919;
+#endif      
       return -1;
     }
   return sa.sin_port;
