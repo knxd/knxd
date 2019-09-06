@@ -214,16 +214,22 @@ don't have more than one.
 
 ### Adding a TPUART serial interface to the Raspberry Pi
 
-The console is /dev/ttyAMA0. The udev line is
+On the Raspberry Pi 2 and 3 the console is /dev/ttyAMA0. The udev line is:
 
   ```
   ACTION=="add", SUBSYSTEM=="tty", KERNELS="ttyAMA0", SYMLINK+="knx1", OWNER="knxd"
   ```
 
+On the Raspberry Pi 4 the console is on /dev/ttyACM0. The udev line is:
+
+  ```
+  ACTION=="add", SUBSYSTEM=="tty", KERNELS=="ttyACM0", SYMLINK+="knx1", OWNER="knxd"
+  ```
+
 This rule creates a symlink ``/dev/knx1`` which points to the console. The
 knxd configuration will use that symlink.
 
-You need to disable the serial console. Edit ``/boot/cmdline.txt`` and
+On the Raspberry Pi 2 and 3 you need to disable the serial console. Edit ``/boot/cmdline.txt`` and
 remove the ``console=ttyAMA0`` entry. Then reboot.
 
 On the Raspberry Pi 3, the serial console is on ``ttyAMA1`` by default.
