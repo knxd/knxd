@@ -1,0 +1,7 @@
+#!/bin/sh
+
+#DEBHELPER#
+if [ "$1" = "purge" ] ; then
+	rm -rf /var/lib/knxd
+fi
+

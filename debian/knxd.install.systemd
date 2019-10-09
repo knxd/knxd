@@ -1,3 +1,2 @@
-/lib/*
-/etc/knxd.conf
-/usr/lib/sysusers.d
+etc/knxd.conf
+usr/lib/sysusers.d

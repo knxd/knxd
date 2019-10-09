@@ -1,4 +1,29 @@
-knxd (0.14.28) unstable; urgency=medium
+knxd (0.14.29-5) unstable; urgency=medium
+
+  * Add dependency from knxd-dev to -tools (for libeibclient.so)
+    Closes:#924188
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 17 Mar 2019 16:06:48 +0100
+
+knxd (0.14.29-3) unstable; urgency=medium
+
+  * Remove homedir after purge. Closes: #920832
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 30 Jan 2019 14:55:52 +0100
+
+knxd (0.14.29-2) unstable; urgency=medium
+
+  * Path fix. Closes: #919912
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 30 Jan 2019 14:46:40 +0100
+
+knxd (0.14.29-1) unstable; urgency=medium
+
+  * Addressed Debian ftpmaster concerns.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sat, 19 Jan 2019 14:35:42 +0100
+
+knxd (0.14.28-1) unstable; urgency=medium
 
   * Revert debian/version uptick
   * Use native packaging
