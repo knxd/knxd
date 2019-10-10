@@ -212,7 +212,7 @@ String A_Unknown_PDU::Decode (TracePtr tr UNUSED)
   return s;
 }
 
-bool A_Unknown_PDU::isResponse (const APDU * req UNUSED) CONST
+bool A_Unknown_PDU::isResponse (const APDU * req UNUSED) const
 {
   return 0;
 }
@@ -245,7 +245,7 @@ String A_GroupValue_Read_PDU::Decode (TracePtr tr UNUSED)
   return "A_GroupValue_Read";
 }
 
-bool A_GroupValue_Read_PDU::isResponse (const APDU * req UNUSED) CONST
+bool A_GroupValue_Read_PDU::isResponse (const APDU * req UNUSED) const
 {
   return 0;
 }
@@ -309,7 +309,7 @@ String A_GroupValue_Response_PDU::Decode (TracePtr tr UNUSED)
   return s;
 }
 
-bool A_GroupValue_Response_PDU::isResponse (const APDU * req) CONST
+bool A_GroupValue_Response_PDU::isResponse (const APDU * req) const
 {
   return req->getType () == A_GroupValue_Read;
 }
@@ -375,7 +375,7 @@ String A_GroupValue_Write_PDU::Decode (TracePtr tr UNUSED)
   return s;
 }
 
-bool A_GroupValue_Write_PDU::isResponse (const APDU * req UNUSED) CONST
+bool A_GroupValue_Write_PDU::isResponse (const APDU * req UNUSED) const
 {
   return 0;
 }
@@ -415,7 +415,7 @@ String A_IndividualAddress_Write_PDU::Decode (TracePtr tr UNUSED)
   return s + FormatEIBAddr (addr);
 }
 
-bool A_IndividualAddress_Write_PDU::isResponse (const APDU * req UNUSED) CONST
+bool A_IndividualAddress_Write_PDU::isResponse (const APDU * req UNUSED) const
 {
   return 0;
 }
@@ -448,7 +448,7 @@ String A_IndividualAddress_Read_PDU::Decode (TracePtr tr UNUSED)
   return "A_IndividualAddress_Read";
 }
 
-bool A_IndividualAddress_Read_PDU::isResponse (const APDU * req UNUSED) CONST
+bool A_IndividualAddress_Read_PDU::isResponse (const APDU * req UNUSED) const
 {
   return 0;
 }
@@ -483,7 +483,7 @@ String A_IndividualAddress_Response_PDU::Decode (TracePtr tr UNUSED)
   return "A_IndividualAddress_Response";
 }
 
-bool A_IndividualAddress_Response_PDU::isResponse (const APDU * req) CONST
+bool A_IndividualAddress_Response_PDU::isResponse (const APDU * req) const
 {
   return req->getType () == A_IndividualAddress_Read;
 }
@@ -531,7 +531,7 @@ String A_IndividualAddressSerialNumber_Read_PDU::Decode (TracePtr tr UNUSED)
 
 bool
   A_IndividualAddressSerialNumber_Read_PDU::isResponse (const APDU * req UNUSED)
-  CONST
+  const
 {
   return 0;
 }
@@ -587,7 +587,7 @@ String A_IndividualAddressSerialNumber_Response_PDU::Decode (TracePtr tr UNUSED)
 
 bool
   A_IndividualAddressSerialNumber_Response_PDU::isResponse (const APDU *
-							    req) CONST
+							    req) const
 {
   if (req->getType () != A_IndividualAddressSerialNumber_Read)
     return 0;
@@ -650,7 +650,7 @@ String A_IndividualAddressSerialNumber_Write_PDU::Decode (TracePtr tr UNUSED)
 
 bool
   A_IndividualAddressSerialNumber_Write_PDU::isResponse (const APDU * req UNUSED)
-  CONST
+  const
 {
   return 0;
 }
@@ -707,7 +707,7 @@ A_ServiceInformation_Indication_Write_PDU::Decode (TracePtr tr UNUSED)
 
 bool
   A_ServiceInformation_Indication_Write_PDU::isResponse (const APDU * req UNUSED)
-  CONST
+  const
 {
   return 0;
 }
@@ -748,7 +748,7 @@ String A_DomainAddress_Write_PDU::Decode (TracePtr tr UNUSED)
 }
 
 
-bool A_DomainAddress_Write_PDU::isResponse (const APDU * req UNUSED) CONST
+bool A_DomainAddress_Write_PDU::isResponse (const APDU * req UNUSED) const
 {
   return 0;
 }
@@ -781,7 +781,7 @@ String A_DomainAddress_Read_PDU::Decode (TracePtr tr UNUSED)
   return "A_DomainAddress_Read";
 }
 
-bool A_DomainAddress_Read_PDU::isResponse (const APDU * req UNUSED) CONST
+bool A_DomainAddress_Read_PDU::isResponse (const APDU * req UNUSED) const
 {
   return 0;
 }
@@ -822,7 +822,7 @@ String A_DomainAddress_Response_PDU::Decode (TracePtr tr UNUSED)
   return s;
 }
 
-bool A_DomainAddress_Response_PDU::isResponse (const APDU * req) CONST
+bool A_DomainAddress_Response_PDU::isResponse (const APDU * req) const
 {
   return req->getType () == A_DomainAddress_Read;
 }
@@ -874,7 +874,7 @@ A_DomainAddressSelective_Read_PDU::Decode (TracePtr tr UNUSED)
   return s;
 }
 
-bool A_DomainAddressSelective_Read_PDU::isResponse (const APDU * req UNUSED) CONST
+bool A_DomainAddressSelective_Read_PDU::isResponse (const APDU * req UNUSED) const
 {
   return 0;
 }
@@ -933,7 +933,7 @@ A_PropertyValue_Read_PDU::Decode (TracePtr tr UNUSED)
   return s;
 }
 
-bool A_PropertyValue_Read_PDU::isResponse (const APDU * req UNUSED) CONST
+bool A_PropertyValue_Read_PDU::isResponse (const APDU * req UNUSED) const
 {
   return 0;
 }
@@ -997,7 +997,7 @@ A_PropertyValue_Response_PDU::Decode (TracePtr tr UNUSED)
   return s;
 }
 
-bool A_PropertyValue_Response_PDU::isResponse (const APDU * req) CONST
+bool A_PropertyValue_Response_PDU::isResponse (const APDU * req) const
 {
   if (req->getType () == A_PropertyValue_Write)
     {
@@ -1082,7 +1082,7 @@ A_PropertyValue_Write_PDU::Decode (TracePtr tr UNUSED)
   return s;
 }
 
-bool A_PropertyValue_Write_PDU::isResponse (const APDU * req UNUSED) CONST
+bool A_PropertyValue_Write_PDU::isResponse (const APDU * req UNUSED) const
 {
   return 0;
 }
@@ -1132,7 +1132,7 @@ A_PropertyDescription_Read_PDU::Decode (TracePtr tr UNUSED)
   return s;
 }
 
-bool A_PropertyDescription_Read_PDU::isResponse (const APDU * req UNUSED) CONST
+bool A_PropertyDescription_Read_PDU::isResponse (const APDU * req UNUSED) const
 {
   return 0;
 }
@@ -1198,7 +1198,7 @@ A_PropertyDescription_Response_PDU::Decode (TracePtr tr UNUSED)
   return s;
 }
 
-bool A_PropertyDescription_Response_PDU::isResponse (const APDU * req) CONST
+bool A_PropertyDescription_Response_PDU::isResponse (const APDU * req) const
 {
   if (req->getType () != A_PropertyDescription_Read)
     return 0;
@@ -1245,7 +1245,7 @@ A_DeviceDescriptor_Read_PDU::Decode (TracePtr tr UNUSED)
   return s;
 }
 
-bool A_DeviceDescriptor_Read_PDU::isResponse (const APDU * req UNUSED) CONST
+bool A_DeviceDescriptor_Read_PDU::isResponse (const APDU * req UNUSED) const
 {
   return 0;
 }
@@ -1294,7 +1294,7 @@ A_DeviceDescriptor_Response_PDU::Decode (TracePtr tr UNUSED)
   return s;
 }
 
-bool A_DeviceDescriptor_Response_PDU::isResponse (const APDU * req) CONST
+bool A_DeviceDescriptor_Response_PDU::isResponse (const APDU * req) const
 {
   if (req->getType () != A_DeviceDescriptor_Read)
     return 0;
@@ -1346,7 +1346,7 @@ A_ADC_Read_PDU::Decode (TracePtr tr UNUSED)
   return s;
 }
 
-bool A_ADC_Read_PDU::isResponse (const APDU * req UNUSED) CONST
+bool A_ADC_Read_PDU::isResponse (const APDU * req UNUSED) const
 {
   return 0;
 }
@@ -1398,7 +1398,7 @@ A_ADC_Response_PDU::Decode (TracePtr tr UNUSED)
   return s;
 }
 
-bool A_ADC_Response_PDU::isResponse (const APDU * req) CONST
+bool A_ADC_Response_PDU::isResponse (const APDU * req) const
 {
   if (req->getType () != A_ADC_Read)
     return 0;
@@ -1453,7 +1453,7 @@ A_Memory_Read_PDU::Decode (TracePtr tr UNUSED)
   return s;
 }
 
-bool A_Memory_Read_PDU::isResponse (const APDU * req UNUSED) CONST
+bool A_Memory_Read_PDU::isResponse (const APDU * req UNUSED) const
 {
   return 0;
 }
@@ -1509,7 +1509,7 @@ A_Memory_Response_PDU::Decode (TracePtr tr UNUSED)
   return s;
 }
 
-bool A_Memory_Response_PDU::isResponse (const APDU * req) CONST
+bool A_Memory_Response_PDU::isResponse (const APDU * req) const
 {
   if (req->getType () != A_Memory_Read)
     return 0;
@@ -1573,7 +1573,7 @@ A_Memory_Write_PDU::Decode (TracePtr tr UNUSED)
   return s;
 }
 
-bool A_Memory_Write_PDU::isResponse (const APDU * req UNUSED) CONST
+bool A_Memory_Write_PDU::isResponse (const APDU * req UNUSED) const
 {
   return 0;
 }
@@ -1635,7 +1635,7 @@ A_MemoryBit_Write_PDU::Decode (TracePtr tr UNUSED)
   return s;
 }
 
-bool A_MemoryBit_Write_PDU::isResponse (const APDU * req UNUSED) CONST
+bool A_MemoryBit_Write_PDU::isResponse (const APDU * req UNUSED) const
 {
   return 0;
 }
@@ -1689,7 +1689,7 @@ A_UserMemory_Read_PDU::Decode (TracePtr tr UNUSED)
   return s;
 }
 
-bool A_UserMemory_Read_PDU::isResponse (const APDU * req UNUSED) CONST
+bool A_UserMemory_Read_PDU::isResponse (const APDU * req UNUSED) const
 {
   return 0;
 }
@@ -1752,7 +1752,7 @@ A_UserMemory_Response_PDU::Decode (TracePtr tr UNUSED)
   return s;
 }
 
-bool A_UserMemory_Response_PDU::isResponse (const APDU * req) CONST
+bool A_UserMemory_Response_PDU::isResponse (const APDU * req) const
 {
   if (req->getType () != A_UserMemory_Read)
     return 0;
@@ -1825,7 +1825,7 @@ A_UserMemory_Write_PDU::Decode (TracePtr tr UNUSED)
   return s;
 }
 
-bool A_UserMemory_Write_PDU::isResponse (const APDU * req UNUSED) CONST
+bool A_UserMemory_Write_PDU::isResponse (const APDU * req UNUSED) const
 {
   return 0;
 }
@@ -1888,7 +1888,7 @@ A_UserMemoryBit_Write_PDU::Decode (TracePtr tr UNUSED)
   return s;
 }
 
-bool A_UserMemoryBit_Write_PDU::isResponse (const APDU * req UNUSED) CONST
+bool A_UserMemoryBit_Write_PDU::isResponse (const APDU * req UNUSED) const
 {
   return 0;
 }
@@ -1923,7 +1923,7 @@ A_UserManufacturerInfo_Read_PDU::Decode (TracePtr tr UNUSED)
   return s;
 }
 
-bool A_UserManufacturerInfo_Read_PDU::isResponse (const APDU * req UNUSED) CONST
+bool A_UserManufacturerInfo_Read_PDU::isResponse (const APDU * req UNUSED) const
 {
   return 0;
 }
@@ -1969,7 +1969,7 @@ A_UserManufacturerInfo_Response_PDU::Decode (TracePtr tr UNUSED)
   return s;
 }
 
-bool A_UserManufacturerInfo_Response_PDU::isResponse (const APDU * req) CONST
+bool A_UserManufacturerInfo_Response_PDU::isResponse (const APDU * req) const
 {
   return req->getType () == A_UserManufacturerInfo_Read;
 }
@@ -2005,7 +2005,7 @@ A_Restart_PDU::Decode (TracePtr tr UNUSED)
   return s;
 }
 
-bool A_Restart_PDU::isResponse (const APDU * req UNUSED) CONST
+bool A_Restart_PDU::isResponse (const APDU * req UNUSED) const
 {
   return 0;
 }
@@ -2048,7 +2048,7 @@ A_Authorize_Request_PDU::Decode (TracePtr tr UNUSED)
   return s + FormatEIBKey (key);
 }
 
-bool A_Authorize_Request_PDU::isResponse (const APDU * req UNUSED) CONST
+bool A_Authorize_Request_PDU::isResponse (const APDU * req UNUSED) const
 {
   return 0;
 }
@@ -2088,7 +2088,7 @@ A_Authorize_Response_PDU::Decode (TracePtr tr UNUSED)
   return s;
 }
 
-bool A_Authorize_Response_PDU::isResponse (const APDU * req) CONST
+bool A_Authorize_Response_PDU::isResponse (const APDU * req) const
 {
   return req->getType () == A_Authorize_Request;
 }
@@ -2135,7 +2135,7 @@ A_Key_Write_PDU::Decode (TracePtr tr UNUSED)
   return s + FormatEIBKey (key);
 }
 
-bool A_Key_Write_PDU::isResponse (const APDU * req UNUSED) CONST
+bool A_Key_Write_PDU::isResponse (const APDU * req UNUSED) const
 {
   return 0;
 }
@@ -2175,7 +2175,7 @@ A_Key_Response_PDU::Decode (TracePtr tr UNUSED)
   return s;
 }
 
-bool A_Key_Response_PDU::isResponse (const APDU * req) CONST
+bool A_Key_Response_PDU::isResponse (const APDU * req) const
 {
   if (req->getType () != A_Key_Write)
     return 0;

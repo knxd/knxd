@@ -53,7 +53,7 @@ EIBNetIPPacket::fromPacket (const CArray & c, const struct sockaddr_in src)
 
 CArray
 EIBNetIPPacket::ToPacket ()
-  CONST
+  const
 {
   CArray c;
   c.resize (6 + data.size());
@@ -369,7 +369,7 @@ EIBnet_ConnectRequest::EIBnet_ConnectRequest ()
   nat = false;
 }
 
-EIBNetIPPacket EIBnet_ConnectRequest::ToPacket ()CONST
+EIBNetIPPacket EIBnet_ConnectRequest::ToPacket ()const
 {
   EIBNetIPPacket p;
   CArray ca, da;
@@ -410,7 +410,7 @@ EIBnet_ConnectResponse::EIBnet_ConnectResponse ()
   status = 0;
 }
 
-EIBNetIPPacket EIBnet_ConnectResponse::ToPacket ()CONST
+EIBNetIPPacket EIBnet_ConnectResponse::ToPacket ()const
 {
   EIBNetIPPacket p;
   CArray da = IPtoEIBNetIP (&daddr, nat);
@@ -465,7 +465,7 @@ EIBnet_ConnectionStateRequest::EIBnet_ConnectionStateRequest ()
   channel = 0;
 }
 
-EIBNetIPPacket EIBnet_ConnectionStateRequest::ToPacket ()CONST
+EIBNetIPPacket EIBnet_ConnectionStateRequest::ToPacket ()const
 {
   EIBNetIPPacket p;
   CArray ca = IPtoEIBNetIP (&caddr, nat);
@@ -497,7 +497,7 @@ EIBnet_ConnectionStateResponse::EIBnet_ConnectionStateResponse ()
   status = 0;
 }
 
-EIBNetIPPacket EIBnet_ConnectionStateResponse::ToPacket ()CONST
+EIBNetIPPacket EIBnet_ConnectionStateResponse::ToPacket ()const
 {
   EIBNetIPPacket p;
   p.service = CONNECTIONSTATE_RESPONSE;
@@ -527,7 +527,7 @@ EIBnet_DisconnectRequest::EIBnet_DisconnectRequest ()
   channel = 0;
 }
 
-EIBNetIPPacket EIBnet_DisconnectRequest::ToPacket ()CONST
+EIBNetIPPacket EIBnet_DisconnectRequest::ToPacket ()const
 {
   EIBNetIPPacket p;
   CArray ca = IPtoEIBNetIP (&caddr, nat);
@@ -559,7 +559,7 @@ EIBnet_DisconnectResponse::EIBnet_DisconnectResponse ()
   status = 0;
 }
 
-EIBNetIPPacket EIBnet_DisconnectResponse::ToPacket ()CONST
+EIBNetIPPacket EIBnet_DisconnectResponse::ToPacket ()const
 {
   EIBNetIPPacket p;
   p.service = DISCONNECT_RESPONSE;
@@ -588,7 +588,7 @@ EIBnet_TunnelRequest::EIBnet_TunnelRequest ()
   seqno = 0;
 }
 
-EIBNetIPPacket EIBnet_TunnelRequest::ToPacket ()CONST
+EIBNetIPPacket EIBnet_TunnelRequest::ToPacket ()const
 {
   EIBNetIPPacket p;
   p.service = TUNNEL_REQUEST;
@@ -623,7 +623,7 @@ EIBnet_TunnelACK::EIBnet_TunnelACK ()
   status = 0;
 }
 
-EIBNetIPPacket EIBnet_TunnelACK::ToPacket ()CONST
+EIBNetIPPacket EIBnet_TunnelACK::ToPacket ()const
 {
   EIBNetIPPacket p;
   p.service = TUNNEL_RESPONSE;
@@ -656,7 +656,7 @@ EIBnet_ConfigRequest::EIBnet_ConfigRequest ()
   seqno = 0;
 }
 
-EIBNetIPPacket EIBnet_ConfigRequest::ToPacket ()CONST
+EIBNetIPPacket EIBnet_ConfigRequest::ToPacket ()const
 {
   EIBNetIPPacket p;
   p.service = DEVICE_CONFIGURATION_REQUEST;
@@ -691,7 +691,7 @@ EIBnet_ConfigACK::EIBnet_ConfigACK ()
   status = 0;
 }
 
-EIBNetIPPacket EIBnet_ConfigACK::ToPacket ()CONST
+EIBNetIPPacket EIBnet_ConfigACK::ToPacket ()const
 {
   EIBNetIPPacket p;
   p.service = DEVICE_CONFIGURATION_ACK;
@@ -724,7 +724,7 @@ EIBnet_DescriptionRequest::EIBnet_DescriptionRequest ()
   nat = false;
 }
 
-EIBNetIPPacket EIBnet_DescriptionRequest::ToPacket ()CONST
+EIBNetIPPacket EIBnet_DescriptionRequest::ToPacket ()const
 {
   EIBNetIPPacket
     p;
@@ -761,7 +761,7 @@ EIBnet_DescriptionResponse::EIBnet_DescriptionResponse ()
   memset (&name, 0, sizeof (name));
 }
 
-EIBNetIPPacket EIBnet_DescriptionResponse::ToPacket ()CONST
+EIBNetIPPacket EIBnet_DescriptionResponse::ToPacket ()const
 {
   EIBNetIPPacket
     p;
@@ -835,7 +835,7 @@ EIBnet_SearchRequest::EIBnet_SearchRequest ()
   nat = false;
 }
 
-EIBNetIPPacket EIBnet_SearchRequest::ToPacket ()CONST
+EIBNetIPPacket EIBnet_SearchRequest::ToPacket ()const
 {
   EIBNetIPPacket
     p;
@@ -871,7 +871,7 @@ EIBnet_SearchResponse::EIBnet_SearchResponse ()
   memset (&name, 0, sizeof (name));
 }
 
-EIBNetIPPacket EIBnet_SearchResponse::ToPacket ()CONST
+EIBNetIPPacket EIBnet_SearchResponse::ToPacket ()const
 {
   EIBNetIPPacket p;
   CArray ca = IPtoEIBNetIP (&caddr, nat);
