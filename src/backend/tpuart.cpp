@@ -281,7 +281,7 @@ TPUARTwrap::TPUARTwrap(LowLevelIface* parent, IniSectionPtr& s, LowLevelDriver* 
 }
 
 void
-TPUARTwrap::sendtimer_cb(ev::timer &w UNUSED, int revents UNUSED)
+TPUARTwrap::sendtimer_cb(ev::timer &, int)
 {
   if (send_retry++ > 3)
     {
@@ -294,7 +294,7 @@ TPUARTwrap::sendtimer_cb(ev::timer &w UNUSED, int revents UNUSED)
 }
 
 void
-TPUARTwrap::timer_cb(ev::timer &w UNUSED, int revents UNUSED)
+TPUARTwrap::timer_cb(ev::timer &, int)
 {
   switch(state)
     {

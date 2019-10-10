@@ -117,7 +117,7 @@ PaceFilter::send_Next()
 }
 
 void
-PaceFilter::timer_cb (ev::timer &w UNUSED, int revents UNUSED)
+PaceFilter::timer_cb (ev::timer &, int)
 {
   if (state != P_BUSY)
     {

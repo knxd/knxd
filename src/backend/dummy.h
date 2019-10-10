@@ -28,7 +28,7 @@ public:
   DummyL2Driver (const LinkConnectPtr_& c, IniSectionPtr& s) : BusDriver(c,s) {}
   virtual ~DummyL2Driver () = default;
 
-  void send_L_Data (LDataPtr l UNUSED) { send_Next(); }
+  void send_L_Data (LDataPtr) { send_Next(); }
   bool setup()
     {
       if (!BusDriver::setup())

@@ -23,13 +23,13 @@
 #include "usb.h"
 #include "types.h"
 
-static void pollfd_added_cb (int fd UNUSED, short events UNUSED, void *user_data)
+static void pollfd_added_cb (int, short, void *user_data)
 {
   USBLoop *loop = static_cast<USBLoop *>(user_data);
   loop->setup();
 }
 
-static void pollfd_removed_cb (int fd UNUSED, void *user_data)
+static void pollfd_removed_cb (int, void *user_data)
 {
   USBLoop *loop = static_cast<USBLoop *>(user_data);
   loop->setup();
@@ -116,7 +116,7 @@ USBLoop::~USBLoop ()
 }
 
 void
-USBLoop::timer_cb (ev::timer &w UNUSED, int revents UNUSED)
+USBLoop::timer_cb (ev::timer &, int)
 {
   struct timeval tv1 = {0,0};
   libusb_handle_events_timeout (context, &tv1);
@@ -124,7 +124,7 @@ USBLoop::timer_cb (ev::timer &w UNUSED, int revents UNUSED)
 }
 
 void
-USBLoop::io_cb (ev::io &w UNUSED, int revents UNUSED)
+USBLoop::io_cb (ev::io &, int)
 {
   // TRACEPRINTF (t, 10, "USBLoop hit %d", w.fd);
   struct timeval tv1 = {0,0};

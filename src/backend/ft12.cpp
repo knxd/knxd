@@ -253,7 +253,7 @@ FT12wrap::recv_Data(CArray &c)
 }
 
 void
-FT12wrap::timer_cb(ev::timer &w UNUSED, int revents UNUSED)
+FT12wrap::timer_cb(ev::timer &, int)
 {
   process_read(true);
 }
@@ -406,14 +406,14 @@ err_out:
 }
 
 void
-FT12wrap::sendtimer_cb(ev::timer &w UNUSED, int revents UNUSED)
+FT12wrap::sendtimer_cb(ev::timer &, int)
 {
   send_wait = false;
   trigger.send();
 }
 
 void
-FT12wrap::trigger_cb (ev::async &w UNUSED, int revents UNUSED)
+FT12wrap::trigger_cb (ev::async &, int)
 {
   if (send_wait || !next_free)
     return;

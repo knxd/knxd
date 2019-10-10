@@ -172,7 +172,7 @@ USBDriver::started()
 }
 
 void
-USBDriver::timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
+USBDriver::timeout_cb(ev::timer &, int)
 {
   if (++cnt < 5)
     xmit();

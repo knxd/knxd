@@ -22,7 +22,7 @@
 #include "tpdu.h"
 
 LPDUPtr
-LPDU::fromPacket (const CArray & c, TracePtr t UNUSED)
+LPDU::fromPacket (const CArray & c, TracePtr)
 {
   LPDUPtr l = nullptr;
   if (c.size() >= 1)
@@ -64,7 +64,7 @@ CArray L_NACK_PDU::ToPacket ()
   return CArray (&c, 1);
 }
 
-std::string L_NACK_PDU::Decode (TracePtr t UNUSED)
+std::string L_NACK_PDU::Decode (TracePtr)
 {
   return "NACK";
 }
@@ -89,7 +89,7 @@ CArray L_ACK_PDU::ToPacket ()
   return CArray (&c, 1);
 }
 
-std::string L_ACK_PDU::Decode (TracePtr t UNUSED)
+std::string L_ACK_PDU::Decode (TracePtr)
 {
   return "ACK";
 }
@@ -114,7 +114,7 @@ CArray L_BUSY_PDU::ToPacket ()
   return CArray (&c, 1);
 }
 
-std::string L_BUSY_PDU::Decode (TracePtr t UNUSED)
+std::string L_BUSY_PDU::Decode (TracePtr)
 {
   return "BUSY";
 }
@@ -139,7 +139,7 @@ L_Unknown_PDU::ToPacket ()
 }
 
 std::string
-L_Unknown_PDU::Decode (TracePtr t UNUSED)
+L_Unknown_PDU::Decode (TracePtr)
 {
   std::string s ("Unknown LPDU: ");
 

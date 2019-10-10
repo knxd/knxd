@@ -476,7 +476,7 @@ Router::linkStateChanged(const LinkConnectPtr& link)
 }
 
 void
-Router::state_trigger_cb (ev::async &w UNUSED, int revents UNUSED)
+Router::state_trigger_cb (ev::async &, int)
 {
   bool oarn = all_running;
   bool osrn = some_running;
@@ -592,7 +592,7 @@ Router::state_trigger_cb (ev::async &w UNUSED, int revents UNUSED)
 }
 
 void
-Router::start_timer_cb(ev::timer &w UNUSED, int revents UNUSED)
+Router::start_timer_cb(ev::timer &, int)
 {
   ERRORPRINTF (t, E_ERROR | 92, "Startup not successful.");
   stop();
@@ -1029,7 +1029,7 @@ Router::release_client_addr(eibaddr_t addr)
 }
 
 void
-Router::trigger_cb (ev::async &w UNUSED, int revents UNUSED)
+Router::trigger_cb (ev::async &, int)
 {
   while (!buf.empty() && low_send_more)
     {
@@ -1160,7 +1160,7 @@ Router::send_L_Data(LDataPtr l1)
 }
 
 void
-Router::mtrigger_cb (ev::async &w UNUSED, int revents UNUSED)
+Router::mtrigger_cb (ev::async &, int)
 {
   while (!mbuf.empty())
     {

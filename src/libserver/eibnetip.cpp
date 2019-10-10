@@ -282,7 +282,7 @@ EIBNetIPSocket::Send (EIBNetIPPacket p, struct sockaddr_in addr)
 }
 
 void
-EIBNetIPSocket::io_send_cb (ev::io &w UNUSED, int revents UNUSED)
+EIBNetIPSocket::io_send_cb (ev::io &, int)
 {
   if (send_q.empty ())
     {
@@ -317,7 +317,7 @@ EIBNetIPSocket::io_send_cb (ev::io &w UNUSED, int revents UNUSED)
 }
 
 void
-EIBNetIPSocket::io_recv_cb (ev::io &w UNUSED, int revents UNUSED)
+EIBNetIPSocket::io_recv_cb (ev::io &, int)
 {
   uchar buf[255];
   socklen_t rl;

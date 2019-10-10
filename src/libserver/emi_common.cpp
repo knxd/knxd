@@ -134,7 +134,7 @@ EMI_Common::send_Data(CArray &pdu)
 }
 
 void
-EMI_Common::timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
+EMI_Common::timeout_cb(ev::timer &, int)
 {
   if (state <= E_timed_out)
     return;

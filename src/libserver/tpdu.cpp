@@ -51,7 +51,7 @@ TPDU::fromPacket (const CArray & c, TracePtr tr)
 /* T_UNKNOWN  */
 
 bool
-T_UNKNOWN_PDU::init (const CArray & c, TracePtr t UNUSED)
+T_UNKNOWN_PDU::init (const CArray & c, TracePtr)
 {
   pdu = c;
   return true;
@@ -62,7 +62,7 @@ CArray T_UNKNOWN_PDU::ToPacket ()
   return pdu;
 }
 
-std::string T_UNKNOWN_PDU::Decode (TracePtr t UNUSED)
+std::string T_UNKNOWN_PDU::Decode (TracePtr)
 {
   std::string s ("Unknown TPDU: ");
 
@@ -78,7 +78,7 @@ std::string T_UNKNOWN_PDU::Decode (TracePtr t UNUSED)
 /* T_DATA_XXX_REQ  */
 
 bool
-T_DATA_XXX_REQ_PDU::init (const CArray & c, TracePtr t UNUSED)
+T_DATA_XXX_REQ_PDU::init (const CArray & c, TracePtr)
 {
   if (c.size() < 1)
     return false;
@@ -105,7 +105,7 @@ std::string T_DATA_XXX_REQ_PDU::Decode (TracePtr t)
 /* T_DATA_CONNECTED_REQ  */
 
 bool
-T_DATA_CONNECTED_REQ_PDU::init (const CArray & c, TracePtr t UNUSED)
+T_DATA_CONNECTED_REQ_PDU::init (const CArray & c, TracePtr)
 {
   if (c.size() < 1)
     return false;
@@ -136,7 +136,7 @@ std::string T_DATA_CONNECTED_REQ_PDU::Decode (TracePtr t)
 /* T_CONNECT_REQ  */
 
 bool
-T_CONNECT_REQ_PDU::init (const CArray & c, TracePtr t UNUSED)
+T_CONNECT_REQ_PDU::init (const CArray & c, TracePtr)
 {
   if (c.size() != 1)
     return false;
@@ -149,7 +149,7 @@ CArray T_CONNECT_REQ_PDU::ToPacket ()
   return CArray (&c, 1);
 }
 
-std::string T_CONNECT_REQ_PDU::Decode (TracePtr t UNUSED)
+std::string T_CONNECT_REQ_PDU::Decode (TracePtr)
 {
   return "T_CONNECT_REQ";
 }
@@ -157,7 +157,7 @@ std::string T_CONNECT_REQ_PDU::Decode (TracePtr t UNUSED)
 /* T_DISCONNECT_REQ  */
 
 bool
-T_DISCONNECT_REQ_PDU::init (const CArray & c, TracePtr t UNUSED)
+T_DISCONNECT_REQ_PDU::init (const CArray & c, TracePtr)
 {
   if (c.size() != 1)
     return false;
@@ -170,7 +170,7 @@ CArray T_DISCONNECT_REQ_PDU::ToPacket ()
   return CArray (&c, 1);
 }
 
-std::string T_DISCONNECT_REQ_PDU::Decode (TracePtr t UNUSED)
+std::string T_DISCONNECT_REQ_PDU::Decode (TracePtr)
 {
   return "T_DISCONNECT_REQ";
 }
@@ -178,7 +178,7 @@ std::string T_DISCONNECT_REQ_PDU::Decode (TracePtr t UNUSED)
 /* T_ACK */
 
 bool
-T_ACK_PDU::init (const CArray & c, TracePtr t UNUSED)
+T_ACK_PDU::init (const CArray & c, TracePtr)
 {
   if (c.size() != 1)
     return false;
@@ -193,7 +193,7 @@ CArray T_ACK_PDU::ToPacket ()
   return CArray (&c, 1);
 }
 
-std::string T_ACK_PDU::Decode (TracePtr t UNUSED)
+std::string T_ACK_PDU::Decode (TracePtr)
 {
   assert ((serno & 0xf0) == 0);
   std::string s ("T_ACK Serno:");
@@ -203,7 +203,7 @@ std::string T_ACK_PDU::Decode (TracePtr t UNUSED)
 
 /* T_NACK  */
 
-bool T_NACK_PDU::init (const CArray & c, TracePtr t UNUSED)
+bool T_NACK_PDU::init (const CArray & c, TracePtr)
 {
   if (c.size() != 1)
     return false;
@@ -218,7 +218,7 @@ CArray T_NACK_PDU::ToPacket ()
   return CArray (&c, 1);
 }
 
-std::string T_NACK_PDU::Decode (TracePtr t UNUSED)
+std::string T_NACK_PDU::Decode (TracePtr)
 {
   assert ((serno & 0xf0) == 0);
   std::string s ("T_NACK Serno:");

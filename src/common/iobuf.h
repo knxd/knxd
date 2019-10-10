@@ -101,7 +101,7 @@ public:
 
   // dummy methods, to be overridden
   void error_cb() {}
-  size_t recv_cb(uint8_t *buf UNUSED, size_t len) { return len; }
+  size_t recv_cb(uint8_t *buf, size_t len) { return len; }
 
   RecvBuf() {} // dead
   RecvBuf(int fd) {

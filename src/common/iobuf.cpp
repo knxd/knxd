@@ -46,7 +46,7 @@ void SendBuf::write(const CArray *data)
 }
 
 void
-SendBuf::io_cb (ev::io &w UNUSED, int revents UNUSED)
+SendBuf::io_cb (ev::io &, int)
 {
   while (sendbuf || !sendqueue.empty())
     {
@@ -85,7 +85,7 @@ SendBuf::io_cb (ev::io &w UNUSED, int revents UNUSED)
 }
 
 void
-RecvBuf::io_cb (ev::io &w UNUSED, int revents UNUSED)
+RecvBuf::io_cb (ev::io &, int)
 {
   bool some = false;
   while(sizeof(recvbuf) > recvpos)

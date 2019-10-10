@@ -72,7 +72,7 @@ typedef struct
 } r_req;
 
 bool
-GetSourceAddress (TracePtr t UNUSED, const struct sockaddr_in *dest, struct sockaddr_in *src)
+GetSourceAddress (TracePtr, const struct sockaddr_in *dest, struct sockaddr_in *src)
 {
   int s;
   int l;

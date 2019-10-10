@@ -87,7 +87,7 @@ CEMI_to_L_Data (const CArray & data, TracePtr t)
 }
 
 LBusmonPtr
-CEMI_to_Busmonitor (const CArray & data, DriverPtr l2 UNUSED)
+CEMI_to_Busmonitor (const CArray & data, DriverPtr)
 {
   if (data.size() < 2)
     return nullptr;
@@ -148,7 +148,7 @@ L_Data_ToEMI (uchar code, const LDataPtr & l1)
 }
 
 LDataPtr
-EMI_to_L_Data (const CArray & data, TracePtr t UNUSED)
+EMI_to_L_Data (const CArray & data, TracePtr)
 {
   LDataPtr c = LDataPtr(new L_Data_PDU ());
   unsigned len;

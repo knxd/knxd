@@ -82,10 +82,10 @@ public: // but only for GroupCacheReader
   bool setup();
   void start();
   void stop();
-  bool checkGroupAddress (eibaddr_t addr UNUSED) { return true; }
-  bool checkAddress (eibaddr_t addr UNUSED) { return false; }
+  bool checkGroupAddress (eibaddr_t) { return true; }
+  bool checkAddress (eibaddr_t) { return false; }
   bool hasAddress (eibaddr_t addr ) { return addr == this->addr; }
-  void addAddress (eibaddr_t addr UNUSED) { }
+  void addAddress (eibaddr_t) { }
 
 private:
   ev::async remtrigger; void remtrigger_cb(ev::async &w, int revents);

@@ -206,7 +206,7 @@ struct RegisterClass
 template <class T, class I, const char * N>
 struct AutoRegister
 {
-  AutoRegister() { auto foo UNUSED = (volatile void *) &ourRegisterer; }
+  AutoRegister() { auto foo = (volatile void *) &ourRegisterer; }
 private:
   static RegisterClass<T, I, N> ourRegisterer;
 };
@@ -286,7 +286,7 @@ public:
   virtual bool checkGroupAddress (eibaddr_t addr) = 0;
 
   /* link() calls _link() which calls _link_(). See there. */
-  virtual bool _link(LinkRecvPtr prev UNUSED) { return false; }
+  virtual bool _link(LinkRecvPtr) { return false; }
 };
 
 
@@ -316,7 +316,7 @@ public:
   virtual bool checkSysGroupAddress(eibaddr_t addr) = 0;
 
   /** Call for drivers to find a filter, if it exists */
-  virtual FilterPtr findFilter(std::string name UNUSED, bool skip_me UNUSED = false) { return nullptr; }
+  virtual FilterPtr findFilter(std::string name, bool skip_me = false) { return nullptr; }
 
   /** The thing to send data to. */
   LinkBasePtr send = nullptr;
@@ -537,11 +537,11 @@ public:
   virtual void stop() { stopped(); }
 
   /** Servers don't accept data */
-  virtual void send_L_Data (LDataPtr l UNUSED) {}
-  virtual bool hasAddress (eibaddr_t addr UNUSED) { return false; }
+  virtual void send_L_Data (LDataPtr l) {}
+  virtual bool hasAddress (eibaddr_t) { return false; }
   virtual void addAddress (eibaddr_t addr) { ERRORPRINTF(t,E_ERROR | 65,"Tried to add address %s to %s", FormatEIBAddr(addr), cfg->name); }
-  virtual bool checkAddress (eibaddr_t addr UNUSED) { return false; }
-  virtual bool checkGroupAddress (eibaddr_t addr UNUSED) { return false; }
+  virtual bool checkAddress (eibaddr_t) { return false; }
+  virtual bool checkGroupAddress (eibaddr_t) { return false; }
 };
 
 
@@ -684,8 +684,8 @@ public:
       return true;
     }
   /** This is the end of the link, so nothing to link to! */
-  virtual bool link(LinkBasePtr next UNUSED) { return false; }
-  virtual void _link_(LinkBasePtr next UNUSED) { assert(false); }
+  virtual bool link(LinkBasePtr) { return false; }
+  virtual void _link_(LinkBasePtr) { assert(false); }
 
   /** Add a filter just below this driver.
    * The caller is responsible for calling .setup()!
@@ -713,8 +713,8 @@ public:
 
   virtual bool hasAddress(eibaddr_t addr) { return addrs[addr]; }
   virtual void addAddress(eibaddr_t addr) { addrs[addr] = true; }
-  virtual bool checkAddress (eibaddr_t addr UNUSED) { return true; }
-  virtual bool checkGroupAddress (eibaddr_t addr UNUSED) { return true; }
+  virtual bool checkAddress (eibaddr_t) { return true; }
+  virtual bool checkGroupAddress (eibaddr_t) { return true; }
 };
 
 /** Base class for server-linked drivers with busses behind them */
@@ -748,7 +748,7 @@ protected:
         ERRORPRINTF(t,E_WARNING | 120,"%s: Addr mismatch: %s vs. %s", this->name(), FormatEIBAddr (addr), FormatEIBAddr (this->_addr));
     }
   virtual bool checkAddress(eibaddr_t addr) { return addr == this->_addr; }
-  virtual bool checkGroupAddress (eibaddr_t addr UNUSED) { return true; }
+  virtual bool checkGroupAddress (eibaddr_t) { return true; }
 };
 
 #include "driver_remap.h"

@@ -318,7 +318,7 @@ USBLowLevelDriver::CompleteSend(struct libusb_transfer *transfer)
 }
 
 void
-USBLowLevelDriver::write_trigger_cb(ev::async &w UNUSED, int revents UNUSED)
+USBLowLevelDriver::write_trigger_cb(ev::async &, int)
 {
   TRACEPRINTF (t, 10, "SendComplete %lx %d", (unsigned long)sendh, sendh->actual_length);
   if (sendh == nullptr)
@@ -369,7 +369,7 @@ USBLowLevelDriver::CompleteReceive(struct libusb_transfer *transfer)
 }
 
 void
-USBLowLevelDriver::read_trigger_cb(ev::async &w UNUSED, int revents UNUSED)
+USBLowLevelDriver::read_trigger_cb(ev::async &, int)
 {
   TRACEPRINTF (t, 10, "RecvComplete %lx %d", (unsigned long) recvh, recvh->actual_length);
   if (recvh == nullptr)

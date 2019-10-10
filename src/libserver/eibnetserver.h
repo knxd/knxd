@@ -163,8 +163,8 @@ public:
       sock->Send (p, addr);
   }
 
-  bool checkAddress(eibaddr_t addr UNUSED) { return route; }
-  bool checkGroupAddress(eibaddr_t addr UNUSED) { return route; }
+  bool checkAddress(eibaddr_t) { return route; }
+  bool checkGroupAddress(eibaddr_t) { return route; }
 };
 typedef std::shared_ptr<EIBnetServer> EIBnetServerPtr;
 
