@@ -51,10 +51,10 @@ Layer7_Broadcast::A_IndividualAddress_Write (eibaddr_t addr)
   l4->recv (a.ToPacket ());
 }
 
-Array < eibaddr_t >
+std::vector < eibaddr_t >
   Layer7_Broadcast::A_IndividualAddress_Read (TracePtr tr, unsigned timeout)
 {
-  Array < eibaddr_t > addrs;
+  std::vector < eibaddr_t > addrs;
   A_IndividualAddress_Read_PDU r;
   APDUPtr a;
   l4->recv (r.ToPacket ());

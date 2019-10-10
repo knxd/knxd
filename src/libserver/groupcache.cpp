@@ -305,7 +305,7 @@ class GCTracker : protected GroupCacheReader
   GCLastCallback cb;
   ClientConnPtr cc;
   ev::timer timeout;
-  Array < eibaddr_t > a;
+  std::vector < eibaddr_t > a;
   uint32_t start;
 public:
   bool stopped = false;

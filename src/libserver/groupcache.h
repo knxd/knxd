@@ -46,7 +46,7 @@ struct GroupCacheEntry
 };
 
 typedef void (*GCReadCallback)(const GroupCacheEntry &foo, bool nowait, ClientConnPtr c);
-typedef void (*GCLastCallback)(const Array<eibaddr_t> &foo, uint32_t end, ClientConnPtr c);
+typedef void (*GCLastCallback)(const std::vector<eibaddr_t> &foo, uint32_t end, ClientConnPtr c);
 
 class GroupCacheReader
 {
@@ -68,7 +68,7 @@ typedef std::unordered_map<eibaddr_t, GroupCacheEntry> CacheMap;
 
 class GroupCache:public Driver
 {
-  Array < GroupCacheReader * > reader;
+  std::vector < GroupCacheReader * > reader;
   /** The Cache */
   CacheMap cache;
   /** controlled by .Start/Stop; if false, the whole code does nothing */

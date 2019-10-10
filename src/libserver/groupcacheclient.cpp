@@ -55,7 +55,7 @@ ReadCallback(const GroupCacheEntry &gce, bool nowait, ClientConnPtr c)
 }
 
 void
-LastUpdatesCallback(const Array<eibaddr_t> &addrs, uint32_t end, ClientConnPtr c)
+LastUpdatesCallback(const std::vector<eibaddr_t> &addrs, uint32_t end, ClientConnPtr c)
 {
   CArray erg;
 
@@ -72,7 +72,7 @@ LastUpdatesCallback(const Array<eibaddr_t> &addrs, uint32_t end, ClientConnPtr c
 }
 
 void
-LastUpdates2Callback(const Array<eibaddr_t> &addrs, uint32_t end, ClientConnPtr c)
+LastUpdates2Callback(const std::vector<eibaddr_t> &addrs, uint32_t end, ClientConnPtr c)
 {
   CArray erg;
 

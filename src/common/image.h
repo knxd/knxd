@@ -137,7 +137,7 @@ class STR_ListParameter:public STR_Stream
 public:
   uint16_t addr;
   String name;
-    Array < String > elements;
+    std::vector < String > elements;
 
     STR_ListParameter ();
   bool init (const CArray & str);
@@ -277,7 +277,7 @@ class STR_BCU2Key:public STR_Stream
 {
 public:
   eibkey_type installkey;
-  Array < eibkey_type > keys;
+  std::vector < eibkey_type > keys;
 
   STR_BCU2Key ();
   bool init (const CArray & str);
@@ -292,7 +292,7 @@ public:
 class Image
 {
 public:
-  Array < STR_Stream * >str;
+  std::vector < STR_Stream * >str;
 
   Image ();
   virtual ~Image ();
