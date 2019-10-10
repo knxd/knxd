@@ -31,7 +31,7 @@ getTime ()
   return ((timestamp_t) t.tv_sec) * 1000000 + ((timestamp_t) t.tv_usec);
 }
 
-String
+std::string
 FormatEIBAddr (eibaddr_t addr)
 {
   char buf[255];
@@ -40,7 +40,7 @@ FormatEIBAddr (eibaddr_t addr)
   return buf;
 }
 
-String
+std::string
 FormatGroupAddr (eibaddr_t addr)
 {
   char buf[255];
@@ -49,7 +49,7 @@ FormatGroupAddr (eibaddr_t addr)
   return buf;
 }
 
-String
+std::string
 FormatDomainAddr (domainaddr_t addr)
 {
   char buf[255];
@@ -57,7 +57,7 @@ FormatDomainAddr (domainaddr_t addr)
   return buf;
 }
 
-String
+std::string
 FormatEIBKey (eibkey_type key)
 {
   char buf[255];
@@ -66,7 +66,7 @@ FormatEIBKey (eibkey_type key)
 }
 
 void
-addHex (String & s, uchar c)
+addHex (std::string & s, uchar c)
 {
   char buf[4];
   sprintf (buf, "%02X ", c);
@@ -74,7 +74,7 @@ addHex (String & s, uchar c)
 }
 
 void
-add16Hex (String & s, uint16_t c)
+add16Hex (std::string & s, uint16_t c)
 {
   char buf[6];
   sprintf (buf, "%04X ", c);

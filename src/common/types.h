@@ -44,9 +44,6 @@ typedef uint16_t eibaddr_t;
 /** EIB key */
 typedef uint32_t eibkey_type;
 
-/** legacy */
-typedef std::string String;
-
 #define ITER(_i,_t) for(decltype(_t)::iterator _i = _t.begin(); _i != _t.end(); _i++)
 #define R_ITER(_i,_t) for(decltype(_t)::reverse_iterator _i = _t.rbegin(); _i != _t.rend(); _i++)
 

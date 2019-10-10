@@ -63,7 +63,7 @@ public:
   /** convert to a character array */
   virtual CArray ToPacket () = 0;
   /** decode content as string */
-  virtual String Decode (TracePtr t) = 0;
+  virtual std::string Decode (TracePtr t) = 0;
   /** get frame type */
   virtual LPDU_Type getType () const = 0;
   /** converts a character array to a Layer 2 frame */
@@ -82,7 +82,7 @@ public:
 
   bool init (const CArray & c);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   LPDU_Type getType () const
   {
     return L_Unknown;
@@ -114,7 +114,7 @@ public:
 
   bool init (const CArray & c);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   LPDU_Type getType () const
   {
     return (valid_length ? L_Data : L_Data_Part);
@@ -135,7 +135,7 @@ public:
 
   bool init (const CArray & c);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   LPDU_Type getType () const
   {
     return L_Busmonitor;
@@ -150,7 +150,7 @@ public:
 
   bool init (const CArray & c);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   LPDU_Type getType () const
   {
     return L_ACK;
@@ -165,7 +165,7 @@ public:
 
   bool init (const CArray & c);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   LPDU_Type getType () const
   {
     return L_NACK;
@@ -180,7 +180,7 @@ public:
 
   bool init (const CArray & c);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   LPDU_Type getType () const
   {
     return L_BUSY;

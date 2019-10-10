@@ -60,24 +60,24 @@ typedef enum
  * @param s string
  * @param c byte
  */
-void addHex (String & s, uchar c);
+void addHex (std::string & s, uchar c);
 /** add c to s as hex value
  * @param s string
  * @param c 16 bit int
  */
-void add16Hex (String & s, uint16_t c);
+void add16Hex (std::string & s, uint16_t c);
 
 /** get current time */
 timestamp_t getTime ();
 
 /** formats an EIB individual address */
-String FormatEIBAddr (eibaddr_t a);
+std::string FormatEIBAddr (eibaddr_t a);
 /** formats an EIB group address */
-String FormatGroupAddr (eibaddr_t a);
+std::string FormatGroupAddr (eibaddr_t a);
 /** formats an EIB domain address */
-String FormatDomainAddr (domainaddr_t addr);
+std::string FormatDomainAddr (domainaddr_t addr);
 /** formats an EIB key */
-String FormatEIBKey (eibkey_type addr);
+std::string FormatEIBKey (eibkey_type addr);
 
 #include "trace.h"
 

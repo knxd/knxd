@@ -467,7 +467,7 @@ PrepareLoadImage (const CArray & im, BCUImage * &img)
 
 #define _(A) (A)
 
-String
+std::string
 decodeBCULoadResult (BCU_LOAD_RESULT r)
 {
   switch (r)
