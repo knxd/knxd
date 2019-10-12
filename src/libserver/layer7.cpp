@@ -82,10 +82,6 @@ Layer7_Connection::Layer7_Connection (TracePtr tr, eibaddr_t d)
   dest = d;
 }
 
-Layer7_Connection::~Layer7_Connection ()
-{
-}
-
 bool Layer7_Connection::setup()
 {
   l4 = T_ConnectionPtr(new T_Connection (t, dest));
@@ -382,10 +378,6 @@ Layer7_Individual::Layer7_Individual (TracePtr tr, eibaddr_t d)
   t = tr;
   TRACEPRINTF (t, 5, "L7Individual open");
   dest = d;
-}
-
-Layer7_Individual::~Layer7_Individual ()
-{
 }
 
 bool Layer7_Individual::setup()

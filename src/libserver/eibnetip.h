@@ -118,9 +118,7 @@ public:
 				     const struct sockaddr_in src);
   /** convert to character array */
   CArray ToPacket () const;
-  virtual ~EIBNetIPPacket ()
-  {
-  }
+  virtual ~EIBNetIPPacket () = default;
 };
 
 class EIBnet_ConnectRequest

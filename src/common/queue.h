@@ -34,7 +34,7 @@ public:
   Queue () : std::queue<_T>() {};
 
   /** destructor */
-  virtual ~Queue () {}
+  virtual ~Queue () = default;
 
   using std::queue<_T>::front;
   using std::queue<_T>::pop;

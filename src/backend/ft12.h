@@ -49,7 +49,7 @@ public:
     {
       t->setAuxName("ft12dr");
     }
-  virtual ~FT12Driver();
+  virtual ~FT12Driver() = default;
 
   bool setup();
   virtual EMIVer getVersion() { return vEMI2; }
@@ -64,7 +64,7 @@ public:
     {
       t->setAuxName("ft12drc");
     }
-  virtual ~FT12cemiDriver();
+  virtual ~FT12cemiDriver() = default;
 
   virtual EMIVer getVersion() { return vCEMI; }
 };

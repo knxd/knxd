@@ -50,10 +50,6 @@ TPDU::fromPacket (const CArray & c, TracePtr tr)
 
 /* T_UNKNOWN  */
 
-T_UNKNOWN_PDU::T_UNKNOWN_PDU ()
-{
-}
-
 bool
 T_UNKNOWN_PDU::init (const CArray & c, TracePtr t UNUSED)
 {
@@ -81,10 +77,6 @@ String T_UNKNOWN_PDU::Decode (TracePtr t UNUSED)
 
 /* T_DATA_XXX_REQ  */
 
-T_DATA_XXX_REQ_PDU::T_DATA_XXX_REQ_PDU ()
-{
-}
-
 bool
 T_DATA_XXX_REQ_PDU::init (const CArray & c, TracePtr t UNUSED)
 {
@@ -111,11 +103,6 @@ String T_DATA_XXX_REQ_PDU::Decode (TracePtr t)
 }
 
 /* T_DATA_CONNECTED_REQ  */
-
-T_DATA_CONNECTED_REQ_PDU::T_DATA_CONNECTED_REQ_PDU ()
-{
-  serno = 0;
-}
 
 bool
 T_DATA_CONNECTED_REQ_PDU::init (const CArray & c, TracePtr t UNUSED)
@@ -148,10 +135,6 @@ String T_DATA_CONNECTED_REQ_PDU::Decode (TracePtr t)
 
 /* T_CONNECT_REQ  */
 
-T_CONNECT_REQ_PDU::T_CONNECT_REQ_PDU ()
-{
-}
-
 bool
 T_CONNECT_REQ_PDU::init (const CArray & c, TracePtr t UNUSED)
 {
@@ -173,10 +156,6 @@ String T_CONNECT_REQ_PDU::Decode (TracePtr t UNUSED)
 
 /* T_DISCONNECT_REQ  */
 
-T_DISCONNECT_REQ_PDU::T_DISCONNECT_REQ_PDU ()
-{
-}
-
 bool
 T_DISCONNECT_REQ_PDU::init (const CArray & c, TracePtr t UNUSED)
 {
@@ -197,11 +176,6 @@ String T_DISCONNECT_REQ_PDU::Decode (TracePtr t UNUSED)
 }
 
 /* T_ACK */
-
-T_ACK_PDU::T_ACK_PDU ()
-{
-  serno = 0;
-}
 
 bool
 T_ACK_PDU::init (const CArray & c, TracePtr t UNUSED)
@@ -228,11 +202,6 @@ String T_ACK_PDU::Decode (TracePtr t UNUSED)
 }
 
 /* T_NACK  */
-
-T_NACK_PDU::T_NACK_PDU ()
-{
-  serno = 0;
-}
 
 bool T_NACK_PDU::init (const CArray & c, TracePtr t UNUSED)
 {

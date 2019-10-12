@@ -48,8 +48,6 @@ static speed_t getbaud(int baud) {
     }
 }
 
-LLserial::~LLserial () {}
-
 bool
 LLserial::setup()
 {

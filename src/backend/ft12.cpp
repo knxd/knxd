@@ -32,14 +32,11 @@
 #include "lltcp.h"
 #include "log.h"
 
-FT12Driver::~FT12Driver() {}
-FT12cemiDriver::~FT12cemiDriver() {}
-
 class FT12serial : public LLserial
 {
 public:
   FT12serial(LowLevelIface* a, IniSectionPtr& b) : LLserial(a,b) { t->setAuxName("FT12_ser"); }
-  virtual ~FT12serial() {}
+  virtual ~FT12serial() = default;
 protected:
   void termios_settings (struct termios &t1)
     {

@@ -182,10 +182,6 @@ APDU::fromPacket (const CArray & c, TracePtr tr)
 
 /* A_Unknown_PDU */
 
-A_Unknown_PDU::A_Unknown_PDU ()
-{
-}
-
 bool
 A_Unknown_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
@@ -219,10 +215,6 @@ bool A_Unknown_PDU::isResponse (const APDU * req UNUSED) const
 
 /* A_GroupValue_Read */
 
-A_GroupValue_Read_PDU::A_GroupValue_Read_PDU ()
-{
-}
-
 bool
 A_GroupValue_Read_PDU::init (const CArray & c, TracePtr tr UNUSED UNUSED)
 {
@@ -251,11 +243,6 @@ bool A_GroupValue_Read_PDU::isResponse (const APDU * req UNUSED) const
 }
 
 /* A_GroupValue_Response */
-
-A_GroupValue_Response_PDU::A_GroupValue_Response_PDU ()
-{
-  issmall = 0;
-}
 
 bool
 A_GroupValue_Response_PDU::init (const CArray & c, TracePtr tr UNUSED)
@@ -315,11 +302,6 @@ bool A_GroupValue_Response_PDU::isResponse (const APDU * req) const
 }
 
 /* A_GroupValue_Write */
-
-A_GroupValue_Write_PDU::A_GroupValue_Write_PDU ()
-{
-  issmall = 0;
-}
 
 bool
 A_GroupValue_Write_PDU::init (const CArray & c, TracePtr tr UNUSED)
@@ -382,11 +364,6 @@ bool A_GroupValue_Write_PDU::isResponse (const APDU * req UNUSED) const
 
 /* A_IndividualAddress_Write */
 
-A_IndividualAddress_Write_PDU::A_IndividualAddress_Write_PDU ()
-{
-  addr = 0;
-}
-
 bool
 A_IndividualAddress_Write_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
@@ -422,10 +399,6 @@ bool A_IndividualAddress_Write_PDU::isResponse (const APDU * req UNUSED) const
 
 /* A_IndividualAddress_Read */
 
-A_IndividualAddress_Read_PDU::A_IndividualAddress_Read_PDU ()
-{
-}
-
 bool
 A_IndividualAddress_Read_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
@@ -454,10 +427,6 @@ bool A_IndividualAddress_Read_PDU::isResponse (const APDU * req UNUSED) const
 }
 
 /* A_IndividualAddress_Response */
-
-A_IndividualAddress_Response_PDU::A_IndividualAddress_Response_PDU ()
-{
-}
 
 bool A_IndividualAddress_Response_PDU::init (const CArray & c, TracePtr tr)
 {
@@ -542,7 +511,6 @@ A_IndividualAddressSerialNumber_Response_PDU::
 A_IndividualAddressSerialNumber_Response_PDU ()
 {
   memset (serno, 0, sizeof (serno));
-  addr = 0;
 }
 
 bool
@@ -604,7 +572,6 @@ A_IndividualAddressSerialNumber_Write_PDU::
 A_IndividualAddressSerialNumber_Write_PDU ()
 {
   memset (serno, 0, sizeof (serno));
-  addr = 0;
 }
 
 bool A_IndividualAddressSerialNumber_Write_PDU::init (const CArray & c, TracePtr tr UNUSED)
@@ -657,14 +624,6 @@ bool
 
 /* A_ServiceInformation_Indication_Write_PDU */
 
-A_ServiceInformation_Indication_Write_PDU::
-A_ServiceInformation_Indication_Write_PDU ()
-{
-  verify_mode = 0;
-  duplicate_address = 0;
-  appl_stopped = 0;
-}
-
 bool
 A_ServiceInformation_Indication_Write_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
@@ -714,11 +673,6 @@ bool
 
 /* A_DomainAddress_Write */
 
-A_DomainAddress_Write_PDU::A_DomainAddress_Write_PDU ()
-{
-  addr = 0;
-}
-
 bool
 A_DomainAddress_Write_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
@@ -755,10 +709,6 @@ bool A_DomainAddress_Write_PDU::isResponse (const APDU * req UNUSED) const
 
 /* A_DomainAddress_Read */
 
-A_DomainAddress_Read_PDU::A_DomainAddress_Read_PDU ()
-{
-}
-
 bool
 A_DomainAddress_Read_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
@@ -787,11 +737,6 @@ bool A_DomainAddress_Read_PDU::isResponse (const APDU * req UNUSED) const
 }
 
 /* A_DomainAddress_Response */
-
-A_DomainAddress_Response_PDU::A_DomainAddress_Response_PDU ()
-{
-  addr = 0;
-}
 
 bool
 A_DomainAddress_Response_PDU::init (const CArray & c, TracePtr tr UNUSED)
@@ -828,13 +773,6 @@ bool A_DomainAddress_Response_PDU::isResponse (const APDU * req) const
 }
 
 /* A_DomainAddressSelective_Read */
-
-A_DomainAddressSelective_Read_PDU::A_DomainAddressSelective_Read_PDU ()
-{
-  domainaddr = 0;
-  addr = 0;
-  range = 0;
-}
 
 bool
 A_DomainAddressSelective_Read_PDU::init (const CArray & c, TracePtr tr UNUSED)
@@ -880,14 +818,6 @@ bool A_DomainAddressSelective_Read_PDU::isResponse (const APDU * req UNUSED) con
 }
 
 /* A_PropertyValue_Read */
-
-A_PropertyValue_Read_PDU::A_PropertyValue_Read_PDU ()
-{
-  obj = 0;
-  prop = 0;
-  count = 0;
-  start = 0;
-}
 
 bool
 A_PropertyValue_Read_PDU::init (const CArray & c, TracePtr tr UNUSED)
@@ -939,14 +869,6 @@ bool A_PropertyValue_Read_PDU::isResponse (const APDU * req UNUSED) const
 }
 
 /* A_PropertyValue_Response */
-
-A_PropertyValue_Response_PDU::A_PropertyValue_Response_PDU ()
-{
-  obj = 0;
-  prop = 0;
-  count = 0;
-  start = 0;
-}
 
 bool
 A_PropertyValue_Response_PDU::init (const CArray & c, TracePtr tr UNUSED)
@@ -1025,14 +947,6 @@ bool A_PropertyValue_Response_PDU::isResponse (const APDU * req) const
 
 /* A_PropertyValue_Write */
 
-A_PropertyValue_Write_PDU::A_PropertyValue_Write_PDU ()
-{
-  obj = 0;
-  prop = 0;
-  count = 0;
-  start = 0;
-}
-
 bool
 A_PropertyValue_Write_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
@@ -1089,13 +1003,6 @@ bool A_PropertyValue_Write_PDU::isResponse (const APDU * req UNUSED) const
 
 /* A_PropertyDescription_Read */
 
-A_PropertyDescription_Read_PDU::A_PropertyDescription_Read_PDU ()
-{
-  obj = 0;
-  prop = 0;
-  property_index = 0;
-}
-
 bool
 A_PropertyDescription_Read_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
@@ -1138,16 +1045,6 @@ bool A_PropertyDescription_Read_PDU::isResponse (const APDU * req UNUSED) const
 }
 
 /* A_PropertyDescription_Response */
-
-A_PropertyDescription_Response_PDU::A_PropertyDescription_Response_PDU ()
-{
-  obj = 0;
-  prop = 0;
-  property_index = 0;
-  type = 0;
-  count = 0;
-  access = 0;
-}
 
 bool
 A_PropertyDescription_Response_PDU::init (const CArray & c, TracePtr tr UNUSED)
@@ -1211,11 +1108,6 @@ bool A_PropertyDescription_Response_PDU::isResponse (const APDU * req) const
 
 /* A_DeviceDescriptor_Read */
 
-A_DeviceDescriptor_Read_PDU::A_DeviceDescriptor_Read_PDU ()
-{
-  type = 0;
-}
-
 bool
 A_DeviceDescriptor_Read_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
@@ -1251,12 +1143,6 @@ bool A_DeviceDescriptor_Read_PDU::isResponse (const APDU * req UNUSED) const
 }
 
 /* A_DeviceDescriptor_Response */
-
-A_DeviceDescriptor_Response_PDU::A_DeviceDescriptor_Response_PDU ()
-{
-  type = 0;
-  descriptor = 0;
-}
 
 bool A_DeviceDescriptor_Response_PDU::init (const CArray & c, TracePtr tr)
 {
@@ -1307,12 +1193,6 @@ bool A_DeviceDescriptor_Response_PDU::isResponse (const APDU * req) const
 
 /* A_ADC_Read */
 
-A_ADC_Read_PDU::A_ADC_Read_PDU ()
-{
-  channel = 0;
-  count = 0;
-}
-
 bool
 A_ADC_Read_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
@@ -1352,13 +1232,6 @@ bool A_ADC_Read_PDU::isResponse (const APDU * req UNUSED) const
 }
 
 /* A_ADC_Response */
-
-A_ADC_Response_PDU::A_ADC_Response_PDU ()
-{
-  channel = 0;
-  count = 0;
-  val = 0;
-}
 
 bool
 A_ADC_Response_PDU::init (const CArray & c, TracePtr tr UNUSED)
@@ -1413,12 +1286,6 @@ bool A_ADC_Response_PDU::isResponse (const APDU * req) const
 
 /* A_Memory_Read */
 
-A_Memory_Read_PDU::A_Memory_Read_PDU ()
-{
-  count = 0;
-  addr = 0;
-}
-
 bool
 A_Memory_Read_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
@@ -1459,12 +1326,6 @@ bool A_Memory_Read_PDU::isResponse (const APDU * req UNUSED) const
 }
 
 /* A_Memory_Response */
-
-A_Memory_Response_PDU::A_Memory_Response_PDU ()
-{
-  count = 0;
-  addr = 0;
-}
 
 bool
 A_Memory_Response_PDU::init (const CArray & c, TracePtr tr UNUSED)
@@ -1524,12 +1385,6 @@ bool A_Memory_Response_PDU::isResponse (const APDU * req) const
 
 /* A_Memory_Write */
 
-A_Memory_Write_PDU::A_Memory_Write_PDU ()
-{
-  count = 0;
-  addr = 0;
-}
-
 bool
 A_Memory_Write_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
@@ -1579,12 +1434,6 @@ bool A_Memory_Write_PDU::isResponse (const APDU * req UNUSED) const
 }
 
 /* A_MemoryBit_Write */
-
-A_MemoryBit_Write_PDU::A_MemoryBit_Write_PDU ()
-{
-  count = 0;
-  addr = 0;
-}
 
 bool
 A_MemoryBit_Write_PDU::init (const CArray & c, TracePtr tr UNUSED)
@@ -1642,13 +1491,6 @@ bool A_MemoryBit_Write_PDU::isResponse (const APDU * req UNUSED) const
 
 /* A_UserMemory_Read */
 
-A_UserMemory_Read_PDU::A_UserMemory_Read_PDU ()
-{
-  addr_extension = 0;
-  count = 0;
-  addr = 0;
-}
-
 bool
 A_UserMemory_Read_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
@@ -1695,13 +1537,6 @@ bool A_UserMemory_Read_PDU::isResponse (const APDU * req UNUSED) const
 }
 
 /* A_UserMemory_Response */
-
-A_UserMemory_Response_PDU::A_UserMemory_Response_PDU ()
-{
-  addr_extension = 0;
-  count = 0;
-  addr = 0;
-}
 
 bool
 A_UserMemory_Response_PDU::init (const CArray & c, TracePtr tr UNUSED)
@@ -1769,13 +1604,6 @@ bool A_UserMemory_Response_PDU::isResponse (const APDU * req) const
 
 /* A_UserMemory_Write */
 
-A_UserMemory_Write_PDU::A_UserMemory_Write_PDU ()
-{
-  addr_extension = 0;
-  count = 0;
-  addr = 0;
-}
-
 bool
 A_UserMemory_Write_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
@@ -1831,13 +1659,6 @@ bool A_UserMemory_Write_PDU::isResponse (const APDU * req UNUSED) const
 }
 
 /* A_UserMemoryBit_Write */
-
-A_UserMemoryBit_Write_PDU::A_UserMemoryBit_Write_PDU ()
-{
-  addr_extension = 0;
-  count = 0;
-  addr = 0;
-}
 
 bool
 A_UserMemoryBit_Write_PDU::init (const CArray & c, TracePtr tr UNUSED)
@@ -1895,10 +1716,6 @@ bool A_UserMemoryBit_Write_PDU::isResponse (const APDU * req UNUSED) const
 
 /* A_UserManufacturerInfo_Read */
 
-A_UserManufacturerInfo_Read_PDU::A_UserManufacturerInfo_Read_PDU ()
-{
-}
-
 bool A_UserManufacturerInfo_Read_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
   if (c.size() != 2)
@@ -1929,12 +1746,6 @@ bool A_UserManufacturerInfo_Read_PDU::isResponse (const APDU * req UNUSED) const
 }
 
 /* A_UserManufacturerInfo_Response */
-
-A_UserManufacturerInfo_Response_PDU::A_UserManufacturerInfo_Response_PDU ()
-{
-  manufacturerid = 0;
-  data = 0;
-}
 
 bool
 A_UserManufacturerInfo_Response_PDU::init (const CArray & c, TracePtr tr UNUSED)
@@ -1976,10 +1787,6 @@ bool A_UserManufacturerInfo_Response_PDU::isResponse (const APDU * req) const
 
 /* A_Restart */
 
-A_Restart_PDU::A_Restart_PDU ()
-{
-}
-
 bool
 A_Restart_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
@@ -2011,11 +1818,6 @@ bool A_Restart_PDU::isResponse (const APDU * req UNUSED) const
 }
 
 /* A_Authorize_Request */
-
-A_Authorize_Request_PDU::A_Authorize_Request_PDU ()
-{
-  key = 0;
-}
 
 bool
 A_Authorize_Request_PDU::init (const CArray & c, TracePtr tr UNUSED)
@@ -2055,11 +1857,6 @@ bool A_Authorize_Request_PDU::isResponse (const APDU * req UNUSED) const
 
 /* A_Authorize_Response */
 
-A_Authorize_Response_PDU::A_Authorize_Response_PDU ()
-{
-  level = 0;
-}
-
 bool
 A_Authorize_Response_PDU::init (const CArray & c, TracePtr tr UNUSED)
 {
@@ -2094,12 +1891,6 @@ bool A_Authorize_Response_PDU::isResponse (const APDU * req) const
 }
 
 /* A_Key_Write */
-
-A_Key_Write_PDU::A_Key_Write_PDU ()
-{
-  key = 0;
-  level = 0;
-}
 
 bool
 A_Key_Write_PDU::init (const CArray & c, TracePtr tr UNUSED)
@@ -2141,11 +1932,6 @@ bool A_Key_Write_PDU::isResponse (const APDU * req UNUSED) const
 }
 
 /* A_Key_Response */
-
-A_Key_Response_PDU::A_Key_Response_PDU ()
-{
-  level = 0;
-}
 
 bool
 A_Key_Response_PDU::init (const CArray & c, TracePtr tr UNUSED)

@@ -86,7 +86,7 @@ private:
 
 public:
   EMI_Common (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i = nullptr);
-  virtual ~EMI_Common ();
+  virtual ~EMI_Common () = default;
   bool setup();
   void start();
   void started();

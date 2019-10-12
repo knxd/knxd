@@ -26,10 +26,6 @@ EMI2Driver::EMI2Driver (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i) :
   sendLocal_done.set<EMI2Driver,&EMI2Driver::sendLocal_done_cb>(this);
 }
 
-EMI2Driver::~EMI2Driver()
-{
-}
-
 void
 EMI2Driver::sendLocal_done_cb(bool success)
 {

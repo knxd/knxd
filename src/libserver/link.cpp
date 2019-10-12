@@ -21,19 +21,6 @@
 #include "router.h"
 #include <stdio.h>
 
-LinkBase::~LinkBase() { }
-LinkRecv::~LinkRecv() { }
-Driver::~Driver() { }
-BusDriver::~BusDriver() { }
-SubDriver::~SubDriver() { }
-LineDriver::~LineDriver() { }
-LinkConnect_::~LinkConnect_() { }
-Filter::~Filter() { }
-Server::~Server() { }
-BaseRouter::~BaseRouter() { }
-LinkConnectClient::~LinkConnectClient() { }
-LinkConnectSingle::~LinkConnectSingle() { }
-
 bool
 LinkRecv::link(LinkBasePtr next)
 {

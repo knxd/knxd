@@ -30,8 +30,6 @@
 #include "ipsupport.h"
 #include "lltcp.h"
 
-LLtcp::~LLtcp () {}
-
 bool
 LLtcp::setup()
 {

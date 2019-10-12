@@ -26,10 +26,6 @@ EMI1Driver::EMI1Driver (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i) :
   sendLocal_done.set<EMI1Driver,&EMI1Driver::sendLocal_done_cb>(this);
 }
 
-EMI1Driver::~EMI1Driver()
-{
-}
-
 void
 EMI1Driver::cmdEnterMonitor()
 {

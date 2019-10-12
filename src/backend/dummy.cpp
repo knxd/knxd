@@ -18,7 +18,3 @@
 */
 
 #include "dummy.h"
-
-DummyL2Driver::~DummyL2Driver() { }
-DummyL2Filter::~DummyL2Filter() { }
-

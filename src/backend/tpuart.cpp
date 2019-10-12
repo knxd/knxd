@@ -31,13 +31,11 @@
 #include "lltcp.h"
 #include "log.h"
 
-TPUART::~TPUART() {}
-
 class TPUARTserial : public LLserial
 {
 public:
   TPUARTserial(LowLevelIface* a, IniSectionPtr& b) : LLserial(a,b) { t->setAuxName("TPU_ser"); }
-  virtual ~TPUARTserial();
+  virtual ~TPUARTserial() = default;
 protected:
   void termios_settings (struct termios &t1)
     {
@@ -157,8 +155,6 @@ TPUARTwrap::~TPUARTwrap ()
   timer.stop();
   sendtimer.stop();
 }
-
-TPUARTserial::~TPUARTserial() {}
 
 void
 TPUARTwrap::send_L_Data (LDataPtr l)

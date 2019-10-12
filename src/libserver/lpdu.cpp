@@ -193,18 +193,6 @@ L_Busmonitor_PDU::Decode (TracePtr t)
 
 /* L_Data */
 
-L_Data_PDU::L_Data_PDU () : LPDU()
-{
-  prio = PRIO_LOW;
-  repeated = 0;
-  valid_checksum = 1;
-  valid_length = 1;
-  AddrType = IndividualAddress;
-  source = 0;
-  dest = 0;
-  hopcount = 0x06;
-}
-
 bool
 L_Data_PDU::init (const CArray & c)
 {

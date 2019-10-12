@@ -33,7 +33,7 @@ public:
     {
       t->setAuxName("TCP");
     }
-  virtual ~LLtcp ();
+  virtual ~LLtcp () = default;
 
   bool setup();
   void start();

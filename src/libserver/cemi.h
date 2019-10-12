@@ -54,7 +54,7 @@ private:
 
 public:
   CEMIDriver (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i = nullptr);
-  virtual ~CEMIDriver ();
+  virtual ~CEMIDriver () = default;
   void do_send_Next();
 };
 
