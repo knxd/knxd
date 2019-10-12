@@ -47,7 +47,7 @@ void SendBuf::write(const CArray *data)
 void
 SendBuf::io_cb (ev::io &w UNUSED, int revents UNUSED)
 {
-    while (sendbuf || !sendqueue.isempty()) {
+    while (sendbuf || !sendqueue.empty()) {
         if (sendbuf) {
             int i = ::write(fd,sendbuf->data()+sendpos, sendbuf->size()-sendpos);
             if (i > 0) {
@@ -66,7 +66,7 @@ SendBuf::io_cb (ev::io &w UNUSED, int revents UNUSED)
         delete sendbuf;
         sendbuf = nullptr;
 
-        if (!sendqueue.isempty()) {
+        if (!sendqueue.empty()) {
             sendbuf = sendqueue.get();
             sendpos = 0;
         }

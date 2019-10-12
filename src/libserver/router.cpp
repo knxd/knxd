@@ -461,7 +461,7 @@ Router::state_trigger_cb (ev::async &w UNUSED, int revents UNUSED)
 
   TRACEPRINTF (t, 4, "check start");
 
-  while (!linkChanges.isempty())
+  while (!linkChanges.empty())
     {
       LinkConnectPtr l = linkChanges.get();
       if (!want_up && l->state != L_down && l->state < L_wait_retry)
@@ -994,7 +994,7 @@ Router::release_client_addr(eibaddr_t addr)
 void
 Router::trigger_cb (ev::async &w UNUSED, int revents UNUSED)
 {
-  while (!buf.isempty() && low_send_more)
+  while (!buf.empty() && low_send_more)
     {
       LDataPtr l1 = buf.get ();
 
@@ -1121,7 +1121,7 @@ Router::send_L_Data(LDataPtr l1)
 void
 Router::mtrigger_cb (ev::async &w UNUSED, int revents UNUSED)
 {
-  while (!mbuf.isempty())
+  while (!mbuf.empty())
     {
       LBusmonPtr l1 = mbuf.get ();
 

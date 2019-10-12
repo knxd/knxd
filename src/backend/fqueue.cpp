@@ -96,7 +96,7 @@ QueueFilter::send_Next()
 void
 QueueFilter::trigger_cb (ev::async &w UNUSED, int revents UNUSED)
 {
-  while (!buf.isempty() && state == Q_IDLE)
+  while (!buf.empty() && state == Q_IDLE)
     {
       state = Q_SENDING;
       LDataPtr l = buf.get();

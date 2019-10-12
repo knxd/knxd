@@ -60,7 +60,7 @@ public:
   };
 
   virtual ~SendBuf() {
-    while (!sendqueue.isempty()) {
+    while (!sendqueue.empty()) {
       const CArray *buf = sendqueue.get();
       delete buf;
     }
