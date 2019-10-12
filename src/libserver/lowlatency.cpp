@@ -19,10 +19,10 @@
 
 #include "lowlatency.h"
 
-#include <errno.h>
+#include <cerrno>
 
 #include <sys/ioctl.h>
-#include <string.h> // memcpy
+#include <cstring> // memcpy
 
 bool
 set_low_latency (int fd, low_latency_save * save, bool really)

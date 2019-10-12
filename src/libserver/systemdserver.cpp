@@ -18,7 +18,7 @@
 */
 
 #include <unistd.h>
-#include <errno.h>
+#include <cerrno>
 #include <sys/socket.h>
 #include "systemdserver.h"
 

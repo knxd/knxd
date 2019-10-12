@@ -26,10 +26,10 @@
 
 #include "types.h"
 #include "callbacks.h"
-#include <assert.h>
+#include <cassert>
 #include <ev++.h>
 #include <queue.h>
-#include <errno.h>
+#include <cerrno>
 
 void set_non_blocking(int fd);
 

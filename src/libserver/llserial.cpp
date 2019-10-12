@@ -20,14 +20,13 @@
 #include "config.h"
 
 #include <unistd.h>
-#include <errno.h>
+#include <cerrno>
 #include <fcntl.h>
-#include <errno.h>
 #include <sys/ioctl.h>
 #include <termios.h>
 #ifdef HAVE_LINUX_LOWLATENCY
 #include <sys/ioctl.h>
-#include <string.h> // memcpy
+#include <cstring> // memcpy
 #endif
 
 #include "llserial.h"

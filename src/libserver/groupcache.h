@@ -20,7 +20,7 @@
 #ifndef GROUPCACHE_H
 #define GROUPCACHE_H
 
-#include <time.h>
+#include <ctime>
 
 #include <map>
 #include <unordered_map>

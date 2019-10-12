@@ -20,7 +20,7 @@
 #ifndef TRACE_H
 #define TRACE_H
 
-#include <stdarg.h>
+#include <cstdarg>
 #include <sys/time.h>
 #include <memory>
 #include <iostream>

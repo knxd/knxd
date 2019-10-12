@@ -19,9 +19,9 @@
 */
 
 #include <argp.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstdarg>
 #include <signal.h>
 #include <unistd.h>
 #include <fcntl.h>

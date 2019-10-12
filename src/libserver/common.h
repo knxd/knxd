@@ -21,7 +21,7 @@
 #define COMMON_H
 
 #include "types.h"
-#include <assert.h>
+#include <cassert>
 #include <ev++.h>
 
 /** Domain address */

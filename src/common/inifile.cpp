@@ -24,8 +24,8 @@
 #include <iostream>
 #include <fstream>
 
-#include <assert.h>
-#include <string.h>
+#include <cassert>
+#include <cstring>
 
 #include "inifile.h"
 #include "types.h"

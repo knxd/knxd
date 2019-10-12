@@ -20,8 +20,8 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-#include <stdint.h>
-#include <string.h>
+#include <cstdint>
+#include <cstring>
 
 #include <vector>
 #include <string>

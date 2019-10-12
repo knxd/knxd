@@ -17,12 +17,12 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include <string.h>
+#include <cstring>
 #include <netdb.h>
 #include <net/if.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <errno.h>
+#include <cerrno>
 #include <netdb.h>
 #include "eibnetip.h"
 #include "config.h"

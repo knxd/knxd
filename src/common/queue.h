@@ -20,7 +20,7 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
-#include <assert.h>
+#include <cassert>
 #include <queue>
 
 /** implement a generic FIFO queue*/
