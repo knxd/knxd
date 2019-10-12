@@ -280,7 +280,7 @@ public:
   eibaddr_t individual_addr;
   uint16_t installid;
   serialnumber_t serial;
-  Array < DIB_service_Entry > services;
+  std::vector < DIB_service_Entry > services;
   struct in_addr multicastaddr;
   uchar MAC[6];
   uchar name[30];
@@ -312,7 +312,7 @@ public:
   eibaddr_t individual_addr;
   uint16_t installid;
   serialnumber_t serial;
-  Array < DIB_service_Entry > services;
+  std::vector < DIB_service_Entry > services;
   struct in_addr multicastaddr;
   uchar MAC[6];
   uchar name[30];

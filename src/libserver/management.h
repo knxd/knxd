@@ -57,7 +57,7 @@ public:
   /** reads PEI type */
   int X_Get_PEIType (int16_t & val);
   /** scans all properties */
-  int X_PropertyScan (Array < PropertyInfo > &pi);
+  int X_PropertyScan (std::vector < PropertyInfo > &pi);
 };
 
 class Management_Individual:public Layer7_Individual

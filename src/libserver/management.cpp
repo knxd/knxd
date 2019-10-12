@@ -80,7 +80,7 @@ Management_Connection::X_Get_PEIType (int16_t & val)
 }
 
 int
-Management_Connection::X_PropertyScan (Array < PropertyInfo > &p)
+Management_Connection::X_PropertyScan (std::vector < PropertyInfo > &p)
 {
   p.resize (0);
   PropertyInfo p1;

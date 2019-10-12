@@ -181,7 +181,7 @@ private:
   Queue < LDataPtr > buf;
   Queue < LBusmonPtr > mbuf;
   /** buffer for packets to ignore when repeat flag is set */
-  Array < IgnoreInfo > ignore;
+  std::vector < IgnoreInfo > ignore;
 
   /** Start of address block to assign dynamically to clients */
   eibaddr_t client_addrs_start;
@@ -195,9 +195,9 @@ public:
 
 private:
   /** busmonitor callbacks */
-  Array < Busmonitor_Info > busmonitor;
+  std::vector < Busmonitor_Info > busmonitor;
   /** vbusmonitor callbacks */
-  Array < Busmonitor_Info > vbusmonitor;
+  std::vector < Busmonitor_Info > vbusmonitor;
 
   /** flag whether some driver is active */
   bool some_running = false;

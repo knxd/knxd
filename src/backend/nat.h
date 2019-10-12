@@ -36,7 +36,7 @@ FILTER(NatL2Filter,single)
   /** Fakes local source addresses so that knxd appears as a single KNX
    * device to the remote side */
 protected:
-  Array < phys_comm > revaddr; // TODO: replace with a map
+  std::vector < phys_comm > revaddr; // TODO: replace with a map
 
 public:
   eibaddr_t addr;

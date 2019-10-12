@@ -43,7 +43,7 @@ typedef struct
 } Segment;
 
 static int
-AddSegmentOverlap (Array < Segment > &s, uint16_t start, uint16_t len)
+AddSegmentOverlap (std::vector < Segment > &s, uint16_t start, uint16_t len)
 {
   unsigned int i;
   if (!len)
@@ -66,7 +66,7 @@ AddSegmentOverlap (Array < Segment > &s, uint16_t start, uint16_t len)
 BCU_LOAD_RESULT
 PrepareLoadImage (const CArray & im, BCUImage * &img)
 {
-  Array < Segment > seg;
+  std::vector < Segment > seg;
   img = 0;
   Image *i = Image::fromArray (im);
   if (!i)

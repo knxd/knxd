@@ -31,7 +31,7 @@ ReadIndividualAddresses (ClientConnPtr c, uint8_t *buf, size_t len)
       return;
     }
   CArray erg;
-  Array < eibaddr_t > e = b.A_IndividualAddress_Read (c->t);
+  std::vector < eibaddr_t > e = b.A_IndividualAddress_Read (c->t);
   erg.resize (2 + 2 * e.size());
   EIBSETTYPE (erg, EIB_M_INDIVIDUAL_ADDRESS_READ);
   for (unsigned i = 0; i < e.size(); i++)
@@ -158,7 +158,7 @@ WriteIndividualAddress (ClientConnPtr c, uint8_t *buf, size_t len)
 	return;
       }
   }
-  Array < eibaddr_t > addr = b.A_IndividualAddress_Read (c->t);
+  std::vector < eibaddr_t > addr = b.A_IndividualAddress_Read (c->t);
   if (addr.size() > 1)
     {
       c->sendreject (EIB_ERROR_MORE_DEVICE);
@@ -448,7 +448,7 @@ ManagementConnection::ManagementConnection (ClientConnPtr c, uint8_t *buf, size_
 
 	  case EIB_MC_PROP_SCAN:
 	    {
-	      Array < PropertyInfo > p;
+	      std::vector < PropertyInfo > p;
 	      if (m.X_PropertyScan (p) == -1)
 		c->sendreject ();
 	      else

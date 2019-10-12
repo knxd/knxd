@@ -41,7 +41,7 @@ private:
   ev::io io; void io_cb (ev::io &w, int revents);
 
   /** open client connections*/
-  Array < ClientConnPtr > connections;
+  std::vector < ClientConnPtr > connections;
 
   ev::async cleanup;
   void cleanup_cb (ev::async &w, int revents);

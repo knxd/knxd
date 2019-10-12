@@ -132,7 +132,7 @@ SERVER(EIBnetServer,ets_router)
   IniSectionPtr router_cfg;
   IniSectionPtr tunnel_cfg;
 
-  Array < ConnStatePtr > connections;
+  std::vector < ConnStatePtr > connections;
   Queue < ConnStatePtr > drop_q;
 
   int addClient (ConnType type, const EIBnet_ConnectRequest & r1,

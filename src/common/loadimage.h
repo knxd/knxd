@@ -44,10 +44,10 @@ public:
     B_bcu1, B_bcu20, B_bcu21
   } BCUType;
   CArray code;
-  Array < EIBLoadRequest > load;
+  std::vector < EIBLoadRequest > load;
   eibaddr_t addr;
   eibkey_type installkey;
-  Array < eibkey_type > keys;
+  std::vector < eibkey_type > keys;
 };
 
 BCU_LOAD_RESULT PrepareLoadImage (const CArray & c, BCUImage * &img);

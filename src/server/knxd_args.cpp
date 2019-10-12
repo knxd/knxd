@@ -122,7 +122,7 @@ public:
 
 public:
   /** The current tracer */
-  Array < std::string > filters;
+  std::vector < std::string > filters;
 
   arguments () { }
   virtual ~arguments () { }
