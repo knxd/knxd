@@ -134,13 +134,7 @@ public:
   /** why doesn't std::vector have this?? */
   void operator+= (const CArray &a)
   {
-    unsigned int off = this->size();
-    resize(this->size()+a.size());
-
-    CArray::const_iterator i = a.begin();
-    CArray::iterator j = this->begin()+off;
-    while (i != a.end())
-      *j++ = *i++;
+    insert(end(), a.begin(), a.end());
   }
 
   /** replace a part of the array with the content of a and resize to fit
@@ -166,12 +160,6 @@ public:
     if (cnt == 0)
       return;
     erase (this->begin()+start,this->begin()+start+cnt);
-  }
-
-  /** add a byte to the add */
-  inline void add (const uint8_t elem)
-  {
-    this->push_back(elem);
   }
 };
 
