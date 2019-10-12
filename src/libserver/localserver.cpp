@@ -52,7 +52,7 @@ LocalServer::start()
   struct sockaddr_un addr;
   TRACEPRINTF (t, 8, "OpenLocalSocket %s", path);
   addr.sun_family = AF_LOCAL;
-  strncpy (addr.sun_path, path.c_str(), sizeof (addr.sun_path));
+  strncpy (addr.sun_path, path.c_str(), sizeof (addr.sun_path) - 1);
 
   fd = socket (AF_LOCAL, SOCK_STREAM, 0);
   if (fd == -1)

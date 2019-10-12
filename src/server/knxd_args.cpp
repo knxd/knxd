@@ -194,17 +194,17 @@ public:
         (*ini[section])[i->first] = i->second;
       more_args.clear();
       if (tracelevel >= 0 || errorlevel >= 0 || no_timestamps) {
-          char b1[10],b2[50];
+          char b1[12],b2[50];
           snprintf(b2,sizeof(b2),"debug-%s",section.c_str());
           (*ini[section])["debug"] = b2;
           if (tracelevel >= 0)
             {
-              snprintf(b1,sizeof(b1),"0x%x",tracelevel);
+              snprintf(b1,sizeof(b1) - 1,"0x%x",tracelevel);
               (*ini[b2])["trace-mask"] = b1;
             }
           if (errorlevel >= 0)
             {
-              snprintf(b1,sizeof(b1),"0x%x",errorlevel);
+              snprintf(b1,sizeof(b1) - 1,"0x%x",errorlevel);
               (*ini[b2])["error-level"] = b1;
             }
           if (no_timestamps)
@@ -452,11 +452,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
         arguments->want_server = false;
         // (*ini["server"])["driver"] = "ets-link";
 
-        const char *serverip;
         const char *name = arguments->servername.c_str();
         std::string tracename;
 
-        int port = 0;
         char *a = strdup (OPT_ARG(arg, state, ""));
         char *b = strchr (a, ':');
         if (b)

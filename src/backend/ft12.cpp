@@ -84,8 +84,6 @@ FT12Driver::make_EMI()
 bool
 FT12Driver::setup()
 {
-  FDdriver *fdd;
-
   iface = new FT12wrap(this, cfg);
 
   if (t->ShowPrint(0))

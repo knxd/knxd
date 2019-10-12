@@ -146,7 +146,7 @@ LinkConnect::setState(LConnState new_state)
   state = new_state;
   TRACEPRINTF(t, 5, "%s => %s", osn, stateName());
 
-  if (old_state == L_wait_retry || old_state == L_up && new_state != L_up)
+  if (old_state == L_wait_retry || (old_state == L_up && new_state != L_up))
     retry_timer.stop();
 
   switch(old_state)
@@ -265,7 +265,7 @@ inval:
   return;
 
 retry:
-  if (retry_delay > 0 && !max_retries || retries < max_retries)
+  if ((retry_delay > 0 && !max_retries) || retries < max_retries)
     {
       TRACEPRINTF (t, 5, "retry in %d sec", retry_delay);
       state = L_wait_retry;

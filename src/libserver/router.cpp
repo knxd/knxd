@@ -162,7 +162,6 @@ bool
 Router::setup()
 {
   std::string x;
-  const char *x2;
   IniSectionPtr s = ini[main];
   TRACEPRINTF (t, 4, "setting up");
 

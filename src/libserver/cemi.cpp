@@ -68,7 +68,7 @@ void CEMIDriver::started()
   sendReset();
 }
 
-void CEMIDriver::reset_timer_cb(ev::timer &w, int revents)
+void CEMIDriver::reset_timer_cb(ev::timer &, int)
 {
   ERRORPRINTF(t, E_ERROR | 44, "reset timed out");
   errored();
