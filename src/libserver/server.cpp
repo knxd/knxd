@@ -68,7 +68,7 @@ NetServer::deregister (ClientConnPtr con)
 void
 NetServer::cleanup_cb (ev::async &w UNUSED, int revents UNUSED)
 {
-  while (!cleanup_q.isempty())
+  while (!cleanup_q.empty())
     {
       ClientConnPtr con = cleanup_q.get();
 

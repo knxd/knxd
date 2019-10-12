@@ -225,7 +225,7 @@ T_Connection::~T_Connection ()
 {
   TRACEPRINTF (t, 4, "CloseConnection");
   stop ();
-  while (!buf.isempty ())
+  while (!buf.empty ())
     delete buf.get ();
 }
 
@@ -307,7 +307,7 @@ T_Connection::SendCheck ()
   if (mode != 1)
     return;
   repcount = 0;
-  if (in.isempty())
+  if (in.empty())
     return;
   current = in.get();
   SendData (sendno, current);

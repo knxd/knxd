@@ -39,10 +39,11 @@ public:
   using std::queue<_T>::front;
   using std::queue<_T>::pop;
   using std::queue<_T>::push;
+  using std::queue<_T>::empty;
 
   inline void clear()
     {
-      while (!isempty())
+      while (!empty())
         pop();
     }
 
@@ -56,12 +57,6 @@ public:
       value_type v = std::move(std::queue<_T>::front());
       std::queue<_T>::pop();
       return v;
-    }
-
-  /** return true, if the queue is empty */
-  inline bool isempty () const
-    {
-      return std::queue<_T>::empty();
     }
 
 };

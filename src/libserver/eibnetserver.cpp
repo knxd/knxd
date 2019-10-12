@@ -366,7 +366,7 @@ void ConnState::sendtimeout_cb(ev::timer &w UNUSED, int revents UNUSED)
 
 void ConnState::send_trigger_cb(ev::async &w UNUSED, int revents UNUSED)
 {
-  if (out.isempty ())
+  if (out.empty ())
     return;
   EIBNetIPPacket p;
   if (type == CT_CONFIG)
@@ -432,7 +432,7 @@ void EIBnetServer::drop_connection (ConnStatePtr s)
 
 void EIBnetServer::drop_trigger_cb(ev::async &w UNUSED, int revents UNUSED)
 {
-  while (!drop_q.isempty())
+  while (!drop_q.empty())
     {
       ConnStatePtr s = drop_q.get();
       ITER(i,connections)
@@ -987,7 +987,7 @@ void ConnState::tunnel_response (EIBnet_TunnelACK &r1)
   sendtimeout.stop();
   reset_timer(); // presumably the client is alive if it can ack
   retries = 0;
-  if (!out.isempty())
+  if (!out.empty())
     send_trigger.send();
   else if (do_send_next)
     {
@@ -1098,7 +1098,7 @@ void ConnState::config_response (EIBnet_ConfigACK &r1)
 
   out.get ();
   retries = 0;
-  if (!out.isempty())
+  if (!out.empty())
     send_trigger.send();
   else if (do_send_next)
     {
