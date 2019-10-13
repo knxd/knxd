@@ -167,12 +167,6 @@ public:
       return;
     erase (this->begin()+start,this->begin()+start+cnt);
   }
-
-  /** add a byte to the add */
-  inline void add (const uint8_t elem)
-  {
-    this->push_back(elem);
-  }
 };
 
 template <typename To, typename From>

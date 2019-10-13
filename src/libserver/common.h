@@ -81,12 +81,6 @@ String FormatEIBKey (eibkey_type addr);
 
 #include "trace.h"
 
-template<typename T>
-inline T ignore_result(T x __attribute__((unused)))
-{
-    return x;
-}
-
 /** libev */
 #if EV_MULTIPLICITY
   typedef struct ev_loop *LOOP_RESULT;

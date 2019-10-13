@@ -20,8 +20,6 @@
 #include "emi.h"
 #include "emi_common.h"
 
-unsigned int maxPacketLen() { return 0x10; }
-
 EMIVer
 cfgEMIVersion(IniSectionPtr& s)
 {
