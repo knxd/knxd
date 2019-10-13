@@ -36,7 +36,7 @@ class EMI1Driver:public EMI_Common
   void do_send_Next();
 public:
   EMI1Driver (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i = nullptr);
-  virtual ~EMI1Driver ();
+  virtual ~EMI1Driver () = default;
 };
 
 #endif

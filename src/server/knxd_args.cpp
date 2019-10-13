@@ -124,8 +124,8 @@ public:
   /** The current tracer */
   std::vector < std::string > filters;
 
-  arguments () { }
-  virtual ~arguments () { }
+  arguments () = default;
+  virtual ~arguments () = default;
 
   /** get the current tracer.
    * Call with 'true' when you want to change the tracer

@@ -45,7 +45,7 @@ public:
     {
       t->setAuxName("Serial");
     }
-  virtual ~LLserial ();
+  virtual ~LLserial () = default;
 
   bool setup();
   void start();

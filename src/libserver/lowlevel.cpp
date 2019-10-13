@@ -28,8 +28,6 @@ LowLevelAdapter::~LowLevelAdapter()
   delete iface;
 }
 
-LowLevelDriver::~LowLevelDriver() {}
-
 LowLevelIface::~LowLevelIface()
 {
   local_timeout.stop();

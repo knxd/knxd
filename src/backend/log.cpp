@@ -19,8 +19,6 @@
 
 #include "log.h"
 
-LogFilter::~LogFilter() { }
-
 bool
 LogFilter::setup()
 {

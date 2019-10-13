@@ -40,7 +40,7 @@ class RouterHigh : public Driver
   Router* router;
 public:
   RouterHigh(Router& r, const RouterLowPtr& rl);
-  virtual ~RouterHigh() {}
+  virtual ~RouterHigh() = default;
 
   virtual void recv_L_Data (LDataPtr l);
   virtual void recv_L_Busmonitor (LBusmonPtr l);
@@ -86,7 +86,7 @@ class RouterLow : public LinkConnect_
 public:
   Router* router;
   RouterLow(Router& r);
-  virtual ~RouterLow() {}
+  virtual ~RouterLow() = default;
 
   virtual void recv_L_Data (LDataPtr l) { router->queue_L_Data (std::move(l)); }
   virtual void recv_L_Busmonitor (LBusmonPtr l) { router->queue_L_Busmonitor (std::move(l)); }

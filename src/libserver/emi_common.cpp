@@ -65,10 +65,6 @@ EMI_Common::setup()
   return true;
 }
 
-EMI_Common::~EMI_Common ()
-{
-}
-
 void
 EMI_Common::start()
 {

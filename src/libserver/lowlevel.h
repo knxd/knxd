@@ -145,7 +145,7 @@ public:
       master = parent;
     }
 
-  virtual ~LowLevelDriver ();
+  virtual ~LowLevelDriver () = default;
 
   virtual bool setup () { return true; }
   virtual void start () { started(); }

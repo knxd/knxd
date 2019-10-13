@@ -32,7 +32,7 @@ FILTER(LogFilter,log)
 
 public:
   LogFilter (const LinkConnectPtr_& c, IniSectionPtr& s) : Filter(c,s) {}
-  virtual ~LogFilter ();
+  virtual ~LogFilter () = default;
 
   virtual bool setup();
   virtual void recv_L_Data (LDataPtr l);

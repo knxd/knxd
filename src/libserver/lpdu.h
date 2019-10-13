@@ -56,8 +56,8 @@ LPDU_Type;
 class LPDU
 {
 public:
-  LPDU () { }
-  virtual ~LPDU () { }
+  LPDU () = default;
+  virtual ~LPDU () = default;
 
   virtual bool init (const CArray & c) = 0;
   /** convert to a character array */
@@ -95,21 +95,22 @@ class L_Data_PDU:public LPDU
 {
 public:
   /** priority*/
-  EIB_Priority prio;
+  EIB_Priority prio = PRIO_LOW;
   /** is repreated */
-  bool repeated;
+  bool repeated = 0;
   /** checksum ok */
-  bool valid_checksum;
+  bool valid_checksum = 1;
   /** length ok */
-  bool valid_length;
+  bool valid_length = 1;
   /** to group/individual address*/
-  EIB_AddrType AddrType;
-  eibaddr_t source, dest;
-  uchar hopcount;
+  EIB_AddrType AddrType = IndividualAddress;
+  eibaddr_t source = 0;
+  eibaddr_t dest = 0;
+  uchar hopcount = 0x06;
   /** payload of Layer 4 */
   CArray data;
 
-  L_Data_PDU ();
+  L_Data_PDU () = default;
 
   bool init (const CArray & c);
   CArray ToPacket ();

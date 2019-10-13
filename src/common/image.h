@@ -44,9 +44,7 @@ typedef enum
 class STR_Stream
 {
 public:
-  virtual ~STR_Stream ()
-  {
-  }
+  virtual ~STR_Stream () = default;
   static STR_Stream *fromArray (const CArray & c);
   virtual bool init (const CArray & str) = 0;
   virtual CArray toArray () = 0;
@@ -59,7 +57,7 @@ class STR_Invalid:public STR_Stream
 public:
   CArray data;
 
-  STR_Invalid ();
+  STR_Invalid () = default;
   bool init (const CArray & str);
   CArray toArray ();
   STR_Type getType ()
@@ -72,10 +70,10 @@ public:
 class STR_Unknown:public STR_Stream
 {
 public:
-  uint16_t type;
+  uint16_t type = 0;
   CArray data;
 
-    STR_Unknown ();
+    STR_Unknown () = default;
   bool init (const CArray & str);
   CArray toArray ();
   STR_Type getType ()
@@ -88,9 +86,9 @@ public:
 class STR_BCUType:public STR_Stream
 {
 public:
-  uint16_t bcutype;
+  uint16_t bcutype = 0;
 
-  STR_BCUType ();
+  STR_BCUType () = default;
   bool init (const CArray & str);
   CArray toArray ();
   STR_Type getType ()
@@ -105,7 +103,7 @@ class STR_Code:public STR_Stream
 public:
   CArray code;
 
-  STR_Code ();
+  STR_Code () = default;
   bool init (const CArray & str);
   CArray toArray ();
   STR_Type getType ()
@@ -118,11 +116,11 @@ public:
 class STR_StringParameter:public STR_Stream
 {
 public:
-  uint16_t addr;
-  uint16_t length;
+  uint16_t addr = 0;
+  uint16_t length = 0;
   String name;
 
-    STR_StringParameter ();
+    STR_StringParameter () = default;
   bool init (const CArray & str);
   CArray toArray ();
   STR_Type getType ()
@@ -135,11 +133,11 @@ public:
 class STR_ListParameter:public STR_Stream
 {
 public:
-  uint16_t addr;
+  uint16_t addr = 0;
   String name;
     std::vector < String > elements;
 
-    STR_ListParameter ();
+    STR_ListParameter () = default;
   bool init (const CArray & str);
   CArray toArray ();
   STR_Type getType ()
@@ -153,10 +151,10 @@ class STR_IntParameter:public STR_Stream
 {
 public:
   uint16_t addr;
-  int8_t type;
-  String name;
+  int8_t type = 0;
+  String name = "";
 
-    STR_IntParameter ();
+    STR_IntParameter () = default;
   bool init (const CArray & str);
   CArray toArray ();
   STR_Type getType ()
@@ -169,10 +167,10 @@ public:
 class STR_FloatParameter:public STR_Stream
 {
 public:
-  uint16_t addr;
+  uint16_t addr = 0;
   String name;
 
-    STR_FloatParameter ();
+    STR_FloatParameter () = default;
   bool init (const CArray & str);
   CArray toArray ();
   STR_Type getType ()
@@ -185,10 +183,10 @@ public:
 class STR_GroupObject:public STR_Stream
 {
 public:
-  uchar no;
+  uchar no = 0;
   String name;
 
-    STR_GroupObject ();
+    STR_GroupObject () = default;
   bool init (const CArray & str);
   CArray toArray ();
   STR_Type getType ()
@@ -201,12 +199,12 @@ public:
 class STR_BCU1Size:public STR_Stream
 {
 public:
-  uint16_t textsize;
-  uint16_t stacksize;
-  uint16_t datasize;
-  uint16_t bsssize;
+  uint16_t textsize = 0;
+  uint16_t stacksize = 0;
+  uint16_t datasize = 0;
+  uint16_t bsssize = 0;
 
-    STR_BCU1Size ();
+    STR_BCU1Size () = default;
   bool init (const CArray & str);
   CArray toArray ();
   STR_Type getType ()
@@ -219,14 +217,14 @@ public:
 class STR_BCU2Size:public STR_Stream
 {
 public:
-  uint16_t textsize;
-  uint16_t stacksize;
-  uint16_t lo_datasize;
-  uint16_t lo_bsssize;
-  uint16_t hi_datasize;
-  uint16_t hi_bsssize;
+  uint16_t textsize = 0;
+  uint16_t stacksize = 0;
+  uint16_t lo_datasize = 0;
+  uint16_t lo_bsssize = 0;
+  uint16_t hi_datasize = 0;
+  uint16_t hi_bsssize = 0;
 
-    STR_BCU2Size ();
+    STR_BCU2Size () = default;
   bool init (const CArray & str);
   CArray toArray ();
   STR_Type getType ()
@@ -239,31 +237,31 @@ public:
 class STR_BCU2Start:public STR_Stream
 {
 public:
-  uint16_t addrtab_start;
-  uint16_t addrtab_size;
-  uint16_t assoctab_start;
-  uint16_t assoctab_size;
-  uint16_t readonly_start;
-  uint16_t readonly_end;
-  uint16_t param_start;
-  uint16_t param_end;
+  uint16_t addrtab_start = 0;
+  uint16_t addrtab_size = 0;
+  uint16_t assoctab_start = 0;
+  uint16_t assoctab_size = 0;
+  uint16_t readonly_start = 0;
+  uint16_t readonly_end = 0;
+  uint16_t param_start = 0;
+  uint16_t param_end = 0;
 
-  uint16_t obj_ptr;
-  uint16_t obj_count;
-  uint16_t appcallback;
-  uint16_t groupobj_ptr;
-  uint16_t seg0;
-  uint16_t seg1;
-  uint16_t sphandler;
-  uint16_t initaddr;
-  uint16_t runaddr;
-  uint16_t saveaddr;
-  uint16_t eeprom_start;
-  uint16_t eeprom_end;
-  eibaddr_t poll_addr;
-  uint8_t poll_slot;
+  uint16_t obj_ptr = 0;
+  uint16_t obj_count = 0;
+  uint16_t appcallback = 0;
+  uint16_t groupobj_ptr = 0;
+  uint16_t seg0 = 0;
+  uint16_t seg1 = 0;
+  uint16_t sphandler = 0;
+  uint16_t initaddr = 0;
+  uint16_t runaddr = 0;
+  uint16_t saveaddr = 0;
+  uint16_t eeprom_start = 0;
+  uint16_t eeprom_end = 0;
+  eibaddr_t poll_addr = 0;
+  uint8_t poll_slot = 0;
 
-    STR_BCU2Start ();
+    STR_BCU2Start () = default;
   bool init (const CArray & str);
   CArray toArray ();
   STR_Type getType ()
@@ -276,10 +274,10 @@ public:
 class STR_BCU2Key:public STR_Stream
 {
 public:
-  eibkey_type installkey;
+  eibkey_type installkey = 0xFFFFFFFF;
   std::vector < eibkey_type > keys;
 
-  STR_BCU2Key ();
+  STR_BCU2Key () = default;
   bool init (const CArray & str);
   CArray toArray ();
   STR_Type getType ()
@@ -294,7 +292,7 @@ class Image
 public:
   std::vector < STR_Stream * >str;
 
-  Image ();
+  Image () = default;
   virtual ~Image ();
 
   static Image *fromArray (CArray c);

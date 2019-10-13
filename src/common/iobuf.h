@@ -117,7 +117,7 @@ public:
     on_read.set<RecvBuf,&RecvBuf::recv_cb>(this);
   };
   void low_latency() { quick = true; }
-  virtual ~RecvBuf() {};
+  virtual ~RecvBuf() = default;
 
   void start();
   void stop(bool clear = false);

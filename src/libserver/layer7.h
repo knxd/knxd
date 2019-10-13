@@ -54,7 +54,7 @@ class Layer7_Connection : T_Reader<BroadcastComm>
   APDUPtr Request_Response (APDU * r);
 public:
   Layer7_Connection (TracePtr tr, eibaddr_t dest);
-  virtual ~Layer7_Connection ();
+  virtual ~Layer7_Connection () = default;
   bool init (Router * l3);
   void recv (BroadcastComm *c);
 
@@ -109,7 +109,7 @@ class Layer7_Individual
   APDUPtr Request_Response (APDU * r);
 public:
   Layer7_Individual (TracePtr tr, eibaddr_t dest);
-  virtual ~Layer7_Individual ();
+  virtual ~Layer7_Individual () = default;
   bool init (Router * l3);
 
   /** read a property */

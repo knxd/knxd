@@ -139,7 +139,7 @@ class BaseRouter {
 protected: // can't instantiate this class directly
   BaseRouter(IniData &i) : ini(i) {}
 public:
-  virtual ~BaseRouter();
+  virtual ~BaseRouter() = default;
   /** debug output */
   TracePtr t;
 
@@ -222,7 +222,7 @@ class LinkBase : public std::enable_shared_from_this<LinkBase>
 {
 public:
   LinkBase(BaseRouter &r, IniSectionPtr& s, TracePtr tr);
-  virtual ~LinkBase();
+  virtual ~LinkBase() = default;
 private:
   /* DEBUG: Flag to make sure that the call sequence is observed */
   bool setup_called = false;
@@ -302,7 +302,7 @@ public:
     {
       t->setAuxName("Recv");
     }
-  virtual ~LinkRecv();
+  virtual ~LinkRecv() = default;
   /** Arriving data packet */
   virtual void recv_L_Data (LDataPtr l) = 0;
   /** Arriving monitor packet */
@@ -338,7 +338,7 @@ class LinkConnect_ : public LinkRecv
 {
 public:
   LinkConnect_(BaseRouter& r, IniSectionPtr& s, TracePtr tr);
-  virtual ~LinkConnect_();
+  virtual ~LinkConnect_() = default;
 
   BaseRouter& router;
 
@@ -479,7 +479,7 @@ public:
   ServerPtr server;
 
   LinkConnectClient(ServerPtr s, IniSectionPtr& c, TracePtr tr);
-  virtual ~LinkConnectClient();
+  virtual ~LinkConnectClient() = default;
 
   virtual const std::string& name() { return linkname; }
 };
@@ -492,7 +492,7 @@ public:
     {
       t->setAuxName("ConnS");
     }
-  virtual ~LinkConnectSingle();
+  virtual ~LinkConnectSingle() = default;
 
   virtual bool setup();
   virtual bool hasAddress (eibaddr_t addr) { return addr == this->addr; }
@@ -529,7 +529,7 @@ public:
     {
       t->setAuxName("Server");
     }
-  virtual ~Server();
+  virtual ~Server() = default;
 
   /** Server::setup() does NOT call LinkConnect::setup() because there is no driver here. */
   virtual bool setup();
@@ -571,7 +571,7 @@ public:
   typedef LinkConnectPtr_ first_arg;
 
   Filter(const LinkConnectPtr_& c, IniSectionPtr& s);
-  virtual ~Filter();
+  virtual ~Filter() = default;
 
 protected:
   /** Link to the receiver */
@@ -655,7 +655,7 @@ public:
       conn = c;
       t->setAuxName("Driver");
     }
-  virtual ~Driver();
+  virtual ~Driver() = default;
   std::weak_ptr<LinkConnect_> conn;
 
 protected:
@@ -709,7 +709,7 @@ public:
       addrs.resize(65536);
       t->setAuxName("BusDriver");
     }
-  virtual ~BusDriver();
+  virtual ~BusDriver() = default;
 
   virtual bool hasAddress(eibaddr_t addr) { return addrs[addr]; }
   virtual void addAddress(eibaddr_t addr) { addrs[addr] = true; }
@@ -723,7 +723,7 @@ class SubDriver : public BusDriver
 public:
   ServerPtr server;
   SubDriver(const LinkConnectClientPtr& c);
-  virtual ~SubDriver();
+  virtual ~SubDriver() = default;
 };
 
 /** Base class for server-linked drivers with a single client */
@@ -732,7 +732,7 @@ class LineDriver : public Driver
 public:
   ServerPtr server;
   LineDriver(const LinkConnectClientPtr& c);
-  virtual ~LineDriver();
+  virtual ~LineDriver() = default;
 
   virtual bool setup(); // assigns the address
 private:

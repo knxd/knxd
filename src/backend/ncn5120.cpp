@@ -22,13 +22,11 @@
 #include "ncn5120.h"
 #include "llserial.h"
 
-NCN5120::~NCN5120() { }
-
 class NCN5120wrap : public TPUARTwrap
 {
 public:
   NCN5120wrap (LowLevelIface* parent, IniSectionPtr& s, LowLevelDriver* i = nullptr) : TPUARTwrap(parent,s,i) {}
-  virtual ~NCN5120wrap() {}
+  virtual ~NCN5120wrap() = default;
 
 protected:
   void termios_settings(struct termios &t);
@@ -43,7 +41,7 @@ class NCN5120serial : public LLserial
 {
 public:
   NCN5120serial(LowLevelIface* a, IniSectionPtr& b) : LLserial(a,b) { t->setAuxName("NCN_ser"); }
-  virtual ~NCN5120serial () {};
+  virtual ~NCN5120serial () = default;
 
 protected:
   unsigned int default_baudrate() { return 38400; }

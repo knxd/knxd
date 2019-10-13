@@ -20,11 +20,6 @@
 #include "layer4.h"
 #include "tpdu.h"
 
-/***************** Layer4Common *****************/
-
-template<class COMM>
-Layer4common<COMM>::~Layer4common() {}
-
 /***************** T_Brodcast *****************/
 
 T_Broadcast::T_Broadcast (T_Reader<BroadcastComm> *app, LinkConnectClientPtr lc, bool write_only)

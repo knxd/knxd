@@ -36,10 +36,6 @@ CEMIDriver::CEMIDriver (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i) :
   reset_timer.set<CEMIDriver,&CEMIDriver::reset_timer_cb>(this);
 }
 
-CEMIDriver::~CEMIDriver()
-{
-}
-
 void
 CEMIDriver::sendLocal_done_cb(bool success)
 {

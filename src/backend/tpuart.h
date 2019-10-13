@@ -47,7 +47,7 @@ public:
     {
       t->setAuxName("tpuart");
     }
-  virtual ~TPUART();
+  virtual ~TPUART() = default;
 
   bool setup();
 protected:

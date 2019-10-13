@@ -77,7 +77,7 @@ protected:
   {
     this->app = app;
   };
-  virtual ~Layer4common();
+  virtual ~Layer4common() = default;
 public:
   bool setup() {
     if (!LineDriver::setup())

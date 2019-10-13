@@ -49,9 +49,7 @@ typedef std::unique_ptr<TPDU> TPDUPtr;
 class TPDU
 {
 public:
-  virtual ~TPDU ()
-  {
-  }
+  virtual ~TPDU () = default;
 
   virtual bool init (const CArray & c, TracePtr t) = 0;
   /** convert to character array */
@@ -69,7 +67,7 @@ class T_UNKNOWN_PDU:public TPDU
 public:
   CArray pdu;
 
-  T_UNKNOWN_PDU ();
+  T_UNKNOWN_PDU () = default;
   bool init (const CArray & c, TracePtr t);
   CArray ToPacket ();
   String Decode (TracePtr t);
@@ -84,7 +82,7 @@ class T_DATA_XXX_REQ_PDU:public TPDU
 public:
   CArray data;
 
-  T_DATA_XXX_REQ_PDU ();
+  T_DATA_XXX_REQ_PDU () = default;
   bool init (const CArray & c, TracePtr t);
   CArray ToPacket ();
   String Decode (TracePtr t);
@@ -97,10 +95,10 @@ public:
 class T_DATA_CONNECTED_REQ_PDU:public TPDU
 {
 public:
-  uchar serno;
+  uchar serno = 0;
   CArray data;
 
-  T_DATA_CONNECTED_REQ_PDU ();
+  T_DATA_CONNECTED_REQ_PDU () = default;
   bool init (const CArray & c, TracePtr t);
   CArray ToPacket ();
   String Decode (TracePtr t);
@@ -114,7 +112,7 @@ class T_CONNECT_REQ_PDU:public TPDU
 {
 public:
 
-  T_CONNECT_REQ_PDU ();
+  T_CONNECT_REQ_PDU () = default;
   bool init (const CArray & c, TracePtr t);
   CArray ToPacket ();
   String Decode (TracePtr t);
@@ -128,7 +126,7 @@ class T_DISCONNECT_REQ_PDU:public TPDU
 {
 public:
 
-  T_DISCONNECT_REQ_PDU ();
+  T_DISCONNECT_REQ_PDU () = default;
   bool init (const CArray & c, TracePtr t);
   CArray ToPacket ();
   String Decode (TracePtr t);
@@ -141,9 +139,9 @@ public:
 class T_ACK_PDU:public TPDU
 {
 public:
-  uchar serno;
+  uchar serno = 0;
 
-  T_ACK_PDU ();
+  T_ACK_PDU () = default;
   bool init (const CArray & c, TracePtr t);
   CArray ToPacket ();
   String Decode (TracePtr t);
@@ -156,9 +154,9 @@ public:
 class T_NACK_PDU:public TPDU
 {
 public:
-  uchar serno;
+  uchar serno = 0;
 
-  T_NACK_PDU ();
+  T_NACK_PDU () = default;
   bool init (const CArray & c, TracePtr t);
   CArray ToPacket ();
   String Decode (TracePtr t);

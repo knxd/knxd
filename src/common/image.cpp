@@ -99,10 +99,6 @@ STR_Stream::fromArray (const CArray & c)
   return i;
 }
 
-STR_Invalid::STR_Invalid ()
-{
-}
-
 bool
 STR_Invalid::init (const CArray & c)
 {
@@ -124,12 +120,6 @@ STR_Invalid::decode ()
   sprintf (buf, "Invalid:\n");
   s = buf;
   return s + HexDump (data);
-}
-
-
-STR_Unknown::STR_Unknown ()
-{
-  type = 0;
 }
 
 bool
@@ -164,11 +154,6 @@ STR_Unknown::decode ()
   return s + HexDump (data);
 }
 
-STR_BCUType::STR_BCUType ()
-{
-  bcutype = 0;
-}
-
 bool
 STR_BCUType::init (const CArray & c)
 {
@@ -201,10 +186,6 @@ STR_BCUType::decode ()
   return buf;
 }
 
-STR_Code::STR_Code ()
-{
-}
-
 bool
 STR_Code::init (const CArray & c)
 {
@@ -234,12 +215,6 @@ STR_Code::decode ()
   sprintf (buf, "Code:\n");
   s = buf;
   return s + HexDump (code);
-}
-
-STR_StringParameter::STR_StringParameter ()
-{
-  addr = 0;
-  length = 0;
 }
 
 bool
@@ -288,12 +263,6 @@ STR_StringParameter::decode ()
   return buf;
 }
 
-STR_IntParameter::STR_IntParameter ()
-{
-  name = "";
-  type = 0;
-}
-
 bool
 STR_IntParameter::init (const CArray & c)
 {
@@ -339,11 +308,6 @@ STR_IntParameter::decode ()
   return buf;
 }
 
-STR_FloatParameter::STR_FloatParameter ()
-{
-  addr = 0;
-}
-
 bool
 STR_FloatParameter::init (const CArray & c)
 {
@@ -384,11 +348,6 @@ STR_FloatParameter::decode ()
   char buf[200];
   sprintf (buf, "FloatParameter: addr=%04x id=%s\n", addr, name.c_str());
   return buf;
-}
-
-STR_ListParameter::STR_ListParameter ()
-{
-  addr = 0;
 }
 
 bool
@@ -471,11 +430,6 @@ STR_ListParameter::decode ()
   return s;
 }
 
-STR_GroupObject::STR_GroupObject ()
-{
-  no = 0;
-}
-
 bool
 STR_GroupObject::init (const CArray & c)
 {
@@ -515,14 +469,6 @@ STR_GroupObject::toArray ()
   d[4] = (no) & 0xff;
   d.setpart (name, 5);
   return d;
-}
-
-STR_BCU1Size::STR_BCU1Size ()
-{
-  textsize = 0;
-  stacksize = 0;
-  datasize = 0;
-  bsssize = 0;
 }
 
 bool
@@ -565,16 +511,6 @@ STR_BCU1Size::decode ()
   sprintf (buf, "BCU1_SIZE: text:%d stack:%d data:%d bss:%d\n", textsize,
 	   stacksize, datasize, bsssize);
   return buf;
-}
-
-STR_BCU2Size::STR_BCU2Size ()
-{
-  textsize = 0;
-  stacksize = 0;
-  lo_datasize = 0;
-  lo_bsssize = 0;
-  hi_datasize = 0;
-  hi_bsssize = 0;
 }
 
 bool
@@ -625,33 +561,6 @@ STR_BCU2Size::decode ()
 	   textsize, stacksize, lo_datasize, lo_bsssize, hi_datasize,
 	   hi_bsssize);
   return buf;
-}
-
-STR_BCU2Start::STR_BCU2Start ()
-{
-  addrtab_start = 0;
-  addrtab_size = 0;
-  assoctab_start = 0;
-  assoctab_size = 0;
-  readonly_start = 0;
-  readonly_end = 0;
-  param_start = 0;
-  param_end = 0;
-
-  obj_ptr = 0;
-  obj_count = 0;
-  appcallback = 0;
-  groupobj_ptr = 0;
-  seg0 = 0;
-  seg1 = 0;
-  sphandler = 0;
-  initaddr = 0;
-  runaddr = 0;
-  saveaddr = 0;
-  eeprom_start = 0;
-  eeprom_end = 0;
-  poll_addr = 0;
-  poll_slot = 0;
 }
 
 bool
@@ -756,11 +665,6 @@ STR_BCU2Start::decode ()
   return buf;
 }
 
-STR_BCU2Key::STR_BCU2Key ()
-{
-  installkey = 0xFFFFFFFF;
-}
-
 bool
 STR_BCU2Key::init (const CArray & c)
 {
@@ -815,10 +719,6 @@ STR_BCU2Key::decode ()
       s += buf;
     }
   return s;
-}
-
-Image::Image ()
-{
 }
 
 Image::~Image ()

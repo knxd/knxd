@@ -33,7 +33,7 @@ public:
       con = cc;
       on_error.set<A__Base,&A__Base::error_cb>(this);
     }
-  virtual ~A__Base() {}
+  virtual ~A__Base() = default;
 
   ClientConnPtr con;
   LinkConnectSinglePtr lc;
