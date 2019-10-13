@@ -102,7 +102,7 @@ void EMI2Driver::started()
   sendReset();
 }
 
-void EMI2Driver::reset_timer_cb(ev::timer& w, int revents)
+void EMI2Driver::reset_timer_cb(ev::timer&, int)
 {
   ERRORPRINTF(t, E_ERROR | 57, "reset timed out");
   errored();

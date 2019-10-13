@@ -564,7 +564,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       //FIXME: Hostname, MAC-addr
       memcpy(r2.MAC, mac_address, sizeof(r2.MAC));
       //FIXME: Hostname, indiv. address
-      strncpy ((char *) r2.name, servername.c_str(), sizeof(r2.name));
+      strncpy ((char *) r2.name, servername.c_str(), sizeof(r2.name) - 1);
       d.version = 1;
       d.family = 2; // core
       r2.services.push_back (d);
@@ -603,7 +603,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       r2.multicastaddr = mcast->maddr.sin_addr;
       memcpy(r2.MAC, mac_address, sizeof(r2.MAC));
       //FIXME: Hostname, indiv. address
-      strncpy ((char *) r2.name, servername.c_str(), sizeof(r2.name));
+      strncpy ((char *) r2.name, servername.c_str(), sizeof(r2.name) - 1);
       d.version = 1;
       d.family = 2;
       if (discover)

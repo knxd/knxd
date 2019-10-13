@@ -45,10 +45,17 @@ USBLoop::USBLoop (TracePtr tr)
       return;
     }
 
+#if LIBUSB_API_VERSION >= 0x01000106
+  if(t->ShowPrint(10))
+    libusb_set_option(context, LIBUSB_OPTION_LOG_LEVEL, LIBUSB_LOG_LEVEL_DEBUG);
+  else
+    libusb_set_option(context, LIBUSB_OPTION_LOG_LEVEL, LIBUSB_LOG_LEVEL_ERROR);
+#else
   if(t->ShowPrint(10))
     libusb_set_debug(context,LIBUSB_LOG_LEVEL_DEBUG);
   else
     libusb_set_debug(context,LIBUSB_LOG_LEVEL_ERROR);
+#endif
 
   tm.set<USBLoop, &USBLoop::timer_cb>(this);
   libusb_set_pollfd_notifiers (context, pollfd_added_cb,pollfd_removed_cb, this);

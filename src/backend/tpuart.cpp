@@ -98,10 +98,6 @@ TPUART::setup()
     return false;
 
   return true;
-ex1:
-  delete iface;
-  iface = nullptr;
-  return false;
 }
 
 bool

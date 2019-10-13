@@ -1188,10 +1188,11 @@ vbusmonitor1time\n");
 
       parseKey (&ac, &ag);
       if (ac < 7)
-	die
-	  ("usage: %s [-k key] url eibaddr obj prop start nr_of_elem [xx xx ..]",
-	   prog);
-        con = open_con(ag[1]);
+        {
+          die("usage: %s [-k key] url eibaddr obj prop start nr_of_elem "
+              "[xx xx ..]", prog);
+        }
+      con = open_con(ag[1]);
       dest = readaddr (ag[2]);
       obj = atoi (ag[3]);
       prop = atoi (ag[4]);
