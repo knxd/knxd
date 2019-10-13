@@ -27,51 +27,83 @@ typedef enum
 {
   /** unknown APDU */
   A_Unknown,
-  A_GroupValue_Read,
-  A_GroupValue_Response,
-  A_GroupValue_Write,
-  A_IndividualAddress_Read,
-  A_IndividualAddress_Response,
-  A_IndividualAddress_Write,
-  A_IndividualAddressSerialNumber_Read,
-  A_IndividualAddressSerialNumber_Response,
-  A_IndividualAddressSerialNumber_Write,
-  A_ServiceInformation_Indication_Write,
-  A_DomainAddress_Write,
-  A_DomainAddress_Read,
-  A_DomainAddress_Response,
-  A_DomainAddressSelective_Read,
-  A_PropertyValue_Read,
-  A_PropertyValue_Response,
-  A_PropertyValue_Write,
-  A_PropertyDescription_Read,
-  A_PropertyDescription_Response,
-  A_DeviceDescriptor_Read,
-  A_DeviceDescriptor_Response,
-  A_ADC_Read,
-  A_ADC_Response,
-  A_Memory_Read,
-  A_Memory_Response,
-  A_Memory_Write,
-  A_MemoryBit_Write,
-  A_UserMemory_Read,
-  A_UserMemory_Response,
-  A_UserMemory_Write,
-  A_UserMemoryBit_Write,
-  A_UserManufacturerInfo_Read,
-  A_UserManufacturerInfo_Response,
-  A_Restart,
-  A_Authorize_Request,
-  A_Authorize_Response,
-  A_Key_Write,
-  A_Key_Response,
+  A_GroupValue_Read = 0x000,
+  A_GroupValue_Response = 0x040, // .. 0x07F
+  A_GroupValue_Write = 0x080, // .. 0x0BF
+  A_IndividualAddress_Write = 0x0C0,
+  A_IndividualAddress_Read = 0x100,
+  A_IndividualAddress_Response = 0x140,
+  A_ADC_Read = 0x180, // .. 0x1BF
+  A_ADC_Response = 0x1C0, // .. 0x1FF
+  A_SystemNetworkParameter_Read = 0x1C8,
+  A_SystemNetworkParameter_Response = 0x1C9,
+  A_SystemNetworkParameter_Write = 0x1CA,
+  // 0x1CB is planned for future system broadcast service
+  A_Memory_Read = 0x200, // .. 0x20F
+  A_Memory_Response = 0x240, // .. 0x24F
+  A_Memory_Write = 0x280, // .. 0x028F
+  A_UserMemory_Read = 0x2C0,
+  A_UserMemory_Response = 0x2C1,
+  A_UserMemory_Write = 0x2C2,
+  A_UserMemoryBit_Write = 0x2C4,
+  A_UserManufacturerInfo_Read = 0x2C5,
+  A_UserManufacturerInfo_Response = 0x2C6,
+  A_FunctionPropertyCommand = 0x2C7,
+  A_FunctionPropertyState_Read = 0x2C8,
+  A_FunctionPropertyState_Response = 0x2C9,
+  // 0x2CA .. 0x2F7 are reserved USERMSG
+  // 0x2F8 .. 0x2FE are manufacturer specific area for USERMSG
+  A_DeviceDescriptor_Read = 0x300,
+  A_DeviceDescriptor_Response = 0x340,
+  A_Restart = 0x380,
+  /* Coupler specific services */
+  A_Open_Routing_Table_Request = 0x3C0,
+  A_Read_Routing_Table_Request = 0x3C1,
+  A_Read_Routing_Table_Response = 0x3C2,
+  A_Write_Routing_Table_Request = 0x3C3,
+  A_Read_Router_Memory_Request = 0x3C8,
+  A_Read_Router_Memory_Response = 0x3C9,
+  A_Write_Router_Memory_Request = 0x3CA,
+  A_Read_Router_Status_Request = 0x3CD,
+  A_Read_Router_Status_Response = 0x3CE,
+  A_Write_Router_Status_Request = 0x3CF,
+  A_MemoryBit_Write = 0x3D0,
+  A_Authorize_Request = 0x3D1,
+  A_Authorize_Response = 0x3D2,
+  A_Key_Write = 0x3D3,
+  A_Key_Response = 0x3D4,
+  A_PropertyValue_Read = 0x3D5,
+  A_PropertyValue_Response = 0x3D6,
+  A_PropertyValue_Write = 0x3D7,
+  A_PropertyDescription_Read = 0x3D8,
+  A_PropertyDescription_Response = 0x3D9,
+  A_NetworkParameter_Read = 0x3DA,
+  A_NetworkParameter_Response = 0x3DB,
+  A_IndividualAddressSerialNumber_Read = 0x3DC,
+  A_IndividualAddressSerialNumber_Response = 0x3DD,
+  A_IndividualAddressSerialNumber_Write = 0x3DE,
+  A_ServiceInformation_Indication_Write = 0x3DF,
+  /* Open media specific services */
+  A_DomainAddress_Write = 0x3E0,
+  A_DomainAddress_Read = 0x3E1,
+  A_DomainAddress_Response = 0x3E2,
+  A_DomainAddressSelective_Read = 0x3E3,
+  A_NetworkParameter_Write = 0x3E4,
+  A_Link_Read = 0x3E5,
+  A_Link_Response = 0x3E6,
+  A_Link_Write = 0x3E7,
+  A_GroupValue_InfoReport = 0x3EB,
+  A_DomainAddressSerialNumber_Read = 0x3EC,
+  A_DomainAddressSerialNumber_Response = 0x3ED,
+  A_DomainAddressSerialNumber_Write = 0x3EE,
+  A_FileStream_InfoReport = 0x3F0,
 }
 APDU_type;
 
 class APDU;
 typedef std::unique_ptr<APDU> APDUPtr;
 
-/** represents a TPDU */
+/** represents an APDU */
 class APDU
 {
 public:
