@@ -22,7 +22,7 @@
 
 #include "types.h"
 
-String HexDump (CArray data);
+std::string HexDump (CArray data);
 
 typedef enum
 {
@@ -49,7 +49,7 @@ public:
   virtual bool init (const CArray & str) = 0;
   virtual CArray toArray () = 0;
   virtual STR_Type getType () = 0;
-  virtual String decode () = 0;
+  virtual std::string decode () = 0;
 };
 
 class STR_Invalid:public STR_Stream
@@ -64,7 +64,7 @@ public:
   {
     return S_Invalid;
   }
-  String decode ();
+  std::string decode ();
 };
 
 class STR_Unknown:public STR_Stream
@@ -80,7 +80,7 @@ public:
   {
     return S_Unknown;
   }
-  String decode ();
+  std::string decode ();
 };
 
 class STR_BCUType:public STR_Stream
@@ -95,7 +95,7 @@ public:
   {
     return S_BCUType;
   }
-  String decode ();
+  std::string decode ();
 };
 
 class STR_Code:public STR_Stream
@@ -110,7 +110,7 @@ public:
   {
     return S_Code;
   }
-  String decode ();
+  std::string decode ();
 };
 
 class STR_StringParameter:public STR_Stream
@@ -118,7 +118,7 @@ class STR_StringParameter:public STR_Stream
 public:
   uint16_t addr = 0;
   uint16_t length = 0;
-  String name;
+  std::string name;
 
     STR_StringParameter () = default;
   bool init (const CArray & str);
@@ -127,15 +127,15 @@ public:
   {
     return S_StringParameter;
   }
-  String decode ();
+  std::string decode ();
 };
 
 class STR_ListParameter:public STR_Stream
 {
 public:
   uint16_t addr = 0;
-  String name;
-    std::vector < String > elements;
+  std::string name;
+    std::vector < std::string > elements;
 
     STR_ListParameter () = default;
   bool init (const CArray & str);
@@ -144,7 +144,7 @@ public:
   {
     return S_ListParameter;
   }
-  String decode ();
+  std::string decode ();
 };
 
 class STR_IntParameter:public STR_Stream
@@ -152,7 +152,7 @@ class STR_IntParameter:public STR_Stream
 public:
   uint16_t addr;
   int8_t type = 0;
-  String name = "";
+  std::string name = "";
 
     STR_IntParameter () = default;
   bool init (const CArray & str);
@@ -161,14 +161,14 @@ public:
   {
     return S_IntParameter;
   }
-  String decode ();
+  std::string decode ();
 };
 
 class STR_FloatParameter:public STR_Stream
 {
 public:
   uint16_t addr = 0;
-  String name;
+  std::string name;
 
     STR_FloatParameter () = default;
   bool init (const CArray & str);
@@ -177,14 +177,14 @@ public:
   {
     return S_FloatParameter;
   }
-  String decode ();
+  std::string decode ();
 };
 
 class STR_GroupObject:public STR_Stream
 {
 public:
   uchar no = 0;
-  String name;
+  std::string name;
 
     STR_GroupObject () = default;
   bool init (const CArray & str);
@@ -193,7 +193,7 @@ public:
   {
     return S_GroupObject;
   }
-  String decode ();
+  std::string decode ();
 };
 
 class STR_BCU1Size:public STR_Stream
@@ -211,7 +211,7 @@ public:
   {
     return S_BCU1Size;
   }
-  String decode ();
+  std::string decode ();
 };
 
 class STR_BCU2Size:public STR_Stream
@@ -231,7 +231,7 @@ public:
   {
     return S_BCU2Size;
   }
-  String decode ();
+  std::string decode ();
 };
 
 class STR_BCU2Start:public STR_Stream
@@ -268,7 +268,7 @@ public:
   {
     return S_BCU2Start;
   }
-  String decode ();
+  std::string decode ();
 };
 
 class STR_BCU2Key:public STR_Stream
@@ -284,7 +284,7 @@ public:
   {
     return S_BCU2Key;
   }
-  String decode ();
+  std::string decode ();
 };
 
 class Image
@@ -297,7 +297,7 @@ public:
 
   static Image *fromArray (CArray c);
   CArray toArray ();
-  String decode ();
+  std::string decode ();
   bool isValid ();
 
   int findStreamNumber (STR_Type t);

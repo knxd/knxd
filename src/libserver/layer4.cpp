@@ -54,7 +54,7 @@ T_Broadcast::recv_Data (const CArray & c)
 {
   T_DATA_XXX_REQ_PDU t;
   t.data = c;
-  String s = t.Decode (this->t);
+  std::string s = t.Decode (this->t);
   TRACEPRINTF (this->t, 4, "Recv Broadcast %s", s);
   LDataPtr l = LDataPtr(new L_Data_PDU ());
   l->source = 0;
@@ -98,7 +98,7 @@ T_Group::recv_Data (const CArray & c)
 {
   T_DATA_XXX_REQ_PDU t;
   t.data = c;
-  String s = t.Decode (this->t);
+  std::string s = t.Decode (this->t);
   TRACEPRINTF (this->t, 4, "Recv Group %s", s);
   LDataPtr l = LDataPtr(new L_Data_PDU ());
   l->source = 0;
@@ -184,7 +184,7 @@ T_Individual::recv_Data (const CArray & c)
 {
   T_DATA_XXX_REQ_PDU t;
   t.data = c;
-  String s = t.Decode (this->t);
+  std::string s = t.Decode (this->t);
   TRACEPRINTF (this->t, 4, "Recv Individual %s", s);
   LDataPtr l = LDataPtr(new L_Data_PDU ());
   l->source = 0;
@@ -445,7 +445,7 @@ GroupSocket::recv_Data (const GroupAPDU & c)
 {
   T_DATA_XXX_REQ_PDU t;
   t.data = c.data;
-  String s = t.Decode (this->t);
+  std::string s = t.Decode (this->t);
   TRACEPRINTF (this->t, 4, "Recv GroupSocket %s %s", FormatGroupAddr(c.dst), s);
   LDataPtr l = LDataPtr(new L_Data_PDU ());
   l->source = 0;

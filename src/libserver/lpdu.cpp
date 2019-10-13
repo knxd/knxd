@@ -64,7 +64,7 @@ CArray L_NACK_PDU::ToPacket ()
   return CArray (&c, 1);
 }
 
-String L_NACK_PDU::Decode (TracePtr t UNUSED)
+std::string L_NACK_PDU::Decode (TracePtr t UNUSED)
 {
   return "NACK";
 }
@@ -89,7 +89,7 @@ CArray L_ACK_PDU::ToPacket ()
   return CArray (&c, 1);
 }
 
-String L_ACK_PDU::Decode (TracePtr t UNUSED)
+std::string L_ACK_PDU::Decode (TracePtr t UNUSED)
 {
   return "ACK";
 }
@@ -114,7 +114,7 @@ CArray L_BUSY_PDU::ToPacket ()
   return CArray (&c, 1);
 }
 
-String L_BUSY_PDU::Decode (TracePtr t UNUSED)
+std::string L_BUSY_PDU::Decode (TracePtr t UNUSED)
 {
   return "BUSY";
 }
@@ -138,10 +138,10 @@ L_Unknown_PDU::ToPacket ()
   return pdu;
 }
 
-String
+std::string
 L_Unknown_PDU::Decode (TracePtr t UNUSED)
 {
-  String s ("Unknown LPDU: ");
+  std::string s ("Unknown LPDU: ");
 
   if (pdu.size() == 0)
     return "empty LPDU";
@@ -175,10 +175,10 @@ L_Busmonitor_PDU::ToPacket ()
   return pdu;
 }
 
-String
+std::string
 L_Busmonitor_PDU::Decode (TracePtr t)
 {
-  String s ("LPDU: ");
+  std::string s ("LPDU: ");
 
   if (pdu.size() == 0)
     return "empty LPDU";
@@ -325,13 +325,13 @@ CArray L_Data_PDU::ToPacket ()
   return pdu;
 }
 
-String L_Data_PDU::Decode (TracePtr t)
+std::string L_Data_PDU::Decode (TracePtr t)
 {
   assert (data.size() >= 1);
   assert (data.size() <= 0xff);
   assert ((hopcount & 0xf8) == 0);
 
-  String s ("L_Data");
+  std::string s ("L_Data");
   if (!valid_length)
     s += " (incomplete)";
   if (repeated)

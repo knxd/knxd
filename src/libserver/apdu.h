@@ -81,7 +81,7 @@ public:
   /** convert to character array */
   virtual CArray ToPacket () = 0;
   /** decode content as string */
-  virtual String Decode (TracePtr t) = 0;
+  virtual std::string Decode (TracePtr t) = 0;
 
   /** converts character array to a APDU */
   static APDUPtr fromPacket (const CArray &, TracePtr t);
@@ -99,7 +99,7 @@ public:
   A_Unknown_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_Unknown;
@@ -114,7 +114,7 @@ public:
   A_GroupValue_Read_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_GroupValue_Read;
@@ -131,7 +131,7 @@ public:
   A_GroupValue_Response_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_GroupValue_Response;
@@ -148,7 +148,7 @@ public:
   A_GroupValue_Write_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_GroupValue_Write;
@@ -163,7 +163,7 @@ public:
   A_IndividualAddress_Read_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_IndividualAddress_Read;
@@ -178,7 +178,7 @@ public:
   A_IndividualAddress_Response_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_IndividualAddress_Response;
@@ -194,7 +194,7 @@ public:
   A_IndividualAddress_Write_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_IndividualAddress_Write;
@@ -210,7 +210,7 @@ public:
   A_IndividualAddressSerialNumber_Read_PDU ();
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_IndividualAddressSerialNumber_Read;
@@ -227,7 +227,7 @@ public:
   A_IndividualAddressSerialNumber_Response_PDU ();
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_IndividualAddressSerialNumber_Response;
@@ -244,7 +244,7 @@ public:
   A_IndividualAddressSerialNumber_Write_PDU ();
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_IndividualAddressSerialNumber_Write;
@@ -262,7 +262,7 @@ public:
   A_ServiceInformation_Indication_Write_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_ServiceInformation_Indication_Write;
@@ -278,7 +278,7 @@ public:
   A_DomainAddress_Write_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_DomainAddress_Write;
@@ -293,7 +293,7 @@ public:
   A_DomainAddress_Read_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_DomainAddress_Read;
@@ -309,7 +309,7 @@ public:
   A_DomainAddress_Response_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_DomainAddress_Response;
@@ -327,7 +327,7 @@ public:
     A_DomainAddressSelective_Read_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_DomainAddressSelective_Read;
@@ -346,7 +346,7 @@ public:
   A_PropertyValue_Read_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_PropertyValue_Read;
@@ -366,7 +366,7 @@ public:
   A_PropertyValue_Response_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_PropertyValue_Response;
@@ -386,7 +386,7 @@ public:
   A_PropertyValue_Write_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_PropertyValue_Write;
@@ -404,7 +404,7 @@ public:
   A_PropertyDescription_Read_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_PropertyDescription_Read;
@@ -425,7 +425,7 @@ public:
   A_PropertyDescription_Response_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_PropertyDescription_Read;
@@ -441,7 +441,7 @@ public:
   A_DeviceDescriptor_Read_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_DeviceDescriptor_Read;
@@ -458,7 +458,7 @@ public:
   A_DeviceDescriptor_Response_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_DeviceDescriptor_Response;
@@ -475,7 +475,7 @@ public:
   A_ADC_Read_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_ADC_Read;
@@ -493,7 +493,7 @@ public:
   A_ADC_Response_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_ADC_Response;
@@ -510,7 +510,7 @@ public:
   A_Memory_Read_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_Memory_Read;
@@ -528,7 +528,7 @@ public:
   A_Memory_Response_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_Memory_Response;
@@ -546,7 +546,7 @@ public:
   A_Memory_Write_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_Memory_Write;
@@ -565,7 +565,7 @@ public:
   A_MemoryBit_Write_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_MemoryBit_Write;
@@ -583,7 +583,7 @@ public:
   A_UserMemory_Read_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_UserMemory_Read;
@@ -602,7 +602,7 @@ public:
   A_UserMemory_Response_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_UserMemory_Response;
@@ -621,7 +621,7 @@ public:
   A_UserMemory_Write_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_UserMemory_Write;
@@ -641,7 +641,7 @@ public:
   A_UserMemoryBit_Write_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_UserMemoryBit_Write;
@@ -656,7 +656,7 @@ public:
   A_UserManufacturerInfo_Read_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_UserManufacturerInfo_Read;
@@ -673,7 +673,7 @@ public:
   A_UserManufacturerInfo_Response_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_UserManufacturerInfo_Response;
@@ -688,7 +688,7 @@ public:
   A_Restart_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_Restart;
@@ -704,7 +704,7 @@ public:
   A_Authorize_Request_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_Authorize_Request;
@@ -720,7 +720,7 @@ public:
   A_Authorize_Response_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_Authorize_Response;
@@ -737,7 +737,7 @@ public:
   A_Key_Write_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_Key_Write;
@@ -753,7 +753,7 @@ public:
   A_Key_Response_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   APDU_type getType () const
   {
     return A_Key_Response;

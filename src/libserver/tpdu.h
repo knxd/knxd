@@ -55,7 +55,7 @@ public:
   /** convert to character array */
   virtual CArray ToPacket () = 0;
   /** decode content as string */
-  virtual String Decode (TracePtr t) = 0;
+  virtual std::string Decode (TracePtr t) = 0;
   /** gets TPDU type */
   virtual TPDU_Type getType () const = 0;
   /** converts character array to a TPDU */
@@ -70,7 +70,7 @@ public:
   T_UNKNOWN_PDU () = default;
   bool init (const CArray & c, TracePtr t);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   TPDU_Type getType () const
   {
     return T_UNKNOWN;
@@ -85,7 +85,7 @@ public:
   T_DATA_XXX_REQ_PDU () = default;
   bool init (const CArray & c, TracePtr t);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   TPDU_Type getType () const
   {
     return T_DATA_XXX_REQ;
@@ -101,7 +101,7 @@ public:
   T_DATA_CONNECTED_REQ_PDU () = default;
   bool init (const CArray & c, TracePtr t);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   TPDU_Type getType () const
   {
     return T_DATA_CONNECTED_REQ;
@@ -115,7 +115,7 @@ public:
   T_CONNECT_REQ_PDU () = default;
   bool init (const CArray & c, TracePtr t);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   TPDU_Type getType () const
   {
     return T_CONNECT_REQ;
@@ -129,7 +129,7 @@ public:
   T_DISCONNECT_REQ_PDU () = default;
   bool init (const CArray & c, TracePtr t);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   TPDU_Type getType () const
   {
     return T_DISCONNECT_REQ;
@@ -144,7 +144,7 @@ public:
   T_ACK_PDU () = default;
   bool init (const CArray & c, TracePtr t);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   TPDU_Type getType () const
   {
     return T_ACK;
@@ -159,7 +159,7 @@ public:
   T_NACK_PDU () = default;
   bool init (const CArray & c, TracePtr t);
   CArray ToPacket ();
-  String Decode (TracePtr t);
+  std::string Decode (TracePtr t);
   TPDU_Type getType () const
   {
     return T_NACK;

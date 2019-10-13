@@ -194,9 +194,9 @@ CArray A_Unknown_PDU::ToPacket ()
   return pdu;
 }
 
-String A_Unknown_PDU::Decode (TracePtr tr UNUSED)
+std::string A_Unknown_PDU::Decode (TracePtr tr UNUSED)
 {
-  String s ("Unknown APDU: ");
+  std::string s ("Unknown APDU: ");
 
   if (pdu.size() == 0)
     return "empty APDU";
@@ -232,7 +232,7 @@ CArray A_GroupValue_Read_PDU::ToPacket ()
   return CArray (c, 2);
 }
 
-String A_GroupValue_Read_PDU::Decode (TracePtr tr UNUSED)
+std::string A_GroupValue_Read_PDU::Decode (TracePtr tr UNUSED)
 {
   return "A_GroupValue_Read";
 }
@@ -282,10 +282,10 @@ CArray A_GroupValue_Response_PDU::ToPacket ()
   return pdu;
 }
 
-String A_GroupValue_Response_PDU::Decode (TracePtr tr UNUSED)
+std::string A_GroupValue_Response_PDU::Decode (TracePtr tr UNUSED)
 {
   assert (!issmall || (data.size() == 1 && (data[0] & 0xC0) == 0));
-  String
+  std::string
   s ("A_GroupValue_Response ");
   if (issmall)
     s += "(small) ";
@@ -341,12 +341,12 @@ CArray A_GroupValue_Write_PDU::ToPacket ()
   return pdu;
 }
 
-String A_GroupValue_Write_PDU::Decode (TracePtr tr UNUSED)
+std::string A_GroupValue_Write_PDU::Decode (TracePtr tr UNUSED)
 {
   unsigned
     i;
   assert (!issmall || (data.size() == 1 && (data[0] & 0xC0) == 0));
-  String
+  std::string
   s ("A_GroupValue_Write ");
   if (issmall)
     s += "(small) ";
@@ -385,9 +385,9 @@ CArray A_IndividualAddress_Write_PDU::ToPacket ()
   return pdu;
 }
 
-String A_IndividualAddress_Write_PDU::Decode (TracePtr tr UNUSED)
+std::string A_IndividualAddress_Write_PDU::Decode (TracePtr tr UNUSED)
 {
-  String
+  std::string
   s ("A_IndividualAddress_Write ");
   return s + FormatEIBAddr (addr);
 }
@@ -416,7 +416,7 @@ CArray A_IndividualAddress_Read_PDU::ToPacket ()
   return CArray (c, 2);
 }
 
-String A_IndividualAddress_Read_PDU::Decode (TracePtr tr UNUSED)
+std::string A_IndividualAddress_Read_PDU::Decode (TracePtr tr UNUSED)
 {
   return "A_IndividualAddress_Read";
 }
@@ -447,7 +447,7 @@ CArray A_IndividualAddress_Response_PDU::ToPacket ()
   return CArray (c, 2);
 }
 
-String A_IndividualAddress_Response_PDU::Decode (TracePtr tr UNUSED)
+std::string A_IndividualAddress_Response_PDU::Decode (TracePtr tr UNUSED)
 {
   return "A_IndividualAddress_Response";
 }
@@ -485,9 +485,9 @@ CArray A_IndividualAddressSerialNumber_Read_PDU::ToPacket ()
   return pdu;
 }
 
-String A_IndividualAddressSerialNumber_Read_PDU::Decode (TracePtr tr UNUSED)
+std::string A_IndividualAddressSerialNumber_Read_PDU::Decode (TracePtr tr UNUSED)
 {
-  String
+  std::string
   s ("A_IndividualAddressSerialNumber_Read ");
   addHex (s, serno[0]);
   addHex (s, serno[1]);
@@ -538,9 +538,9 @@ CArray A_IndividualAddressSerialNumber_Response_PDU::ToPacket ()
   return pdu;
 }
 
-String A_IndividualAddressSerialNumber_Response_PDU::Decode (TracePtr tr UNUSED)
+std::string A_IndividualAddressSerialNumber_Response_PDU::Decode (TracePtr tr UNUSED)
 {
-  String
+  std::string
   s ("A_IndividualAddressSerialNumber_Response ");
   addHex (s, serno[0]);
   addHex (s, serno[1]);
@@ -600,9 +600,9 @@ CArray A_IndividualAddressSerialNumber_Write_PDU::ToPacket ()
   return pdu;
 }
 
-String A_IndividualAddressSerialNumber_Write_PDU::Decode (TracePtr tr UNUSED)
+std::string A_IndividualAddressSerialNumber_Write_PDU::Decode (TracePtr tr UNUSED)
 {
-  String
+  std::string
   s ("A_IndividualAddressSerialNumber_Write ");
   addHex (s, serno[0]);
   addHex (s, serno[1]);
@@ -650,10 +650,10 @@ A_ServiceInformation_Indication_Write_PDU::ToPacket ()
   return pdu;
 }
 
-String
+std::string
 A_ServiceInformation_Indication_Write_PDU::Decode (TracePtr tr UNUSED)
 {
-  String s ("A_ServiceInformation_Indication_Write ");
+  std::string s ("A_ServiceInformation_Indication_Write ");
   if (verify_mode)
     s += "verify ";
   if (duplicate_address)
@@ -694,9 +694,9 @@ CArray A_DomainAddress_Write_PDU::ToPacket ()
   return pdu;
 }
 
-String A_DomainAddress_Write_PDU::Decode (TracePtr tr UNUSED)
+std::string A_DomainAddress_Write_PDU::Decode (TracePtr tr UNUSED)
 {
-  String
+  std::string
   s ("A_DomainAddress_Write ");
   return s + FormatDomainAddr (addr);
 }
@@ -726,7 +726,7 @@ CArray A_DomainAddress_Read_PDU::ToPacket ()
   return CArray (c, 2);
 }
 
-String A_DomainAddress_Read_PDU::Decode (TracePtr tr UNUSED)
+std::string A_DomainAddress_Read_PDU::Decode (TracePtr tr UNUSED)
 {
   return "A_DomainAddress_Read";
 }
@@ -759,9 +759,9 @@ CArray A_DomainAddress_Response_PDU::ToPacket ()
   return pdu;
 }
 
-String A_DomainAddress_Response_PDU::Decode (TracePtr tr UNUSED)
+std::string A_DomainAddress_Response_PDU::Decode (TracePtr tr UNUSED)
 {
-  String
+  std::string
   s ("A_DomainAddress_Response");
   s += FormatDomainAddr (addr);
   return s;
@@ -800,10 +800,10 @@ CArray A_DomainAddressSelective_Read_PDU::ToPacket ()
   return pdu;
 }
 
-String
+std::string
 A_DomainAddressSelective_Read_PDU::Decode (TracePtr tr UNUSED)
 {
-  String s ("A_DomainAddressSelective_Read ");
+  std::string s ("A_DomainAddressSelective_Read ");
   s += FormatDomainAddr (domainaddr);
   s += " ";
   s += FormatEIBAddr (addr);
@@ -847,12 +847,12 @@ A_PropertyValue_Read_PDU::ToPacket ()
   return pdu;
 }
 
-String
+std::string
 A_PropertyValue_Read_PDU::Decode (TracePtr tr UNUSED)
 {
   assert ((count & 0xf0) == 0);
   assert ((start & 0xf000) == 0);
-  String s ("A_PropertyValue_Read Obj:");
+  std::string s ("A_PropertyValue_Read Obj:");
   addHex (s, obj);
   s += " Prop: ";
   addHex (s, prop);
@@ -900,12 +900,12 @@ A_PropertyValue_Response_PDU::ToPacket ()
   return pdu;
 }
 
-String
+std::string
 A_PropertyValue_Response_PDU::Decode (TracePtr tr UNUSED)
 {
   assert ((count & 0xf0) == 0);
   assert ((start & 0xf000) == 0);
-  String s ("A_PropertyValue_Response Obj:");
+  std::string s ("A_PropertyValue_Response Obj:");
   addHex (s, obj);
   s += " Prop: ";
   addHex (s, prop);
@@ -977,12 +977,12 @@ A_PropertyValue_Write_PDU::ToPacket ()
   return pdu;
 }
 
-String
+std::string
 A_PropertyValue_Write_PDU::Decode (TracePtr tr UNUSED)
 {
   assert ((count & 0xf0) == 0);
   assert ((start & 0xf000) == 0);
-  String s ("A_PropertyValue_Write Obj:");
+  std::string s ("A_PropertyValue_Write Obj:");
   addHex (s, obj);
   s += " Prop: ";
   addHex (s, prop);
@@ -1027,10 +1027,10 @@ A_PropertyDescription_Read_PDU::ToPacket ()
   return pdu;
 }
 
-String
+std::string
 A_PropertyDescription_Read_PDU::Decode (TracePtr tr UNUSED)
 {
-  String s ("A_PropertyDescription_Read Obj: ");
+  std::string s ("A_PropertyDescription_Read Obj: ");
   addHex (s, obj);
   s += " Property: ";
   addHex (s, prop);
@@ -1077,10 +1077,10 @@ A_PropertyDescription_Response_PDU::ToPacket ()
   return pdu;
 }
 
-String
+std::string
 A_PropertyDescription_Response_PDU::Decode (TracePtr tr UNUSED)
 {
-  String s ("A_PropertyDescription_Response Obj:");
+  std::string s ("A_PropertyDescription_Response Obj:");
   addHex (s, obj);
   s += " Property: ";
   addHex (s, prop);
@@ -1128,11 +1128,11 @@ A_DeviceDescriptor_Read_PDU::ToPacket ()
   return pdu;
 }
 
-String
+std::string
 A_DeviceDescriptor_Read_PDU::Decode (TracePtr tr UNUSED)
 {
   assert ((type & 0xC0) == 0);
-  String s ("A_DeviceDescriptor_Read Type:");
+  std::string s ("A_DeviceDescriptor_Read Type:");
   addHex (s, type);
   return s;
 }
@@ -1169,11 +1169,11 @@ A_DeviceDescriptor_Response_PDU::ToPacket ()
   return pdu;
 }
 
-String
+std::string
 A_DeviceDescriptor_Response_PDU::Decode (TracePtr tr UNUSED)
 {
   assert ((type & 0xC0) == 0);
-  String s ("A_DeviceDescriptor_Response Type:");
+  std::string s ("A_DeviceDescriptor_Response Type:");
   addHex (s, type);
   s += " Descriptor: ";
   add16Hex (s, descriptor);
@@ -1215,11 +1215,11 @@ A_ADC_Read_PDU::ToPacket ()
   return pdu;
 }
 
-String
+std::string
 A_ADC_Read_PDU::Decode (TracePtr tr UNUSED)
 {
   assert ((channel & 0xC0) == 0);
-  String s ("A_ADC_Read Channel:");
+  std::string s ("A_ADC_Read Channel:");
   addHex (s, channel);
   s += " Count: ";
   addHex (s, count);
@@ -1258,11 +1258,11 @@ A_ADC_Response_PDU::ToPacket ()
   return pdu;
 }
 
-String
+std::string
 A_ADC_Response_PDU::Decode (TracePtr tr UNUSED)
 {
   assert ((channel & 0xC0) == 0);
-  String s ("A_ADC_Response Channel:");
+  std::string s ("A_ADC_Response Channel:");
   addHex (s, channel);
   s += " Count: ";
   addHex (s, count);
@@ -1309,11 +1309,11 @@ A_Memory_Read_PDU::ToPacket ()
   return pdu;
 }
 
-String
+std::string
 A_Memory_Read_PDU::Decode (TracePtr tr UNUSED)
 {
   assert ((count & 0xf0) == 0);
-  String s ("A_Memory_Read Len: ");
+  std::string s ("A_Memory_Read Len: ");
   addHex (s, count);
   s += " Addr: ";
   add16Hex (s, addr);
@@ -1355,12 +1355,12 @@ A_Memory_Response_PDU::ToPacket ()
   return pdu;
 }
 
-String
+std::string
 A_Memory_Response_PDU::Decode (TracePtr tr UNUSED)
 {
   assert ((count & 0xf0) == 0);
   assert (data.size() == count);
-  String s ("A_Memory_Response Len:");
+  std::string s ("A_Memory_Response Len:");
   addHex (s, count);
   s += " Addr: ";
   add16Hex (s, addr);
@@ -1413,12 +1413,12 @@ A_Memory_Write_PDU::ToPacket ()
   return pdu;
 }
 
-String
+std::string
 A_Memory_Write_PDU::Decode (TracePtr tr UNUSED)
 {
   assert ((count & 0xf0) == 0);
   assert (data.size() == count);
-  String s ("A_Memory_Write Len:");
+  std::string s ("A_Memory_Write Len:");
   addHex (s, count);
   s += " Addr: ";
   add16Hex (s, addr);
@@ -1466,12 +1466,12 @@ A_MemoryBit_Write_PDU::ToPacket ()
   return pdu;
 }
 
-String
+std::string
 A_MemoryBit_Write_PDU::Decode (TracePtr tr UNUSED)
 {
   assert (andmask.size() == count);
   assert (xormask.size() == count);
-  String s ("A_MemoryBit_Write Len:");
+  std::string s ("A_MemoryBit_Write Len:");
   addHex (s, count);
   s += "Addr: ";
   add16Hex (s, addr);
@@ -1517,12 +1517,12 @@ A_UserMemory_Read_PDU::ToPacket ()
   return pdu;
 }
 
-String
+std::string
 A_UserMemory_Read_PDU::Decode (TracePtr tr UNUSED)
 {
   assert ((count & 0xf0) == 0);
   assert ((addr_extension & 0xf0) == 0);
-  String s ("A_UserMemory_Read Addr_ext:");
+  std::string s ("A_UserMemory_Read Addr_ext:");
   addHex (s, addr_extension);
   s += " Len: ";
   addHex (s, count);
@@ -1569,13 +1569,13 @@ A_UserMemory_Response_PDU::ToPacket ()
   return pdu;
 }
 
-String
+std::string
 A_UserMemory_Response_PDU::Decode (TracePtr tr UNUSED)
 {
   assert ((count & 0xf0) == 0);
   assert ((addr_extension & 0xf0) == 0);
   assert (data.size() == count);
-  String s ("A_UserMemory_Response Addr_ext:");
+  std::string s ("A_UserMemory_Response Addr_ext:");
   addHex (s, addr_extension);
   s += " Len: ";
   addHex (s, count);
@@ -1635,13 +1635,13 @@ A_UserMemory_Write_PDU::ToPacket ()
   return pdu;
 }
 
-String
+std::string
 A_UserMemory_Write_PDU::Decode (TracePtr tr UNUSED)
 {
   assert ((count & 0xf0) == 0);
   assert ((addr_extension & 0xf0) == 0);
   assert (data.size() == count);
-  String s ("A_UserMemory_Write Addr_ext:");
+  std::string s ("A_UserMemory_Write Addr_ext:");
   addHex (s, addr_extension);
   s += " Len: ";
   addHex (s, count);
@@ -1691,12 +1691,12 @@ A_UserMemoryBit_Write_PDU::ToPacket ()
   return pdu;
 }
 
-String
+std::string
 A_UserMemoryBit_Write_PDU::Decode (TracePtr tr UNUSED)
 {
   assert (andmask.size() == count);
   assert (xormask.size() == count);
-  String s ("A_UserMemoryBit_Write Len:");
+  std::string s ("A_UserMemoryBit_Write Len:");
   addHex (s, count);
   s += "Addr: ";
   add16Hex (s, addr);
@@ -1733,10 +1733,10 @@ A_UserManufacturerInfo_Read_PDU::ToPacket ()
   return pdu;
 }
 
-String
+std::string
 A_UserManufacturerInfo_Read_PDU::Decode (TracePtr tr UNUSED)
 {
-  String s ("A_UserManufacturerInfo_Read");
+  std::string s ("A_UserManufacturerInfo_Read");
   return s;
 }
 
@@ -1770,10 +1770,10 @@ A_UserManufacturerInfo_Response_PDU::ToPacket ()
   return pdu;
 }
 
-String
+std::string
 A_UserManufacturerInfo_Response_PDU::Decode (TracePtr tr UNUSED)
 {
-  String s ("A_UserManufactueerInfo_Response Manufacturer:");
+  std::string s ("A_UserManufactueerInfo_Response Manufacturer:");
   addHex (s, manufacturerid);
   s += " data: ";
   add16Hex (s, data);
@@ -1805,10 +1805,10 @@ A_Restart_PDU::ToPacket ()
   return pdu;
 }
 
-String
+std::string
 A_Restart_PDU::Decode (TracePtr tr UNUSED)
 {
-  String s ("A_Restart");
+  std::string s ("A_Restart");
   return s;
 }
 
@@ -1843,10 +1843,10 @@ A_Authorize_Request_PDU::ToPacket ()
   return pdu;
 }
 
-String
+std::string
 A_Authorize_Request_PDU::Decode (TracePtr tr UNUSED)
 {
-  String s ("A_Authorize_Request Key:");
+  std::string s ("A_Authorize_Request Key:");
   return s + FormatEIBKey (key);
 }
 
@@ -1877,10 +1877,10 @@ A_Authorize_Response_PDU::ToPacket ()
   return pdu;
 }
 
-String
+std::string
 A_Authorize_Response_PDU::Decode (TracePtr tr UNUSED)
 {
-  String s ("A_Authorize_Response Level:");
+  std::string s ("A_Authorize_Response Level:");
   addHex (s, level);
   return s;
 }
@@ -1917,10 +1917,10 @@ A_Key_Write_PDU::ToPacket ()
   return pdu;
 }
 
-String
+std::string
 A_Key_Write_PDU::Decode (TracePtr tr UNUSED)
 {
-  String s ("A_Key_Write Level:");
+  std::string s ("A_Key_Write Level:");
   addHex (s, level);
   s += " Key: ";
   return s + FormatEIBKey (key);
@@ -1953,10 +1953,10 @@ A_Key_Response_PDU::ToPacket ()
   return pdu;
 }
 
-String
+std::string
 A_Key_Response_PDU::Decode (TracePtr tr UNUSED)
 {
-  String s ("A_Key_Response Level:");
+  std::string s ("A_Key_Response Level:");
   addHex (s, level);
   return s;
 }

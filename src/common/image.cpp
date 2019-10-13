@@ -23,11 +23,11 @@
 #include "loadctl.h"
 #include "image.h"
 
-String
+std::string
 HexDump (CArray data)
 {
   char buf[200];
-  String s;
+  std::string s;
   unsigned int i;
   sprintf (buf, "%04X ", 0);
   s = buf;
@@ -112,11 +112,11 @@ STR_Invalid::toArray ()
   return data;
 }
 
-String
+std::string
 STR_Invalid::decode ()
 {
   char buf[200];
-  String s;
+  std::string s;
   sprintf (buf, "Invalid:\n");
   s = buf;
   return s + HexDump (data);
@@ -144,11 +144,11 @@ STR_Unknown::toArray ()
   return d;
 }
 
-String
+std::string
 STR_Unknown::decode ()
 {
   char buf[200];
-  String s;
+  std::string s;
   sprintf (buf, "Unknown %04x:\n", type);
   s = buf;
   return s + HexDump (data);
@@ -178,7 +178,7 @@ STR_BCUType::toArray ()
   return d;
 }
 
-String
+std::string
 STR_BCUType::decode ()
 {
   char buf[200];
@@ -207,11 +207,11 @@ STR_Code::toArray ()
   return d;
 }
 
-String
+std::string
 STR_Code::decode ()
 {
   char buf[200];
-  String s;
+  std::string s;
   sprintf (buf, "Code:\n");
   s = buf;
   return s + HexDump (code);
@@ -254,7 +254,7 @@ STR_StringParameter::toArray ()
   return d;
 }
 
-String
+std::string
 STR_StringParameter::decode ()
 {
   char buf[200];
@@ -299,7 +299,7 @@ STR_IntParameter::toArray ()
   return d;
 }
 
-String
+std::string
 STR_IntParameter::decode ()
 {
   char buf[200];
@@ -342,7 +342,7 @@ STR_FloatParameter::toArray ()
   return d;
 }
 
-String
+std::string
 STR_FloatParameter::decode ()
 {
   char buf[200];
@@ -414,11 +414,11 @@ STR_ListParameter::toArray ()
   return d;
 }
 
-String
+std::string
 STR_ListParameter::decode ()
 {
   char buf[200];
-  String s;
+  std::string s;
   sprintf (buf, "ListParameter: addr=%04x id=%s elements=", addr, name.c_str());
   s = buf;
   for (unsigned int i = 0; i < elements.size(); i++)
@@ -448,7 +448,7 @@ STR_GroupObject::init (const CArray & c)
   return true;
 }
 
-String
+std::string
 STR_GroupObject::decode ()
 {
   char buf[200];
@@ -504,7 +504,7 @@ STR_BCU1Size::toArray ()
   return d;
 }
 
-String
+std::string
 STR_BCU1Size::decode ()
 {
   char buf[200];
@@ -552,7 +552,7 @@ STR_BCU2Size::toArray ()
   return d;
 }
 
-String
+std::string
 STR_BCU2Size::decode ()
 {
   char buf[200];
@@ -649,7 +649,7 @@ STR_BCU2Start::toArray ()
   return d;
 }
 
-String
+std::string
 STR_BCU2Start::decode ()
 {
   char buf[600];
@@ -705,11 +705,11 @@ STR_BCU2Key::toArray ()
 }
 
 
-String
+std::string
 STR_BCU2Key::decode ()
 {
   char buf[200];
-  String s;
+  std::string s;
   unsigned int i;
   sprintf (buf, "BCU2_KEY: install:%08X ", installkey);
   s = buf;
@@ -728,10 +728,10 @@ Image::~Image ()
       delete str[i];
 }
 
-String
+std::string
 Image::decode ()
 {
-  String s = "BCU Memory Image\n";
+  std::string s = "BCU Memory Image\n";
   for (unsigned int i = 0; i < str.size(); i++)
     s += str[i]->decode ();
   return s;

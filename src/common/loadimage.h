@@ -52,6 +52,6 @@ public:
 
 BCU_LOAD_RESULT PrepareLoadImage (const CArray & c, BCUImage * &img);
 
-String decodeBCULoadResult (BCU_LOAD_RESULT r);
+std::string decodeBCULoadResult (BCU_LOAD_RESULT r);
 
 #endif

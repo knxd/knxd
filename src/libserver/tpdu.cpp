@@ -62,9 +62,9 @@ CArray T_UNKNOWN_PDU::ToPacket ()
   return pdu;
 }
 
-String T_UNKNOWN_PDU::Decode (TracePtr t UNUSED)
+std::string T_UNKNOWN_PDU::Decode (TracePtr t UNUSED)
 {
-  String s ("Unknown TPDU: ");
+  std::string s ("Unknown TPDU: ");
 
   if (pdu.size() == 0)
     return "empty TPDU";
@@ -94,10 +94,10 @@ CArray T_DATA_XXX_REQ_PDU::ToPacket ()
   return pdu;
 }
 
-String T_DATA_XXX_REQ_PDU::Decode (TracePtr t)
+std::string T_DATA_XXX_REQ_PDU::Decode (TracePtr t)
 {
   APDUPtr a = APDU::fromPacket (data, t);
-  String s ("T_DATA_XXX_REQ ");
+  std::string s ("T_DATA_XXX_REQ ");
   s += a->Decode (t);
   return s;
 }
@@ -123,11 +123,11 @@ CArray T_DATA_CONNECTED_REQ_PDU::ToPacket ()
   return pdu;
 }
 
-String T_DATA_CONNECTED_REQ_PDU::Decode (TracePtr t)
+std::string T_DATA_CONNECTED_REQ_PDU::Decode (TracePtr t)
 {
   assert ((serno & 0xf0) == 0);
   APDUPtr a = APDU::fromPacket (data, t);
-  String s ("T_DATA_CONNECTED_REQ serno:");
+  std::string s ("T_DATA_CONNECTED_REQ serno:");
   addHex (s, serno);
   s += a->Decode (t);
   return s;
@@ -149,7 +149,7 @@ CArray T_CONNECT_REQ_PDU::ToPacket ()
   return CArray (&c, 1);
 }
 
-String T_CONNECT_REQ_PDU::Decode (TracePtr t UNUSED)
+std::string T_CONNECT_REQ_PDU::Decode (TracePtr t UNUSED)
 {
   return "T_CONNECT_REQ";
 }
@@ -170,7 +170,7 @@ CArray T_DISCONNECT_REQ_PDU::ToPacket ()
   return CArray (&c, 1);
 }
 
-String T_DISCONNECT_REQ_PDU::Decode (TracePtr t UNUSED)
+std::string T_DISCONNECT_REQ_PDU::Decode (TracePtr t UNUSED)
 {
   return "T_DISCONNECT_REQ";
 }
@@ -193,10 +193,10 @@ CArray T_ACK_PDU::ToPacket ()
   return CArray (&c, 1);
 }
 
-String T_ACK_PDU::Decode (TracePtr t UNUSED)
+std::string T_ACK_PDU::Decode (TracePtr t UNUSED)
 {
   assert ((serno & 0xf0) == 0);
-  String s ("T_ACK Serno:");
+  std::string s ("T_ACK Serno:");
   addHex (s, serno);
   return s;
 }
@@ -218,10 +218,10 @@ CArray T_NACK_PDU::ToPacket ()
   return CArray (&c, 1);
 }
 
-String T_NACK_PDU::Decode (TracePtr t UNUSED)
+std::string T_NACK_PDU::Decode (TracePtr t UNUSED)
 {
   assert ((serno & 0xf0) == 0);
-  String s ("T_NACK Serno:");
+  std::string s ("T_NACK Serno:");
   addHex (s, serno);
   return s;
 }

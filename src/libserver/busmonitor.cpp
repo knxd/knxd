@@ -120,7 +120,7 @@ void
 A_Text_Busmonitor::send_L_Busmonitor (LBusmonPtr p)
 {
   CArray buf;
-  String s = p->Decode (t);
+  std::string s = p->Decode (t);
   buf.resize (2 + s.length() + 1);
   EIBSETTYPE (buf, EIB_BUSMONITOR_PACKET);
   buf.setpart ((uint8_t *)s.c_str(), 2, s.length()+1);
