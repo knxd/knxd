@@ -188,6 +188,22 @@ public:
   bool isResponse (const APDU * req) const;
 };
 
+class A_IndividualAddress_Write_PDU:public APDU
+{
+public:
+  eibaddr_t addr = 0;
+
+  A_IndividualAddress_Write_PDU () = default;
+  bool init (const CArray & p, TracePtr tr);
+  CArray ToPacket ();
+  std::string Decode (TracePtr t);
+  APDU_type getType () const
+  {
+    return A_IndividualAddress_Write;
+  }
+  bool isResponse (const APDU * req) const;
+};
+
 class A_IndividualAddress_Read_PDU:public APDU
 {
 public:
@@ -218,21 +234,453 @@ public:
   bool isResponse (const APDU * req) const;
 };
 
-class A_IndividualAddress_Write_PDU:public APDU
+class A_ADC_Read_PDU:public APDU
 {
 public:
-  eibaddr_t addr = 0;
+  uchar channel = 0;
+  uchar count = 0;
 
-  A_IndividualAddress_Write_PDU () = default;
+  A_ADC_Read_PDU () = default;
   bool init (const CArray & p, TracePtr tr);
   CArray ToPacket ();
   std::string Decode (TracePtr t);
   APDU_type getType () const
   {
-    return A_IndividualAddress_Write;
+    return A_ADC_Read;
   }
   bool isResponse (const APDU * req) const;
 };
+
+class A_ADC_Response_PDU:public APDU
+{
+public:
+  uchar channel = 0;
+  uchar count = 0;
+  int16_t val = 0;
+
+  A_ADC_Response_PDU () = default;
+  bool init (const CArray & p, TracePtr tr);
+  CArray ToPacket ();
+  std::string Decode (TracePtr t);
+  APDU_type getType () const
+  {
+    return A_ADC_Response;
+  }
+  bool isResponse (const APDU * req) const;
+};
+
+/* @todo A_SystemNetworkParameter_Read */
+/* @todo A_SystemNetworkParameter_Response */
+/* @todo A_SystemNetworkParameter_Write */
+
+class A_Memory_Read_PDU:public APDU
+{
+public:
+  uchar count = 0;
+  memaddr_t addr = 0;
+
+  A_Memory_Read_PDU () = default;
+  bool init (const CArray & p, TracePtr tr);
+  CArray ToPacket ();
+  std::string Decode (TracePtr t);
+  APDU_type getType () const
+  {
+    return A_Memory_Read;
+  }
+  bool isResponse (const APDU * req) const;
+};
+
+class A_Memory_Response_PDU:public APDU
+{
+public:
+  uchar count = 0;
+  memaddr_t addr = 0;
+  CArray data;
+
+  A_Memory_Response_PDU () = default;
+  bool init (const CArray & p, TracePtr tr);
+  CArray ToPacket ();
+  std::string Decode (TracePtr t);
+  APDU_type getType () const
+  {
+    return A_Memory_Response;
+  }
+  bool isResponse (const APDU * req) const;
+};
+
+class A_Memory_Write_PDU:public APDU
+{
+public:
+  uchar count = 0;
+  memaddr_t addr = 0;
+  CArray data;
+
+  A_Memory_Write_PDU () = default;
+  bool init (const CArray & p, TracePtr tr);
+  CArray ToPacket ();
+  std::string Decode (TracePtr t);
+  APDU_type getType () const
+  {
+    return A_Memory_Write;
+  }
+  bool isResponse (const APDU * req) const;
+};
+
+class A_UserMemory_Read_PDU:public APDU
+{
+public:
+  uchar addr_extension = 0;
+  uchar count = 0;
+  memaddr_t addr = 0;
+
+  A_UserMemory_Read_PDU () = default;
+  bool init (const CArray & p, TracePtr tr);
+  CArray ToPacket ();
+  std::string Decode (TracePtr t);
+  APDU_type getType () const
+  {
+    return A_UserMemory_Read;
+  }
+  bool isResponse (const APDU * req) const;
+};
+
+class A_UserMemory_Response_PDU:public APDU
+{
+public:
+  uchar addr_extension = 0;
+  uchar count = 0;
+  memaddr_t addr = 0;
+  CArray data;
+
+  A_UserMemory_Response_PDU () = default;
+  bool init (const CArray & p, TracePtr tr);
+  CArray ToPacket ();
+  std::string Decode (TracePtr t);
+  APDU_type getType () const
+  {
+    return A_UserMemory_Response;
+  }
+  bool isResponse (const APDU * req) const;
+};
+
+class A_UserMemory_Write_PDU:public APDU
+{
+public:
+  uchar addr_extension = 0;
+  uchar count = 0;
+  memaddr_t addr = 0;
+  CArray data;
+
+  A_UserMemory_Write_PDU () = default;
+  bool init (const CArray & p, TracePtr tr);
+  CArray ToPacket ();
+  std::string Decode (TracePtr t);
+  APDU_type getType () const
+  {
+    return A_UserMemory_Write;
+  }
+  bool isResponse (const APDU * req) const;
+};
+
+class A_UserMemoryBit_Write_PDU:public APDU
+{
+public:
+  uchar addr_extension = 0;
+  uchar count = 0;
+  memaddr_t addr = 0;
+  CArray andmask;
+  CArray xormask;
+
+  A_UserMemoryBit_Write_PDU () = default;
+  bool init (const CArray & p, TracePtr tr);
+  CArray ToPacket ();
+  std::string Decode (TracePtr t);
+  APDU_type getType () const
+  {
+    return A_UserMemoryBit_Write;
+  }
+  bool isResponse (const APDU * req) const;
+};
+
+class A_UserManufacturerInfo_Read_PDU:public APDU
+{
+public:
+
+  A_UserManufacturerInfo_Read_PDU () = default;
+  bool init (const CArray & p, TracePtr tr);
+  CArray ToPacket ();
+  std::string Decode (TracePtr t);
+  APDU_type getType () const
+  {
+    return A_UserManufacturerInfo_Read;
+  }
+  bool isResponse (const APDU * req) const;
+};
+
+class A_UserManufacturerInfo_Response_PDU:public APDU
+{
+public:
+  uchar manufacturerid = 0;
+  uint16_t data = 0;
+
+  A_UserManufacturerInfo_Response_PDU () = default;
+  bool init (const CArray & p, TracePtr tr);
+  CArray ToPacket ();
+  std::string Decode (TracePtr t);
+  APDU_type getType () const
+  {
+    return A_UserManufacturerInfo_Response;
+  }
+  bool isResponse (const APDU * req) const;
+};
+
+/* @todo A_FunctionPropertyCommand */
+/* @todo A_FunctionPropertyState_Read */
+/* @todo A_FunctionPropertyState_Response */
+
+class A_DeviceDescriptor_Read_PDU:public APDU
+{
+public:
+  uchar type = 0;
+
+  A_DeviceDescriptor_Read_PDU () = default;
+  bool init (const CArray & p, TracePtr tr);
+  CArray ToPacket ();
+  std::string Decode (TracePtr t);
+  APDU_type getType () const
+  {
+    return A_DeviceDescriptor_Read;
+  }
+  bool isResponse (const APDU * req) const;
+};
+
+class A_DeviceDescriptor_Response_PDU:public APDU
+{
+public:
+  uchar type = 0;
+  uint16_t descriptor = 0;
+
+  A_DeviceDescriptor_Response_PDU () = default;
+  bool init (const CArray & p, TracePtr tr);
+  CArray ToPacket ();
+  std::string Decode (TracePtr t);
+  APDU_type getType () const
+  {
+    return A_DeviceDescriptor_Response;
+  }
+  bool isResponse (const APDU * req) const;
+};
+
+class A_Restart_PDU:public APDU
+{
+public:
+
+  A_Restart_PDU () = default;
+  bool init (const CArray & p, TracePtr tr);
+  CArray ToPacket ();
+  std::string Decode (TracePtr t);
+  APDU_type getType () const
+  {
+    return A_Restart;
+  }
+  bool isResponse (const APDU * req) const;
+};
+
+/* @todo A_Open_Routing_Table_Request */
+/* @todo A_Read_Routing_Table_Request */
+/* @todo A_Read_Routing_Table_Response */
+/* @todo A_Write_Routing_Table_Request */
+/* @todo A_Read_Router_Memory_Request */
+/* @todo A_Read_Router_Memory_Response */
+/* @todo A_Write_Router_Memory_Request */
+/* @todo A_Read_Router_Status_Request */
+/* @todo A_Read_Router_Status_Response */
+/* @todo A_Write_Router_Status_Request */
+
+class A_MemoryBit_Write_PDU:public APDU
+{
+public:
+  uchar count = 0;
+  memaddr_t addr = 0;
+  CArray andmask;
+  CArray xormask;
+
+  A_MemoryBit_Write_PDU () = default;
+  bool init (const CArray & p, TracePtr tr);
+  CArray ToPacket ();
+  std::string Decode (TracePtr t);
+  APDU_type getType () const
+  {
+    return A_MemoryBit_Write;
+  }
+  bool isResponse (const APDU * req) const;
+};
+
+class A_Authorize_Request_PDU:public APDU
+{
+public:
+  eibkey_type key = 0;
+
+  A_Authorize_Request_PDU () = default;
+  bool init (const CArray & p, TracePtr tr);
+  CArray ToPacket ();
+  std::string Decode (TracePtr t);
+  APDU_type getType () const
+  {
+    return A_Authorize_Request;
+  }
+  bool isResponse (const APDU * req) const;
+};
+
+class A_Authorize_Response_PDU:public APDU
+{
+public:
+  uchar level = 0;
+
+  A_Authorize_Response_PDU () = default;
+  bool init (const CArray & p, TracePtr tr);
+  CArray ToPacket ();
+  std::string Decode (TracePtr t);
+  APDU_type getType () const
+  {
+    return A_Authorize_Response;
+  }
+  bool isResponse (const APDU * req) const;
+};
+
+class A_Key_Write_PDU:public APDU
+{
+public:
+  uchar level = 0;
+  eibkey_type key = 0;
+
+  A_Key_Write_PDU () = default;
+  bool init (const CArray & p, TracePtr tr);
+  CArray ToPacket ();
+  std::string Decode (TracePtr t);
+  APDU_type getType () const
+  {
+    return A_Key_Write;
+  }
+  bool isResponse (const APDU * req) const;
+};
+
+class A_Key_Response_PDU:public APDU
+{
+public:
+  uchar level = 0;
+
+  A_Key_Response_PDU () = default;
+  bool init (const CArray & p, TracePtr tr);
+  CArray ToPacket ();
+  std::string Decode (TracePtr t);
+  APDU_type getType () const
+  {
+    return A_Key_Response;
+  }
+  bool isResponse (const APDU * req) const;
+};
+
+class A_PropertyValue_Read_PDU:public APDU
+{
+public:
+  objectno_t obj = 0;
+  propertyid_t prop = 0;
+  uchar count = 0;
+  uint16_t start = 0;
+
+  A_PropertyValue_Read_PDU () = default;
+  bool init (const CArray & p, TracePtr tr);
+  CArray ToPacket ();
+  std::string Decode (TracePtr t);
+  APDU_type getType () const
+  {
+    return A_PropertyValue_Read;
+  }
+  bool isResponse (const APDU * req) const;
+};
+
+class A_PropertyValue_Response_PDU:public APDU
+{
+public:
+  objectno_t obj = 0;
+  propertyid_t prop = 0;
+  uchar count = 0;
+  uint16_t start = 0;
+  CArray data;
+
+  A_PropertyValue_Response_PDU () = default;
+  bool init (const CArray & p, TracePtr tr);
+  CArray ToPacket ();
+  std::string Decode (TracePtr t);
+  APDU_type getType () const
+  {
+    return A_PropertyValue_Response;
+  }
+  bool isResponse (const APDU * req) const;
+};
+
+class A_PropertyValue_Write_PDU:public APDU
+{
+public:
+  objectno_t obj = 0;
+  propertyid_t prop = 0;
+  uchar count = 0;
+  uint16_t start = 0;
+  CArray data;
+
+  A_PropertyValue_Write_PDU () = default;
+  bool init (const CArray & p, TracePtr tr);
+  CArray ToPacket ();
+  std::string Decode (TracePtr t);
+  APDU_type getType () const
+  {
+    return A_PropertyValue_Write;
+  }
+  bool isResponse (const APDU * req) const;
+};
+
+class A_PropertyDescription_Read_PDU:public APDU
+{
+public:
+  objectno_t obj = 0;
+  propertyid_t prop = 0;
+  uchar property_index = 0;
+
+  A_PropertyDescription_Read_PDU () = default;
+  bool init (const CArray & p, TracePtr tr);
+  CArray ToPacket ();
+  std::string Decode (TracePtr t);
+  APDU_type getType () const
+  {
+    return A_PropertyDescription_Read;
+  }
+  bool isResponse (const APDU * req) const;
+};
+
+class A_PropertyDescription_Response_PDU:public APDU
+{
+public:
+  objectno_t obj = 0;
+  propertyid_t prop = 0;
+  uchar property_index = 0;
+  uchar type = 0;
+  uint16_t count = 0;
+  uchar access = 0;
+
+  A_PropertyDescription_Response_PDU () = default;
+  bool init (const CArray & p, TracePtr tr);
+  CArray ToPacket ();
+  std::string Decode (TracePtr t);
+  APDU_type getType () const
+  {
+    return A_PropertyDescription_Read;
+  }
+  bool isResponse (const APDU * req) const;
+};
+
+/* @todo A_NetworkParameter_Read */
+/* @todo A_NetworkParameter_Response */
 
 class A_IndividualAddressSerialNumber_Read_PDU:public APDU
 {
@@ -367,430 +815,14 @@ public:
   bool isResponse (const APDU * req) const;
 };
 
-class A_PropertyValue_Read_PDU:public APDU
-{
-public:
-  objectno_t obj = 0;
-  propertyid_t prop = 0;
-  uchar count = 0;
-  uint16_t start = 0;
-
-  A_PropertyValue_Read_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr t);
-  APDU_type getType () const
-  {
-    return A_PropertyValue_Read;
-  }
-  bool isResponse (const APDU * req) const;
-};
-
-class A_PropertyValue_Response_PDU:public APDU
-{
-public:
-  objectno_t obj = 0;
-  propertyid_t prop = 0;
-  uchar count = 0;
-  uint16_t start = 0;
-  CArray data;
-
-  A_PropertyValue_Response_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr t);
-  APDU_type getType () const
-  {
-    return A_PropertyValue_Response;
-  }
-  bool isResponse (const APDU * req) const;
-};
-
-class A_PropertyValue_Write_PDU:public APDU
-{
-public:
-  objectno_t obj = 0;
-  propertyid_t prop = 0;
-  uchar count = 0;
-  uint16_t start = 0;
-  CArray data;
-
-  A_PropertyValue_Write_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr t);
-  APDU_type getType () const
-  {
-    return A_PropertyValue_Write;
-  }
-  bool isResponse (const APDU * req) const;
-};
-
-class A_PropertyDescription_Read_PDU:public APDU
-{
-public:
-  objectno_t obj = 0;
-  propertyid_t prop = 0;
-  uchar property_index = 0;
-
-  A_PropertyDescription_Read_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr t);
-  APDU_type getType () const
-  {
-    return A_PropertyDescription_Read;
-  }
-  bool isResponse (const APDU * req) const;
-};
-
-class A_PropertyDescription_Response_PDU:public APDU
-{
-public:
-  objectno_t obj = 0;
-  propertyid_t prop = 0;
-  uchar property_index = 0;
-  uchar type = 0;
-  uint16_t count = 0;
-  uchar access = 0;
-
-  A_PropertyDescription_Response_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr t);
-  APDU_type getType () const
-  {
-    return A_PropertyDescription_Read;
-  }
-  bool isResponse (const APDU * req) const;
-};
-
-class A_DeviceDescriptor_Read_PDU:public APDU
-{
-public:
-  uchar type = 0;
-
-  A_DeviceDescriptor_Read_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr t);
-  APDU_type getType () const
-  {
-    return A_DeviceDescriptor_Read;
-  }
-  bool isResponse (const APDU * req) const;
-};
-
-class A_DeviceDescriptor_Response_PDU:public APDU
-{
-public:
-  uchar type = 0;
-  uint16_t descriptor = 0;
-
-  A_DeviceDescriptor_Response_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr t);
-  APDU_type getType () const
-  {
-    return A_DeviceDescriptor_Response;
-  }
-  bool isResponse (const APDU * req) const;
-};
-
-class A_ADC_Read_PDU:public APDU
-{
-public:
-  uchar channel = 0;
-  uchar count = 0;
-
-  A_ADC_Read_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr t);
-  APDU_type getType () const
-  {
-    return A_ADC_Read;
-  }
-  bool isResponse (const APDU * req) const;
-};
-
-class A_ADC_Response_PDU:public APDU
-{
-public:
-  uchar channel = 0;
-  uchar count = 0;
-  int16_t val = 0;
-
-  A_ADC_Response_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr t);
-  APDU_type getType () const
-  {
-    return A_ADC_Response;
-  }
-  bool isResponse (const APDU * req) const;
-};
-
-class A_Memory_Read_PDU:public APDU
-{
-public:
-  uchar count = 0;
-  memaddr_t addr = 0;
-
-  A_Memory_Read_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr t);
-  APDU_type getType () const
-  {
-    return A_Memory_Read;
-  }
-  bool isResponse (const APDU * req) const;
-};
-
-class A_Memory_Response_PDU:public APDU
-{
-public:
-  uchar count = 0;
-  memaddr_t addr = 0;
-  CArray data;
-
-  A_Memory_Response_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr t);
-  APDU_type getType () const
-  {
-    return A_Memory_Response;
-  }
-  bool isResponse (const APDU * req) const;
-};
-
-class A_Memory_Write_PDU:public APDU
-{
-public:
-  uchar count = 0;
-  memaddr_t addr = 0;
-  CArray data;
-
-  A_Memory_Write_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr t);
-  APDU_type getType () const
-  {
-    return A_Memory_Write;
-  }
-  bool isResponse (const APDU * req) const;
-};
-
-class A_MemoryBit_Write_PDU:public APDU
-{
-public:
-  uchar count = 0;
-  memaddr_t addr = 0;
-  CArray andmask;
-  CArray xormask;
-
-  A_MemoryBit_Write_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr t);
-  APDU_type getType () const
-  {
-    return A_MemoryBit_Write;
-  }
-  bool isResponse (const APDU * req) const;
-};
-
-class A_UserMemory_Read_PDU:public APDU
-{
-public:
-  uchar addr_extension = 0;
-  uchar count = 0;
-  memaddr_t addr = 0;
-
-  A_UserMemory_Read_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr t);
-  APDU_type getType () const
-  {
-    return A_UserMemory_Read;
-  }
-  bool isResponse (const APDU * req) const;
-};
-
-class A_UserMemory_Response_PDU:public APDU
-{
-public:
-  uchar addr_extension = 0;
-  uchar count = 0;
-  memaddr_t addr = 0;
-  CArray data;
-
-  A_UserMemory_Response_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr t);
-  APDU_type getType () const
-  {
-    return A_UserMemory_Response;
-  }
-  bool isResponse (const APDU * req) const;
-};
-
-class A_UserMemory_Write_PDU:public APDU
-{
-public:
-  uchar addr_extension = 0;
-  uchar count = 0;
-  memaddr_t addr = 0;
-  CArray data;
-
-  A_UserMemory_Write_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr t);
-  APDU_type getType () const
-  {
-    return A_UserMemory_Write;
-  }
-  bool isResponse (const APDU * req) const;
-};
-
-class A_UserMemoryBit_Write_PDU:public APDU
-{
-public:
-  uchar addr_extension = 0;
-  uchar count = 0;
-  memaddr_t addr = 0;
-  CArray andmask;
-  CArray xormask;
-
-  A_UserMemoryBit_Write_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr t);
-  APDU_type getType () const
-  {
-    return A_UserMemoryBit_Write;
-  }
-  bool isResponse (const APDU * req) const;
-};
-
-class A_UserManufacturerInfo_Read_PDU:public APDU
-{
-public:
-
-  A_UserManufacturerInfo_Read_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr t);
-  APDU_type getType () const
-  {
-    return A_UserManufacturerInfo_Read;
-  }
-  bool isResponse (const APDU * req) const;
-};
-
-class A_UserManufacturerInfo_Response_PDU:public APDU
-{
-public:
-  uchar manufacturerid = 0;
-  uint16_t data = 0;
-
-  A_UserManufacturerInfo_Response_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr t);
-  APDU_type getType () const
-  {
-    return A_UserManufacturerInfo_Response;
-  }
-  bool isResponse (const APDU * req) const;
-};
-
-class A_Restart_PDU:public APDU
-{
-public:
-
-  A_Restart_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr t);
-  APDU_type getType () const
-  {
-    return A_Restart;
-  }
-  bool isResponse (const APDU * req) const;
-};
-
-class A_Authorize_Request_PDU:public APDU
-{
-public:
-  eibkey_type key = 0;
-
-  A_Authorize_Request_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr t);
-  APDU_type getType () const
-  {
-    return A_Authorize_Request;
-  }
-  bool isResponse (const APDU * req) const;
-};
-
-class A_Authorize_Response_PDU:public APDU
-{
-public:
-  uchar level = 0;
-
-  A_Authorize_Response_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr t);
-  APDU_type getType () const
-  {
-    return A_Authorize_Response;
-  }
-  bool isResponse (const APDU * req) const;
-};
-
-class A_Key_Write_PDU:public APDU
-{
-public:
-  uchar level = 0;
-  eibkey_type key = 0;
-
-  A_Key_Write_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr t);
-  APDU_type getType () const
-  {
-    return A_Key_Write;
-  }
-  bool isResponse (const APDU * req) const;
-};
-
-class A_Key_Response_PDU:public APDU
-{
-public:
-  uchar level = 0;
-
-  A_Key_Response_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr t);
-  APDU_type getType () const
-  {
-    return A_Key_Response;
-  }
-  bool isResponse (const APDU * req) const;
-};
+/* @todo A_NetworkParameter_Write */
+/* @todo A_Link_Read */
+/* @todo A_Link_Response */
+/* @todo A_Link_Write */
+/* @todo A_GroupValue_InfoReport */
+/* @todo A_DomainAddressSerialNumber_Read */
+/* @todo A_DomainAddressSerialNumber_Response */
+/* @todo A_DomainAddressSerialNumber_Write */
+/* @todo A_FileStream_InfoReport */
 
 #endif
