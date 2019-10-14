@@ -137,7 +137,7 @@ TPUARTwrap::setup()
       if (f)
         my_addr = f->addr;
     }
-  
+
   if (!LowLevelFilter::setup())
     return false;
 
@@ -423,7 +423,7 @@ TPUARTwrap::recv_Data(CArray &c)
               TRACEPRINTF (t, 8, "RESET_ACK");
               setstate(T_in_setaddr);
             }
-          else 
+          else
             TRACEPRINTF (t, 8, "spurious RESET_ACK");
         }
       else if (c == 0x8B) // L_DataConfirm positive

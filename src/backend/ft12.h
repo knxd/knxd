@@ -32,7 +32,7 @@
 /** FT12-specific CEMI backend (separate commands for setup) */
 class FT12CEMIDriver : public CEMIDriver
 {
-  void cmdOpen(); 
+  void cmdOpen();
 public:
   FT12CEMIDriver (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver * i = nullptr) : CEMIDriver(c,s,i)
     {

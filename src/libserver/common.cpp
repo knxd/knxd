@@ -36,7 +36,7 @@ FormatEIBAddr (eibaddr_t addr)
 {
   char buf[255];
   sprintf (buf, "%d.%d.%d", (addr >> 12) & 0xf, (addr >> 8) & 0xf,
-	   (addr) & 0xff);
+           (addr) & 0xff);
   return buf;
 }
 
@@ -45,7 +45,7 @@ FormatGroupAddr (eibaddr_t addr)
 {
   char buf[255];
   sprintf (buf, "%d/%d/%d", (addr >> 11) & 0x1f, (addr >> 8) & 0x7,
-	   (addr) & 0xff);
+           (addr) & 0xff);
   return buf;
 }
 

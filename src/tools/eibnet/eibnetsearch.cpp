@@ -105,7 +105,7 @@ main (int ac, char *ag[])
   ev_timer_init(&timeout, &end_me, 10.,0.);
   ev_timer_start(EV_DEFAULT_ &timeout);
 
-  
+
   tracelevel = 0;
   if (ac == 3)
     tracelevel = atoi (ag[2]);
@@ -125,13 +125,13 @@ main (int ac, char *ag[])
     {
       *b = 0;
       for (c = b + 1; *c; c++)
-	if (*c == ':')
-	  break;
+        if (*c == ':')
+          break;
       if (*c == ':')
-	{
-	  *c = 0;
-	  sport = atoi (c + 1);
-	}
+        {
+          *c = 0;
+          sport = atoi (c + 1);
+        }
       dport = atoi (b + 1);
     }
   else

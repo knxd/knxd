@@ -18,7 +18,7 @@
 */
 
 /**
- * This 
+ * This
  */
 
 #ifndef INIFILE_H

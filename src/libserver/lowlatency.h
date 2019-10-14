@@ -28,9 +28,9 @@
 #endif
 
 typedef struct {
-	struct termios term;
+        struct termios term;
 #ifdef HAVE_LINUX_LOWLATENCY
-	serial_struct ser;
+        serial_struct ser;
 #endif
 } low_latency_save;
 

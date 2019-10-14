@@ -434,7 +434,7 @@ LinkConnect_::setup()
         pos = comma+1;
       }
   }
-  
+
   LinkBasePtr s = send;
   while (s != nullptr)
     {
@@ -638,7 +638,7 @@ Driver::recv_L_Busmonitor (LBusmonPtr l)
 {
   auto r = recv.lock();
   if (r != nullptr)
-    r->recv_L_Busmonitor(std::move(l)); 
+    r->recv_L_Busmonitor(std::move(l));
 }
 
 void
@@ -646,7 +646,7 @@ Filter::recv_L_Busmonitor (LBusmonPtr l)
 {
   auto r = recv.lock();
   if (r != nullptr)
-    r->recv_L_Busmonitor(std::move(l)); 
+    r->recv_L_Busmonitor(std::move(l));
 }
 
 void

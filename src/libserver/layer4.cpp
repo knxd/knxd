@@ -74,7 +74,7 @@ T_Group::T_Group (T_Reader<GroupComm> *app, LinkConnectClientPtr lc, eibaddr_t g
 {
   t->setAuxName("TGr");
   TRACEPRINTF (t, 4, "OpenGroup %s %s", FormatGroupAddr (group),
-	       write_only ? "WO" : "RW");
+               write_only ? "WO" : "RW");
   groupaddr = group;
 }
 
@@ -204,7 +204,7 @@ T_Individual::~T_Individual ()
 /***************** T_Connection *****************/
 
 T_Connection::T_Connection (T_Reader<CArray> *app, LinkConnectClientPtr lc, eibaddr_t d)
-	: Layer4common (app, lc)
+        : Layer4common (app, lc)
 {
   t->setAuxName("TConn");
   TRACEPRINTF (t, 4, "OpenConnection %s", FormatEIBAddr (d));

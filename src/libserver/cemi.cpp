@@ -1,7 +1,7 @@
 /*
     EIBD eib bus access and management daemon
     Copyright (C) 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
- 
+
     cEMI support for USB
     Copyright (C) 2013 Meik Felser <felser@cs.fau.de>
 
@@ -84,8 +84,8 @@ void CEMIDriver::do_send_Next()
 
 const uint8_t *
 CEMIDriver::getIndTypes()
-{ 
+{
   static const uint8_t indTypes[] = { 0x2E, 0x29, 0x2B };
   return indTypes;
-}   
+}
 

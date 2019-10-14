@@ -183,8 +183,8 @@ L_Data_ToEMI (uchar code, const LDataPtr & l1)
   pdu[5] = (l1->dest) & 0xff;
   pdu[6] =
     (l1->hopcount & 0x07) << 4 | ((l1->data.size() - 1) & 0x0f) | (l1->AddrType ==
-							     GroupAddress ?
-							     0x80 : 0x00);
+                                                             GroupAddress ?
+                                                             0x80 : 0x00);
   pdu.setpart (l1->data.data(), 7, l1->data.size());
   return pdu;
 }

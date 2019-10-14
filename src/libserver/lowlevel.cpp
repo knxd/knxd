@@ -138,7 +138,7 @@ LowLevelAdapter::send_L_Data(LDataPtr l)
 }
 
 FDdriver::FDdriver (LowLevelIface* p, IniSectionPtr& s)
-	: sendbuf(), recvbuf(), LowLevelDriver (p,s)
+        : sendbuf(), recvbuf(), LowLevelDriver (p,s)
 {
   t->setAuxName("FD");
 }

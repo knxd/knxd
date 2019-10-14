@@ -52,7 +52,7 @@ typedef enum {
   ROUTING_LOST_MESSAGE = 0x0531,
 } ServiceType;
 
-typedef enum 
+typedef enum
 {
   DEVICE_MGMT_CONNECTION = 0x03,
   TUNNEL_CONNECTION = 0x04,
@@ -61,7 +61,7 @@ typedef enum
   OBJSRV_CONNECTION = 0x08,
 } ConnectionType;
 
-typedef enum 
+typedef enum
 {
   E_NO_ERROR = 0x00,
   E_HOST_PROTOCOL_TYPE = 0x01,
@@ -115,7 +115,7 @@ public:
   EIBNetIPPacket ();
   /** create from character array */
   static EIBNetIPPacket *fromPacket (const CArray & c,
-				     const struct sockaddr_in src);
+                                     const struct sockaddr_in src);
   /** convert to character array */
   CArray ToPacket () const;
   virtual ~EIBNetIPPacket () = default;
@@ -133,7 +133,7 @@ public:
 };
 
 int parseEIBnet_ConnectRequest (const EIBNetIPPacket & p,
-				EIBnet_ConnectRequest & r);
+                                EIBnet_ConnectRequest & r);
 
 class EIBnet_ConnectResponse
 {
@@ -148,7 +148,7 @@ public:
 };
 
 int parseEIBnet_ConnectResponse (const EIBNetIPPacket & p,
-				 EIBnet_ConnectResponse & r);
+                                 EIBnet_ConnectResponse & r);
 
 class EIBnet_ConnectionStateRequest
 {
@@ -162,7 +162,7 @@ public:
 };
 
 int parseEIBnet_ConnectionStateRequest (const EIBNetIPPacket & p,
-					EIBnet_ConnectionStateRequest & r);
+                                        EIBnet_ConnectionStateRequest & r);
 
 class EIBnet_ConnectionStateResponse
 {
@@ -174,7 +174,7 @@ public:
 };
 
 int parseEIBnet_ConnectionStateResponse (const EIBNetIPPacket & p,
-					 EIBnet_ConnectionStateResponse & r);
+                                         EIBnet_ConnectionStateResponse & r);
 
 class EIBnet_DisconnectRequest
 {
@@ -187,7 +187,7 @@ public:
 };
 
 int parseEIBnet_DisconnectRequest (const EIBNetIPPacket & p,
-				   EIBnet_DisconnectRequest & r);
+                                   EIBnet_DisconnectRequest & r);
 
 class EIBnet_DisconnectResponse
 {
@@ -199,7 +199,7 @@ public:
 };
 
 int parseEIBnet_DisconnectResponse (const EIBNetIPPacket & p,
-				    EIBnet_DisconnectResponse & r);
+                                    EIBnet_DisconnectResponse & r);
 
 class EIBnet_TunnelRequest
 {
@@ -212,7 +212,7 @@ public:
 };
 
 int parseEIBnet_TunnelRequest (const EIBNetIPPacket & p,
-			       EIBnet_TunnelRequest & r);
+                               EIBnet_TunnelRequest & r);
 
 class EIBnet_TunnelACK
 {
@@ -237,7 +237,7 @@ public:
 };
 
 int parseEIBnet_ConfigRequest (const EIBNetIPPacket & p,
-			       EIBnet_ConfigRequest & r);
+                               EIBnet_ConfigRequest & r);
 
 class EIBnet_ConfigACK
 {
@@ -267,7 +267,7 @@ public:
 };
 
 int parseEIBnet_DescriptionRequest (const EIBNetIPPacket & p,
-				    EIBnet_DescriptionRequest & r);
+                                    EIBnet_DescriptionRequest & r);
 
 class EIBnet_DescriptionResponse
 {
@@ -287,7 +287,7 @@ public:
 };
 
 int parseEIBnet_DescriptionResponse (const EIBNetIPPacket & p,
-				     EIBnet_DescriptionResponse & r);
+                                     EIBnet_DescriptionResponse & r);
 
 class EIBnet_SearchRequest
 {
@@ -299,7 +299,7 @@ public:
 };
 
 int parseEIBnet_SearchRequest (const EIBNetIPPacket & p,
-			       EIBnet_SearchRequest & r);
+                               EIBnet_SearchRequest & r);
 
 class EIBnet_SearchResponse
 {
@@ -320,7 +320,7 @@ public:
 };
 
 int parseEIBnet_SearchResponse (const EIBNetIPPacket & p,
-				EIBnet_SearchResponse & r);
+                                EIBnet_SearchResponse & r);
 
 
 

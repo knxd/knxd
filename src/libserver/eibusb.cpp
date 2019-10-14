@@ -156,7 +156,7 @@ USBConverterInterface::sendLocal_done_cb(bool success)
     LowLevelFilter::started();
 }
 
-void 
+void
 USBDriver::started()
 {
   if (version == vUnknown)
@@ -170,7 +170,7 @@ USBDriver::started()
   LowLevelAdapter::started();
 }
 
-void 
+void
 USBDriver::timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
 {
   if (++cnt < 5)

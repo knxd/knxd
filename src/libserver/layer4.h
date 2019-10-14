@@ -212,7 +212,7 @@ class T_Connection:public Layer4common<CArray>
   /** Sends T_DataConnected */
   void SendData (int serno, const CArray & c);
   /** process the next bit from sendq if mode==1 */
-  void SendCheck (); 
+  void SendCheck ();
 public:
   T_Connection (T_Reader<CArray> *app, LinkConnectClientPtr lc, eibaddr_t dest);
   virtual ~T_Connection ();

@@ -1,7 +1,7 @@
 /*
     EIBD eib bus access and management daemon
     Copyright (C) 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
- 
+
     cEMI support for USB
     Copyright (C) 2013 Meik Felser <felser@cs.fau.de>
 
@@ -30,10 +30,10 @@ class CEMIDriver:public EMI_Common
 {
   void cmdEnterMonitor();
   void cmdLeaveMonitor();
-  void cmdOpen(); 
+  void cmdOpen();
   void cmdClose();
   void started(); // do sendReset
-  const uint8_t * getIndTypes(); 
+  const uint8_t * getIndTypes();
   EMIVer getVersion() { return vCEMI; }
 
   unsigned int maxPacketLen();
@@ -47,9 +47,9 @@ private:
   ev::timer reset_timer;
   void reset_timer_cb(ev::timer &w, int revents);
 
-  virtual CArray lData2EMI (uchar code, const LDataPtr &p) 
+  virtual CArray lData2EMI (uchar code, const LDataPtr &p)
   { return L_Data_ToCEMI(code, p); }
-  virtual LDataPtr EMI2lData (const CArray & data) 
+  virtual LDataPtr EMI2lData (const CArray & data)
   { return CEMI_to_L_Data(data, t); }
 
 public:

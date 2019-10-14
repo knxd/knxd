@@ -68,7 +68,7 @@ Create (const char *url, TracePtr t)
   while (u->prefix)
     {
       if (strlen (u->prefix) == p && !memcmp (u->prefix, url, p))
-	return u->Create (url + p + 1, t);
+        return u->Create (url + p + 1, t);
       u++;
     }
   die ("url not supported");
@@ -178,7 +178,7 @@ main (int ac, char *ag[])
   else
     {
       ITER(i,result)
-	printf ("%02x ", *i);
+        printf ("%02x ", *i);
       printf ("\n");
     }
 

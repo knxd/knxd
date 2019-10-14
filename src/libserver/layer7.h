@@ -62,14 +62,14 @@ public:
   void A_Restart ();
   /** read a property */
   int A_Property_Read (uchar obj, uchar propertyid, uint16_t start,
-		       uchar count, CArray & erg);
+                       uchar count, CArray & erg);
   /** write a property */
   int A_Property_Write (uchar obj, uchar propertyid, uint16_t start,
-			uchar count, const CArray & data, CArray & result);
+                        uchar count, const CArray & data, CArray & result);
   /** descripbe a property */
   int A_Property_Desc (uchar obj, uchar & property, uchar property_index,
-		       uchar & type, uint16_t & max_nr_elements,
-		       uchar & access);
+                       uchar & type, uint16_t & max_nr_elements,
+                       uchar & access);
   /** read device descript (mask version) */
   int A_Device_Descriptor_Read (uint16_t & maskver, uchar type = 0);
   /** read ADC */
@@ -85,7 +85,7 @@ public:
 
   /** write a property and verify */
   int X_Property_Write (uchar obj, uchar propertyid, uint16_t start,
-			uchar count, const CArray & data);
+                        uchar count, const CArray & data);
   /** write memory and verify */
   int X_Memory_Write (memaddr_t addr, const CArray & data);
 
@@ -114,10 +114,10 @@ public:
 
   /** read a property */
   int A_Property_Read (uchar obj, uchar propertyid, uint16_t start,
-		       uchar count, CArray & erg);
+                       uchar count, CArray & erg);
   /** write a property */
   int A_Property_Write (uchar obj, uchar propertyid, uint16_t start,
-			uchar count, const CArray & data, CArray & result);
+                        uchar count, const CArray & data, CArray & result);
 };
 
 #endif

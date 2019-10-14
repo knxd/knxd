@@ -32,7 +32,7 @@ protected:
   void termios_settings(struct termios &t);
   unsigned int default_baudrate();
   void setstate(enum TSTATE state);
-  
+
   void RecvLPDU (const uchar * data, int len);
   virtual FDdriver * create_serial(LowLevelIface* parent, IniSectionPtr& s);
 };
@@ -56,7 +56,7 @@ protected:
     }
 };
 
-LowLevelFilter * 
+LowLevelFilter *
 NCN5120::create_wrapper(LowLevelIface* parent, IniSectionPtr& s, LowLevelDriver* i)
 {
   return new NCN5120wrap(parent,s,i);

@@ -18,7 +18,7 @@
 */
 
 /**
- * This 
+ * This
  */
 
 #include <iostream>

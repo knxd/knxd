@@ -68,7 +68,7 @@ FT12Driver::make_EMI()
       break;
     case vUnknown:
       return false;
-    default: 
+    default:
       TRACEPRINTF (t, 2, "Unsupported EMI");
       return false;
     }
@@ -125,7 +125,7 @@ FT12wrap::setup()
         }
       iface = new LLtcp(this, cfg);
     }
-  
+
   if (t->ShowPrint(0))
     iface = new LLlog (this,cfg, iface);
 
@@ -165,7 +165,7 @@ FT12wrap::setup_buffers()
   trigger.start();
 }
 
-void 
+void
 FT12wrap::stop_()
 {
   // XXX TODO add de-registration callback
@@ -175,7 +175,7 @@ FT12wrap::stop_()
   trigger.stop();
 }
 
-void 
+void
 FT12wrap::stop()
 {
   TRACEPRINTF (t, 1, "Close");

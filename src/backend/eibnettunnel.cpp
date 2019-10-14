@@ -62,7 +62,7 @@ EIBNetIPTunnel::setup()
   if (!BusDriver::setup())
     return false;
   dest = cfg->value("ip-address","");
-  if (!dest.size()) 
+  if (!dest.size())
     {
       ERRORPRINTF (t, E_ERROR | 23, "The 'ipt' driver, section %s, requires an 'ip-address=' option", cfg->name);
       return false;
@@ -134,7 +134,7 @@ EIBNetIPTunnel::start()
   out.clear();
   return;
 ex:
-  if (sock) 
+  if (sock)
     {
       delete sock;
       sock = nullptr;

@@ -28,7 +28,7 @@ const uchar EMI1_READ[] = { 0x4C, 0x01, 0x01, 0x16 };
 
 int
 readEMI1Mem (LowLevelDriver * iface, memaddr_t addr, uchar len,
-	     CArray & result)
+             CArray & result)
 {
   CArray *d1, d;
   d.resize (4);
@@ -75,7 +75,7 @@ writeEMI1Mem (LowLevelDriver * iface, memaddr_t addr, CArray data)
 
 int
 readEMI2Mem (LowLevelDriver * iface, memaddr_t addr, uchar len,
-	     CArray & result)
+             CArray & result)
 {
   CArray *d1, d;
   iface->SendReset ();
@@ -89,9 +89,9 @@ readEMI2Mem (LowLevelDriver * iface, memaddr_t addr, uchar len,
       d = *d1;
       delete d1;
       if (d.size() != 6)
-	return 0;
+        return 0;
       if (d[0] != 0x86)
-	return 0;
+        return 0;
     }
   else
     return 0;
@@ -118,9 +118,9 @@ readEMI2Mem (LowLevelDriver * iface, memaddr_t addr, uchar len,
       d = *d1;
       delete d1;
       if (d.size() != 11)
-	return 0;
+        return 0;
       if (d[0] != 0x8E)
-	return 0;
+        return 0;
     }
   else
     return 0;
@@ -164,9 +164,9 @@ readEMI2Mem (LowLevelDriver * iface, memaddr_t addr, uchar len,
       d = *d1;
       delete d1;
       if (d.size() != 6)
-	return 0;
+        return 0;
       if (d[0] != 0x88)
-	return 0;
+        return 0;
     }
   iface->send_Data (CArray (EMI2_NORM, sizeof (EMI2_NORM)));
   return 1;
@@ -188,9 +188,9 @@ writeEMI2Mem (LowLevelDriver * iface, memaddr_t addr, CArray data)
       d = *d1;
       delete d1;
       if (d.size() != 6)
-	return 0;
+        return 0;
       if (d[0] != 0x86)
-	return 0;
+        return 0;
     }
   else
     return 0;
@@ -216,9 +216,9 @@ writeEMI2Mem (LowLevelDriver * iface, memaddr_t addr, CArray data)
       d = *d1;
       delete d1;
       if (d.size() != 11 + data.size())
-	return 0;
+        return 0;
       if (d[0] != 0x8E)
-	return 0;
+        return 0;
     }
   else
     return 0;
@@ -232,9 +232,9 @@ writeEMI2Mem (LowLevelDriver * iface, memaddr_t addr, CArray data)
       d = *d1;
       delete d1;
       if (d.size() != 6)
-	return 0;
+        return 0;
       if (d[0] != 0x88)
-	return 0;
+        return 0;
     }
 
   iface->send_Data (CArray (EMI2_NORM, sizeof (EMI2_NORM)));
@@ -246,7 +246,7 @@ writeEMI2Mem (LowLevelDriver * iface, memaddr_t addr, CArray data)
 
 int
 readEMIMem (LowLevelDriver * iface, memaddr_t addr, uchar len,
-	    CArray & result)
+            CArray & result)
 {
   switch (iface->getEMIVer ())
     {

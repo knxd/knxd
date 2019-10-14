@@ -68,7 +68,7 @@ Create (const char *url, TracePtr t)
   while (u->prefix)
     {
       if (strlen (u->prefix) == p && !memcmp (u->prefix, url, p))
-	return u->Create (url + p + 1, t);
+        return u->Create (url + p + 1, t);
       u++;
     }
   die ("url not supported");
@@ -186,13 +186,13 @@ main (int ac, char *ag[])
   if (arg.newlength == -1)
     {
       if (!readAddrTabSize (iface, res))
-	die ("read failed");
+        die ("read failed");
       printf ("Size: %d\n", res);
     }
   else if (arg.newlength >= 0 && arg.newlength <= 0xff)
     {
       if (!writeAddrTabSize (iface, res))
-	die ("write failed");
+        die ("write failed");
       printf ("Size %d written\n", res);
     }
   else

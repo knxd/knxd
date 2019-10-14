@@ -463,7 +463,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
             if (atoi (b) > 0)
               (*ini["server"])["port"] = b;
           }
-        if (*a) 
+        if (*a)
           (*ini["server"])["multicast-address"] = a;
 
         if (!name || !*name) {
@@ -481,7 +481,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
     case 'n':
       if (*arg == '=')
-	arg++;
+        arg++;
       if(strlen(arg) >= 30)
         die("Server name must be shorter than 30 bytes");
       (*ini["main"])["name"] = arg;
@@ -640,7 +640,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       if (arguments->filters.size() || arguments->more_args.size())
         die ("You need to use filters and arguments in front of the affected backend");
       if (arguments->l2opts.flags || arguments->l2opts.send_delay)
-	die ("You provided flags after specifying an interface.");
+        die ("You provided flags after specifying an interface.");
       break;
 
     default:

@@ -22,7 +22,7 @@
 
 static void
 GenAlloc (CArray & req, uint16_t start, uint16_t len, uint8_t access,
-	  uint8_t type, bool check)
+          uint8_t type, bool check)
 {
   const uchar zero[10] = { 0 };
   req.set (zero, 10);
@@ -51,9 +51,9 @@ AddSegmentOverlap (std::vector < Segment > &s, uint16_t start, uint16_t len)
   for (i = 0; i < s.size(); i++)
     {
       if (start >= s[i].start && start < s[i].start + s[i].len)
-	return 0;
+        return 0;
       if (s[i].start >= start && s[i].start < start + len)
-	return 0;
+        return 0;
     }
   Segment s1;
   s1.start = start;
@@ -94,38 +94,38 @@ PrepareLoadImage (const CArray & im, BCUImage * &img)
     {
       STR_BCU1Size *s = (STR_BCU1Size *) i->findStream (S_BCU1Size);
       if (!s)
-	{
-	  delete i;
-	  return IMG_NO_SIZE;
-	}
+        {
+          delete i;
+          return IMG_NO_SIZE;
+        }
 
       if (s->datasize + s->bsssize + s->stacksize > 18)
-	{
-	  delete i;
-	  return IMG_LODATA_OVERFLOW;
-	}
+        {
+          delete i;
+          return IMG_LODATA_OVERFLOW;
+        }
       if (s->textsize > 0xfe)
-	{
-	  delete i;
-	  return IMG_TEXT_OVERFLOW;
-	}
+        {
+          delete i;
+          return IMG_TEXT_OVERFLOW;
+        }
 
       if (s->textsize != c->code.size())
-	{
-	  delete i;
-	  return IMG_WRONG_SIZE;
-	}
+        {
+          delete i;
+          return IMG_WRONG_SIZE;
+        }
 
       if (s->textsize < 0x18)
-	{
-	  delete i;
-	  return IMG_NO_ADDRESS;
-	}
+        {
+          delete i;
+          return IMG_NO_ADDRESS;
+        }
       if (c->code[8] < 8 || c->code[8] > c->code.size() + 1)
-	{
-	  delete i;
-	  return IMG_WRONG_CHECKLIM;
-	}
+        {
+          delete i;
+          return IMG_WRONG_CHECKLIM;
+        }
       img = new BCUImage;
       img->code = c->code;
       img->BCUType = BCUImage::B_bcu1;
@@ -137,136 +137,136 @@ PrepareLoadImage (const CArray & im, BCUImage * &img)
     {
       STR_BCU2Size *s = (STR_BCU2Size *) i->findStream (S_BCU2Size);
       if (!s)
-	{
-	  delete i;
-	  return IMG_NO_SIZE;
-	}
+        {
+          delete i;
+          return IMG_NO_SIZE;
+        }
       if (s->lo_datasize + s->lo_bsssize > 18)
-	{
-	  delete i;
-	  return IMG_LODATA_OVERFLOW;
-	}
+        {
+          delete i;
+          return IMG_LODATA_OVERFLOW;
+        }
       if (s->hi_datasize + s->hi_bsssize > 24)
-	{
-	  delete i;
-	  return IMG_HIDATA_OVERFLOW;
-	}
+        {
+          delete i;
+          return IMG_HIDATA_OVERFLOW;
+        }
       if (s->textsize > 0x36f)
-	{
-	  delete i;
-	  return IMG_TEXT_OVERFLOW;
-	}
+        {
+          delete i;
+          return IMG_TEXT_OVERFLOW;
+        }
 
       if (s->textsize != c->code.size())
-	{
-	  delete i;
-	  return IMG_WRONG_SIZE;
-	}
+        {
+          delete i;
+          return IMG_WRONG_SIZE;
+        }
 
       if (s->textsize < 0x18)
-	{
-	  delete i;
-	  return IMG_NO_ADDRESS;
-	}
+        {
+          delete i;
+          return IMG_NO_ADDRESS;
+        }
       STR_BCU2Start *s1 = (STR_BCU2Start *) i->findStream (S_BCU2Start);
       if (!s1)
-	{
-	  delete i;
-	  return IMG_NO_START;
-	}
+        {
+          delete i;
+          return IMG_NO_START;
+        }
       if (s1->addrtab_start != 0x116 || s1->addrtab_size < 4)
-	{
-	  delete i;
-	  return IMG_WRONG_ADDRTAB;
-	}
+        {
+          delete i;
+          return IMG_WRONG_ADDRTAB;
+        }
       if (s1->addrtab_size > 0xff)
-	{
-	  delete i;
-	  return IMG_ADDRTAB_OVERFLOW;
-	}
+        {
+          delete i;
+          return IMG_ADDRTAB_OVERFLOW;
+        }
 
       AddSegmentOverlap (seg, s1->addrtab_start, s1->addrtab_size);
 
       if (!AddSegmentOverlap (seg, s1->assoctab_start, s1->assoctab_size))
-	{
-	  delete i;
-	  return IMG_OVERLAP_ASSOCTAB;
-	}
+        {
+          delete i;
+          return IMG_OVERLAP_ASSOCTAB;
+        }
       if (s1->assoctab_size > 0xff)
-	{
-	  delete i;
-	  return IMG_ADDRTAB_OVERFLOW;
-	}
+        {
+          delete i;
+          return IMG_ADDRTAB_OVERFLOW;
+        }
       if (s1->readonly_end < s1->readonly_start)
-	{
-	  delete i;
-	  return IMG_NEGATIV_TEXT_SIZE;
-	}
+        {
+          delete i;
+          return IMG_NEGATIV_TEXT_SIZE;
+        }
       if (!AddSegmentOverlap
-	  (seg, s1->readonly_start, s1->readonly_end - s1->readonly_start))
-	{
-	  delete i;
-	  return IMG_OVERLAP_TEXT;
-	}
+          (seg, s1->readonly_start, s1->readonly_end - s1->readonly_start))
+        {
+          delete i;
+          return IMG_OVERLAP_TEXT;
+        }
       if (s1->param_end < s1->param_start)
-	{
-	  delete i;
-	  return IMG_NEGATIV_TEXT_SIZE;
-	}
+        {
+          delete i;
+          return IMG_NEGATIV_TEXT_SIZE;
+        }
       if (s1->eeprom_end < s1->eeprom_start)
-	{
-	  delete i;
-	  return IMG_NEGATIV_TEXT_SIZE;
-	}
+        {
+          delete i;
+          return IMG_NEGATIV_TEXT_SIZE;
+        }
       if (!AddSegmentOverlap
-	  (seg, s1->eeprom_start, s1->eeprom_end - s1->eeprom_start))
-	{
-	  delete i;
-	  return IMG_OVERLAP_EEPROM;
-	}
+          (seg, s1->eeprom_start, s1->eeprom_end - s1->eeprom_start))
+        {
+          delete i;
+          return IMG_OVERLAP_EEPROM;
+        }
       if (!AddSegmentOverlap
-	  (seg, s1->param_start, s1->param_end - s1->param_start))
-	{
-	  delete i;
-	  return IMG_OVERLAP_PARAM;
-	}
+          (seg, s1->param_start, s1->param_end - s1->param_start))
+        {
+          delete i;
+          return IMG_OVERLAP_PARAM;
+        }
       if (s1->obj_count > 0xff)
-	{
-	  delete i;
-	  return IMG_OBJTAB_OVERFLOW;
-	}
+        {
+          delete i;
+          return IMG_OBJTAB_OVERFLOW;
+        }
       if (s1->param_end > c->code.size() + 0x100)
-	{
-	  delete i;
-	  return IMG_WRONG_LOADCTL;
-	}
+        {
+          delete i;
+          return IMG_WRONG_LOADCTL;
+        }
 
       STR_BCU2Key *s2 = (STR_BCU2Key *) i->findStream (S_BCU2Key);
       if (s2 && s2->keys.size() != 3)
-	{
-	  delete i;
-	  return IMG_INVALID_KEY;
-	}
+        {
+          delete i;
+          return IMG_INVALID_KEY;
+        }
 
       img = new BCUImage;
       img->code = c->code;
       img->BCUType =
-	(b->bcutype == 0x0020 ? BCUImage::B_bcu20 : BCUImage::B_bcu21);
+        (b->bcutype == 0x0020 ? BCUImage::B_bcu20 : BCUImage::B_bcu21);
       img->addr = (c->code[0x17] << 8) | (c->code[0x18]);
 
       if (s2)
-	{
-	  img->installkey = s2->installkey;
-	  img->keys = s2->keys;
-	}
+        {
+          img->installkey = s2->installkey;
+          img->keys = s2->keys;
+        }
       else
-	{
-	  img->installkey = 0xFFFFFFFF;
-	  img->keys.resize (3);
-	  img->keys[0] = 0xFFFFFFFF;
-	  img->keys[1] = 0xFFFFFFFF;
-	  img->keys[2] = 0xFFFFFFFF;
-	}
+        {
+          img->installkey = 0xFFFFFFFF;
+          img->keys.resize (3);
+          img->keys[0] = 0xFFFFFFFF;
+          img->keys[1] = 0xFFFFFFFF;
+          img->keys[2] = 0xFFFFFFFF;
+        }
 
       const uchar zero[10] = { 0 };
       EIBLoadRequest r;
@@ -383,28 +383,28 @@ PrepareLoadImage (const CArray & im, BCUImage * &img)
       r.obj = 3;
 
       GenAlloc (r.req, s1->readonly_start,
-		s1->readonly_end - s1->readonly_start, 0x30, 0x03, 1);
+                s1->readonly_end - s1->readonly_start, 0x30, 0x03, 1);
       r.error = IMG_ALLOC_RO;
       r.len = s1->readonly_end - s1->readonly_start - 1;
       r.memaddr = s1->readonly_start;
       if (r.len)
-	img->load.push_back (r);
+        img->load.push_back (r);
 
       GenAlloc (r.req, s1->eeprom_start, s1->eeprom_end - s1->eeprom_start,
-		0x31, 0x03, 0);
+                0x31, 0x03, 0);
       r.error = IMG_ALLOC_EEPROM;
       r.len = s1->eeprom_end - s1->eeprom_start;
       r.memaddr = s1->eeprom_start;
       if (r.len)
-	img->load.push_back (r);
+        img->load.push_back (r);
 
       GenAlloc (r.req, s1->param_start, s1->param_end - s1->param_start, 0x32,
-		0x03, 1);
+                0x03, 1);
       r.error = IMG_ALLOC_PARAM;
       r.len = s1->param_end - s1->param_start;
       r.memaddr = s1->param_start;
       if (r.len > 1)
-	img->load.push_back (r);
+        img->load.push_back (r);
 
       r.memaddr = 0xffff;
       r.req[0] = 0x03;

@@ -51,7 +51,7 @@ typedef void (*GCLastCallback)(const std::vector<eibaddr_t> &foo, uint32_t end, 
 class GroupCacheReader
 {
 public:
-  GroupCacheReader(GroupCache *); 
+  GroupCacheReader(GroupCache *);
   virtual ~GroupCacheReader();
 
   bool stopped = false;

@@ -100,7 +100,7 @@ EMI_Common::send_L_Data (LDataPtr l)
       ERRORPRINTF(t, E_ERROR | 59, "EMI_common: send while waiting (%d)", state);
       return;
     }
-    
+
   assert (l->data.size() >= 1);
   // discard long frames, they are not supported yet
   // TODO add support for long frames!

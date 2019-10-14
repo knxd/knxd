@@ -28,150 +28,150 @@ APDU::fromPacket (const CArray & c, TracePtr tr)
   if (c.size() >= 2)
     {
       switch (c[0] & 0x03)
-	{
-	case 0:
-	  switch (c[1] & 0xC0)
-	    {
-	    case 0x00:
-	      a = APDUPtr(new A_GroupValue_Read_PDU ());
-	      break;
-	    case 0x40:
-	      a = APDUPtr(new A_GroupValue_Response_PDU ());
-	      break;
-	    case 0x80:
-	      a = APDUPtr(new A_GroupValue_Write_PDU ());
-	      break;
-	    case 0xC0:
-	      a = APDUPtr(new A_IndividualAddress_Write_PDU ());
-	      break;
-	    }
-	  break;
-	case 1:
-	  switch (c[1] & 0xC0)
-	    {
-	    case 0x00:
-	      a = APDUPtr(new A_IndividualAddress_Read_PDU ());
-	      break;
-	    case 0x40:
-	      a = APDUPtr(new A_IndividualAddress_Response_PDU ());
-	      break;
-	    case 0x80:
-	      a = APDUPtr(new A_ADC_Read_PDU ());
-	      break;
-	    case 0xC0:
-	      a = APDUPtr(new A_ADC_Response_PDU ());
-	      break;
-	    }
-	  break;
-	case 2:
-	  switch (c[1] & 0xC0)
-	    {
-	    case 0x00:
-	      a = APDUPtr(new A_Memory_Read_PDU ());
-	      break;
-	    case 0x40:
-	      a = APDUPtr(new A_Memory_Response_PDU ());
-	      break;
-	    case 0x80:
-	      a = APDUPtr(new A_Memory_Write_PDU ());
-	      break;
-	    case 0xC0:
-	      switch (c[1])
-		{
-		case 0xC0:
-		  a = APDUPtr(new A_UserMemory_Read_PDU ());
-		  break;
-		case 0xC1:
-		  a = APDUPtr(new A_UserMemory_Response_PDU ());
-		  break;
-		case 0xC2:
-		  a = APDUPtr(new A_UserMemory_Write_PDU ());
-		  break;
-		case 0xC4:
-		  a = APDUPtr(new A_UserMemoryBit_Write_PDU ());
-		  break;
-		case 0xC5:
-		  a = APDUPtr(new A_UserManufacturerInfo_Read_PDU ());
-		  break;
-		case 0xC6:
-		  a = APDUPtr(new A_UserManufacturerInfo_Response_PDU ());
-		  break;
-		}
-	    }
-	  break;
-	case 3:
-	  switch (c[1] & 0xC0)
-	    {
-	    case 0x00:
-	      a = APDUPtr(new A_DeviceDescriptor_Read_PDU ());
-	      break;
-	    case 0x40:
-	      a = APDUPtr(new A_DeviceDescriptor_Response_PDU ());
-	      break;
-	    case 0x80:
-	      a = APDUPtr(new A_Restart_PDU ());
-	      break;
-	    case 0xC0:
-	      switch (c[1])
-		{
-		case 0xD0:
-		  a = APDUPtr(new A_MemoryBit_Write_PDU ());
-		  break;
-		case 0xD1:
-		  a = APDUPtr(new A_Authorize_Request_PDU ());
-		  break;
-		case 0xD2:
-		  a = APDUPtr(new A_Authorize_Response_PDU ());
-		  break;
-		case 0xD3:
-		  a = APDUPtr(new A_Key_Write_PDU ());
-		  break;
-		case 0xD4:
-		  a = APDUPtr(new A_Key_Response_PDU ());
-		  break;
-		case 0xD5:
-		  a = APDUPtr(new A_PropertyValue_Read_PDU ());
-		  break;
-		case 0xD6:
-		  a = APDUPtr(new A_PropertyValue_Response_PDU ());
-		  break;
-		case 0xD7:
-		  a = APDUPtr(new A_PropertyValue_Write_PDU ());
-		  break;
-		case 0xD8:
-		  a = APDUPtr(new A_PropertyDescription_Read_PDU ());
-		  break;
-		case 0xD9:
-		  a = APDUPtr(new A_PropertyDescription_Response_PDU ());
-		  break;
-		case 0xDC:
-		  a = APDUPtr(new A_IndividualAddressSerialNumber_Read_PDU ());
-		  break;
-		case 0xDD:
-		  a = APDUPtr(new A_IndividualAddressSerialNumber_Response_PDU ());
-		  break;
-		case 0xDE:
-		  a = APDUPtr(new A_IndividualAddressSerialNumber_Write_PDU ());
-		  break;
-		case 0xDF:
-		  a = APDUPtr(new A_ServiceInformation_Indication_Write_PDU ());
-		  break;
-		case 0xE0:
-		  a = APDUPtr(new A_DomainAddress_Write_PDU ());
-		  break;
-		case 0xE1:
-		  a = APDUPtr(new A_DomainAddress_Read_PDU ());
-		  break;
-		case 0xE2:
-		  a = APDUPtr(new A_DomainAddress_Response_PDU ());
-		  break;
-		case 0xE3:
-		  a = APDUPtr(new A_DomainAddressSelective_Read_PDU ());
-		  break;
-		}
-	    }
-	  break;
-	}
+        {
+        case 0:
+          switch (c[1] & 0xC0)
+            {
+            case 0x00:
+              a = APDUPtr(new A_GroupValue_Read_PDU ());
+              break;
+            case 0x40:
+              a = APDUPtr(new A_GroupValue_Response_PDU ());
+              break;
+            case 0x80:
+              a = APDUPtr(new A_GroupValue_Write_PDU ());
+              break;
+            case 0xC0:
+              a = APDUPtr(new A_IndividualAddress_Write_PDU ());
+              break;
+            }
+          break;
+        case 1:
+          switch (c[1] & 0xC0)
+            {
+            case 0x00:
+              a = APDUPtr(new A_IndividualAddress_Read_PDU ());
+              break;
+            case 0x40:
+              a = APDUPtr(new A_IndividualAddress_Response_PDU ());
+              break;
+            case 0x80:
+              a = APDUPtr(new A_ADC_Read_PDU ());
+              break;
+            case 0xC0:
+              a = APDUPtr(new A_ADC_Response_PDU ());
+              break;
+            }
+          break;
+        case 2:
+          switch (c[1] & 0xC0)
+            {
+            case 0x00:
+              a = APDUPtr(new A_Memory_Read_PDU ());
+              break;
+            case 0x40:
+              a = APDUPtr(new A_Memory_Response_PDU ());
+              break;
+            case 0x80:
+              a = APDUPtr(new A_Memory_Write_PDU ());
+              break;
+            case 0xC0:
+              switch (c[1])
+                {
+                case 0xC0:
+                  a = APDUPtr(new A_UserMemory_Read_PDU ());
+                  break;
+                case 0xC1:
+                  a = APDUPtr(new A_UserMemory_Response_PDU ());
+                  break;
+                case 0xC2:
+                  a = APDUPtr(new A_UserMemory_Write_PDU ());
+                  break;
+                case 0xC4:
+                  a = APDUPtr(new A_UserMemoryBit_Write_PDU ());
+                  break;
+                case 0xC5:
+                  a = APDUPtr(new A_UserManufacturerInfo_Read_PDU ());
+                  break;
+                case 0xC6:
+                  a = APDUPtr(new A_UserManufacturerInfo_Response_PDU ());
+                  break;
+                }
+            }
+          break;
+        case 3:
+          switch (c[1] & 0xC0)
+            {
+            case 0x00:
+              a = APDUPtr(new A_DeviceDescriptor_Read_PDU ());
+              break;
+            case 0x40:
+              a = APDUPtr(new A_DeviceDescriptor_Response_PDU ());
+              break;
+            case 0x80:
+              a = APDUPtr(new A_Restart_PDU ());
+              break;
+            case 0xC0:
+              switch (c[1])
+                {
+                case 0xD0:
+                  a = APDUPtr(new A_MemoryBit_Write_PDU ());
+                  break;
+                case 0xD1:
+                  a = APDUPtr(new A_Authorize_Request_PDU ());
+                  break;
+                case 0xD2:
+                  a = APDUPtr(new A_Authorize_Response_PDU ());
+                  break;
+                case 0xD3:
+                  a = APDUPtr(new A_Key_Write_PDU ());
+                  break;
+                case 0xD4:
+                  a = APDUPtr(new A_Key_Response_PDU ());
+                  break;
+                case 0xD5:
+                  a = APDUPtr(new A_PropertyValue_Read_PDU ());
+                  break;
+                case 0xD6:
+                  a = APDUPtr(new A_PropertyValue_Response_PDU ());
+                  break;
+                case 0xD7:
+                  a = APDUPtr(new A_PropertyValue_Write_PDU ());
+                  break;
+                case 0xD8:
+                  a = APDUPtr(new A_PropertyDescription_Read_PDU ());
+                  break;
+                case 0xD9:
+                  a = APDUPtr(new A_PropertyDescription_Response_PDU ());
+                  break;
+                case 0xDC:
+                  a = APDUPtr(new A_IndividualAddressSerialNumber_Read_PDU ());
+                  break;
+                case 0xDD:
+                  a = APDUPtr(new A_IndividualAddressSerialNumber_Response_PDU ());
+                  break;
+                case 0xDE:
+                  a = APDUPtr(new A_IndividualAddressSerialNumber_Write_PDU ());
+                  break;
+                case 0xDF:
+                  a = APDUPtr(new A_ServiceInformation_Indication_Write_PDU ());
+                  break;
+                case 0xE0:
+                  a = APDUPtr(new A_DomainAddress_Write_PDU ());
+                  break;
+                case 0xE1:
+                  a = APDUPtr(new A_DomainAddress_Read_PDU ());
+                  break;
+                case 0xE2:
+                  a = APDUPtr(new A_DomainAddress_Response_PDU ());
+                  break;
+                case 0xE3:
+                  a = APDUPtr(new A_DomainAddressSelective_Read_PDU ());
+                  break;
+                }
+            }
+          break;
+        }
     }
   if (a && a->init (c, tr))
     return a;
@@ -555,7 +555,7 @@ std::string A_IndividualAddressSerialNumber_Response_PDU::Decode (TracePtr tr UN
 
 bool
   A_IndividualAddressSerialNumber_Response_PDU::isResponse (const APDU *
-							    req) const
+                                                            req) const
 {
   if (req->getType () != A_IndividualAddressSerialNumber_Read)
     return 0;
@@ -924,10 +924,10 @@ bool A_PropertyValue_Response_PDU::isResponse (const APDU * req) const
   if (req->getType () == A_PropertyValue_Write)
     {
       const A_PropertyValue_Write_PDU *
-	a = (const A_PropertyValue_Write_PDU *) req;
+        a = (const A_PropertyValue_Write_PDU *) req;
       if (a->obj == obj && a->prop == prop && a->start == start
-	  && a->count == count)
-	return 1;
+          && a->count == count)
+        return 1;
     }
 
   if (req->getType () != A_PropertyValue_Read)

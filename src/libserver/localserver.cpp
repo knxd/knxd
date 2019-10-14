@@ -63,8 +63,8 @@ LocalServer::start()
 
   if (bind (fd, (struct sockaddr *) &addr, sizeof (addr)) == -1)
     {
-      /* 
-       * dead file? 
+      /*
+       * dead file?
        */
       if (errno == EADDRINUSE)
         {

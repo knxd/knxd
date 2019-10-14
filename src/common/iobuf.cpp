@@ -81,17 +81,17 @@ RecvBuf::io_cb (ev::io &w UNUSED, int revents UNUSED)
 {
     bool some = false;
     while(sizeof(recvbuf) > recvpos) {
-	int i = ::read(fd, recvbuf+recvpos, quick ? 1 : (sizeof(recvbuf)-recvpos));
-	if (i <= 0) {
+        int i = ::read(fd, recvbuf+recvpos, quick ? 1 : (sizeof(recvbuf)-recvpos));
+        if (i <= 0) {
             if (some)
                 break;
-	    if (i == 0 || (errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR)) {
-		io.stop();
-		on_error();
-	    }
-	    break;
-	}
-	recvpos += i;
+            if (i == 0 || (errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR)) {
+                io.stop();
+                on_error();
+            }
+            break;
+        }
+        recvpos += i;
         if (!quick)
             break;
         some = true;

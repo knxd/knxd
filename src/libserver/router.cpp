@@ -291,7 +291,7 @@ ex:
 }
 
 bool
-unseen_lister(void *user, 
+unseen_lister(void *user,
     const IniSection& section, const std::string& name, const std::string& value)
 {
   Router *r = (Router *)user;
@@ -770,7 +770,7 @@ Router::deregisterBusmonitor (L_Busmonitor_CallBack * c)
     if (i->cb == c)
       {
         busmonitor.erase(i);
-	TRACEPRINTF (t, 3, "deregisterBusmonitor");
+        TRACEPRINTF (t, 3, "deregisterBusmonitor");
         return true;
       }
   TRACEPRINTF (t, 3, "deregisterBusmonitor failed");
@@ -783,9 +783,9 @@ Router::deregisterVBusmonitor (L_Busmonitor_CallBack * c)
   ITER(i,vbusmonitor)
     if (i->cb == c)
       {
-	TRACEPRINTF (t, 3, "deregisterVBusmonitor");
-	vbusmonitor.erase(i);
-	return true;
+        TRACEPRINTF (t, 3, "deregisterVBusmonitor");
+        vbusmonitor.erase(i);
+        return true;
       }
   TRACEPRINTF (t, 3, "deregisterVBusmonitor failed");
   return false;
@@ -1039,7 +1039,7 @@ Router::trigger_cb (ev::async &w UNUSED, int revents UNUSED)
   if (!low_send_more)
     TRACEPRINTF (t, 6, "wait L");
 
-  // Timestamps are ordered, so we scan for the first 
+  // Timestamps are ordered, so we scan for the first
   timestamp_t tm = getTime ();
   ITER (i, ignore)
     if (i->end >= tm)

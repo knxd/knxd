@@ -96,10 +96,10 @@ void NatL2Filter::addReverseAddress (eibaddr_t src, eibaddr_t dest)
     if (i->dest == dest)
       {
         if (i->src != src)
-	  {
-	    TRACEPRINTF (t, 5, "from %s to %s", FormatEIBAddr (src), FormatEIBAddr (dest));
+          {
+            TRACEPRINTF (t, 5, "from %s to %s", FormatEIBAddr (src), FormatEIBAddr (dest));
             i->src = src;
-	  }
+          }
         return;
       }
 

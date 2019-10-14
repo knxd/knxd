@@ -18,7 +18,7 @@
 */
 
 /**
- * This 
+ * This
  */
 
 #ifndef CALLBACKS_H

@@ -62,7 +62,7 @@ Trace::TraceHeader (int layer)
 
 void
 Trace::TracePacketUncond (int layer, const char *msg, int Len,
-			  const uchar * data)
+                          const uchar * data)
 {
   int i;
   TraceHeader(layer);

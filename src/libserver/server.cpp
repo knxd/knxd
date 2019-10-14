@@ -75,8 +75,8 @@ NetServer::cleanup_cb (ev::async &w UNUSED, int revents UNUSED)
       ITER(i, connections)
         if (*i == con)
           {
-	    connections.erase (i);
-	    break;
+            connections.erase (i);
+            break;
           }
     }
 }

@@ -354,13 +354,13 @@ main (int ac, char *ag[])
   {
 
       std::string PidFile = main->value("pidfile","");
-      
+
       pidfile = new char[ PidFile.length()+1 ];
       strncpy(pidfile, PidFile.c_str(), PidFile.length());
       pidfile[ PidFile.length() ] = '\0';
 
       std::string LogFile = main->value("logfile","");
-      
+
       logfile = new char[ LogFile.length()+1 ];
       strncpy(logfile, LogFile.c_str(),LogFile.length());
       logfile[ LogFile.length() ] = '\0';

@@ -102,13 +102,13 @@ main (int ac, char *ag[])
     {
       *b = 0;
       for (c = b + 1; *c; c++)
-	if (*c == ':')
-	  break;
+        if (*c == ':')
+          break;
       if (*c == ':')
-	{
-	  *c = 0;
-	  sport = atoi (c + 1);
-	}
+        {
+          *c = 0;
+          sport = atoi (c + 1);
+        }
       dport = atoi (b + 1);
     }
   else
