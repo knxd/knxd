@@ -26,6 +26,7 @@
 */
 
 #include "eibclient-int.h"
+#include <unistd.h>
 
 int
 EIBClose (EIBConnection * con)

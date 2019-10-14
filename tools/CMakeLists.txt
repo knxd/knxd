@@ -1,0 +1,9 @@
+add_custom_target(version
+  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/version.sh
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+  )
+
+add_custom_target(authors
+  COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/list_AUTHORS
+  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+  )
