@@ -30,17 +30,17 @@ L_Data_ToCEMI (uchar code, const LDataPtr & l1)
 
   switch (l1->prio)
     {
-    case PRIO_LOW:
-      c = 0x3;
-      break;
-    case PRIO_NORMAL:
-      c = 0x1;
+    case PRIO_SYSTEM:
+      c = PRIO_SYSTEM;
       break;
     case PRIO_URGENT:
-      c = 0x02;
+      c = PRIO_URGENT;
       break;
-    case PRIO_SYSTEM:
-      c = 0x00;
+    case PRIO_NORMAL:
+      c = PRIO_NORMAL;
+      break;
+    case PRIO_LOW:
+      c = PRIO_LOW;
       break;
     }
   pdu.resize (l1->data.size() + 9);
@@ -93,16 +93,16 @@ CEMI_to_L_Data (const CArray & data, TracePtr t)
     c->repeated = 0;
   switch ((data[start] >> 2) & 0x3)
     {
-    case 0:
+    case PRIO_SYSTEM:
       c->prio = PRIO_SYSTEM;
       break;
-    case 1:
+    case PRIO_URGENT:
       c->prio = PRIO_URGENT;
       break;
-    case 2:
+    case PRIO_NORMAL:
       c->prio = PRIO_NORMAL;
       break;
-    case 3:
+    case PRIO_LOW:
       c->prio = PRIO_LOW;
       break;
     }
@@ -161,17 +161,17 @@ L_Data_ToEMI (uchar code, const LDataPtr & l1)
   uchar c = 0; // stupid compiler
   switch (l1->prio)
     {
-    case PRIO_LOW:
-      c = 0x3;
-      break;
-    case PRIO_NORMAL:
-      c = 0x1;
+    case PRIO_SYSTEM:
+      c = PRIO_SYSTEM;
       break;
     case PRIO_URGENT:
-      c = 0x02;
+      c = PRIO_URGENT;
       break;
-    case PRIO_SYSTEM:
-      c = 0x00;
+    case PRIO_NORMAL:
+      c = PRIO_NORMAL;
+      break;
+    case PRIO_LOW:
+      c = PRIO_LOW;
       break;
     }
   pdu.resize (l1->data.size() + 7);
@@ -202,16 +202,16 @@ EMI_to_L_Data (const CArray & data, TracePtr t UNUSED)
   c->dest = (data[4] << 8) | (data[5]);
   switch ((data[1] >> 2) & 0x3)
     {
-    case 0:
+    case PRIO_SYSTEM:
       c->prio = PRIO_SYSTEM;
       break;
-    case 1:
+    case PRIO_URGENT:
       c->prio = PRIO_URGENT;
       break;
-    case 2:
+    case PRIO_NORMAL:
       c->prio = PRIO_NORMAL;
       break;
-    case 3:
+    case PRIO_LOW:
       c->prio = PRIO_LOW;
       break;
     }

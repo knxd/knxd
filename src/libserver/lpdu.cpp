@@ -206,16 +206,16 @@ L_Data_PDU::init (const CArray & c)
   valid_length = 1;
   switch ((c[0] >> 2) & 0x3)
     {
-    case 0:
+    case PRIO_SYSTEM:
       prio = PRIO_SYSTEM;
       break;
-    case 1:
+    case PRIO_URGENT:
       prio = PRIO_URGENT;
       break;
-    case 2:
+    case PRIO_NORMAL:
       prio = PRIO_NORMAL;
       break;
-    case 3:
+    case PRIO_LOW:
       prio = PRIO_LOW;
       break;
     }
@@ -276,17 +276,17 @@ CArray L_Data_PDU::ToPacket ()
   unsigned i;
   switch (prio)
     {
-    case PRIO_LOW:
-      c = 0x3;
-      break;
-    case PRIO_NORMAL:
-      c = 0x1;
+    case PRIO_SYSTEM:
+      c = PRIO_SYSTEM;
       break;
     case PRIO_URGENT:
-      c = 0x02;
+      c = PRIO_URGENT;
       break;
-    case PRIO_SYSTEM:
-      c = 0x00;
+    case PRIO_NORMAL:
+      c = PRIO_NORMAL;
+      break;
+    case PRIO_LOW:
+      c = PRIO_LOW;
       break;
     }
   if (data.size() - 1 <= 0x0f)
@@ -338,17 +338,17 @@ std::string L_Data_PDU::Decode (TracePtr t)
     s += " (repeated)";
   switch (prio)
     {
-    case PRIO_LOW:
-      s += " low";
-      break;
-    case PRIO_NORMAL:
-      s += " normal";
+    case PRIO_SYSTEM:
+      s += " system";
       break;
     case PRIO_URGENT:
       s += " urgent";
       break;
-    case PRIO_SYSTEM:
-      s += " system";
+    case PRIO_NORMAL:
+      s += " normal";
+      break;
+    case PRIO_LOW:
+      s += " low";
       break;
     }
   if (!valid_checksum)
