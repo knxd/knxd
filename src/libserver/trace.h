@@ -33,22 +33,26 @@
 #include <fmt/printf.h>
 #endif
 
-#define LEVEL_NONE 0
-#define LEVEL_FATAL 1
-#define LEVEL_CRITICAL 2
-#define LEVEL_ERROR 3
-#define LEVEL_WARNING 4
-#define LEVEL_NOTICE 5
-#define LEVEL_INFO 6
-#define LEVEL_DEBUG 7
-#define LEVEL_TRACE 8
+typedef enum
+{
+  LEVEL_NONE = 0,
+  LEVEL_FATAL = 1,
+  LEVEL_CRITICAL = 2,
+  LEVEL_ERROR = 3,
+  LEVEL_WARNING = 4,
+  LEVEL_NOTICE = 5,
+  LEVEL_INFO = 6,
+  LEVEL_DEBUG = 7,
+  LEVEL_TRACE = 8
+}
+trace_level;
 
-#define E_FATAL (LEVEL_FATAL<<28)
-#define E_CRTIICAL (LEVEL_CRITICAL<<28)
-#define E_ERROR (LEVEL_ERROR<<28)
-#define E_WARNING (LEVEL_WARNING<<28)
-#define E_NOTICE (LEVEL_NOTICE<<28)
-#define E_INFO (LEVEL_INFO<<28)
+constexpr unsigned int E_FATAL = LEVEL_FATAL<<28;
+constexpr unsigned int E_CRTIICAL = LEVEL_CRITICAL<<28;
+constexpr unsigned int E_ERROR = LEVEL_ERROR<<28;
+constexpr unsigned int E_WARNING = LEVEL_WARNING<<28;
+constexpr unsigned int E_NOTICE = LEVEL_NOTICE<<28;
+constexpr unsigned int E_INFO = LEVEL_INFO<<28;
 
 extern unsigned int trace_seq;
 extern unsigned int trace_namelen;

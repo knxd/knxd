@@ -90,11 +90,11 @@ typedef enum {
 } MediumCode;
 
 // timeouts
-#define CONNECT_REQUEST_TIMEOUT 10
-#define CONNECTIONSTATE_REQUEST_TIMEOUT 10
-#define DEVICE_CONFIGURATION_REQUEST_TIMEOUT 10
-#define TUNNELING_REQUEST_TIMEOUT 1
-#define CONNECTION_ALIVE_TIME 120
+constexpr ev::tstamp CONNECT_REQUEST_TIMEOUT = 10;
+constexpr ev::tstamp CONNECTIONSTATE_REQUEST_TIMEOUT = 10;
+constexpr ev::tstamp DEVICE_CONFIGURATION_REQUEST_TIMEOUT = 10;
+constexpr ev::tstamp TUNNELING_REQUEST_TIMEOUT = 1;
+constexpr ev::tstamp CONNECTION_ALIVE_TIME = 120;
 
 typedef enum {
   S_RDWR, S_RD, S_WR,
