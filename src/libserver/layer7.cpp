@@ -52,7 +52,7 @@ Layer7_Broadcast::A_IndividualAddress_Write (eibaddr_t addr)
 }
 
 std::vector < eibaddr_t >
-  Layer7_Broadcast::A_IndividualAddress_Read (TracePtr tr, unsigned timeout)
+Layer7_Broadcast::A_IndividualAddress_Read (TracePtr tr, unsigned timeout)
 {
   std::vector < eibaddr_t > addrs;
   A_IndividualAddress_Read_PDU r;
@@ -336,7 +336,7 @@ Layer7_Connection::X_Memory_Read_Block (memaddr_t addr, unsigned int len, CArray
   erg.resize (len);
   for (unsigned i = 0; i < len; i += blocksize)
     {
-    rt:
+rt:
       if (A_Memory_Read
           (addr + i, (len - i > blocksize ? blocksize : len - i), e) == -1)
         {

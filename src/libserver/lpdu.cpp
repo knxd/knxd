@@ -60,7 +60,7 @@ L_NACK_PDU::init (const CArray & c)
 CArray L_NACK_PDU::ToPacket ()
 {
   uchar
-    c = 0x0C;
+  c = 0x0C;
   return CArray (&c, 1);
 }
 
@@ -147,7 +147,7 @@ L_Unknown_PDU::Decode (TracePtr t UNUSED)
     return "empty LPDU";
 
   ITER (i,pdu)
-    addHex (s, *i);
+  addHex (s, *i);
 
   return s;
 }
@@ -184,7 +184,7 @@ L_Busmonitor_PDU::Decode (TracePtr t)
     return "empty LPDU";
 
   ITER (i,pdu)
-    addHex (s, *i);
+  addHex (s, *i);
   s += ":";
   LPDUPtr l = LPDU::fromPacket (pdu, t);
   s += l->Decode (t);
@@ -299,8 +299,8 @@ CArray L_Data_PDU::ToPacket ()
       pdu[4] = (dest) & 0xff;
       pdu[5] =
         (hopcount & 0x07) << 4 | ((data.size() - 1) & 0x0f) | (AddrType ==
-                                                           GroupAddress ? 0x80
-                                                           : 0x00);
+            GroupAddress ? 0x80
+            : 0x00);
       pdu.setpart (data.data(), 6, 1 + ((data.size() - 1) & 0x0f));
     }
   else
@@ -357,8 +357,8 @@ std::string L_Data_PDU::Decode (TracePtr t)
   s += FormatEIBAddr (source);
   s += " to ";
   s += (AddrType == GroupAddress ?
-                    FormatGroupAddr (dest) :
-                    FormatEIBAddr (dest));
+        FormatGroupAddr (dest) :
+        FormatEIBAddr (dest));
   s += " hops: ";
   addHex (s, hopcount);
   TPDUPtr d = TPDU::fromPacket (data, t);

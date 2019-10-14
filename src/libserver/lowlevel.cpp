@@ -63,7 +63,7 @@ LowLevelIface::send_Local(CArray &d, int raw)
 }
 
 LowLevelFilter::LowLevelFilter (LowLevelIface* parent, IniSectionPtr& s, LowLevelDriver* i)
-      : LowLevelDriver(parent,s)
+  : LowLevelDriver(parent,s)
 {
   t->setAuxName("LowF");
   if (i != nullptr)
@@ -138,7 +138,7 @@ LowLevelAdapter::send_L_Data(LDataPtr l)
 }
 
 FDdriver::FDdriver (LowLevelIface* p, IniSectionPtr& s)
-        : sendbuf(), recvbuf(), LowLevelDriver (p,s)
+  : sendbuf(), recvbuf(), LowLevelDriver (p,s)
 {
   t->setAuxName("FD");
 }

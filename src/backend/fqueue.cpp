@@ -86,7 +86,7 @@ QueueFilter::send_Next()
       break;
     case Q_BUSY:
       trigger.send();
-      // fall thru
+    // fall thru
     case Q_SENDING:
       state = Q_IDLE;
       break;

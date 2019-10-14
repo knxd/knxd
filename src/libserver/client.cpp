@@ -140,16 +140,17 @@ ClientConnection::read_cb (uint8_t *buf, size_t len)
   t->TracePacket (0, "ReadMessage", xlen, buf);
 
   int msg = EIBTYPE (buf);
-  if (a_conn) {
-    if (msg == EIB_RESET_CONNECTION)
-      {
-        exit_conn();
-        sendreject (EIB_RESET_CONNECTION);
-      }
-    else
-      a_conn->recv_Data(buf,xlen);
-    return xlen+2;
-  }
+  if (a_conn)
+    {
+      if (msg == EIB_RESET_CONNECTION)
+        {
+          exit_conn();
+          sendreject (EIB_RESET_CONNECTION);
+        }
+      else
+        a_conn->recv_Data(buf,xlen);
+      return xlen+2;
+    }
 
   switch (msg)
     {
@@ -253,7 +254,7 @@ ClientConnection::read_cb (uint8_t *buf, size_t len)
       sendreject ();
       break;
 
-    new_a_conn:
+new_a_conn:
       a_conn->on_error.set<ClientConnection,&ClientConnection::exit_conn>(this);
       if (a_conn->setup(buf,xlen))
         {

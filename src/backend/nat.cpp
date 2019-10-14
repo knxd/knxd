@@ -50,7 +50,7 @@ NatL2Filter::setup()
     {
       int a,b,c;
       if (sscanf (opt.c_str(), "%d.%d.%d", &a, &b, &c) != 3 ||
-            a<0 || b<0 || c<0 || a>0x0f || b>0x0f || c>0xff)
+          a<0 || b<0 || c<0 || a>0x0f || b>0x0f || c>0xff)
         {
           ERRORPRINTF(t, E_ERROR | 8, "Address must be #.#.#, not %s",a);
           return false;
@@ -93,26 +93,29 @@ NatL2Filter::recv_L_Data (LDataPtr  l)
 void NatL2Filter::addReverseAddress (eibaddr_t src, eibaddr_t dest)
 {
   ITER(i,revaddr)
-    if (i->dest == dest)
-      {
-        if (i->src != src)
-          {
-            TRACEPRINTF (t, 5, "from %s to %s", FormatEIBAddr (src), FormatEIBAddr (dest));
-            i->src = src;
-          }
-        return;
-      }
+  if (i->dest == dest)
+    {
+      if (i->src != src)
+        {
+          TRACEPRINTF (t, 5, "from %s to %s", FormatEIBAddr (src), FormatEIBAddr (dest));
+          i->src = src;
+        }
+      return;
+    }
 
   TRACEPRINTF (t, 5, "from %s to %s", FormatEIBAddr (src), FormatEIBAddr (dest));
-  phys_comm srcdest = (phys_comm) { .src=src, .dest=dest };
+  phys_comm srcdest = (phys_comm)
+  {
+    .src=src, .dest=dest
+  };
   revaddr.push_back(srcdest);
 }
 
 eibaddr_t NatL2Filter::getDestinationAddress (eibaddr_t src)
 {
   ITER(i,revaddr)
-    if (i->dest == src)
-      return i->src;
+  if (i->dest == src)
+    return i->src;
 
   return 0;
 }

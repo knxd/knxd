@@ -53,7 +53,7 @@ EIBNetIPPacket::fromPacket (const CArray & c, const struct sockaddr_in src)
 
 CArray
 EIBNetIPPacket::ToPacket ()
-  const
+const
 {
   CArray c;
   c.resize (6 + data.size());
@@ -172,12 +172,13 @@ EIBNetIPSocket::EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr,
     char loopch=1;
 
     if (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_LOOP,
-                   (char *)&loopch, sizeof(loopch)) < 0) {
-      ERRORPRINTF (t, E_ERROR | 39, "cannot turn on multicast loopback: %s", strerror(errno));
-      close(fd);
-      fd = -1;
-      return;
-    }
+                   (char *)&loopch, sizeof(loopch)) < 0)
+      {
+        ERRORPRINTF (t, E_ERROR | 39, "cannot turn on multicast loopback: %s", strerror(errno));
+        close(fd);
+        fd = -1;
+        return;
+      }
   }
 
   // don't really care if this fails
@@ -215,19 +216,19 @@ EIBNetIPSocket::stop()
 void
 EIBNetIPSocket::pause()
 {
-    if (paused)
-        return;
-    paused = true;
-    io_recv.stop();
+  if (paused)
+    return;
+  paused = true;
+  io_recv.stop();
 }
 
 void
 EIBNetIPSocket::unpause()
 {
-    if (! paused)
-        return;
-    paused = false;
-    io_recv.start(fd, ev::READ);
+  if (! paused)
+    return;
+  paused = false;
+  io_recv.start(fd, ev::READ);
 }
 
 bool
@@ -293,7 +294,7 @@ EIBNetIPSocket::io_send_cb (ev::io &w UNUSED, int revents UNUSED)
   CArray p = s.data.ToPacket ();
   t->TracePacket (0, "Send", p);
   int i = sendto (fd, p.data(), p.size(), 0,
-                      (const struct sockaddr *) &s.addr, sizeof (s.addr));
+                  (const struct sockaddr *) &s.addr, sizeof (s.addr));
   if (i > 0)
     {
       send_q.get ();
@@ -727,9 +728,9 @@ EIBnet_DescriptionRequest::EIBnet_DescriptionRequest ()
 EIBNetIPPacket EIBnet_DescriptionRequest::ToPacket ()const
 {
   EIBNetIPPacket
-    p;
+  p;
   CArray
-    ca = IPtoEIBNetIP (&caddr, nat);
+  ca = IPtoEIBNetIP (&caddr, nat);
   p.service = DESCRIPTION_REQUEST;
   p.data = ca;
   return p;
@@ -764,7 +765,7 @@ EIBnet_DescriptionResponse::EIBnet_DescriptionResponse ()
 EIBNetIPPacket EIBnet_DescriptionResponse::ToPacket ()const
 {
   EIBNetIPPacket
-    p;
+  p;
   p.service = DESCRIPTION_RESPONSE;
   p.data.resize (56 + services.size() * 2);
   p.data[0] = 54;
@@ -838,9 +839,9 @@ EIBnet_SearchRequest::EIBnet_SearchRequest ()
 EIBNetIPPacket EIBnet_SearchRequest::ToPacket ()const
 {
   EIBNetIPPacket
-    p;
+  p;
   CArray
-    ca = IPtoEIBNetIP (&caddr, nat);
+  ca = IPtoEIBNetIP (&caddr, nat);
   p.service = SEARCH_REQUEST;
   p.data = ca;
   return p;

@@ -204,7 +204,7 @@ T_Individual::~T_Individual ()
 /***************** T_Connection *****************/
 
 T_Connection::T_Connection (T_Reader<CArray> *app, LinkConnectClientPtr lc, eibaddr_t d)
-        : Layer4common (app, lc)
+  : Layer4common (app, lc)
 {
   t->setAuxName("TConn");
   TRACEPRINTF (t, 4, "OpenConnection %s", FormatEIBAddr (d));
@@ -237,53 +237,54 @@ T_Connection::send_L_Data (LDataPtr l)
       stop();
       break;
     case T_DATA_CONNECTED_REQ:
-      {
-        T_DATA_CONNECTED_REQ_PDU *t1 = (T_DATA_CONNECTED_REQ_PDU *) &*t;
-        if (t1->serno != recvno && t1->serno != ((recvno - 1) & 0x0f))
-          stop();
-        else if (t1->serno == recvno)
-          {
-            t1->data[0] = t1->data[0] & 0x03;
-            app->send(t1->data);
-            SendAck (recvno);
-            recvno = (recvno + 1) & 0x0f;
-          }
-        else if (t1->serno == ((recvno - 1) & 0x0f))
-          SendAck (t1->serno);
-      }
-      break;
+    {
+      T_DATA_CONNECTED_REQ_PDU *t1 = (T_DATA_CONNECTED_REQ_PDU *) &*t;
+      if (t1->serno != recvno && t1->serno != ((recvno - 1) & 0x0f))
+        stop();
+      else if (t1->serno == recvno)
+        {
+          t1->data[0] = t1->data[0] & 0x03;
+          app->send(t1->data);
+          SendAck (recvno);
+          recvno = (recvno + 1) & 0x0f;
+        }
+      else if (t1->serno == ((recvno - 1) & 0x0f))
+        SendAck (t1->serno);
+    }
+    break;
     case T_NACK:
-      {
-        T_NACK_PDU *t1 = (T_NACK_PDU *) &*t;
-        if (t1->serno != sendno)
-          stop();
-        else if (repcount >= 3 || mode != 2)
-          stop();
-        else
-          {
-            repcount++;
-            SendData (sendno, current);
-          }
-      }
-      break;
+    {
+      T_NACK_PDU *t1 = (T_NACK_PDU *) &*t;
+      if (t1->serno != sendno)
+        stop();
+      else if (repcount >= 3 || mode != 2)
+        stop();
+      else
+        {
+          repcount++;
+          SendData (sendno, current);
+        }
+    }
+    break;
     case T_ACK:
-      {
-        T_ACK_PDU *t1 = (T_ACK_PDU *) &*t;
-        if (t1->serno != sendno)
-          stop();
-        else if (mode != 2)
-          stop();
-        else
-          {
-            mode = 1;
-            timer.stop();
-            sendno = (sendno + 1) & 0x0f;
-            SendCheck();
-          }
-      }
-      break;
+    {
+      T_ACK_PDU *t1 = (T_ACK_PDU *) &*t;
+      if (t1->serno != sendno)
+        stop();
+      else if (mode != 2)
+        stop();
+      else
+        {
+          mode = 1;
+          timer.stop();
+          sendno = (sendno + 1) & 0x0f;
+          SendCheck();
+        }
+    }
+    break;
     default:
-      /* ignore */ ;
+      /* ignore */
+      ;
     }
   send_Next();
 }

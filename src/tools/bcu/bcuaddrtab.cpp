@@ -48,7 +48,8 @@ struct urldef
 };
 
 /** list of URLs */
-struct urldef URLs[] = {
+struct urldef URLs[] =
+{
 #undef L2_NAME
 #define L2_NAME(a) { a##_PREFIX, a##_CREATE },
 #include "lowlevelcreate.h"
@@ -110,7 +111,8 @@ struct arguments arg;
 static char args_doc[] = "URL";
 
 /** option list */
-static struct argp_option options[] = {
+static struct argp_option options[] =
+{
 
   {"trace", 't', "LEVEL", 0, "set trace level"},
   {"write", 'w', "SIZE", 0, "value to write"},

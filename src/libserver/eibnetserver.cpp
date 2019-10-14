@@ -34,7 +34,7 @@
 #endif
 
 EIBnetServer::EIBnetServer (BaseRouter& r, IniSectionPtr& s)
-        : Server(r,s)
+  : Server(r,s)
   , mcast(NULL)
   , sock(NULL)
   , tunnel(false)
@@ -188,10 +188,10 @@ EIBnetServer::start()
 
   sock_mac = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
   if (sock_mac < 0)
-  {
-    ERRORPRINTF (t, E_ERROR | 27, "Lookup socket creation failed");
-    goto err_out0;
-  }
+    {
+      ERRORPRINTF (t, E_ERROR | 27, "Lookup socket creation failed");
+      goto err_out0;
+    }
   memset (&baddr, 0, sizeof (baddr));
 #ifdef HAVE_SOCKADDR_IN_LEN
   baddr.sin_len = sizeof (baddr);
@@ -202,10 +202,10 @@ EIBnetServer::start()
 
   sock = new EIBNetIPSocket (baddr, 1, t);
   if (!sock)
-  {
-    ERRORPRINTF (t, E_ERROR | 41, "EIBNetIPSocket creation failed");
-    goto err_out1;
-  }
+    {
+      ERRORPRINTF (t, E_ERROR | 41, "EIBNetIPSocket creation failed");
+      goto err_out1;
+    }
   sock->SetInterface(interface);
 
   if (!sock->init ())
@@ -311,11 +311,11 @@ EIBnetServer::addClient (ConnType type, const EIBnet_ConnectRequest & r1,
   int id = 1;
 rt:
   ITER(i, connections)
-    if ((*i)->channel == id)
-      {
-        id++;
-        goto rt;
-      }
+  if ((*i)->channel == id)
+    {
+      id++;
+      goto rt;
+    }
   if (id <= 0xff)
     {
       LinkConnectClientPtr conn = LinkConnectClientPtr(new LinkConnectClient(std::dynamic_pointer_cast<EIBnetServer>(shared_from_this()), tunnel_cfg, t));
@@ -436,14 +436,14 @@ void EIBnetServer::drop_trigger_cb(ev::async &w UNUSED, int revents UNUSED)
     {
       ConnStatePtr s = drop_q.get();
       ITER(i,connections)
-        if (*i == s)
-          {
-            connections.erase (i);
-            auto c = std::dynamic_pointer_cast<LinkConnect>(s->conn.lock());
-            if (c != nullptr)
-              static_cast<Router &>(router).unregisterLink(c);
-            break;
-          }
+      if (*i == s)
+        {
+          connections.erase (i);
+          auto c = std::dynamic_pointer_cast<LinkConnect>(s->conn.lock());
+          if (c != nullptr)
+            static_cast<Router &>(router).unregisterLink(c);
+          break;
+        }
     }
 }
 
@@ -507,23 +507,23 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
               mib[4] = NET_RT_IFLIST;
 
               if ((mib[5] = if_nametoindex(ifr.ifr_name)) == 0)
-              {
-                TRACEPRINTF(t, 2, "get_mac_address if_nametoindex error");
-                goto out;
-              }
+                {
+                  TRACEPRINTF(t, 2, "get_mac_address if_nametoindex error");
+                  goto out;
+                }
               if (sysctl(mib, 6, NULL, &len, NULL, 0) < 0)
-              {
-                TRACEPRINTF(t, 2, "get_mac_address sysctl 1 error");
-                goto out;
-              }
+                {
+                  TRACEPRINTF(t, 2, "get_mac_address sysctl 1 error");
+                  goto out;
+                }
 
               buf = new char[len];
 
               if (sysctl(mib, 6, buf, &len, NULL, 0) < 0)
-              {
-                TRACEPRINTF(t, 2, "get_mac_address sysctl 2 error");
-                goto out;
-              }
+                {
+                  TRACEPRINTF(t, 2, "get_mac_address sysctl 2 error");
+                  goto out;
+                }
 
               ifm = (struct if_msghdr *)buf;
               sdl = (struct sockaddr_dl *)(ifm + 1);
@@ -645,13 +645,13 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       r2.channel = r1.channel;
       r2.status = 0x21;
       ITER(i, connections)
-        if ((*i)->channel == r1.channel)
-          {
-            TRACEPRINTF ((*i)->t, 8, "CONNECTIONSTATE_REQUEST on %d", r1.channel);
-            r2.status = 0;
-            (*i)->reset_timer();
-            break;
-          }
+      if ((*i)->channel == r1.channel)
+        {
+          TRACEPRINTF ((*i)->t, 8, "CONNECTIONSTATE_REQUEST on %d", r1.channel);
+          r2.status = 0;
+          (*i)->reset_timer();
+          break;
+        }
       if (r2.status)
         TRACEPRINTF (t, 2, "Unknown connection %d", r2.channel);
 
@@ -670,13 +670,13 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       r2.status = 0x21;
       r2.channel = r1.channel;
       ITER(i,connections)
-        if ((*i)->channel == r1.channel)
-          {
-            r2.status = 0;
-            TRACEPRINTF ((*i)->t, 8, "DISCONNECT_REQUEST");
-            (*i)->stop();
-            break;
-          }
+      if ((*i)->channel == r1.channel)
+        {
+          r2.status = 0;
+          TRACEPRINTF ((*i)->t, 8, "DISCONNECT_REQUEST");
+          (*i)->stop();
+          break;
+        }
       if (r2.status)
         TRACEPRINTF (t, 8, "DISCONNECT_REQUEST on %d", r1.channel);
       isock->Send (r2.ToPacket (), r1.caddr);
@@ -765,11 +765,11 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
         }
       if (tunnel)
         ITER(i,connections)
-          if ((*i)->channel == r1.channel)
-            {
-              (*i)->tunnel_request(r1, isock);
-              goto out;
-            }
+        if ((*i)->channel == r1.channel)
+          {
+            (*i)->tunnel_request(r1, isock);
+            goto out;
+          }
       TRACEPRINTF (t, 8, "TUNNEL_REQ on unknown %d", r1.channel);
       goto out;
     }
@@ -783,11 +783,11 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
         }
       if (tunnel)
         ITER(i, connections)
-          if ((*i)->channel == r1.channel)
-            {
-              (*i)->tunnel_response (r1);
-              goto out;
-            }
+        if ((*i)->channel == r1.channel)
+          {
+            (*i)->tunnel_response (r1);
+            goto out;
+          }
       TRACEPRINTF (t, 8, "TUNNEL_ACK on unknown %d",r1.channel);
       goto out;
     }
@@ -802,11 +802,11 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
         }
       TRACEPRINTF (t, 8, "CONFIG_REQ on %d",r1.channel);
       ITER(i, connections)
-        if ((*i)->channel == r1.channel)
-          {
-            (*i)->config_request (r1, isock);
-            break;
-          }
+      if ((*i)->channel == r1.channel)
+        {
+          (*i)->config_request (r1, isock);
+          break;
+        }
       goto out;
     }
   if (p1->service == DEVICE_CONFIGURATION_ACK)
@@ -818,11 +818,11 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
           goto out;
         }
       ITER(i, connections)
-        if ((*i)->channel == r1.channel)
-          {
-            (*i)->config_response (r1);
-            goto out;
-          }
+      if ((*i)->channel == r1.channel)
+        {
+          (*i)->config_response (r1);
+          goto out;
+        }
       TRACEPRINTF (t, 8, "CONFIG_ACK on unknown channel %d",r1.channel);
       goto out;
     }
@@ -864,7 +864,7 @@ EIBnetServer::stop_()
   drop_trigger.stop();
 
   R_ITER(i,connections)
-    (*i)->stop();
+  (*i)->stop();
 
   if (mcast)
     {

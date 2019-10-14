@@ -447,30 +447,30 @@ ManagementConnection::ManagementConnection (ClientConnPtr c, uint8_t *buf, size_
             break;
 
           case EIB_MC_PROP_SCAN:
-            {
-              std::vector < PropertyInfo > p;
-              if (m.X_PropertyScan (p) == -1)
-                c->sendreject ();
-              else
+          {
+            std::vector < PropertyInfo > p;
+            if (m.X_PropertyScan (p) == -1)
+              c->sendreject ();
+            else
+              {
+                CArray erg;
+                erg.resize (2 + p.size() * 6);
+                EIBSETTYPE (erg, EIB_MC_PROP_SCAN);
+                unsigned int ii = 0;
+                ITER( i,p)
                 {
-                  CArray erg;
-                  erg.resize (2 + p.size() * 6);
-                  EIBSETTYPE (erg, EIB_MC_PROP_SCAN);
-                  unsigned int ii = 0;
-                  ITER( i,p)
-                    {
-                      erg[ii + 2] = i->obj;
-                      erg[ii + 3] = i->property;
-                      erg[ii + 4] = i->type;
-                      erg[ii + 5] = (i->count >> 8) & 0xff;
-                      erg[ii + 6] = (i->count) & 0xff;
-                      erg[ii + 7] = i->access;
-                          ii += 6;
-                    }
-                  c->sendmessage (erg.size(), erg.data());
+                  erg[ii + 2] = i->obj;
+                  erg[ii + 3] = i->property;
+                  erg[ii + 4] = i->type;
+                  erg[ii + 5] = (i->count >> 8) & 0xff;
+                  erg[ii + 6] = (i->count) & 0xff;
+                  erg[ii + 7] = i->access;
+                  ii += 6;
                 }
-            }
-            break;
+                c->sendmessage (erg.size(), erg.data());
+              }
+          }
+          break;
 
           case EIB_RESET_CONNECTION:
             i = -1;
@@ -718,24 +718,24 @@ LoadImage (ClientConnPtr c, uint8_t *buf, size_t len)
           }
 
         ITER (j, i->load)
-          {
-            r = j->error;
-            if (j->obj != 0xff)
-              {
-                if (m.A_Property_Write (j->obj, j->prop,
-                                        j->start, 1, j->req,
-                                        erg) == -1)
-                  goto out;
-                if (erg != j->result)
-                  goto out;
-              }
-            if (j->memaddr != 0xffff)
-              if (m.X_Memory_Write_Block (j->memaddr,
-                                          CArray (i->code.data() +
-                                                  j->memaddr - 0x100,
-                                                  j->len)) != 0)
+        {
+          r = j->error;
+          if (j->obj != 0xff)
+            {
+              if (m.A_Property_Write (j->obj, j->prop,
+                                      j->start, 1, j->req,
+                                      erg) == -1)
                 goto out;
-          }
+              if (erg != j->result)
+                goto out;
+            }
+          if (j->memaddr != 0xffff)
+            if (m.X_Memory_Write_Block (j->memaddr,
+                                        CArray (i->code.data() +
+                                                j->memaddr - 0x100,
+                                                j->len)) != 0)
+              goto out;
+        }
 
         r = IMG_RESTART;
         m.A_Restart ();

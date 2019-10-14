@@ -74,7 +74,9 @@ IniSection::operator[](const char *name)
       auto v = values.find(name);
       assert (v != values.end());
       return v->second.first;
-    } else {
+    }
+  else
+    {
       auto res = values.emplace(name, ValueType("",false));
       return res.first->second.first;
     }
@@ -233,22 +235,27 @@ int
 IniData::parse(const std::string& filename)
 {
   std::filebuf fb;
-  if (filename == "-") {
-    return parse(std::cin);
-  } else if (fb.open (filename,std::ios::in)) {
-    std::istream s(&fb);
-    return parse(s);
-  } else {
-    std::cerr << "Unable to open: " << filename << ": " << strerror(errno) << std::endl;
-    return 0;
-  }
+  if (filename == "-")
+    {
+      return parse(std::cin);
+    }
+  else if (fb.open (filename,std::ios::in))
+    {
+      std::istream s(&fb);
+      return parse(s);
+    }
+  else
+    {
+      std::cerr << "Unable to open: " << filename << ": " << strerror(errno) << std::endl;
+      return 0;
+    }
 }
 
 int
 IniData::parse(std::istream& file)
 {
   int res = ini_parse_stream(&inidata_reader, (void *)&file,
-                          &inidata_handler, (void *)this);
+                             &inidata_handler, (void *)this);
   read_only = true;
   return res;
 }
@@ -257,17 +264,17 @@ void
 IniSection::write(std::ostream& file)
 {
   ITER(i,values)
-    file << i->first << " = " << i->second.first << std::endl;
+  file << i->first << " = " << i->second.first << std::endl;
 }
 
 void
 IniData::write(std::ostream& file)
 {
   ITER(i,sections)
-    {
-      file << '[' << i->first << ']' << std::endl;
-      i->second.first->write(file);
-    }
+  {
+    file << '[' << i->first << ']' << std::endl;
+    i->second.first->write(file);
+  }
 }
 
 bool
@@ -275,13 +282,13 @@ IniSection::list_unseen(UnseenViewer uv, void *x)
 {
   bool res = false;
   ITER(i,values)
-    {
-      if (!i->second.second)
-        {
-          if (uv(x, *this, i->first, i->second.first))
-            res = true;
-        }
-    }
+  {
+    if (!i->second.second)
+      {
+        if (uv(x, *this, i->first, i->second.first))
+          res = true;
+      }
+  }
   return res;
 }
 
@@ -290,12 +297,12 @@ IniData::list_unseen(UnseenViewer uv, void *x)
 {
   bool res = false;
   ITER(i,sections)
-    {
-      if (!i->second.second)
-        continue;
-      if (i->second.first->list_unseen(uv, x))
-        res = true;
-    }
+  {
+    if (!i->second.second)
+      continue;
+    if (i->second.first->list_unseen(uv, x))
+      res = true;
+  }
   return res;
 }
 

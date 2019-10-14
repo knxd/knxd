@@ -302,7 +302,7 @@ void
 usb_complete_send (struct libusb_transfer *transfer)
 {
   USBLowLevelDriver *
-    instance = (USBLowLevelDriver *) transfer->user_data;
+  instance = (USBLowLevelDriver *) transfer->user_data;
   instance->CompleteSend(transfer);
 }
 
@@ -356,7 +356,7 @@ void
 usb_complete_recv (struct libusb_transfer *transfer)
 {
   USBLowLevelDriver *
-    instance = (USBLowLevelDriver *) transfer->user_data;
+  instance = (USBLowLevelDriver *) transfer->user_data;
   instance->CompleteReceive(transfer);
 }
 

@@ -70,7 +70,7 @@ std::string T_UNKNOWN_PDU::Decode (TracePtr t UNUSED)
     return "empty TPDU";
 
   ITER (i,pdu)
-    addHex (s, *i);
+  addHex (s, *i);
 
   return s;
 }

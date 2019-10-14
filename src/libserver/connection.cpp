@@ -128,8 +128,8 @@ A_Individual::setup(uint8_t *buf,size_t len)
   lc = LinkConnectSinglePtr(new LinkConnectSingle(con->server, con->server->cfg, t));
   lc->setAddress(con->addr);
   c = T_IndividualPtr(
-    new T_Individual (this, lc, (buf[2] << 8) | (buf[3]),
-                      buf[4] != 0));
+        new T_Individual (this, lc, (buf[2] << 8) | (buf[3]),
+                          buf[4] != 0));
   lc->set_driver(c);
   if (!lc->setup())
     {

@@ -32,7 +32,8 @@
 
 #include "llserial.h"
 
-static speed_t getbaud(int baud) {
+static speed_t getbaud(int baud)
+{
   switch(baud)
     {
     case 9600:

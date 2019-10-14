@@ -395,7 +395,7 @@ STR_ListParameter::toArray ()
   uint16_t p;
   uint16_t len = 7 + name.length();
   ITER(i, elements)
-    len += i->length() + 1;
+  len += i->length() + 1;
   d.resize (2 + len);
   d[0] = (len >> 8) & 0xff;
   d[1] = (len) & 0xff;
@@ -407,7 +407,8 @@ STR_ListParameter::toArray ()
   d[7] = (elements.size()) & 0xff;
   d.setpart (name, 8);
   p = 8 + name.length() + 1;
-  ITER(i, elements) {
+  ITER(i, elements)
+  {
     d.setpart (*i, p);
     p += i->length() + 1;
   }
@@ -753,7 +754,7 @@ Image::toArray ()
   data[8] = (data.size() >> 8) & 0xff;
   data[9] = (data.size()) & 0xff;
   ITER(i, str)
-    data.setpart ((*i)->toArray (), data.size());
+  data.setpart ((*i)->toArray (), data.size());
   return data;
 }
 
@@ -761,8 +762,8 @@ int
 Image::findStreamNumber (STR_Type t)
 {
   ITER(i, str)
-    if ((*i)->getType () == t)
-      return i-str.begin();
+  if ((*i)->getType () == t)
+    return i-str.begin();
   return -1;
 }
 

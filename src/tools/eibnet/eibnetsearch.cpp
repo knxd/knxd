@@ -73,16 +73,16 @@ recv_me (EIBNetIPPacket *p1)
   else
     {
       printf
-        ("Medium: %d\nState: %d\nAddr: %s\nInstallID: %d\nSerial:",
-          resp.KNXmedium, resp.devicestatus,
-          FormatEIBAddr (resp.individual_addr).c_str(), resp.installid);
+      ("Medium: %d\nState: %d\nAddr: %s\nInstallID: %d\nSerial:",
+       resp.KNXmedium, resp.devicestatus,
+       FormatEIBAddr (resp.individual_addr).c_str(), resp.installid);
       HexDump (resp.serial, sizeof (resp.serial));
       printf ("Multicast-Addr: %s\nMAC:",
               inet_ntoa (resp.multicastaddr));
       HexDump (resp.MAC, sizeof (resp.MAC));
       printf ("Name: %s\n", resp.name);
       ITER(i, resp.services)
-        printf ("Service %d Version %d\n", i->family, i->version);
+      printf ("Service %d Version %d\n", i->family, i->version);
     }
   printf ("\n");
 }
@@ -96,8 +96,8 @@ main (int ac, char *ag[])
   char *a, *b, *c;
   if (ac != 2 && ac != 3)
     die
-      ("Usage: %s [/]ip[:dst-port[:src-port]] [tracelevel]     use - as default ip",
-       ag[0]);
+    ("Usage: %s [/]ip[:dst-port[:src-port]] [tracelevel]     use - as default ip",
+     ag[0]);
   struct sockaddr_in saddr;
   struct sockaddr_in caddr;
   EIBNetIPSocket *sock;

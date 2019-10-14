@@ -48,7 +48,8 @@ struct urldef
 };
 
 /** list of URLs */
-struct urldef URLs[] = {
+struct urldef URLs[] =
+{
 #undef L2_NAME
 #define L2_NAME(a) { a##_PREFIX, a##_CREATE },
 #include "lowlevelcreate.h"
@@ -112,7 +113,8 @@ readHex (const char *addr)
 static char args_doc[] = "URL addr len";
 
 /** option list */
-static struct argp_option options[] = {
+static struct argp_option options[] =
+{
 
   {"trace", 't', "LEVEL", 0, "set trace level"},
   {0}
@@ -178,7 +180,7 @@ main (int ac, char *ag[])
   else
     {
       ITER(i,result)
-        printf ("%02x ", *i);
+      printf ("%02x ", *i);
       printf ("\n");
     }
 

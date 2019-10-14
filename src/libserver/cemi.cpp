@@ -52,10 +52,24 @@ CEMIDriver::sendLocal_done_cb(bool success)
     EMI_Common::started();
 }
 
-void CEMIDriver::cmdEnterMonitor() { errored(); stopped(); }
-void CEMIDriver::cmdLeaveMonitor() { errored(); stopped(); }
-void CEMIDriver::cmdOpen() { LowLevelDriver::started(); }
-void CEMIDriver::cmdClose() { LowLevelDriver::stop(); }
+void CEMIDriver::cmdEnterMonitor()
+{
+  errored();
+  stopped();
+}
+void CEMIDriver::cmdLeaveMonitor()
+{
+  errored();
+  stopped();
+}
+void CEMIDriver::cmdOpen()
+{
+  LowLevelDriver::started();
+}
+void CEMIDriver::cmdClose()
+{
+  LowLevelDriver::stop();
+}
 
 void CEMIDriver::started()
 {

@@ -68,7 +68,7 @@ recv_me (EIBNetIPPacket *p1)
   printf ("Optional: ");
   HexDump (resp.optional.data(), resp.optional.size());
   ITER(i, resp.services)
-    printf ("Service %d Version %d\n", i->family, i->version);
+  printf ("Service %d Version %d\n", i->family, i->version);
   ev_break(EV_DEFAULT_ EVBREAK_ALL);
 }
 

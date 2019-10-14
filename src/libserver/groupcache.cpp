@@ -22,7 +22,7 @@
 #include "apdu.h"
 
 GroupCache::GroupCache (const LinkConnectPtr& c, IniSectionPtr& s)
-        : Driver(c,s)
+  : Driver(c,s)
 {
   t->setAuxName("G");
   TRACEPRINTF (t, 4, "GroupCacheInit");
@@ -36,10 +36,10 @@ GroupCache::~GroupCache ()
 {
   remtrigger.stop();
   R_ITER(i,reader)
-    {
-      (*i)->stop();
-      delete *i;
-    }
+  {
+    (*i)->stop();
+    delete *i;
+  }
   TRACEPRINTF (t, 4, "GroupCacheDestroy");
   Clear ();
 }
@@ -173,7 +173,7 @@ GroupCache::updated(GroupCacheEntry &c)
 {
   // do this in reverse so that the update handler can safely remove itself
   R_ITER(i,reader)
-    (*i)->updated(c);
+  (*i)->updated(c);
 }
 
 void
@@ -217,12 +217,12 @@ public:
     timeout.start(Timeout,0);
   }
   virtual ~GCReader()
-    {
-      if (stopped)
-        return;
-      timeout.stop();
-      GroupCacheReader::stop();
-    }
+  {
+    if (stopped)
+      return;
+    timeout.stop();
+    GroupCacheReader::stop();
+  }
 private:
   void updated(GroupCacheEntry &c)
   {
@@ -232,7 +232,7 @@ private:
       return;
 
     TRACEPRINTF (gc->t, 4, "GroupCache found: %s",
-                  FormatEIBAddr (c.src).c_str());
+                 FormatEIBAddr (c.src).c_str());
     cb(c,false,cc);
     stop();
   }
@@ -252,7 +252,7 @@ private:
 
 void
 GroupCache::Read (eibaddr_t addr, unsigned Timeout, uint16_t age,
-  GCReadCallback cb, ClientConnPtr cc)
+                  GCReadCallback cb, ClientConnPtr cc)
 {
   TRACEPRINTF (t, 4, "GroupCacheRead %s %d %d",
                FormatGroupAddr (addr).c_str(), Timeout, age);
@@ -311,7 +311,7 @@ public:
   bool stopped = false;
 
   GCTracker(GroupCache *gc, uint32_t start, int Timeout,
-           GCLastCallback cb, ClientConnPtr cc) : GroupCacheReader(gc)
+            GCLastCallback cb, ClientConnPtr cc) : GroupCacheReader(gc)
   {
     this->cb = cb;
     this->cc = cc;
@@ -321,15 +321,16 @@ public:
     if (start != gc->seq)
       handler();
   }
-  virtual ~GCTracker() {
-      a.clear();
+  virtual ~GCTracker()
+  {
+    a.clear();
   }
   void stop()
   {
-      if (stopped)
-        return;
-      timeout.stop();
-      GroupCacheReader::stop();
+    if (stopped)
+      return;
+    timeout.stop();
+    GroupCacheReader::stop();
   }
 private:
   void updated(GroupCacheEntry &c UNUSED)
@@ -369,7 +370,7 @@ private:
 
 void
 GroupCache::LastUpdates (uint16_t start, uint8_t Timeout,
-    GCLastCallback cb, ClientConnPtr cc)
+                         GCLastCallback cb, ClientConnPtr cc)
 {
   uint32_t st;
   // counter wraparound
@@ -381,7 +382,7 @@ GroupCache::LastUpdates (uint16_t start, uint8_t Timeout,
 
 void
 GroupCache::LastUpdates2 (uint32_t start, uint8_t Timeout,
-    GCLastCallback cb, ClientConnPtr cc)
+                          GCLastCallback cb, ClientConnPtr cc)
 {
   new GCTracker(this, start, Timeout, cb,cc);
 }
