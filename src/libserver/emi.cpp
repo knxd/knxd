@@ -131,9 +131,13 @@ CEMI_to_Busmonitor (const CArray & data, DriverPtr l2 UNUSED)
   return c;
 }
 
-#define CEMI_ADD_HEADER_TYPE_STATUS 0x03
-#define CEMI_ADD_HEADER_TYPE_TIMESTAMP 0x04
-#define CEMI_ADD_HEADER_TYPE_EXTTIMESTAMP 0x06
+enum
+{
+  CEMI_ADD_HEADER_TYPE_STATUS = 0x03,
+  CEMI_ADD_HEADER_TYPE_TIMESTAMP = 0x04,
+  CEMI_ADD_HEADER_TYPE_EXTTIMESTAMP = 0x06,
+}
+cemi_header_type;
 
 CArray
 Busmonitor_to_CEMI (uchar code, const LBusmonPtr & p, int no)
