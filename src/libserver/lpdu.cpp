@@ -204,21 +204,7 @@ L_Data_PDU::init (const CArray & c)
     return false;
   repeated = (c[0] & 0x20) ? 0 : 1;
   valid_length = 1;
-  switch ((c[0] >> 2) & 0x3)
-    {
-    case 0:
-      prio = PRIO_SYSTEM;
-      break;
-    case 1:
-      prio = PRIO_URGENT;
-      break;
-    case 2:
-      prio = PRIO_NORMAL;
-      break;
-    case 3:
-      prio = PRIO_LOW;
-      break;
-    }
+  prio = static_cast<EIB_Priority>((c[0] >> 2) & 0x3);
   if (c[0] & 0x80)
     {
       /*Standard frame */
@@ -272,27 +258,10 @@ CArray L_Data_PDU::ToPacket ()
   assert (data.size() <= 0xff);
   assert ((hopcount & 0xf8) == 0);
   CArray pdu;
-  uchar c = 0; // stupid compiler
-  unsigned i;
-  switch (prio)
-    {
-    case PRIO_LOW:
-      c = 0x3;
-      break;
-    case PRIO_NORMAL:
-      c = 0x1;
-      break;
-    case PRIO_URGENT:
-      c = 0x02;
-      break;
-    case PRIO_SYSTEM:
-      c = 0x00;
-      break;
-    }
   if (data.size() - 1 <= 0x0f)
     {
       pdu.resize (7 + data.size());
-      pdu[0] = 0x90 | (c << 2) | (repeated ? 0x00 : 0x20);
+      pdu[0] = 0x90 | (prio << 2) | (repeated ? 0x00 : 0x20);
       pdu[1] = (source >> 8) & 0xff;
       pdu[2] = (source) & 0xff;
       pdu[3] = (dest >> 8) & 0xff;
@@ -306,7 +275,7 @@ CArray L_Data_PDU::ToPacket ()
   else
     {
       pdu.resize (8 + data.size());
-      pdu[0] = 0x10 | (c << 2) | (repeated ? 0x00 : 0x20);
+      pdu[0] = 0x10 | (prio << 2) | (repeated ? 0x00 : 0x20);
       pdu[1] =
 	(hopcount & 0x07) << 4 | (AddrType == GroupAddress ? 0x80 : 0x00);
       pdu[2] = (source >> 8) & 0xff;
@@ -317,8 +286,8 @@ CArray L_Data_PDU::ToPacket ()
       pdu.setpart (data.data(), 7, 1 + ((data.size() - 1) & 0xff));
     }
   /* checksum */
-  c = 0;
-  for (i = 0; i < pdu.size() - 1; i++)
+  uchar c = 0;
+  for (unsigned i = 0; i < pdu.size() - 1; i++)
     c ^= pdu[i];
   pdu[pdu.size() - 1] = ~c;
 
@@ -338,17 +307,17 @@ std::string L_Data_PDU::Decode (TracePtr t)
     s += " (repeated)";
   switch (prio)
     {
-    case PRIO_LOW:
-      s += " low";
-      break;
-    case PRIO_NORMAL:
-      s += " normal";
+    case PRIO_SYSTEM:
+      s += " system";
       break;
     case PRIO_URGENT:
       s += " urgent";
       break;
-    case PRIO_SYSTEM:
-      s += " system";
+    case PRIO_NORMAL:
+      s += " normal";
+      break;
+    case PRIO_LOW:
+      s += " low";
       break;
     }
   if (!valid_checksum)

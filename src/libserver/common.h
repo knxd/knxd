@@ -42,10 +42,10 @@ typedef long long timestamp_t;
 /** EIB message priority */
 typedef enum
 {
-  PRIO_LOW,
-  PRIO_NORMAL,
-  PRIO_URGENT,
-  PRIO_SYSTEM,
+  PRIO_SYSTEM = 0,
+  PRIO_URGENT = 1,
+  PRIO_NORMAL = 2,
+  PRIO_LOW = 3
 } EIB_Priority;
 
 /** EIB address type */

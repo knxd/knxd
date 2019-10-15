@@ -22,31 +22,15 @@
 CArray
 L_Data_ToCEMI (uchar code, const LDataPtr & l1)
 {
-  uchar c = 0; // stupid compiler
   CArray pdu;
   assert (l1->data.size() >= 1);
   assert (l1->data.size() < 0xff);
   assert ((l1->hopcount & 0xf8) == 0);
 
-  switch (l1->prio)
-    {
-    case PRIO_LOW:
-      c = 0x3;
-      break;
-    case PRIO_NORMAL:
-      c = 0x1;
-      break;
-    case PRIO_URGENT:
-      c = 0x02;
-      break;
-    case PRIO_SYSTEM:
-      c = 0x00;
-      break;
-    }
   pdu.resize (l1->data.size() + 9);
   pdu[0] = code;
   pdu[1] = 0x00;
-  pdu[2] = 0x10 | (c << 2) | (l1->data.size() - 1 <= 0x0f ? 0x80 : 0x00);
+  pdu[2] = 0x10 | (l1->prio << 2) | (l1->data.size() - 1 <= 0x0f ? 0x80 : 0x00);
   if (code == 0x29)
     pdu[2] |= (l1->repeated ? 0 : 0x20);
   else
@@ -91,21 +75,7 @@ CEMI_to_L_Data (const CArray & data, TracePtr t)
     c->repeated = (data[start] & 0x20) ? 0 : 1;
   else
     c->repeated = 0;
-  switch ((data[start] >> 2) & 0x3)
-    {
-    case 0:
-      c->prio = PRIO_SYSTEM;
-      break;
-    case 1:
-      c->prio = PRIO_URGENT;
-      break;
-    case 2:
-      c->prio = PRIO_NORMAL;
-      break;
-    case 3:
-      c->prio = PRIO_LOW;
-      break;
-    }
+  c->prio = static_cast<EIB_Priority>((data[start] >> 2) & 0x3);
   c->hopcount = (data[start + 1] >> 4) & 0x07;
   c->AddrType = (data[start + 1] & 0x80) ? GroupAddress : IndividualAddress;
   if (!(data[start] & 0x80) && (data[start + 1] & 0x0f))
@@ -162,25 +132,9 @@ CArray
 L_Data_ToEMI (uchar code, const LDataPtr & l1)
 {
   CArray pdu;
-  uchar c = 0; // stupid compiler
-  switch (l1->prio)
-    {
-    case PRIO_LOW:
-      c = 0x3;
-      break;
-    case PRIO_NORMAL:
-      c = 0x1;
-      break;
-    case PRIO_URGENT:
-      c = 0x02;
-      break;
-    case PRIO_SYSTEM:
-      c = 0x00;
-      break;
-    }
   pdu.resize (l1->data.size() + 7);
   pdu[0] = code;
-  pdu[1] = c << 2;
+  pdu[1] = l1->prio << 2;
   pdu[2] = 0;
   pdu[3] = 0;
   pdu[4] = (l1->dest >> 8) & 0xff;
@@ -204,21 +158,7 @@ EMI_to_L_Data (const CArray & data, TracePtr t UNUSED)
 
   c->source = (data[2] << 8) | (data[3]);
   c->dest = (data[4] << 8) | (data[5]);
-  switch ((data[1] >> 2) & 0x3)
-    {
-    case 0:
-      c->prio = PRIO_SYSTEM;
-      break;
-    case 1:
-      c->prio = PRIO_URGENT;
-      break;
-    case 2:
-      c->prio = PRIO_NORMAL;
-      break;
-    case 3:
-      c->prio = PRIO_LOW;
-      break;
-    }
+  c->prio = static_cast<EIB_Priority>((data[1] >> 2) & 0x3);
   c->AddrType = (data[6] & 0x80) ? GroupAddress : IndividualAddress;
   len = (data[6] & 0x0f) + 1;
   if (len > data.size() - 7)
