@@ -21,6 +21,7 @@ Makefile
 /configure
 /confdefs.h
 /depcomp
+/doc
 /install-sh
 /libtool
 /libev/
