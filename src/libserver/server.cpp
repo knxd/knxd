@@ -35,7 +35,7 @@ NetServer::stop_()
     cleanup_q.pop();
 
   ITER(i,connections)
-    (*i)->stop();
+  (*i)->stop();
   connections.clear();
 
   if (fd > -1)
@@ -73,11 +73,11 @@ NetServer::cleanup_cb (ev::async &w UNUSED, int revents UNUSED)
       ClientConnPtr con = cleanup_q.get();
 
       ITER(i, connections)
-        if (*i == con)
-          {
-	    connections.erase (i);
-	    break;
-          }
+      if (*i == con)
+        {
+          connections.erase (i);
+          break;
+        }
     }
 }
 

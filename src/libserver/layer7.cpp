@@ -52,7 +52,7 @@ Layer7_Broadcast::A_IndividualAddress_Write (eibaddr_t addr)
 }
 
 std::vector < eibaddr_t >
-  Layer7_Broadcast::A_IndividualAddress_Read (TracePtr tr, unsigned timeout)
+Layer7_Broadcast::A_IndividualAddress_Read (TracePtr tr, unsigned timeout)
 {
   std::vector < eibaddr_t > addrs;
   A_IndividualAddress_Read_PDU r;
@@ -63,13 +63,13 @@ std::vector < eibaddr_t >
     {
       BroadcastComm *c = l4->Get (t);
       if (c)
-	{
-	  a = APDU::fromPacket (c->data, tr);
-	  if (a->isResponse (&r))
-	    addrs.push_back (c->src);
-	  delete a;
-	  delete c;
-	}
+        {
+          a = APDU::fromPacket (c->data, tr);
+          if (a->isResponse (&r))
+            addrs.push_back (c->src);
+          delete a;
+          delete c;
+        }
     }
   pth_event_free (t, PTH_FREE_THIS);
   return addrs;
@@ -131,7 +131,7 @@ Layer7_Connection::Request_Response (APDU * r)
 
 int
 Layer7_Connection::A_Property_Read (uchar obj, uchar propertyid,
-				    uint16_t start, uchar count, CArray & result)
+                                    uint16_t start, uchar count, CArray & result)
 {
   A_PropertyValue_Read_PDU r;
   r.obj = obj;
@@ -148,8 +148,8 @@ Layer7_Connection::A_Property_Read (uchar obj, uchar propertyid,
 
 int
 Layer7_Connection::A_Property_Write (uchar obj, uchar propertyid,
-				     uint16_t start, uchar count,
-				     const CArray & data, CArray & result)
+                                     uint16_t start, uchar count,
+                                     const CArray & data, CArray & result)
 {
   A_PropertyValue_Write_PDU r;
   r.obj = obj;
@@ -167,9 +167,9 @@ Layer7_Connection::A_Property_Write (uchar obj, uchar propertyid,
 
 int
 Layer7_Connection::A_Property_Desc (uchar obj, uchar & property,
-				    uchar property_index, uchar & type,
-				    uint16_t & max_nr_elements,
-				    uchar & access)
+                                    uchar property_index, uchar & type,
+                                    uint16_t & max_nr_elements,
+                                    uchar & access)
 {
   A_PropertyDescription_Read_PDU r;
   r.obj = obj;
@@ -204,7 +204,7 @@ Layer7_Connection::A_Device_Descriptor_Read (uint16_t & maskver, uchar type)
 
 int
 Layer7_Connection::A_ADC_Read (uchar channel, uchar readcount,
-			       int16_t & value)
+                               int16_t & value)
 {
   A_ADC_Read_PDU r;
   r.channel = channel & 0x3f;
@@ -275,8 +275,8 @@ Layer7_Connection::A_KeyWrite (eibkey_type key, uchar & level)
 
 int
 Layer7_Connection::X_Property_Write (uchar obj, uchar propertyid,
-				     uint16_t start, uchar count,
-				     const CArray & data)
+                                     uint16_t start, uchar count,
+                                     const CArray & data)
 {
   CArray d1;
   if (A_Property_Write (obj, propertyid, start, count, data, d1) == -1)
@@ -313,15 +313,15 @@ Layer7_Connection::X_Memory_Write_Block (memaddr_t addr, const CArray & data)
   for (i = 0; i < data.size(); i++)
     {
       if (data[i] == prev[i])
-	continue;
+        continue;
       j = 0;
       while (data[i + j] != prev[i + j] && j < blocksize && i + j < data.size())
-	j++;
+        j++;
       k = X_Memory_Write (addr + i, CArray (data, i, j));
       if (k == -1)
-	return -1;
+        return -1;
       if (k == -2)
-	res = -2;
+        res = -2;
       i += j - 1;
     }
 
@@ -336,17 +336,17 @@ Layer7_Connection::X_Memory_Read_Block (memaddr_t addr, unsigned int len, CArray
   erg.resize (len);
   for (unsigned i = 0; i < len; i += blocksize)
     {
-    rt:
+rt:
       if (A_Memory_Read
-	  (addr + i, (len - i > blocksize ? blocksize : len - i), e) == -1)
-	{
-	  if (blocksize == 12)
-	    {
-	      blocksize = 2;
-	      goto rt;
-	    }
-	  return -1;
-	}
+          (addr + i, (len - i > blocksize ? blocksize : len - i), e) == -1)
+        {
+          if (blocksize == 12)
+            {
+              blocksize = 2;
+              goto rt;
+            }
+          return -1;
+        }
       erg.setpart (e, i);
     }
   return 0;
@@ -364,10 +364,10 @@ Layer7_Connection::A_Memory_Write_Block (memaddr_t addr, const CArray & data)
     {
       j = blocksize;
       if (i + j > data.size())
-	j = data.size() - i;
+        j = data.size() - i;
       k = A_Memory_Write (addr + i, CArray (data.data() + i, j));
       if (k == -1)
-	return -1;
+        return -1;
     }
 
   return res;
@@ -402,23 +402,23 @@ Layer7_Individual::Request_Response (APDU * r)
     {
       c = l4->Get (t);
       if (c)
-	{
-	  if (c->size() == 0)
-	    {
-	      delete c;
-	      pth_event_free (t, PTH_FREE_THIS);
-	      return 0;
-	    }
-	  a = APDU::fromPacket (*c, this->t);
-	  delete c;
-	  if (a->isResponse (r))
-	    {
-	      pth_event_free (t, PTH_FREE_THIS);
-	      return a;
-	    }
-	  pth_event_free (t, PTH_FREE_THIS);
-	  return 0;
-	}
+        {
+          if (c->size() == 0)
+            {
+              delete c;
+              pth_event_free (t, PTH_FREE_THIS);
+              return 0;
+            }
+          a = APDU::fromPacket (*c, this->t);
+          delete c;
+          if (a->isResponse (r))
+            {
+              pth_event_free (t, PTH_FREE_THIS);
+              return a;
+            }
+          pth_event_free (t, PTH_FREE_THIS);
+          return 0;
+        }
     }
   pth_event_free (t, PTH_FREE_THIS);
   return 0;
@@ -426,7 +426,7 @@ Layer7_Individual::Request_Response (APDU * r)
 
 int
 Layer7_Individual::A_Property_Read (uchar obj, uchar propertyid,
-				    uint16_t start, uchar count, CArray & erg)
+                                    uint16_t start, uchar count, CArray & erg)
 {
   A_PropertyValue_Read_PDU r;
   r.obj = obj;
@@ -444,8 +444,8 @@ Layer7_Individual::A_Property_Read (uchar obj, uchar propertyid,
 
 int
 Layer7_Individual::A_Property_Write (uchar obj, uchar propertyid,
-				     uint16_t start, uchar count,
-				     const CArray & data, CArray & result)
+                                     uint16_t start, uchar count,
+                                     const CArray & data, CArray & result)
 {
   A_PropertyValue_Write_PDU r;
   r.obj = obj;

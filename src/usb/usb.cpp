@@ -73,10 +73,10 @@ void USBLoop::timer()
 void USBLoop::setup()
 {
   ITER(i,fds)
-    {
-      (*i)->stop();
-      delete *i;
-    }
+  {
+    (*i)->stop();
+    delete *i;
+  }
   fds.clear();
   const struct libusb_pollfd **usb_fds = libusb_get_pollfds(context);
   const struct libusb_pollfd **orig_usb_fds = usb_fds;
@@ -108,10 +108,10 @@ USBLoop::~USBLoop ()
     libusb_exit (context);
   tm.stop();
   ITER(i,fds)
-    {
-      (*i)->stop();
-      delete *i;
-    }
+  {
+    (*i)->stop();
+    delete *i;
+  }
   fds.clear();
 }
 

@@ -53,13 +53,13 @@ DRIVER(EIBNetIPTunnel,ipt)
   ev::timer timeout; void timeout_cb(ev::timer &w, int revents);
   ev::timer conntimeout; void conntimeout_cb(ev::timer &w, int revents);
   ev::async trigger; void trigger_cb(ev::async &w, int revents);
-  
+
   bool support_busmonitor;
   bool connect_busmonitor;
   void read_cb(EIBNetIPPacket *p);
   void error_cb();
 
-  inline EIBnet_ConnectRequest get_creq() { 
+  inline EIBnet_ConnectRequest get_creq() {
     EIBnet_ConnectRequest creq;
 
     creq.nat = saddr.sin_addr.s_addr == 0;
@@ -70,7 +70,7 @@ DRIVER(EIBNetIPTunnel,ipt)
     creq.CRI[1] = 0x02;
     creq.CRI[2] = 0x00;
     return creq;
-  } 
+  }
 
 public:
   EIBNetIPTunnel (const LinkConnectPtr_& c, IniSectionPtr& s);

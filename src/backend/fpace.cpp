@@ -102,14 +102,14 @@ PaceFilter::send_Next()
       want_next = true;
       break;
     case P_IDLE:
-      {
-        float this_delay;
-        state = P_BUSY;
-        this_delay = last_len*byte_delay + delay;
-        TRACEPRINTF (t, 2, "out 1/%d: delay for %.3f sec", last_len, this_delay);
-        timer.start(this_delay);
-      }
-      break;
+    {
+      float this_delay;
+      state = P_BUSY;
+      this_delay = last_len*byte_delay + delay;
+      TRACEPRINTF (t, 2, "out 1/%d: delay for %.3f sec", last_len, this_delay);
+      timer.start(this_delay);
+    }
+    break;
     case P_BUSY:
       ERRORPRINTF(t, E_WARNING | 111, "send_next on busy pacer?");
       break;

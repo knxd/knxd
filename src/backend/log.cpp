@@ -116,7 +116,7 @@ LogFilter::hasAddress (eibaddr_t addr)
   bool res = Filter::hasAddress(addr);
   if (log_addr)
     t->TracePrintf (0, "Has Addr %s: %s",
-        FormatEIBAddr(addr), res ? "yes" : "no");
+                    FormatEIBAddr(addr), res ? "yes" : "no");
   return res;
 }
 
@@ -134,7 +134,7 @@ LogFilter::checkAddress (eibaddr_t addr)
   bool res = Filter::checkAddress(addr);
   if (log_addr)
     t->TracePrintf (0, "Addr Check %s: %s",
-        FormatEIBAddr(addr), res ? "yes" : "no");
+                    FormatEIBAddr(addr), res ? "yes" : "no");
   return res;
 }
 
@@ -144,7 +144,7 @@ LogFilter::checkGroupAddress (eibaddr_t addr)
   bool res = Filter::checkGroupAddress(addr);
   if (log_addr)
     t->TracePrintf (0, "Addr Check %s: %s",
-        FormatGroupAddr(addr), res ? "yes" : "no");
+                    FormatGroupAddr(addr), res ? "yes" : "no");
   return res;
 }
 
@@ -176,28 +176,28 @@ bool LLlog::checkAddress(eibaddr_t addr)
 {
   bool x = master->checkAddress(addr);
   tr()->TracePrintf (0, "Has Addr %s: %s",
-      FormatEIBAddr(addr), x ? "yes" : "no");
+                     FormatEIBAddr(addr), x ? "yes" : "no");
   return x;
 }
 bool LLlog::checkGroupAddress(eibaddr_t addr)
 {
   bool x = master->checkGroupAddress(addr);
   tr()->TracePrintf (0, "Has Addr %s: %s",
-      FormatGroupAddr(addr), x ? "yes" : "no");
+                     FormatGroupAddr(addr), x ? "yes" : "no");
   return x;
 }
 bool LLlog::checkSysAddress(eibaddr_t addr)
 {
   bool x = master->checkSysAddress(addr);
   tr()->TracePrintf (0, "Known Addr %s: %s",
-      FormatEIBAddr(addr), x ? "yes" : "no");
+                     FormatEIBAddr(addr), x ? "yes" : "no");
   return x;
 }
 bool LLlog::checkSysGroupAddress(eibaddr_t addr)
 {
   bool x = master->checkSysGroupAddress(addr);
   tr()->TracePrintf (0, "Known Addr %s: %s",
-      FormatGroupAddr(addr), x ? "yes" : "no");
+                     FormatGroupAddr(addr), x ? "yes" : "no");
   return x;
 }
 

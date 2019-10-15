@@ -40,7 +40,7 @@ set_low_latency (int fd, low_latency_save * save, bool really)
       if(ioctl (fd, TIOCSSERIAL, &snew) < 0)
         {
           if (errno != ENOTTY && errno != EOPNOTSUPP)
-          return false;
+            return false;
         }
     }
 #endif

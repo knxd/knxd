@@ -24,7 +24,7 @@
 #include "usblowlevel.h"
 
 USBConverterInterface::USBConverterInterface (LowLevelIface * p, IniSectionPtr& s)
-    : LowLevelFilter(p,s)
+  : LowLevelFilter(p,s)
 {
   t->setAuxName("Conv");
   sendLocal_done.set<USBConverterInterface,&USBConverterInterface::sendLocal_done_cb>(this);
@@ -140,7 +140,8 @@ USBConverterInterface::send_Init()
 {
   TRACEPRINTF (t, 2, "send_Init %d",version);
 
-  uchar init[64] = {
+  uchar init[64] =
+  {
     0x01, 0x13, 0x0a, 0x00, 0x08, 0x00, 0x02, 0x0f, 0x03, 0x00, 0x00, 0x05, 0x01
   };
   init[12] = version;
@@ -156,7 +157,7 @@ USBConverterInterface::sendLocal_done_cb(bool success)
     LowLevelFilter::started();
 }
 
-void 
+void
 USBDriver::started()
 {
   if (version == vUnknown)
@@ -170,7 +171,7 @@ USBDriver::started()
   LowLevelAdapter::started();
 }
 
-void 
+void
 USBDriver::timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
 {
   if (++cnt < 5)
@@ -201,7 +202,8 @@ USBDriver::do_send_Next()
 void
 USBDriver::xmit()
 {
-  const uchar ask[64] = {
+  const uchar ask[64] =
+  {
     0x01, 0x13, 0x09, 0x00, 0x08, 0x00, 0x01, 0x0f, 0x01, 0x00, 0x00, 0x01
   };
   timeout.start(1,0);

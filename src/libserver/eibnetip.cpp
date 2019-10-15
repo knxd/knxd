@@ -53,7 +53,7 @@ EIBNetIPPacket::fromPacket (const CArray & c, const struct sockaddr_in src)
 
 CArray
 EIBNetIPPacket::ToPacket ()
-  const
+const
 {
   CArray c;
   c.resize (6 + data.size());
@@ -97,7 +97,7 @@ IPtoEIBNetIP (const struct sockaddr_in * a, bool nat)
 
 bool
 EIBnettoIP (const CArray & buf, struct sockaddr_in *a,
-	    const struct sockaddr_in *src, bool & nat)
+            const struct sockaddr_in *src, bool & nat)
 {
   int ip, port;
   memset (a, 0, sizeof (*a));
@@ -125,7 +125,7 @@ EIBnettoIP (const CArray & buf, struct sockaddr_in *a,
 }
 
 EIBNetIPSocket::EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr,
-				TracePtr tr, SockMode mode)
+                                TracePtr tr, SockMode mode)
 {
   int i;
   t = tr;
@@ -152,12 +152,12 @@ EIBNetIPSocket::EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr,
     {
       i = 1;
       if (setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &i, sizeof (i)) == -1)
-	{
+        {
           ERRORPRINTF (t, E_ERROR | 45, "cannot reuse address: %s", strerror(errno));
-	  close (fd);
-	  fd = -1;
-	  return;
-	}
+          close (fd);
+          fd = -1;
+          return;
+        }
     }
   if (bind (fd, (struct sockaddr *) &bindaddr, sizeof (bindaddr)) == -1)
     {
@@ -170,14 +170,15 @@ EIBNetIPSocket::EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr,
   // Enable loopback so processes on the same host see each other.
   {
     char loopch=1;
- 
+
     if (setsockopt(fd, IPPROTO_IP, IP_MULTICAST_LOOP,
-                   (char *)&loopch, sizeof(loopch)) < 0) {
-      ERRORPRINTF (t, E_ERROR | 39, "cannot turn on multicast loopback: %s", strerror(errno));
-      close(fd);
-      fd = -1;
-      return;
-    }
+                   (char *)&loopch, sizeof(loopch)) < 0)
+      {
+        ERRORPRINTF (t, E_ERROR | 39, "cannot turn on multicast loopback: %s", strerror(errno));
+        close(fd);
+        fd = -1;
+        return;
+      }
   }
 
   // don't really care if this fails
@@ -205,8 +206,8 @@ EIBNetIPSocket::stop()
       io_recv.stop();
       io_send.stop();
       if (multicast)
-	setsockopt (fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, &maddr,
-		    sizeof (maddr));
+        setsockopt (fd, IPPROTO_IP, IP_DROP_MEMBERSHIP, &maddr,
+                    sizeof (maddr));
       close (fd);
       fd = -1;
     }
@@ -215,19 +216,19 @@ EIBNetIPSocket::stop()
 void
 EIBNetIPSocket::pause()
 {
-    if (paused)
-        return;
-    paused = true;
-    io_recv.stop();
+  if (paused)
+    return;
+  paused = true;
+  io_recv.stop();
 }
 
 void
 EIBNetIPSocket::unpause()
 {
-    if (! paused)
-        return;
-    paused = false;
-    io_recv.start(fd, ev::READ);
+  if (! paused)
+    return;
+  paused = false;
+  io_recv.start(fd, ev::READ);
 }
 
 bool
@@ -293,7 +294,7 @@ EIBNetIPSocket::io_send_cb (ev::io &w UNUSED, int revents UNUSED)
   CArray p = s.data.ToPacket ();
   t->TracePacket (0, "Send", p);
   int i = sendto (fd, p.data(), p.size(), 0,
-                      (const struct sockaddr *) &s.addr, sizeof (s.addr));
+                  (const struct sockaddr *) &s.addr, sizeof (s.addr));
   if (i > 0)
     {
       send_q.get ();
@@ -386,7 +387,7 @@ EIBNetIPPacket EIBnet_ConnectRequest::ToPacket ()const
 
 int
 parseEIBnet_ConnectRequest (const EIBNetIPPacket & p,
-			    EIBnet_ConnectRequest & r)
+                            EIBnet_ConnectRequest & r)
 {
   if (p.service != CONNECTION_REQUEST)
     return 1;
@@ -432,7 +433,7 @@ EIBNetIPPacket EIBnet_ConnectResponse::ToPacket ()const
 
 int
 parseEIBnet_ConnectResponse (const EIBNetIPPacket & p,
-			     EIBnet_ConnectResponse & r)
+                             EIBnet_ConnectResponse & r)
 {
   if (p.service != CONNECTION_RESPONSE)
     return 1;
@@ -441,7 +442,7 @@ parseEIBnet_ConnectResponse (const EIBNetIPPacket & p,
   if (p.data[1] != 0)
     {
       if (p.data.size() != 2)
-	return 1;
+        return 1;
       r.channel = p.data[0];
       r.status = p.data[1];
       return 0;
@@ -479,7 +480,7 @@ EIBNetIPPacket EIBnet_ConnectionStateRequest::ToPacket ()const
 
 int
 parseEIBnet_ConnectionStateRequest (const EIBNetIPPacket & p,
-				    EIBnet_ConnectionStateRequest & r)
+                                    EIBnet_ConnectionStateRequest & r)
 {
   if (p.service != CONNECTIONSTATE_REQUEST)
     return 1;
@@ -509,7 +510,7 @@ EIBNetIPPacket EIBnet_ConnectionStateResponse::ToPacket ()const
 
 int
 parseEIBnet_ConnectionStateResponse (const EIBNetIPPacket & p,
-				     EIBnet_ConnectionStateResponse & r)
+                                     EIBnet_ConnectionStateResponse & r)
 {
   if (p.service != CONNECTIONSTATE_RESPONSE)
     return 1;
@@ -541,7 +542,7 @@ EIBNetIPPacket EIBnet_DisconnectRequest::ToPacket ()const
 
 int
 parseEIBnet_DisconnectRequest (const EIBNetIPPacket & p,
-			       EIBnet_DisconnectRequest & r)
+                               EIBnet_DisconnectRequest & r)
 {
   if (p.service != DISCONNECT_REQUEST)
     return 1;
@@ -571,7 +572,7 @@ EIBNetIPPacket EIBnet_DisconnectResponse::ToPacket ()const
 
 int
 parseEIBnet_DisconnectResponse (const EIBNetIPPacket & p,
-				EIBnet_DisconnectResponse & r)
+                                EIBnet_DisconnectResponse & r)
 {
   if (p.service != DISCONNECT_RESPONSE)
     return 1;
@@ -727,9 +728,9 @@ EIBnet_DescriptionRequest::EIBnet_DescriptionRequest ()
 EIBNetIPPacket EIBnet_DescriptionRequest::ToPacket ()const
 {
   EIBNetIPPacket
-    p;
+  p;
   CArray
-    ca = IPtoEIBNetIP (&caddr, nat);
+  ca = IPtoEIBNetIP (&caddr, nat);
   p.service = DESCRIPTION_REQUEST;
   p.data = ca;
   return p;
@@ -737,7 +738,7 @@ EIBNetIPPacket EIBnet_DescriptionRequest::ToPacket ()const
 
 int
 parseEIBnet_DescriptionRequest (const EIBNetIPPacket & p,
-				EIBnet_DescriptionRequest & r)
+                                EIBnet_DescriptionRequest & r)
 {
   if (p.service != DESCRIPTION_REQUEST)
     return 1;
@@ -764,7 +765,7 @@ EIBnet_DescriptionResponse::EIBnet_DescriptionResponse ()
 EIBNetIPPacket EIBnet_DescriptionResponse::ToPacket ()const
 {
   EIBNetIPPacket
-    p;
+  p;
   p.service = DESCRIPTION_RESPONSE;
   p.data.resize (56 + services.size() * 2);
   p.data[0] = 54;
@@ -793,7 +794,7 @@ EIBNetIPPacket EIBnet_DescriptionResponse::ToPacket ()const
 
 int
 parseEIBnet_DescriptionResponse (const EIBNetIPPacket & p,
-				 EIBnet_DescriptionResponse & r)
+                                 EIBnet_DescriptionResponse & r)
 {
   if (p.service != DESCRIPTION_RESPONSE)
     return 1;
@@ -825,7 +826,7 @@ parseEIBnet_DescriptionResponse (const EIBNetIPPacket & p,
       r.services[i].version = p.data[57 + 2 * i];
     }
   r.optional.set (p.data.data() + p.data[54] + 54,
-		  p.data.size() - p.data[54] - 54);
+                  p.data.size() - p.data[54] - 54);
   return 0;
 }
 
@@ -838,9 +839,9 @@ EIBnet_SearchRequest::EIBnet_SearchRequest ()
 EIBNetIPPacket EIBnet_SearchRequest::ToPacket ()const
 {
   EIBNetIPPacket
-    p;
+  p;
   CArray
-    ca = IPtoEIBNetIP (&caddr, nat);
+  ca = IPtoEIBNetIP (&caddr, nat);
   p.service = SEARCH_REQUEST;
   p.data = ca;
   return p;
@@ -903,7 +904,7 @@ EIBNetIPPacket EIBnet_SearchResponse::ToPacket ()const
 
 int
 parseEIBnet_SearchResponse (const EIBNetIPPacket & p,
-			    EIBnet_SearchResponse & r)
+                            EIBnet_SearchResponse & r)
 {
   if (p.service != SEARCH_RESPONSE)
     return 1;

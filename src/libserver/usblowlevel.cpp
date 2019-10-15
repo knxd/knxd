@@ -65,68 +65,68 @@ check_device (libusb_device * dev, USBEndpoint e, USBDevice & e2)
   for (j = 0; j < desc.bNumConfigurations; j++)
     {
       if (libusb_get_config_descriptor (dev, j, &cfg))
-	continue;
+        continue;
       if (cfg->bConfigurationValue != e.config && e.config != -1)
-	{
-	  libusb_free_config_descriptor (cfg);
-	  continue;
-	}
+        {
+          libusb_free_config_descriptor (cfg);
+          continue;
+        }
 
       for (k = 0; k < cfg->bNumInterfaces; k++)
-	{
-	  intf = &cfg->interface[k];
-	  for (l = 0; l < intf->num_altsetting; l++)
-	    {
-	      alts = &intf->altsetting[l];
-	      if (alts->bInterfaceClass != LIBUSB_CLASS_HID)
-		continue;
-	      if (alts->bAlternateSetting != e.altsetting
-		  && e.altsetting != -1)
-		continue;
-	      if (alts->bInterfaceNumber != e.interface && e.interface != -1)
-		continue;
+        {
+          intf = &cfg->interface[k];
+          for (l = 0; l < intf->num_altsetting; l++)
+            {
+              alts = &intf->altsetting[l];
+              if (alts->bInterfaceClass != LIBUSB_CLASS_HID)
+                continue;
+              if (alts->bAlternateSetting != e.altsetting
+                  && e.altsetting != -1)
+                continue;
+              if (alts->bInterfaceNumber != e.interface && e.interface != -1)
+                continue;
 
-	      in = 0;
-	      out = 0;
-	      for (m = 0; m < alts->bNumEndpoints; m++)
-		{
-		  ep = &alts->endpoint[m];
-		  if (ep->wMaxPacketSize == 64)
-		    {
-		      if (ep->bEndpointAddress & LIBUSB_ENDPOINT_IN)
-			{
-			  if ((ep->bmAttributes & LIBUSB_TRANSFER_TYPE_MASK)
-			      == LIBUSB_TRANSFER_TYPE_INTERRUPT)
-			    in = ep->bEndpointAddress;
-			}
-		      else
-			{
-			  if ((ep->bmAttributes & LIBUSB_TRANSFER_TYPE_MASK)
-			      == LIBUSB_TRANSFER_TYPE_INTERRUPT)
-			    out = ep->bEndpointAddress;
-			}
-		    }
-		}
+              in = 0;
+              out = 0;
+              for (m = 0; m < alts->bNumEndpoints; m++)
+                {
+                  ep = &alts->endpoint[m];
+                  if (ep->wMaxPacketSize == 64)
+                    {
+                      if (ep->bEndpointAddress & LIBUSB_ENDPOINT_IN)
+                        {
+                          if ((ep->bmAttributes & LIBUSB_TRANSFER_TYPE_MASK)
+                              == LIBUSB_TRANSFER_TYPE_INTERRUPT)
+                            in = ep->bEndpointAddress;
+                        }
+                      else
+                        {
+                          if ((ep->bmAttributes & LIBUSB_TRANSFER_TYPE_MASK)
+                              == LIBUSB_TRANSFER_TYPE_INTERRUPT)
+                            out = ep->bEndpointAddress;
+                        }
+                    }
+                }
 
-	      if (!in || !out)
-		continue;
-	      if (!libusb_open (dev, &h))
-		{
-		  USBDevice e1;
-		  e1.dev = dev;
-		  libusb_ref_device (dev);
-		  e1.config = cfg->bConfigurationValue;
-		  e1.interface = alts->bInterfaceNumber;
-		  e1.altsetting = alts->bAlternateSetting;
-		  e1.sendep = out;
-		  e1.recvep = in;
-		  libusb_close (h);
-		  e2 = e1;
-		  libusb_free_config_descriptor (cfg);
-		  return true;
-		}
-	    }
-	}
+              if (!in || !out)
+                continue;
+              if (!libusb_open (dev, &h))
+                {
+                  USBDevice e1;
+                  e1.dev = dev;
+                  libusb_ref_device (dev);
+                  e1.config = cfg->bConfigurationValue;
+                  e1.interface = alts->bInterfaceNumber;
+                  e1.altsetting = alts->bAlternateSetting;
+                  e1.sendep = out;
+                  e1.recvep = in;
+                  libusb_close (h);
+                  e2 = e1;
+                  libusb_free_config_descriptor (cfg);
+                  return true;
+                }
+            }
+        }
       libusb_free_config_descriptor (cfg);
     }
   return false;
@@ -214,7 +214,7 @@ USBLowLevelDriver::start()
     {
       ERRORPRINTF (t, E_ERROR | 34, "Error AllocRecv: %s", strerror(errno));
       goto ex;
-    } 
+    }
   StartUsbRecvTransfer();
   state = sRunning;
   started();
@@ -302,7 +302,7 @@ void
 usb_complete_send (struct libusb_transfer *transfer)
 {
   USBLowLevelDriver *
-    instance = (USBLowLevelDriver *) transfer->user_data;
+  instance = (USBLowLevelDriver *) transfer->user_data;
   instance->CompleteSend(transfer);
 }
 
@@ -356,11 +356,11 @@ void
 usb_complete_recv (struct libusb_transfer *transfer)
 {
   USBLowLevelDriver *
-    instance = (USBLowLevelDriver *) transfer->user_data;
+  instance = (USBLowLevelDriver *) transfer->user_data;
   instance->CompleteReceive(transfer);
 }
 
-void 
+void
 USBLowLevelDriver::CompleteReceive(struct libusb_transfer *transfer)
 {
   assert (transfer == recvh);
@@ -395,7 +395,7 @@ USBLowLevelDriver::read_trigger_cb(ev::async &w UNUSED, int revents UNUSED)
 }
 
 
-void 
+void
 USBLowLevelDriver::StartUsbRecvTransfer()
 {
   libusb_fill_interrupt_transfer (recvh, dev, d.recvep, recvbuf,
@@ -422,7 +422,7 @@ bool get_connection_state(uint8_t *recvbuf)
   return recvbuf[12] & 0x1;
 }
 
-void 
+void
 USBLowLevelDriver::HandleReceiveUsb()
 {
   CArray res;
@@ -507,9 +507,9 @@ USBLowLevelDriver::setup()
     }
 
   TRACEPRINTF (t, 1, "Using %d:%d:%d:%d:%d (%d:%d)",
-	       libusb_get_bus_number (d.dev),
-	       libusb_get_device_address (d.dev), d.config, d.altsetting,
-	       d.interface, d.sendep, d.recvep);
+               libusb_get_bus_number (d.dev),
+               libusb_get_device_address (d.dev), d.config, d.altsetting,
+               d.interface, d.sendep, d.recvep);
 
   return true;
 ex:

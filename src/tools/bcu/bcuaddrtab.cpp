@@ -48,7 +48,8 @@ struct urldef
 };
 
 /** list of URLs */
-struct urldef URLs[] = {
+struct urldef URLs[] =
+{
 #undef L2_NAME
 #define L2_NAME(a) { a##_PREFIX, a##_CREATE },
 #include "lowlevelcreate.h"
@@ -68,7 +69,7 @@ Create (const char *url, TracePtr t)
   while (u->prefix)
     {
       if (strlen (u->prefix) == p && !memcmp (u->prefix, url, p))
-	return u->Create (url + p + 1, t);
+        return u->Create (url + p + 1, t);
       u++;
     }
   die ("url not supported");
@@ -110,7 +111,8 @@ struct arguments arg;
 static char args_doc[] = "URL";
 
 /** option list */
-static struct argp_option options[] = {
+static struct argp_option options[] =
+{
 
   {"trace", 't', "LEVEL", 0, "set trace level"},
   {"write", 'w', "SIZE", 0, "value to write"},
@@ -186,13 +188,13 @@ main (int ac, char *ag[])
   if (arg.newlength == -1)
     {
       if (!readAddrTabSize (iface, res))
-	die ("read failed");
+        die ("read failed");
       printf ("Size: %d\n", res);
     }
   else if (arg.newlength >= 0 && arg.newlength <= 0xff)
     {
       if (!writeAddrTabSize (iface, res))
-	die ("write failed");
+        die ("write failed");
       printf ("Size %d written\n", res);
     }
   else

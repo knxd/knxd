@@ -7,12 +7,12 @@
     the Free Software Foundation; either version 2 of the License, or
     (at your option) any later version.
 
-    In addition to the permissions in the GNU General Public License, 
+    In addition to the permissions in the GNU General Public License,
     you may link the compiled version of this file into combinations
-    with other programs, and distribute those combinations without any 
-    restriction coming from the use of this file. (The General Public 
-    License restrictions do apply in other respects; for example, they 
-    cover modification of the file, and distribution when not linked into 
+    with other programs, and distribute those combinations without any
+    restriction coming from the use of this file. (The General Public
+    License restrictions do apply in other respects; for example, they
+    cover modification of the file, and distribution when not linked into
     a combine executable.)
 
     This program is distributed in the hope that it will be useful,
@@ -197,8 +197,8 @@ int EIBGetBusmonitorPacket (EIBConnection * con, int maxlen, uint8_t * buf);
  * \return -1 if error, else length of the packet
  */
 int EIBGetBusmonitorPacketTS (EIBConnection * con, uint8_t * status,
-			      uint32_t * timestamp, int maxlen,
-			      uint8_t * buf);
+                              uint32_t * timestamp, int maxlen,
+                              uint8_t * buf);
 
 /** Opens a connection of type T_Connection.
  * \param con eibd connection
@@ -229,7 +229,7 @@ int EIBOpenT_Individual (EIBConnection * con, eibaddr_t dest, int write_only);
  * \return 0 if started, -1 if error
  */
 int EIBOpenT_Individual_async (EIBConnection * con, eibaddr_t dest,
-			       int write_only);
+                               int write_only);
 
 /** Opens a connection of type T_Group.
  * \param con eibd connection
@@ -246,7 +246,7 @@ int EIBOpenT_Group (EIBConnection * con, eibaddr_t dest, int write_only);
  * \return 0 if started, -1 if error
  */
 int EIBOpenT_Group_async (EIBConnection * con, eibaddr_t dest,
-			  int write_only);
+                          int write_only);
 
 /** Opens a connection of type T_Broadcast.
  * \param con eibd connection
@@ -300,7 +300,7 @@ int EIBGetAPDU (EIBConnection * con, int maxlen, uint8_t * buf);
  * \return received length or -1 if error
  */
 int EIBGetAPDU_Src (EIBConnection * con, int maxlen, uint8_t * buf,
-		    eibaddr_t * src);
+                    eibaddr_t * src);
 
 /** Sends a TPDU with destination address.
  * \param con eibd connection
@@ -310,7 +310,7 @@ int EIBGetAPDU_Src (EIBConnection * con, int maxlen, uint8_t * buf,
  * \return tranmited length or -1 if error
  */
 int EIBSendTPDU (EIBConnection * con, eibaddr_t dest, int len,
-		 const uint8_t * data);
+                 const uint8_t * data);
 
 /** Receive a TPDU with source address.
  * \param con eibd connection
@@ -320,7 +320,7 @@ int EIBSendTPDU (EIBConnection * con, eibaddr_t dest, int len,
  * \return received length or -1 if error
  */
 int EIBGetTPDU (EIBConnection * con, int maxlen, uint8_t * buf,
-		eibaddr_t * src);
+                eibaddr_t * src);
 
 /** Opens a Group communication interface.
  * \param con eibd connection
@@ -344,7 +344,7 @@ int EIBOpen_GroupSocket_async (EIBConnection * con, int write_only);
  * \return tranmited length or -1 if error
  */
 int EIBSendGroup (EIBConnection * con, eibaddr_t dest, int len,
-		  const uint8_t * data);
+                  const uint8_t * data);
 
 /** Receive a group APDU with source address (blocking).
  * \param con eibd connection
@@ -355,7 +355,7 @@ int EIBSendGroup (EIBConnection * con, eibaddr_t dest, int len,
  * \return received length or -1 if error
  */
 int EIBGetGroup_Src (EIBConnection * con, int maxlen, uint8_t * buf,
-		     eibaddr_t * src, eibaddr_t * dest);
+                     eibaddr_t * src, eibaddr_t * dest);
 
 /** List devices in programming mode.
  * \param con eibd connection
@@ -364,7 +364,7 @@ int EIBGetGroup_Src (EIBConnection * con, int maxlen, uint8_t * buf,
  * \return number of used bytes in the buffer or -1 if error
  */
 int EIB_M_ReadIndividualAddresses (EIBConnection * con, int maxlen,
-				   uint8_t * buf);
+                                   uint8_t * buf);
 
 /** List devices in programming mode - asynchronous.
  * \param con eibd connection
@@ -373,7 +373,7 @@ int EIB_M_ReadIndividualAddresses (EIBConnection * con, int maxlen,
  * \return 0 if started, -1 if error
  */
 int EIB_M_ReadIndividualAddresses_async (EIBConnection * con, int maxlen,
-					 uint8_t * buf);
+                                         uint8_t * buf);
 
 /** Turn on programming mode (connectionless).
  * \param con eibd connection
@@ -504,7 +504,7 @@ int EIB_MC_Read (EIBConnection * con, uint16_t addr, int len, uint8_t * buf);
  * \return 0 if started, -1 if error
  */
 int EIB_MC_Read_async (EIBConnection * con, uint16_t addr, int len,
-		       uint8_t * buf);
+                       uint8_t * buf);
 
 /** Write BAU memory (over a management connection).
  * \param con eibd connection
@@ -514,7 +514,7 @@ int EIB_MC_Read_async (EIBConnection * con, uint16_t addr, int len,
  * \return -1 if error, else number of bytes read
  */
 int EIB_MC_Write (EIBConnection * con, uint16_t addr, int len,
-		  const uint8_t * buf);
+                  const uint8_t * buf);
 
 /** Write BAU memory (over a management connection) - asynchronous.
  * \param con eibd connection
@@ -524,7 +524,7 @@ int EIB_MC_Write (EIBConnection * con, uint16_t addr, int len,
  * \return 0 if started, -1 if error
  */
 int EIB_MC_Write_async (EIBConnection * con, uint16_t addr, int len,
-			const uint8_t * buf);
+                        const uint8_t * buf);
 
 /** Turns programming mode on (over a management connection).
  * \param con eibd connection
@@ -550,7 +550,7 @@ int EIB_MC_Progmode_Off (EIBConnection * con);
  */
 int EIB_MC_Progmode_Off_async (EIBConnection * con);
 
-/** Toggles programming mode (over a management connection) - asynchronous. 
+/** Toggles programming mode (over a management connection) - asynchronous.
  * \param con eibd connection
  * \return 0 if successful, -1 if error
  */
@@ -597,8 +597,8 @@ int EIB_MC_GetMaskVersion_async (EIBConnection * con);
  * \return -1 if error, else number of bytes read
  */
 int EIB_MC_PropertyRead (EIBConnection * con, uint8_t obj, uint8_t property,
-			 uint16_t start, uint8_t nr_of_elem, int max_len,
-			 uint8_t * buf);
+                         uint16_t start, uint8_t nr_of_elem, int max_len,
+                         uint8_t * buf);
 
 /** Read a property (over a management connection) - asynchronous.
  * \param con eibd connection
@@ -611,9 +611,9 @@ int EIB_MC_PropertyRead (EIBConnection * con, uint8_t obj, uint8_t property,
  * \return 0 if started, -1 if error
  */
 int EIB_MC_PropertyRead_async (EIBConnection * con, uint8_t obj,
-			       uint8_t property, uint16_t start,
-			       uint8_t nr_of_elem, int max_len,
-			       uint8_t * buf);
+                               uint8_t property, uint16_t start,
+                               uint8_t nr_of_elem, int max_len,
+                               uint8_t * buf);
 
 /** Write a property (over a management connection).
  * \param con eibd connection
@@ -628,8 +628,8 @@ int EIB_MC_PropertyRead_async (EIBConnection * con, uint8_t obj,
  * \return -1 if error, else length of the returned result
  */
 int EIB_MC_PropertyWrite (EIBConnection * con, uint8_t obj, uint8_t property,
-			  uint16_t start, uint8_t nr_of_elem, int len,
-			  const uint8_t * buf, int max_len, uint8_t * res);
+                          uint16_t start, uint8_t nr_of_elem, int len,
+                          const uint8_t * buf, int max_len, uint8_t * res);
 
 /** Write a property (over a management connection) - asynchronous.
  * \param con eibd connection
@@ -644,10 +644,10 @@ int EIB_MC_PropertyWrite (EIBConnection * con, uint8_t obj, uint8_t property,
  * \return 0 if started, -1 if error
  */
 int EIB_MC_PropertyWrite_async (EIBConnection * con, uint8_t obj,
-				uint8_t property, uint16_t start,
-				uint8_t nr_of_elem, int len,
-				const uint8_t * buf, int max_len,
-				uint8_t * res);
+                                uint8_t property, uint16_t start,
+                                uint8_t nr_of_elem, int len,
+                                const uint8_t * buf, int max_len,
+                                uint8_t * res);
 
 /** Read a property description (over a management connection)
  * \param con eibd connection
@@ -659,8 +659,8 @@ int EIB_MC_PropertyWrite_async (EIBConnection * con, uint8_t obj,
  * \return -1 if error, else 0
  */
 int EIB_MC_PropertyDesc (EIBConnection * con, uint8_t obj, uint8_t property,
-			 uint8_t * type, uint16_t * max_nr_of_elem,
-			 uint8_t * access);
+                         uint8_t * type, uint16_t * max_nr_of_elem,
+                         uint8_t * access);
 
 /** Read a property description (over a mangement connection) - asynchronous.
  * \param con eibd connection
@@ -672,8 +672,8 @@ int EIB_MC_PropertyDesc (EIBConnection * con, uint8_t obj, uint8_t property,
  * \return 0 if started, -1 if error
  */
 int EIB_MC_PropertyDesc_async (EIBConnection * con, uint8_t obj,
-			       uint8_t property, uint8_t * type,
-			       uint16_t * max_nr_of_elem, uint8_t * access);
+                               uint8_t property, uint8_t * type,
+                               uint16_t * max_nr_of_elem, uint8_t * access);
 
 /** List properties (over a management connection).
  * \param con eibd connection
@@ -690,7 +690,7 @@ int EIB_MC_PropertyScan (EIBConnection * con, int maxlen, uint8_t * buf);
  * \return 0 if started, -1 if error
  */
 int EIB_MC_PropertyScan_async (EIBConnection * con, int maxlen,
-			       uint8_t * buf);
+                               uint8_t * buf);
 
 /** Read PEI type (over a management connection).
  * \param con eibd connection
@@ -712,7 +712,7 @@ int EIB_MC_GetPEIType_async (EIBConnection * con);
  * \return 0, if successful or -1 if error
  */
 int EIB_MC_ReadADC (EIBConnection * con, uint8_t channel, uint8_t count,
-		    int16_t * val);
+                    int16_t * val);
 
 /** Read ADC value (over a management connection) - asynchronous.
  * \param con eibd connection
@@ -722,7 +722,7 @@ int EIB_MC_ReadADC (EIBConnection * con, uint8_t channel, uint8_t count,
  * \return 0 if started, -1 if error
  */
 int EIB_MC_ReadADC_async (EIBConnection * con, uint8_t channel, uint8_t count,
-			  int16_t * val);
+                          int16_t * val);
 
 /** Authorize (over a management connection).
  * \param con eibd connection
@@ -774,7 +774,7 @@ int EIB_MC_Restart (EIBConnection * con);
  * \return -1 if error, else number of bytes read
  */
 int EIB_MC_Write_Plain (EIBConnection * con, uint16_t addr, int len,
-			const uint8_t * buf);
+                        const uint8_t * buf);
 
 /** Write BAU memory without doing verify (over a management connection) - asynchronous.
  * \param con eibd connection
@@ -784,7 +784,7 @@ int EIB_MC_Write_Plain (EIBConnection * con, uint16_t addr, int len,
  * \return 0 if started, -1 if error
  */
 int EIB_MC_Write_Plain_async (EIBConnection * con, uint16_t addr, int len,
-			      const uint8_t * buf);
+                              const uint8_t * buf);
 
 
 /** Loads a BCU SDK program image (over a management connection).
@@ -839,7 +839,7 @@ int EIB_Cache_Remove (EIBConnection * con, eibaddr_t dest);
  * \return -1 if error (ENODEV=group cache not enabled, ENOENT=A_GroupValue_Read request was not answered), else length of APDU
  */
 int EIB_Cache_Read_Sync (EIBConnection * con, eibaddr_t dest, eibaddr_t * src,
-			 int max_len, uint8_t * buf, uint16_t age);
+                         int max_len, uint8_t * buf, uint16_t age);
 
 /** Query the last value sent to a group address
  * \param con eibd connection
@@ -850,23 +850,23 @@ int EIB_Cache_Read_Sync (EIBConnection * con, eibaddr_t dest, eibaddr_t * src,
  * \return -1 if error (ENODEV=group cache not enabled, ENOENT=no telegram in cache), else length of APDU
  */
 int EIB_Cache_Read (EIBConnection * con, eibaddr_t dest,
-		    eibaddr_t * src, int max_len, uint8_t * buf);
+                    eibaddr_t * src, int max_len, uint8_t * buf);
 
 /** Returns a list of the last updates in the groupcache
  * \param con eibd connection
  * \param start start position (use 0 for first request)
  * \param timeout maximum time to wait in seconds, if there is no data
  * \param max_len buffer size
- * \param buf buffer for the returned group addresses (2 bytes per address) 
+ * \param buf buffer for the returned group addresses (2 bytes per address)
  * \param end position for the next request
  * \return -1 if error, else number of bytes read
  */
 int EIB_Cache_LastUpdates (EIBConnection * con, uint16_t start,
-			   uint8_t timeout, int max_len, uint8_t * buf,
-			   uint16_t * end);
+                           uint8_t timeout, int max_len, uint8_t * buf,
+                           uint16_t * end);
 int EIB_Cache_LastUpdates2 (EIBConnection * con, uint32_t start,
-			    uint8_t timeout, int max_len, uint8_t * buf,
-			    uint32_t * end);
+                            uint8_t timeout, int max_len, uint8_t * buf,
+                            uint32_t * end);
 
 /** Enable Group Cache - asynchronous.
  * \param con eibd connection
@@ -903,8 +903,8 @@ int EIB_Cache_Remove_async (EIBConnection * con, eibaddr_t dest);
  * \return 0 if started, -1 if error
  */
 int EIB_Cache_Read_Sync_async (EIBConnection * con, eibaddr_t dest,
-			       eibaddr_t * src, int max_len, uint8_t * buf,
-			       uint16_t age);
+                               eibaddr_t * src, int max_len, uint8_t * buf,
+                               uint16_t age);
 
 /** Query the last value sent to a group address - asynchronous.
  * \param con eibd connection
@@ -915,7 +915,7 @@ int EIB_Cache_Read_Sync_async (EIBConnection * con, eibaddr_t dest,
  * \return 0 if started, -1 if error
  */
 int EIB_Cache_Read_async (EIBConnection * con, eibaddr_t dest,
-			  eibaddr_t * src, int max_len, uint8_t * buf);
+                          eibaddr_t * src, int max_len, uint8_t * buf);
 
 
 /** Returns a list of the last updates in the groupcache - asynchronous.
@@ -923,16 +923,16 @@ int EIB_Cache_Read_async (EIBConnection * con, eibaddr_t dest,
  * \param start start position (use 0 for first request)
  * \param timeout maximum time to wait in seconds, if there is no data
  * \param max_len buffer size
- * \param buf buffer for the returned group addresses (2 bytes per address) 
+ * \param buf buffer for the returned group addresses (2 bytes per address)
  * \param end position for the next request
  * \return 0 if started, -1 if error
  */
 int EIB_Cache_LastUpdates_async (EIBConnection * con, uint16_t start,
-				 uint8_t timeout, int max_len, uint8_t * buf,
-				 uint16_t * end);
+                                 uint8_t timeout, int max_len, uint8_t * buf,
+                                 uint16_t * end);
 int EIB_Cache_LastUpdates2_async (EIBConnection * con, uint32_t start,
-				  uint8_t timeout, int max_len, uint8_t * buf,
-				  uint32_t * end);
+                                  uint8_t timeout, int max_len, uint8_t * buf,
+                                  uint32_t * end);
 
 
 __END_DECLS

@@ -36,10 +36,10 @@ HexDump (CArray data)
       sprintf (buf, "%02x ", data[i]);
       s += buf;
       if (i % 16 == 15)
-	{
-	  sprintf (buf, "\n%04X ", i + 1);
-	  s += buf;
-	}
+        {
+          sprintf (buf, "\n%04X ", i + 1);
+          s += buf;
+        }
     }
   s += "\n";
   return s;
@@ -259,7 +259,7 @@ STR_StringParameter::decode ()
 {
   char buf[200];
   sprintf (buf, "StringParameter: addr=%04x id=%s length=%d\n", addr, name.c_str(),
-	   length);
+           length);
   return buf;
 }
 
@@ -304,7 +304,7 @@ STR_IntParameter::decode ()
 {
   char buf[200];
   sprintf (buf, "IntParameter: addr=%04x id=%s type=%s %d bytes\n", addr,
-	   name.c_str(), type < 0 ? "signed" : "unsigned", 1 << (abs (type) - 1));
+           name.c_str(), type < 0 ? "signed" : "unsigned", 1 << (abs (type) - 1));
   return buf;
 }
 
@@ -375,13 +375,13 @@ STR_ListParameter::init (const CArray & c)
   for (i = 0; i < el; i++)
     {
       while (*d)
-	d++;
+        d++;
       if (d > &c[c.size() - 1])
-	return false;
+        return false;
       elements[i] = (const char *) d1;
       d1 = ++d;
       if (d > &c[c.size()])
-	return false;
+        return false;
     }
   if (d != &c[c.size()])
     return false;
@@ -395,7 +395,7 @@ STR_ListParameter::toArray ()
   uint16_t p;
   uint16_t len = 7 + name.length();
   ITER(i, elements)
-    len += i->length() + 1;
+  len += i->length() + 1;
   d.resize (2 + len);
   d[0] = (len >> 8) & 0xff;
   d[1] = (len) & 0xff;
@@ -407,7 +407,8 @@ STR_ListParameter::toArray ()
   d[7] = (elements.size()) & 0xff;
   d.setpart (name, 8);
   p = 8 + name.length() + 1;
-  ITER(i, elements) {
+  ITER(i, elements)
+  {
     d.setpart (*i, p);
     p += i->length() + 1;
   }
@@ -509,7 +510,7 @@ STR_BCU1Size::decode ()
 {
   char buf[200];
   sprintf (buf, "BCU1_SIZE: text:%d stack:%d data:%d bss:%d\n", textsize,
-	   stacksize, datasize, bsssize);
+           stacksize, datasize, bsssize);
   return buf;
 }
 
@@ -557,9 +558,9 @@ STR_BCU2Size::decode ()
 {
   char buf[200];
   sprintf (buf,
-	   "BCU2_SIZE: text:%d stack:%d lo_data:%d lo_bss:%d hi_data:%d hi_bss:%d\n",
-	   textsize, stacksize, lo_datasize, lo_bsssize, hi_datasize,
-	   hi_bsssize);
+           "BCU2_SIZE: text:%d stack:%d lo_data:%d lo_bss:%d hi_data:%d hi_bss:%d\n",
+           textsize, stacksize, lo_datasize, lo_bsssize, hi_datasize,
+           hi_bsssize);
   return buf;
 }
 
@@ -654,14 +655,14 @@ STR_BCU2Start::decode ()
 {
   char buf[600];
   sprintf (buf,
-	   "BCU2_INIT: init:%04X run:%04X save:%04X addr_tab:%04X(%d) assoc_tab:%04X(%d) text:%04X-%04X\n"
-	   " param:%04X-%04X obj:%04X(%d) appcallback:%04X\n"
-	   " groupobj:%04X seg0:%04X seg1:%04X sphandler:%04X eeprom:%04X-%04X poll_addr:%04X poll_slot:%d\n",
-	   initaddr, runaddr, saveaddr, addrtab_start, addrtab_size,
-	   assoctab_start, assoctab_size, readonly_start, readonly_end,
-	   param_start, param_end, obj_ptr, obj_count, appcallback,
-	   groupobj_ptr, seg0, seg1, sphandler, eeprom_start, eeprom_end,
-	   poll_addr, poll_slot);
+           "BCU2_INIT: init:%04X run:%04X save:%04X addr_tab:%04X(%d) assoc_tab:%04X(%d) text:%04X-%04X\n"
+           " param:%04X-%04X obj:%04X(%d) appcallback:%04X\n"
+           " groupobj:%04X seg0:%04X seg1:%04X sphandler:%04X eeprom:%04X-%04X poll_addr:%04X poll_slot:%d\n",
+           initaddr, runaddr, saveaddr, addrtab_start, addrtab_size,
+           assoctab_start, assoctab_size, readonly_start, readonly_end,
+           param_start, param_end, obj_ptr, obj_count, appcallback,
+           groupobj_ptr, seg0, seg1, sphandler, eeprom_start, eeprom_end,
+           poll_addr, poll_slot);
   return buf;
 }
 
@@ -753,7 +754,7 @@ Image::toArray ()
   data[8] = (data.size() >> 8) & 0xff;
   data[9] = (data.size()) & 0xff;
   ITER(i, str)
-    data.setpart ((*i)->toArray (), data.size());
+  data.setpart ((*i)->toArray (), data.size());
   return data;
 }
 
@@ -761,8 +762,8 @@ int
 Image::findStreamNumber (STR_Type t)
 {
   ITER(i, str)
-    if ((*i)->getType () == t)
-      return i-str.begin();
+  if ((*i)->getType () == t)
+    return i-str.begin();
   return -1;
 }
 
@@ -807,16 +808,16 @@ Image::fromArray (CArray c)
   while (pos < c.size())
     {
       if (pos + 4U >= c.size())
-	{
-	  delete i;
-	  return 0;
-	}
+        {
+          delete i;
+          return 0;
+        }
       len = c[pos] << 8 | c[pos + 1];
       if (pos + 2U + len > c.size() || len < 2U)
-	{
-	  delete i;
-	  return 0;
-	}
+        {
+          delete i;
+          return 0;
+        }
 
       len += 2;
       i->str.push_back (STR_Stream::fromArray (CArray (c.data(),pos, len)));

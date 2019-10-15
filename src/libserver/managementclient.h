@@ -22,7 +22,7 @@
 
 #include "client.h"
 
-/** reads all individual address of devices in the programming mode 
+/** reads all individual address of devices in the programming mode
  * @param c client connection
  */
 void ReadIndividualAddresses (ClientConnPtr c, uint8_t *buf, size_t len);
@@ -36,7 +36,7 @@ void ChangeProgMode (ClientConnPtr c, uint8_t *buf, size_t len);
  */
 void GetMaskVersion (ClientConnPtr c, uint8_t *buf, size_t len);
 
-/** write a individual address 
+/** write a individual address
  * @param c client connection
  */
 void WriteIndividualAddress (ClientConnPtr c, uint8_t *buf, size_t len);

@@ -32,7 +32,8 @@
 
 #include "llserial.h"
 
-static speed_t getbaud(int baud) {
+static speed_t getbaud(int baud)
+{
   switch(baud)
     {
     case 9600:
@@ -55,7 +56,7 @@ LLserial::setup()
     return false;
 
   dev = cfg->value("device","");
-  if(dev.size() == 0) 
+  if(dev.size() == 0)
     {
       ERRORPRINTF (t, E_ERROR | 22, "Missing device= config");
       return false;

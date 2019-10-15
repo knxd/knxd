@@ -51,13 +51,14 @@ LOOP_RESULT loop;
 
 void usage()
 {
-  if (argc > 1) {
-    char *s = (char *)malloc(strlen(argv[0])+7);
-    sprintf(s,"%s_args",argv[0]);
-    execvp(s, argv);
+  if (argc > 1)
+    {
+      char *s = (char *)malloc(strlen(argv[0])+7);
+      sprintf(s,"%s_args",argv[0]);
+      execvp(s, argv);
 
-    execv(LIBEXECDIR "/knxd_args", argv);
-  }
+      execv(LIBEXECDIR "/knxd_args", argv);
+    }
 
   fprintf(stderr,"Usage: knxd [-l?V] [--list] [--help] [--usage] [--version]\n");
   fprintf(stderr,"       knxd configfile [main_section]\n");
@@ -116,13 +117,20 @@ static char doc[] =
   ;
 
 /** option list */
-static struct argp_option options[] = {
-  {"stop", OPT_STOP_NOW, 0, OPTION_HIDDEN,
-   "immediately stops the server after a successful start"},
-  {"list", 'l', 0, 0,
-   "list known drivers, filters, or servers"},
-  {"version", 'V', 0, 0,
-   "show version"},
+static struct argp_option options[] =
+{
+  {
+    "stop", OPT_STOP_NOW, 0, OPTION_HIDDEN,
+    "immediately stops the server after a successful start"
+  },
+  {
+    "list", 'l', 0, 0,
+    "list known drivers, filters, or servers"
+  },
+  {
+    "version", 'V', 0, 0,
+    "show version"
+  },
   {0}
 };
 
@@ -229,7 +237,8 @@ timeout_cb (EV_P_ ev_timer *w, int revents)
 }
 #endif
 
-struct _hup {
+struct _hup
+{
   struct ev_signal sighup;
   const char *logfile;
   TracePtr t;
@@ -244,10 +253,10 @@ sighup_cb (EV_P_ ev_signal *w, int revents UNUSED)
     {
       int fd = open (hup->logfile, O_WRONLY | O_APPEND | O_CREAT, 0660);
       if (fd == -1)
-      {
-        ERRORPRINTF (hup->t, E_ERROR | 21, "can't open log file %s", hup->logfile);
-        return;
-      }
+        {
+          ERRORPRINTF (hup->t, E_ERROR | 21, "can't open log file %s", hup->logfile);
+          return;
+        }
       dup2 (fd, 1);
       dup2 (fd, 2);
       if (fd > 2)
@@ -307,11 +316,11 @@ main (int ac, char *ag[])
 
       if (cfgfile == NULL)
         {
-        x1:
+x1:
           printf(""
-            "Requires type of structure to list.\n"
-            "Either 'driver', 'filter' or 'server'.\n"
-            );
+                 "Requires type of structure to list.\n"
+                 "Either 'driver', 'filter' or 'server'.\n"
+                );
         }
       else // if (mainsection == NULL)
         {
@@ -351,27 +360,28 @@ main (int ac, char *ag[])
   IniSectionPtr main = i[mainsection];
 
   if(!using_systemd)
-  {
+    {
 
       std::string PidFile = main->value("pidfile","");
-      
+
       pidfile = new char[ PidFile.length()+1 ];
       strncpy(pidfile, PidFile.c_str(), PidFile.length());
       pidfile[ PidFile.length() ] = '\0';
 
       std::string LogFile = main->value("logfile","");
-      
+
       logfile = new char[ LogFile.length()+1 ];
       strncpy(logfile, LogFile.c_str(),LogFile.length());
       logfile[ LogFile.length() ] = '\0';
 
       background=main->value("background",false);
-  }
+    }
 
   if (!stop_now)
     stop_now = main->value("stop-after-setup",false);
 
-  { // handle stdin/out/err
+  {
+    // handle stdin/out/err
     int fd = open("/dev/null", O_RDONLY);
     dup2 (fd, 0);
 
@@ -413,13 +423,14 @@ main (int ac, char *ag[])
   if (!strcmp(cfgfile, "-"))
     ERRORPRINTF(r->t, E_WARNING | 125,"Consider using a config file.");
 
-  if (background) {
-    hup.t = TracePtr(new Trace(*r->t));
-    hup.t->setAuxName("reload");
-    hup.logfile = logfile;
-    ev_signal_init (&hup.sighup, sighup_cb, SIGHUP);
-    ev_signal_start (EV_A_ &hup.sighup);
-  }
+  if (background)
+    {
+      hup.t = TracePtr(new Trace(*r->t));
+      hup.t->setAuxName("reload");
+      hup.logfile = logfile;
+      ev_signal_init (&hup.sighup, sighup_cb, SIGHUP);
+      ev_signal_start (EV_A_ &hup.sighup);
+    }
 
   signal (SIGPIPE, SIG_IGN);
 

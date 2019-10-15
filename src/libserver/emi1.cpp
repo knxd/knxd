@@ -100,6 +100,6 @@ EMI1Driver::do_send_Next ()
 const uint8_t *
 EMI1Driver::getIndTypes()
 {
-    static const uint8_t indTypes[] = { 0x4E, 0x49, 0x49 };
-    return indTypes;
+  static const uint8_t indTypes[] = { 0x4E, 0x49, 0x49 };
+  return indTypes;
 }

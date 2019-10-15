@@ -81,14 +81,14 @@ LinkBase::info(int level UNUSED)
 }
 
 LinkConnect_::LinkConnect_(BaseRouter& r, IniSectionPtr& c, TracePtr tr)
-   : router(r), LinkRecv(r,c,tr)
+  : router(r), LinkRecv(r,c,tr)
 {
   t->setAuxName("Conn_");
   //Router& rt = dynamic_cast<Router&>(r);
 }
 
 LinkConnect::LinkConnect(BaseRouter& r, IniSectionPtr& c, TracePtr tr)
-   : LinkConnect_(r,c,tr)
+  : LinkConnect_(r,c,tr)
 {
   t->setAuxName("Conn");
   //Router& rt = dynamic_cast<Router&>(r);
@@ -147,8 +147,10 @@ LinkConnect::setState(LConnState new_state)
         case L_going_down: // redundant call to stop()
           state = L_down;
           break;
-        default: goto inval;
-        } break;
+        default:
+          goto inval;
+        }
+      break;
     case L_going_down:
       switch(new_state)
         {
@@ -157,8 +159,10 @@ LinkConnect::setState(LConnState new_state)
           break;
         case L_down:
           break;
-        default: goto inval;
-        } break;
+        default:
+          goto inval;
+        }
+      break;
     case L_up:
       switch(new_state)
         {
@@ -172,8 +176,10 @@ LinkConnect::setState(LConnState new_state)
         case L_error:
           state = L_up_error;
           break;
-        default: goto inval;
-        } break;
+        default:
+          goto inval;
+        }
+      break;
     case L_going_up:
       switch(new_state)
         {
@@ -188,8 +194,10 @@ LinkConnect::setState(LConnState new_state)
         case L_error:
           state = L_up_error;
           break;
-        default: goto inval;
-        } break;
+        default:
+          goto inval;
+        }
+      break;
     case L_wait_retry:
       switch(new_state)
         {
@@ -200,8 +208,10 @@ LinkConnect::setState(LConnState new_state)
           TRACEPRINTF(t, 5, "retrying halted");
           state = L_down;
           break;
-        default: goto inval;
-        } break;
+        default:
+          goto inval;
+        }
+      break;
     case L_error:
       switch(new_state)
         {
@@ -214,8 +224,10 @@ LinkConnect::setState(LConnState new_state)
           break;
         case L_down:
           goto retry;
-        default: goto inval;
-        } break;
+        default:
+          goto inval;
+        }
+      break;
     case L_up_error:
       switch(new_state)
         {
@@ -228,8 +240,10 @@ LinkConnect::setState(LConnState new_state)
           break;
         case L_error:
           break;
-        default: goto inval;
-        } break;
+        default:
+          goto inval;
+        }
+      break;
     case L_going_down_error:
       switch(new_state)
         {
@@ -240,8 +254,10 @@ LinkConnect::setState(LConnState new_state)
         case L_going_down:
           state = L_going_down_error;
           break;
-        default: goto inval;
-        } break;
+        default:
+          goto inval;
+        }
+      break;
     }
   static_cast<Router&>(router).linkStateChanged(std::dynamic_pointer_cast<LinkConnect>(shared_from_this()));
   return;
@@ -417,7 +433,7 @@ LinkConnect_::setup()
             IniSectionPtr s = static_cast<Router&>(router).ini[name];
             name = s->value("filter",name);
             link = static_cast<Router&>(router).get_filter(std::dynamic_pointer_cast<LinkConnect_>(shared_from_this()),
-                  s, name);
+                   s, name);
             if (link == nullptr)
               {
                 ERRORPRINTF (t, E_ERROR | 32, "filter '%s' not found.", name);
@@ -434,7 +450,7 @@ LinkConnect_::setup()
         pos = comma+1;
       }
   }
-  
+
   LinkBasePtr s = send;
   while (s != nullptr)
     {
@@ -515,7 +531,8 @@ LinkConnect::checkSysAddress(eibaddr_t addr)
 
 bool
 LinkConnect::checkSysGroupAddress(eibaddr_t addr)
-{ return static_cast<Router&>(router).checkGroupAddress(addr, std::dynamic_pointer_cast<LinkConnect>(shared_from_this()));
+{
+  return static_cast<Router&>(router).checkGroupAddress(addr, std::dynamic_pointer_cast<LinkConnect>(shared_from_this()));
 }
 
 bool
@@ -526,7 +543,8 @@ LinkConnect_::checkSysAddress(eibaddr_t addr)
 
 bool
 LinkConnect_::checkSysGroupAddress(eibaddr_t addr)
-{ return static_cast<Router&>(router).checkGroupAddress(addr, nullptr);
+{
+  return static_cast<Router&>(router).checkGroupAddress(addr, nullptr);
 }
 
 
@@ -552,14 +570,14 @@ LinkConnectClient::LinkConnectClient(ServerPtr s, IniSectionPtr& c, TracePtr tr)
 }
 
 SubDriver::SubDriver(const LinkConnectClientPtr& c)
-      : BusDriver(static_cast<const LinkConnectPtr&>(c), c->cfg)
+  : BusDriver(static_cast<const LinkConnectPtr&>(c), c->cfg)
 {
   t->setAuxName("SubDr");
   server = c->server;
 }
 
 LineDriver::LineDriver(const LinkConnectClientPtr& c)
-      : Driver(c, c->cfg)
+  : Driver(c, c->cfg)
 {
   t->setAuxName("LineDr");
   server = c->server;
@@ -638,7 +656,7 @@ Driver::recv_L_Busmonitor (LBusmonPtr l)
 {
   auto r = recv.lock();
   if (r != nullptr)
-    r->recv_L_Busmonitor(std::move(l)); 
+    r->recv_L_Busmonitor(std::move(l));
 }
 
 void
@@ -646,7 +664,7 @@ Filter::recv_L_Busmonitor (LBusmonPtr l)
 {
   auto r = recv.lock();
   if (r != nullptr)
-    r->recv_L_Busmonitor(std::move(l)); 
+    r->recv_L_Busmonitor(std::move(l));
 }
 
 void
@@ -745,7 +763,7 @@ Driver::push_filter(FilterPtr filter, bool first)
 }
 
 Filter::Filter(const LinkConnectPtr_& c, IniSectionPtr& s)
-    : LinkRecv(c->router, s, c->t)
+  : LinkRecv(c->router, s, c->t)
 {
   conn = c;
   t->setAuxName(c->t->name);

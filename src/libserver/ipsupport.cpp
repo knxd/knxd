@@ -94,7 +94,7 @@ GetSourceAddress (TracePtr t UNUSED, const struct sockaddr_in *dest, struct sock
   a->rta_type = RTA_DST;
   a->rta_len = RTA_LENGTH (sizeof (dest->sin_addr.s_addr));
   memcpy (RTA_DATA (a), &dest->sin_addr.s_addr,
-	  sizeof (dest->sin_addr.s_addr));
+          sizeof (dest->sin_addr.s_addr));
   if (write (s, &req, req.n.nlmsg_len) < 0)
     goto err_out;
   if (read (s, &req, sizeof (req)) < 0)
@@ -106,12 +106,12 @@ GetSourceAddress (TracePtr t UNUSED, const struct sockaddr_in *dest, struct sock
   while (RTA_OK (a, l))
     {
       if (a->rta_type == RTA_PREFSRC
-	  && RTA_PAYLOAD (a) == sizeof (src->sin_addr.s_addr))
-	{
-	  src->sin_family = AF_INET;
-	  memcpy (&src->sin_addr.s_addr, RTA_DATA (a), RTA_PAYLOAD (a));
-	  return 1;
-	}
+          && RTA_PAYLOAD (a) == sizeof (src->sin_addr.s_addr))
+        {
+          src->sin_family = AF_INET;
+          memcpy (&src->sin_addr.s_addr, RTA_DATA (a), RTA_PAYLOAD (a));
+          return 1;
+        }
       a = RTA_NEXT (a, l);
     }
   return 0;
@@ -140,21 +140,21 @@ GetSourceAddress (TracePtr t, const struct sockaddr_in *dest, struct sockaddr_in
     {
       tab = (MIB_IPADDRTABLE *) realloc (tab, s);
       if (!tab)
-	return 0;
+        return 0;
     }
   if (GetIpAddrTable (tab, &s, 0) != NO_ERROR)
     {
       if (tab)
-	free (tab);
+        free (tab);
       return 0;
     }
   for (int i = 0; i < tab->dwNumEntries; i++)
     if (tab->table[i].dwIndex == d)
       {
-	src->sin_family = AF_INET;
-	src->sin_addr.s_addr = tab->table[i].dwAddr;
-	free (tab);
-	return 1;
+        src->sin_family = AF_INET;
+        src->sin_addr.s_addr = tab->table[i].dwAddr;
+        free (tab);
+        return 1;
       }
   free (tab);
   return 0;
@@ -209,16 +209,16 @@ GetSourceAddress (TracePtr t, const struct sockaddr_in *dest, struct sockaddr_in
   for (i = 1; i; i <<= 1)
     if (i & req.hdr.rtm_addrs)
       {
-	struct sockaddr *sa = (struct sockaddr *) cp;
-	if (i == RTA_IFA)
-	  {
-	    src->sin_len = sizeof (*src);
-	    src->sin_family = AF_INET;
-	    src->sin_addr.s_addr =
-	      ((struct sockaddr_in *) sa)->sin_addr.s_addr;
-	    return 1;
-	  }
-	cp += SA_SIZE (sa);
+        struct sockaddr *sa = (struct sockaddr *) cp;
+        if (i == RTA_IFA)
+          {
+            src->sin_len = sizeof (*src);
+            src->sin_family = AF_INET;
+            src->sin_addr.s_addr =
+              ((struct sockaddr_in *) sa)->sin_addr.s_addr;
+            return 1;
+          }
+        cp += SA_SIZE (sa);
       }
   return 0;
 err_out:

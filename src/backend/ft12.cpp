@@ -35,19 +35,25 @@
 class FT12serial : public LLserial
 {
 public:
-  FT12serial(LowLevelIface* a, IniSectionPtr& b) : LLserial(a,b) { t->setAuxName("FT12_ser"); }
+  FT12serial(LowLevelIface* a, IniSectionPtr& b) : LLserial(a,b)
+  {
+    t->setAuxName("FT12_ser");
+  }
   virtual ~FT12serial() = default;
 protected:
   void termios_settings (struct termios &t1)
-    {
-      t1.c_cflag = CS8 | CLOCAL | CREAD | PARENB;
-      t1.c_iflag = IGNBRK | INPCK | ISIG;
-      t1.c_oflag = 0;
-      t1.c_lflag = 0;
-      t1.c_cc[VTIME] = 1;
-      t1.c_cc[VMIN] = 0;
-    }
-  unsigned int default_baudrate() { return 19200; }
+  {
+    t1.c_cflag = CS8 | CLOCAL | CREAD | PARENB;
+    t1.c_iflag = IGNBRK | INPCK | ISIG;
+    t1.c_oflag = 0;
+    t1.c_lflag = 0;
+    t1.c_cc[VTIME] = 1;
+    t1.c_cc[VMIN] = 0;
+  }
+  unsigned int default_baudrate()
+  {
+    return 19200;
+  }
 };
 
 bool
@@ -68,7 +74,7 @@ FT12Driver::make_EMI()
       break;
     case vUnknown:
       return false;
-    default: 
+    default:
       TRACEPRINTF (t, 2, "Unsupported EMI");
       return false;
     }
@@ -125,7 +131,7 @@ FT12wrap::setup()
         }
       iface = new LLtcp(this, cfg);
     }
-  
+
   if (t->ShowPrint(0))
     iface = new LLlog (this,cfg, iface);
 
@@ -165,7 +171,7 @@ FT12wrap::setup_buffers()
   trigger.start();
 }
 
-void 
+void
 FT12wrap::stop_()
 {
   // XXX TODO add de-registration callback
@@ -175,7 +181,7 @@ FT12wrap::stop_()
   trigger.stop();
 }
 
-void 
+void
 FT12wrap::stop()
 {
   TRACEPRINTF (t, 1, "Close");
@@ -358,7 +364,8 @@ FT12wrap::process_read(bool is_timeout)
           iface->send_Data (c1);
 
           if (akt[4] == (recvflag ? 0xF3 : 0xD3))
-            { // repeat packet?
+            {
+              // repeat packet?
               if (CArray (akt.data() + 5, akt[1] - 1) != last)
                 {
                   TRACEPRINTF (t, 0, "Sequence jump");
@@ -382,7 +389,7 @@ FT12wrap::process_read(bool is_timeout)
           /* if timeout OR an unknown byte, drop it. */
           if (false)
             {
-      err_out:
+err_out:
               if (!is_timeout)
                 break;
             }

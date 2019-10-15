@@ -133,7 +133,7 @@ void EMI2Driver::do_send_Next()
 const uint8_t *
 EMI2Driver::getIndTypes()
 {
-    static const uint8_t indTypes[] = { 0x2E, 0x29, 0x2B };
-    return indTypes;
-}   
+  static const uint8_t indTypes[] = { 0x2E, 0x29, 0x2B };
+  return indTypes;
+}
 

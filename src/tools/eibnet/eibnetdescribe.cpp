@@ -68,7 +68,7 @@ recv_me (EIBNetIPPacket *p1)
   printf ("Optional: ");
   HexDump (resp.optional.data(), resp.optional.size());
   ITER(i, resp.services)
-    printf ("Service %d Version %d\n", i->family, i->version);
+  printf ("Service %d Version %d\n", i->family, i->version);
   ev_break(EV_DEFAULT_ EVBREAK_ALL);
 }
 
@@ -102,13 +102,13 @@ main (int ac, char *ag[])
     {
       *b = 0;
       for (c = b + 1; *c; c++)
-	if (*c == ':')
-	  break;
+        if (*c == ':')
+          break;
       if (*c == ':')
-	{
-	  *c = 0;
-	  sport = atoi (c + 1);
-	}
+        {
+          *c = 0;
+          sport = atoi (c + 1);
+        }
       dport = atoi (b + 1);
     }
   else

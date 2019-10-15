@@ -45,32 +45,38 @@ public:
   virtual void recv_L_Data (LDataPtr l);
   virtual void recv_L_Busmonitor (LBusmonPtr l);
   virtual void send_L_Data (LDataPtr l)
-    {
-      router->send_L_Data(std::move(l));
-    }
+  {
+    router->send_L_Data(std::move(l));
+  }
   virtual bool checkAddress (eibaddr_t addr)
-    {
-      LinkConnectPtr link = nullptr;
-      return router->checkAddress(addr, link);
-    }
+  {
+    LinkConnectPtr link = nullptr;
+    return router->checkAddress(addr, link);
+  }
   virtual bool checkGroupAddress (eibaddr_t addr)
-    {
-      LinkConnectPtr link = nullptr;
-      return router->checkGroupAddress(addr, link);
-    }
+  {
+    LinkConnectPtr link = nullptr;
+    return router->checkGroupAddress(addr, link);
+  }
   virtual bool hasAddress (eibaddr_t addr)
-    {
-      LinkConnectPtr link = nullptr;
-      return router->hasAddress(addr, link);
-    }
+  {
+    LinkConnectPtr link = nullptr;
+    return router->hasAddress(addr, link);
+  }
   virtual void addAddress (eibaddr_t addr)
-    {
-      if (addr != router->addr)
-        ERRORPRINTF (t, E_ERROR | 80, "%s filter: Trying to add address %s", router->main, FormatEIBAddr(addr));
-    }
+  {
+    if (addr != router->addr)
+      ERRORPRINTF (t, E_ERROR | 80, "%s filter: Trying to add address %s", router->main, FormatEIBAddr(addr));
+  }
 
-  virtual void start() { router->start_(); }
-  virtual void stop() { router->stop_(); }
+  virtual void start()
+  {
+    router->start_();
+  }
+  virtual void stop()
+  {
+    router->stop_();
+  }
 
   /** prevent dup calls to started() */
   bool is_started = false;
@@ -88,16 +94,37 @@ public:
   RouterLow(Router& r);
   virtual ~RouterLow() = default;
 
-  virtual void recv_L_Data (LDataPtr l) { router->queue_L_Data (std::move(l)); }
-  virtual void recv_L_Busmonitor (LBusmonPtr l) { router->queue_L_Busmonitor (std::move(l)); }
+  virtual void recv_L_Data (LDataPtr l)
+  {
+    router->queue_L_Data (std::move(l));
+  }
+  virtual void recv_L_Busmonitor (LBusmonPtr l)
+  {
+    router->queue_L_Busmonitor (std::move(l));
+  }
   virtual void send_Next ();
 
-  virtual void start() { send->start(); }
-  virtual void stop() { send->stop(); }
+  virtual void start()
+  {
+    send->start();
+  }
+  virtual void stop()
+  {
+    send->stop();
+  }
 
-  virtual void started() { router->started(); }
-  virtual void stopped() { router->stopped(); }
-  virtual void errored() { router->errored(); }
+  virtual void started()
+  {
+    router->started();
+  }
+  virtual void stopped()
+  {
+    router->stopped();
+  }
+  virtual void errored()
+  {
+    router->errored();
+  }
 };
 
 static Factory<Server> _servers;
@@ -134,10 +161,10 @@ Router::readaddrblock (const std::string& addr, eibaddr_t& parsed, int &len)
 }
 
 Router::Router (IniData& d, std::string sn) : BaseRouter(d)
-                , servers(_servers.Instance())
-                , filters(_filters.Instance())
-                , drivers(_drivers.Instance())
-                , main(sn)
+  , servers(_servers.Instance())
+  , filters(_filters.Instance())
+  , drivers(_drivers.Instance())
+  , main(sn)
 {
   IniSectionPtr s = ini[main];
   t = TracePtr(new Trace(s, s->value("name","")));
@@ -191,18 +218,18 @@ Router::setup()
       client_addrs_pos = client_addrs_len-1;
       client_addrs.resize(client_addrs_len);
       ITER(i,client_addrs)
-        *i = false;
+      *i = false;
     }
 
 #ifdef HAVE_GROUPCACHE
-    {
-      IniSectionPtr gc = s->sub("cache",false);
-      if (gc->name.size() > 0)
-        {
-          if (!CreateGroupCache(*this, gc))
-            goto ex;
-        }
-    }
+  {
+    IniSectionPtr gc = s->sub("cache",false);
+    if (gc->name.size() > 0)
+      {
+        if (!CreateGroupCache(*this, gc))
+          goto ex;
+      }
+  }
 #endif
 
   if (!r_low->setup())
@@ -281,7 +308,7 @@ Router::setup()
     goto ex;
 
   ITER(i,links)
-    ERRORPRINTF (t, E_INFO | 129, "Connected: %s.", i->second->info(2));
+  ERRORPRINTF (t, E_INFO | 129, "Connected: %s.", i->second->info(2));
 
   TRACEPRINTF (t, 4, "setup OK");
   return true;
@@ -291,12 +318,12 @@ ex:
 }
 
 bool
-unseen_lister(void *user, 
-    const IniSection& section, const std::string& name, const std::string& value)
+unseen_lister(void *user,
+              const IniSection& section, const std::string& name, const std::string& value)
 {
   Router *r = (Router *)user;
   ERRORPRINTF (r->t, (r->unknown_ok ? E_WARNING : E_FATAL) | 104, "Section '%s': unrecognized argument '%s = %s'",
-      section.name, name, value);
+               section.name, name, value);
   return !r->unknown_ok;
 }
 
@@ -389,19 +416,19 @@ Router::start_()
       seen = false;
       links_changed = false;
       ITER(i,links)
-        {
-          auto ii = i->second;
-          if (ii->ignore || ii->transient)
-            continue;
-          if (ii->seq >= seq)
-            continue;
-          seen = true;
-          ii->seq = seq;
-          TRACEPRINTF (ii->t, 3, "Start: %s", ii->info(0));
-          ii->setState(L_going_up);
-          if (links_changed)
-            break;
-        }
+      {
+        auto ii = i->second;
+        if (ii->ignore || ii->transient)
+          continue;
+        if (ii->seq >= seq)
+          continue;
+        seen = true;
+        ii->seq = seq;
+        TRACEPRINTF (ii->t, 3, "Start: %s", ii->info(0));
+        ii->setState(L_going_up);
+        if (links_changed)
+          break;
+      }
     }
   in_link_loop -= 1;
   TRACEPRINTF (t, 4, "going up triggered");
@@ -421,20 +448,20 @@ Router::send_Next()
       return;
     }
   ITER(i,links)
-    {
-      auto ii = i->second;
-      if (ii->state != L_up)
-        {
-          TRACEPRINTF (ii->t, 6, "not up");
-          continue;
-        }
-      if (!ii->send_more)
-        {
-          TRACEPRINTF (ii->t, 6, "still waiting");
-          return;
-        }
-      TRACEPRINTF (ii->t, 6, "is OK");
-    }
+  {
+    auto ii = i->second;
+    if (ii->state != L_up)
+      {
+        TRACEPRINTF (ii->t, 6, "not up");
+        continue;
+      }
+    if (!ii->send_more)
+      {
+        TRACEPRINTF (ii->t, 6, "still waiting");
+        return;
+      }
+    TRACEPRINTF (ii->t, 6, "is OK");
+  }
   TRACEPRINTF (t, 6, "OK");
   high_send_more = true;
   r_high->send_Next();
@@ -468,56 +495,56 @@ Router::state_trigger_cb (ev::async &w UNUSED, int revents UNUSED)
     }
 
   ITER(i,links)
-    {
-      auto ii = i->second;
-      LConnState lcs = ii->state;
+  {
+    auto ii = i->second;
+    LConnState lcs = ii->state;
 
-      if (ii->transient)
-        {
-          if (!want_up && lcs != L_down && lcs != L_error)
-            {
-              ii->setState(L_going_down);
-              n_going ++;
-            }
-          continue;
-        }
-
-      switch(lcs)
-        {
-        case L_up_error:
-        case L_going_down_error:
-          ii->stop();
-          break;
-        default:
-          break;
-        }
-
-      lcs = ii->state;
-      switch(lcs)
-        {
-        case L_down:
-        case L_error:
-          if (!ii->may_fail && !ii->ignore)
-            {
-              TRACEPRINTF (ii->t, 4, "is down");
-              n_down++;
-            }
-          break;
-        case L_up:
-          n_up++;
-          break;
-        case L_up_error:
-        case L_going_down_error:
-        case L_wait_retry:
-          if (ii->may_fail)
-            continue;
-        default:
-          TRACEPRINTF (ii->t, 4, "is %s", ii->stateName());
-          n_going++;
-          if (!want_up)
+    if (ii->transient)
+      {
+        if (!want_up && lcs != L_down && lcs != L_error)
+          {
             ii->setState(L_going_down);
-        }
-    }
+            n_going ++;
+          }
+        continue;
+      }
+
+    switch(lcs)
+      {
+      case L_up_error:
+      case L_going_down_error:
+        ii->stop();
+        break;
+      default:
+        break;
+      }
+
+    lcs = ii->state;
+    switch(lcs)
+      {
+      case L_down:
+      case L_error:
+        if (!ii->may_fail && !ii->ignore)
+          {
+            TRACEPRINTF (ii->t, 4, "is down");
+            n_down++;
+          }
+        break;
+      case L_up:
+        n_up++;
+        break;
+      case L_up_error:
+      case L_going_down_error:
+      case L_wait_retry:
+        if (ii->may_fail)
+          continue;
+      default:
+        TRACEPRINTF (ii->t, 4, "is %s", ii->stateName());
+        n_going++;
+        if (!want_up)
+          ii->setState(L_going_down);
+      }
+  }
 
   if (!n_going && n_down == 0 && n_up > 0)
     {
@@ -540,17 +567,17 @@ Router::state_trigger_cb (ev::async &w UNUSED, int revents UNUSED)
     {
       // Hard report errors
       ITER(i,links)
-        {
-          auto ii = i->second;
-          LConnState lcs = ii->state;
-          switch(lcs)
-            {
-            case L_down:
-            case L_error:
-              if (!ii->may_fail && !ii->ignore)
-                ERRORPRINTF (ii->t, E_FATAL | 105, "Link down, terminating");
-            }
-        }
+      {
+        auto ii = i->second;
+        LConnState lcs = ii->state;
+        switch(lcs)
+          {
+          case L_down:
+          case L_error:
+            if (!ii->may_fail && !ii->ignore)
+              ERRORPRINTF (ii->t, E_FATAL | 105, "Link down, terminating");
+          }
+      }
       exitcode = 1;
       stop();
     }
@@ -590,7 +617,8 @@ Router::stop_()
   bool seen = true;
 
   if (want_up)
-    { // we get here when there's a failure to start the global filter chain
+    {
+      // we get here when there's a failure to start the global filter chain
       stop();
       return;
     }
@@ -602,17 +630,17 @@ Router::stop_()
       links_changed = false;
       seen = false;
       ITER(i,links)
-        {
-          auto ii = i->second;
-          if (ii->seq >= seq)
-            continue; // already told it
-          TRACEPRINTF (ii->t, 4, "Stopping");
-          seen = true;
-          ii->seq = seq;
-          ii->setState(L_going_down);
-          if (links_changed)
-            break;
-        }
+      {
+        auto ii = i->second;
+        if (ii->seq >= seq)
+          continue; // already told it
+        TRACEPRINTF (ii->t, 4, "Stopping");
+        seen = true;
+        ii->seq = seq;
+        ii->setState(L_going_down);
+        if (links_changed)
+          break;
+      }
     }
   in_link_loop -= 1;
 }
@@ -669,11 +697,11 @@ Router::~Router()
   start_timer.stop();
 
   R_ITER(i,vbusmonitor)
-    ERRORPRINTF (t, E_WARNING | 55, "VBusmonitor '%s' didn't de-register!", i->cb->name);
+  ERRORPRINTF (t, E_WARNING | 55, "VBusmonitor '%s' didn't de-register!", i->cb->name);
   vbusmonitor.clear();
 
   R_ITER(i,busmonitor)
-    ERRORPRINTF (t, E_WARNING | 56, "Busmonitor '%s' didn't de-register!", i->cb->name);
+  ERRORPRINTF (t, E_WARNING | 56, "Busmonitor '%s' didn't de-register!", i->cb->name);
   busmonitor.clear();
 
 //  ITER(i,links)
@@ -704,15 +732,18 @@ Router::recv_L_Data (LDataPtr l, LinkConnect& link)
     }
 
   if (l->source == addr)
-    { // locally generated?
+    {
+      // locally generated?
       if (!link.is_local)
-        { // Nope. Reject.
+        {
+          // Nope. Reject.
           TRACEPRINTF (link.t, 3, "Packet not from us");
           return;
         }
     }
   else if (hasAddress (l->source, l2x))
-    { // check if from the correct interface
+    {
+      // check if from the correct interface
       if (&*l2x != &link)
         {
           TRACEPRINTF (link.t, 3, "Packet not from %d:%s: %s", l2x->t->seq, l2x->t->name, l->Decode (t));
@@ -724,9 +755,10 @@ Router::recv_L_Data (LDataPtr l, LinkConnect& link)
       TRACEPRINTF (link.t, 3, "Packet originally from closed local interface");
       return;
     }
-  else if (l->source != 0xFFFF) { // don't assign the "unprogrammed" address
-    link.addAddress (l->source);
-  }
+  else if (l->source != 0xFFFF)   // don't assign the "unprogrammed" address
+    {
+      link.addAddress (l->source);
+    }
 
   r_high->recv_L_Data(std::move(l));
 }
@@ -767,12 +799,12 @@ bool
 Router::deregisterBusmonitor (L_Busmonitor_CallBack * c)
 {
   ITER(i, busmonitor)
-    if (i->cb == c)
-      {
-        busmonitor.erase(i);
-	TRACEPRINTF (t, 3, "deregisterBusmonitor");
-        return true;
-      }
+  if (i->cb == c)
+    {
+      busmonitor.erase(i);
+      TRACEPRINTF (t, 3, "deregisterBusmonitor");
+      return true;
+    }
   TRACEPRINTF (t, 3, "deregisterBusmonitor failed");
   return false;
 }
@@ -781,12 +813,12 @@ bool
 Router::deregisterVBusmonitor (L_Busmonitor_CallBack * c)
 {
   ITER(i,vbusmonitor)
-    if (i->cb == c)
-      {
-	TRACEPRINTF (t, 3, "deregisterVBusmonitor");
-	vbusmonitor.erase(i);
-	return true;
-      }
+  if (i->cb == c)
+    {
+      TRACEPRINTF (t, 3, "deregisterVBusmonitor");
+      vbusmonitor.erase(i);
+      return true;
+    }
   TRACEPRINTF (t, 3, "deregisterVBusmonitor failed");
   return false;
 }
@@ -794,7 +826,10 @@ Router::deregisterVBusmonitor (L_Busmonitor_CallBack * c)
 bool
 Router::registerBusmonitor (L_Busmonitor_CallBack * c)
 {
-  busmonitor.push_back((Busmonitor_Info){.cb=c});
+  busmonitor.push_back((Busmonitor_Info)
+  {
+    .cb=c
+  });
   TRACEPRINTF (t, 3, "registerBusmonitor");
   return true;
 }
@@ -802,7 +837,10 @@ Router::registerBusmonitor (L_Busmonitor_CallBack * c)
 bool
 Router::registerVBusmonitor (L_Busmonitor_CallBack * c)
 {
-  vbusmonitor.push_back((Busmonitor_Info){.cb=c});
+  vbusmonitor.push_back((Busmonitor_Info)
+  {
+    .cb=c
+  });
   TRACEPRINTF (t, 3, "registerVBusmonitor");
   return true;
 }
@@ -811,16 +849,16 @@ bool
 Router::registerLink(const LinkConnectPtr& link, bool transient)
 {
   const std::string& n = link->name();
-  #if 1 // TODO tracing
+#if 1 // TODO tracing
   link->pos = link->t->seq;
-  #else
+#else
   static int pos = 0;
   if (link->pos == 0)
     link->pos = ++pos;
-  #endif
+#endif
   auto res = links.emplace(std::piecewise_construct,
-                std::forward_as_tuple(link->pos),
-                std::forward_as_tuple(link));
+                           std::forward_as_tuple(link->pos),
+                           std::forward_as_tuple(link));
   if (! res.second)
     {
       ERRORPRINTF (link->t, E_ERROR | 93, "registerLink: %d:%s: already present", link->pos,n);
@@ -876,23 +914,23 @@ Router::hasAddress (eibaddr_t addr, LinkConnectPtr& link, bool quiet)
     }
 
   ITER(i,links)
-    {
-      if (i->second == link)
-        continue;
-      if (i->second->hasAddress (addr))
-        {
-          if (i->second == link)
-            {
-              if (!quiet)
-                TRACEPRINTF (link->t, 8, "local addr %s", FormatEIBAddr (addr));
-              return false;
-            }
-          if (!quiet)
-            TRACEPRINTF (i->second->t, 8, "found addr %s", FormatEIBAddr (addr));
-          link = i->second;
-          return true;
-        }
-    }
+  {
+    if (i->second == link)
+      continue;
+    if (i->second->hasAddress (addr))
+      {
+        if (i->second == link)
+          {
+            if (!quiet)
+              TRACEPRINTF (link->t, 8, "local addr %s", FormatEIBAddr (addr));
+            return false;
+          }
+        if (!quiet)
+          TRACEPRINTF (i->second->t, 8, "found addr %s", FormatEIBAddr (addr));
+        link = i->second;
+        return true;
+      }
+  }
 
   if (!quiet)
     TRACEPRINTF (t, 8, "unknown addr %s", FormatEIBAddr (addr));
@@ -906,12 +944,12 @@ Router::checkAddress (eibaddr_t addr, LinkConnectPtr link)
     return true;
 
   ITER(i, links)
-    {
-      if (i->second == link)
-        continue;
-      if (i->second->checkAddress (addr))
-        return true;
-    }
+  {
+    if (i->second == link)
+      continue;
+    if (i->second->checkAddress (addr))
+      return true;
+  }
 
   return false;
 }
@@ -923,12 +961,12 @@ Router::checkGroupAddress (eibaddr_t addr, LinkConnectPtr link)
     return true;
 
   ITER(i, links)
-    {
-      if (i->second == link)
-        continue;
-      if (i->second->checkGroupAddress (addr))
-        return true;
-    }
+  {
+    if (i->second == link)
+      continue;
+    if (i->second->checkGroupAddress (addr))
+      return true;
+  }
 
   return false;
 }
@@ -1003,7 +1041,7 @@ Router::trigger_cb (ev::async &w UNUSED, int revents UNUSED)
           l2->pdu.set (l1->ToPacket ());
 
           ITER(i,vbusmonitor)
-            i->cb->send_L_Busmonitor (LBusmonPtr(new L_Busmonitor_PDU (*l2)));
+          i->cb->send_L_Busmonitor (LBusmonPtr(new L_Busmonitor_PDU (*l2)));
         }
       if (!l1->hopcount)
         {
@@ -1017,14 +1055,17 @@ Router::trigger_cb (ev::async &w UNUSED, int revents UNUSED)
         {
           CArray d1 = l1->ToPacket ();
           ITER (i,ignore)
-            if (d1 == i->data)
-              {
-                TRACEPRINTF (t, 9, "Drop: %s", l1->Decode (t));
-                goto next;
-              }
+          if (d1 == i->data)
+            {
+              TRACEPRINTF (t, 9, "Drop: %s", l1->Decode (t));
+              goto next;
+            }
         }
       l1->repeated = 1;
-      ignore.push_back((IgnoreInfo){.data = l1->ToPacket (), .end = getTime () + 1000000});
+      ignore.push_back((IgnoreInfo)
+      {
+        .data = l1->ToPacket (), .end = getTime () + 1000000
+      });
       l1->repeated = 0;
 
       if (l1->AddrType == IndividualAddress
@@ -1033,20 +1074,21 @@ Router::trigger_cb (ev::async &w UNUSED, int revents UNUSED)
 
       low_send_more = false;
       r_low->send_L_Data(std::move(l1));
-    next:;
+next:
+      ;
     }
 
   if (!low_send_more)
     TRACEPRINTF (t, 6, "wait L");
 
-  // Timestamps are ordered, so we scan for the first 
+  // Timestamps are ordered, so we scan for the first
   timestamp_t tm = getTime ();
   ITER (i, ignore)
-    if (i->end >= tm)
-      {
-        ignore.erase (ignore.begin(), i);
-        break;
-      }
+  if (i->end >= tm)
+    {
+      ignore.erase (ignore.begin(), i);
+      break;
+    }
 }
 
 bool
@@ -1069,17 +1111,17 @@ Router::send_L_Data(LDataPtr l1)
       // This is easy: send to all other L2 which subscribe to the
       // group.
       ITER(i, links)
-        {
-          auto ii = i->second;
-          if (ii->state != L_up)
-            continue;
-          if(!has_send_more(ii))
-            continue;
-          if (ii->hasAddress(l1->source))
-            continue;
-          if (l1->hopcount == 7 || ii->checkGroupAddress(l1->dest))
-            i->second->send_L_Data (LDataPtr(new L_Data_PDU (*l1)));
-        }
+      {
+        auto ii = i->second;
+        if (ii->state != L_up)
+          continue;
+        if(!has_send_more(ii))
+          continue;
+        if (ii->hasAddress(l1->source))
+          continue;
+        if (l1->hopcount == 7 || ii->checkGroupAddress(l1->dest))
+          i->second->send_L_Data (LDataPtr(new L_Data_PDU (*l1)));
+      }
     }
   if (l1->AddrType == IndividualAddress)
     {
@@ -1091,27 +1133,27 @@ Router::send_L_Data(LDataPtr l1)
       bool found = (l1->dest == this->addr);
       if (l1->dest != 0xFFFF)
         ITER(i, links)
-          {
-            if (i->second->hasAddress (l1->source))
-              continue;
-            if (i->second->hasAddress (l1->dest))
-              {
-                found = true;
-                break;
-              }
-          }
-      ITER (i, links)
         {
-          auto ii = i->second;
-          if (ii->state != L_up)
+          if (i->second->hasAddress (l1->source))
             continue;
-          if(!has_send_more(ii))
-            continue;
-          if (ii->hasAddress (l1->source))
-            continue;
-          if (l1->hopcount == 7 || found ? ii->hasAddress (l1->dest) : ii->checkAddress (l1->dest))
-            i->second->send_L_Data (LDataPtr(new L_Data_PDU (*l1)));
+          if (i->second->hasAddress (l1->dest))
+            {
+              found = true;
+              break;
+            }
         }
+      ITER (i, links)
+      {
+        auto ii = i->second;
+        if (ii->state != L_up)
+          continue;
+        if(!has_send_more(ii))
+          continue;
+        if (ii->hasAddress (l1->source))
+          continue;
+        if (l1->hopcount == 7 || found ? ii->hasAddress (l1->dest) : ii->checkAddress (l1->dest))
+          i->second->send_L_Data (LDataPtr(new L_Data_PDU (*l1)));
+      }
     }
   high_sending = false;
   send_Next(); // check readiness
@@ -1126,7 +1168,7 @@ Router::mtrigger_cb (ev::async &w UNUSED, int revents UNUSED)
 
       TRACEPRINTF (t, 3, "RecvMon %s", l1->Decode (t));
       ITER (i, busmonitor)
-        i->cb->send_L_Busmonitor (LBusmonPtr(new L_Busmonitor_PDU (*l1)));
+      i->cb->send_L_Busmonitor (LBusmonPtr(new L_Busmonitor_PDU (*l1)));
     }
 }
 
@@ -1194,13 +1236,13 @@ RouterHigh::recv_L_Busmonitor (LBusmonPtr l)
 }
 
 RouterHigh::RouterHigh(Router& r, const RouterLowPtr& rl)
-    : Driver(std::dynamic_pointer_cast<LinkConnect_>(rl), r.ini[r.main]), router(&r)
+  : Driver(std::dynamic_pointer_cast<LinkConnect_>(rl), r.ini[r.main]), router(&r)
 {
   t->setAuxName("H");
 }
 
 RouterLow::RouterLow(Router& r)
-    : LinkConnect_(r, r.ini[r.main], r.t), router(&r)
+  : LinkConnect_(r, r.ini[r.main], r.t), router(&r)
 {
   t->setAuxName("L");
 }

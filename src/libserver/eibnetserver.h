@@ -34,10 +34,10 @@ class EIBnetServer;
 typedef std::shared_ptr<EIBnetServer> EIBnetServerPtr;
 
 typedef enum {
-	CT_NONE = 0,
-	CT_STANDARD,
-	CT_BUSMONITOR,
-	CT_CONFIG,
+        CT_NONE = 0,
+        CT_STANDARD,
+        CT_BUSMONITOR,
+        CT_CONFIG,
 } ConnType;
 
 

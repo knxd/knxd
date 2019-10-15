@@ -41,21 +41,21 @@
  *
  *
  * Classes:
- * 
+ *
  * LinkBase: base class for all other modules. All LinkBase objects can
  *           accept packets to send.
- * 
+ *
  * LinkRecv: a LinkBase that can also accept received packets.
  *           i.e. anything that's not a driver (those get their packets
  *           from somewhere else).
- * 
+ *
  * LinkConnect: class that holds a reference to the driver stack;
  *              this is what the Router talks to
- * 
+ *
  * LinkConnectClient: a LinkConnect that was created by a server's new connection
- * 
+ *
  * LinkConnectSingle: a LinkConnectClient guaranteed to only have one address
- * 
+ *
  * Driver: an interface to the outside world, created by configuration
  *
  * LineDriver: base class for the driver that's linked to a LinkConnectClient
@@ -63,20 +63,20 @@
  *             a sender address of zero gets replaced
  *
  * Filter(LinkRecv): able to modify packets
- * 
+ *
  * Server: creates new LinkConnect+Filter+Driver stacks on demand.
  *         It is a LinkConnect subclass by convenience, because
  *         that way the router only needs one loop.
- * 
+ *
  *
  * Calling sequence:
  *
  * Setup: Router calls LinkConnect(*this, ini_section)
- * 
+ *
  *        LinkConnect looks up the drivers and filters, links them,
  *        and calls setup() on each member.
  *        setup() is synchronous. Do not connect to external servers here.
- * 
+ *
  * Start: Filters call start()/stop() on the next element of the chain.
  *        The driver is responsible for calling started() or stopped().
  *        That call propagates down the stack, LinkConnect forwards to
@@ -85,13 +85,13 @@
  *        Starting is asynchronous but must complete eventually.
  *        Stopping may be asynchronous if necessary, but try not to.
  *
- * Receiving data: the driver calls recv_L_Data() which gets forwarded 
+ * Receiving data: the driver calls recv_L_Data() which gets forwarded
  *                 through the filters to LinkConnect, via the .recv
  *                 pointer.
  *
  * Sending data: LinkConnect::send_L_Data() calls the first filter, which
  *               forwards to tne driver, via the .send pointer.
- * 
+ *
  *
  * Pointers from LinkConnect towards the driver, along the .send chain,
  * are shared pointers. All pointers towards LinkConnect, along the .recv
@@ -206,7 +206,7 @@ struct RegisterClass
 template <class T, class I, const char * N>
 struct AutoRegister
 {
-  AutoRegister() { auto foo UNUSED = (volatile void *) &ourRegisterer; } 
+  AutoRegister() { auto foo UNUSED = (volatile void *) &ourRegisterer; }
 private:
   static RegisterClass<T, I, N> ourRegisterer;
 };

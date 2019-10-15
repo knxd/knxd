@@ -37,8 +37,8 @@
  *
  *
  * Classes:
- * 
- * 
+ *
+ *
  */
 typedef void (*packet_cb_t)(void *data, CArray *p);
 
@@ -322,6 +322,6 @@ public:
  * @return new LowLevel interface
  */
 typedef LowLevelDriver *(*LowLevel_Create_Func) (const char *conf,
-							  TracePtr tr);
+                                                          TracePtr tr);
 
 #endif

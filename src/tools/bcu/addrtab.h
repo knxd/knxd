@@ -26,8 +26,8 @@ int readAddrTabSize (LowLevelDriver * iface, uchar & result);
 int writeAddrTabSize (LowLevelDriver * iface, uchar size);
 
 int readEMIMem (LowLevelDriver * iface, memaddr_t addr, uchar len,
-		CArray & result);
+                CArray & result);
 int writeEMIMem (LowLevelDriver * iface, memaddr_t addr,
-		 CArray data);
+                 CArray data);
 
 #endif

@@ -27,17 +27,17 @@ TPDU::fromPacket (const CArray & c, TracePtr tr)
   if (c.size() >= 1)
     {
       if ((c[0] & 0xfc) == 0)
-	t = TPDUPtr(new T_DATA_XXX_REQ_PDU ());
+        t = TPDUPtr(new T_DATA_XXX_REQ_PDU ());
       else if (c[0] == 0x80)
-	t = TPDUPtr(new T_CONNECT_REQ_PDU ());
+        t = TPDUPtr(new T_CONNECT_REQ_PDU ());
       else if (c[0] == 0x81)
-	t = TPDUPtr(new T_DISCONNECT_REQ_PDU ());
+        t = TPDUPtr(new T_DISCONNECT_REQ_PDU ());
       else if ((c[0] & 0xC3) == 0xC2)
-	t = TPDUPtr(new T_ACK_PDU ());
+        t = TPDUPtr(new T_ACK_PDU ());
       else if ((c[0] & 0xC3) == 0xC3)
-	t = TPDUPtr(new T_NACK_PDU ());
+        t = TPDUPtr(new T_NACK_PDU ());
       else if ((c[0] & 0xC0) == 0x40)
-	t = TPDUPtr(new T_DATA_CONNECTED_REQ_PDU ());
+        t = TPDUPtr(new T_DATA_CONNECTED_REQ_PDU ());
     }
   if (t && t->init (c, tr))
     return t;
@@ -70,7 +70,7 @@ std::string T_UNKNOWN_PDU::Decode (TracePtr t UNUSED)
     return "empty TPDU";
 
   ITER (i,pdu)
-    addHex (s, *i);
+  addHex (s, *i);
 
   return s;
 }

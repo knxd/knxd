@@ -24,7 +24,7 @@
 #include "localserver.h"
 
 LocalServer::LocalServer (BaseRouter& r, IniSectionPtr& s)
-    : NetServer (r,s)
+  : NetServer (r,s)
 {
   t->setAuxName("local");
 }
@@ -63,14 +63,14 @@ LocalServer::start()
 
   if (bind (fd, (struct sockaddr *) &addr, sizeof (addr)) == -1)
     {
-      /* 
-       * dead file? 
+      /*
+       * dead file?
        */
       if (errno == EADDRINUSE)
         {
           if (connect(fd, (struct sockaddr *) &addr, sizeof (addr)) == 0)
             {
-          ex:
+ex:
               ERRORPRINTF (t, E_ERROR | 16, "OpenLocalSocket %s: bind: %s", path, strerror(errno));
               goto ex2;
             }

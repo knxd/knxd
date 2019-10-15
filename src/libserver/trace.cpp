@@ -40,18 +40,20 @@ Trace::TraceHeader (int layer)
 {
   struct timeval tv;
   gettimeofday(&tv, NULL);
-  if (tv.tv_usec < started.tv_usec) {
-    tv.tv_usec += 1000000;
-    tv.tv_sec -= 1;
-  }
+  if (tv.tv_usec < started.tv_usec)
+    {
+      tv.tv_usec += 1000000;
+      tv.tv_sec -= 1;
+    }
   tv.tv_usec -= started.tv_usec;
   tv.tv_sec -= started.tv_sec;
 
-  if (!trace_started) {
+  if (!trace_started)
+    {
       trace_started = true;
       setvbuf(stdout, NULL, _IOLBF, 0);
       setvbuf(stderr, NULL, _IOLBF, 0);
-  }
+    }
   if (servername.length())
     fmt::printf("%s: ",servername);
   if (timestamps)
@@ -62,7 +64,7 @@ Trace::TraceHeader (int layer)
 
 void
 Trace::TracePacketUncond (int layer, const char *msg, int Len,
-			  const uchar * data)
+                          const uchar * data)
 {
   int i;
   TraceHeader(layer);
@@ -72,15 +74,16 @@ Trace::TracePacketUncond (int layer, const char *msg, int Len,
   fmt::printf ("\n");
 }
 
-static const char *error_levels[] = {
-    "none",
-    "fatal",
-    "error",
-    "warning",
-    "note",
-    "info",
-    "debug",
-    "trace",
+static const char *error_levels[] =
+{
+  "none",
+  "fatal",
+  "error",
+  "warning",
+  "note",
+  "info",
+  "debug",
+  "trace",
 };
 
 static int
