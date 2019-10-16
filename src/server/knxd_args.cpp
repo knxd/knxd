@@ -19,9 +19,9 @@
 */
 
 #include <argp.h>
-#include <stdio.h>
+#include <cstdio>
 #include <iostream>
-#include <stdarg.h>
+#include <cstdarg>
 #include <unordered_map>
 
 #include "inifile.h"

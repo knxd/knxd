@@ -22,8 +22,8 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <unistd.h>
-#include <string.h>
-#include <errno.h>
+#include <cstring>
+#include <cerrno>
 #include "inetserver.h"
 
 InetServer::InetServer (BaseRouter& r, IniSectionPtr& s)

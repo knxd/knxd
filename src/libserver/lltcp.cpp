@@ -20,9 +20,8 @@
 #include "config.h"
 
 #include <unistd.h>
-#include <errno.h>
+#include <cerrno>
 #include <fcntl.h>
-#include <errno.h>
 #include <netinet/tcp.h>
 #include <netinet/in.h>
 #include <sys/socket.h>

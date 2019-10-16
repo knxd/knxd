@@ -19,7 +19,7 @@
 
 #include <fcntl.h>
 #include <unistd.h>
-#include <errno.h>
+#include <cerrno>
 
 #include "ft12.h"
 

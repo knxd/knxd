@@ -20,13 +20,13 @@
 #include "eibnetserver.h"
 #include "emi.h"
 #include "config.h"
-#include <stdlib.h>
+#include <cstdlib>
 #include <sys/ioctl.h>
 #include <net/if.h>
 #include <net/if_arp.h>
 #include <unistd.h>
 #include <netinet/in.h>
-#include <string.h>
+#include <cstring>
 #include <memory>
 #ifndef SIOCGIFHWADDR
 #include <sys/sysctl.h>

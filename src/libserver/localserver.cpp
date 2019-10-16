@@ -20,7 +20,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
-#include <errno.h>
+#include <cerrno>
 #include "localserver.h"
 
 LocalServer::LocalServer (BaseRouter& r, IniSectionPtr& s)

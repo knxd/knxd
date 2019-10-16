@@ -19,10 +19,10 @@
 
 #include <unistd.h>
 #include <fcntl.h>
-#include <errno.h>
-#include <ctype.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include <cerrno>
+#include <cctype>
+#include <cstdlib>
+#include <cstdio>
 
 #include "usblowlevel.h"
 #include "usb.h"
