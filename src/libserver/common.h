@@ -60,12 +60,12 @@ typedef enum
  * @param s string
  * @param c byte
  */
-void addHex (std::string & s, uchar c);
+void addHex (std::string & s, const uchar c);
 /** add c to s as hex value
  * @param s string
  * @param c 16 bit int
  */
-void add16Hex (std::string & s, uint16_t c);
+void add16Hex (std::string & s, const uint16_t c);
 
 /** get current time */
 timestamp_t getTime ();
