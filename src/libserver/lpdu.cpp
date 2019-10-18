@@ -322,7 +322,7 @@ L_Busmon_PDU::ToPacket ()
 std::string
 L_Busmon_PDU::Decode (TracePtr t)
 {
-  std::string s ("LPDU: ");
+  std::string s ("L_Busmon: ");
 
   if (pdu.size() == 0)
     return "empty LPDU";
