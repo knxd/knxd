@@ -73,10 +73,10 @@ GroupCache::send_L_Data (LDataPtr l)
 {
   if (enable)
     {
-      TPDUPtr t = TPDU::fromPacket (l->data, this->t);
-      if (t->getType () == T_DATA_XXX_REQ)
+      TPDUPtr t = TPDU::fromPacket (l->AddrType, l->dest, l->data, this->t);
+      if (t->getType () == T_Data_Group)
         {
-          T_DATA_XXX_REQ_PDU *t1 = (T_DATA_XXX_REQ_PDU *) &*t;
+          T_Data_Group_PDU *t1 = (T_Data_Group_PDU *) &*t;
           if (t1->data.size() >= 2 && !(t1->data[0] & 0x3) &&
               ((t1->data[1] & 0xC0) == 0x40 || (t1->data[1] & 0xC0) == 0x80)) // response or write
             {
@@ -286,7 +286,7 @@ GroupCache::Read (eibaddr_t addr, unsigned Timeout, uint16_t age,
 
   // No data fond. Send a Read request.
   A_GroupValue_Read_PDU apdu;
-  T_DATA_XXX_REQ_PDU tpdu;
+  T_Data_Group_PDU tpdu;
   LDataPtr l;
 
   new GCReader(this,addr,Timeout,age, cb,cc);

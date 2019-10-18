@@ -50,7 +50,10 @@ typedef enum
 
 /** EIB address type */
 typedef enum
-{ GroupAddress, IndividualAddress } EIB_AddrType;
+{
+  IndividualAddress = 0,
+  GroupAddress = 1
+} EIB_AddrType;
 
 
 #include "queue.h"

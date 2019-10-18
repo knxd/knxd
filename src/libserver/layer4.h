@@ -79,7 +79,8 @@ protected:
   };
   virtual ~Layer4common() = default;
 public:
-  bool setup() {
+  bool setup()
+  {
     if (!LineDriver::setup())
       return false;
     return true;
@@ -93,13 +94,21 @@ class Layer4commonWO:public Layer4common<COMM>
   bool write_only;
 public:
   Layer4commonWO (T_Reader<COMM> *app, LinkConnectClientPtr lc, bool write_only) : Layer4common<COMM>(app,lc)
-    { this->write_only = write_only; }
+  {
+    this->write_only = write_only;
+  }
 
-  bool checkAddress(eibaddr_t addr) { return !write_only && addr == this->getAddress(); }
-  virtual bool checkGroupAddress(eibaddr_t addr UNUSED) { return !write_only; }
+  bool checkAddress(eibaddr_t addr)
+  {
+    return !write_only && addr == this->getAddress();
+  }
+  virtual bool checkGroupAddress(eibaddr_t addr UNUSED)
+  {
+    return !write_only;
+  }
 };
 
-/** Broadcast Layer 4 connection */
+/** Broadcast Layer 4 connection (Broadcast) */
 class T_Broadcast:public Layer4commonWO<BroadcastComm>
 {
 public:
@@ -127,7 +136,7 @@ public:
 };
 typedef std::shared_ptr<GroupSocket> GroupSocketPtr;
 
-/** Group Layer 4 connection */
+/** Group Layer 4 connection (Multicast) */
 class T_Group:public Layer4commonWO<GroupComm>
 {
   /** group address */
@@ -142,7 +151,10 @@ public:
   /** send APDU to L3 */
   void recv_Data (const CArray & c);
 
-  virtual bool checkGroupAddress(eibaddr_t addr) { return (addr == groupaddr); }
+  virtual bool checkGroupAddress(eibaddr_t addr)
+  {
+    return (addr == groupaddr);
+  }
 
 };
 typedef std::shared_ptr<T_Group> T_GroupPtr;
@@ -164,7 +176,7 @@ public:
 };
 typedef std::shared_ptr<T_TPDU> T_TPDUPtr;
 
-/** Layer 4 T_Individual connection */
+/** Layer 4 T_Individual connection (one-to-one connectionless) */
 class T_Individual:public Layer4commonWO<CArray>
 {
   /** destination address */
@@ -181,10 +193,11 @@ public:
 };
 typedef std::shared_ptr<T_Individual> T_IndividualPtr;
 
-/** implement a client T_Connection */
+/** implement a client T_Connection (one-to-one connection-oriented) */
 class T_Connection:public Layer4common<CArray>
 {
-  ev::timer timer; void timer_cb(ev::timer &w, int revents);
+  ev::timer timer;
+  void timer_cb(ev::timer &w, int revents);
 
   /** input queue */
   Queue < CArray > in;
@@ -208,9 +221,9 @@ class T_Connection:public Layer4common<CArray>
   /** sends T_Disconnect */
   void SendDisconnect ();
   /** send T_ACK */
-  void SendAck (int serno);
+  void SendAck (int sequence_number);
   /** Sends T_DataConnected */
-  void SendData (int serno, const CArray & c);
+  void SendData (int sequence_number, const CArray & c);
   /** process the next bit from sendq if mode==1 */
   void SendCheck ();
 public:
