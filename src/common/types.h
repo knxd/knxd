@@ -45,7 +45,9 @@ typedef uint16_t eibaddr_t;
 typedef uint32_t eibkey_type;
 
 #define ITER(_i,_t) for(decltype(_t)::iterator _i = _t.begin(); _i != _t.end(); _i++)
+#define C_ITER(_i,_t) for(decltype(_t)::const_iterator _i = _t.cbegin(); _i != _t.cend(); _i++)
 #define R_ITER(_i,_t) for(decltype(_t)::reverse_iterator _i = _t.rbegin(); _i != _t.rend(); _i++)
+#define C_R_ITER(_i,_t) for(decltype(_t)::const_reverse_iterator _i = _t.crbegin(); _i != _t.crend(); _i++)
 
 /** byte arrays however need some help.
   We can't use strings: strings can't contain null characters.
