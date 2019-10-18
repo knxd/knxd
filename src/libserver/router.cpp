@@ -22,6 +22,7 @@
 #include <sys/socket.h>
 #include "systemdserver.h"
 #include "lowlevel.h"
+#include "cm_tp1.h"
 #ifdef HAVE_GROUPCACHE
 #include "groupcacheclient.h"
 #endif
@@ -1038,7 +1039,7 @@ Router::trigger_cb (ev::async &w UNUSED, int revents UNUSED)
       if (vbusmonitor.size())
         {
           LBusmonPtr l2 = LBusmonPtr(new L_Busmon_PDU ());
-          l2->pdu.set (l1->ToPacket ());
+          l2->pdu.set (L_Data_to_CM_TP1 (l1));
 
           ITER(i,vbusmonitor)
           i->cb->send_L_Busmonitor (LBusmonPtr(new L_Busmon_PDU (*l2)));
@@ -1053,7 +1054,7 @@ Router::trigger_cb (ev::async &w UNUSED, int revents UNUSED)
 
       if (l1->repeated)
         {
-          CArray d1 = l1->ToPacket ();
+          CArray d1 = L_Data_to_CM_TP1 (l1);
           ITER (i,ignore)
           if (d1 == i->data)
             {
@@ -1064,7 +1065,7 @@ Router::trigger_cb (ev::async &w UNUSED, int revents UNUSED)
       l1->repeated = 1;
       ignore.push_back((IgnoreInfo)
       {
-        .data = l1->ToPacket (), .end = getTime () + 1000000
+        .data = L_Data_to_CM_TP1 (l1), .end = getTime () + 1000000
       });
       l1->repeated = 0;
 

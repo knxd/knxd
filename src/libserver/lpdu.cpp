@@ -20,48 +20,12 @@
 #include <cstdio>
 #include "lpdu.h"
 #include "tpdu.h"
-
-LPDUPtr
-LPDU::fromPacket (const CArray & c, TracePtr)
-{
-  LPDUPtr l = nullptr;
-  if (c.size() >= 1)
-    {
-      if (c[0] == 0xCC)
-        l = LPDUPtr(new L_ACK_PDU ());
-      else if (c[0] == 0xC0)
-        l = LPDUPtr(new L_BUSY_PDU ());
-      else if (c[0] == 0x0C)
-        l = LPDUPtr(new L_NACK_PDU ());
-      else if ((c[0] & 0x53) == 0x10)
-        l = LPDUPtr(new L_Data_PDU ());
-    }
-  if (l && l->init (c))
-    return l;
-  l = LPDUPtr(new L_Unknown_PDU ());
-  l->init (c);
-  return l;
-}
+#include "cm_tp1.h"
 
 /* L_NACK */
 
 L_NACK_PDU::L_NACK_PDU () : LPDU()
 {
-}
-
-bool
-L_NACK_PDU::init (const CArray & c)
-{
-  if (c.size() != 1)
-    return false;
-  return true;
-}
-
-CArray L_NACK_PDU::ToPacket ()
-{
-  uchar
-  c = 0x0C;
-  return CArray (&c, 1);
 }
 
 std::string L_NACK_PDU::Decode (TracePtr)
@@ -75,20 +39,6 @@ L_ACK_PDU::L_ACK_PDU () : LPDU()
 {
 }
 
-bool
-L_ACK_PDU::init (const CArray & c)
-{
-  if (c.size() != 1)
-    return false;
-  return true;
-}
-
-CArray L_ACK_PDU::ToPacket ()
-{
-  uchar c = 0xCC;
-  return CArray (&c, 1);
-}
-
 std::string L_ACK_PDU::Decode (TracePtr)
 {
   return "ACK";
@@ -100,20 +50,6 @@ L_BUSY_PDU::L_BUSY_PDU () : LPDU()
 {
 }
 
-bool
-L_BUSY_PDU::init (const CArray & c)
-{
-  if (c.size() != 1)
-    return false;
-  return true;
-}
-
-CArray L_BUSY_PDU::ToPacket ()
-{
-  uchar c = 0xC0;
-  return CArray (&c, 1);
-}
-
 std::string L_BUSY_PDU::Decode (TracePtr)
 {
   return "BUSY";
@@ -123,19 +59,6 @@ std::string L_BUSY_PDU::Decode (TracePtr)
 
 L_Unknown_PDU::L_Unknown_PDU () : LPDU()
 {
-}
-
-bool
-L_Unknown_PDU::init (const CArray & c)
-{
-  pdu = c;
-  return true;
-}
-
-CArray
-L_Unknown_PDU::ToPacket ()
-{
-  return pdu;
 }
 
 std::string
@@ -153,107 +76,6 @@ L_Unknown_PDU::Decode (TracePtr)
 }
 
 /* L_Data */
-
-bool
-L_Data_PDU::init (const CArray & c)
-{
-  unsigned len, i;
-  uchar c1;
-  if (c.size() < 6)
-    return false;
-  if ((c[0] & 0x53) != 0x10)
-    return false;
-  repeated = (c[0] & 0x20) ? 0 : 1;
-  valid_length = 1;
-  priority = static_cast<EIB_Priority>((c[0] >> 2) & 0x3);
-  if (c[0] & 0x80)
-    {
-      /* Standard frame */
-      source_address = (c[1] << 8) | (c[2]);
-      destination_address = (c[3] << 8) | (c[4]);
-      len = (c[5] & 0x0f) + 1;
-      hop_count = (c[5] >> 4) & 0x07;
-      address_type = (c[5] & 0x80) ? GroupAddress : IndividualAddress;
-      if (len + 7 != c.size())
-        return false;
-      data.set (c.data() + 6, len);
-    }
-  else
-    {
-      /*extended frame */
-      if ((c[1] & 0x0f) != 0)
-        return false;
-      if (c.size() < 7)
-        return false;
-      hop_count = (c[1] >> 4) & 0x07;
-      address_type = (c[1] & 0x80) ? GroupAddress : IndividualAddress;
-      source_address = (c[2] << 8) | (c[3]);
-      destination_address = (c[4] << 8) | (c[5]);
-      len = c[6] + 1;
-      if (len + 8 != c.size())
-        {
-          if (c.size() == 23)
-            {
-              valid_length = 0;
-              data.set (c.data() + 7, 8);
-            }
-          else
-            return false;
-        }
-      else
-        data.set (c.data() + 7, len);
-    }
-
-  c1 = 0;
-  for (i = 0; i < c.size () - 1; i++)
-    c1 ^= c[i];
-  c1 = ~c1;
-  valid_checksum = (c[c.size () - 1] == c1);
-
-  return true;
-}
-
-CArray L_Data_PDU::ToPacket ()
-{
-  assert (data.size() >= 1);
-  assert (data.size() <= 0xff);
-  assert ((hop_count & 0xf8) == 0);
-  CArray pdu;
-  if (data.size() - 1 <= 0x0f)
-    {
-      pdu.resize (7 + data.size());
-      pdu[0] = 0x90 | (priority << 2) | (repeated ? 0x00 : 0x20);
-      pdu[1] = (source_address >> 8) & 0xff;
-      pdu[2] = (source_address) & 0xff;
-      pdu[3] = (destination_address >> 8) & 0xff;
-      pdu[4] = (destination_address) & 0xff;
-      pdu[5] =
-        (hop_count & 0x07) << 4 |
-        ((data.size() - 1) & 0x0f) |
-        (address_type == GroupAddress ? 0x80 : 0x00);
-      pdu.setpart (data.data(), 6, 1 + ((data.size() - 1) & 0x0f));
-    }
-  else
-    {
-      pdu.resize (8 + data.size());
-      pdu[0] = 0x10 | (priority << 2) | (repeated ? 0x00 : 0x20);
-      pdu[1] =
-        (hop_count & 0x07) << 4 | (address_type == GroupAddress ? 0x80 : 0x00);
-      pdu[2] = source_address >> 8;
-      pdu[3] = source_address & 0xff;
-      pdu[4] = destination_address >> 8;
-      pdu[5] = destination_address & 0xff;
-      pdu[6] = (data.size() - 1) & 0xff;
-      pdu.setpart (data.data(), 7, 1 + ((data.size() - 1) & 0xff));
-    }
-  /* checksum */
-  uchar c = 0;
-  for (unsigned i = 0; i < pdu.size() - 1; i++)
-    c ^= pdu[i];
-  pdu[pdu.size() - 1] = ~c;
-
-  return pdu;
-}
 
 std::string L_Data_PDU::Decode (TracePtr t)
 {
@@ -306,19 +128,6 @@ L_Busmon_PDU::L_Busmon_PDU () : LPDU()
   status = 0;
 }
 
-bool
-L_Busmon_PDU::init (const CArray & c)
-{
-  pdu = c;
-  return true;
-}
-
-CArray
-L_Busmon_PDU::ToPacket ()
-{
-  return pdu;
-}
-
 std::string
 L_Busmon_PDU::Decode (TracePtr t)
 {
@@ -330,7 +139,7 @@ L_Busmon_PDU::Decode (TracePtr t)
   ITER (i,pdu)
   addHex (s, *i);
   s += ":";
-  LPDUPtr l = LPDU::fromPacket (pdu, t);
+  LDataPtr l = CM_TP1_to_L_Data (pdu, t);
   s += l->Decode (t);
   return s;
 }

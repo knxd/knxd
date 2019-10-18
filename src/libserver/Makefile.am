@@ -9,16 +9,17 @@ SYSTEMD_SERVER=
 endif
 
 COMMON=exception.h common.h common.cpp trace.h trace.cpp ipsupport.h ipsupport.cpp emi.h emi.cpp
-PDUs=lpdu.h lpdu.cpp tpdu.h tpdu.cpp apdu.h apdu.cpp 
+CMs=cm_tp1.h cm_tp1.cpp cm_ip.h cm_ip.cpp
+PDUs=lpdu.h lpdu.cpp tpdu.h tpdu.cpp apdu.h apdu.cpp
 CORE=lowlevel.h lowlevel.cpp router.h router.cpp layer4.h layer4.cpp link.h link.cpp
 if HAVE_GROUPCACHE
-CACHE=groupcache.h groupcache.cpp groupcacheclient.h groupcacheclient.cpp 
+CACHE=groupcache.h groupcache.cpp groupcacheclient.h groupcacheclient.cpp
 else
 CACHE=
 endif
 if HAVE_MANAGEMENT
-MANAGEMENT=management.h management.cpp layer7.h layer7.cpp 
-MANAGEMENT_C=managementclient.h managementclient.cpp 
+MANAGEMENT=management.h management.cpp layer7.h layer7.cpp
+MANAGEMENT_C=managementclient.h managementclient.cpp
 else
 MANAGEMENT=
 MANAGEMENT_C=
@@ -48,6 +49,6 @@ else
 USB=
 endif
 
-libeibstack_a_SOURCES =$(COMMON) $(CORE) $(PDUs) $(MANAGEMENT) $(NETIP) $(FRONT_C) $(CACHE) $(BUSMON)
+libeibstack_a_SOURCES =$(COMMON) $(CORE) $(CMs) $(PDUs) $(MANAGEMENT) $(NETIP) $(FRONT_C) $(CACHE) $(BUSMON)
 
 libserver_a_SOURCES = server.h server.cpp localserver.h localserver.cpp inetserver.h inetserver.cpp $(SYSTEMD_SERVER) $(EIBNETIP) $(EMI) $(USB) llserial.h llserial.cpp lltcp.h lltcp.cpp lowlatency.h lowlatency.cpp
