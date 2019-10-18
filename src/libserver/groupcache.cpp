@@ -73,14 +73,14 @@ GroupCache::send_L_Data (LDataPtr l)
 {
   if (enable)
     {
-      TPDUPtr t = TPDU::fromPacket (l->AddrType, l->dest, l->data, this->t);
+      TPDUPtr t = TPDU::fromPacket (l->address_type, l->destination_address, l->data, this->t);
       if (t->getType () == T_Data_Group)
         {
           T_Data_Group_PDU *t1 = (T_Data_Group_PDU *) &*t;
           if (t1->data.size() >= 2 && !(t1->data[0] & 0x3) &&
               ((t1->data[1] & 0xC0) == 0x40 || (t1->data[1] & 0xC0) == 0x80)) // response or write
             {
-              CacheMap::iterator ci = cache.find (l->dest);
+              CacheMap::iterator ci = cache.find (l->destination_address);
               CacheMap::value_type *c;
               if (ci == cache.end())
                 {
@@ -90,14 +90,14 @@ GroupCache::send_L_Data (LDataPtr l)
                       cache.erase(si->second);
                       cache_seq.erase(si);
                     }
-                  c = &(*cache.emplace(l->dest, GroupCacheEntry(l->dest)).first);
+                  c = &(*cache.emplace(l->destination_address, GroupCacheEntry(l->destination_address)).first);
                 }
               else
                 {
                   c = &(*ci);
                   cache_seq.erase(c->second.seq);
                 }
-              c->second.src = l->source;
+              c->second.src = l->source_address;
               c->second.data = t1->data;
               c->second.recvtime = time (0);
               c->second.seq = seq++;
@@ -294,9 +294,9 @@ GroupCache::Read (eibaddr_t addr, unsigned Timeout, uint16_t age,
   tpdu.data = apdu.ToPacket ();
   l = LDataPtr(new L_Data_PDU ());
   l->data = tpdu.ToPacket ();
-  l->source = 0;
-  l->dest = addr;
-  l->AddrType = GroupAddress;
+  l->source_address = 0;
+  l->destination_address = addr;
+  l->address_type = GroupAddress;
   recv_L_Data (std::move(l));
 }
 

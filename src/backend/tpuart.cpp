@@ -254,7 +254,7 @@ TPUARTwrap::RecvLPDU (const uchar * data, int len)
   t->TracePacket (1, "RecvLP", len, data);
   if (state == T_busmonitor)
     {
-      LBusmonPtr l = LBusmonPtr(new L_Busmonitor_PDU ());
+      LBusmonPtr l = LBusmonPtr(new L_Busmon_PDU ());
       l->pdu.set (data, len);
       recv_L_Busmonitor (std::move(l));
     }

@@ -1,4 +1,4 @@
-/*,
+/*
     EIBD eib bus access and management daemon
     Copyright (C) 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
 
@@ -716,7 +716,7 @@ Router::recv_L_Data (LDataPtr l, LinkConnect& link)
 {
   LinkConnectPtr l2x = nullptr;
 
-  if (l->AddrType == IndividualAddress && l->dest == 0)
+  if (l->address_type == IndividualAddress && l->destination_address == 0)
     {
       // Common problem with things that are not true gateways
       ERRORPRINTF (link.t, E_WARNING | 57, "Message without destination. Use the single-node filter ('-B single')?");
@@ -724,14 +724,14 @@ Router::recv_L_Data (LDataPtr l, LinkConnect& link)
     }
 
   // Unassigned source: set to link's, or our, address
-  if (l->source == 0)
+  if (l->source_address == 0)
     {
-      l->source = link.addr;
-      if (l->source == 0)
-        l->source = addr;
+      l->source_address = link.addr;
+      if (l->source_address == 0)
+        l->source_address = addr;
     }
 
-  if (l->source == addr)
+  if (l->source_address == addr)
     {
       // locally generated?
       if (!link.is_local)
@@ -741,7 +741,7 @@ Router::recv_L_Data (LDataPtr l, LinkConnect& link)
           return;
         }
     }
-  else if (hasAddress (l->source, l2x))
+  else if (hasAddress (l->source_address, l2x))
     {
       // check if from the correct interface
       if (&*l2x != &link)
@@ -750,14 +750,14 @@ Router::recv_L_Data (LDataPtr l, LinkConnect& link)
           return;
         }
     }
-  else if (client_addrs_len && l->source >= client_addrs_start && l->source < client_addrs_start+client_addrs_len)
+  else if (client_addrs_len && l->source_address >= client_addrs_start && l->source_address < client_addrs_start+client_addrs_len)
     {
       TRACEPRINTF (link.t, 3, "Packet originally from closed local interface");
       return;
     }
-  else if (l->source != 0xFFFF)   // don't assign the "unprogrammed" address
+  else if (l->source_address != 0xFFFF)   // don't assign the "unprogrammed" address
     {
-      link.addAddress (l->source);
+      link.addAddress (l->source_address);
     }
 
   r_high->recv_L_Data(std::move(l));
@@ -1037,19 +1037,19 @@ Router::trigger_cb (ev::async &w UNUSED, int revents UNUSED)
 
       if (vbusmonitor.size())
         {
-          LBusmonPtr l2 = LBusmonPtr(new L_Busmonitor_PDU ());
+          LBusmonPtr l2 = LBusmonPtr(new L_Busmon_PDU ());
           l2->pdu.set (l1->ToPacket ());
 
           ITER(i,vbusmonitor)
-          i->cb->send_L_Busmonitor (LBusmonPtr(new L_Busmonitor_PDU (*l2)));
+          i->cb->send_L_Busmonitor (LBusmonPtr(new L_Busmon_PDU (*l2)));
         }
-      if (!l1->hopcount)
+      if (!l1->hop_count)
         {
           TRACEPRINTF (t, 3, "Hopcount zero: %s", l1->Decode (t));
           goto next;
         }
-      if (l1->hopcount < 7 || !force_broadcast)
-        l1->hopcount--;
+      if (l1->hop_count < 7 || !force_broadcast)
+        l1->hop_count--;
 
       if (l1->repeated)
         {
@@ -1068,9 +1068,9 @@ Router::trigger_cb (ev::async &w UNUSED, int revents UNUSED)
       });
       l1->repeated = 0;
 
-      if (l1->AddrType == IndividualAddress
-          && l1->dest == this->addr)
-        l1->dest = 0;
+      if (l1->address_type == IndividualAddress
+          && l1->destination_address == this->addr)
+        l1->destination_address = 0;
 
       low_send_more = false;
       r_low->send_L_Data(std::move(l1));
@@ -1106,7 +1106,7 @@ Router::send_L_Data(LDataPtr l1)
   assert(high_send_more);
   high_sending = true;
   high_send_more = false;
-  if (l1->AddrType == GroupAddress)
+  if (l1->address_type == GroupAddress)
     {
       // This is easy: send to all other L2 which subscribe to the
       // group.
@@ -1117,26 +1117,26 @@ Router::send_L_Data(LDataPtr l1)
           continue;
         if(!has_send_more(ii))
           continue;
-        if (ii->hasAddress(l1->source))
+        if (ii->hasAddress(l1->source_address))
           continue;
-        if (l1->hopcount == 7 || ii->checkGroupAddress(l1->dest))
+        if (l1->hop_count == 7 || ii->checkGroupAddress(l1->destination_address))
           i->second->send_L_Data (LDataPtr(new L_Data_PDU (*l1)));
       }
     }
-  if (l1->AddrType == IndividualAddress)
+  if (l1->address_type == IndividualAddress)
     {
       // we want to send to the interface on which the address
       // has appeared. If it hasn't been seen yet, we send to all
       // interfaces.
       // Address ~0 is special; it's used for programming
       // so can be on different interfaces. Always broadcast these.
-      bool found = (l1->dest == this->addr);
-      if (l1->dest != 0xFFFF)
+      bool found = (l1->destination_address == this->addr);
+      if (l1->destination_address != 0xFFFF)
         ITER(i, links)
         {
-          if (i->second->hasAddress (l1->source))
+          if (i->second->hasAddress (l1->source_address))
             continue;
-          if (i->second->hasAddress (l1->dest))
+          if (i->second->hasAddress (l1->destination_address))
             {
               found = true;
               break;
@@ -1149,9 +1149,9 @@ Router::send_L_Data(LDataPtr l1)
           continue;
         if(!has_send_more(ii))
           continue;
-        if (ii->hasAddress (l1->source))
+        if (ii->hasAddress (l1->source_address))
           continue;
-        if (l1->hopcount == 7 || found ? ii->hasAddress (l1->dest) : ii->checkAddress (l1->dest))
+        if (l1->hop_count == 7 || found ? ii->hasAddress (l1->destination_address) : ii->checkAddress (l1->destination_address))
           i->second->send_L_Data (LDataPtr(new L_Data_PDU (*l1)));
       }
     }
@@ -1168,7 +1168,7 @@ Router::mtrigger_cb (ev::async &w UNUSED, int revents UNUSED)
 
       TRACEPRINTF (t, 3, "RecvMon %s", l1->Decode (t));
       ITER (i, busmonitor)
-      i->cb->send_L_Busmonitor (LBusmonPtr(new L_Busmonitor_PDU (*l1)));
+      i->cb->send_L_Busmonitor (LBusmonPtr(new L_Busmon_PDU (*l1)));
     }
 }
 

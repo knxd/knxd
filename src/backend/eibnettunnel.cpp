@@ -305,7 +305,7 @@ EIBNetIPTunnel::read_cb (EIBNetIPPacket *p1)
             recv_L_Data (std::move(c));
           else
             {
-              LBusmonPtr p1 = LBusmonPtr(new L_Busmonitor_PDU ());
+              LBusmonPtr p1 = LBusmonPtr(new L_Busmon_PDU ());
               p1->pdu = c->ToPacket ();
               recv_L_Busmonitor (std::move(p1));
             }

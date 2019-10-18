@@ -22,7 +22,7 @@
 #include "tpdu.h"
 
 LPDUPtr
-LPDU::fromPacket (const CArray & c, TracePtr t UNUSED)
+LPDU::fromPacket (const CArray & c, TracePtr)
 {
   LPDUPtr l = nullptr;
   if (c.size() >= 1)
@@ -64,7 +64,7 @@ CArray L_NACK_PDU::ToPacket ()
   return CArray (&c, 1);
 }
 
-std::string L_NACK_PDU::Decode (TracePtr t UNUSED)
+std::string L_NACK_PDU::Decode (TracePtr)
 {
   return "NACK";
 }
@@ -89,7 +89,7 @@ CArray L_ACK_PDU::ToPacket ()
   return CArray (&c, 1);
 }
 
-std::string L_ACK_PDU::Decode (TracePtr t UNUSED)
+std::string L_ACK_PDU::Decode (TracePtr)
 {
   return "ACK";
 }
@@ -114,7 +114,7 @@ CArray L_BUSY_PDU::ToPacket ()
   return CArray (&c, 1);
 }
 
-std::string L_BUSY_PDU::Decode (TracePtr t UNUSED)
+std::string L_BUSY_PDU::Decode (TracePtr)
 {
   return "BUSY";
 }
@@ -139,7 +139,7 @@ L_Unknown_PDU::ToPacket ()
 }
 
 std::string
-L_Unknown_PDU::Decode (TracePtr t UNUSED)
+L_Unknown_PDU::Decode (TracePtr)
 {
   std::string s ("Unknown LPDU: ");
 
@@ -149,45 +149,6 @@ L_Unknown_PDU::Decode (TracePtr t UNUSED)
   ITER (i,pdu)
   addHex (s, *i);
 
-  return s;
-}
-
-/* L_Busmonitor  */
-
-L_Busmonitor_PDU::L_Busmonitor_PDU () : LPDU()
-{
-  struct timeval tv;
-  gettimeofday(&tv,NULL);
-  timestamp = tv.tv_sec*65536 + tv.tv_usec/(1000000/65536+1);
-  status = 0;
-}
-
-bool
-L_Busmonitor_PDU::init (const CArray & c)
-{
-  pdu = c;
-  return true;
-}
-
-CArray
-L_Busmonitor_PDU::ToPacket ()
-{
-  return pdu;
-}
-
-std::string
-L_Busmonitor_PDU::Decode (TracePtr t)
-{
-  std::string s ("LPDU: ");
-
-  if (pdu.size() == 0)
-    return "empty LPDU";
-
-  ITER (i,pdu)
-  addHex (s, *i);
-  s += ":";
-  LPDUPtr l = LPDU::fromPacket (pdu, t);
-  s += l->Decode (t);
   return s;
 }
 
@@ -204,15 +165,15 @@ L_Data_PDU::init (const CArray & c)
     return false;
   repeated = (c[0] & 0x20) ? 0 : 1;
   valid_length = 1;
-  prio = static_cast<EIB_Priority>((c[0] >> 2) & 0x3);
+  priority = static_cast<EIB_Priority>((c[0] >> 2) & 0x3);
   if (c[0] & 0x80)
     {
-      /*Standard frame */
-      source = (c[1] << 8) | (c[2]);
-      dest = (c[3] << 8) | (c[4]);
+      /* Standard frame */
+      source_address = (c[1] << 8) | (c[2]);
+      destination_address = (c[3] << 8) | (c[4]);
       len = (c[5] & 0x0f) + 1;
-      hopcount = (c[5] >> 4) & 0x07;
-      AddrType = (c[5] & 0x80) ? GroupAddress : IndividualAddress;
+      hop_count = (c[5] >> 4) & 0x07;
+      address_type = (c[5] & 0x80) ? GroupAddress : IndividualAddress;
       if (len + 7 != c.size())
         return false;
       data.set (c.data() + 6, len);
@@ -224,10 +185,10 @@ L_Data_PDU::init (const CArray & c)
         return false;
       if (c.size() < 7)
         return false;
-      hopcount = (c[1] >> 4) & 0x07;
-      AddrType = (c[1] & 0x80) ? GroupAddress : IndividualAddress;
-      source = (c[2] << 8) | (c[3]);
-      dest = (c[4] << 8) | (c[5]);
+      hop_count = (c[1] >> 4) & 0x07;
+      address_type = (c[1] & 0x80) ? GroupAddress : IndividualAddress;
+      source_address = (c[2] << 8) | (c[3]);
+      destination_address = (c[4] << 8) | (c[5]);
       len = c[6] + 1;
       if (len + 8 != c.size())
         {
@@ -256,32 +217,32 @@ CArray L_Data_PDU::ToPacket ()
 {
   assert (data.size() >= 1);
   assert (data.size() <= 0xff);
-  assert ((hopcount & 0xf8) == 0);
+  assert ((hop_count & 0xf8) == 0);
   CArray pdu;
   if (data.size() - 1 <= 0x0f)
     {
       pdu.resize (7 + data.size());
-      pdu[0] = 0x90 | (prio << 2) | (repeated ? 0x00 : 0x20);
-      pdu[1] = (source >> 8) & 0xff;
-      pdu[2] = (source) & 0xff;
-      pdu[3] = (dest >> 8) & 0xff;
-      pdu[4] = (dest) & 0xff;
+      pdu[0] = 0x90 | (priority << 2) | (repeated ? 0x00 : 0x20);
+      pdu[1] = (source_address >> 8) & 0xff;
+      pdu[2] = (source_address) & 0xff;
+      pdu[3] = (destination_address >> 8) & 0xff;
+      pdu[4] = (destination_address) & 0xff;
       pdu[5] =
-        (hopcount & 0x07) << 4 | ((data.size() - 1) & 0x0f) | (AddrType ==
-            GroupAddress ? 0x80
-            : 0x00);
+        (hop_count & 0x07) << 4 |
+        ((data.size() - 1) & 0x0f) |
+        (address_type == GroupAddress ? 0x80 : 0x00);
       pdu.setpart (data.data(), 6, 1 + ((data.size() - 1) & 0x0f));
     }
   else
     {
       pdu.resize (8 + data.size());
-      pdu[0] = 0x10 | (prio << 2) | (repeated ? 0x00 : 0x20);
+      pdu[0] = 0x10 | (priority << 2) | (repeated ? 0x00 : 0x20);
       pdu[1] =
-        (hopcount & 0x07) << 4 | (AddrType == GroupAddress ? 0x80 : 0x00);
-      pdu[2] = (source >> 8) & 0xff;
-      pdu[3] = (source) & 0xff;
-      pdu[4] = (dest >> 8) & 0xff;
-      pdu[5] = (dest) & 0xff;
+        (hop_count & 0x07) << 4 | (address_type == GroupAddress ? 0x80 : 0x00);
+      pdu[2] = source_address >> 8;
+      pdu[3] = source_address & 0xff;
+      pdu[4] = destination_address >> 8;
+      pdu[5] = destination_address & 0xff;
       pdu[6] = (data.size() - 1) & 0xff;
       pdu.setpart (data.data(), 7, 1 + ((data.size() - 1) & 0xff));
     }
@@ -298,14 +259,14 @@ std::string L_Data_PDU::Decode (TracePtr t)
 {
   assert (data.size() >= 1);
   assert (data.size() <= 0xff);
-  assert ((hopcount & 0xf8) == 0);
+  assert ((hop_count & 0xf8) == 0);
 
   std::string s ("L_Data");
   if (!valid_length)
     s += " (incomplete)";
   if (repeated)
     s += " (repeated)";
-  switch (prio)
+  switch (priority)
     {
     case PRIO_SYSTEM:
       s += " system";
@@ -323,14 +284,53 @@ std::string L_Data_PDU::Decode (TracePtr t)
   if (!valid_checksum)
     s += " INVALID CHECKSUM";
   s += " from ";
-  s += FormatEIBAddr (source);
+  s += FormatEIBAddr (source_address);
   s += " to ";
-  s += (AddrType == GroupAddress ?
-        FormatGroupAddr (dest) :
-        FormatEIBAddr (dest));
+  s += (address_type == GroupAddress ?
+        FormatGroupAddr (destination_address) :
+        FormatEIBAddr (destination_address));
   s += " hops: ";
-  addHex (s, hopcount);
-  TPDUPtr d = TPDU::fromPacket (AddrType, dest, data, t);
+  addHex (s, hop_count);
+  TPDUPtr d = TPDU::fromPacket (address_type, destination_address, data, t);
   s += d->Decode (t);
+  return s;
+}
+
+/* L_Busmon */
+
+L_Busmon_PDU::L_Busmon_PDU () : LPDU()
+{
+  struct timeval tv;
+  gettimeofday(&tv,NULL);
+  time_stamp = tv.tv_sec*65536 + tv.tv_usec/(1000000/65536+1);
+  status = 0;
+}
+
+bool
+L_Busmon_PDU::init (const CArray & c)
+{
+  pdu = c;
+  return true;
+}
+
+CArray
+L_Busmon_PDU::ToPacket ()
+{
+  return pdu;
+}
+
+std::string
+L_Busmon_PDU::Decode (TracePtr t)
+{
+  std::string s ("LPDU: ");
+
+  if (pdu.size() == 0)
+    return "empty LPDU";
+
+  ITER (i,pdu)
+  addHex (s, *i);
+  s += ":";
+  LPDUPtr l = LPDU::fromPacket (pdu, t);
+  s += l->Decode (t);
   return s;
 }

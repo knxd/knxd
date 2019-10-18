@@ -101,10 +101,10 @@ A_Busmonitor::send_L_Busmonitor (LBusmonPtr p)
       buf.resize (7);
       EIBSETTYPE (buf, EIB_BUSMONITOR_PACKET_TS);
       buf[2] = p->status;
-      buf[3] = (p->timestamp >> 24) & 0xff;
-      buf[4] = (p->timestamp >> 16) & 0xff;
-      buf[5] = (p->timestamp >> 8) & 0xff;
-      buf[6] = (p->timestamp) & 0xff;
+      buf[3] = (p->time_stamp >> 24) & 0xff;
+      buf[4] = (p->time_stamp >> 16) & 0xff;
+      buf[5] = (p->time_stamp >> 8) & 0xff;
+      buf[6] = (p->time_stamp) & 0xff;
     }
   else
     {

@@ -68,9 +68,9 @@ void
 NatL2Filter::send_L_Data (LDataPtr  l)
 {
   /* Sending a packet to this interface: record address pair, clear source */
-  if (l->AddrType == IndividualAddress)
-    addReverseAddress (l->source, l->dest);
-  l->source = addr;
+  if (l->address_type == IndividualAddress)
+    addReverseAddress (l->source_address, l->destination_address);
+  l->source_address = addr;
   Filter::send_L_Data (std::move(l));
 }
 
@@ -79,13 +79,13 @@ void
 NatL2Filter::recv_L_Data (LDataPtr  l)
 {
   /* Receiving a packet from this interface: reverse-lookup real destination from source */
-  if (l->source == addr)
+  if (l->source_address == addr)
     {
-      TRACEPRINTF (t, 5, "drop packet from %s", FormatEIBAddr (l->source));
+      TRACEPRINTF (t, 5, "drop packet from %s", FormatEIBAddr (l->source_address));
       return;
     }
-  if (l->AddrType == IndividualAddress)
-    l->dest = getDestinationAddress (l->source);
+  if (l->address_type == IndividualAddress)
+    l->destination_address = getDestinationAddress (l->source_address);
   Filter::recv_L_Data (std::move(l));
 }
 
@@ -148,11 +148,11 @@ void
 MapL2Filter::send_L_Data (LDataPtr  l)
 {
   /* Sending a packet to this interface: reverse-lookup real destination from source */
-  if (l->AddrType == IndividualAddress)
+  if (l->address_type == IndividualAddress)
     {
-      l->dest = getDestinationAddress (l->source);
-      if (l->dest == 0)
-        l->dest = addr;
+      l->destination_address = getDestinationAddress (l->source_address);
+      if (l->destination_address == 0)
+        l->destination_address = addr;
     }
   Filter::send_L_Data (std::move(l));
 }
@@ -162,9 +162,9 @@ void
 MapL2Filter::recv_L_Data (LDataPtr  l)
 {
   /* Receiving a packet from this interface: record address pair, clear source */
-  if (l->AddrType == IndividualAddress)
-    addReverseAddress (l->source, l->dest);
-  l->source = addr;
+  if (l->address_type == IndividualAddress)
+    addReverseAddress (l->source_address, l->destination_address);
+  l->source_address = addr;
   Filter::recv_L_Data (std::move(l));
 }
 

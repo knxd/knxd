@@ -38,12 +38,12 @@ void
 T_Broadcast::send_L_Data (LDataPtr l)
 {
   BroadcastComm c;
-  TPDUPtr t = TPDU::fromPacket (l->AddrType, l->dest, l->data, this->t);
+  TPDUPtr t = TPDU::fromPacket (l->address_type, l->destination_address, l->data, this->t);
   if (t->getType () == T_Data_Broadcast)
     {
       T_Data_Broadcast_PDU *t1 = (T_Data_Broadcast_PDU *) &*t;
       c.data = t1->data;
-      c.src = l->source;
+      c.src = l->source_address;
       app->send(c);
     }
   send_Next();
@@ -57,11 +57,11 @@ T_Broadcast::recv_Data (const CArray & c)
   std::string s = t.Decode (this->t);
   TRACEPRINTF (this->t, 4, "Recv Broadcast %s", s);
   LDataPtr l = LDataPtr(new L_Data_PDU ());
-  l->source = 0;
-  l->dest = 0;
-  l->AddrType = GroupAddress;
+  l->source_address = 0;
+  l->destination_address = 0;
+  l->address_type = GroupAddress;
   l->data = t.ToPacket ();
-  l->hopcount = 0x07;
+  l->hop_count = 0x07;
   auto r = recv.lock();
   if (r != nullptr)
     r->recv_L_Data (std::move(l));
@@ -82,12 +82,12 @@ void
 T_Group::send_L_Data (LDataPtr l)
 {
   GroupComm c;
-  TPDUPtr t = TPDU::fromPacket (l->AddrType, l->dest, l->data, this->t);
+  TPDUPtr t = TPDU::fromPacket (l->address_type, l->destination_address, l->data, this->t);
   if (t->getType () == T_Data_Group)
     {
       T_Data_Group_PDU *t1 = (T_Data_Group_PDU *) &*t;
       c.data = t1->data;
-      c.src = l->source;
+      c.src = l->source_address;
       app->send(c);
     }
   send_Next();
@@ -101,9 +101,9 @@ T_Group::recv_Data (const CArray & c)
   std::string s = t.Decode (this->t);
   TRACEPRINTF (this->t, 4, "Recv Group %s", s);
   LDataPtr l = LDataPtr(new L_Data_PDU ());
-  l->source = 0;
-  l->dest = groupaddr;
-  l->AddrType = GroupAddress;
+  l->source_address = 0;
+  l->destination_address = groupaddr;
+  l->address_type = GroupAddress;
   l->data = t.ToPacket ();
   auto r = recv.lock();
   if (r != nullptr)
@@ -130,7 +130,7 @@ T_TPDU::send_L_Data (LDataPtr l)
 {
   TpduComm t;
   t.data = l->data;
-  t.addr = l->source;
+  t.addr = l->source_address;
   app->send(t);
   send_Next();
 }
@@ -140,9 +140,9 @@ T_TPDU::recv_Data (const TpduComm & c)
 {
   t->TracePacket (4, "Recv TPDU", c.data);
   LDataPtr l = LDataPtr(new L_Data_PDU ());
-  l->source = src;
-  l->dest = c.addr;
-  l->AddrType = IndividualAddress;
+  l->source_address = src;
+  l->destination_address = c.addr;
+  l->address_type = IndividualAddress;
   l->data = c.data;
   auto r = recv.lock();
   if (r != nullptr)
@@ -169,7 +169,7 @@ void
 T_Individual::send_L_Data (LDataPtr l)
 {
   CArray c;
-  TPDUPtr t = TPDU::fromPacket (l->AddrType, l->dest, l->data, this->t);
+  TPDUPtr t = TPDU::fromPacket (l->address_type, l->destination_address, l->data, this->t);
   switch (t->getType ())
     {
     case T_Data_Broadcast:
@@ -199,9 +199,9 @@ T_Individual::recv_Data (const CArray & c)
   std::string s = t.Decode (this->t);
   TRACEPRINTF (this->t, 4, "Recv Individual %s", s);
   LDataPtr l = LDataPtr(new L_Data_PDU ());
-  l->source = 0;
-  l->dest = dest;
-  l->AddrType = IndividualAddress;
+  l->source_address = 0;
+  l->destination_address = dest;
+  l->address_type = IndividualAddress;
   l->data = t.ToPacket ();
   auto r = recv.lock();
   if (r != nullptr)
@@ -239,7 +239,7 @@ T_Connection::~T_Connection ()
 void
 T_Connection::send_L_Data (LDataPtr l)
 {
-  TPDUPtr t = TPDU::fromPacket (l->AddrType, l->dest, l->data, this->t);
+  TPDUPtr t = TPDU::fromPacket (l->address_type, l->destination_address, l->data, this->t);
   switch (t->getType ())
     {
     case T_Data_Connected:
@@ -329,11 +329,11 @@ T_Connection::SendConnect ()
   TRACEPRINTF (t, 4, "SendConnect");
   T_Connect_PDU p;
   LDataPtr l = LDataPtr(new L_Data_PDU ());
-  l->source = 0;
-  l->dest = dest;
-  l->AddrType = IndividualAddress;
+  l->source_address = 0;
+  l->destination_address = dest;
+  l->address_type = IndividualAddress;
   l->data = p.ToPacket ();
-  l->prio = PRIO_SYSTEM;
+  l->priority = PRIO_SYSTEM;
 
   mode = 1;
   sendno = 0;
@@ -350,11 +350,11 @@ T_Connection::SendDisconnect ()
   TRACEPRINTF (t, 4, "SendDisconnect");
   T_Disconnect_PDU p;
   LDataPtr l = LDataPtr(new L_Data_PDU ());
-  l->source = 0;
-  l->dest = dest;
-  l->AddrType = IndividualAddress;
+  l->source_address = 0;
+  l->destination_address = dest;
+  l->address_type = IndividualAddress;
   l->data = p.ToPacket ();
-  l->prio = PRIO_SYSTEM;
+  l->priority = PRIO_SYSTEM;
   auto r = recv.lock();
   if (r != nullptr)
     r->recv_L_Data (std::move(l));
@@ -367,9 +367,9 @@ T_Connection::SendAck (int sequence_number)
   T_ACK_PDU p;
   p.sequence_number = sequence_number;
   LDataPtr l = LDataPtr(new L_Data_PDU ());
-  l->source = 0;
-  l->dest = dest;
-  l->AddrType = IndividualAddress;
+  l->source_address = 0;
+  l->destination_address = dest;
+  l->address_type = IndividualAddress;
   l->data = p.ToPacket ();
   auto r = recv.lock();
   if (r != nullptr)
@@ -384,9 +384,9 @@ T_Connection::SendData (int sequence_number, const CArray & c)
   p.sequence_number = sequence_number;
   TRACEPRINTF (t, 4, "SendData %s", p.Decode (t));
   LDataPtr l = LDataPtr(new L_Data_PDU ());
-  l->source = 0;
-  l->dest = dest;
-  l->AddrType = IndividualAddress;
+  l->source_address = 0;
+  l->destination_address = dest;
+  l->address_type = IndividualAddress;
   l->data = p.ToPacket ();
   auto r = recv.lock();
   if (r != nullptr)
@@ -441,13 +441,13 @@ void
 GroupSocket::send_L_Data (LDataPtr l)
 {
   GroupAPDU c;
-  TPDUPtr t = TPDU::fromPacket (l->AddrType, l->dest, l->data, this->t);
+  TPDUPtr t = TPDU::fromPacket (l->address_type, l->destination_address, l->data, this->t);
   if (t->getType () == T_Data_Group)
     {
       T_Data_Group_PDU *t1 = (T_Data_Group_PDU *) &*t;
       c.data = t1->data;
-      c.src = l->source;
-      c.dst = l->dest;
+      c.src = l->source_address;
+      c.dst = l->destination_address;
       app->send(c);
     }
   send_Next();
@@ -461,9 +461,9 @@ GroupSocket::recv_Data (const GroupAPDU & c)
   std::string s = t.Decode (this->t);
   TRACEPRINTF (this->t, 4, "Recv GroupSocket %s %s", FormatGroupAddr(c.dst), s);
   LDataPtr l = LDataPtr(new L_Data_PDU ());
-  l->source = 0;
-  l->dest = c.dst;
-  l->AddrType = GroupAddress;
+  l->source_address = 0;
+  l->destination_address = c.dst;
+  l->address_type = GroupAddress;
   l->data = t.ToPacket ();
   auto r = recv.lock();
   if (r != nullptr)
