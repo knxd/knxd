@@ -22,59 +22,6 @@
 #include "tpdu.h"
 #include "cm_tp1.h"
 
-/* L_NACK */
-
-L_NACK_PDU::L_NACK_PDU () : LPDU()
-{
-}
-
-std::string L_NACK_PDU::Decode (TracePtr)
-{
-  return "NACK";
-}
-
-/* L_ACK */
-
-L_ACK_PDU::L_ACK_PDU () : LPDU()
-{
-}
-
-std::string L_ACK_PDU::Decode (TracePtr)
-{
-  return "ACK";
-}
-
-/* L_BUSY */
-
-L_BUSY_PDU::L_BUSY_PDU () : LPDU()
-{
-}
-
-std::string L_BUSY_PDU::Decode (TracePtr)
-{
-  return "BUSY";
-}
-
-/* L_Unknown  */
-
-L_Unknown_PDU::L_Unknown_PDU () : LPDU()
-{
-}
-
-std::string
-L_Unknown_PDU::Decode (TracePtr)
-{
-  std::string s ("Unknown LPDU: ");
-
-  if (pdu.size() == 0)
-    return "empty LPDU";
-
-  ITER (i,pdu)
-  addHex (s, *i);
-
-  return s;
-}
-
 /* L_Data */
 
 std::string L_Data_PDU::Decode (TracePtr t)

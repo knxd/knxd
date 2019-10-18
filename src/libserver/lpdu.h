@@ -40,20 +40,20 @@ using LBusmonPtr = std::unique_ptr<L_Busmon_PDU>;
 /** enumartion of Layer 2 frame types*/
 typedef enum
 {
-  /** unknown frame */
-  L_Unknown,
   /** L_Data */
   L_Data,
-  /** L_Data incomplete. Note that nothing handles this. */
-  L_Data_Part,
-  /** ACK */
-  L_ACK,
-  /** NACK */
-  L_NACK,
-  /** BUSY */
-  L_BUSY,
+  /** L_SystemBroadcast */
+  L_SystemBroadcast,
+  /** L_Poll_Data */
+  L_Poll_Data,
+  /** L_Poll_Update */
+  L_Poll_Update,
   /** L_Busmon */
   L_Busmon,
+  /** L_Service_Information */
+  L_Service_Information,
+  /** L_Management */
+  L_Management,
 }
 LPDU_Type;
 
@@ -68,23 +68,6 @@ public:
   virtual std::string Decode (TracePtr tr) = 0;
   /** get frame type */
   virtual LPDU_Type getType () const = 0;
-};
-
-/* L_Unknown */
-
-class L_Unknown_PDU:public LPDU
-{
-public:
-  /** real content*/
-  CArray pdu;
-
-  L_Unknown_PDU ();
-
-  std::string Decode (TracePtr tr);
-  LPDU_Type getType () const
-  {
-    return L_Unknown;
-  }
 };
 
 /* L_Data */
@@ -124,46 +107,73 @@ public:
   std::string Decode (TracePtr tr);
   LPDU_Type getType () const
   {
-    return (valid_length ? L_Data : L_Data_Part);
+    return L_Data;
   }
 };
 
-class L_ACK_PDU:public LPDU
+/* L_SystemBroadcast */
+
+class L_SystemBroadcast_PDU:public LPDU
 {
 public:
+  /* acknowledge mandatory/optional */
+  uint8_t ack_request = 0;
+  /** address type */
+  EIB_AddrType address_type = IndividualAddress;
+  /* destination address */
+  eibaddr_t destination_address = 0;
+  /** standard/extended frame format */
+  uint8_t frame_format = 0;
+  /** octet count */
+  uint8_t octet_count = 0;
+  /** priority */
+  EIB_Priority priority = PRIO_LOW;
+  /* source address */
+  eibaddr_t source_address = 0;
+  /** payload of Layer 4 (LSDU) */
+  CArray data; // @todo rename to lsdu
+  /* status */
+  uint8_t l_status = 0;
 
-  L_ACK_PDU ();
+  L_SystemBroadcast_PDU () = default;
 
-  std::string Decode (TracePtr tr);
   LPDU_Type getType () const
   {
-    return L_ACK;
+    return L_SystemBroadcast;
   }
 };
 
-class L_NACK_PDU:public LPDU
+/* L_Poll_Data */
+
+class L_Poll_Data_PDU:public LPDU
 {
 public:
+  /* destination address */
+  eibaddr_t destination_address = 0;
+  uint8_t no_of_expected_poll_data = 0;
+  CArray poll_data_sequence;
+  uint8_t l_status = 0;
 
-  explicit L_NACK_PDU ();
+  L_Poll_Data_PDU () = default;
 
-  std::string Decode (TracePtr tr);
   LPDU_Type getType () const
   {
-    return L_NACK;
+    return L_Poll_Data;
   }
 };
 
-class L_BUSY_PDU:public LPDU
+/* L_Poll_Update */
+
+class L_Poll_Update_PDU:public LPDU
 {
 public:
+  uint8_t poll_data;
 
-  L_BUSY_PDU ();
+  L_Poll_Update_PDU () = default;
 
-  std::string Decode (TracePtr tr);
   LPDU_Type getType () const
   {
-    return L_BUSY;
+    return L_Poll_Update;
   }
 };
 
@@ -194,6 +204,32 @@ public:
   std::string& name;
   /** callback: a bus monitor frame has been received */
   virtual void send_L_Busmonitor (LBusmonPtr l) = 0;
+};
+
+/* L_Service_Information */
+
+class L_Service_Information_PDU:public LPDU
+{
+public:
+  L_Service_Information_PDU () = default;
+
+  LPDU_Type getType () const
+  {
+    return L_Service_Information;
+  }
+};
+
+/* L_Management */
+
+class L_Management_PDU:public LPDU
+{
+public:
+  L_Management_PDU () = default;
+
+  LPDU_Type getType () const
+  {
+    return L_Management;
+  }
 };
 
 #endif
