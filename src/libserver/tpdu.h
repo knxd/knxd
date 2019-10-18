@@ -26,19 +26,27 @@
 typedef enum
 {
   /** unknown TPDU */
-  T_UNKNOWN,
-  /** any connectionless TPDU */
-  T_DATA_XXX_REQ,
-  /** connectionoriented TPDU */
-  T_DATA_CONNECTED_REQ,
+  T_Unknown,
+  /** T_Data_Broadcast */
+  T_Data_Broadcast,
+  /** T_Data_SystemBroadcast */
+  T_Data_SystemBroadcast,
+  /** T_Data_Group */
+  T_Data_Group,
+  /** T_Data_Tag_Group */
+  T_Data_Tag_Group,
+  /** T_Data_Individual */
+  T_Data_Individual,
+  /** T_Data_Connected */
+  T_Data_Connected,
   /** T_Connect */
-  T_CONNECT_REQ,
+  T_Connect,
   /** T_Disconnect */
-  T_DISCONNECT_REQ,
+  T_Disconnect,
   /** T_ACK */
   T_ACK,
-  /** T_NACK */
-  T_NACK,
+  /** T_NAK */
+  T_NAK,
 }
 TPDU_Type;
 
@@ -51,118 +59,188 @@ class TPDU
 public:
   virtual ~TPDU () = default;
 
-  virtual bool init (const CArray & c, TracePtr t) = 0;
+  virtual bool init (const CArray & c, TracePtr tr) = 0;
   /** convert to character array */
   virtual CArray ToPacket () = 0;
   /** decode content as string */
-  virtual std::string Decode (TracePtr t) = 0;
+  virtual std::string Decode (TracePtr tr) = 0;
   /** gets TPDU type */
   virtual TPDU_Type getType () const = 0;
   /** converts character array to a TPDU */
-  static TPDUPtr fromPacket (const CArray & c, TracePtr t);
+  static TPDUPtr fromPacket (const EIB_AddrType address_type, const eibaddr_t destination_address, const CArray & c, TracePtr tr);
 };
 
-class T_UNKNOWN_PDU:public TPDU
+class T_Unknown_PDU:public TPDU
 {
 public:
   CArray pdu;
 
-  T_UNKNOWN_PDU () = default;
-  bool init (const CArray & c, TracePtr t);
+  T_Unknown_PDU () = default;
+  bool init (const CArray & c, TracePtr tr);
   CArray ToPacket ();
-  std::string Decode (TracePtr t);
+  std::string Decode (TracePtr tr);
   TPDU_Type getType () const
   {
-    return T_UNKNOWN;
+    return T_Unknown;
   }
 };
 
-class T_DATA_XXX_REQ_PDU:public TPDU
+/** T_Data_Broadcast */
+class T_Data_Broadcast_PDU:public TPDU
 {
 public:
   CArray data;
 
-  T_DATA_XXX_REQ_PDU () = default;
-  bool init (const CArray & c, TracePtr t);
+  T_Data_Broadcast_PDU () = default;
+  bool init (const CArray & c, TracePtr tr);
   CArray ToPacket ();
-  std::string Decode (TracePtr t);
+  std::string Decode (TracePtr tr);
   TPDU_Type getType () const
   {
-    return T_DATA_XXX_REQ;
+    return T_Data_Broadcast;
   }
 };
 
-class T_DATA_CONNECTED_REQ_PDU:public TPDU
+/** T_Data_SystemBroadcast */
+class T_Data_SystemBroadcast_PDU:public TPDU
 {
 public:
-  uchar serno = 0;
   CArray data;
 
-  T_DATA_CONNECTED_REQ_PDU () = default;
-  bool init (const CArray & c, TracePtr t);
+  T_Data_SystemBroadcast_PDU () = default;
+  bool init (const CArray & c, TracePtr tr);
   CArray ToPacket ();
-  std::string Decode (TracePtr t);
+  std::string Decode (TracePtr tr);
   TPDU_Type getType () const
   {
-    return T_DATA_CONNECTED_REQ;
+    return T_Data_SystemBroadcast;
   }
 };
 
-class T_CONNECT_REQ_PDU:public TPDU
+/** T_Data_Group */
+class T_Data_Group_PDU:public TPDU
+{
+public:
+  CArray data;
+
+  T_Data_Group_PDU () = default;
+  bool init (const CArray & c, TracePtr tr);
+  CArray ToPacket ();
+  std::string Decode (TracePtr tr);
+  TPDU_Type getType () const
+  {
+    return T_Data_Group;
+  }
+};
+
+/** T_Data_Tag_Group */
+class T_Data_Tag_Group_PDU:public TPDU
+{
+public:
+  CArray data;
+
+  T_Data_Tag_Group_PDU () = default;
+  bool init (const CArray & c, TracePtr tr);
+  CArray ToPacket ();
+  std::string Decode (TracePtr tr);
+  TPDU_Type getType () const
+  {
+    return T_Data_Tag_Group;
+  }
+};
+
+/** T_Data_Individual */
+class T_Data_Individual_PDU:public TPDU
+{
+public:
+  CArray data;
+
+  T_Data_Individual_PDU () = default;
+  bool init (const CArray & c, TracePtr tr);
+  CArray ToPacket ();
+  std::string Decode (TracePtr tr);
+  TPDU_Type getType () const
+  {
+    return T_Data_Individual;
+  }
+};
+
+/** T_Data_Connected */
+class T_Data_Connected_PDU:public TPDU
+{
+public:
+  uint8_t sequence_number = 0;
+  CArray data;
+
+  T_Data_Connected_PDU () = default;
+  bool init (const CArray & c, TracePtr tr);
+  CArray ToPacket ();
+  std::string Decode (TracePtr tr);
+  TPDU_Type getType () const
+  {
+    return T_Data_Connected;
+  }
+};
+
+/** T_Connect */
+class T_Connect_PDU:public TPDU
 {
 public:
 
-  T_CONNECT_REQ_PDU () = default;
-  bool init (const CArray & c, TracePtr t);
+  T_Connect_PDU () = default;
+  bool init (const CArray & c, TracePtr tr);
   CArray ToPacket ();
-  std::string Decode (TracePtr t);
+  std::string Decode (TracePtr tr);
   TPDU_Type getType () const
   {
-    return T_CONNECT_REQ;
+    return T_Connect;
   }
 };
 
-class T_DISCONNECT_REQ_PDU:public TPDU
+/** T_Disconnect */
+class T_Disconnect_PDU:public TPDU
 {
 public:
 
-  T_DISCONNECT_REQ_PDU () = default;
-  bool init (const CArray & c, TracePtr t);
+  T_Disconnect_PDU () = default;
+  bool init (const CArray & c, TracePtr tr);
   CArray ToPacket ();
-  std::string Decode (TracePtr t);
+  std::string Decode (TracePtr tr);
   TPDU_Type getType () const
   {
-    return T_DISCONNECT_REQ;
+    return T_Disconnect;
   }
 };
 
+/** T_ACK */
 class T_ACK_PDU:public TPDU
 {
 public:
-  uchar serno = 0;
+  uint8_t sequence_number = 0;
 
   T_ACK_PDU () = default;
-  bool init (const CArray & c, TracePtr t);
+  bool init (const CArray & c, TracePtr tr);
   CArray ToPacket ();
-  std::string Decode (TracePtr t);
+  std::string Decode (TracePtr tr);
   TPDU_Type getType () const
   {
     return T_ACK;
   }
 };
 
-class T_NACK_PDU:public TPDU
+/** T_NAK */
+class T_NAK_PDU:public TPDU
 {
 public:
-  uchar serno = 0;
+  uint8_t sequence_number = 0;
 
-  T_NACK_PDU () = default;
-  bool init (const CArray & c, TracePtr t);
+  T_NAK_PDU () = default;
+  bool init (const CArray & c, TracePtr tr);
   CArray ToPacket ();
-  std::string Decode (TracePtr t);
+  std::string Decode (TracePtr tr);
   TPDU_Type getType () const
   {
-    return T_NACK;
+    return T_NAK;
   }
 };
 

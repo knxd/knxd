@@ -330,7 +330,7 @@ std::string L_Data_PDU::Decode (TracePtr t)
         FormatEIBAddr (dest));
   s += " hops: ";
   addHex (s, hopcount);
-  TPDUPtr d = TPDU::fromPacket (data, t);
+  TPDUPtr d = TPDU::fromPacket (AddrType, dest, data, t);
   s += d->Decode (t);
   return s;
 }

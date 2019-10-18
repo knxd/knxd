@@ -38,10 +38,10 @@ void
 T_Broadcast::send_L_Data (LDataPtr l)
 {
   BroadcastComm c;
-  TPDUPtr t = TPDU::fromPacket (l->data, this->t);
-  if (t->getType () == T_DATA_XXX_REQ)
+  TPDUPtr t = TPDU::fromPacket (l->AddrType, l->dest, l->data, this->t);
+  if (t->getType () == T_Data_Broadcast)
     {
-      T_DATA_XXX_REQ_PDU *t1 = (T_DATA_XXX_REQ_PDU *) &*t;
+      T_Data_Broadcast_PDU *t1 = (T_Data_Broadcast_PDU *) &*t;
       c.data = t1->data;
       c.src = l->source;
       app->send(c);
@@ -52,7 +52,7 @@ T_Broadcast::send_L_Data (LDataPtr l)
 void
 T_Broadcast::recv_Data (const CArray & c)
 {
-  T_DATA_XXX_REQ_PDU t;
+  T_Data_Broadcast_PDU t;
   t.data = c;
   std::string s = t.Decode (this->t);
   TRACEPRINTF (this->t, 4, "Recv Broadcast %s", s);
@@ -82,10 +82,10 @@ void
 T_Group::send_L_Data (LDataPtr l)
 {
   GroupComm c;
-  TPDUPtr t = TPDU::fromPacket (l->data, this->t);
-  if (t->getType () == T_DATA_XXX_REQ)
+  TPDUPtr t = TPDU::fromPacket (l->AddrType, l->dest, l->data, this->t);
+  if (t->getType () == T_Data_Group)
     {
-      T_DATA_XXX_REQ_PDU *t1 = (T_DATA_XXX_REQ_PDU *) &*t;
+      T_Data_Group_PDU *t1 = (T_Data_Group_PDU *) &*t;
       c.data = t1->data;
       c.src = l->source;
       app->send(c);
@@ -96,7 +96,7 @@ T_Group::send_L_Data (LDataPtr l)
 void
 T_Group::recv_Data (const CArray & c)
 {
-  T_DATA_XXX_REQ_PDU t;
+  T_Data_Group_PDU t;
   t.data = c;
   std::string s = t.Decode (this->t);
   TRACEPRINTF (this->t, 4, "Recv Group %s", s);
@@ -169,12 +169,24 @@ void
 T_Individual::send_L_Data (LDataPtr l)
 {
   CArray c;
-  TPDUPtr t = TPDU::fromPacket (l->data, this->t);
-  if (t->getType () == T_DATA_XXX_REQ)
+  TPDUPtr t = TPDU::fromPacket (l->AddrType, l->dest, l->data, this->t);
+  switch (t->getType ())
     {
-      T_DATA_XXX_REQ_PDU *t1 = (T_DATA_XXX_REQ_PDU *) &*t;
+    case T_Data_Broadcast:
+    {
+      T_Data_Broadcast_PDU *t1 = (T_Data_Broadcast_PDU *) &*t;
       c = t1->data;
       app->send(c);
+    }
+    case T_Data_Individual:
+    {
+      T_Data_Individual_PDU *t1 = (T_Data_Individual_PDU *) &*t;
+      c = t1->data;
+      app->send(c);
+    }
+    default:
+      /* ignore */
+      break;
     }
   send_Next();
 }
@@ -182,7 +194,7 @@ T_Individual::send_L_Data (LDataPtr l)
 void
 T_Individual::recv_Data (const CArray & c)
 {
-  T_DATA_XXX_REQ_PDU t;
+  T_Data_Individual_PDU t;
   t.data = c;
   std::string s = t.Decode (this->t);
   TRACEPRINTF (this->t, 4, "Recv Individual %s", s);
@@ -227,49 +239,35 @@ T_Connection::~T_Connection ()
 void
 T_Connection::send_L_Data (LDataPtr l)
 {
-  TPDUPtr t = TPDU::fromPacket (l->data, this->t);
+  TPDUPtr t = TPDU::fromPacket (l->AddrType, l->dest, l->data, this->t);
   switch (t->getType ())
     {
-    case T_DISCONNECT_REQ:
-      stop();
-      break;
-    case T_CONNECT_REQ:
-      stop();
-      break;
-    case T_DATA_CONNECTED_REQ:
+    case T_Data_Connected:
     {
-      T_DATA_CONNECTED_REQ_PDU *t1 = (T_DATA_CONNECTED_REQ_PDU *) &*t;
-      if (t1->serno != recvno && t1->serno != ((recvno - 1) & 0x0f))
+      T_Data_Connected_PDU *t1 = (T_Data_Connected_PDU *) &*t;
+      if (t1->sequence_number != recvno && t1->sequence_number != ((recvno - 1) & 0x0f))
         stop();
-      else if (t1->serno == recvno)
+      else if (t1->sequence_number == recvno)
         {
           t1->data[0] = t1->data[0] & 0x03;
           app->send(t1->data);
           SendAck (recvno);
           recvno = (recvno + 1) & 0x0f;
         }
-      else if (t1->serno == ((recvno - 1) & 0x0f))
-        SendAck (t1->serno);
+      else if (t1->sequence_number == ((recvno - 1) & 0x0f))
+        SendAck (t1->sequence_number);
     }
     break;
-    case T_NACK:
-    {
-      T_NACK_PDU *t1 = (T_NACK_PDU *) &*t;
-      if (t1->serno != sendno)
-        stop();
-      else if (repcount >= 3 || mode != 2)
-        stop();
-      else
-        {
-          repcount++;
-          SendData (sendno, current);
-        }
-    }
-    break;
+    case T_Connect:
+      stop();
+      break;
+    case T_Disconnect:
+      stop();
+      break;
     case T_ACK:
     {
       T_ACK_PDU *t1 = (T_ACK_PDU *) &*t;
-      if (t1->serno != sendno)
+      if (t1->sequence_number != sendno)
         stop();
       else if (mode != 2)
         stop();
@@ -279,6 +277,20 @@ T_Connection::send_L_Data (LDataPtr l)
           timer.stop();
           sendno = (sendno + 1) & 0x0f;
           SendCheck();
+        }
+    }
+    break;
+    case T_NAK:
+    {
+      T_NAK_PDU *t1 = (T_NAK_PDU *) &*t;
+      if (t1->sequence_number != sendno)
+        stop();
+      else if (repcount >= 3 || mode != 2)
+        stop();
+      else
+        {
+          repcount++;
+          SendData (sendno, current);
         }
     }
     break;
@@ -315,7 +327,7 @@ void
 T_Connection::SendConnect ()
 {
   TRACEPRINTF (t, 4, "SendConnect");
-  T_CONNECT_REQ_PDU p;
+  T_Connect_PDU p;
   LDataPtr l = LDataPtr(new L_Data_PDU ());
   l->source = 0;
   l->dest = dest;
@@ -336,7 +348,7 @@ void
 T_Connection::SendDisconnect ()
 {
   TRACEPRINTF (t, 4, "SendDisconnect");
-  T_DISCONNECT_REQ_PDU p;
+  T_Disconnect_PDU p;
   LDataPtr l = LDataPtr(new L_Data_PDU ());
   l->source = 0;
   l->dest = dest;
@@ -349,11 +361,11 @@ T_Connection::SendDisconnect ()
 }
 
 void
-T_Connection::SendAck (int serno)
+T_Connection::SendAck (int sequence_number)
 {
-  TRACEPRINTF (t, 4, "SendACK %d", serno);
+  TRACEPRINTF (t, 4, "SendACK %d", sequence_number);
   T_ACK_PDU p;
-  p.serno = serno;
+  p.sequence_number = sequence_number;
   LDataPtr l = LDataPtr(new L_Data_PDU ());
   l->source = 0;
   l->dest = dest;
@@ -365,11 +377,11 @@ T_Connection::SendAck (int serno)
 }
 
 void
-T_Connection::SendData (int serno, const CArray & c)
+T_Connection::SendData (int sequence_number, const CArray & c)
 {
-  T_DATA_CONNECTED_REQ_PDU p;
+  T_Data_Connected_PDU p;
   p.data = c;
-  p.serno = serno;
+  p.sequence_number = sequence_number;
   TRACEPRINTF (t, 4, "SendData %s", p.Decode (t));
   LDataPtr l = LDataPtr(new L_Data_PDU ());
   l->source = 0;
@@ -429,10 +441,10 @@ void
 GroupSocket::send_L_Data (LDataPtr l)
 {
   GroupAPDU c;
-  TPDUPtr t = TPDU::fromPacket (l->data, this->t);
-  if (t->getType () == T_DATA_XXX_REQ)
+  TPDUPtr t = TPDU::fromPacket (l->AddrType, l->dest, l->data, this->t);
+  if (t->getType () == T_Data_Group)
     {
-      T_DATA_XXX_REQ_PDU *t1 = (T_DATA_XXX_REQ_PDU *) &*t;
+      T_Data_Group_PDU *t1 = (T_Data_Group_PDU *) &*t;
       c.data = t1->data;
       c.src = l->source;
       c.dst = l->dest;
@@ -444,7 +456,7 @@ GroupSocket::send_L_Data (LDataPtr l)
 void
 GroupSocket::recv_Data (const GroupAPDU & c)
 {
-  T_DATA_XXX_REQ_PDU t;
+  T_Data_Group_PDU t;
   t.data = c.data;
   std::string s = t.Decode (this->t);
   TRACEPRINTF (this->t, 4, "Recv GroupSocket %s %s", FormatGroupAddr(c.dst), s);
