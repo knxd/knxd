@@ -190,9 +190,9 @@ EMI_Common::recv_Data(CArray& c)
     }
   else if (c.size() > 4 && c[0] == ind[I_BUSMON] && monitor)
     {
-      LBusmonPtr p = LBusmonPtr(new L_Busmonitor_PDU ());
+      LBusmonPtr p = LBusmonPtr(new L_Busmon_PDU ());
       p->status = c[1];
-      p->timestamp = (c[2] << 24) | (c[3] << 16);
+      p->time_stamp = (c[2] << 24) | (c[3] << 16);
       p->pdu.set (c.data() + 4, c.size() - 4);
       master->recv_L_Busmonitor (std::move(p));
     }

@@ -936,8 +936,8 @@ void ConnState::tunnel_request(EIBnet_TunnelRequest &r1, EIBNetIPSocket *isock)
               if (! retries)
                 send_trigger.send();
             }
-          if (c->source == 0)
-            c->source = addr;
+          if (c->source_address == 0)
+            c->source_address = addr;
           if (r1.CEMI[0] == 0x11 || r1.CEMI[0] == 0x29)
             recv_L_Data (std::move(c));
           else

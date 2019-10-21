@@ -17,6 +17,11 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * Data Link Layer General
+ */
+
 #ifndef LPDU_H
 #define LPDU_H
 
@@ -24,10 +29,10 @@
 
 class LPDU;
 class L_Data_PDU;
-class L_Busmonitor_PDU;
-typedef std::unique_ptr<LPDU> LPDUPtr;
-typedef std::unique_ptr<L_Data_PDU> LDataPtr;
-typedef std::unique_ptr<L_Busmonitor_PDU> LBusmonPtr;
+class L_Busmon_PDU;
+using LPDUPtr = std::unique_ptr<LPDU>;
+using LDataPtr = std::unique_ptr<L_Data_PDU>;
+using LBusmonPtr = std::unique_ptr<L_Busmon_PDU>;
 
 #include "common.h"
 #include "link.h"
@@ -35,20 +40,20 @@ typedef std::unique_ptr<L_Busmonitor_PDU> LBusmonPtr;
 /** enumartion of Layer 2 frame types*/
 typedef enum
 {
-  /** unknown frame */
-  L_Unknown,
   /** L_Data */
   L_Data,
-  /** L_Data incomplete. Note that nothing handles this. */
-  L_Data_Part,
-  /** ACK */
-  L_ACK,
-  /** NACK */
-  L_NACK,
-  /** BUSY */
-  L_BUSY,
-  /** busmonitor or vBusmonitor frame */
-  L_Busmonitor,
+  /** L_SystemBroadcast */
+  L_SystemBroadcast,
+  /** L_Poll_Data */
+  L_Poll_Data,
+  /** L_Poll_Update */
+  L_Poll_Update,
+  /** L_Busmon */
+  L_Busmon,
+  /** L_Service_Information */
+  L_Service_Information,
+  /** L_Management */
+  L_Management,
 }
 LPDU_Type;
 
@@ -59,34 +64,10 @@ public:
   LPDU () = default;
   virtual ~LPDU () = default;
 
-  virtual bool init (const CArray & c) = 0;
-  /** convert to a character array */
-  virtual CArray ToPacket () = 0;
   /** decode content as string */
-  virtual std::string Decode (TracePtr t) = 0;
+  virtual std::string Decode (TracePtr tr) = 0;
   /** get frame type */
   virtual LPDU_Type getType () const = 0;
-  /** converts a character array to a Layer 2 frame */
-  static LPDUPtr fromPacket (const CArray & c, TracePtr t);
-};
-
-/* L_Unknown */
-
-class L_Unknown_PDU:public LPDU
-{
-public:
-  /** real content*/
-  CArray pdu;
-
-  L_Unknown_PDU ();
-
-  bool init (const CArray & c);
-  CArray ToPacket ();
-  std::string Decode (TracePtr t);
-  LPDU_Type getType () const
-  {
-    return L_Unknown;
-  }
 };
 
 /* L_Data */
@@ -94,96 +75,124 @@ public:
 class L_Data_PDU:public LPDU
 {
 public:
-  /** priority*/
-  EIB_Priority prio = PRIO_LOW;
+  /* acknowledge mandatory/optional */
+  uint8_t ack_request = 0;
+  /** address type */
+  EIB_AddrType address_type = IndividualAddress;
+  /* destination address */
+  eibaddr_t destination_address = 0;
+  /** standard/extended frame format */
+  uint8_t frame_format = 0;
+  /** octet count */
+  uint8_t octet_count = 0;
+  /** priority */
+  EIB_Priority priority = PRIO_LOW;
+  /* source address */
+  eibaddr_t source_address = 0;
+  /** payload of Layer 4 (LSDU) */
+  CArray data; // @todo rename to lsdu
+  /* status */
+  uint8_t l_status = 0;
+
   /** is repreated */
   bool repeated = 0;
   /** checksum ok */
   bool valid_checksum = 1;
   /** length ok */
   bool valid_length = 1;
-  /** to group/individual address*/
-  EIB_AddrType AddrType = IndividualAddress;
-  eibaddr_t source = 0;
-  eibaddr_t dest = 0;
-  uchar hopcount = 0x06;
-  /** payload of Layer 4 */
-  CArray data;
+  uchar hop_count = 0x06;
 
   L_Data_PDU () = default;
 
-  bool init (const CArray & c);
-  CArray ToPacket ();
-  std::string Decode (TracePtr t);
+  std::string Decode (TracePtr tr);
   LPDU_Type getType () const
   {
-    return (valid_length ? L_Data : L_Data_Part);
+    return L_Data;
   }
 };
 
-/* L_Busmonitor */
+/* L_SystemBroadcast */
 
-class L_Busmonitor_PDU:public LPDU
+class L_SystemBroadcast_PDU:public LPDU
 {
 public:
+  /* acknowledge mandatory/optional */
+  uint8_t ack_request = 0;
+  /** address type */
+  EIB_AddrType address_type = IndividualAddress;
+  /* destination address */
+  eibaddr_t destination_address = 0;
+  /** standard/extended frame format */
+  uint8_t frame_format = 0;
+  /** octet count */
+  uint8_t octet_count = 0;
+  /** priority */
+  EIB_Priority priority = PRIO_LOW;
+  /* source address */
+  eibaddr_t source_address = 0;
+  /** payload of Layer 4 (LSDU) */
+  CArray data; // @todo rename to lsdu
+  /* status */
+  uint8_t l_status = 0;
+
+  L_SystemBroadcast_PDU () = default;
+
+  LPDU_Type getType () const
+  {
+    return L_SystemBroadcast;
+  }
+};
+
+/* L_Poll_Data */
+
+class L_Poll_Data_PDU:public LPDU
+{
+public:
+  /* destination address */
+  eibaddr_t destination_address = 0;
+  uint8_t no_of_expected_poll_data = 0;
+  CArray poll_data_sequence;
+  uint8_t l_status = 0;
+
+  L_Poll_Data_PDU () = default;
+
+  LPDU_Type getType () const
+  {
+    return L_Poll_Data;
+  }
+};
+
+/* L_Poll_Update */
+
+class L_Poll_Update_PDU:public LPDU
+{
+public:
+  uint8_t poll_data;
+
+  L_Poll_Update_PDU () = default;
+
+  LPDU_Type getType () const
+  {
+    return L_Poll_Update;
+  }
+};
+
+/* L_Busmon */
+
+class L_Busmon_PDU:public LPDU
+{
+public:
+  uint8_t status; // @todo rename to l_status
   /** content of the TP1 frame */
-  CArray pdu;
-  uint8_t status;
-  uint32_t timestamp;
+  CArray pdu; // @todo rename to lpdu
+  uint32_t time_stamp;
 
-  L_Busmonitor_PDU ();
+  L_Busmon_PDU ();
 
-  bool init (const CArray & c);
-  CArray ToPacket ();
-  std::string Decode (TracePtr t);
+  std::string Decode (TracePtr tr);
   LPDU_Type getType () const
   {
-    return L_Busmonitor;
-  }
-};
-
-class L_ACK_PDU:public LPDU
-{
-public:
-
-  L_ACK_PDU ();
-
-  bool init (const CArray & c);
-  CArray ToPacket ();
-  std::string Decode (TracePtr t);
-  LPDU_Type getType () const
-  {
-    return L_ACK;
-  }
-};
-
-class L_NACK_PDU:public LPDU
-{
-public:
-
-  explicit L_NACK_PDU ();
-
-  bool init (const CArray & c);
-  CArray ToPacket ();
-  std::string Decode (TracePtr t);
-  LPDU_Type getType () const
-  {
-    return L_NACK;
-  }
-};
-
-class L_BUSY_PDU:public LPDU
-{
-public:
-
-  L_BUSY_PDU ();
-
-  bool init (const CArray & c);
-  CArray ToPacket ();
-  std::string Decode (TracePtr t);
-  LPDU_Type getType () const
-  {
-    return L_BUSY;
+    return L_Busmon;
   }
 };
 
@@ -195,6 +204,32 @@ public:
   std::string& name;
   /** callback: a bus monitor frame has been received */
   virtual void send_L_Busmonitor (LBusmonPtr l) = 0;
+};
+
+/* L_Service_Information */
+
+class L_Service_Information_PDU:public LPDU
+{
+public:
+  L_Service_Information_PDU () = default;
+
+  LPDU_Type getType () const
+  {
+    return L_Service_Information;
+  }
+};
+
+/* L_Management */
+
+class L_Management_PDU:public LPDU
+{
+public:
+  L_Management_PDU () = default;
+
+  LPDU_Type getType () const
+  {
+    return L_Management;
+  }
 };
 
 #endif

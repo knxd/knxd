@@ -29,6 +29,7 @@
 #include "llserial.h"
 #include "lltcp.h"
 #include "log.h"
+#include "cm_tp1.h"
 
 class TPUARTserial : public LLserial
 {
@@ -172,7 +173,7 @@ void
 TPUARTwrap::send_L_Data (LDataPtr l)
 {
   assert(out.size() == 0);
-  out = l->ToPacket ();
+  out = L_Data_to_CM_TP1 (l);
 
   send_again();
 }
@@ -254,13 +255,13 @@ TPUARTwrap::RecvLPDU (const uchar * data, int len)
   t->TracePacket (1, "RecvLP", len, data);
   if (state == T_busmonitor)
     {
-      LBusmonPtr l = LBusmonPtr(new L_Busmonitor_PDU ());
+      LBusmonPtr l = LBusmonPtr(new L_Busmon_PDU ());
       l->pdu.set (data, len);
       recv_L_Busmonitor (std::move(l));
     }
   else if (state > T_start)
     {
-      LPDUPtr l = LPDU::fromPacket (CArray (data, len), t);
+      LPDUPtr l = CM_TP1_to_L_Data (CArray (data, len), t);
       if (l->getType () != L_Data)
         TRACEPRINTF (t, 1, "dropping packet: type %d", l->getType ());
       else
@@ -624,5 +625,3 @@ TPUARTwrap::setstate(enum TSTATE new_state)
     }
   state = new_state;
 }
-
-
