@@ -27,6 +27,8 @@
 #ifndef APDU_H
 #define APDU_H
 
+#include <array>
+
 #include "common.h"
 
 /** enumeration of APDU types */
@@ -863,6 +865,12 @@ public:
   virtual bool isResponse (const APDU * req) const override;
 };
 
+/** object index type */
+using objectno_t = uint8_t;
+
+/** property ID type */
+using propertyid_t = uint8_t;
+
 class A_PropertyValue_Read_PDU:public APDU
 {
 public:
@@ -997,6 +1005,9 @@ public:
 };
 
 // @todo A_NetworkParameter_InfoReport_PDU
+
+/** serial number */
+using serialnumber_t = std::array<uint8_t, 6>;
 
 class A_IndividualAddressSerialNumber_Read_PDU:public APDU
 {

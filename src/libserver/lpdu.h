@@ -30,6 +30,21 @@
 #include <memory>
 
 
+/** Message Priority */
+enum EIB_Priority : uint8_t
+{
+  PRIO_SYSTEM = 0,
+  PRIO_URGENT = 1,
+  PRIO_NORMAL = 2,
+  PRIO_LOW = 3
+};
+
+/** Address Type */
+enum EIB_AddrType : uint8_t
+{
+  IndividualAddress = 0,
+  GroupAddress = 1
+};
 #include "common.h"
 #include "link.h"
 

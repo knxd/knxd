@@ -138,10 +138,16 @@ enum SockMode
   S_RDWR, S_RD, S_WR,
 };
 
+/** Description Block service entry */
+struct DIB_service_Entry
+{
+  uint8_t family;
+  uint8_t version;
+};
+
 /** represents a EIBnet/IP packet */
 class EIBNetIPPacket
 {
-
 public:
   /** service code*/
   int service;

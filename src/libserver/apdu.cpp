@@ -2503,7 +2503,7 @@ bool A_NetworkParameter_Response_PDU::isResponse (const APDU * req) const
 A_IndividualAddressSerialNumber_Read_PDU::
 A_IndividualAddressSerialNumber_Read_PDU ()
 {
-  memset (serial_number, 0, sizeof (serial_number));
+  serial_number.fill(0);
 }
 
 bool
@@ -2512,7 +2512,7 @@ A_IndividualAddressSerialNumber_Read_PDU::init (const CArray & c, TracePtr)
   if (c.size() != 8)
     return false;
 
-  memcpy (serial_number, c.data() + 2, 6);
+  std::copy(c.begin() + 2, c.begin() + 8, serial_number.begin());
   return true;
 }
 
@@ -2522,7 +2522,7 @@ CArray A_IndividualAddressSerialNumber_Read_PDU::ToPacket () const
   pdu.resize (8);
   pdu[0] = A_IndividualAddressSerialNumber_Read >> 8;
   pdu[1] = A_IndividualAddressSerialNumber_Read & 0xff;
-  pdu.setpart (serial_number, 2, 6);
+  pdu.setpart (serial_number.data(), 2, 6);
   return pdu;
 }
 
@@ -2551,7 +2551,7 @@ const
 A_IndividualAddressSerialNumber_Response_PDU::
 A_IndividualAddressSerialNumber_Response_PDU ()
 {
-  memset (serial_number, 0, sizeof (serial_number));
+  serial_number.fill(0);
 }
 
 bool
@@ -2560,7 +2560,7 @@ A_IndividualAddressSerialNumber_Response_PDU::init (const CArray & c, TracePtr)
   if (c.size() != 12)
     return false;
 
-  memcpy (serial_number, c.data() + 2, 6);
+  std::copy(c.begin() + 2, c.begin() + 8, serial_number.begin());
   domain_address = (c[8] << 8) | (c[9]);
   reserved.set (c.data() + 10, 2);
   return true;
@@ -2572,7 +2572,7 @@ CArray A_IndividualAddressSerialNumber_Response_PDU::ToPacket () const
   pdu.resize (12);
   pdu[0] = A_IndividualAddressSerialNumber_Response >> 8;
   pdu[1] = A_IndividualAddressSerialNumber_Response & 0xff;
-  pdu.setpart (serial_number, 2, 6);
+  pdu.setpart (serial_number.data(), 2, 6);
   pdu[8] = domain_address >> 8;
   pdu[9] = domain_address & 0xff;
   pdu[10] = reserved[0];
@@ -2602,7 +2602,7 @@ A_IndividualAddressSerialNumber_Response_PDU::isResponse (const APDU * req) cons
     return false;
   const A_IndividualAddressSerialNumber_Read_PDU *a =
     (const A_IndividualAddressSerialNumber_Read_PDU *) req;
-  if (memcmp (a->serial_number, serial_number, sizeof (serial_number)))
+  if (a->serial_number != serial_number)
     return false;
   return true;
 }
@@ -2612,7 +2612,7 @@ A_IndividualAddressSerialNumber_Response_PDU::isResponse (const APDU * req) cons
 A_IndividualAddressSerialNumber_Write_PDU::
 A_IndividualAddressSerialNumber_Write_PDU ()
 {
-  memset (serial_number, 0, sizeof (serial_number));
+  serial_number.fill(0);
 }
 
 bool A_IndividualAddressSerialNumber_Write_PDU::init (const CArray & c, TracePtr)
@@ -2620,7 +2620,7 @@ bool A_IndividualAddressSerialNumber_Write_PDU::init (const CArray & c, TracePtr
   if (c.size() != 14)
     return false;
 
-  memcpy (serial_number, c.data() + 2, 6);
+  std::copy(c.begin() + 2, c.begin() + 8, serial_number.begin());
   newaddress = (c[8] << 8) | (c[9]);
   reserved.set (c.data() + 10, 4);
   return true;
@@ -2632,7 +2632,7 @@ CArray A_IndividualAddressSerialNumber_Write_PDU::ToPacket () const
   pdu.resize (14);
   pdu[0] = A_IndividualAddressSerialNumber_Write >> 8;
   pdu[1] = A_IndividualAddressSerialNumber_Write & 0xff;
-  pdu.setpart (serial_number, 2, 6);
+  pdu.setpart (serial_number.data(), 2, 6);
   pdu[8] = newaddress >> 8;
   pdu[9] = newaddress & 0xff;
   pdu[10] = reserved[0];

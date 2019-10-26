@@ -26,43 +26,19 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#include "types.h"
 #include <cassert>
+
 #include <ev++.h>
 
-/** serial number */
-typedef uchar serialnumber_t[6];
-/** memory pointer for EIB devices */
-typedef uint16_t memaddr_t;
+#include "queue.h"
+#include "trace.h"
+#include "types.h"
 
 /** Domain address */
 using domainaddr_t = uint16_t;
-/** object index type */
-typedef uchar objectno_t;
-/** property ID type */
-typedef uchar propertyid_t;
 
 /** timestamp type*/
-typedef long long timestamp_t;
-
-/** EIB message priority */
-typedef enum
-{
-  PRIO_SYSTEM = 0,
-  PRIO_URGENT = 1,
-  PRIO_NORMAL = 2,
-  PRIO_LOW = 3
-} EIB_Priority;
-
-/** EIB address type */
-typedef enum
-{
-  IndividualAddress = 0,
-  GroupAddress = 1
-} EIB_AddrType;
-
-
-#include "queue.h"
+using timestamp_t = long long;
 
 /**
  * add c to s as hex value
@@ -90,13 +66,11 @@ std::string FormatDomainAddr (const domainaddr_t addr);
 /** formats an EIB key */
 std::string FormatEIBKey (const eibkey_type addr);
 
-#include "trace.h"
-
 /** libev */
 #if EV_MULTIPLICITY
-  typedef struct ev_loop *LOOP_RESULT;
+using LOOP_RESULT = struct ev_loop *;
 #else
-  typedef int LOOP_RESULT;
+using LOOP_RESULT = int;
 #endif
 extern LOOP_RESULT loop;
 
