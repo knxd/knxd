@@ -184,7 +184,7 @@ main (int ac, char *ag[])
   if (arg.timeout > 0)
     pth_spawn (0, &timeout_abort, 0);
 
-  uchar res = arg.newlength;
+  uint8_t res = arg.newlength;
   if (arg.newlength == -1)
     {
       if (!readAddrTabSize (iface, res))

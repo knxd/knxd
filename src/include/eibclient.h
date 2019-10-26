@@ -373,7 +373,7 @@ int EIB_M_ReadIndividualAddresses (EIBConnection * con, int maxlen,
  * \return 0 if started, -1 if error
  */
 int EIB_M_ReadIndividualAddresses_async (EIBConnection * con, int maxlen,
-                                         uint8_t * buf);
+    uint8_t * buf);
 
 /** Turn on programming mode (connectionless).
  * \param con eibd connection
