@@ -35,9 +35,6 @@ void set_non_blocking(int fd);
 
 class SendBuf
 {
-  ev::io io;
-  void io_cb (ev::io &w, int revents);
-
 public:
   InfoCallback on_error;
   InfoCallback on_next;
@@ -46,10 +43,12 @@ public:
 
   SendBuf() {} // dead
 
-  SendBuf(int fd) {
+  SendBuf(int fd)
+  {
     init(fd);
   }
-  void init(int fd) {
+  void init(int fd)
+  {
     assert (this->fd == -1);
     assert (fd >= 0);
     set_non_blocking(fd);
@@ -59,11 +58,13 @@ public:
     on_next.set<SendBuf,&SendBuf::next_cb>(this);
   };
 
-  virtual ~SendBuf() {
-    while (!sendqueue.empty()) {
-      const CArray *buf = sendqueue.get();
-      delete buf;
-    }
+  virtual ~SendBuf()
+  {
+    while (!sendqueue.empty())
+      {
+        const CArray *buf = sendqueue.get();
+        delete buf;
+      }
     if (sendbuf)
       delete sendbuf;
   };
@@ -71,7 +72,8 @@ public:
   void start();
   void stop(bool clear = false);
 
-  void write(const uchar *buf, size_t len) {
+  void write(const uint8_t *buf, size_t len)
+  {
     CArray *data = new CArray(buf, len);
     write(data);
   }
@@ -87,27 +89,32 @@ protected:
   unsigned sendpos;
   Queue <const CArray *> sendqueue;
   bool ready = false;
+
+private:
+  ev::io io;
+  void io_cb (ev::io &w, int revents);
 };
 
 class RecvBuf
 {
-  ev::io io;
-  void io_cb (ev::io &w, int revents);
-  bool quick = false;
-
 public:
   InfoCallback on_error;
   DataCallback on_read;
 
   // dummy methods, to be overridden
   void error_cb() {}
-  size_t recv_cb(uint8_t *buf UNUSED, size_t len) { return len; }
+  size_t recv_cb(uint8_t *, size_t len)
+  {
+    return len;
+  }
 
   RecvBuf() {} // dead
-  RecvBuf(int fd) {
+  RecvBuf(int fd)
+  {
     init(fd);
   }
-  void init(int fd) {
+  void init(int fd)
+  {
     assert (this->fd == -1);
     assert (fd >= 0);
     set_non_blocking(fd);
@@ -116,7 +123,10 @@ public:
     on_error.set<RecvBuf,&RecvBuf::error_cb>(this);
     on_read.set<RecvBuf,&RecvBuf::recv_cb>(this);
   };
-  void low_latency() { quick = true; }
+  void low_latency()
+  {
+    quick = true;
+  }
   virtual ~RecvBuf() = default;
 
   void start();
@@ -133,6 +143,10 @@ protected:
   int len = 0; // of current block
   void feed_out();
 
+private:
+  ev::io io;
+  void io_cb (ev::io &w, int revents);
+  bool quick = false;
 };
 
 #endif

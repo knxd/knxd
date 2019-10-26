@@ -49,13 +49,22 @@ using eibkey_type = uint32_t;
 #define R_ITER(_i,_t) for(decltype(_t)::reverse_iterator _i = _t.rbegin(); _i != _t.rend(); _i++)
 #define C_R_ITER(_i,_t) for(decltype(_t)::const_reverse_iterator _i = _t.crbegin(); _i != _t.crend(); _i++)
 
-/** byte arrays however need some help.
-  We can't use strings: strings can't contain null characters.
-  */
+inline unsigned int _sub(const unsigned int _a, const unsigned int _b)
+{
+  return (_a>_b) ? _a-_b : 0;
+}
+
+inline unsigned int _min(const unsigned int _a, const unsigned int _b)
+{
+  return (_a<_b) ? _a : _b;
+}
+
+/*
+ * byte arrays however need some help.
+ * We can't use strings: strings can't contain null characters.
+ */
 
 using u8vec = std::vector<uint8_t>; // less typing
-inline unsigned int _sub(unsigned int _a, unsigned int _b) { return (_a>_b) ? _a-_b : 0; }
-inline unsigned int _min(unsigned int _a, unsigned int _b) { return (_a<_b) ? _a : _b; }
 
 class CArray : public u8vec
 {
@@ -67,27 +76,27 @@ public:
     CArray::iterator j = this->begin();
     const uint8_t *str = __str.data()+__pos;
     for(unsigned int i = this->size(); i > 0; i--,j++)
-        *j = *str++;
+      *j = *str++;
   }
   CArray(const CArray& __str, size_type __pos, size_type __n) : u8vec(_min(__n,_sub(__pos,__str.size())))
   {
     CArray::iterator j = this->begin();
     const uint8_t *str = __str.data()+__pos;
     while(j != this->end())
-        *j++ = *str++;
+      *j++ = *str++;
   }
   CArray(const uint8_t *__str, size_type __pos, size_type __n) : u8vec(__n)
   {
     CArray::iterator j = this->begin();
     __str += __pos;
     for(unsigned int i = __pos; j != this->end(); i++,j++)
-        *j = *__str++;
+      *j = *__str++;
   }
   CArray(const uint8_t *__str, size_type __n) : u8vec(__n)
   {
     CArray::iterator j = this->begin();
     while(j != this->end())
-        *j++ = *__str++;
+      *j++ = *__str++;
   }
 
   /** set me to a C array */
@@ -96,7 +105,7 @@ public:
     this->resize(cnt);
     CArray::iterator j = this->begin();
     while(j != this->end())
-        *j++ = *elem++;
+      *j++ = *elem++;
   }
 
   /** copy content. Should be equivalent to operator= */
@@ -109,7 +118,8 @@ public:
       *j++ = *i++;
   }
 
-  /** replace a part of the array and resize to fit
+  /**
+   * replace a part of the array and resize to fit
    * @param elem pointer to new elements
    * @param start start position
    * @param cnt element count
@@ -121,7 +131,7 @@ public:
 
     CArray::iterator i = this->begin()+start;
     while(cnt--)
-        *i++ = *elem++;
+      *i++ = *elem++;
   }
 
   /** setpart for a string. This copies the terminal null character, */
@@ -136,7 +146,8 @@ public:
     insert(end(), a.begin(), a.end());
   }
 
-  /** replace a part of the array with the content of a and resize to fit
+  /**
+   * replace a part of the array with the content of a and resize to fit
    * @param start start index
    * @param a new elements
    */
@@ -145,7 +156,8 @@ public:
     setpart (a.data(), start, a.size());
   }
 
-  /** delete content.
+  /**
+   * delete content.
    * Like .erase(), but with random indices instead of * valid iterators.
    * @param start start index
    * @param cnt element count
@@ -155,7 +167,7 @@ public:
     if (start >= size())
       return;
     if (start+cnt >= size())
-        cnt = size()-start;
+      cnt = size()-start;
     if (cnt == 0)
       return;
     erase (this->begin()+start,this->begin()+start+cnt);

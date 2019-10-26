@@ -24,7 +24,7 @@ static void
 GenAlloc (CArray & req, uint16_t start, uint16_t len, uint8_t access,
           uint8_t type, bool check)
 {
-  const uchar zero[10] = { 0 };
+  const uint8_t zero[10] = { 0 };
   req.set (zero, 10);
   req[0] = 0x03;
   req[2] = (start >> 8) & 0xff;
@@ -36,11 +36,11 @@ GenAlloc (CArray & req, uint16_t start, uint16_t len, uint8_t access,
   req[8] = check ? 0x80 : 0x00;
 }
 
-typedef struct
+struct Segment
 {
   uint16_t start;
   uint16_t len;
-} Segment;
+};
 
 static int
 AddSegmentOverlap (std::vector < Segment > &s, uint16_t start, uint16_t len)
@@ -268,7 +268,7 @@ PrepareLoadImage (const CArray & im, BCUImage * &img)
           img->keys[2] = 0xFFFFFFFF;
         }
 
-      const uchar zero[10] = { 0 };
+      const uint8_t zero[10] = { 0 };
       EIBLoadRequest r;
       /*unload */
       r.obj = 1;
@@ -468,7 +468,7 @@ PrepareLoadImage (const CArray & im, BCUImage * &img)
 #define _(A) (A)
 
 std::string
-decodeBCULoadResult (BCU_LOAD_RESULT r)
+decodeBCULoadResult (const BCU_LOAD_RESULT r)
 {
   switch (r)
     {

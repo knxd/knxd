@@ -27,18 +27,18 @@ https://github.com/benhoyt/inih
 /* Strip whitespace chars off end of given string, in place. Return s. */
 static char* rstrip(char* s)
 {
-    char* p = s + strlen(s);
-    while (p > s && isspace((unsigned char)(*--p)))
-        *p = '\0';
-    return s;
+  char* p = s + strlen(s);
+  while (p > s && isspace((unsigned char)(*--p)))
+    *p = '\0';
+  return s;
 }
 
 /* Return pointer to first non-whitespace char in given string. */
 static char* lskip(const char* s)
 {
-    while (*s && isspace((unsigned char)(*s)))
-        s++;
-    return (char*)s;
+  while (*s && isspace((unsigned char)(*s)))
+    s++;
+  return (char*)s;
 }
 
 /* Return pointer to first char (of chars) or inline comment in given string,
@@ -47,52 +47,55 @@ static char* lskip(const char* s)
 static char* find_chars_or_comment(const char* s, const char* chars)
 {
 #if INI_ALLOW_INLINE_COMMENTS
-    int was_space = 0;
-    while (*s && (!chars || !strchr(chars, *s)) &&
-           !(was_space && strchr(INI_INLINE_COMMENT_PREFIXES, *s))) {
-        was_space = isspace((unsigned char)(*s));
-        s++;
+  int was_space = 0;
+  while (*s && (!chars || !strchr(chars, *s)) &&
+         !(was_space && strchr(INI_INLINE_COMMENT_PREFIXES, *s)))
+    {
+      was_space = isspace((unsigned char)(*s));
+      s++;
     }
 #else
-    while (*s && (!chars || !strchr(chars, *s))) {
-        s++;
+  while (*s && (!chars || !strchr(chars, *s)))
+    {
+      s++;
     }
 #endif
-    return (char*)s;
+  return (char*)s;
 }
 
 /* Version of strncpy that ensures dest (size bytes) is null-terminated. */
 static char* strncpy0(char* dest, const char* src, size_t size)
 {
-    strncpy(dest, src, size);
-    dest[size - 1] = '\0';
-    return dest;
+  strncpy(dest, src, size);
+  dest[size - 1] = '\0';
+  return dest;
 }
 
 /* See documentation in header file. */
 int ini_parse_stream(ini_reader reader, void* stream, ini_handler handler,
                      void* user)
 {
-    /* Uses a fair bit of stack (use heap instead if you need to) */
+  /* Uses a fair bit of stack (use heap instead if you need to) */
 #if INI_USE_STACK
-    char line[INI_MAX_LINE];
+  char line[INI_MAX_LINE];
 #else
-    char* line;
+  char* line;
 #endif
-    char section[MAX_SECTION] = "";
-    char prev_name[MAX_NAME] = "";
+  char section[MAX_SECTION] = "";
+  char prev_name[MAX_NAME] = "";
 
-    char* start;
-    char* end;
-    char* name;
-    char* value;
-    int lineno = 0;
-    int error = 0;
+  char* start;
+  char* end;
+  char* name;
+  char* value;
+  int lineno = 0;
+  int error = 0;
 
 #if !INI_USE_STACK
-    line = (char*)malloc(INI_MAX_LINE);
-    if (!line) {
-        return -2;
+  line = (char*)malloc(INI_MAX_LINE);
+  if (!line)
+    {
+      return -2;
     }
 #endif
 
@@ -102,123 +105,135 @@ int ini_parse_stream(ini_reader reader, void* stream, ini_handler handler,
 #define HANDLER(u, s, n, v) handler(u, s, n, v)
 #endif
 
-    /* Scan through stream line by line */
-    while (reader(line, INI_MAX_LINE, stream) != NULL) {
-        lineno++;
+  /* Scan through stream line by line */
+  while (reader(line, INI_MAX_LINE, stream) != NULL)
+    {
+      lineno++;
 
-        start = line;
+      start = line;
 #if INI_ALLOW_BOM
-        if (lineno == 1 && (unsigned char)start[0] == 0xEF &&
-                           (unsigned char)start[1] == 0xBB &&
-                           (unsigned char)start[2] == 0xBF) {
-            start += 3;
+      if (lineno == 1 && (unsigned char)start[0] == 0xEF &&
+          (unsigned char)start[1] == 0xBB &&
+          (unsigned char)start[2] == 0xBF)
+        {
+          start += 3;
         }
 #endif
-        start = lskip(rstrip(start));
+      start = lskip(rstrip(start));
 
-        if (*start == ';' || *start == '#') {
-            /* Per Python configparser, allow both ; and # comments at the
-               start of a line */
+      if (*start == ';' || *start == '#')
+        {
+          /* Per Python configparser, allow both ; and # comments at the
+             start of a line */
         }
 #if INI_ALLOW_MULTILINE
-        else if (*prev_name && *start && start > line) {
-            /* Non-blank line with leading whitespace, treat as continuation
-               of previous name's value (as per Python configparser). */
-            if (!HANDLER(user, section, prev_name, start) && !error)
-                error = lineno;
+      else if (*prev_name && *start && start > line)
+        {
+          /* Non-blank line with leading whitespace, treat as continuation
+             of previous name's value (as per Python configparser). */
+          if (!HANDLER(user, section, prev_name, start) && !error)
+            error = lineno;
         }
 #endif
-        else if (*start == '[') {
-            /* A "[section]" line */
-            end = find_chars_or_comment(start + 1, "]");
-            if (*end == ']') {
-                *end = '\0';
-                strncpy0(section, start + 1, sizeof(section));
-                *prev_name = '\0';
+      else if (*start == '[')
+        {
+          /* A "[section]" line */
+          end = find_chars_or_comment(start + 1, "]");
+          if (*end == ']')
+            {
+              *end = '\0';
+              strncpy0(section, start + 1, sizeof(section));
+              *prev_name = '\0';
 #if INI_HANDLE_SECTION
-                if (!HANDLER(user, section, NULL, NULL) && !error)
-                    error = lineno;
+              if (!HANDLER(user, section, NULL, NULL) && !error)
+                error = lineno;
 #endif
             }
-            else if (!error) {
-                /* No ']' found on section line */
-                error = lineno;
+          else if (!error)
+            {
+              /* No ']' found on section line */
+              error = lineno;
             }
         }
-        else if (*start) {
-            /* Not a comment, must be a name[=:]value pair */
-            end = find_chars_or_comment(start, "=:");
-            if (*end == '=' || *end == ':') {
-                *end = '\0';
-                name = rstrip(start);
-                value = end + 1;
+      else if (*start)
+        {
+          /* Not a comment, must be a name[=:]value pair */
+          end = find_chars_or_comment(start, "=:");
+          if (*end == '=' || *end == ':')
+            {
+              *end = '\0';
+              name = rstrip(start);
+              value = end + 1;
 #if INI_ALLOW_INLINE_COMMENTS
-                end = find_chars_or_comment(value, NULL);
-                if (*end)
-                    *end = '\0';
+              end = find_chars_or_comment(value, NULL);
+              if (*end)
+                *end = '\0';
 #endif
-                value = lskip(value);
-                rstrip(value);
+              value = lskip(value);
+              rstrip(value);
 
-                /* Valid name[=:]value pair found, call handler */
-                strncpy0(prev_name, name, sizeof(prev_name));
-                if (!HANDLER(user, section, name, value) && !error)
-                    error = lineno;
+              /* Valid name[=:]value pair found, call handler */
+              strncpy0(prev_name, name, sizeof(prev_name));
+              if (!HANDLER(user, section, name, value) && !error)
+                error = lineno;
             }
-            else
+          else
 #if INI_HANDLE_EMPTY
             {
 #if INI_ALLOW_INLINE_COMMENTS
-                end = find_chars_or_comment(start, NULL);
-                if (*end)
-                    *end = '\0';
+              end = find_chars_or_comment(start, NULL);
+              if (*end)
+                *end = '\0';
 #endif
-                name = rstrip(start);
-                if (*name && !strpbrk(name,"\t ")) {
-                    /* don't allow "named" names with whitespace*/
-                    strncpy0(prev_name, name, sizeof(prev_name));
-                    if (!HANDLER(user, section, name, NULL) && !error)
-                        error = lineno;
-                } else if (!error)
-                      error = lineno;
-            }
-#else
-            if (!error) {
-                /* No '=' or ':' found on name[=:]value line */
+              name = rstrip(start);
+              if (*name && !strpbrk(name,"\t "))
+                {
+                  /* don't allow "named" names with whitespace*/
+                  strncpy0(prev_name, name, sizeof(prev_name));
+                  if (!HANDLER(user, section, name, NULL) && !error)
+                    error = lineno;
+                }
+              else if (!error)
                 error = lineno;
             }
+#else
+            if (!error)
+              {
+                /* No '=' or ':' found on name[=:]value line */
+                error = lineno;
+              }
 #endif
         }
 
 #if INI_STOP_ON_FIRST_ERROR
-        if (error)
-            break;
+      if (error)
+        break;
 #endif
     }
 
 #if !INI_USE_STACK
-    free(line);
+  free(line);
 #endif
 
-    return error;
+  return error;
 }
 
 /* See documentation in header file. */
 int ini_parse_file(FILE* file, ini_handler handler, void* user)
 {
-    return ini_parse_stream((ini_reader)fgets, file, handler, user);
+  return ini_parse_stream((ini_reader)fgets, file, handler, user);
 }
 
 /* See documentation in header file. */
 int ini_parse(const char* filename, ini_handler handler, void* user)
 {
-    FILE* file;
-    int error;
+  FILE* file;
+  int error;
 
-    file = fopen(filename, "r");
-    if (!file)
-        return -1;
-    error = ini_parse_file(file, handler, user);
-    fclose(file);
-    return error;
+  file = fopen(filename, "r");
+  if (!file)
+    return -1;
+  error = ini_parse_file(file, handler, user);
+  fclose(file);
+  return error;
 }

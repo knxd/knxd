@@ -42,23 +42,22 @@ public:
   using std::queue<_T>::empty;
 
   inline void clear()
-    {
-      while (!empty())
-        pop();
-    }
+  {
+    while (!empty())
+      pop();
+  }
 
   inline void put (value_type && el)
-    {
-      std::queue<_T>::push(std::move(el));
-    }
+  {
+    std::queue<_T>::push(std::move(el));
+  }
 
   inline _T get ()
-    {
-      value_type v = std::move(std::queue<_T>::front());
-      std::queue<_T>::pop();
-      return v;
-    }
-
+  {
+    value_type v = std::move(std::queue<_T>::front());
+    std::queue<_T>::pop();
+    return v;
+  }
 };
 
 #endif

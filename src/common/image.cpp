@@ -24,7 +24,7 @@
 #include "image.h"
 
 std::string
-HexDump (CArray data)
+HexDump (const CArray data)
 {
   char buf[200];
   std::string s;
@@ -107,13 +107,13 @@ STR_Invalid::init (const CArray & c)
 }
 
 CArray
-STR_Invalid::toArray ()
+STR_Invalid::toArray () const
 {
   return data;
 }
 
 std::string
-STR_Invalid::decode ()
+STR_Invalid::decode () const
 {
   char buf[200];
   std::string s;
@@ -131,7 +131,7 @@ STR_Unknown::init (const CArray & c)
 }
 
 CArray
-STR_Unknown::toArray ()
+STR_Unknown::toArray () const
 {
   CArray d;
   uint16_t len = 2 + data.size();
@@ -145,7 +145,7 @@ STR_Unknown::toArray ()
 }
 
 std::string
-STR_Unknown::decode ()
+STR_Unknown::decode () const
 {
   char buf[200];
   std::string s;
@@ -164,7 +164,7 @@ STR_BCUType::init (const CArray & c)
 }
 
 CArray
-STR_BCUType::toArray ()
+STR_BCUType::toArray () const
 {
   CArray d;
   uint16_t len = 4;
@@ -179,7 +179,7 @@ STR_BCUType::toArray ()
 }
 
 std::string
-STR_BCUType::decode ()
+STR_BCUType::decode () const
 {
   char buf[200];
   sprintf (buf, "Maskversion: %04x\n", bcutype);
@@ -194,7 +194,7 @@ STR_Code::init (const CArray & c)
 }
 
 CArray
-STR_Code::toArray ()
+STR_Code::toArray () const
 {
   CArray d;
   uint16_t len = 2 + code.size();
@@ -208,7 +208,7 @@ STR_Code::toArray ()
 }
 
 std::string
-STR_Code::decode ()
+STR_Code::decode () const
 {
   char buf[200];
   std::string s;
@@ -220,7 +220,7 @@ STR_Code::decode ()
 bool
 STR_StringParameter::init (const CArray & c)
 {
-  const uchar *d;
+  const uint8_t *d;
   if (c.size() < 9)
     return false;
   addr = c[4] << 8 | c[5];
@@ -237,7 +237,7 @@ STR_StringParameter::init (const CArray & c)
 }
 
 CArray
-STR_StringParameter::toArray ()
+STR_StringParameter::toArray () const
 {
   CArray d;
   uint16_t len = 7 + name.length();
@@ -255,7 +255,7 @@ STR_StringParameter::toArray ()
 }
 
 std::string
-STR_StringParameter::decode ()
+STR_StringParameter::decode () const
 {
   char buf[200];
   sprintf (buf, "StringParameter: addr=%04x id=%s length=%d\n", addr, name.c_str(),
@@ -266,7 +266,7 @@ STR_StringParameter::decode ()
 bool
 STR_IntParameter::init (const CArray & c)
 {
-  const uchar *d;
+  const uint8_t *d;
   if (c.size() < 8)
     return false;
   addr = c[4] << 8 | c[5];
@@ -283,7 +283,7 @@ STR_IntParameter::init (const CArray & c)
 }
 
 CArray
-STR_IntParameter::toArray ()
+STR_IntParameter::toArray () const
 {
   CArray d;
   uint16_t len = 6 + name.length();
@@ -300,7 +300,7 @@ STR_IntParameter::toArray ()
 }
 
 std::string
-STR_IntParameter::decode ()
+STR_IntParameter::decode () const
 {
   char buf[200];
   sprintf (buf, "IntParameter: addr=%04x id=%s type=%s %d bytes\n", addr,
@@ -311,7 +311,7 @@ STR_IntParameter::decode ()
 bool
 STR_FloatParameter::init (const CArray & c)
 {
-  const uchar *d;
+  const uint8_t *d;
   if (c.size() < 7)
     return false;
   addr = c[4] << 8 | c[5];
@@ -327,7 +327,7 @@ STR_FloatParameter::init (const CArray & c)
 }
 
 CArray
-STR_FloatParameter::toArray ()
+STR_FloatParameter::toArray () const
 {
   CArray d;
   uint16_t len = 5 + name.length();
@@ -343,7 +343,7 @@ STR_FloatParameter::toArray ()
 }
 
 std::string
-STR_FloatParameter::decode ()
+STR_FloatParameter::decode () const
 {
   char buf[200];
   sprintf (buf, "FloatParameter: addr=%04x id=%s\n", addr, name.c_str());
@@ -354,7 +354,7 @@ bool
 STR_ListParameter::init (const CArray & c)
 {
   uint16_t el, i;
-  const uchar *d, *d1;
+  const uint8_t *d, *d1;
   if (c.size() < 9)
     return false;
   addr = c[4] << 8 | c[5];
@@ -389,12 +389,12 @@ STR_ListParameter::init (const CArray & c)
 }
 
 CArray
-STR_ListParameter::toArray ()
+STR_ListParameter::toArray () const
 {
   CArray d;
   uint16_t p;
   uint16_t len = 7 + name.length();
-  ITER(i, elements)
+  C_ITER(i, elements)
   len += i->length() + 1;
   d.resize (2 + len);
   d[0] = (len >> 8) & 0xff;
@@ -407,7 +407,7 @@ STR_ListParameter::toArray ()
   d[7] = (elements.size()) & 0xff;
   d.setpart (name, 8);
   p = 8 + name.length() + 1;
-  ITER(i, elements)
+  C_ITER(i, elements)
   {
     d.setpart (*i, p);
     p += i->length() + 1;
@@ -416,7 +416,7 @@ STR_ListParameter::toArray ()
 }
 
 std::string
-STR_ListParameter::decode ()
+STR_ListParameter::decode () const
 {
   char buf[200];
   std::string s;
@@ -434,7 +434,7 @@ STR_ListParameter::decode ()
 bool
 STR_GroupObject::init (const CArray & c)
 {
-  const uchar *d;
+  const uint8_t *d;
   if (c.size() < 6)
     return false;
   no = c[4];
@@ -450,7 +450,7 @@ STR_GroupObject::init (const CArray & c)
 }
 
 std::string
-STR_GroupObject::decode ()
+STR_GroupObject::decode () const
 {
   char buf[200];
   sprintf (buf, "GROUP_OBJECT %d: id=%s\n", no, name.c_str());
@@ -458,7 +458,7 @@ STR_GroupObject::decode ()
 }
 
 CArray
-STR_GroupObject::toArray ()
+STR_GroupObject::toArray () const
 {
   CArray d;
   uint16_t len = 4 + name.length();
@@ -485,7 +485,7 @@ STR_BCU1Size::init (const CArray & c)
 }
 
 CArray
-STR_BCU1Size::toArray ()
+STR_BCU1Size::toArray () const
 {
   CArray d;
   uint16_t len = 10;
@@ -506,7 +506,7 @@ STR_BCU1Size::toArray ()
 }
 
 std::string
-STR_BCU1Size::decode ()
+STR_BCU1Size::decode () const
 {
   char buf[200];
   sprintf (buf, "BCU1_SIZE: text:%d stack:%d data:%d bss:%d\n", textsize,
@@ -529,7 +529,7 @@ STR_BCU2Size::init (const CArray & c)
 }
 
 CArray
-STR_BCU2Size::toArray ()
+STR_BCU2Size::toArray () const
 {
   CArray d;
   uint16_t len = 14;
@@ -554,7 +554,7 @@ STR_BCU2Size::toArray ()
 }
 
 std::string
-STR_BCU2Size::decode ()
+STR_BCU2Size::decode () const
 {
   char buf[200];
   sprintf (buf,
@@ -595,7 +595,7 @@ STR_BCU2Start::init (const CArray & c)
 }
 
 CArray
-STR_BCU2Start::toArray ()
+STR_BCU2Start::toArray () const
 {
   CArray d;
   uint16_t len = 45;
@@ -651,7 +651,7 @@ STR_BCU2Start::toArray ()
 }
 
 std::string
-STR_BCU2Start::decode ()
+STR_BCU2Start::decode () const
 {
   char buf[600];
   sprintf (buf,
@@ -681,7 +681,7 @@ STR_BCU2Key::init (const CArray & c)
 }
 
 CArray
-STR_BCU2Key::toArray ()
+STR_BCU2Key::toArray () const
 {
   CArray d;
   unsigned int i;
@@ -707,7 +707,7 @@ STR_BCU2Key::toArray ()
 
 
 std::string
-STR_BCU2Key::decode ()
+STR_BCU2Key::decode () const
 {
   char buf[200];
   std::string s;
@@ -730,7 +730,7 @@ Image::~Image ()
 }
 
 std::string
-Image::decode ()
+Image::decode () const
 {
   std::string s = "BCU Memory Image\n";
   for (unsigned int i = 0; i < str.size(); i++)
@@ -739,7 +739,7 @@ Image::decode ()
 }
 
 CArray
-Image::toArray ()
+Image::toArray () const
 {
   CArray data;
   data.resize (10);
@@ -753,22 +753,22 @@ Image::toArray ()
   data[7] = 0x05;
   data[8] = (data.size() >> 8) & 0xff;
   data[9] = (data.size()) & 0xff;
-  ITER(i, str)
+  C_ITER(i, str)
   data.setpart ((*i)->toArray (), data.size());
   return data;
 }
 
 int
-Image::findStreamNumber (STR_Type t)
+Image::findStreamNumber (const STR_Type t) const
 {
-  ITER(i, str)
+  C_ITER(i, str)
   if ((*i)->getType () == t)
     return i-str.begin();
   return -1;
 }
 
 STR_Stream *
-Image::findStream (STR_Type t)
+Image::findStream (const STR_Type t) const
 {
   int i = findStreamNumber (t);
   if (i == -1)
@@ -827,7 +827,7 @@ Image::fromArray (CArray c)
 }
 
 bool
-Image::isValid ()
+Image::isValid () const
 {
   return findStreamNumber (S_Invalid) == -1;
 }
