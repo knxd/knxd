@@ -1,5 +1,4 @@
 noinst_LIBRARIES = libeibstack.a libserver.a
-
 AM_CPPFLAGS = -I$(top_srcdir)/src/include -I$(top_srcdir)/src/common -I$(top_srcdir)/src/usb $(LIBUSB_CFLAGS)
 
 ### libeibstack
@@ -11,7 +10,7 @@ CM = cm_tp1.h cm_tp1.cpp cm_ip.h cm_ip.cpp
 
 # 03.03 Communication
 L2 = lpdu.h lpdu.cpp link.h link.cpp
-L3 = router.h router.cpp
+L3 = npdu.h npdu.cpp layer3.h layer3.cpp router.h router.cpp
 if HAVE_GROUPCACHE
 L3 += groupcache.h groupcache.cpp groupcacheclient.h groupcacheclient.cpp
 endif
