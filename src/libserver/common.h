@@ -57,7 +57,6 @@ typedef enum
 
 
 #include "queue.h"
-#include "exception.h"
 
 /** add c to s as hex value
  * @param s string
