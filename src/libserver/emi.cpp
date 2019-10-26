@@ -23,14 +23,14 @@ CArray
 L_Data_ToCEMI (uint8_t code, const LDataPtr & l1)
 {
   CArray pdu;
-  assert (l1->data.size() >= 1);
-  assert (l1->data.size() < 0xff);
+  assert (l1->lsdu.size() >= 1);
+  assert (l1->lsdu.size() < 0xff);
   assert ((l1->hop_count & 0xf8) == 0);
 
-  pdu.resize (l1->data.size() + 9);
+  pdu.resize (l1->lsdu.size() + 9);
   pdu[0] = code;
   pdu[1] = 0x00;
-  pdu[2] = 0x10 | (l1->priority << 2) | (l1->data.size() - 1 <= 0x0f ? 0x80 : 0x00);
+  pdu[2] = 0x10 | (l1->priority << 2) | (l1->lsdu.size() - 1 <= 0x0f ? 0x80 : 0x00);
   if (code == 0x29)
     pdu[2] |= (l1->repeated ? 0 : 0x20);
   else
@@ -42,8 +42,8 @@ L_Data_ToCEMI (uint8_t code, const LDataPtr & l1)
   pdu[5] = (l1->source_address) & 0xff;
   pdu[6] = (l1->destination_address >> 8) & 0xff;
   pdu[7] = (l1->destination_address) & 0xff;
-  pdu[8] = l1->data.size() - 1;
-  pdu.setpart (l1->data.data(), 9, l1->data.size());
+  pdu[8] = l1->lsdu.size() - 1;
+  pdu.setpart (l1->lsdu.data(), 9, l1->lsdu.size());
   return pdu;
 }
 
@@ -70,7 +70,7 @@ CEMI_to_L_Data (const CArray & data, TracePtr tr)
   LDataPtr c = LDataPtr(new L_Data_PDU ());
   c->source_address = (data[start + 2] << 8) | (data[start + 3]);
   c->destination_address = (data[start + 4] << 8) | (data[start + 5]);
-  c->data.set (data.data() + start + 7, data[6 + start] + 1);
+  c->lsdu.set (data.data() + start + 7, data[6 + start] + 1);
   if (data[0] == 0x29)
     c->repeated = (data[start] & 0x20) ? 0 : 1;
   else
@@ -96,7 +96,7 @@ CEMI_to_Busmonitor (const CArray & data, DriverPtr)
     return nullptr;
 
   LBusmonPtr c = LBusmonPtr(new L_Busmon_PDU ());
-  c->pdu.set (data.data() + start, data.size() - start);
+  c->lpdu.set (data.data() + start, data.size() - start);
   // TODO add l2 so that we can tell which driver did it
   return c;
 }
@@ -113,7 +113,7 @@ CArray
 Busmonitor_to_CEMI (uint8_t code, const LBusmonPtr & p, int no)
 {
   CArray pdu;
-  pdu.resize (p->pdu.size() + 9);
+  pdu.resize (p->lpdu.size() + 9);
   pdu[0] = code;
   pdu[1] = 7;        /* AddIL */
   pdu[2] = CEMI_ADD_HEADER_TYPE_STATUS;        /* Type ID = L_Busmon.ind */
@@ -124,7 +124,7 @@ Busmonitor_to_CEMI (uint8_t code, const LBusmonPtr & p, int no)
   pdu[7] = (p->time_stamp >> 8) & 0xff;
   pdu[8] = p->time_stamp & 0xff;
 
-  pdu.setpart (p->pdu, 9);
+  pdu.setpart (p->lpdu, 9);
   return pdu;
 }
 
@@ -132,7 +132,7 @@ CArray
 L_Data_ToEMI (uint8_t code, const LDataPtr & l1)
 {
   CArray pdu;
-  pdu.resize (l1->data.size() + 7);
+  pdu.resize (l1->lsdu.size() + 7);
   pdu[0] = code;
   pdu[1] = l1->priority << 2;
   pdu[2] = 0;
@@ -141,9 +141,9 @@ L_Data_ToEMI (uint8_t code, const LDataPtr & l1)
   pdu[5] = (l1->destination_address) & 0xff;
   pdu[6] =
     (l1->hop_count & 0x07) << 4 |
-    ((l1->data.size() - 1) & 0x0f) |
+    ((l1->lsdu.size() - 1) & 0x0f) |
     (l1->address_type == GroupAddress ? 0x80 : 0x00);
-  pdu.setpart (l1->data.data(), 7, l1->data.size());
+  pdu.setpart (l1->lsdu.data(), 7, l1->lsdu.size());
   return pdu;
 }
 
@@ -163,7 +163,7 @@ EMI_to_L_Data (const CArray & data, TracePtr)
   len = (data[6] & 0x0f) + 1;
   if (len > data.size() - 7)
     len = data.size() - 7;
-  c->data.set (data.data() + 7, len);
+  c->lsdu.set (data.data() + 7, len);
   c->hop_count = (data[6] >> 4) & 0x07;
   return c;
 }

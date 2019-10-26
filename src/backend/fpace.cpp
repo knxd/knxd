@@ -141,7 +141,7 @@ PaceFilter::timer_cb (ev::timer &, int)
 void
 PaceFilter::send_L_Data (LDataPtr l)
 {
-  last_len = l->data.size();
+  last_len = l->lsdu.size();
   Filter::send_L_Data(std::move(l));
 }
 
@@ -149,7 +149,7 @@ void
 PaceFilter::recv_L_Data (LDataPtr l)
 {
   nr_in += 1;
-  size_in = l->data.size();
+  size_in = l->lsdu.size();
   Filter::recv_L_Data(std::move(l));
 }
 

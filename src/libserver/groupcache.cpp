@@ -70,18 +70,18 @@ GroupCache::stop()
 }
 
 void
-GroupCache::send_L_Data (LDataPtr l)
+GroupCache::send_L_Data (LDataPtr lpdu)
 {
   if (enable)
     {
-      TPDUPtr t = TPDU::fromPacket (l->address_type, l->destination_address, l->data, this->t);
-      if (t->getType () == T_Data_Group)
+      TPDUPtr tpdu = TPDU::fromPacket (lpdu->address_type, lpdu->destination_address, lpdu->lsdu, t);
+      if (tpdu->getType () == T_Data_Group)
         {
-          T_Data_Group_PDU *t1 = (T_Data_Group_PDU *) &*t;
-          if (t1->data.size() >= 2 && !(t1->data[0] & 0x3) &&
-              ((t1->data[1] & 0xC0) == 0x40 || (t1->data[1] & 0xC0) == 0x80)) // response or write
+          T_Data_Group_PDU *tpdu1 = (T_Data_Group_PDU *) &*tpdu;
+          if (tpdu1->tsdu.size() >= 2 && !(tpdu1->tsdu[0] & 0x3) &&
+              ((tpdu1->tsdu[1] & 0xC0) == 0x40 || (tpdu1->tsdu[1] & 0xC0) == 0x80)) // response or write
             {
-              CacheMap::iterator ci = cache.find (l->destination_address);
+              CacheMap::iterator ci = cache.find (lpdu->destination_address);
               CacheMap::value_type *c;
               if (ci == cache.end())
                 {
@@ -91,15 +91,15 @@ GroupCache::send_L_Data (LDataPtr l)
                       cache.erase(si->second);
                       cache_seq.erase(si);
                     }
-                  c = &(*cache.emplace(l->destination_address, GroupCacheEntry(l->destination_address)).first);
+                  c = &(*cache.emplace(lpdu->destination_address, GroupCacheEntry(lpdu->destination_address)).first);
                 }
               else
                 {
                   c = &(*ci);
                   cache_seq.erase(c->second.seq);
                 }
-              c->second.src = l->source_address;
-              c->second.data = t1->data;
+              c->second.src = lpdu->source_address;
+              c->second.data = tpdu1->tsdu;
               c->second.recvtime = time (0);
               c->second.seq = seq++;
               cache_seq.emplace(c->second.seq,c->first);
@@ -288,17 +288,17 @@ GroupCache::Read (eibaddr_t addr, unsigned Timeout, uint16_t age,
   // No data fond. Send a Read request.
   A_GroupValue_Read_PDU apdu;
   T_Data_Group_PDU tpdu;
-  LDataPtr l;
+  LDataPtr lpdu;
 
   new GCReader(this,addr,Timeout,age, cb,cc);
 
-  tpdu.data = apdu.ToPacket ();
-  l = LDataPtr(new L_Data_PDU ());
-  l->data = tpdu.ToPacket ();
-  l->source_address = 0;
-  l->destination_address = addr;
-  l->address_type = GroupAddress;
-  recv_L_Data (std::move(l));
+  tpdu.tsdu = apdu.ToPacket ();
+  lpdu = LDataPtr(new L_Data_PDU ());
+  lpdu->lsdu = tpdu.ToPacket ();
+  lpdu->source_address = 0;
+  lpdu->destination_address = addr;
+  lpdu->address_type = GroupAddress;
+  recv_L_Data (std::move(lpdu));
 }
 
 class GCTracker : protected GroupCacheReader

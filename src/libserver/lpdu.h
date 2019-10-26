@@ -103,7 +103,7 @@ public:
   /* source address */
   eibaddr_t source_address = 0;
   /** payload of Layer 4 (LSDU) */
-  CArray data; // @todo rename to lsdu
+  CArray lsdu;
   /* status */
   uint8_t l_status = 0;
 
@@ -146,7 +146,7 @@ public:
   /* source address */
   eibaddr_t source_address = 0;
   /** payload of Layer 4 (LSDU) */
-  CArray data; // @todo rename to lsdu
+  CArray lsdu;
   /* status */
   uint8_t l_status = 0;
 
@@ -200,9 +200,9 @@ public:
 class L_Busmon_PDU:public LPDU
 {
 public:
-  uint8_t status; // @todo rename to l_status
+  uint8_t l_status;
   /** content of the TP1 frame */
-  CArray pdu; // @todo rename to lpdu
+  CArray lpdu;
   uint32_t time_stamp;
 
   L_Busmon_PDU ();

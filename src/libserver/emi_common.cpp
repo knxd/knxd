@@ -102,12 +102,12 @@ EMI_Common::send_L_Data (LDataPtr l)
       return;
     }
 
-  assert (l->data.size() >= 1);
+  assert (l->lsdu.size() >= 1);
   // discard long frames, they are not supported yet
   // TODO add support for long frames!
-  if (l->data.size() > maxPacketLen())
+  if (l->lsdu.size() > maxPacketLen())
     {
-      TRACEPRINTF (t, 2, "Oversize (%d), discarded", l->data.size());
+      TRACEPRINTF (t, 2, "Oversize (%d), discarded", l->lsdu.size());
       LowLevelFilter::do_send_Next();
       return;
     }
@@ -192,9 +192,9 @@ EMI_Common::recv_Data(CArray& c)
   else if (c.size() > 4 && c[0] == ind[I_BUSMON] && monitor)
     {
       LBusmonPtr p = LBusmonPtr(new L_Busmon_PDU ());
-      p->status = c[1];
+      p->l_status = c[1];
       p->time_stamp = (c[2] << 24) | (c[3] << 16);
-      p->pdu.set (c.data() + 4, c.size() - 4);
+      p->lpdu.set (c.data() + 4, c.size() - 4);
       master->recv_L_Busmonitor (std::move(p));
     }
   else
