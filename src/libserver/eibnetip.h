@@ -169,6 +169,71 @@ public:
   CArray ToPacket () const;
 };
 
+class EIBnet_SearchRequest
+{
+public:
+  EIBnet_SearchRequest ();
+  struct sockaddr_in caddr;
+  bool nat = false;
+  EIBNetIPPacket ToPacket () const;
+};
+
+int parseEIBnet_SearchRequest (const EIBNetIPPacket & p,
+                               EIBnet_SearchRequest & r);
+
+class EIBnet_SearchResponse
+{
+public:
+  EIBnet_SearchResponse ();
+  uint8_t KNXmedium = 0;
+  uint8_t devicestatus = 0;
+  eibaddr_t individual_addr = 0;
+  uint16_t installid = 0;
+  serialnumber_t serial;
+  std::vector<DIB_service_Entry> services;
+  struct in_addr multicastaddr;
+  uint8_t MAC[6];
+  char name[30];
+  struct sockaddr_in caddr;
+  bool nat = false;
+  EIBNetIPPacket ToPacket () const;
+};
+
+int parseEIBnet_SearchResponse (const EIBNetIPPacket & p,
+                                EIBnet_SearchResponse & r);
+
+class EIBnet_DescriptionRequest
+{
+public:
+  EIBnet_DescriptionRequest ();
+  struct sockaddr_in caddr;
+  bool nat = false;
+  EIBNetIPPacket ToPacket () const;
+};
+
+int parseEIBnet_DescriptionRequest (const EIBNetIPPacket & p,
+                                    EIBnet_DescriptionRequest & r);
+
+class EIBnet_DescriptionResponse
+{
+public:
+  EIBnet_DescriptionResponse ();
+  uint8_t KNXmedium = 0;
+  uint8_t devicestatus = 0;
+  eibaddr_t individual_addr = 0;
+  uint16_t installid = 0;
+  serialnumber_t serial;
+  std::vector < DIB_service_Entry > services;
+  struct in_addr multicastaddr;
+  uint8_t MAC[6];
+  char name[30];
+  CArray optional;
+  EIBNetIPPacket ToPacket () const;
+};
+
+int parseEIBnet_DescriptionResponse (const EIBNetIPPacket & p,
+                                     EIBnet_DescriptionResponse & r);
+
 class EIBnet_ConnectRequest
 {
 public:
@@ -215,7 +280,7 @@ int parseEIBnet_ConnectionStateRequest (const EIBNetIPPacket & p,
 class EIBnet_ConnectionStateResponse
 {
 public:
-  EIBnet_ConnectionStateResponse ();
+  EIBnet_ConnectionStateResponse () = default;
   uint8_t channel = 0;
   uint8_t status = 0;
   EIBNetIPPacket ToPacket () const;
@@ -240,7 +305,7 @@ int parseEIBnet_DisconnectRequest (const EIBNetIPPacket & p,
 class EIBnet_DisconnectResponse
 {
 public:
-  EIBnet_DisconnectResponse ();
+  EIBnet_DisconnectResponse () = default;
   uint8_t channel = 0;
   uint8_t status = 0;
   EIBNetIPPacket ToPacket () const;
@@ -249,10 +314,35 @@ public:
 int parseEIBnet_DisconnectResponse (const EIBNetIPPacket & p,
                                     EIBnet_DisconnectResponse & r);
 
+class EIBnet_ConfigRequest // @todo rename to EIBnet_DeviceConfigurationRequest
+{
+public:
+  EIBnet_ConfigRequest () = default;
+  uint8_t channel = 0;
+  uint8_t seqno = 0;
+  CArray CEMI;
+  EIBNetIPPacket ToPacket () const;
+};
+
+int parseEIBnet_ConfigRequest (const EIBNetIPPacket & p,
+                               EIBnet_ConfigRequest & r); // @todo rename to parseEIBnet_DeviceConfigurationRequest
+
+class EIBnet_ConfigACK // @todo rename to EIBnet_DeviceConfigurationACK
+{
+public:
+  EIBnet_ConfigACK () = default;
+  uint8_t channel = 0;
+  uint8_t seqno = 0;
+  uint8_t status = 0;
+  EIBNetIPPacket ToPacket () const;
+};
+
+int parseEIBnet_ConfigACK (const EIBNetIPPacket & p, EIBnet_ConfigACK & r); // @todo rename to parseEIBnet_DeviceConfigurationAck
+
 class EIBnet_TunnelRequest
 {
 public:
-  EIBnet_TunnelRequest ();
+  EIBnet_TunnelRequest () = default;
   uint8_t channel = 0;
   uint8_t seqno = 0;
   CArray CEMI;
@@ -265,7 +355,7 @@ int parseEIBnet_TunnelRequest (const EIBNetIPPacket & p,
 class EIBnet_TunnelACK
 {
 public:
-  EIBnet_TunnelACK ();
+  EIBnet_TunnelACK () = default;
   uint8_t channel = 0;
   uint8_t seqno = 0;
   uint8_t status = 0;
@@ -274,153 +364,71 @@ public:
 
 int parseEIBnet_TunnelACK (const EIBNetIPPacket & p, EIBnet_TunnelACK & r);
 
-class EIBnet_ConfigRequest
+class EIBnet_RoutingIndication
 {
-public:
-  EIBnet_ConfigRequest ();
-  uint8_t channel = 0;
-  uint8_t seqno = 0;
-  CArray CEMI;
   EIBNetIPPacket ToPacket () const;
 };
 
-int parseEIBnet_ConfigRequest (const EIBNetIPPacket & p,
-                               EIBnet_ConfigRequest & r);
+int parseEIBnet_RoutingIndication (const EIBNetIPPacket & p, EIBnet_RoutingIndication & r);
 
-class EIBnet_ConfigACK
+class EIBnet_RoutingLostMessage
 {
-public:
-  EIBnet_ConfigACK ();
-  uint8_t channel = 0;
-  uint8_t seqno = 0;
-  uint8_t status = 0;
   EIBNetIPPacket ToPacket () const;
 };
 
-int parseEIBnet_ConfigACK (const EIBNetIPPacket & p, EIBnet_ConfigACK & r);
-
-typedef struct
-{
-  uchar family;
-  uchar version;
-} DIB_service_Entry;
-
-class EIBnet_DescriptionRequest
-{
-public:
-  EIBnet_DescriptionRequest ();
-  struct sockaddr_in caddr;
-  bool nat;
-  EIBNetIPPacket ToPacket () const;
-};
-
-int parseEIBnet_DescriptionRequest (const EIBNetIPPacket & p,
-                                    EIBnet_DescriptionRequest & r);
-
-class EIBnet_DescriptionResponse
-{
-public:
-  EIBnet_DescriptionResponse ();
-  uchar KNXmedium;
-  uchar devicestatus;
-  eibaddr_t individual_addr;
-  uint16_t installid;
-  serialnumber_t serial;
-  std::vector < DIB_service_Entry > services;
-  struct in_addr multicastaddr;
-  uchar MAC[6];
-  uchar name[30];
-  CArray optional;
-  EIBNetIPPacket ToPacket () const;
-};
-
-int parseEIBnet_DescriptionResponse (const EIBNetIPPacket & p,
-                                     EIBnet_DescriptionResponse & r);
-
-class EIBnet_SearchRequest
-{
-public:
-  EIBnet_SearchRequest ();
-  struct sockaddr_in caddr;
-  bool nat;
-  EIBNetIPPacket ToPacket () const;
-};
-
-int parseEIBnet_SearchRequest (const EIBNetIPPacket & p,
-                               EIBnet_SearchRequest & r);
-
-class EIBnet_SearchResponse
-{
-public:
-  EIBnet_SearchResponse ();
-  uchar KNXmedium;
-  uchar devicestatus;
-  eibaddr_t individual_addr;
-  uint16_t installid;
-  serialnumber_t serial;
-  std::vector < DIB_service_Entry > services;
-  struct in_addr multicastaddr;
-  uchar MAC[6];
-  uchar name[30];
-  struct sockaddr_in caddr;
-  bool nat = false;
-  EIBNetIPPacket ToPacket () const;
-};
-
-int parseEIBnet_SearchResponse (const EIBNetIPPacket & p,
-                                EIBnet_SearchResponse & r);
-
-
+int parseEIBnet_RoutingLostMessage (const EIBNetIPPacket & p, EIBnet_RoutingLostMessage & r);
 
 typedef void (*eibpacket_cb_t)(void *data, EIBNetIPPacket *p);
 
-class EIBPacketCallback {
-    eibpacket_cb_t cb_code = 0;
-    void *cb_data = 0;
-
-    void set_ (const void *data, eibpacket_cb_t cb)
-    {
-      this->cb_data = (void *)data;
-      this->cb_code = cb;
-    }
-
+class EIBPacketCallback
+{
 public:
-    // function callback
-    template<void (*function)(EIBNetIPPacket *p)>
-    void set (void *data = 0) throw ()
-    {
-      set_ (data, function_thunk<function>);
-    }
+  // function callback
+  template<void (*function)(EIBNetIPPacket *p)>
+  void set (void *data = 0) throw ()
+  {
+    set_ (data, function_thunk<function>);
+  }
 
-    template<void (*function)(EIBNetIPPacket *p)>
-    static void function_thunk (void *arg, EIBNetIPPacket *p)
-    {
-      function(p);
-    }
+  template<void (*function)(EIBNetIPPacket *p)>
+  static void function_thunk (void *arg, EIBNetIPPacket *p)
+  {
+    function(p);
+  }
 
-    // method callback
-    template<class K, void (K::*method)(EIBNetIPPacket *p)>
-    void set (K *object)
-    {
-      set_ (object, method_thunk<K, method>);
-    }
+  // method callback
+  template<class K, void (K::*method)(EIBNetIPPacket *p)>
+  void set (K *object)
+  {
+    set_ (object, method_thunk<K, method>);
+  }
 
-    template<class K, void (K::*method)(EIBNetIPPacket *p)>
-    static void method_thunk (void *arg, EIBNetIPPacket *p)
-    {
-      (static_cast<K *>(arg)->*method) (p);
-    }
+  template<class K, void (K::*method)(EIBNetIPPacket *p)>
+  static void method_thunk (void *arg, EIBNetIPPacket *p)
+  {
+    (static_cast<K *>(arg)->*method) (p);
+  }
 
-    void operator()(EIBNetIPPacket *p) {
-        (*cb_code)(cb_data, p);
-    }
+  void operator()(EIBNetIPPacket *p)
+  {
+    (*cb_code)(cb_data, p);
+  }
+
+private:
+  eibpacket_cb_t cb_code = 0;
+  void *cb_data = 0;
+
+  void set_ (const void *data, eibpacket_cb_t cb)
+  {
+    this->cb_data = (void *)data;
+    this->cb_code = cb;
+  }
 };
 
-
-/** represents a EIBnet/IP packet to send*/
+/** represents a EIBnet/IP packet to send */
 struct _EIBNetIP_Send
 {
-  /** packat */
+  /** packet */
   EIBNetIPPacket data;
   /** destination address */
   struct sockaddr_in addr;
@@ -429,39 +437,11 @@ struct _EIBNetIP_Send
 /** EIBnet/IP socket */
 class EIBNetIPSocket
 {
-  /** debug output */
-  TracePtr t;
-  /** input */
-  ev::io io_recv; void io_recv_cb (ev::io &w, int revents);
-  /** output */
-  ev::io io_send; void io_send_cb (ev::io &w, int revents);
-  unsigned int send_error;
-
 public:
   EIBPacketCallback on_recv;
   InfoCallback on_error;
   InfoCallback on_next;
-private:
-  void recv_cb(EIBNetIPPacket *p)
-    {
-      t->TracePacket (0, "Drop", p->data);
-      delete p;
-    }
-  void error_cb() { stop(); }
-  void next_cb() { }
 
-  /** output queue */
-  Queue < struct _EIBNetIP_Send > send_q;
-  void send_q_drop();
-
-  /** multicast address */
-  struct ip_mreq maddr;
-  /** file descriptor */
-  int fd;
-  /** multicast in use? */
-  bool multicast;
-
-public:
   EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr, TracePtr tr,
                   SockMode mode = S_RDWR);
   virtual ~EIBNetIPSocket ();
@@ -472,7 +452,10 @@ public:
   bool SetMulticast (struct ip_mreq multicastaddr);
   /** sends a packet */
   void Send (EIBNetIPPacket p, struct sockaddr_in addr);
-  void Send (EIBNetIPPacket p) { Send (p, sendaddr); }
+  void Send (EIBNetIPPacket p)
+  {
+    Send (p, sendaddr);
+  }
 
   /** get the port this socket is bound to (network byte order) */
   int port ();
@@ -494,7 +477,41 @@ public:
   bool paused;
 
   /** flag whether to accept (almost) all packets */
-  uchar recvall;
+  uint8_t recvall;
+
+private:
+  /** debug output */
+  TracePtr t;
+  /** input */
+  ev::io io_recv;
+  void io_recv_cb (ev::io &w, int revents);
+  /** output */
+  ev::io io_send;
+  void io_send_cb (ev::io &w, int revents);
+  unsigned int send_error;
+
+  void recv_cb(EIBNetIPPacket *p)
+  {
+    t->TracePacket (0, "Drop", p->data);
+    delete p;
+  }
+
+  void error_cb()
+  {
+    stop();
+  }
+  void next_cb() { }
+
+  /** output queue */
+  Queue < struct _EIBNetIP_Send > send_q;
+  void send_q_drop();
+
+  /** multicast address */
+  struct ip_mreq maddr;
+  /** file descriptor */
+  int fd;
+  /** multicast in use? */
+  bool multicast;
 };
 
 #endif
