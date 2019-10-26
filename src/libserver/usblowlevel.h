@@ -24,16 +24,16 @@
 #include "lowlevel.h"
 #include "usb.h"
 
-typedef struct
+struct USBEndpoint
 {
   int bus;
   int device;
   int config;
   int altsetting;
   int interface;
-} USBEndpoint;
+};
 
-typedef struct
+struct USBDevice
 {
   libusb_device *dev;
   int config;
@@ -41,18 +41,19 @@ typedef struct
   int interface;
   int sendep;
   int recvep;
-} USBDevice;
+};
 
 USBEndpoint parseUSBEndpoint (const char *addr);
 USBDevice detectUSBEndpoint (USBEndpoint e);
 
-typedef enum {
-    sNone = 0,
-    sStarted,
-    sClaimed,
-    sRunning,
-    sConnected,
-} UState;
+enum UState
+{
+  sNone = 0,
+  sStarted,
+  sClaimed,
+  sRunning,
+  sConnected,
+};
 
 class USBLowLevelDriver : public LowLevelDriver
 {

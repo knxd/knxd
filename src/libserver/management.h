@@ -23,19 +23,19 @@
 #include "layer7.h"
 
 /** information structure abot a property */
-typedef struct
+struct PropertyInfo
 {
   /** object index */
-  uchar obj;
+  uint8_t obj;
   /** property id */
-  uchar property;
+  uint8_t property;
   /** property type */
-  uchar type;
+  uint8_t type;
   /** for property 1 (Object Type) it contains the object type, else the element count */
   uint16_t count;
   /** access level */
-  uchar access;
-} PropertyInfo;
+  uint8_t access;
+};
 
 class Management_Connection:public Layer7_Connection
 {

@@ -28,8 +28,7 @@
 #ifndef LOADCTL_H
 #define LOADCTL_H
 
-
-typedef enum
+enum LoadControlType
 {
   L_CODE = 1,
   L_BCU1_SIZE = 2,
@@ -44,7 +43,6 @@ typedef enum
   L_FLOAT_PAR,
   L_LIST_PAR,
   L_GROUP_OBJECT,
-
-} LoadControlType;
+};
 
 #endif

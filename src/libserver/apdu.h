@@ -23,10 +23,10 @@
 #include "common.h"
 
 /** enumeration of APDU types */
-typedef enum
+enum APDU_type : uint16_t
 {
   /** unknown APDU */
-  A_Unknown,
+  A_Unknown = 0xFFFF, // A_GroupValue_Read is also 0
   A_GroupValue_Read = 0x000,
   A_GroupValue_Response = 0x040, // .. 0x07F
   A_GroupValue_Write = 0x080, // .. 0x0BF
@@ -101,8 +101,7 @@ typedef enum
   A_DomainAddressSerialNumber_Response = 0x3ED,
   A_DomainAddressSerialNumber_Write = 0x3EE,
   A_FileStream_InfoReport = 0x3F0,
-}
-APDU_type;
+};
 
 class APDU;
 using APDUPtr = std::unique_ptr<APDU>;

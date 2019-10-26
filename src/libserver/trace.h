@@ -33,7 +33,7 @@
 #include <fmt/printf.h>
 #endif
 
-typedef enum
+enum trace_level
 {
   LEVEL_NONE = 0,
   LEVEL_FATAL = 1,
@@ -44,8 +44,7 @@ typedef enum
   LEVEL_INFO = 6,
   LEVEL_DEBUG = 7,
   LEVEL_TRACE = 8
-}
-trace_level;
+};
 
 constexpr unsigned int E_FATAL = LEVEL_FATAL<<28;
 constexpr unsigned int E_CRTIICAL = LEVEL_CRITICAL<<28;

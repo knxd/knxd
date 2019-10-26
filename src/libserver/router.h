@@ -34,20 +34,20 @@ class Router;
 class RouterHigh;
 class RouterLow;
 
-typedef std::shared_ptr<RouterLow> RouterLowPtr;
-typedef std::shared_ptr<RouterHigh> RouterHighPtr;
+using RouterLowPtr = std::shared_ptr<RouterLow>;
+using RouterHighPtr = std::shared_ptr<RouterHigh>;
 
 /** stores a registered busmonitor callback */
-typedef struct
+struct Busmonitor_Info
 {
   L_Busmonitor_CallBack *cb;
-} Busmonitor_Info;
+};
 
-typedef struct
+struct IgnoreInfo
 {
   CArray data;
   timestamp_t end;
-} IgnoreInfo;
+};
 
 class Router : public BaseRouter {
   friend class RouterLow;

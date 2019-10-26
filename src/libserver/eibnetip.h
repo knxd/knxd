@@ -29,12 +29,14 @@
 
 // all values are from 03_08_01 5.* unless otherwise specified
 
-typedef enum {
+/** Service type identifiers */
+enum ServiceType : uint16_t
+{
+  /* Core (0x0200 .. 0x020F) */
   SEARCH_REQUEST = 0x0201,
   SEARCH_RESPONSE = 0x0202,
   DESCRIPTION_REQUEST = 0x0203,
   DESCRIPTION_RESPONSE = 0x0204,
-
   CONNECTION_REQUEST = 0x0205,
   CONNECTION_RESPONSE = 0x0206,
   CONNECTIONSTATE_REQUEST = 0x0207,
@@ -42,26 +44,42 @@ typedef enum {
   DISCONNECT_REQUEST = 0x0209,
   DISCONNECT_RESPONSE = 0x020A,
 
+  /* Device Management (0x0310 .. 0x031F) */
   DEVICE_CONFIGURATION_REQUEST = 0x0310,
   DEVICE_CONFIGURATION_ACK = 0x0311,
 
+  /* Tunnelling (0x0420 .. 0x042F) */
   TUNNEL_REQUEST = 0x0420,
   TUNNEL_RESPONSE = 0x0421,
 
+  /* Routing (0x0530 .. 0x053F)  */
   ROUTING_INDICATION = 0x0530,
   ROUTING_LOST_MESSAGE = 0x0531,
-} ServiceType;
+  ROUTING_BUSY = 0x532, // 03.02.06, 4.1.3
 
-typedef enum
+  /* Remote Logging (0x0600 .. 0x06FF) */
+
+  /* Remote Configuration and Diagnosis (0x0740 .. 0x07FF) */
+  REMOTE_DIAGNOSTIC_REQUEST = 0x0740, // 03.08.07, 4.4.1
+  REMOTE_DIAGNOSTIC_RESPONSE = 0x0741, // 03.08.07, 4.4.2
+  REMOTE_BASIC_CONFIGURATION_REQUEST = 0x0742, // 03.08.07, 4.4.3
+  REMOTE_RESET_REQUEST = 0x0743, // 03.08.07, 4.4.4
+
+  /* Object Server (0x0800 .. 0x8FF) */
+};
+
+/** Connection types */
+enum ConnectionType : uint8_t
 {
   DEVICE_MGMT_CONNECTION = 0x03,
   TUNNEL_CONNECTION = 0x04,
   REMLOG_CONNECTION = 0x06,
   REMCONF_CONNECTION = 0x07,
   OBJSRV_CONNECTION = 0x08,
-} ConnectionType;
+};
 
-typedef enum
+/** Error codes */
+enum ErrorCode : uint8_t
 {
   E_NO_ERROR = 0x00,
   E_HOST_PROTOCOL_TYPE = 0x01,
@@ -75,30 +93,43 @@ typedef enum
   E_DATA_CONNECTION = 0x26,
   E_KNX_CONNECTION = 0x27,
   E_TUNNELING_LAYER = 0x29,
-} ErrorCode;
+};
 
-typedef enum {
-    DEVICE_INFO = 0x01,
-    SUPP_SVC_FAMILIES = 0x02,
-} DIBcode;
+/** Description type codes */
+enum DIBcode : uint8_t
+{
+  DEVICE_INFO = 0x01,
+  SUPP_SVC_FAMILIES = 0x02,
+  MFR_DATA = 0xFE,
+};
 
-typedef enum {
-    M_TP1 = 0x02,
-    M_PL110 = 0x04,
-    M_RF = 0x10,
-    M_IP = 0x20,
-} MediumCode;
+/** Medium codes */
+enum MediumCode : uint8_t
+{
+  M_TP1 = 0x02,
+  M_PL110 = 0x04,
+  M_RF = 0x10,
+  M_IP = 0x20,
+};
 
-// timeouts
+/** Host protocol codes */
+enum HostProtocolCode : uint8_t
+{
+  IPV4_UDP = 0x01,
+  IPV4_TCP = 0x02,
+};
+
+/* Timeout constants */
 constexpr ev::tstamp CONNECT_REQUEST_TIMEOUT = 10;
 constexpr ev::tstamp CONNECTIONSTATE_REQUEST_TIMEOUT = 10;
 constexpr ev::tstamp DEVICE_CONFIGURATION_REQUEST_TIMEOUT = 10;
 constexpr ev::tstamp TUNNELING_REQUEST_TIMEOUT = 1;
 constexpr ev::tstamp CONNECTION_ALIVE_TIME = 120;
 
-typedef enum {
+enum SockMode
+{
   S_RDWR, S_RD, S_WR,
-} SockMode;
+};
 
 /** represents a EIBnet/IP packet */
 class EIBNetIPPacket

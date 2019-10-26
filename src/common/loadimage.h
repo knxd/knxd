@@ -24,7 +24,7 @@
 
 #include "types.h"
 
-typedef struct
+struct EIBLoadRequest
 {
   BCU_LOAD_RESULT error;
   uint8_t obj;
@@ -34,7 +34,7 @@ typedef struct
   CArray result;
   uint16_t memaddr;
   uint16_t len;
-} EIBLoadRequest;
+};
 
 class BCUImage
 {

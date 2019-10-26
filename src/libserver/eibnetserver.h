@@ -31,15 +31,15 @@
 #endif
 
 class EIBnetServer;
-typedef std::shared_ptr<EIBnetServer> EIBnetServerPtr;
+using EIBnetServerPtr = std::shared_ptr<EIBnetServer>;
 
-typedef enum {
-        CT_NONE = 0,
-        CT_STANDARD,
-        CT_BUSMONITOR,
-        CT_CONFIG,
-} ConnType;
-
+enum ConnType
+{
+  CT_NONE = 0,
+  CT_STANDARD,
+  CT_BUSMONITOR,
+  CT_CONFIG,
+};
 
 /** Driver for tunnels */
 class ConnState: public SubDriver, public L_Busmonitor_CallBack
@@ -81,8 +81,8 @@ public:
   void send_L_Data (LDataPtr l);
   void send_L_Busmonitor (LBusmonPtr l);
 };
-typedef std::shared_ptr<ConnState> ConnStatePtr;
 
+using ConnStatePtr = std::shared_ptr<ConnState>;
 
 /** Driver for routing */
 class EIBnetDriver : public SubDriver
@@ -107,7 +107,7 @@ public:
   void send_L_Data (LDataPtr l);
 };
 
-typedef std::shared_ptr<EIBnetDriver> EIBnetDriverPtr;
+using EIBnetDriverPtr = std::shared_ptr<EIBnetDriver>;
 
 SERVER(EIBnetServer,ets_router)
 {
@@ -166,6 +166,7 @@ public:
   bool checkAddress(eibaddr_t addr UNUSED) { return route; }
   bool checkGroupAddress(eibaddr_t addr UNUSED) { return route; }
 };
-typedef std::shared_ptr<EIBnetServer> EIBnetServerPtr;
+
+using EIBnetServerPtr = std::shared_ptr<EIBnetServer>;
 
 #endif

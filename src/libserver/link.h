@@ -98,42 +98,42 @@
  * chain, are weak pointers.
  */
 
-/** Helper class so that we don't need to bunch enerything into one header */
+/* Helper class so that we don't need to bunch enerything into one header */
 class BaseRouter;
 
-/** some forward declarations */
+/* some forward declarations */
 class LinkBase;
-typedef std::shared_ptr<LinkBase> LinkBasePtr;
+using LinkBasePtr = std::shared_ptr<LinkBase>;
 
 class LinkConnect_;
-typedef std::shared_ptr<LinkConnect_> LinkConnectPtr_;
+using LinkConnectPtr_ = std::shared_ptr<LinkConnect_>;
 
 class LinkConnect;
-typedef std::shared_ptr<LinkConnect> LinkConnectPtr;
+using LinkConnectPtr = std::shared_ptr<LinkConnect>;
 
 class LinkConnectClient;
-typedef std::shared_ptr<LinkConnectClient> LinkConnectClientPtr;
+using LinkConnectClientPtr = std::shared_ptr<LinkConnectClient>;
 
 class LinkConnectSingle;
-typedef std::shared_ptr<LinkConnectSingle> LinkConnectSinglePtr;
+using LinkConnectSinglePtr = std::shared_ptr<LinkConnectSingle>;
 
 class LinkRecv;
-typedef std::shared_ptr<LinkRecv> LinkRecvPtr;
+using LinkRecvPtr = std::shared_ptr<LinkRecv>;
 
 class LineDriver;
-typedef std::shared_ptr<LineDriver> LineDriverPtr;
+using LineDriverPtr = std::shared_ptr<LineDriver>;
 
 class Driver;
-typedef std::shared_ptr<Driver> DriverPtr;
+using DriverPtr = std::shared_ptr<Driver>;
 
 class BusDriver;
-typedef std::shared_ptr<BusDriver> BusDriverPtr;
+using BusDriverPtr = std::shared_ptr<BusDriver>;
 
 class Filter;
-typedef std::shared_ptr<Filter> FilterPtr;
+using FilterPtr = std::shared_ptr<Filter>;
 
 class Server;
-typedef std::shared_ptr<Server> ServerPtr;
+using ServerPtr = std::shared_ptr<Server>;
 
 class BaseRouter {
 protected: // can't instantiate this class directly
@@ -375,22 +375,24 @@ public:
              \- L_up_error => L_going_down_error => L_wait_retry => L_going_up
                                                     (if retry)
  */
-typedef enum {
-    L_down,
-    L_going_down,
-    L_up,
-    L_going_up,
-    L_wait_retry,
-    L_error,
-    L_up_error,
-    L_going_down_error,
-} LConnState;
+enum LConnState
+{
+  L_down,
+  L_going_down,
+  L_up,
+  L_going_up,
+  L_wait_retry,
+  L_error,
+  L_up_error,
+  L_going_down_error,
+};
 
-typedef enum {
-    R_down,
-    R_other,
-    R_up,
-} LRouterState;
+enum LRouterState
+{
+  R_down,
+  R_other,
+  R_up,
+};
 
 /** A LinkConnect is something which the router knows about.
  * For non-servers, it holds a pointer to the driver and to the bottom of

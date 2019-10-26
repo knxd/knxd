@@ -24,7 +24,7 @@
 #include "router.h"
 
 class ClientConnection;
-typedef std::shared_ptr<ClientConnection> ClientConnPtr;
+using ClientConnPtr = std::shared_ptr<ClientConnection>;
 
 bool CreateGroupCache (Router& r, IniSectionPtr& s);
 

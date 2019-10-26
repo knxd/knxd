@@ -37,9 +37,11 @@ using LBusmonPtr = std::unique_ptr<L_Busmon_PDU>;
 #include "common.h"
 #include "link.h"
 
-/** enumartion of Layer 2 frame types*/
-typedef enum
+/** enumeration of Layer 2 frame types */
+enum LPDU_Type
 {
+  /** unknown LPDU */
+  L_Unknown = 0,
   /** L_Data */
   L_Data,
   /** L_SystemBroadcast */
@@ -54,8 +56,7 @@ typedef enum
   L_Service_Information,
   /** L_Management */
   L_Management,
-}
-LPDU_Type;
+};
 
 /** represents a Layer 2 frame */
 class LPDU

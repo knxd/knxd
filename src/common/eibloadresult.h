@@ -28,7 +28,7 @@
 #ifndef EIB_LOAD_RESULT_H
 #define EIB_LOAD_RESULT_H
 
-typedef enum
+enum BCU_LOAD_RESULT
 {
   IMG_UNKNOWN_ERROR           =  0,
   IMG_UNRECOG_FORMAT          =  1,
@@ -92,7 +92,6 @@ typedef enum
   IMG_INVALID_KEY             = 59,
   IMG_AUTHORIZATION_FAILED    = 60,
   IMG_KEY_WRITE               = 61,
-}
-BCU_LOAD_RESULT;
+};
 
 #endif

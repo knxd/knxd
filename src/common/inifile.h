@@ -30,12 +30,12 @@
 #include <string>
 #include <memory>
 
-typedef std::pair<std::string,bool> ValueType;
-typedef std::map<std::string, ValueType> ValueMap;
+using ValueType = std::pair<std::string,bool>;
+using ValueMap = std::map<std::string, ValueType>;
 
 class IniData;
 class IniSection;
-typedef std::shared_ptr<IniSection> IniSectionPtr;
+using IniSectionPtr = std::shared_ptr<IniSection>;
 
 typedef bool (*UnseenViewer)(void *user,
     const IniSection& section, const std::string& name, const std::string& value);
@@ -72,9 +72,9 @@ class IniSection : public std::enable_shared_from_this<IniSection> {
     bool list_unseen(UnseenViewer uv, void *user);
 };
 
+using SectionType = std::pair<IniSectionPtr,bool>;
+using SectionMap = std::map<std::string, SectionType>;
 
-typedef std::pair<IniSectionPtr,bool> SectionType;
-typedef std::map<std::string, SectionType> SectionMap;
 class IniData {
     SectionMap sections;
 

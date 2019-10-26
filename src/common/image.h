@@ -24,7 +24,7 @@
 
 std::string HexDump (CArray data);
 
-typedef enum
+enum STR_Type
 {
   S_Invalid,
   S_Unknown,
@@ -39,7 +39,7 @@ typedef enum
   S_BCU2Size,
   S_BCU2Start,
   S_BCU2Key,
-} STR_Type;
+};
 
 class STR_Stream
 {

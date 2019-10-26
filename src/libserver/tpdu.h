@@ -23,10 +23,10 @@
 #include "common.h"
 
 /** enumaration of TPDU types */
-typedef enum
+enum TPDU_Type
 {
   /** unknown TPDU */
-  T_Unknown,
+  T_Unknown = 0,
   /** T_Data_Broadcast */
   T_Data_Broadcast,
   /** T_Data_SystemBroadcast */
@@ -47,11 +47,10 @@ typedef enum
   T_ACK,
   /** T_NAK */
   T_NAK,
-}
-TPDU_Type;
+};
 
 class TPDU;
-typedef std::unique_ptr<TPDU> TPDUPtr;
+using TPDUPtr = std::unique_ptr<TPDU>;
 
 /** represents a TPDU */
 class TPDU

@@ -24,13 +24,13 @@
 #include <cassert>
 #include <ev++.h>
 
-/** Domain address */
-typedef uint16_t domainaddr_t;
 /** serial number */
 typedef uchar serialnumber_t[6];
 /** memory pointer for EIB devices */
 typedef uint16_t memaddr_t;
 
+/** Domain address */
+using domainaddr_t = uint16_t;
 /** object index type */
 typedef uchar objectno_t;
 /** property ID type */

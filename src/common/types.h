@@ -39,10 +39,10 @@
 typedef uint8_t uchar;
 
 /** EIB address */
-typedef uint16_t eibaddr_t;
+using eibaddr_t = uint16_t;
 
 /** EIB key */
-typedef uint32_t eibkey_type;
+using eibkey_type = uint32_t;
 
 #define ITER(_i,_t) for(decltype(_t)::iterator _i = _t.begin(); _i != _t.end(); _i++)
 #define C_ITER(_i,_t) for(decltype(_t)::const_iterator _i = _t.cbegin(); _i != _t.cend(); _i++)
@@ -53,10 +53,10 @@ typedef uint32_t eibkey_type;
   We can't use strings: strings can't contain null characters.
   */
 
+using u8vec = std::vector<uint8_t>; // less typing
 inline unsigned int _sub(unsigned int _a, unsigned int _b) { return (_a>_b) ? _a-_b : 0; }
 inline unsigned int _min(unsigned int _a, unsigned int _b) { return (_a<_b) ? _a : _b; }
 
-typedef std::vector<uint8_t> u8vec; // less typing
 class CArray : public u8vec
 {
 public:

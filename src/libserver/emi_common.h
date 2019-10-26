@@ -26,13 +26,14 @@
 #include "emi.h"
 #include "ev++.h"
 
-typedef enum {
-    I_CONFIRM = 0,
-    I_DATA = 1,
-    I_BUSMON = 2,
-} indTypes;
+enum indTypes
+{
+  I_CONFIRM = 0,
+  I_DATA = 1,
+  I_BUSMON = 2,
+};
 
-typedef enum
+enum EMIVer
 {
   vERROR,
   vEMI1 = 1,
@@ -42,16 +43,16 @@ typedef enum
   vUnknown,
   vDiscovery,
   vTIMEOUT
-} EMIVer;
+};
 
-typedef enum
+enum E_state
 {
   E_idle,
   E_timed_out, // but still waiting for sendNext
   // states after this mean that the timer is running
   E_wait, // waiting for sendNext and confirm
   E_wait_confirm, // sendNext did arrive but not the HL confirmation
-} E_state;
+};
 
 EMIVer cfgEMIVersion(IniSectionPtr& s);
 
@@ -106,6 +107,6 @@ public:
   void send_Data(CArray& c);
 };
 
-typedef std::shared_ptr<EMI_Common> EMIPtr;
+using EMIptr = std::shared_ptr<EMI_Common>;
 
 #endif

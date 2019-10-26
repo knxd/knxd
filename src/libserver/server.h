@@ -25,7 +25,7 @@
 #include "router.h"
 
 class ClientConnection;
-typedef std::shared_ptr<ClientConnection> ClientConnPtr;
+using ClientConnPtr = std::shared_ptr<ClientConnection>;
 
 /** implements the frontend (but opens no connection) */
 class NetServer: public Server
@@ -64,6 +64,6 @@ protected:
   void deregister (ClientConnPtr con);
 };
 
-typedef std::shared_ptr<NetServer> NetServerPtr;
+using NetServerPtr = std::shared_ptr<NetServer>;
 
 #endif
