@@ -94,7 +94,7 @@ QueueFilter::send_Next()
 }
 
 void
-QueueFilter::trigger_cb (ev::async &w UNUSED, int revents UNUSED)
+QueueFilter::trigger_cb (ev::async &, int)
 {
   while (!buf.empty() && state == Q_IDLE)
     {

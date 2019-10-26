@@ -29,11 +29,12 @@ supports it.
 #include "link.h"
 #include "queue.h"
 
-enum QSTATE {
-    Q_DOWN,    // not running
-    Q_IDLE,    // no packet submitted
-    Q_BUSY,    // packet submitted, not in send loop
-    Q_SENDING, // packet submitted, in send loop
+enum QSTATE
+{
+  Q_DOWN,    // not running
+  Q_IDLE,    // no packet submitted
+  Q_BUSY,    // packet submitted, not in send loop
+  Q_SENDING, // packet submitted, in send loop
 };
 
 FILTER(QueueFilter,queue)
