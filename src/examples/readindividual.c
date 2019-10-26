@@ -21,7 +21,7 @@
 int
 main (int ac, char *ag[])
 {
-  uchar buf[255];
+  uint8_t buf[255];
   int len;
   int i;
   EIBConnection *con;

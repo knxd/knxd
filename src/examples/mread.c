@@ -23,7 +23,7 @@ main (int ac, char *ag[])
 {
   int len, addr;
   EIBConnection *con;
-  uchar buf[255];
+  uint8_t buf[255];
   eibaddr_t dest;
   char *prog = ag[0];
 

@@ -24,7 +24,7 @@ main (int ac, char *ag[])
   int len, obj, prop;
   EIBConnection *con;
   eibaddr_t dest;
-  uchar type, access;
+  uint8_t type, access;
   uint16_t count;
   char *prog = ag[0];
 

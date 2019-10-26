@@ -24,7 +24,7 @@ main (int ac, char *ag[])
   int len;
   EIBConnection *con;
   eibaddr_t dest;
-  uchar buf[255] = { 0, 0x40 };
+  uint8_t buf[255] = { 0, 0x40 };
 
   if (ac < 4)
     die ("usage: %s url eibaddr val val ...", ag[0]);

@@ -21,7 +21,7 @@
 int
 main (int ac, char *ag[])
 {
-  uchar buf[255];
+  uint8_t buf[255];
   int len;
   EIBConnection *con;
   fd_set read;
@@ -36,23 +36,23 @@ main (int ac, char *ag[])
 
   while (1)
     {
-    lp:
+lp:
       FD_ZERO (&read);
       FD_SET (EIB_Poll_FD (con), &read);
       printf ("Waiting\n");
       if (select (EIB_Poll_FD (con) + 1, &read, 0, 0, 0) == -1)
-	die ("select failed");
+        die ("select failed");
       printf ("Data available\n");
       len = EIB_Poll_Complete (con);
       if (len == -1)
-	die ("Read failed");
+        die ("Read failed");
       if (len == 0)
-	goto lp;
+        goto lp;
       printf ("Completed\n");
 
       len = EIBGetBusmonitorPacket (con, sizeof (buf), buf);
       if (len == -1)
-	die ("Read failed");
+        die ("Read failed");
       printf ("%s\n", buf);
       fflush (stdout);
     }

@@ -21,7 +21,7 @@
 int
 main (int ac, char *ag[])
 {
-  uchar buf[255];
+  uint8_t buf[255];
   int len;
   uint32_t ts;
   uint8_t status;
@@ -41,7 +41,7 @@ main (int ac, char *ag[])
     {
       len = EIBGetBusmonitorPacketTS (con, &status, &ts, sizeof (buf), buf);
       if (len == -1)
-	die ("Read failed");
+        die ("Read failed");
       printf ("(%d, %08x) ", status, ts);
       printHex (len, buf);
       printf ("\n");
