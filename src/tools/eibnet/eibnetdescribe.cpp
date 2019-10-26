@@ -39,7 +39,7 @@ die (const char *msg, ...)
 }
 
 void
-HexDump (const uchar * data, int Len)
+HexDump (const uint8_t * data, int Len)
 {
   for (int i = 0; i < Len; i++)
     printf (" %02X", data[i]);
