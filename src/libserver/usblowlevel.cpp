@@ -17,14 +17,15 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include <unistd.h>
-#include <fcntl.h>
-#include <cerrno>
-#include <cctype>
-#include <cstdlib>
-#include <cstdio>
-
 #include "usblowlevel.h"
+
+#include <cctype>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <fcntl.h>
+#include <unistd.h>
+
 #include "usb.h"
 
 USBEndpoint
@@ -318,7 +319,7 @@ USBLowLevelDriver::CompleteSend(struct libusb_transfer *transfer)
 }
 
 void
-USBLowLevelDriver::write_trigger_cb(ev::async &w UNUSED, int revents UNUSED)
+USBLowLevelDriver::write_trigger_cb(ev::async &, int)
 {
   TRACEPRINTF (t, 10, "SendComplete %lx %d", (unsigned long)sendh, sendh->actual_length);
   if (sendh == nullptr)
@@ -369,7 +370,7 @@ USBLowLevelDriver::CompleteReceive(struct libusb_transfer *transfer)
 }
 
 void
-USBLowLevelDriver::read_trigger_cb(ev::async &w UNUSED, int revents UNUSED)
+USBLowLevelDriver::read_trigger_cb(ev::async &, int)
 {
   TRACEPRINTF (t, 10, "RecvComplete %lx %d", (unsigned long) recvh, recvh->actual_length);
   if (recvh == nullptr)

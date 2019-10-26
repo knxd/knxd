@@ -18,8 +18,9 @@
 */
 
 #include "managementclient.h"
-#include "management.h"
+
 #include "loadimage.h"
+#include "management.h"
 
 void
 ReadIndividualAddresses (ClientConnPtr c, uint8_t *buf, size_t len)
@@ -46,7 +47,7 @@ void
 ChangeProgMode (ClientConnPtr c, uint8_t *buf, size_t len)
 {
   eibaddr_t dest;
-  uchar res[3];
+  uint8_t res[3];
   int i;
   EIBSETTYPE (res, EIB_PROG_MODE);
   res[2] = 0;
@@ -100,7 +101,7 @@ void
 GetMaskVersion (ClientConnPtr c, uint8_t *buf, size_t len)
 {
   eibaddr_t dest;
-  uchar res[4];
+  uint8_t res[4];
   uint16_t maskver;
   EIBSETTYPE (res, EIB_MASK_VERSION);
   res[2] = 0;
@@ -197,7 +198,7 @@ ManagementConnection::ManagementConnection (ClientConnPtr c, uint8_t *buf, size_
   eibaddr_t dest;
   uint16_t maskver;
   int16_t val;
-  uchar buf[10];
+  uint8_t buf[10];
   int i;
   eibkey_type key;
 
@@ -595,7 +596,7 @@ ManagementIndividual (ClientConnPtr c, uint8_t *buf, size_t len)
 void
 LoadImage (ClientConnPtr c, uint8_t *buf, size_t len)
 {
-  uchar buf[200];
+  uint8_t buf[200];
   CArray img (c->buf + 2, c->size - 2);
   CArray erg;
   unsigned int j;
@@ -613,7 +614,7 @@ LoadImage (ClientConnPtr c, uint8_t *buf, size_t len)
     }
   {
     uint16_t maskver;
-    uchar ch;
+    uint8_t ch;
     r = IMG_NO_DEVICE_CONNECTION;
     Management_Connection m = Management_Connection (c->t, i->addr);
     if (!m.init (c->l3))
@@ -669,7 +670,7 @@ LoadImage (ClientConnPtr c, uint8_t *buf, size_t len)
 
         /*erase the user RAM (0x0CE to 0x0DF) */
         r = IMG_ZERO_RAM;
-        uchar zero[18] = { 0 };
+        uint8_t zero[18] = { 0 };
         if (m.X_Memory_Write_Block (0x00ce, CArray (zero, 18)) != 0)
           goto out;
 
@@ -699,7 +700,7 @@ LoadImage (ClientConnPtr c, uint8_t *buf, size_t len)
         if (maskver != 0x0021 && i->BCUType == BCUImage::B_bcu21)
           goto out;
 
-        uchar level;
+        uint8_t level;
         r = IMG_AUTHORIZATION_FAILED;
         if (m.A_Authorize (i->installkey, level) == -1)
           goto out;

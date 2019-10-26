@@ -17,23 +17,26 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include "link.h"
-#include "server.h"
+#include "router.h"
+
+#include <iostream>
+#include <math.h>
 #include <sys/socket.h>
-#include "systemdserver.h"
-#include "lowlevel.h"
+#include <typeinfo>
+
+#include <ev++.h>
+#ifdef HAVE_SYSTEMD
+#include <systemd/sd-daemon.h>
+#endif
+
 #include "cm_tp1.h"
 #ifdef HAVE_GROUPCACHE
 #include "groupcacheclient.h"
 #endif
-#include <typeinfo>
-#include <iostream>
-#include <ev++.h>
-#include <math.h>
-
-#ifdef HAVE_SYSTEMD
-#include <systemd/sd-daemon.h>
-#endif
+#include "link.h"
+#include "lowlevel.h"
+#include "server.h"
+#include "systemdserver.h"
 
 /** global filter adapter, sending end */
 class RouterHigh : public Driver
@@ -477,7 +480,7 @@ Router::linkStateChanged(const LinkConnectPtr& link)
 }
 
 void
-Router::state_trigger_cb (ev::async &w UNUSED, int revents UNUSED)
+Router::state_trigger_cb (ev::async &, int)
 {
   bool oarn = all_running;
   bool osrn = some_running;
@@ -593,7 +596,7 @@ Router::state_trigger_cb (ev::async &w UNUSED, int revents UNUSED)
 }
 
 void
-Router::start_timer_cb(ev::timer &w UNUSED, int revents UNUSED)
+Router::start_timer_cb(ev::timer &, int)
 {
   ERRORPRINTF (t, E_ERROR | 92, "Startup not successful.");
   stop();
@@ -1030,7 +1033,7 @@ Router::release_client_addr(eibaddr_t addr)
 }
 
 void
-Router::trigger_cb (ev::async &w UNUSED, int revents UNUSED)
+Router::trigger_cb (ev::async &, int)
 {
   while (!buf.empty() && low_send_more)
     {
@@ -1039,7 +1042,7 @@ Router::trigger_cb (ev::async &w UNUSED, int revents UNUSED)
       if (vbusmonitor.size())
         {
           LBusmonPtr l2 = LBusmonPtr(new L_Busmon_PDU ());
-          l2->pdu.set (L_Data_to_CM_TP1 (l1));
+          l2->lpdu.set (L_Data_to_CM_TP1 (l1));
 
           ITER(i,vbusmonitor)
           i->cb->send_L_Busmonitor (LBusmonPtr(new L_Busmon_PDU (*l2)));
@@ -1161,7 +1164,7 @@ Router::send_L_Data(LDataPtr l1)
 }
 
 void
-Router::mtrigger_cb (ev::async &w UNUSED, int revents UNUSED)
+Router::mtrigger_cb (ev::async &, int)
 {
   while (!mbuf.empty())
     {
@@ -1255,4 +1258,3 @@ RouterLow::send_Next()
   TRACEPRINTF (t, 6, "OK L");
   router->trigger.send();
 }
-

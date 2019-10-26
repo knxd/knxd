@@ -17,6 +17,12 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @addtogroup Server
+ * @{
+ */
+
 #ifndef SERVER_H
 #define SERVER_H
 
@@ -25,32 +31,20 @@
 #include "router.h"
 
 class ClientConnection;
-typedef std::shared_ptr<ClientConnection> ClientConnPtr;
+using ClientConnPtr = std::shared_ptr<ClientConnection>;
 
 /** implements the frontend (but opens no connection) */
 class NetServer: public Server
 {
   friend class ClientConnection;
-protected:
-  NetServer (BaseRouter& l3, IniSectionPtr& s);
+
 public:
   virtual ~NetServer ();
   bool ignore_when_systemd = false;
 
-private:
-  ev::io io; void io_cb (ev::io &w, int revents);
-
-  /** open client connections*/
-  std::vector < ClientConnPtr > connections;
-
-  ev::async cleanup;
-  void cleanup_cb (ev::async &w, int revents);
-
-  /** to-be-closed client connections*/
-  Queue < ClientConnPtr > cleanup_q;
-  void stop_();
-
 protected:
+  NetServer (BaseRouter& l3, IniSectionPtr& s);
+
   /** server socket */
   int fd;
 
@@ -62,8 +56,24 @@ protected:
 
   /** deregister client connection */
   void deregister (ClientConnPtr con);
+
+private:
+  ev::io io;
+  void io_cb (ev::io &w, int revents);
+
+  /** open client connections*/
+  std::vector < ClientConnPtr > connections;
+
+  ev::async cleanup;
+  void cleanup_cb (ev::async &w, int revents);
+
+  /** to-be-closed client connections*/
+  Queue < ClientConnPtr > cleanup_q;
+  void stop_();
 };
 
-typedef std::shared_ptr<NetServer> NetServerPtr;
+using NetServerPtr = std::shared_ptr<NetServer>;
 
 #endif
+
+/** @} */

@@ -33,7 +33,7 @@ protected:
   unsigned int default_baudrate();
   void setstate(enum TSTATE state);
 
-  void RecvLPDU (const uchar * data, int len);
+  void RecvLPDU (const uint8_t * data, int len);
   virtual FDdriver * create_serial(LowLevelIface* parent, IniSectionPtr& s);
 };
 
@@ -75,7 +75,7 @@ NCN5120wrap::create_serial(LowLevelIface* parent, IniSectionPtr& s)
   return new NCN5120serial(parent,s);
 }
 
-void NCN5120wrap::RecvLPDU (const uchar * data, int len)
+void NCN5120wrap::RecvLPDU (const uint8_t * data, int len)
 {
   skip_char = true;
   TPUARTwrap::RecvLPDU (data, len);

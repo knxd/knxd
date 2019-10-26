@@ -17,11 +17,12 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#include "localserver.h"
+
+#include <cerrno>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
-#include <cerrno>
-#include "localserver.h"
 
 LocalServer::LocalServer (BaseRouter& r, IniSectionPtr& s)
   : NetServer (r,s)

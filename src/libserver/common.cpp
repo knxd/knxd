@@ -17,8 +17,9 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include <cstdio>
 #include "common.h"
+
+#include <cstdio>
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
@@ -66,7 +67,7 @@ FormatEIBKey (eibkey_type key)
 }
 
 void
-addHex (std::string & s, const uchar c)
+addHex (std::string & s, const uint8_t c)
 {
   char buf[4];
   sprintf (buf, "%02X ", c);

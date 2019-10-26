@@ -17,25 +17,32 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @ingroup KNX_03_05_02
+ * Management Procedures
+ * @{
+ */
+
 #ifndef MANAGEMENT_H
 #define MANAGEMENT_H
 
 #include "layer7.h"
 
 /** information structure abot a property */
-typedef struct
+struct PropertyInfo
 {
   /** object index */
-  uchar obj;
+  uint8_t obj;
   /** property id */
-  uchar property;
+  uint8_t property;
   /** property type */
-  uchar type;
+  uint8_t type;
   /** for property 1 (Object Type) it contains the object type, else the element count */
   uint16_t count;
   /** access level */
-  uchar access;
-} PropertyInfo;
+  uint8_t access;
+};
 
 class Management_Connection:public Layer7_Connection
 {
@@ -68,3 +75,5 @@ public:
 };
 
 #endif
+
+/** @} */

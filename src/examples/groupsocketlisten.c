@@ -25,7 +25,7 @@ main (int ac, char *ag[])
   EIBConnection *con;
   eibaddr_t dest;
   eibaddr_t src;
-  uchar buf[200];
+  uint8_t buf[200];
 
   if (ac != 2)
     die ("usage: %s url", ag[0]);
@@ -40,48 +40,48 @@ main (int ac, char *ag[])
     {
       len = EIBGetGroup_Src (con, sizeof (buf), buf, &src, &dest);
       if (len == -1)
-	die ("Read failed");
+        die ("Read failed");
       if (len < 2)
-	die ("Invalid Packet");
+        die ("Invalid Packet");
       if (buf[0] & 0x3 || (buf[1] & 0xC0) == 0xC0)
-	{
-	  printf ("Unknown APDU from ");
-	  printIndividual (src);
-	  printf (" to ");
-	  printGroup (dest);
-	  printf (": ");
-	  printHex (len, buf);
-	  printf ("\n");
-	}
+        {
+          printf ("Unknown APDU from ");
+          printIndividual (src);
+          printf (" to ");
+          printGroup (dest);
+          printf (": ");
+          printHex (len, buf);
+          printf ("\n");
+        }
       else
-	{
-	  switch (buf[1] & 0xC0)
-	    {
-	    case 0x00:
-	      printf ("Read");
-	      break;
-	    case 0x40:
-	      printf ("Response");
-	      break;
-	    case 0x80:
-	      printf ("Write");
-	      break;
-	    }
-	  printf (" from ");
-	  printIndividual (src);
-	  printf (" to ");
-	  printGroup (dest);
-	  if (buf[1] & 0xC0)
-	    {
-	      printf (": ");
-	      if (len == 2)
-		printf ("%02X", buf[1] & 0x3F);
-	      else
-		printHex (len - 2, buf + 2);
-	    }
-	  printf ("\n");
-	  fflush (stdout);
-	}
+        {
+          switch (buf[1] & 0xC0)
+            {
+            case 0x00:
+              printf ("Read");
+              break;
+            case 0x40:
+              printf ("Response");
+              break;
+            case 0x80:
+              printf ("Write");
+              break;
+            }
+          printf (" from ");
+          printIndividual (src);
+          printf (" to ");
+          printGroup (dest);
+          if (buf[1] & 0xC0)
+            {
+              printf (": ");
+              if (len == 2)
+                printf ("%02X", buf[1] & 0x3F);
+              else
+                printHex (len - 2, buf + 2);
+            }
+          printf ("\n");
+          fflush (stdout);
+        }
     }
 
   EIBClose (con);

@@ -17,14 +17,14 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#include "ipsupport.h"
+#include "config.h"
+
+#include <cerrno>
 #include <cstring>
 #include <netdb.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <cerrno>
-#include <netdb.h>
-#include "config.h"
-#include "ipsupport.h"
 #ifdef HAVE_LINUX_NETLINK
 #include <asm/types.h>
 #include <linux/netlink.h>
@@ -42,7 +42,7 @@
 #endif
 
 bool
-GetHostIP (TracePtr t, struct sockaddr_in *sock, const std::string& name)
+GetHostIP (TracePtr tr, struct sockaddr_in *sock, const std::string& name)
 {
   struct hostent *h;
   if (name.size() == 0)
@@ -51,8 +51,8 @@ GetHostIP (TracePtr t, struct sockaddr_in *sock, const std::string& name)
   h = gethostbyname (name.c_str());
   if (!h)
     {
-      if (t)
-        ERRORPRINTF (t, E_ERROR | 50, "Resolving %s failed: %s", name, hstrerror(h_errno));
+      if (tr)
+        ERRORPRINTF (tr, E_ERROR | 50, "Resolving %s failed: %s", name, hstrerror(h_errno));
       return false;
     }
 #ifdef HAVE_SOCKADDR_IN_LEN
@@ -64,15 +64,15 @@ GetHostIP (TracePtr t, struct sockaddr_in *sock, const std::string& name)
 }
 
 #ifdef HAVE_LINUX_NETLINK
-typedef struct
+struct r_req
 {
   struct nlmsghdr n;
   struct rtmsg r;
   char data[1000];
-} r_req;
+};
 
 bool
-GetSourceAddress (TracePtr t UNUSED, const struct sockaddr_in *dest, struct sockaddr_in *src)
+GetSourceAddress (TracePtr, const struct sockaddr_in *dest, struct sockaddr_in *src)
 {
   int s;
   int l;
@@ -123,7 +123,7 @@ err_out:
 
 #ifdef HAVE_WINDOWS_IPHELPER
 bool
-GetSourceAddress (TracePtr t, const struct sockaddr_in *dest, struct sockaddr_in *src)
+GetSourceAddress (TracePtr tr, const struct sockaddr_in *dest, struct sockaddr_in *src)
 {
   DWORD d = 0;
   PMIB_IPADDRTABLE tab;
@@ -162,11 +162,11 @@ GetSourceAddress (TracePtr t, const struct sockaddr_in *dest, struct sockaddr_in
 #endif
 
 #if HAVE_BSD_SOURCEINFO
-typedef struct
+struct r_req
 {
   struct rt_msghdr hdr;
   char data[1000];
-} r_req;
+};
 
 #ifndef HAVE_SA_SIZE
 static int
@@ -183,7 +183,7 @@ SA_SIZE (struct sockaddr *sa)
 #endif
 
 bool
-GetSourceAddress (TracePtr t, const struct sockaddr_in *dest, struct sockaddr_in *src)
+GetSourceAddress (TracePtr tr, const struct sockaddr_in *dest, struct sockaddr_in *src)
 {
   int s;
   r_req req;
@@ -230,14 +230,10 @@ err_out:
 bool
 compareIPAddress (const struct sockaddr_in & a, const struct sockaddr_in & b)
 {
-  if (a.sin_family != AF_INET)
-    return false;
-  if (b.sin_family != AF_INET)
-    return false;
-  if (a.sin_port != b.sin_port)
-    return false;
-  if (a.sin_addr.s_addr != b.sin_addr.s_addr)
-    return false;
-  return true;
+  return
+    (a.sin_family == AF_INET) &&
+    (b.sin_family == AF_INET) &&
+    (a.sin_addr.s_addr == b.sin_addr.s_addr) &&
+    (a.sin_port == b.sin_port);
 }
 

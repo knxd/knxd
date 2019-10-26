@@ -17,17 +17,19 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include <cstdio>
 #include "lpdu.h"
-#include "tpdu.h"
+
+#include <cstdio>
+
 #include "cm_tp1.h"
+#include "tpdu.h"
 
 /* L_Data */
 
-std::string L_Data_PDU::Decode (TracePtr t)
+std::string L_Data_PDU::Decode (TracePtr tr) const
 {
-  assert (data.size() >= 1);
-  assert (data.size() <= 0xff);
+  assert (lsdu.size() >= 1);
+  assert (lsdu.size() <= 0xff);
   assert ((hop_count & 0xf8) == 0);
 
   std::string s ("L_Data");
@@ -60,8 +62,35 @@ std::string L_Data_PDU::Decode (TracePtr t)
         FormatEIBAddr (destination_address));
   s += " hops: ";
   addHex (s, hop_count);
-  TPDUPtr d = TPDU::fromPacket (address_type, destination_address, data, t);
-  s += d->Decode (t);
+  TPDUPtr d = TPDU::fromPacket (address_type, destination_address, lsdu, tr);
+  s += d->Decode (tr);
+  return s;
+}
+
+/* L_SystemBroadcast */
+
+std::string L_SystemBroadcast_PDU::Decode (TracePtr) const
+{
+  std::string s ("L_SystemBroadcast");
+  // @todo
+  return s;
+}
+
+/* L_Poll_Data */
+
+std::string L_Poll_Data_PDU::Decode (TracePtr) const
+{
+  std::string s ("L_Poll_Data");
+  // @todo
+  return s;
+}
+
+/* L_Poll_Update */
+
+std::string L_Poll_Update_PDU::Decode (TracePtr) const
+{
+  std::string s ("L_Poll_Update");
+  // @todo
   return s;
 }
 
@@ -72,21 +101,39 @@ L_Busmon_PDU::L_Busmon_PDU () : LPDU()
   struct timeval tv;
   gettimeofday(&tv,NULL);
   time_stamp = tv.tv_sec*65536 + tv.tv_usec/(1000000/65536+1);
-  status = 0;
+  l_status = 0;
 }
 
 std::string
-L_Busmon_PDU::Decode (TracePtr t)
+L_Busmon_PDU::Decode (TracePtr tr) const
 {
   std::string s ("L_Busmon: ");
 
-  if (pdu.size() == 0)
+  if (lpdu.size() == 0)
     return "empty LPDU";
 
-  ITER (i,pdu)
+  C_ITER (i,lpdu)
   addHex (s, *i);
   s += ":";
-  LDataPtr l = CM_TP1_to_L_Data (pdu, t);
-  s += l->Decode (t);
+  LDataPtr l = CM_TP1_to_L_Data (lpdu, tr);
+  s += l->Decode (tr);
+  return s;
+}
+
+/* L_Service_Information */
+
+std::string L_Service_Information_PDU::Decode (TracePtr) const
+{
+  std::string s ("L_Service_Information");
+  // @todo
+  return s;
+}
+
+/* L_Management */
+
+std::string L_Management_PDU::Decode (TracePtr) const
+{
+  std::string s ("L_Management");
+  // @todo
   return s;
 }

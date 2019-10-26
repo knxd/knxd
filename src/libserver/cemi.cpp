@@ -21,10 +21,11 @@
 */
 
 #include "cemi.h"
+
 #include "emi.h"
 
 unsigned int
-CEMIDriver::maxPacketLen()
+CEMIDriver::maxPacketLen() const
 {
   return 50;
 }
@@ -97,7 +98,7 @@ void CEMIDriver::do_send_Next()
 }
 
 const uint8_t *
-CEMIDriver::getIndTypes()
+CEMIDriver::getIndTypes() const
 {
   static const uint8_t indTypes[] = { 0x2E, 0x29, 0x2B };
   return indTypes;

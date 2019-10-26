@@ -7,12 +7,12 @@
     the Free Software Foundation; either version 2 of the License, or
     (at your option) any later version.
 
-    In addition to the permissions in the GNU General Public License, 
+    In addition to the permissions in the GNU General Public License,
     you may link the compiled version of this file into combinations
-    with other programs, and distribute those combinations without any 
-    restriction coming from the use of this file. (The General Public 
-    License restrictions do apply in other respects; for example, they 
-    cover modification of the file, and distribution when not linked into 
+    with other programs, and distribute those combinations without any
+    restriction coming from the use of this file. (The General Public
+    License restrictions do apply in other respects; for example, they
+    cover modification of the file, and distribution when not linked into
     a combine executable.)
 
     This program is distributed in the hope that it will be useful,
@@ -37,9 +37,9 @@
 
 /** send a request to eibd */
 int
-_EIB_SendRequest (EIBConnection * con, unsigned int size, uchar * data)
+_EIB_SendRequest (EIBConnection * con, unsigned int size, uint8_t * data)
 {
-  uchar head[2];
+  uint8_t head[2];
   int i, start;
 
   if (size > 0xffff || size < 2)
@@ -93,62 +93,62 @@ _EIB_CheckRequest (EIBConnection * con, int block)
       FD_ZERO (&readset);
       FD_SET (con->fd, &readset);
       if (select (con->fd + 1, &readset, 0, 0, &tv) == -1)
-	return -1;
+        return -1;
 
       if (!FD_ISSET (con->fd, &readset))
-	return 0;
+        return 0;
     }
 
   if (con->readlen < 2)
     {
-      uchar head[2];
+      uint8_t head[2];
       head[0] = (con->size >> 8) & 0xff;
       i = read (con->fd, &head + con->readlen, 2 - con->readlen);
       if (i == -1 && errno == EINTR)
-	return 0;
+        return 0;
       if (i == -1)
-	return -1;
+        return -1;
       if (i == 0)
-	{
-	  errno = ECONNRESET;
-	  return -1;
-	}
+        {
+          errno = ECONNRESET;
+          return -1;
+        }
       con->readlen += i;
       con->size = (head[0] << 8) | (head[1]);
       if (con->size < 2)
-	{
-	  errno = ECONNRESET;
-	  return -1;
-	}
+        {
+          errno = ECONNRESET;
+          return -1;
+        }
 
       if (con->size > con->buflen)
-	{
-	  con->buf = (uchar *) realloc (con->buf, con->size);
-	  if (con->buf == 0)
-	    {
-	      con->buflen = 0;
-	      errno = ENOMEM;
-	      return -1;
-	    }
-	  con->buflen = con->size;
-	}
+        {
+          con->buf = (uint8_t *) realloc (con->buf, con->size);
+          if (con->buf == 0)
+            {
+              con->buflen = 0;
+              errno = ENOMEM;
+              return -1;
+            }
+          con->buflen = con->size;
+        }
       return 0;
     }
 
   if (con->readlen < con->size + 2)
     {
       i =
-	read (con->fd, con->buf + (con->readlen - 2),
-	      con->size - (con->readlen - 2));
+        read (con->fd, con->buf + (con->readlen - 2),
+              con->size - (con->readlen - 2));
       if (i == -1 && errno == EINTR)
-	return 0;
+        return 0;
       if (i == -1)
-	return -1;
+        return -1;
       if (i == 0)
-	{
-	  errno = ECONNRESET;
-	  return -1;
-	}
+        {
+          errno = ECONNRESET;
+          return -1;
+        }
       con->readlen += i;
     }
   return 0;
@@ -161,10 +161,10 @@ _EIB_GetRequest (EIBConnection * con)
   do
     {
       if (_EIB_CheckRequest (con, 1) == -1)
-	return -1;
+        return -1;
     }
   while (con->readlen < 2
-	 || (con->readlen >= 2 && con->readlen < con->size + 2));
+         || (con->readlen >= 2 && con->readlen < con->size + 2));
 
   con->readlen = 0;
 

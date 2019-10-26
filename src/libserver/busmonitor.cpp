@@ -18,6 +18,7 @@
 */
 
 #include "busmonitor.h"
+
 #include "server.h"
 
 A_Busmonitor::~A_Busmonitor ()
@@ -100,7 +101,7 @@ A_Busmonitor::send_L_Busmonitor (LBusmonPtr p)
     {
       buf.resize (7);
       EIBSETTYPE (buf, EIB_BUSMONITOR_PACKET_TS);
-      buf[2] = p->status;
+      buf[2] = p->l_status;
       buf[3] = (p->time_stamp >> 24) & 0xff;
       buf[4] = (p->time_stamp >> 16) & 0xff;
       buf[5] = (p->time_stamp >> 8) & 0xff;
@@ -111,7 +112,7 @@ A_Busmonitor::send_L_Busmonitor (LBusmonPtr p)
       buf.resize (2);
       EIBSETTYPE (buf, EIB_BUSMONITOR_PACKET);
     }
-  buf += p->pdu;
+  buf += p->lpdu;
 
   con->sendmessage (buf.size(), buf.data());
 }

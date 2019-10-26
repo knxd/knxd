@@ -20,12 +20,11 @@
 #include "lowlatency.h"
 
 #include <cerrno>
-
-#include <sys/ioctl.h>
 #include <cstring> // memcpy
+#include <sys/ioctl.h>
 
 bool
-set_low_latency (int fd, low_latency_save * save, bool really)
+set_low_latency (int fd, low_latency_save * save, const bool really)
 {
   struct termios opts;
 
@@ -56,7 +55,7 @@ set_low_latency (int fd, low_latency_save * save, bool really)
 }
 
 void
-restore_low_latency (int fd, low_latency_save * save, bool really)
+restore_low_latency (int fd, low_latency_save * save, const bool really)
 {
 #ifdef HAVE_LINUX_LOWLATENCY
   if (really)

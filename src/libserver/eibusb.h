@@ -17,12 +17,18 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @addtogroup Driver
+ * @{
+ */
+
 #ifndef EIB_USB_EMI_H
 #define EIB_USB_EMI_H
 
+#include "emi_common.h"
 #include "link.h"
 #include "lowlevel.h"
-#include "emi_common.h"
 
 /*
  * The driver stack is: USB driver > [C]EMI[12] wrapper > USBConverterInterface > USBLowLevelDriver
@@ -53,17 +59,6 @@ public:
 /** USB backend */
 DRIVER_(USBDriver,LowLevelAdapter,usb)
 {
-  // for EMI version discovery
-  ev::timer timeout;
-  int cnt = 0;
-  void timeout_cb(ev::timer &w, int revents);
-  void xmit();
-  void recv(CArray *r1);
-  void recv_Data(CArray& c);
-  bool wait_make = false;
-  USBConverterInterface *usb_iface;
-
-  void sendLocal_done_cb(bool success);
 public:
   EMIVer version = vUnknown;
 
@@ -76,6 +71,20 @@ public:
   void do_send_Next();
   bool make_EMI();
 
+private:
+  // for EMI version discovery
+  ev::timer timeout;
+  int cnt = 0;
+  void timeout_cb(ev::timer &w, int revents);
+  void xmit();
+  void recv(CArray *r1);
+  void recv_Data(CArray& c);
+  bool wait_make = false;
+  USBConverterInterface *usb_iface;
+
+  void sendLocal_done_cb(bool success);
 };
 
 #endif
+
+/** @} */

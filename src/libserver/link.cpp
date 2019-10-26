@@ -18,8 +18,10 @@
 */
 
 #include "link.h"
-#include "router.h"
+
 #include <cstdio>
+
+#include "router.h"
 
 bool
 LinkRecv::link(LinkBasePtr next)
@@ -65,14 +67,14 @@ LinkConnect::~LinkConnect()
     static_cast<Router &>(router).release_client_addr(addr);
 }
 
-LinkBase::LinkBase(BaseRouter& r UNUSED, IniSectionPtr& s, TracePtr tr) : cfg(s)
+LinkBase::LinkBase(BaseRouter&, IniSectionPtr& s, TracePtr tr) : cfg(s)
 {
   t = TracePtr(new Trace(*tr, s));
   t->setAuxName("Base");
 }
 
 std::string
-LinkBase::info(int level UNUSED)
+LinkBase::info(int)
 {
   // TODO add more introspection
   std::string res = "cfg:";
@@ -284,7 +286,7 @@ retry:
 }
 
 void
-LinkConnect::retry_timer_cb (ev::timer &w UNUSED, int revents UNUSED)
+LinkConnect::retry_timer_cb (ev::timer &, int)
 {
   if (state == L_up && !send_more)
     {
@@ -371,7 +373,7 @@ Filter::findFilter(std::string name, bool skip_me)
 }
 
 FilterPtr
-Driver::findFilter(std::string name, bool skip_me UNUSED)
+Driver::findFilter(std::string name, bool skip_me)
 {
   auto r = recv.lock();
   if (r == nullptr)

@@ -50,16 +50,20 @@ DRIVER(EIBNetIPTunnel,ipt)
   int heartbeat_limit;
   int retry = 0;
 
-  ev::timer timeout; void timeout_cb(ev::timer &w, int revents);
-  ev::timer conntimeout; void conntimeout_cb(ev::timer &w, int revents);
-  ev::async trigger; void trigger_cb(ev::async &w, int revents);
+  ev::timer timeout;
+  void timeout_cb(ev::timer &w, int revents);
+  ev::timer conntimeout;
+  void conntimeout_cb(ev::timer &w, int revents);
+  ev::async trigger;
+  void trigger_cb(ev::async &w, int revents);
 
   bool support_busmonitor;
   bool connect_busmonitor;
   void read_cb(EIBNetIPPacket *p);
   void error_cb();
 
-  inline EIBnet_ConnectRequest get_creq() {
+  inline EIBnet_ConnectRequest get_creq()
+  {
     EIBnet_ConnectRequest creq;
 
     creq.nat = saddr.sin_addr.s_addr == 0;

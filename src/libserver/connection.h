@@ -17,22 +17,29 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @ingroup KNX_03_03_07
+ * Application Layer
+ * @{
+ */
+
 #ifndef CONNECTION_H
 #define CONNECTION_H
 
-#include "layer4.h"
 #include "client.h"
+#include "layer4.h"
 
 class A__Base
 {
 public:
   TracePtr t;
   A__Base(ClientConnPtr cc)
-    {
-      t = TracePtr(new Trace(*(cc->t), cc->t->name+'@'+FormatEIBAddr(cc->addr)));
-      con = cc;
-      on_error.set<A__Base,&A__Base::error_cb>(this);
-    }
+  {
+    t = TracePtr(new Trace(*(cc->t), cc->t->name+'@'+FormatEIBAddr(cc->addr)));
+    con = cc;
+    on_error.set<A__Base,&A__Base::error_cb>(this);
+  }
   virtual ~A__Base() = default;
 
   ClientConnPtr con;
@@ -50,94 +57,127 @@ public:
 template<class TC>
 class A_Base : public A__Base
 {
-protected:
-  TC c = nullptr;
 public:
 
   A_Base(ClientConnPtr cc) : A__Base(cc)
-    {
-      t->setAuxName("Base");
-    }
+  {
+    t->setAuxName("Base");
+  }
   virtual ~A_Base();
+
+protected:
+  TC c = nullptr;
 };
 
 /** implements client interface to a broadcast connection */
 class A_Broadcast : public T_Reader<BroadcastComm>, public A_Base<T_BroadcastPtr>
 {
-  const char *Name() { return "broadcast"; }
 public:
   A_Broadcast (ClientConnPtr cc);
-  bool setup (uint8_t *buf,size_t len);
   virtual ~A_Broadcast ();
+  virtual bool setup (uint8_t *buf,size_t len) override;
 
+  virtual void recv_Data(uint8_t *buf, size_t len) override; // to socket
   void send(BroadcastComm &); // from socket
-  void recv_Data(uint8_t *buf, size_t len); // to socket
+
+private:
+  const char *Name() const
+  {
+    return "broadcast";
+  }
 };
 
 /** implements client interface to a group connection */
 class A_Group : public T_Reader<GroupComm>, public A_Base<T_GroupPtr>
 {
-  const char *Name() { return "group"; }
 public:
   A_Group (ClientConnPtr cc);
-  bool setup (uint8_t *buf,size_t len);
   virtual ~A_Group ();
+  virtual bool setup (uint8_t *buf,size_t len) override;
 
+  virtual void recv_Data(uint8_t *buf, size_t len) override; // to socket
   void send(GroupComm &); // from socket
-  void recv_Data(uint8_t *buf, size_t len); // to socket
+
+private:
+  const char *Name() const
+  {
+    return "group";
+  }
 };
 
 /** implements client interface to a raw connection */
 class A_TPDU : public T_Reader<TpduComm>, public A_Base<T_TPDUPtr>
 {
-  const char *Name() { return "tpdu"; }
 public:
   A_TPDU (ClientConnPtr cc);
-  bool setup (uint8_t *buf,size_t len);
   virtual ~A_TPDU ();
+  virtual bool setup (uint8_t *buf,size_t len) override;
 
+  virtual void recv_Data(uint8_t *buf, size_t len) override; // to socket
   void send(TpduComm &); // from socket
-  void recv_Data(uint8_t *buf, size_t len); // to socket
+
+private:
+  const char *Name() const
+  {
+    return "tpdu";
+  }
 };
 
 /** implements client interface to a T_Indivdual connection */
 class A_Individual : public T_Reader<CArray>, public A_Base<T_IndividualPtr>
 {
-  const char *Name() { return "individual"; }
 public:
   A_Individual (ClientConnPtr cc);
-  bool setup (uint8_t *buf,size_t len);
   virtual ~A_Individual ();
+  virtual bool setup (uint8_t *buf,size_t len) override;
 
+  virtual void recv_Data(uint8_t *buf, size_t len) override; // to socket
   void send(CArray &); // from socket
-  void recv_Data(uint8_t *buf, size_t len); // to socket
+
+private:
+  const char *Name() const
+  {
+    return "individual";
+  }
 };
 
 /** implements client interface to a T_Connection connection */
 class A_Connection : public T_Reader<CArray>, public A_Base<T_ConnectionPtr>
 {
-  const char *Name() { return "connection"; }
 public:
   A_Connection (ClientConnPtr cc);
-  bool setup(uint8_t *buf,size_t len);
   virtual ~A_Connection ();
+  virtual bool setup(uint8_t *buf,size_t len) override;
 
+  virtual void recv_Data(uint8_t *buf, size_t len) override; // to socket
   void send(CArray &); // from socket
-  void recv_Data(uint8_t *buf, size_t len); // to socket
+
+private:
+  const char *Name() const
+  {
+    return "connection";
+  }
 };
 
 /** implements client interface to a group socket */
 class A_GroupSocket : public T_Reader<GroupAPDU>, public A_Base<GroupSocketPtr>
 {
-  const char *Name() { return "groupsocket"; }
 public:
   A_GroupSocket (ClientConnPtr cc);
-  bool setup(uint8_t *buf,size_t len);
   virtual ~A_GroupSocket ();
+  virtual bool setup(uint8_t *buf,size_t len) override;
 
+  virtual void recv_Data(uint8_t *buf, size_t len) override;
   /** start processing */
   void send(GroupAPDU &);
-  void recv_Data(uint8_t *buf, size_t len);
+
+private:
+  const char *Name() const
+  {
+    return "groupsocket";
+  }
 };
 
 #endif
+
+/** @} */

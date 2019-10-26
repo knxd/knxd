@@ -17,10 +17,11 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include <unistd.h>
+#include "lowlevel.h"
+
 #include <cerrno>
 #include <fcntl.h>
-#include "lowlevel.h"
+#include <unistd.h>
 
 LowLevelAdapter::~LowLevelAdapter()
 {
@@ -103,7 +104,7 @@ LowLevelAdapter::do_send_Local(CArray &d, int raw)
 }
 
 void
-LowLevelIface::local_timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
+LowLevelIface::local_timeout_cb(ev::timer &, int)
 {
   ERRORPRINTF (tr(), E_ERROR | 75, "send_Local timed out!");
   is_local = false;

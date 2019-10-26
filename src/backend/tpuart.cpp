@@ -250,13 +250,13 @@ TPUARTwrap::stopped()
 }
 
 void
-TPUARTwrap::RecvLPDU (const uchar * data, int len)
+TPUARTwrap::RecvLPDU (const uint8_t * data, int len)
 {
   t->TracePacket (1, "RecvLP", len, data);
   if (state == T_busmonitor)
     {
       LBusmonPtr l = LBusmonPtr(new L_Busmon_PDU ());
-      l->pdu.set (data, len);
+      l->lpdu.set (data, len);
       recv_L_Busmonitor (std::move(l));
     }
   else if (state > T_start)
@@ -281,7 +281,7 @@ TPUARTwrap::TPUARTwrap(LowLevelIface* parent, IniSectionPtr& s, LowLevelDriver* 
 }
 
 void
-TPUARTwrap::sendtimer_cb(ev::timer &w UNUSED, int revents UNUSED)
+TPUARTwrap::sendtimer_cb(ev::timer &, int)
 {
   if (send_retry++ > 3)
     {
@@ -294,7 +294,7 @@ TPUARTwrap::sendtimer_cb(ev::timer &w UNUSED, int revents UNUSED)
 }
 
 void
-TPUARTwrap::timer_cb(ev::timer &w UNUSED, int revents UNUSED)
+TPUARTwrap::timer_cb(ev::timer &, int)
 {
   switch(state)
     {
@@ -367,7 +367,7 @@ TPUARTwrap::in_check()
             recvecho = true;
           else
             {
-              uchar c = 0x10;
+              uint8_t c = 0x10;
               if ((in[ext ? 1 : 5] & 0x80) == 0)
                 {
                   if (ackallindividual || checkSysAddress ((in[3+ext] << 8) | in[4+ext]))
@@ -548,7 +548,7 @@ TPUARTwrap::setstate(enum TSTATE new_state)
       else
         retry = 1;
       {
-        uchar c = 0x01;
+        uint8_t c = 0x01;
         TRACEPRINTF (t, 0, "SendReset %02X", c);
         LowLevelIface::send_Data(c);
       }
@@ -566,7 +566,7 @@ TPUARTwrap::setstate(enum TSTATE new_state)
             }
           else
             {
-              uchar c = 0x28;
+              uint8_t c = 0x28;
               TRACEPRINTF (t, 0, "SendAddr %02X", c);
               LowLevelIface::send_Data(c);
               timer.start(0.2,0);
@@ -578,7 +578,7 @@ TPUARTwrap::setstate(enum TSTATE new_state)
     // FALL THRU
     case T_in_getstate:
     {
-      uchar c = 0x02;
+      uint8_t c = 0x02;
       TRACEPRINTF (t, 0, "Send GetState %02X", c);
       LowLevelIface::send_Data(c);
       timer.start(0.5,0);
@@ -587,7 +587,7 @@ TPUARTwrap::setstate(enum TSTATE new_state)
 
     case T_busmonitor:
     {
-      uchar c = 0x05;
+      uint8_t c = 0x05;
       TRACEPRINTF (t, 0, "Send openBusmonitor %02X", c);
       LowLevelIface::send_Data(c);
     }
@@ -609,7 +609,7 @@ TPUARTwrap::setstate(enum TSTATE new_state)
 
     case T_wait_keepalive:
     {
-      uchar c = 0x02;
+      uint8_t c = 0x02;
       TRACEPRINTF (t, 0, "Send GetState %02X", c);
       LowLevelIface::send_Data(c);
       timer.start(0.5,0);

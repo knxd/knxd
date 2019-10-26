@@ -19,7 +19,9 @@
 
 /**
  * @file
+ * @ingroup KNX_03_03_02
  * Data Link Layer General
+ * @{
  */
 
 #ifndef LPDU_H
@@ -27,19 +29,29 @@
 
 #include <memory>
 
-class LPDU;
-class L_Data_PDU;
-class L_Busmon_PDU;
-using LPDUPtr = std::unique_ptr<LPDU>;
-using LDataPtr = std::unique_ptr<L_Data_PDU>;
-using LBusmonPtr = std::unique_ptr<L_Busmon_PDU>;
+#include "trace.h"
 
-#include "common.h"
-#include "link.h"
-
-/** enumartion of Layer 2 frame types*/
-typedef enum
+/** Message Priority */
+enum EIB_Priority : uint8_t
 {
+  PRIO_SYSTEM = 0,
+  PRIO_URGENT = 1,
+  PRIO_NORMAL = 2,
+  PRIO_LOW = 3
+};
+
+/** Address Type */
+enum EIB_AddrType : uint8_t
+{
+  IndividualAddress = 0,
+  GroupAddress = 1
+};
+
+/** enumeration of Layer 2 frame types */
+enum LPDU_Type
+{
+  /** unknown LPDU */
+  L_Unknown = 0,
   /** L_Data */
   L_Data,
   /** L_SystemBroadcast */
@@ -54,8 +66,7 @@ typedef enum
   L_Service_Information,
   /** L_Management */
   L_Management,
-}
-LPDU_Type;
+};
 
 /** represents a Layer 2 frame */
 class LPDU
@@ -65,10 +76,12 @@ public:
   virtual ~LPDU () = default;
 
   /** decode content as string */
-  virtual std::string Decode (TracePtr tr) = 0;
+  virtual std::string Decode (TracePtr tr) const = 0;
   /** get frame type */
   virtual LPDU_Type getType () const = 0;
 };
+
+using LPDUPtr = std::unique_ptr<LPDU>;
 
 /* L_Data */
 
@@ -82,7 +95,7 @@ public:
   /* destination address */
   eibaddr_t destination_address = 0;
   /** standard/extended frame format */
-  uint8_t frame_format = 0;
+  uint8_t frame_format = 0; // 0=Extended 1=Standard
   /** octet count */
   uint8_t octet_count = 0;
   /** priority */
@@ -90,26 +103,28 @@ public:
   /* source address */
   eibaddr_t source_address = 0;
   /** payload of Layer 4 (LSDU) */
-  CArray data; // @todo rename to lsdu
+  CArray lsdu;
   /* status */
   uint8_t l_status = 0;
 
   /** is repreated */
-  bool repeated = 0;
+  bool repeated = false;
   /** checksum ok */
-  bool valid_checksum = 1;
+  bool valid_checksum = true;
   /** length ok */
-  bool valid_length = 1;
-  uchar hop_count = 0x06;
+  bool valid_length = true;
+  uint8_t hop_count = 0x06;
 
   L_Data_PDU () = default;
 
-  std::string Decode (TracePtr tr);
-  LPDU_Type getType () const
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual LPDU_Type getType () const override
   {
     return L_Data;
   }
 };
+
+using LDataPtr = std::unique_ptr<L_Data_PDU>;
 
 /* L_SystemBroadcast */
 
@@ -131,13 +146,14 @@ public:
   /* source address */
   eibaddr_t source_address = 0;
   /** payload of Layer 4 (LSDU) */
-  CArray data; // @todo rename to lsdu
+  CArray lsdu;
   /* status */
   uint8_t l_status = 0;
 
   L_SystemBroadcast_PDU () = default;
 
-  LPDU_Type getType () const
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual LPDU_Type getType () const override
   {
     return L_SystemBroadcast;
   }
@@ -156,7 +172,8 @@ public:
 
   L_Poll_Data_PDU () = default;
 
-  LPDU_Type getType () const
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual LPDU_Type getType () const override
   {
     return L_Poll_Data;
   }
@@ -171,7 +188,8 @@ public:
 
   L_Poll_Update_PDU () = default;
 
-  LPDU_Type getType () const
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual LPDU_Type getType () const override
   {
     return L_Poll_Update;
   }
@@ -182,19 +200,21 @@ public:
 class L_Busmon_PDU:public LPDU
 {
 public:
-  uint8_t status; // @todo rename to l_status
+  uint8_t l_status;
   /** content of the TP1 frame */
-  CArray pdu; // @todo rename to lpdu
+  CArray lpdu;
   uint32_t time_stamp;
 
   L_Busmon_PDU ();
 
-  std::string Decode (TracePtr tr);
-  LPDU_Type getType () const
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual LPDU_Type getType () const override
   {
     return L_Busmon;
   }
 };
+
+using LBusmonPtr = std::unique_ptr<L_Busmon_PDU>;
 
 /** interface for callback for busmonitor frames */
 class L_Busmonitor_CallBack
@@ -213,7 +233,8 @@ class L_Service_Information_PDU:public LPDU
 public:
   L_Service_Information_PDU () = default;
 
-  LPDU_Type getType () const
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual LPDU_Type getType () const override
   {
     return L_Service_Information;
   }
@@ -226,7 +247,8 @@ class L_Management_PDU:public LPDU
 public:
   L_Management_PDU () = default;
 
-  LPDU_Type getType () const
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual LPDU_Type getType () const override
   {
     return L_Management;
   }

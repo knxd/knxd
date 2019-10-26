@@ -17,54 +17,38 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @addtogroup Common
+ * @{
+ */
+
 #ifndef COMMON_H
 #define COMMON_H
 
-#include "types.h"
 #include <cassert>
+
 #include <ev++.h>
 
-/** Domain address */
-typedef uint16_t domainaddr_t;
-/** serial number */
-typedef uchar serialnumber_t[6];
-/** memory pointer for EIB devices */
-typedef uint16_t memaddr_t;
+#include "queue.h"
+#include "trace.h"
+#include "types.h"
 
-/** object index type */
-typedef uchar objectno_t;
-/** property ID type */
-typedef uchar propertyid_t;
+/** Domain address */
+using domainaddr_t = uint16_t;
 
 /** timestamp type*/
-typedef long long timestamp_t;
+using timestamp_t = long long;
 
-/** EIB message priority */
-typedef enum
-{
-  PRIO_SYSTEM = 0,
-  PRIO_URGENT = 1,
-  PRIO_NORMAL = 2,
-  PRIO_LOW = 3
-} EIB_Priority;
-
-/** EIB address type */
-typedef enum
-{
-  IndividualAddress = 0,
-  GroupAddress = 1
-} EIB_AddrType;
-
-
-#include "queue.h"
-#include "exception.h"
-
-/** add c to s as hex value
+/**
+ * add c to s as hex value
  * @param s string
  * @param c byte
  */
-void addHex (std::string & s, const uchar c);
-/** add c to s as hex value
+void addHex (std::string & s, const uint8_t c);
+
+/**
+ * add c to s as hex value
  * @param s string
  * @param c 16 bit int
  */
@@ -74,23 +58,22 @@ void add16Hex (std::string & s, const uint16_t c);
 timestamp_t getTime ();
 
 /** formats an EIB individual address */
-std::string FormatEIBAddr (eibaddr_t a);
+std::string FormatEIBAddr (const eibaddr_t a);
 /** formats an EIB group address */
-std::string FormatGroupAddr (eibaddr_t a);
+std::string FormatGroupAddr (const eibaddr_t a);
 /** formats an EIB domain address */
-std::string FormatDomainAddr (domainaddr_t addr);
+std::string FormatDomainAddr (const domainaddr_t addr);
 /** formats an EIB key */
-std::string FormatEIBKey (eibkey_type addr);
-
-#include "trace.h"
+std::string FormatEIBKey (const eibkey_type addr);
 
 /** libev */
 #if EV_MULTIPLICITY
-  typedef struct ev_loop *LOOP_RESULT;
+using LOOP_RESULT = struct ev_loop *;
 #else
-  typedef int LOOP_RESULT;
+using LOOP_RESULT = int;
 #endif
 extern LOOP_RESULT loop;
 
-
 #endif
+
+/** @} */

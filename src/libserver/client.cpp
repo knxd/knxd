@@ -17,21 +17,23 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#include "client.h"
+#include "config.h"
+
 #include <cerrno>
 #include <unistd.h>
-#include "server.h"
-#include "client.h"
+
 #ifdef HAVE_BUSMONITOR
 #include "busmonitor.h"
 #endif
 #include "connection.h"
-#include "config.h"
-#ifdef HAVE_MANAGEMENT
-#include "managementclient.h"
-#endif
 #ifdef HAVE_GROUPCACHE
 #include "groupcacheclient.h"
 #endif
+#ifdef HAVE_MANAGEMENT
+#include "managementclient.h"
+#endif
+#include "server.h"
 
 ClientConnection::ClientConnection (NetServerPtr s, int fd) : router(static_cast<Router&>(s->router)), sendbuf(fd),recvbuf(fd)
 {
@@ -281,7 +283,7 @@ new_a_conn:
 void
 ClientConnection::sendreject ()
 {
-  uchar buf[2];
+  uint8_t buf[2];
   EIBSETTYPE (buf, EIB_INVALID_REQUEST);
   sendmessage (2, buf);
 }
@@ -289,15 +291,15 @@ ClientConnection::sendreject ()
 void
 ClientConnection::sendreject (int type)
 {
-  uchar buf[2];
+  uint8_t buf[2];
   EIBSETTYPE (buf, type);
   sendmessage (2, buf);
 }
 
 void
-ClientConnection::sendmessage (int size, const uchar * msg)
+ClientConnection::sendmessage (int size, const uint8_t * msg)
 {
-  uchar head[2];
+  uint8_t head[2];
   assert (size >= 2);
   head[0] = (size >> 8) & 0xff;
   head[1] = (size) & 0xff;

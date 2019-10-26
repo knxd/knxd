@@ -19,15 +19,15 @@
 
 #include "addrtab.h"
 
-const uchar EMI2_TLL[] = { 0xA9, 0x00, 0x12, 0x34, 0x56, 0x78, 0x0A };
-const uchar EMI2_NORM[] = { 0xA9, 0x00, 0x12, 0x34, 0x56, 0x78, 0x8A };
-const uchar EMI2_LCON[] = { 0x43, 0x00, 0x00, 0x00, 0x00, 0x00 };
-const uchar EMI2_LDIS[] = { 0x44, 0x00, 0x00, 0x00, 0x00, 0x00 };
+const uint8_t EMI2_TLL[] = { 0xA9, 0x00, 0x12, 0x34, 0x56, 0x78, 0x0A };
+const uint8_t EMI2_NORM[] = { 0xA9, 0x00, 0x12, 0x34, 0x56, 0x78, 0x8A };
+const uint8_t EMI2_LCON[] = { 0x43, 0x00, 0x00, 0x00, 0x00, 0x00 };
+const uint8_t EMI2_LDIS[] = { 0x44, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
-const uchar EMI1_READ[] = { 0x4C, 0x01, 0x01, 0x16 };
+const uint8_t EMI1_READ[] = { 0x4C, 0x01, 0x01, 0x16 };
 
 int
-readEMI1Mem (LowLevelDriver * iface, memaddr_t addr, uchar len,
+readEMI1Mem (LowLevelDriver * iface, memaddr_t addr, uint8_t len,
              CArray & result)
 {
   CArray *d1, d;
@@ -74,7 +74,7 @@ writeEMI1Mem (LowLevelDriver * iface, memaddr_t addr, CArray data)
 }
 
 int
-readEMI2Mem (LowLevelDriver * iface, memaddr_t addr, uchar len,
+readEMI2Mem (LowLevelDriver * iface, memaddr_t addr, uint8_t len,
              CArray & result)
 {
   CArray *d1, d;
@@ -245,7 +245,7 @@ writeEMI2Mem (LowLevelDriver * iface, memaddr_t addr, CArray data)
 }
 
 int
-readEMIMem (LowLevelDriver * iface, memaddr_t addr, uchar len,
+readEMIMem (LowLevelDriver * iface, memaddr_t addr, uint8_t len,
             CArray & result)
 {
   switch (iface->getEMIVer ())
@@ -276,7 +276,7 @@ writeEMIMem (LowLevelDriver * iface, memaddr_t addr, CArray data)
 }
 
 int
-readAddrTabSize (LowLevelDriver * iface, uchar & result)
+readAddrTabSize (LowLevelDriver * iface, uint8_t & result)
 {
   CArray x;
   if (!readEMIMem (iface, 0x116, 1, x))
@@ -286,7 +286,7 @@ readAddrTabSize (LowLevelDriver * iface, uchar & result)
 }
 
 int
-writeAddrTabSize (LowLevelDriver * iface, uchar size)
+writeAddrTabSize (LowLevelDriver * iface, uint8_t size)
 {
   CArray x;
   x.resize (1);

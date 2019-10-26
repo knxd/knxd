@@ -19,31 +19,14 @@
 
 /**
  * @file
- * @addtogroup Driver
+ * @ingroup KNX_03_03_03
+ * Network Layer
  * @{
  */
 
-#ifndef LOW_LATENCY_H
-#define LOW_LATENCY_H
+#ifndef LAYER3_H
+#define LAYER3_H
 
-#include "config.h"
-
-#include <termios.h>
-#ifdef HAVE_LINUX_LOWLATENCY
-#include <linux/serial.h>
 #endif
-
-struct low_latency_save
-{
-  struct termios term;
-#ifdef HAVE_LINUX_LOWLATENCY
-  serial_struct ser;
-#endif
-};
-
-bool set_low_latency (int fd, low_latency_save * save, const bool really);
-void restore_low_latency (int fd, low_latency_save * save, const bool really);
-
-#endif // LOW_LATENCY_H
 
 /** @} */

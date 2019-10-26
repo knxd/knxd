@@ -17,15 +17,15 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include <cstring>
-#include <netdb.h>
-#include <net/if.h>
-#include <sys/socket.h>
-#include <unistd.h>
-#include <cerrno>
-#include <netdb.h>
 #include "eibnetip.h"
 #include "config.h"
+
+#include <cerrno>
+#include <cstring>
+#include <net/if.h>
+#include <netdb.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
 EIBNetIPPacket::EIBNetIPPacket ()
 {
@@ -65,63 +65,6 @@ const
   c[5] = ((data.size() + 6)) & 0xff;
   c.setpart (data, 6);
   return c;
-}
-
-CArray
-IPtoEIBNetIP (const struct sockaddr_in * a, bool nat)
-{
-  CArray buf;
-  buf.resize (8);
-  buf[0] = 0x08;
-  buf[1] = 0x01;
-  if (nat)
-    {
-      buf[2] = 0;
-      buf[3] = 0;
-      buf[4] = 0;
-      buf[5] = 0;
-      buf[6] = 0;
-      buf[7] = 0;
-    }
-  else
-    {
-      buf[2] = (ntohl (a->sin_addr.s_addr) >> 24) & 0xff;
-      buf[3] = (ntohl (a->sin_addr.s_addr) >> 16) & 0xff;
-      buf[4] = (ntohl (a->sin_addr.s_addr) >> 8) & 0xff;
-      buf[5] = (ntohl (a->sin_addr.s_addr) >> 0) & 0xff;
-      buf[6] = (ntohs (a->sin_port) >> 8) & 0xff;
-      buf[7] = (ntohs (a->sin_port) >> 0) & 0xff;
-    }
-  return buf;
-}
-
-bool
-EIBnettoIP (const CArray & buf, struct sockaddr_in *a,
-            const struct sockaddr_in *src, bool & nat)
-{
-  int ip, port;
-  memset (a, 0, sizeof (*a));
-  if (buf[0] != 0x8 || buf[1] != 0x1)
-    return true;
-  ip = (buf[2] << 24) | (buf[3] << 16) | (buf[4] << 8) | (buf[5]);
-  port = (buf[6] << 8) | (buf[7]);
-#ifdef HAVE_SOCKADDR_IN_LEN
-  a->sin_len = sizeof (*a);
-#endif
-  a->sin_family = AF_INET;
-  if (port == 0)
-    a->sin_port = src->sin_port;
-  else
-    a->sin_port = htons (port);
-  if (ip == 0)
-    {
-      nat = true;
-      a->sin_addr.s_addr = src->sin_addr.s_addr;
-    }
-  else
-    a->sin_addr.s_addr = htonl (ip);
-
-  return false;
 }
 
 EIBNetIPSocket::EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr,
@@ -282,7 +225,7 @@ EIBNetIPSocket::Send (EIBNetIPPacket p, struct sockaddr_in addr)
 }
 
 void
-EIBNetIPSocket::io_send_cb (ev::io &w UNUSED, int revents UNUSED)
+EIBNetIPSocket::io_send_cb (ev::io &, int)
 {
   if (send_q.empty ())
     {
@@ -317,9 +260,9 @@ EIBNetIPSocket::io_send_cb (ev::io &w UNUSED, int revents UNUSED)
 }
 
 void
-EIBNetIPSocket::io_recv_cb (ev::io &w UNUSED, int revents UNUSED)
+EIBNetIPSocket::io_recv_cb (ev::io &, int)
 {
-  uchar buf[255];
+  uint8_t buf[255];
   socklen_t rl;
   sockaddr_in r;
   rl = sizeof (r);
@@ -363,366 +306,114 @@ EIBNetIPSocket::SetInterface(std::string& iface)
     setsockopt(fd, IPPROTO_IP, IP_MULTICAST_IF, &addr, sizeof(addr)) >= 0;
 }
 
-EIBnet_ConnectRequest::EIBnet_ConnectRequest ()
+EIBnet_SearchRequest::EIBnet_SearchRequest ()
 {
   memset (&caddr, 0, sizeof (caddr));
-  memset (&daddr, 0, sizeof (daddr));
-  nat = false;
 }
 
-EIBNetIPPacket EIBnet_ConnectRequest::ToPacket ()const
+EIBNetIPPacket EIBnet_SearchRequest::ToPacket ()const
 {
-  EIBNetIPPacket p;
-  CArray ca, da;
+  EIBNetIPPacket
+  p;
+  CArray
   ca = IPtoEIBNetIP (&caddr, nat);
-  da = IPtoEIBNetIP (&daddr, nat);
-  p.service = CONNECTION_REQUEST;
-  p.data.resize (ca.size() + da.size() + 1 + CRI.size());
+  p.service = SEARCH_REQUEST;
+  p.data = ca;
+  return p;
+}
+
+int
+parseEIBnet_SearchRequest (const EIBNetIPPacket & p, EIBnet_SearchRequest & r)
+{
+  if (p.service != SEARCH_REQUEST)
+    return 1;
+  if (p.data.size() != 8)
+    return 1;
+  if (EIBnettoIP (p.data, &r.caddr, &p.src, r.nat))
+    return 1;
+  return 0;
+}
+
+
+EIBnet_SearchResponse::EIBnet_SearchResponse ()
+{
+  serial.fill(0);
+  multicastaddr.s_addr = 0;
+  memset (&MAC, 0, sizeof (MAC));
+  memset (&name, 0, sizeof (name));
+}
+
+EIBNetIPPacket EIBnet_SearchResponse::ToPacket ()const
+{
+  EIBNetIPPacket p;
+  CArray ca = IPtoEIBNetIP (&caddr, nat);
+  p.service = SEARCH_RESPONSE;
+  p.data.resize (64 + services.size() * 2);
   p.data.setpart (ca, 0);
-  p.data.setpart (da, ca.size());
-  p.data[ca.size() + da.size()] = CRI.size() + 1;
-  p.data.setpart (CRI, ca.size() + da.size() + 1);
-  return p;
-}
-
-int
-parseEIBnet_ConnectRequest (const EIBNetIPPacket & p,
-                            EIBnet_ConnectRequest & r)
-{
-  if (p.service != CONNECTION_REQUEST)
-    return 1;
-  if (p.data.size() < 18)
-    return 1;
-  if (EIBnettoIP (CArray (p.data.data(), 8), &r.caddr, &p.src, r.nat))
-    return 1;
-  if (EIBnettoIP (CArray (p.data.data() + 8, 8), &r.daddr, &p.src, r.nat))
-    return 1;
-  if (p.data.size() - 16 != p.data[16])
-    return 1;
-  r.CRI = CArray (p.data.data() + 17, p.data.size() - 17);
-  return 0;
-}
-
-EIBnet_ConnectResponse::EIBnet_ConnectResponse ()
-{
-  memset (&daddr, 0, sizeof (daddr));
-  nat = false;
-  channel = 0;
-  status = 0;
-}
-
-EIBNetIPPacket EIBnet_ConnectResponse::ToPacket ()const
-{
-  EIBNetIPPacket p;
-  CArray da = IPtoEIBNetIP (&daddr, nat);
-  p.service = CONNECTION_RESPONSE;
-  if (status != 0)
-    p.data.resize (2);
-  else
-    p.data.resize (da.size() + CRD.size() + 3);
-  p.data[0] = channel;
-  p.data[1] = status;
-  if (status == 0)
+  p.data[8] = 54;
+  p.data[9] = 1;
+  p.data[10] = KNXmedium;
+  p.data[11] = devicestatus;
+  p.data[12] = (individual_addr >> 8) & 0xff;
+  p.data[13] = (individual_addr) & 0xff;
+  p.data[14] = (installid >> 8) & 0xff;
+  p.data[15] = (installid) & 0xff;
+  p.data.setpart((uint8_t *)&serial, 16, 6);
+  p.data.setpart((uint8_t *)&multicastaddr, 22, 4);
+  p.data.setpart((uint8_t *)&MAC, 26, 6);
+  p.data.setpart((uint8_t *)&name, 32, 30);
+  p.data[61] = 0;
+  p.data[62] = services.size() * 2 + 2;
+  p.data[63] = 2;
+  for (unsigned int i = 0; i < services.size(); i++)
     {
-      p.data.setpart (da, 2);
-      p.data[da.size() + 2] = CRD.size() + 1;
-      p.data.setpart (CRD, da.size() + 3);
+      p.data[64 + i * 2] = services[i].family;
+      p.data[65 + i * 2] = services[i].version;
     }
   return p;
 }
 
 int
-parseEIBnet_ConnectResponse (const EIBNetIPPacket & p,
-                             EIBnet_ConnectResponse & r)
+parseEIBnet_SearchResponse (const EIBNetIPPacket & p,
+                            EIBnet_SearchResponse & r)
 {
-  if (p.service != CONNECTION_RESPONSE)
+  if (p.service != SEARCH_RESPONSE)
     return 1;
-  if (p.data.size() < 2)
+  if (p.data.size() < 64)
     return 1;
-  if (p.data[1] != 0)
+  if (EIBnettoIP (CArray (p.data.data() + 0, 8), &r.caddr, &p.src, r.nat))
+    return 1;
+  if (p.data[8] != 54)
+    return 1;
+  if (p.data[9] != 1)
+    return 1;
+  r.KNXmedium = p.data[10];
+  r.devicestatus = p.data[11];
+  r.individual_addr = (p.data[12] << 8) | p.data[13];
+  r.installid = (p.data[14] << 8) | p.data[15];
+  memcpy (&r.serial, p.data.data() + 16, 6);
+  memcpy (&r.multicastaddr, p.data.data() + 22, 4);
+  memcpy (&r.MAC, p.data.data() + 26, 6);
+  memcpy (&r.name, p.data.data() + 32, 30);
+  r.name[29] = 0;
+  if (p.data[63] != 2)
+    return 1;
+  if (p.data[62] % 2)
+    return 1;
+  if (p.data[62] + 62U > p.data.size())
+    return 1;
+  r.services.resize ((p.data[62] / 2) - 1);
+  for (int i = 0; i < (p.data[62] / 2) - 1; i++)
     {
-      if (p.data.size() != 2)
-        return 1;
-      r.channel = p.data[0];
-      r.status = p.data[1];
-      return 0;
+      r.services[i].family = p.data[64 + 2 * i];
+      r.services[i].version = p.data[65 + 2 * i];
     }
-  if (p.data.size() < 12)
-    return 1;
-  if (EIBnettoIP (CArray (p.data.data() + 2, 8), &r.daddr, &p.src, r.nat))
-    return 1;
-  if (p.data.size() - 10 != p.data[10])
-    return 1;
-  r.channel = p.data[0];
-  r.status = p.data[1];
-  r.CRD = CArray (p.data.data() + 11, p.data.size() - 11);
-  return 0;
-}
-
-EIBnet_ConnectionStateRequest::EIBnet_ConnectionStateRequest ()
-{
-  memset (&caddr, 0, sizeof (caddr));
-  nat = false;
-  channel = 0;
-}
-
-EIBNetIPPacket EIBnet_ConnectionStateRequest::ToPacket ()const
-{
-  EIBNetIPPacket p;
-  CArray ca = IPtoEIBNetIP (&caddr, nat);
-  p.service = CONNECTIONSTATE_REQUEST;
-  p.data.resize (ca.size() + 2);
-  p.data[0] = channel;
-  p.data[1] = 0;
-  p.data.setpart (ca, 2);
-  return p;
-}
-
-int
-parseEIBnet_ConnectionStateRequest (const EIBNetIPPacket & p,
-                                    EIBnet_ConnectionStateRequest & r)
-{
-  if (p.service != CONNECTIONSTATE_REQUEST)
-    return 1;
-  if (p.data.size() != 10)
-    return 1;
-  if (EIBnettoIP (CArray (p.data.data() + 2, 8), &r.caddr, &p.src, r.nat))
-    return 1;
-  r.channel = p.data[0];
-  return 0;
-}
-
-EIBnet_ConnectionStateResponse::EIBnet_ConnectionStateResponse ()
-{
-  channel = 0;
-  status = 0;
-}
-
-EIBNetIPPacket EIBnet_ConnectionStateResponse::ToPacket ()const
-{
-  EIBNetIPPacket p;
-  p.service = CONNECTIONSTATE_RESPONSE;
-  p.data.resize (2);
-  p.data[0] = channel;
-  p.data[1] = status;
-  return p;
-}
-
-int
-parseEIBnet_ConnectionStateResponse (const EIBNetIPPacket & p,
-                                     EIBnet_ConnectionStateResponse & r)
-{
-  if (p.service != CONNECTIONSTATE_RESPONSE)
-    return 1;
-  if (p.data.size() != 2)
-    return 1;
-  r.channel = p.data[0];
-  r.status = p.data[1];
-  return 0;
-}
-
-EIBnet_DisconnectRequest::EIBnet_DisconnectRequest ()
-{
-  memset (&caddr, 0, sizeof (caddr));
-  nat = false;
-  channel = 0;
-}
-
-EIBNetIPPacket EIBnet_DisconnectRequest::ToPacket ()const
-{
-  EIBNetIPPacket p;
-  CArray ca = IPtoEIBNetIP (&caddr, nat);
-  p.service = DISCONNECT_REQUEST;
-  p.data.resize (ca.size() + 2);
-  p.data[0] = channel;
-  p.data[1] = 0;
-  p.data.setpart (ca, 2);
-  return p;
-}
-
-int
-parseEIBnet_DisconnectRequest (const EIBNetIPPacket & p,
-                               EIBnet_DisconnectRequest & r)
-{
-  if (p.service != DISCONNECT_REQUEST)
-    return 1;
-  if (p.data.size() != 10)
-    return 1;
-  if (EIBnettoIP (CArray (p.data.data() + 2, 8), &r.caddr, &p.src, r.nat))
-    return 1;
-  r.channel = p.data[0];
-  return 0;
-}
-
-EIBnet_DisconnectResponse::EIBnet_DisconnectResponse ()
-{
-  channel = 0;
-  status = 0;
-}
-
-EIBNetIPPacket EIBnet_DisconnectResponse::ToPacket ()const
-{
-  EIBNetIPPacket p;
-  p.service = DISCONNECT_RESPONSE;
-  p.data.resize (2);
-  p.data[0] = channel;
-  p.data[1] = status;
-  return p;
-}
-
-int
-parseEIBnet_DisconnectResponse (const EIBNetIPPacket & p,
-                                EIBnet_DisconnectResponse & r)
-{
-  if (p.service != DISCONNECT_RESPONSE)
-    return 1;
-  if (p.data.size() != 2)
-    return 1;
-  r.channel = p.data[0];
-  r.status = p.data[1];
-  return 0;
-}
-
-EIBnet_TunnelRequest::EIBnet_TunnelRequest ()
-{
-  channel = 0;
-  seqno = 0;
-}
-
-EIBNetIPPacket EIBnet_TunnelRequest::ToPacket ()const
-{
-  EIBNetIPPacket p;
-  p.service = TUNNEL_REQUEST;
-  p.data.resize (CEMI.size() + 4);
-  p.data[0] = 4;
-  p.data[1] = channel;
-  p.data[2] = seqno;
-  p.data[3] = 0;
-  p.data.setpart (CEMI, 4);
-  return p;
-}
-
-int
-parseEIBnet_TunnelRequest (const EIBNetIPPacket & p, EIBnet_TunnelRequest & r)
-{
-  if (p.service != TUNNEL_REQUEST)
-    return 1;
-  if (p.data.size() < 6)
-    return 1;
-  if (p.data[0] != 4)
-    return 1;
-  r.channel = p.data[1];
-  r.seqno = p.data[2];
-  r.CEMI.set (p.data.data() + 4, p.data.size() - 4);
-  return 0;
-}
-
-EIBnet_TunnelACK::EIBnet_TunnelACK ()
-{
-  channel = 0;
-  seqno = 0;
-  status = 0;
-}
-
-EIBNetIPPacket EIBnet_TunnelACK::ToPacket ()const
-{
-  EIBNetIPPacket p;
-  p.service = TUNNEL_RESPONSE;
-  p.data.resize (4);
-  p.data[0] = 4;
-  p.data[1] = channel;
-  p.data[2] = seqno;
-  p.data[3] = status;
-  return p;
-}
-
-int
-parseEIBnet_TunnelACK (const EIBNetIPPacket & p, EIBnet_TunnelACK & r)
-{
-  if (p.service != TUNNEL_RESPONSE)
-    return 1;
-  if (p.data.size() != 4)
-    return 1;
-  if (p.data[0] != 4)
-    return 1;
-  r.channel = p.data[1];
-  r.seqno = p.data[2];
-  r.status = p.data[3];
-  return 0;
-}
-
-EIBnet_ConfigRequest::EIBnet_ConfigRequest ()
-{
-  channel = 0;
-  seqno = 0;
-}
-
-EIBNetIPPacket EIBnet_ConfigRequest::ToPacket ()const
-{
-  EIBNetIPPacket p;
-  p.service = DEVICE_CONFIGURATION_REQUEST;
-  p.data.resize (CEMI.size() + 4);
-  p.data[0] = 4;
-  p.data[1] = channel;
-  p.data[2] = seqno;
-  p.data[3] = 0;
-  p.data.setpart (CEMI, 4);
-  return p;
-}
-
-int
-parseEIBnet_ConfigRequest (const EIBNetIPPacket & p, EIBnet_ConfigRequest & r)
-{
-  if (p.service != DEVICE_CONFIGURATION_REQUEST)
-    return 1;
-  if (p.data.size() < 6)
-    return 1;
-  if (p.data[0] != 4)
-    return 1;
-  r.channel = p.data[1];
-  r.seqno = p.data[2];
-  r.CEMI.set (p.data.data() + 4, p.data.size() - 4);
-  return 0;
-}
-
-EIBnet_ConfigACK::EIBnet_ConfigACK ()
-{
-  channel = 0;
-  seqno = 0;
-  status = 0;
-}
-
-EIBNetIPPacket EIBnet_ConfigACK::ToPacket ()const
-{
-  EIBNetIPPacket p;
-  p.service = DEVICE_CONFIGURATION_ACK;
-  p.data.resize (4);
-  p.data[0] = 4;
-  p.data[1] = channel;
-  p.data[2] = seqno;
-  p.data[3] = status;
-  return p;
-}
-
-int
-parseEIBnet_ConfigACK (const EIBNetIPPacket & p, EIBnet_ConfigACK & r)
-{
-  if (p.service != DEVICE_CONFIGURATION_ACK)
-    return 1;
-  if (p.data.size() != 4)
-    return 1;
-  if (p.data[0] != 4)
-    return 1;
-  r.channel = p.data[1];
-  r.seqno = p.data[2];
-  r.status = p.data[3];
   return 0;
 }
 
 EIBnet_DescriptionRequest::EIBnet_DescriptionRequest ()
 {
   memset (&caddr, 0, sizeof (caddr));
-  nat = false;
 }
 
 EIBNetIPPacket EIBnet_DescriptionRequest::ToPacket ()const
@@ -749,13 +440,8 @@ parseEIBnet_DescriptionRequest (const EIBNetIPPacket & p,
   return 0;
 }
 
-
 EIBnet_DescriptionResponse::EIBnet_DescriptionResponse ()
 {
-  KNXmedium = 0;
-  devicestatus = 0;
-  individual_addr = 0;
-  installid = 0;
   memset (&serial, 0, sizeof (serial));
   multicastaddr.s_addr = 0;
   memset (&MAC, 0, sizeof (MAC));
@@ -830,112 +516,334 @@ parseEIBnet_DescriptionResponse (const EIBNetIPPacket & p,
   return 0;
 }
 
-EIBnet_SearchRequest::EIBnet_SearchRequest ()
+EIBnet_ConnectRequest::EIBnet_ConnectRequest ()
 {
   memset (&caddr, 0, sizeof (caddr));
-  nat = false;
+  memset (&daddr, 0, sizeof (daddr));
 }
 
-EIBNetIPPacket EIBnet_SearchRequest::ToPacket ()const
+EIBNetIPPacket EIBnet_ConnectRequest::ToPacket ()const
 {
-  EIBNetIPPacket
-  p;
-  CArray
+  EIBNetIPPacket p;
+  CArray ca, da;
   ca = IPtoEIBNetIP (&caddr, nat);
-  p.service = SEARCH_REQUEST;
-  p.data = ca;
+  da = IPtoEIBNetIP (&daddr, nat);
+  p.service = CONNECTION_REQUEST;
+  p.data.resize (ca.size() + da.size() + 1 + CRI.size());
+  p.data.setpart (ca, 0);
+  p.data.setpart (da, ca.size());
+  p.data[ca.size() + da.size()] = CRI.size() + 1;
+  p.data.setpart (CRI, ca.size() + da.size() + 1);
   return p;
 }
 
 int
-parseEIBnet_SearchRequest (const EIBNetIPPacket & p, EIBnet_SearchRequest & r)
+parseEIBnet_ConnectRequest (const EIBNetIPPacket & p,
+                            EIBnet_ConnectRequest & r)
 {
-  if (p.service != SEARCH_REQUEST)
+  if (p.service != CONNECTION_REQUEST)
     return 1;
-  if (p.data.size() != 8)
+  if (p.data.size() < 18)
     return 1;
-  if (EIBnettoIP (p.data, &r.caddr, &p.src, r.nat))
+  if (EIBnettoIP (CArray (p.data.data(), 8), &r.caddr, &p.src, r.nat))
     return 1;
+  if (EIBnettoIP (CArray (p.data.data() + 8, 8), &r.daddr, &p.src, r.nat))
+    return 1;
+  if (p.data.size() - 16 != p.data[16])
+    return 1;
+  r.CRI = CArray (p.data.data() + 17, p.data.size() - 17);
   return 0;
 }
 
-
-EIBnet_SearchResponse::EIBnet_SearchResponse ()
+EIBnet_ConnectResponse::EIBnet_ConnectResponse ()
 {
-  KNXmedium = 0;
-  devicestatus = 0;
-  individual_addr = 0;
-  installid = 0;
-  memset (&serial, 0, sizeof (serial));
-  multicastaddr.s_addr = 0;
-  memset (&MAC, 0, sizeof (MAC));
-  memset (&name, 0, sizeof (name));
+  memset (&daddr, 0, sizeof (daddr));
 }
 
-EIBNetIPPacket EIBnet_SearchResponse::ToPacket ()const
+EIBNetIPPacket EIBnet_ConnectResponse::ToPacket ()const
 {
   EIBNetIPPacket p;
-  CArray ca = IPtoEIBNetIP (&caddr, nat);
-  p.service = SEARCH_RESPONSE;
-  p.data.resize (64 + services.size() * 2);
-  p.data.setpart (ca, 0);
-  p.data[8] = 54;
-  p.data[9] = 1;
-  p.data[10] = KNXmedium;
-  p.data[11] = devicestatus;
-  p.data[12] = (individual_addr >> 8) & 0xff;
-  p.data[13] = (individual_addr) & 0xff;
-  p.data[14] = (installid >> 8) & 0xff;
-  p.data[15] = (installid) & 0xff;
-  p.data.setpart((uint8_t *)&serial, 16, 6);
-  p.data.setpart((uint8_t *)&multicastaddr, 22, 4);
-  p.data.setpart((uint8_t *)&MAC, 26, 6);
-  p.data.setpart((uint8_t *)&name, 32, 30);
-  p.data[61] = 0;
-  p.data[62] = services.size() * 2 + 2;
-  p.data[63] = 2;
-  for (unsigned int i = 0; i < services.size(); i++)
+  CArray da = IPtoEIBNetIP (&daddr, nat);
+  p.service = CONNECTION_RESPONSE;
+  if (status != 0)
+    p.data.resize (2);
+  else
+    p.data.resize (da.size() + CRD.size() + 3);
+  p.data[0] = channel;
+  p.data[1] = status;
+  if (status == 0)
     {
-      p.data[64 + i * 2] = services[i].family;
-      p.data[65 + i * 2] = services[i].version;
+      p.data.setpart (da, 2);
+      p.data[da.size() + 2] = CRD.size() + 1;
+      p.data.setpart (CRD, da.size() + 3);
     }
   return p;
 }
 
 int
-parseEIBnet_SearchResponse (const EIBNetIPPacket & p,
-                            EIBnet_SearchResponse & r)
+parseEIBnet_ConnectResponse (const EIBNetIPPacket & p,
+                             EIBnet_ConnectResponse & r)
 {
-  if (p.service != SEARCH_RESPONSE)
+  if (p.service != CONNECTION_RESPONSE)
     return 1;
-  if (p.data.size() < 64)
+  if (p.data.size() < 2)
     return 1;
-  if (EIBnettoIP (CArray (p.data.data() + 0, 8), &r.caddr, &p.src, r.nat))
-    return 1;
-  if (p.data[8] != 54)
-    return 1;
-  if (p.data[9] != 1)
-    return 1;
-  r.KNXmedium = p.data[10];
-  r.devicestatus = p.data[11];
-  r.individual_addr = (p.data[12] << 8) | p.data[13];
-  r.installid = (p.data[14] << 8) | p.data[15];
-  memcpy (&r.serial, p.data.data() + 16, 6);
-  memcpy (&r.multicastaddr, p.data.data() + 22, 4);
-  memcpy (&r.MAC, p.data.data() + 26, 6);
-  memcpy (&r.name, p.data.data() + 32, 30);
-  r.name[29] = 0;
-  if (p.data[63] != 2)
-    return 1;
-  if (p.data[62] % 2)
-    return 1;
-  if (p.data[62] + 62U > p.data.size())
-    return 1;
-  r.services.resize ((p.data[62] / 2) - 1);
-  for (int i = 0; i < (p.data[62] / 2) - 1; i++)
+  if (p.data[1] != 0)
     {
-      r.services[i].family = p.data[64 + 2 * i];
-      r.services[i].version = p.data[65 + 2 * i];
+      if (p.data.size() != 2)
+        return 1;
+      r.channel = p.data[0];
+      r.status = p.data[1];
+      return 0;
     }
+  if (p.data.size() < 12)
+    return 1;
+  if (EIBnettoIP (CArray (p.data.data() + 2, 8), &r.daddr, &p.src, r.nat))
+    return 1;
+  if (p.data.size() - 10 != p.data[10])
+    return 1;
+  r.channel = p.data[0];
+  r.status = p.data[1];
+  r.CRD = CArray (p.data.data() + 11, p.data.size() - 11);
+  return 0;
+}
+
+EIBnet_ConnectionStateRequest::EIBnet_ConnectionStateRequest ()
+{
+  memset (&caddr, 0, sizeof (caddr));
+}
+
+EIBNetIPPacket EIBnet_ConnectionStateRequest::ToPacket ()const
+{
+  EIBNetIPPacket p;
+  CArray ca = IPtoEIBNetIP (&caddr, nat);
+  p.service = CONNECTIONSTATE_REQUEST;
+  p.data.resize (ca.size() + 2);
+  p.data[0] = channel;
+  p.data[1] = 0;
+  p.data.setpart (ca, 2);
+  return p;
+}
+
+int
+parseEIBnet_ConnectionStateRequest (const EIBNetIPPacket & p,
+                                    EIBnet_ConnectionStateRequest & r)
+{
+  if (p.service != CONNECTIONSTATE_REQUEST)
+    return 1;
+  if (p.data.size() != 10)
+    return 1;
+  if (EIBnettoIP (CArray (p.data.data() + 2, 8), &r.caddr, &p.src, r.nat))
+    return 1;
+  r.channel = p.data[0];
+  return 0;
+}
+
+EIBNetIPPacket EIBnet_ConnectionStateResponse::ToPacket ()const
+{
+  EIBNetIPPacket p;
+  p.service = CONNECTIONSTATE_RESPONSE;
+  p.data.resize (2);
+  p.data[0] = channel;
+  p.data[1] = status;
+  return p;
+}
+
+int
+parseEIBnet_ConnectionStateResponse (const EIBNetIPPacket & p,
+                                     EIBnet_ConnectionStateResponse & r)
+{
+  if (p.service != CONNECTIONSTATE_RESPONSE)
+    return 1;
+  if (p.data.size() != 2)
+    return 1;
+  r.channel = p.data[0];
+  r.status = p.data[1];
+  return 0;
+}
+
+EIBnet_DisconnectRequest::EIBnet_DisconnectRequest ()
+{
+  memset (&caddr, 0, sizeof (caddr));
+}
+
+EIBNetIPPacket EIBnet_DisconnectRequest::ToPacket ()const
+{
+  EIBNetIPPacket p;
+  CArray ca = IPtoEIBNetIP (&caddr, nat);
+  p.service = DISCONNECT_REQUEST;
+  p.data.resize (ca.size() + 2);
+  p.data[0] = channel;
+  p.data[1] = 0;
+  p.data.setpart (ca, 2);
+  return p;
+}
+
+int
+parseEIBnet_DisconnectRequest (const EIBNetIPPacket & p,
+                               EIBnet_DisconnectRequest & r)
+{
+  if (p.service != DISCONNECT_REQUEST)
+    return 1;
+  if (p.data.size() != 10)
+    return 1;
+  if (EIBnettoIP (CArray (p.data.data() + 2, 8), &r.caddr, &p.src, r.nat))
+    return 1;
+  r.channel = p.data[0];
+  return 0;
+}
+
+EIBNetIPPacket EIBnet_DisconnectResponse::ToPacket ()const
+{
+  EIBNetIPPacket p;
+  p.service = DISCONNECT_RESPONSE;
+  p.data.resize (2);
+  p.data[0] = channel;
+  p.data[1] = status;
+  return p;
+}
+
+int
+parseEIBnet_DisconnectResponse (const EIBNetIPPacket & p,
+                                EIBnet_DisconnectResponse & r)
+{
+  if (p.service != DISCONNECT_RESPONSE)
+    return 1;
+  if (p.data.size() != 2)
+    return 1;
+  r.channel = p.data[0];
+  r.status = p.data[1];
+  return 0;
+}
+
+EIBNetIPPacket EIBnet_ConfigRequest::ToPacket ()const
+{
+  EIBNetIPPacket p;
+  p.service = DEVICE_CONFIGURATION_REQUEST;
+  p.data.resize (CEMI.size() + 4);
+  p.data[0] = 4;
+  p.data[1] = channel;
+  p.data[2] = seqno;
+  p.data[3] = 0;
+  p.data.setpart (CEMI, 4);
+  return p;
+}
+
+int
+parseEIBnet_ConfigRequest (const EIBNetIPPacket & p, EIBnet_ConfigRequest & r)
+{
+  if (p.service != DEVICE_CONFIGURATION_REQUEST)
+    return 1;
+  if (p.data.size() < 6)
+    return 1;
+  if (p.data[0] != 4)
+    return 1;
+  r.channel = p.data[1];
+  r.seqno = p.data[2];
+  r.CEMI.set (p.data.data() + 4, p.data.size() - 4);
+  return 0;
+}
+
+EIBNetIPPacket EIBnet_ConfigACK::ToPacket ()const
+{
+  EIBNetIPPacket p;
+  p.service = DEVICE_CONFIGURATION_ACK;
+  p.data.resize (4);
+  p.data[0] = 4;
+  p.data[1] = channel;
+  p.data[2] = seqno;
+  p.data[3] = status;
+  return p;
+}
+
+int
+parseEIBnet_ConfigACK (const EIBNetIPPacket & p, EIBnet_ConfigACK & r)
+{
+  if (p.service != DEVICE_CONFIGURATION_ACK)
+    return 1;
+  if (p.data.size() != 4)
+    return 1;
+  if (p.data[0] != 4)
+    return 1;
+  r.channel = p.data[1];
+  r.seqno = p.data[2];
+  r.status = p.data[3];
+  return 0;
+}
+
+EIBNetIPPacket EIBnet_TunnelRequest::ToPacket ()const
+{
+  EIBNetIPPacket p;
+  p.service = TUNNEL_REQUEST;
+  p.data.resize (CEMI.size() + 4);
+  p.data[0] = 4;
+  p.data[1] = channel;
+  p.data[2] = seqno;
+  p.data[3] = 0;
+  p.data.setpart (CEMI, 4);
+  return p;
+}
+
+int
+parseEIBnet_TunnelRequest (const EIBNetIPPacket & p, EIBnet_TunnelRequest & r)
+{
+  if (p.service != TUNNEL_REQUEST)
+    return 1;
+  if (p.data.size() < 6)
+    return 1;
+  if (p.data[0] != 4)
+    return 1;
+  r.channel = p.data[1];
+  r.seqno = p.data[2];
+  r.CEMI.set (p.data.data() + 4, p.data.size() - 4);
+  return 0;
+}
+
+EIBNetIPPacket EIBnet_TunnelACK::ToPacket ()const
+{
+  EIBNetIPPacket p;
+  p.service = TUNNEL_RESPONSE;
+  p.data.resize (4);
+  p.data[0] = 4;
+  p.data[1] = channel;
+  p.data[2] = seqno;
+  p.data[3] = status;
+  return p;
+}
+
+int
+parseEIBnet_TunnelACK (const EIBNetIPPacket & p, EIBnet_TunnelACK & r)
+{
+  if (p.service != TUNNEL_RESPONSE)
+    return 1;
+  if (p.data.size() != 4)
+    return 1;
+  if (p.data[0] != 4)
+    return 1;
+  r.channel = p.data[1];
+  r.seqno = p.data[2];
+  r.status = p.data[3];
+  return 0;
+}
+
+EIBNetIPPacket EIBnet_RoutingIndication::ToPacket () const
+{
+  // @todo
+}
+
+int
+parseEIBnet_RoutingIndication (const EIBNetIPPacket & p, EIBnet_RoutingIndication & r)
+{
+  return 0;
+}
+
+EIBNetIPPacket EIBnet_RoutingLostMessage::ToPacket () const
+{
+  // @todo
+}
+
+int
+parseEIBnet_RoutingLostMessage (const EIBNetIPPacket & p, EIBnet_RoutingLostMessage & r)
+{
   return 0;
 }

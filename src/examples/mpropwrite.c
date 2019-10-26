@@ -23,16 +23,16 @@ main (int ac, char *ag[])
 {
   int len, obj, prop, start, nr_of_elem;
   EIBConnection *con;
-  uchar buf[255];
-  uchar res[255];
+  uint8_t buf[255];
+  uint8_t res[255];
   eibaddr_t dest;
   char *prog = ag[0];
 
   parseKey (&ac, &ag);
   if (ac < 7)
     die
-      ("usage: %s [-k key] url eibaddr obj prop start nr_of_elem [xx xx ..]",
-       prog);
+    ("usage: %s [-k key] url eibaddr obj prop start nr_of_elem [xx xx ..]",
+     prog);
   con = EIBSocketURL (ag[1]);
   if (!con)
     die ("Open failed");
@@ -52,7 +52,7 @@ main (int ac, char *ag[])
   printf ("\n");
   len =
     EIB_MC_PropertyWrite (con, obj, prop, start, nr_of_elem, len, buf,
-			  sizeof (res), res);
+                          sizeof (res), res);
   if (len == -1)
     die ("Write failed");
   printHex (len, res);

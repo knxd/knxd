@@ -27,14 +27,11 @@
 #include "config.h"
 #include "eibclient.h"
 
-/** unsigned char*/
-typedef unsigned char uchar;
-
 /** print hex dump of a buffer
  * \param len Length of the buffer
  * \param data buffer
  */
-void printHex (int len, uchar * data);
+void printHex (int len, uint8_t * data);
 /** aborts the program and prints message
  * \param msg Message (printf like)
  */
@@ -61,7 +58,7 @@ unsigned readHex (const char *addr);
  * \param ag argument array
  * \return parsed bytes
  */
-int readBlock (uchar * buf, int size, int ac, char *ag[]);
+int readBlock (uint8_t * buf, int size, int ac, char *ag[]);
 /** prints a EIB individual address
  * \param addr EIB address
  */

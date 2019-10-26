@@ -17,6 +17,12 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @addtogroup Server
+ * @{
+ */
+
 #ifndef KNXD_LIBSERVER_SYSTEMDSERVER_H
 #define KNXD_LIBSERVER_SYSTEMDSERVER_H
 
@@ -34,3 +40,5 @@ public:
 };
 
 #endif
+
+/** @} */

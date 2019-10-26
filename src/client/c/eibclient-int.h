@@ -53,7 +53,7 @@ struct _EIBConnection
   int fd;
   unsigned readlen;
   /** buffer */
-  uchar *buf;
+  uint8_t *buf;
   /** buffer size */
   unsigned buflen;
   /** used buffer */
@@ -81,7 +81,7 @@ struct _EIBConnection
 /** set EIB address */
 #define EIBSETADDR(buf,type) do{(buf)[0]=((type)>>8)&0xff;(buf)[1]=(type)&0xff;}while(0)
 
-int _EIB_SendRequest (EIBConnection * con, unsigned int size, uchar * data);
+int _EIB_SendRequest (EIBConnection * con, unsigned int size, uint8_t * data);
 int _EIB_CheckRequest (EIBConnection * con, int block);
 int _EIB_GetRequest (EIBConnection * con);
 
@@ -181,8 +181,8 @@ int _EIB_GetRequest (EIBConnection * con);
         return 0;
 
 #define EIBC_INIT_SEND(length) \
-        uchar head[length]; \
-        uchar *ibuf = head; \
+        uint8_t head[length]; \
+        uint8_t *ibuf = head; \
         unsigned int ilen __attribute__((unused)) = length; \
         int dyn = 0; \
         int i __attribute__((unused)); \
@@ -202,7 +202,7 @@ int _EIB_GetRequest (EIBConnection * con);
           } \
         con->req.sendlen = name ## _len; \
         dyn = 1; \
-        ibuf = (uchar *) malloc (ilen + name ## _len); \
+        ibuf = (uint8_t *) malloc (ilen + name ## _len); \
         if (!ibuf) \
           { \
             errno = ENOMEM; \

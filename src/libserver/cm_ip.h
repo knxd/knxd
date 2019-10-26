@@ -19,10 +19,23 @@
 
 /**
  * @file
+ * @ingroup KNX_03_02_06
  * Communication Medium KNX IP
+ * @{
  */
 
 #ifndef CM_IP_H
 #define CM_IP_H
 
+#include "common.h"
+
+/** convert a to EIBnet/IP format */
+CArray IPtoEIBNetIP (const struct sockaddr_in *a, bool nat);
+
+/** convert EIBnet/IP IP Address to a */
+bool EIBnettoIP (const CArray & buf, struct sockaddr_in *a,
+                 const struct sockaddr_in *src, bool & nat);
+
 #endif
+
+/** @} */
