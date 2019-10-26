@@ -66,7 +66,7 @@ NetServer::deregister (ClientConnPtr con)
 }
 
 void
-NetServer::cleanup_cb (ev::async &w UNUSED, int revents UNUSED)
+NetServer::cleanup_cb (ev::async &, int)
 {
   while (!cleanup_q.empty())
     {
@@ -105,7 +105,7 @@ NetServer::start()
 }
 
 void
-NetServer::io_cb (ev::io &w UNUSED, int revents UNUSED)
+NetServer::io_cb (ev::io &, int)
 {
   int cfd;
   cfd = accept (fd, NULL,NULL);
@@ -137,7 +137,7 @@ NetServer::setup()
 }
 
 void
-NetServer::setupConnection (int cfd UNUSED)
+NetServer::setupConnection (int)
 {
   ignore_when_systemd = cfg->value("systemd-ignore",ignore_when_systemd);
 }

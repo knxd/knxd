@@ -59,17 +59,6 @@ public:
 /** USB backend */
 DRIVER_(USBDriver,LowLevelAdapter,usb)
 {
-  // for EMI version discovery
-  ev::timer timeout;
-  int cnt = 0;
-  void timeout_cb(ev::timer &w, int revents);
-  void xmit();
-  void recv(CArray *r1);
-  void recv_Data(CArray& c);
-  bool wait_make = false;
-  USBConverterInterface *usb_iface;
-
-  void sendLocal_done_cb(bool success);
 public:
   EMIVer version = vUnknown;
 
@@ -82,6 +71,18 @@ public:
   void do_send_Next();
   bool make_EMI();
 
+private:
+  // for EMI version discovery
+  ev::timer timeout;
+  int cnt = 0;
+  void timeout_cb(ev::timer &w, int revents);
+  void xmit();
+  void recv(CArray *r1);
+  void recv_Data(CArray& c);
+  bool wait_make = false;
+  USBConverterInterface *usb_iface;
+
+  void sendLocal_done_cb(bool success);
 };
 
 #endif

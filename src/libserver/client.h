@@ -44,8 +44,6 @@ class A__Base;
 /** implements a client connection */
 class ClientConnection : public std::enable_shared_from_this<ClientConnection>
 {
-  /** client connection */
-  int fd;
 public:
   bool running = false;
 
@@ -58,15 +56,6 @@ public:
   /** server creating this connection */
   NetServerPtr server;
 
-protected:
-  /** sending */
-  SendBuf sendbuf;
-  RecvBuf recvbuf;
-  A__Base *a_conn = 0;
-
-  void exit_conn();
-
-public:
   ClientConnection (NetServerPtr s, int fd);
   virtual ~ClientConnection ();
   bool setup();
@@ -77,13 +66,26 @@ public:
   void error_cb();
 
   /** send a message */
-  void sendmessage (int size, const uchar * msg);
+  void sendmessage (int size, const uint8_t * msg);
   /** send a reject */
   void sendreject ();
   /** sends a reject with code @code */
   void sendreject (int code);
+
+protected:
+  /** sending */
+  SendBuf sendbuf;
+  RecvBuf recvbuf;
+  A__Base *a_conn = nullptr;
+
+  void exit_conn();
+
+private:
+  /** client connection */
+  int fd;
 };
-typedef std::shared_ptr<ClientConnection> ClientConnPtr;
+
+using ClientConnPtr = std::shared_ptr<ClientConnection>;
 
 #endif
 

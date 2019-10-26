@@ -41,8 +41,8 @@ struct low_latency_save
 #endif
 };
 
-bool set_low_latency (int fd, low_latency_save * save, bool really);
-void restore_low_latency (int fd, low_latency_save * save, bool really);
+bool set_low_latency (int fd, low_latency_save * save, const bool really);
+void restore_low_latency (int fd, low_latency_save * save, const bool really);
 
 #endif // LOW_LATENCY_H
 

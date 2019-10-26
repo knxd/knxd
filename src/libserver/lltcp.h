@@ -31,18 +31,19 @@
 
 class LLtcp:public FDdriver
 {
-  std::string dest;
-  uint16_t port;
-
 public:
   LLtcp (LowLevelIface* parent, IniSectionPtr& s) : FDdriver(parent,s)
-    {
-      t->setAuxName("TCP");
-    }
+  {
+    t->setAuxName("TCP");
+  }
   virtual ~LLtcp () = default;
 
   bool setup();
   void start();
+
+private:
+  std::string dest;
+  uint16_t port;
 };
 
 #endif

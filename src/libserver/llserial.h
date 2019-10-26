@@ -36,6 +36,18 @@
 /** TPUART user mode driver */
 class LLserial:public FDdriver
 {
+public:
+  LLserial (LowLevelIface* parent, IniSectionPtr& s) : FDdriver(parent,s)
+  {
+    t->setAuxName("Serial");
+  }
+  virtual ~LLserial () = default;
+
+  bool setup();
+  void start();
+  void stop();
+
+private:
   low_latency_save sold;
   struct termios old;
 
@@ -45,17 +57,6 @@ class LLserial:public FDdriver
   std::string dev;
   int baudrate;
   bool low_latency;
-
-public:
-  LLserial (LowLevelIface* parent, IniSectionPtr& s) : FDdriver(parent,s)
-    {
-      t->setAuxName("Serial");
-    }
-  virtual ~LLserial () = default;
-
-  bool setup();
-  void start();
-  void stop();
 };
 
 #endif

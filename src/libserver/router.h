@@ -56,9 +56,11 @@ struct IgnoreInfo
   timestamp_t end;
 };
 
-class Router : public BaseRouter {
+class Router : public BaseRouter
+{
   friend class RouterLow;
   friend class RouterHigh;
+
 public:
   Router(IniData& d, std::string sn);
   virtual ~Router();
@@ -70,8 +72,14 @@ public:
   eibaddr_t addr = 0;
 
   /** group cache */
-  std::shared_ptr<GroupCache> getCache() { return cache; }
-  void setCache(std::shared_ptr<GroupCache> cache) { this->cache = cache; }
+  std::shared_ptr<GroupCache> getCache()
+  {
+    return cache;
+  }
+  void setCache(std::shared_ptr<GroupCache> cache)
+  {
+    this->cache = cache;
+  }
 
   /** read and apply settings */
   bool setup();
@@ -128,6 +136,36 @@ public:
   /** packet buffer is empty */
   void send_Next();
 
+  /** Look up a filter by name */
+  FilterPtr get_filter(const LinkConnectPtr_ &link, IniSectionPtr& s, const std::string& filtername);
+
+  /** Create a temporary dummy driver stack to test arguments for filters etc.
+   * Testing the calling driver's config args is the caller#s job.
+   */
+  bool checkStack(IniSectionPtr& cfg);
+
+  /** name of our main section */
+  std::string main;
+
+  bool hasClientAddrs(bool complain = true);
+
+  /** eventual exit code. Inremebted on fatal error */
+  int exitcode = 0;
+
+  /** allow unparsed tags in the config file? */
+  bool unknown_ok = false;
+  /** flag whether systemd has passed us any file descriptors */
+  bool using_systemd = false;
+
+  bool isIdle()
+  {
+    return !some_running;
+  }
+  bool isRunning()
+  {
+    return all_running;
+  }
+
 private:
   Factory<Server>& servers;
   Factory<Driver>& drivers;
@@ -151,19 +189,6 @@ private:
   bool high_send_more = false;
   bool high_sending = false;
 
-public:
-  /** Look up a filter by name */
-  FilterPtr get_filter(const LinkConnectPtr_ &link, IniSectionPtr& s, const std::string& filtername);
-
-  /** Create a temporary dummy driver stack to test arguments for filters etc.
-   * Testing the calling driver's config args is the caller#s job.
-   */
-  bool checkStack(IniSectionPtr& cfg);
-
-  /** name of our main section */
-  std::string main;
-
-private:
   /** create a link */
   LinkConnectPtr setup_link(std::string& name);
 
@@ -197,10 +222,6 @@ private:
   int client_addrs_pos;
   std::vector<bool> client_addrs;
 
-public:
-  bool hasClientAddrs(bool complain = true);
-
-private:
   /** busmonitor callbacks */
   std::vector < Busmonitor_Info > busmonitor;
   /** vbusmonitor callbacks */
@@ -223,19 +244,6 @@ private:
   /** iterators are evil */
   bool links_changed = false;
 
-public:
-  /** eventual exit code. Inremebted on fatal error */
-  int exitcode = 0;
-
-  /** allow unparsed tags in the config file? */
-  bool unknown_ok = false;
-  /** flag whether systemd has passed us any file descriptors */
-  bool using_systemd = false;
-
-  bool isIdle() { return !some_running; }
-  bool isRunning() { return all_running; }
-
-private:
   ev::async cleanup;
   void cleanup_cb (ev::async &w, int revents);
   /** to-be-closed client connections*/

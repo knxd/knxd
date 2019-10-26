@@ -29,12 +29,6 @@
 
 #include <memory>
 
-class LPDU;
-class L_Data_PDU;
-class L_Busmon_PDU;
-using LPDUPtr = std::unique_ptr<LPDU>;
-using LDataPtr = std::unique_ptr<L_Data_PDU>;
-using LBusmonPtr = std::unique_ptr<L_Busmon_PDU>;
 
 #include "common.h"
 #include "link.h"
@@ -68,10 +62,12 @@ public:
   virtual ~LPDU () = default;
 
   /** decode content as string */
-  virtual std::string Decode (TracePtr tr) = 0;
+  virtual std::string Decode (TracePtr tr) const = 0;
   /** get frame type */
   virtual LPDU_Type getType () const = 0;
 };
+
+using LPDUPtr = std::unique_ptr<LPDU>;
 
 /* L_Data */
 
@@ -85,7 +81,7 @@ public:
   /* destination address */
   eibaddr_t destination_address = 0;
   /** standard/extended frame format */
-  uint8_t frame_format = 0;
+  uint8_t frame_format = 0; // 0=Extended 1=Standard
   /** octet count */
   uint8_t octet_count = 0;
   /** priority */
@@ -98,21 +94,23 @@ public:
   uint8_t l_status = 0;
 
   /** is repreated */
-  bool repeated = 0;
+  bool repeated = false;
   /** checksum ok */
-  bool valid_checksum = 1;
+  bool valid_checksum = true;
   /** length ok */
-  bool valid_length = 1;
-  uchar hop_count = 0x06;
+  bool valid_length = true;
+  uint8_t hop_count = 0x06;
 
   L_Data_PDU () = default;
 
-  std::string Decode (TracePtr tr);
-  LPDU_Type getType () const
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual LPDU_Type getType () const override
   {
     return L_Data;
   }
 };
+
+using LDataPtr = std::unique_ptr<L_Data_PDU>;
 
 /* L_SystemBroadcast */
 
@@ -140,7 +138,8 @@ public:
 
   L_SystemBroadcast_PDU () = default;
 
-  LPDU_Type getType () const
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual LPDU_Type getType () const override
   {
     return L_SystemBroadcast;
   }
@@ -159,7 +158,8 @@ public:
 
   L_Poll_Data_PDU () = default;
 
-  LPDU_Type getType () const
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual LPDU_Type getType () const override
   {
     return L_Poll_Data;
   }
@@ -174,7 +174,8 @@ public:
 
   L_Poll_Update_PDU () = default;
 
-  LPDU_Type getType () const
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual LPDU_Type getType () const override
   {
     return L_Poll_Update;
   }
@@ -192,12 +193,14 @@ public:
 
   L_Busmon_PDU ();
 
-  std::string Decode (TracePtr tr);
-  LPDU_Type getType () const
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual LPDU_Type getType () const override
   {
     return L_Busmon;
   }
 };
+
+using LBusmonPtr = std::unique_ptr<L_Busmon_PDU>;
 
 /** interface for callback for busmonitor frames */
 class L_Busmonitor_CallBack
@@ -216,7 +219,8 @@ class L_Service_Information_PDU:public LPDU
 public:
   L_Service_Information_PDU () = default;
 
-  LPDU_Type getType () const
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual LPDU_Type getType () const override
   {
     return L_Service_Information;
   }
@@ -229,7 +233,8 @@ class L_Management_PDU:public LPDU
 public:
   L_Management_PDU () = default;
 
-  LPDU_Type getType () const
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual LPDU_Type getType () const override
   {
     return L_Management;
   }

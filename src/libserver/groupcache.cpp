@@ -177,13 +177,13 @@ GroupCache::updated(GroupCacheEntry &c)
 }
 
 void
-GroupCache::remove (GroupCacheReader * entry UNUSED)
+GroupCache::remove (GroupCacheReader *)
 {
   remtrigger.send();
 }
 
 void
-GroupCache::remtrigger_cb(ev::async &w UNUSED, int revents UNUSED)
+GroupCache::remtrigger_cb(ev::async &, int)
 {
   // erase() doesn't do reverse iterators
   //R_ITER(i,reader)
@@ -237,7 +237,7 @@ private:
     stop();
   }
 
-  void timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
+  void timeout_cb(ev::timer &, int)
   {
     if (stopped)
       return;
@@ -333,7 +333,7 @@ public:
     GroupCacheReader::stop();
   }
 private:
-  void updated(GroupCacheEntry &c UNUSED)
+  void updated(GroupCacheEntry &)
   {
     if (stopped)
       return;
@@ -341,7 +341,7 @@ private:
     handler();
   }
 
-  void timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
+  void timeout_cb(ev::timer &, int)
   {
     if (stopped)
       return;

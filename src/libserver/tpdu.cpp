@@ -72,19 +72,19 @@ T_Unknown_PDU::init (const CArray & c, TracePtr)
   return true;
 }
 
-CArray T_Unknown_PDU::ToPacket ()
+CArray T_Unknown_PDU::ToPacket () const
 {
   return pdu;
 }
 
-std::string T_Unknown_PDU::Decode (TracePtr)
+std::string T_Unknown_PDU::Decode (TracePtr) const
 {
   std::string s ("Unknown TPDU: ");
 
   if (pdu.size() == 0)
     return "empty TPDU";
 
-  ITER (i,pdu)
+  C_ITER (i,pdu)
   addHex (s, *i);
 
   return s;
@@ -102,7 +102,7 @@ T_Data_Broadcast_PDU::init (const CArray & c, TracePtr)
   return true;
 }
 
-CArray T_Data_Broadcast_PDU::ToPacket ()
+CArray T_Data_Broadcast_PDU::ToPacket () const
 {
   assert (data.size() > 0);
 
@@ -111,11 +111,11 @@ CArray T_Data_Broadcast_PDU::ToPacket ()
   return pdu;
 }
 
-std::string T_Data_Broadcast_PDU::Decode (TracePtr t)
+std::string T_Data_Broadcast_PDU::Decode (TracePtr tr) const
 {
   APDUPtr a = APDU::fromPacket (data, t);
   std::string s ("T_Data_Broadcast ");
-  s += a->Decode (t);
+  s += a->Decode (tr);
   return s;
 }
 
@@ -131,7 +131,7 @@ T_Data_SystemBroadcast_PDU::init (const CArray & c, TracePtr)
   return true;
 }
 
-CArray T_Data_SystemBroadcast_PDU::ToPacket ()
+CArray T_Data_SystemBroadcast_PDU::ToPacket () const
 {
   assert (data.size() > 0);
 
@@ -140,11 +140,11 @@ CArray T_Data_SystemBroadcast_PDU::ToPacket ()
   return pdu;
 }
 
-std::string T_Data_SystemBroadcast_PDU::Decode (TracePtr t)
+std::string T_Data_SystemBroadcast_PDU::Decode (TracePtr tr) const
 {
   APDUPtr a = APDU::fromPacket (data, t);
   std::string s ("T_Data_SystemBroadcast ");
-  s += a->Decode (t);
+  s += a->Decode (tr);
   return s;
 }
 
@@ -160,7 +160,7 @@ T_Data_Group_PDU::init (const CArray & c, TracePtr)
   return true;
 }
 
-CArray T_Data_Group_PDU::ToPacket ()
+CArray T_Data_Group_PDU::ToPacket () const
 {
   assert (data.size() > 0);
 
@@ -169,11 +169,11 @@ CArray T_Data_Group_PDU::ToPacket ()
   return pdu;
 }
 
-std::string T_Data_Group_PDU::Decode (TracePtr t)
+std::string T_Data_Group_PDU::Decode (TracePtr tr) const
 {
   APDUPtr a = APDU::fromPacket (data, t);
   std::string s ("T_Data_Group ");
-  s += a->Decode (t);
+  s += a->Decode (tr);
   return s;
 }
 
@@ -189,7 +189,7 @@ T_Data_Tag_Group_PDU::init (const CArray & c, TracePtr)
   return true;
 }
 
-CArray T_Data_Tag_Group_PDU::ToPacket ()
+CArray T_Data_Tag_Group_PDU::ToPacket () const
 {
   assert (data.size() > 0);
 
@@ -198,11 +198,11 @@ CArray T_Data_Tag_Group_PDU::ToPacket ()
   return pdu;
 }
 
-std::string T_Data_Tag_Group_PDU::Decode (TracePtr t)
+std::string T_Data_Tag_Group_PDU::Decode (TracePtr tr) const
 {
   APDUPtr a = APDU::fromPacket (data, t);
   std::string s ("T_Data_Tag_Group ");
-  s += a->Decode (t);
+  s += a->Decode (tr);
   return s;
 }
 
@@ -218,7 +218,7 @@ T_Data_Individual_PDU::init (const CArray & c, TracePtr)
   return true;
 }
 
-CArray T_Data_Individual_PDU::ToPacket ()
+CArray T_Data_Individual_PDU::ToPacket () const
 {
   assert (data.size() > 0);
 
@@ -227,11 +227,11 @@ CArray T_Data_Individual_PDU::ToPacket ()
   return pdu;
 }
 
-std::string T_Data_Individual_PDU::Decode (TracePtr t)
+std::string T_Data_Individual_PDU::Decode (TracePtr tr) const
 {
   APDUPtr a = APDU::fromPacket (data, t);
   std::string s ("T_Data_Individual ");
-  s += a->Decode (t);
+  s += a->Decode (tr);
   return s;
 }
 
@@ -248,7 +248,7 @@ T_Data_Connected_PDU::init (const CArray & c, TracePtr)
   return true;
 }
 
-CArray T_Data_Connected_PDU::ToPacket ()
+CArray T_Data_Connected_PDU::ToPacket () const
 {
   assert (data.size() > 0);
   assert ((sequence_number & 0xf0) == 0);
@@ -258,14 +258,14 @@ CArray T_Data_Connected_PDU::ToPacket ()
   return pdu;
 }
 
-std::string T_Data_Connected_PDU::Decode (TracePtr t)
+std::string T_Data_Connected_PDU::Decode (TracePtr tr) const
 {
   assert ((sequence_number & 0xf0) == 0);
 
   APDUPtr a = APDU::fromPacket (data, t);
   std::string s ("T_Data_Connected serno:");
   addHex (s, sequence_number);
-  s += a->Decode (t);
+  s += a->Decode (tr);
   return s;
 }
 
@@ -279,7 +279,7 @@ T_Connect_PDU::init (const CArray & c, TracePtr)
   return true;
 }
 
-CArray T_Connect_PDU::ToPacket ()
+CArray T_Connect_PDU::ToPacket () const
 {
   CArray pdu;
   pdu.resize(1);
@@ -287,7 +287,7 @@ CArray T_Connect_PDU::ToPacket ()
   return pdu;
 }
 
-std::string T_Connect_PDU::Decode (TracePtr)
+std::string T_Connect_PDU::Decode (TracePtr) const
 {
   return "T_Connect";
 }
@@ -302,7 +302,7 @@ T_Disconnect_PDU::init (const CArray & c, TracePtr)
   return true;
 }
 
-CArray T_Disconnect_PDU::ToPacket ()
+CArray T_Disconnect_PDU::ToPacket () const
 {
   CArray pdu;
   pdu.resize(1);
@@ -310,7 +310,7 @@ CArray T_Disconnect_PDU::ToPacket ()
   return pdu;
 }
 
-std::string T_Disconnect_PDU::Decode (TracePtr)
+std::string T_Disconnect_PDU::Decode (TracePtr) const
 {
   return "T_Disconnect";
 }
@@ -327,7 +327,7 @@ T_ACK_PDU::init (const CArray & c, TracePtr)
   return true;
 }
 
-CArray T_ACK_PDU::ToPacket ()
+CArray T_ACK_PDU::ToPacket () const
 {
   assert ((sequence_number & 0xf0) == 0);
 
@@ -337,7 +337,7 @@ CArray T_ACK_PDU::ToPacket ()
   return pdu;
 }
 
-std::string T_ACK_PDU::Decode (TracePtr)
+std::string T_ACK_PDU::Decode (TracePtr) const
 {
   assert ((sequence_number & 0xf0) == 0);
 
@@ -357,7 +357,7 @@ bool T_NAK_PDU::init (const CArray & c, TracePtr)
   return true;
 }
 
-CArray T_NAK_PDU::ToPacket ()
+CArray T_NAK_PDU::ToPacket () const
 {
   assert ((sequence_number & 0xf0) == 0);
 
@@ -367,7 +367,7 @@ CArray T_NAK_PDU::ToPacket ()
   return pdu;
 }
 
-std::string T_NAK_PDU::Decode (TracePtr)
+std::string T_NAK_PDU::Decode (TracePtr) const
 {
   assert ((sequence_number & 0xf0) == 0);
 

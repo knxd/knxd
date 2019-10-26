@@ -27,7 +27,9 @@
 #ifndef TPDU_H
 #define TPDU_H
 
-#include "common.h"
+#include <memory>
+
+#include "npdu.h"
 
 /** enumaration of TPDU types */
 enum TPDU_Type
@@ -67,9 +69,9 @@ public:
 
   virtual bool init (const CArray & c, TracePtr tr) = 0;
   /** convert to character array */
-  virtual CArray ToPacket () = 0;
+  virtual CArray ToPacket () const = 0;
   /** decode content as string */
-  virtual std::string Decode (TracePtr tr) = 0;
+  virtual std::string Decode (TracePtr tr) const = 0;
   /** gets TPDU type */
   virtual TPDU_Type getType () const = 0;
   /** converts character array to a TPDU */
@@ -82,10 +84,10 @@ public:
   CArray pdu;
 
   T_Unknown_PDU () = default;
-  bool init (const CArray & c, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr tr);
-  TPDU_Type getType () const
+  virtual bool init (const CArray & c, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual TPDU_Type getType () const override
   {
     return T_Unknown;
   }
@@ -98,10 +100,10 @@ public:
   CArray data;
 
   T_Data_Broadcast_PDU () = default;
-  bool init (const CArray & c, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr tr);
-  TPDU_Type getType () const
+  virtual bool init (const CArray & c, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual TPDU_Type getType () const override
   {
     return T_Data_Broadcast;
   }
@@ -114,10 +116,10 @@ public:
   CArray data;
 
   T_Data_SystemBroadcast_PDU () = default;
-  bool init (const CArray & c, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr tr);
-  TPDU_Type getType () const
+  virtual bool init (const CArray & c, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual TPDU_Type getType () const override
   {
     return T_Data_SystemBroadcast;
   }
@@ -130,10 +132,10 @@ public:
   CArray data;
 
   T_Data_Group_PDU () = default;
-  bool init (const CArray & c, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr tr);
-  TPDU_Type getType () const
+  virtual bool init (const CArray & c, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual TPDU_Type getType () const override
   {
     return T_Data_Group;
   }
@@ -146,10 +148,10 @@ public:
   CArray data;
 
   T_Data_Tag_Group_PDU () = default;
-  bool init (const CArray & c, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr tr);
-  TPDU_Type getType () const
+  virtual bool init (const CArray & c, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual TPDU_Type getType () const override
   {
     return T_Data_Tag_Group;
   }
@@ -162,10 +164,10 @@ public:
   CArray data;
 
   T_Data_Individual_PDU () = default;
-  bool init (const CArray & c, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr tr);
-  TPDU_Type getType () const
+  virtual bool init (const CArray & c, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual TPDU_Type getType () const override
   {
     return T_Data_Individual;
   }
@@ -179,10 +181,10 @@ public:
   CArray data;
 
   T_Data_Connected_PDU () = default;
-  bool init (const CArray & c, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr tr);
-  TPDU_Type getType () const
+  virtual bool init (const CArray & c, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual TPDU_Type getType () const override
   {
     return T_Data_Connected;
   }
@@ -192,12 +194,11 @@ public:
 class T_Connect_PDU:public TPDU
 {
 public:
-
   T_Connect_PDU () = default;
-  bool init (const CArray & c, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr tr);
-  TPDU_Type getType () const
+  virtual bool init (const CArray & c, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual TPDU_Type getType () const override
   {
     return T_Connect;
   }
@@ -209,10 +210,10 @@ class T_Disconnect_PDU:public TPDU
 public:
 
   T_Disconnect_PDU () = default;
-  bool init (const CArray & c, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr tr);
-  TPDU_Type getType () const
+  virtual bool init (const CArray & c, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual TPDU_Type getType () const override
   {
     return T_Disconnect;
   }
@@ -225,10 +226,10 @@ public:
   uint8_t sequence_number = 0;
 
   T_ACK_PDU () = default;
-  bool init (const CArray & c, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr tr);
-  TPDU_Type getType () const
+  virtual bool init (const CArray & c, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual TPDU_Type getType () const override
   {
     return T_ACK;
   }
@@ -241,10 +242,10 @@ public:
   uint8_t sequence_number = 0;
 
   T_NAK_PDU () = default;
-  bool init (const CArray & c, TracePtr tr);
-  CArray ToPacket ();
-  std::string Decode (TracePtr tr);
-  TPDU_Type getType () const
+  virtual bool init (const CArray & c, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual TPDU_Type getType () const override
   {
     return T_NAK;
   }

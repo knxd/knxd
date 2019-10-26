@@ -35,20 +35,9 @@
 /** implements busmonitor functions for a client */
 class A_Busmonitor:public L_Busmonitor_CallBack, public A__Base
 {
-  /** is virtual busmonitor */
-  bool v;
-  /** should provide timestamps */
-  bool ts;
-  /** registered? */
-  bool running = false;
-
-protected:
-  /** Layer 3 Interface*/
-  Router& router;
-  /** debug output */
-  TracePtr t;
 public:
-  /** initializes busmonitor
+  /**
+   * initializes busmonitor
    * @param c client connection
    * @param tr debug output
    * @param l3 Layer 3
@@ -58,27 +47,42 @@ public:
   A_Busmonitor (ClientConnPtr c,
                 bool virt, bool ts);
   virtual ~A_Busmonitor ();
-  bool setup(uint8_t *buf,size_t len);
-  void start();
-  void stop();
+  virtual bool setup(uint8_t *buf,size_t len) override;
+  virtual void start() override;
+  virtual void stop() override;
 
   void send_L_Busmonitor (LBusmonPtr l);
   // dummy method
-  void recv_Data(uint8_t *buf UNUSED, size_t len UNUSED) {}
+  virtual void recv_Data(uint8_t *, size_t) override {}
+
+protected:
+  /** Layer 3 Interface*/
+  Router& router;
+  /** debug output */
+  TracePtr t;
+
+private:
+  /** is virtual busmonitor */
+  bool v;
+  /** should provide timestamps */
+  bool ts;
+  /** registered? */
+  bool running = false;
 };
 
 /** implements text busmonitor functions for a client */
 class A_Text_Busmonitor:public A_Busmonitor
 {
 public:
-  /** initializes busmonitor
+  /**
+   * initializes busmonitor
    * @param c client connection
    * @param tr debug output
    * @param l3 Layer 3
    * @param virt is virtual busmonitor
    */
   A_Text_Busmonitor (ClientConnPtr c, bool virt)
-                   : A_Busmonitor (c, virt, false)
+    : A_Busmonitor (c, virt, false)
   {
     t->setAuxName("TBusMon");
   }

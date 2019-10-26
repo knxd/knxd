@@ -66,7 +66,7 @@ FormatEIBKey (eibkey_type key)
 }
 
 void
-addHex (std::string & s, const uchar c)
+addHex (std::string & s, const uint8_t c)
 {
   char buf[4];
   sprintf (buf, "%02X ", c);

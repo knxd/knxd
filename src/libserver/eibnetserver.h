@@ -61,17 +61,20 @@ public:
   EIBnetServer *parent;
 
   eibaddr_t addr;
-  uchar channel;
-  uchar sno;
-  uchar rno;
+  uint8_t channel;
+  uint8_t sno;
+  uint8_t rno;
   int retries;
   ConnType type = CT_NONE;
   int no;
   bool nat;
 
-  ev::timer timeout; void timeout_cb(ev::timer &w, int revents);
-  ev::timer sendtimeout; void sendtimeout_cb(ev::timer &w, int revents);
-  ev::async send_trigger; void send_trigger_cb(ev::async &w, int revents);
+  ev::timer timeout;
+  void timeout_cb(ev::timer &w, int revents);
+  ev::timer sendtimeout;
+  void sendtimeout_cb(ev::timer &w, int revents);
+  ev::async send_trigger;
+  void send_trigger_cb(ev::async &w, int revents);
   bool do_send_next = false;
   Queue < CArray > out;
   void reset_timer();
@@ -94,12 +97,6 @@ using ConnStatePtr = std::shared_ptr<ConnState>;
 /** Driver for routing */
 class EIBnetDriver : public SubDriver
 {
-  EIBNetIPSocket *sock; // receive only
-
-  void recv_cb(EIBNetIPPacket *p);
-  EIBPacketCallback on_recv;
-  void error_cb();
-
 public:
   EIBnetDriver (LinkConnectClientPtr c, std::string& multicastaddr, int port, std::string& intf);
   virtual ~EIBnetDriver ();
@@ -112,6 +109,13 @@ public:
   void Send (EIBNetIPPacket p, struct sockaddr_in addr);
 
   void send_L_Data (LDataPtr l);
+
+private:
+  EIBNetIPSocket *sock; // receive only
+
+  void recv_cb(EIBNetIPPacket *p);
+  EIBPacketCallback on_recv;
+  void error_cb();
 };
 
 using EIBnetDriverPtr = std::shared_ptr<EIBnetDriver>;
@@ -121,6 +125,39 @@ SERVER(EIBnetServer,ets_router)
   friend class ConnState;
   friend class EIBnetDriver;
 
+public:
+  EIBnetServer (BaseRouter& r, IniSectionPtr& s);
+  virtual ~EIBnetServer ();
+  bool setup ();
+  void start();
+  void stop();
+
+  void handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock);
+
+  void drop_connection (ConnStatePtr s);
+  ev::async drop_trigger;
+  void drop_trigger_cb(ev::async &w, int revents);
+
+  inline void Send (EIBNetIPPacket p)
+  {
+    Send (p, mcast->maddr);
+  }
+  inline void Send (EIBNetIPPacket p, struct sockaddr_in addr)
+  {
+    if (sock)
+      sock->Send (p, addr);
+  }
+
+  bool checkAddress(eibaddr_t)
+  {
+    return route;
+  }
+  bool checkGroupAddress(eibaddr_t)
+  {
+    return route;
+  }
+
+private:
   EIBnetDriverPtr mcast;   // used for multicast receiving
   EIBNetIPSocket *sock;  // used for normal dialog
 
@@ -150,28 +187,6 @@ SERVER(EIBnetServer,ets_router)
   void error_cb();
 
   void stop_();
-public:
-  EIBnetServer (BaseRouter& r, IniSectionPtr& s);
-  virtual ~EIBnetServer ();
-  bool setup ();
-  void start();
-  void stop();
-
-  void handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock);
-
-  void drop_connection (ConnStatePtr s);
-  ev::async drop_trigger; void drop_trigger_cb(ev::async &w, int revents);
-
-  inline void Send (EIBNetIPPacket p) {
-    Send (p, mcast->maddr);
-  }
-  inline void Send (EIBNetIPPacket p, struct sockaddr_in addr) {
-    if (sock)
-      sock->Send (p, addr);
-  }
-
-  bool checkAddress(eibaddr_t addr UNUSED) { return route; }
-  bool checkGroupAddress(eibaddr_t addr UNUSED) { return route; }
 };
 
 using EIBnetServerPtr = std::shared_ptr<EIBnetServer>;

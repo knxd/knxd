@@ -37,26 +37,14 @@ using ClientConnPtr = std::shared_ptr<ClientConnection>;
 class NetServer: public Server
 {
   friend class ClientConnection;
-protected:
-  NetServer (BaseRouter& l3, IniSectionPtr& s);
+
 public:
   virtual ~NetServer ();
   bool ignore_when_systemd = false;
 
-private:
-  ev::io io; void io_cb (ev::io &w, int revents);
-
-  /** open client connections*/
-  std::vector < ClientConnPtr > connections;
-
-  ev::async cleanup;
-  void cleanup_cb (ev::async &w, int revents);
-
-  /** to-be-closed client connections*/
-  Queue < ClientConnPtr > cleanup_q;
-  void stop_();
-
 protected:
+  NetServer (BaseRouter& l3, IniSectionPtr& s);
+
   /** server socket */
   int fd;
 
@@ -68,6 +56,20 @@ protected:
 
   /** deregister client connection */
   void deregister (ClientConnPtr con);
+
+private:
+  ev::io io;
+  void io_cb (ev::io &w, int revents);
+
+  /** open client connections*/
+  std::vector < ClientConnPtr > connections;
+
+  ev::async cleanup;
+  void cleanup_cb (ev::async &w, int revents);
+
+  /** to-be-closed client connections*/
+  Queue < ClientConnPtr > cleanup_q;
+  void stop_();
 };
 
 using NetServerPtr = std::shared_ptr<NetServer>;

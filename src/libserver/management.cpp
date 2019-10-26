@@ -84,7 +84,7 @@ Management_Connection::X_PropertyScan (std::vector < PropertyInfo > &p)
 {
   p.resize (0);
   PropertyInfo p1;
-  uchar obj, i;
+  uint8_t obj, i;
   obj = 0;
   do
     {

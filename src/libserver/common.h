@@ -64,12 +64,15 @@ typedef enum
 
 #include "queue.h"
 
-/** add c to s as hex value
+/**
+ * add c to s as hex value
  * @param s string
  * @param c byte
  */
-void addHex (std::string & s, const uchar c);
-/** add c to s as hex value
+void addHex (std::string & s, const uint8_t c);
+
+/**
+ * add c to s as hex value
  * @param s string
  * @param c 16 bit int
  */
@@ -79,13 +82,13 @@ void add16Hex (std::string & s, const uint16_t c);
 timestamp_t getTime ();
 
 /** formats an EIB individual address */
-std::string FormatEIBAddr (eibaddr_t a);
+std::string FormatEIBAddr (const eibaddr_t a);
 /** formats an EIB group address */
-std::string FormatGroupAddr (eibaddr_t a);
+std::string FormatGroupAddr (const eibaddr_t a);
 /** formats an EIB domain address */
-std::string FormatDomainAddr (domainaddr_t addr);
+std::string FormatDomainAddr (const domainaddr_t addr);
 /** formats an EIB key */
-std::string FormatEIBKey (eibkey_type addr);
+std::string FormatEIBKey (const eibkey_type addr);
 
 #include "trace.h"
 

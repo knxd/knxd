@@ -142,9 +142,8 @@ using FilterPtr = std::shared_ptr<Filter>;
 class Server;
 using ServerPtr = std::shared_ptr<Server>;
 
-class BaseRouter {
-protected: // can't instantiate this class directly
-  BaseRouter(IniData &i) : ini(i) {}
+class BaseRouter
+{
 public:
   virtual ~BaseRouter() = default;
   /** debug output */
@@ -154,29 +153,38 @@ public:
 
   /** our configuration data */
   IniData &ini;
+
+protected: // can't instantiate this class directly
+  BaseRouter(IniData &i) : ini(i) {}
 };
 
-
 template<class T, class I>
-struct Maker {
+struct Maker
+{
   typedef typename I::first_arg I_first;
   static I* create(const I_first &c, IniSectionPtr& s)
-    {
-      return new T(c,s);
-    }
+  {
+    return new T(c,s);
+  }
 };
 
 template<class I>
-class Factory {
+class Factory
+{
 public:
   typedef typename I::first_arg I_first;
   typedef I* (*Creator)(const I_first &c, IniSectionPtr& s);
   typedef std::unordered_map<std::string, Creator> M;
-  static M& map() { static M m; return m;}
+  static M& map()
+  {
+    static M m;
+    return m;
+  }
 
-  static Factory& Instance() {
-      static Factory<I> f;
-      return f;
+  static Factory& Instance()
+  {
+    static Factory<I> f;
+    return f;
   };
 
   template<class T>
@@ -187,7 +195,8 @@ public:
   }
 
   I *
-  create(const std::string& id, const I_first& c, IniSectionPtr& s) {
+  create(const std::string& id, const I_first& c, IniSectionPtr& s)
+  {
     typename M::iterator i = map().find(id);
     if (i == map().end())
       return nullptr;
@@ -213,16 +222,19 @@ struct RegisterClass
 template <class T, class I, const char * N>
 struct AutoRegister
 {
-  AutoRegister() { auto foo UNUSED = (volatile void *) &ourRegisterer; }
-private:
+  AutoRegister()
+  {
+    auto foo = (volatile void *) &ourRegisterer;
+  }
+private: // @todo private in a struct?
   static RegisterClass<T, I, N> ourRegisterer;
 };
 
 template <class T, class I, const char * N>
 RegisterClass<T,I,N> AutoRegister<T,I,N>::ourRegisterer;
 
-
-/** The start of the object hierarchy is something that can send
+/**
+ * The start of the object hierarchy is something that can send
  * packets, which implies checking whether a packet _can_ be sent.
  */
 class LinkBase : public std::enable_shared_from_this<LinkBase>
@@ -230,11 +242,7 @@ class LinkBase : public std::enable_shared_from_this<LinkBase>
 public:
   LinkBase(BaseRouter &r, IniSectionPtr& s, TracePtr tr);
   virtual ~LinkBase() = default;
-private:
-  /* DEBUG: Flag to make sure that the call sequence is observed */
-  bool setup_called = false;
-  //volatile char *setup_foo; // see setup()
-public:
+
   /** config data */
   IniSectionPtr cfg;
 
@@ -242,7 +250,10 @@ public:
   TracePtr t;
 
   /** This thing's name; drivers/filters override this with their "real" name */
-  virtual const std::string& name() { return cfg->name; }
+  virtual const std::string& name()
+  {
+    return cfg->name;
+  }
   /** dump info about me */
   virtual std::string info(int verbose = 0); // debugging
 
@@ -251,28 +262,32 @@ public:
 
   /** Parse configuration; return False if anything's wrong */
   virtual bool setup()
-    {
+  {
 #if 0
-      // Use this code if you want to (ab)use valgrind for tracking which
-      // code path called setup the first time.
-      if (setup_called)
-        { // make sure that this doesn't break anything
-          char x = *setup_foo;
-          *setup_foo = 1;
-          *setup_foo = x;
-        }
-      else
-        {
-          setup_foo = (char *)malloc(1);
-          free((void *)setup_foo);
-        }
+    // Use this code if you want to (ab)use valgrind for tracking which
+    // code path called setup the first time.
+    if (setup_called)
+      {
+        // make sure that this doesn't break anything
+        char x = *setup_foo;
+        *setup_foo = 1;
+        *setup_foo = x;
+      }
+    else
+      {
+        setup_foo = (char *)malloc(1);
+        free((void *)setup_foo);
+      }
 #endif
-      assert (!setup_called);
-      setup_called = true;
-      return true;
-    }
+    assert (!setup_called);
+    setup_called = true;
+    return true;
+  }
   /** Start up. Ultimately calls started() or stopped() */
-  virtual void start() { assert(setup_called); }
+  virtual void start()
+  {
+    assert(setup_called);
+  }
   /** Shut down. Ultimately calls stopped() */
   virtual void stop() {}
 
@@ -293,11 +308,19 @@ public:
   virtual bool checkGroupAddress (eibaddr_t addr) = 0;
 
   /* link() calls _link() which calls _link_(). See there. */
-  virtual bool _link(LinkRecvPtr prev UNUSED) { return false; }
+  virtual bool _link(LinkRecvPtr)
+  {
+    return false;
+  }
+
+private:
+  /* DEBUG: Flag to make sure that the call sequence is observed */
+  bool setup_called = false;
+  //volatile char *setup_foo; // see setup()
 };
 
-
-/** The next level is something that can accept packets, i.e. everything
+/**
+ * The next level is something that can accept packets, i.e. everything
  * that's not a driver (which gets them from somewhere outside of knxd).
  * This implies code that we accept packets from,
  * which presumably is the same code we send them to. So we do.
@@ -306,9 +329,9 @@ class LinkRecv : public LinkBase
 {
 public:
   LinkRecv(BaseRouter &r, IniSectionPtr& c, TracePtr tr) : LinkBase(r,c,tr)
-    {
-      t->setAuxName("Recv");
-    }
+  {
+    t->setAuxName("Recv");
+  }
   virtual ~LinkRecv() = default;
   /** Arriving data packet */
   virtual void recv_L_Data (LDataPtr l) = 0;
@@ -323,22 +346,31 @@ public:
   virtual bool checkSysGroupAddress(eibaddr_t addr) = 0;
 
   /** Call for drivers to find a filter, if it exists */
-  virtual FilterPtr findFilter(std::string name UNUSED, bool skip_me UNUSED = false) { return nullptr; }
+  virtual FilterPtr findFilter(std::string name, bool skip_me = false)
+  {
+    return nullptr;
+  }
 
   /** The thing to send data to. */
   LinkBasePtr send = nullptr;
   /** The code to send data onwards. */
-  virtual void send_L_Data (LDataPtr l) { send->send_L_Data(std::move(l)); }
+  virtual void send_L_Data (LDataPtr l)
+  {
+    send->send_L_Data(std::move(l));
+  }
 
   /** Attach the next (i.e. sending) link to me */
   virtual bool link(LinkBasePtr next);
-  void _link_(LinkBasePtr next) { send = next; }
+  void _link_(LinkBasePtr next)
+  {
+    send = next;
+  }
   /** remove this object from the chain */
   virtual void unlink() = 0;
 };
 
-
-/** This is the base class for LinkConnect, the bottom node of a filter stack.
+/**
+ * This is the base class for LinkConnect, the bottom node of a filter stack.
  * This class separates the parts that are used in the global filter chain.
  */
 class LinkConnect_ : public LinkRecv
@@ -349,32 +381,47 @@ public:
 
   BaseRouter& router;
 
-private:
-  DriverPtr driver;
-public:
   virtual bool setup();
   virtual void start();
   virtual void stop();
 
   /** Link up a driver. Can't be in ctor because of the shared pointer. */
   void set_driver(DriverPtr d)
-    {
-      driver = d;
-      link(std::dynamic_pointer_cast<LinkBase>(d));
-    }
+  {
+    driver = d;
+    link(std::dynamic_pointer_cast<LinkBase>(d));
+  }
 
   /** You can't unlink the root of the chain … */
-  virtual void unlink() { assert(false); }
+  virtual void unlink()
+  {
+    assert(false);
+  }
 
-  virtual bool checkAddress (eibaddr_t addr) { return send->checkAddress(addr); }
-  virtual bool checkGroupAddress (eibaddr_t addr) { return send->checkGroupAddress(addr); }
-  virtual bool hasAddress (eibaddr_t addr) { return send->hasAddress(addr); }
-  virtual void addAddress (eibaddr_t addr) { send->addAddress(addr); }
+  virtual bool checkAddress (eibaddr_t addr)
+  {
+    return send->checkAddress(addr);
+  }
+  virtual bool checkGroupAddress (eibaddr_t addr)
+  {
+    return send->checkGroupAddress(addr);
+  }
+  virtual bool hasAddress (eibaddr_t addr)
+  {
+    return send->hasAddress(addr);
+  }
+  virtual void addAddress (eibaddr_t addr)
+  {
+    send->addAddress(addr);
+  }
   virtual bool checkSysAddress(eibaddr_t addr);
   virtual bool checkSysGroupAddress(eibaddr_t addr);
+
+private:
+  DriverPtr driver;
 };
 
-/** The link connection state tells what the link's state is.
+/* The link connection state tells what the link's state is.
 
   down => going_up => up => going_down => down     _ L_error
              |        |          |                /  (if no (more) retry)
@@ -401,12 +448,12 @@ enum LRouterState
   R_up,
 };
 
-/** A LinkConnect is something which the router knows about.
+/**
+ * A LinkConnect is something which the router knows about.
  * For non-servers, it holds a pointer to the driver and to the bottom of
  * the filter stack.
  * This contains the parts useable on a per-link filter chain.
  */
-
 class LinkConnect : public LinkConnect_
 {
 public:
@@ -447,18 +494,13 @@ public:
   int retries = 0;
   int max_retries = 0;
 
-private:
-  ev::timer retry_timer;
-  void retry_timer_cb(ev::timer &w, int revents);
-
-  bool addr_local = true;
-
-public:
   bool send_more = true;
   virtual void send_L_Data (LDataPtr l);
 
-  /** This is responsible for setting up the filters. Don't call it twice!
-   * Precondition: set_driver() has been called. */
+  /**
+   * This is responsible for setting up the filters. Don't call it twice!
+   * Precondition: set_driver() has been called.
+   */
   virtual bool setup();
 
   /* These just control the state machine */
@@ -476,21 +518,31 @@ public:
   virtual bool checkSysAddress(eibaddr_t addr);
   virtual bool checkSysGroupAddress(eibaddr_t addr);
   virtual void send_Next ();
+
+private:
+  ev::timer retry_timer;
+  void retry_timer_cb(ev::timer &w, int revents);
+
+  bool addr_local = true;
 };
 
 /** connection for a server's client */
 class LinkConnectClient : public LinkConnect
 {
-  /** Some unique identifier */
-  std::string linkname;
-
 public:
   ServerPtr server;
 
   LinkConnectClient(ServerPtr s, IniSectionPtr& c, TracePtr tr);
   virtual ~LinkConnectClient() = default;
 
-  virtual const std::string& name() { return linkname; }
+  virtual const std::string& name()
+  {
+    return linkname;
+  }
+
+private:
+  /** Some unique identifier */
+  std::string linkname;
 };
 
 /** connection for a server's client with a single address */
@@ -498,14 +550,20 @@ class LinkConnectSingle : public LinkConnectClient
 {
 public:
   LinkConnectSingle(ServerPtr s, IniSectionPtr& c, TracePtr tr) : LinkConnectClient(s,c,tr)
-    {
-      t->setAuxName("ConnS");
-    }
+  {
+    t->setAuxName("ConnS");
+  }
   virtual ~LinkConnectSingle() = default;
 
   virtual bool setup();
-  virtual bool hasAddress (eibaddr_t addr) { return addr == this->addr; }
-  virtual void addAddress (eibaddr_t addr) { assert (addr == 0 || addr == this->addr); }
+  virtual bool hasAddress (eibaddr_t addr)
+  {
+    return addr == this->addr;
+  }
+  virtual void addAddress (eibaddr_t addr)
+  {
+    assert (addr == 0 || addr == this->addr);
+  }
 };
 
 #define DSERVER(_cls,_name) \
@@ -525,8 +583,8 @@ class _cls; \
 static AutoRegister<_cls,Server,_cls##_name> _auto_S##_name; \
 class _cls : public _base
 
-
-/** A server is a LinkConnect which doesn't itself send packets.
+/**
+ * A server is a LinkConnect which doesn't itself send packets.
  * Instead it creates other LinkConnect objects on demand, when a client
  * connects to it.
  */
@@ -535,24 +593,41 @@ class Server : public LinkConnect
 public:
   typedef BaseRouter& first_arg;
   Server(BaseRouter& r, IniSectionPtr& c) : LinkConnect(r,c,r.t)
-    {
-      t->setAuxName("Server");
-    }
+  {
+    t->setAuxName("Server");
+  }
   virtual ~Server() = default;
 
   /** Server::setup() does NOT call LinkConnect::setup() because there is no driver here. */
   virtual bool setup();
-  virtual void start() { started(); }
-  virtual void stop() { stopped(); }
+  virtual void start()
+  {
+    started();
+  }
+  virtual void stop()
+  {
+    stopped();
+  }
 
   /** Servers don't accept data */
-  virtual void send_L_Data (LDataPtr l UNUSED) {}
-  virtual bool hasAddress (eibaddr_t addr UNUSED) { return false; }
-  virtual void addAddress (eibaddr_t addr) { ERRORPRINTF(t,E_ERROR | 65,"Tried to add address %s to %s", FormatEIBAddr(addr), cfg->name); }
-  virtual bool checkAddress (eibaddr_t addr UNUSED) { return false; }
-  virtual bool checkGroupAddress (eibaddr_t addr UNUSED) { return false; }
+  virtual void send_L_Data (LDataPtr) {}
+  virtual bool hasAddress (eibaddr_t)
+  {
+    return false;
+  }
+  virtual void addAddress (eibaddr_t addr)
+  {
+    ERRORPRINTF(t,E_ERROR | 65,"Tried to add address %s to %s", FormatEIBAddr(addr), cfg->name);
+  }
+  virtual bool checkAddress (eibaddr_t)
+  {
+    return false;
+  }
+  virtual bool checkGroupAddress (eibaddr_t)
+  {
+    return false;
+  }
 };
-
 
 #define DFILTER(_cls,_name) \
 class _cls : public Filter
@@ -571,23 +646,20 @@ class _cls; \
 static AutoRegister<_cls,Filter,_cls##_name> _auto_F##_name; \
 class _cls : public _base
 
-/** filters are inserted between a link's LinkConnect object and the actual
- * driver. They may modify, log, … the data flowing through them. */
+/**
+ * filters are inserted between a link's LinkConnect object and the actual
+ * driver. They may modify, log, … the data flowing through them.
+ */
 class Filter : public LinkRecv
 {
   friend class LinkConnect;
+
 public:
   typedef LinkConnectPtr_ first_arg;
 
   Filter(const LinkConnectPtr_& c, IniSectionPtr& s);
   virtual ~Filter() = default;
 
-protected:
-  /** Link to the receiver */
-  std::weak_ptr<LinkRecv> recv;
-  /** Link to the LinkConnect object holding the stack this filter is in */
-  std::weak_ptr<LinkConnect_> conn;
-public:
   virtual void recv_L_Data (LDataPtr l); // recv->recv_L_Data(std::move(l));
   virtual void recv_L_Busmonitor (LBusmonPtr l); // recv->recv_L_Busmonitor(std::move(l));
   virtual bool checkSysAddress(eibaddr_t addr);
@@ -601,37 +673,63 @@ public:
   virtual const std::string& name();
 
   bool _link(LinkRecvPtr prev)
-    {
-      if (prev == nullptr)
-        return false;
-      prev->_link_(shared_from_this());
-      recv = prev;
-      return true;
-    }
+  {
+    if (prev == nullptr)
+      return false;
+    prev->_link_(shared_from_this());
+    recv = prev;
+    return true;
+  }
 
   /** Remove this filter from the link chain */
   void unlink()
-    {
-      auto r = recv.lock();
-      if (r != nullptr)
-        {
-          if (send != nullptr)
-            send->_link(r);
-          r->_link_(send);
-        }
-      send.reset();
-      recv.reset();
-    }
+  {
+    auto r = recv.lock();
+    if (r != nullptr)
+      {
+        if (send != nullptr)
+          send->_link(r);
+        r->_link_(send);
+      }
+    send.reset();
+    recv.reset();
+  }
 
-  virtual void start() { if (send == nullptr) stopped(); else send->start(); }
-  virtual void stop() { if (send == nullptr) stopped(); else send->stop(); }
+  virtual void start()
+  {
+    if (send == nullptr) stopped();
+    else send->start();
+  }
+  virtual void stop()
+  {
+    if (send == nullptr) stopped();
+    else send->stop();
+  }
 
-  virtual bool hasAddress (eibaddr_t addr) { return send->hasAddress(addr); }
-  virtual void addAddress (eibaddr_t addr) { return send->addAddress(addr); }
-  virtual bool checkAddress (eibaddr_t addr) { return send->checkAddress(addr); }
-  virtual bool checkGroupAddress (eibaddr_t addr) { return send->checkGroupAddress(addr); }
+  virtual bool hasAddress (eibaddr_t addr)
+  {
+    return send->hasAddress(addr);
+  }
+  virtual void addAddress (eibaddr_t addr)
+  {
+    return send->addAddress(addr);
+  }
+  virtual bool checkAddress (eibaddr_t addr)
+  {
+    return send->checkAddress(addr);
+  }
+  virtual bool checkGroupAddress (eibaddr_t addr)
+  {
+    return send->checkGroupAddress(addr);
+  }
 
   virtual FilterPtr findFilter(std::string name, bool skip_me = false);
+
+protected:
+  /** Link to the receiver */
+  std::weak_ptr<LinkRecv> recv;
+  /** Link to the LinkConnect object holding the stack this filter is in */
+  std::weak_ptr<LinkConnect_> conn;
 };
 
 #define DDRIVER(_cls,_name) \
@@ -654,22 +752,20 @@ class _cls : public _base
 class Driver : public LinkBase
 {
   friend class LinkConnect;
+
 public:
   typedef LinkConnectPtr_ first_arg;
   /** Returns the driver's name, i.e. the config's driver= value */
   virtual const std::string& name();
 
   Driver(const LinkConnectPtr_& c, IniSectionPtr& s) : LinkBase(c->router, s, c->t)
-    {
-      conn = c;
-      t->setAuxName("Driver");
-    }
+  {
+    conn = c;
+    t->setAuxName("Driver");
+  }
   virtual ~Driver() = default;
   std::weak_ptr<LinkConnect_> conn;
 
-protected:
-  std::weak_ptr<LinkRecv> recv;
-public:
   virtual void recv_L_Data (LDataPtr l);
   virtual void recv_L_Busmonitor (LBusmonPtr l);
   virtual bool checkSysAddress(eibaddr_t addr);
@@ -679,51 +775,81 @@ public:
   virtual void stopped();
   virtual void errored();
 
-public:
   virtual void send_L_Data(LDataPtr l) = 0;
-  virtual void start() { started(); }
-  virtual void stop() { stopped(); }
+  virtual void start()
+  {
+    started();
+  }
+  virtual void stop()
+  {
+    stopped();
+  }
 
   virtual bool _link(LinkRecvPtr prev)
-    {
-      if (prev == nullptr)
-        return false;
-      prev->_link_(shared_from_this());
-      recv = prev;
-      return true;
-    }
+  {
+    if (prev == nullptr)
+      return false;
+    prev->_link_(shared_from_this());
+    recv = prev;
+    return true;
+  }
   /** This is the end of the link, so nothing to link to! */
-  virtual bool link(LinkBasePtr next UNUSED) { return false; }
-  virtual void _link_(LinkBasePtr next UNUSED) { assert(false); }
+  virtual bool link(LinkBasePtr)
+  {
+    return false;
+  }
+  virtual void _link_(LinkBasePtr)
+  {
+  }
 
-  /** Add a filter just below this driver.
+  /**
+   * Add a filter just below this driver.
    * The caller is responsible for calling .setup()!
-   * Don't call after being started! */
+   * Don't call after being started!
+   */
   virtual bool push_filter(FilterPtr filter, bool first = false);
 
-  /** Find a filter below me.
-   * This checks the filter= value, not the section. */
+  /**
+   * Find a filter below me.
+   * This checks the filter= value, not the section.
+   */
   virtual FilterPtr findFilter(std::string name, bool skip_me = false);
 
   bool assureFilter(std::string name, bool first = false);
+
+protected:
+  std::weak_ptr<LinkRecv> recv;
 };
 
 class BusDriver : public Driver
 {
-  std::vector<bool> addrs;
-
 public:
   BusDriver(const LinkConnectPtr_& c, IniSectionPtr& s) : Driver(c,s)
-    {
-      addrs.resize(65536);
-      t->setAuxName("BusDriver");
-    }
+  {
+    addrs.resize(65536);
+    t->setAuxName("BusDriver");
+  }
   virtual ~BusDriver() = default;
 
-  virtual bool hasAddress(eibaddr_t addr) { return addrs[addr]; }
-  virtual void addAddress(eibaddr_t addr) { addrs[addr] = true; }
-  virtual bool checkAddress (eibaddr_t addr UNUSED) { return true; }
-  virtual bool checkGroupAddress (eibaddr_t addr UNUSED) { return true; }
+  virtual bool hasAddress(eibaddr_t addr)
+  {
+    return addrs[addr];
+  }
+  virtual void addAddress(eibaddr_t addr)
+  {
+    addrs[addr] = true;
+  }
+  virtual bool checkAddress (eibaddr_t)
+  {
+    return true;
+  }
+  virtual bool checkGroupAddress (eibaddr_t)
+  {
+    return true;
+  }
+
+private:
+  std::vector<bool> addrs;
 };
 
 /** Base class for server-linked drivers with busses behind them */
@@ -744,20 +870,32 @@ public:
   virtual ~LineDriver() = default;
 
   virtual bool setup(); // assigns the address
-private:
-  eibaddr_t _addr; // cached copy of conn->addr
-public:
-  eibaddr_t getAddress() { return _addr; }
+  eibaddr_t getAddress()
+  {
+    return _addr;
+  }
 
 protected:
-  virtual bool hasAddress(eibaddr_t addr) { return addr == this->_addr; }
+  virtual bool hasAddress(eibaddr_t addr)
+  {
+    return addr == this->_addr;
+  }
   virtual void addAddress(eibaddr_t addr)
-    {
-      if (addr != this->_addr)
-        ERRORPRINTF(t,E_WARNING | 120,"%s: Addr mismatch: %s vs. %s", this->name(), FormatEIBAddr (addr), FormatEIBAddr (this->_addr));
-    }
-  virtual bool checkAddress(eibaddr_t addr) { return addr == this->_addr; }
-  virtual bool checkGroupAddress (eibaddr_t addr UNUSED) { return true; }
+  {
+    if (addr != this->_addr)
+      ERRORPRINTF(t,E_WARNING | 120,"%s: Addr mismatch: %s vs. %s", this->name(), FormatEIBAddr (addr), FormatEIBAddr (this->_addr));
+  }
+  virtual bool checkAddress(eibaddr_t addr)
+  {
+    return addr == this->_addr;
+  }
+  virtual bool checkGroupAddress (eibaddr_t)
+  {
+    return true;
+  }
+
+private:
+  eibaddr_t _addr; // cached copy of conn->addr
 };
 
 #include "driver_remap.h"

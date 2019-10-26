@@ -139,29 +139,28 @@ public:
   CArray pdu;
 
   A_Unknown_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_Unknown;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_GroupValue_Read_PDU:public APDU
 {
 public:
-
   A_GroupValue_Read_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_GroupValue_Read;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_GroupValue_Response_PDU:public APDU
@@ -170,17 +169,17 @@ public:
   CArray data;
 
   A_GroupValue_Response_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_GroupValue_Response;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 
 private:
-  bool issmall = 0;
+  bool issmall = false;
 };
 
 class A_GroupValue_Write_PDU:public APDU
@@ -189,17 +188,17 @@ public:
   CArray data;
 
   A_GroupValue_Write_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_GroupValue_Write;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 
 private:
-  bool issmall = 0;
+  bool issmall = false;
 };
 
 class A_IndividualAddress_Write_PDU:public APDU
@@ -208,14 +207,14 @@ public:
   eibaddr_t newaddress = 0;
 
   A_IndividualAddress_Write_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_IndividualAddress_Write;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_IndividualAddress_Read_PDU:public APDU
@@ -223,14 +222,14 @@ class A_IndividualAddress_Read_PDU:public APDU
 public:
 
   A_IndividualAddress_Read_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_IndividualAddress_Read;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_IndividualAddress_Response_PDU:public APDU
@@ -238,14 +237,14 @@ class A_IndividualAddress_Response_PDU:public APDU
 public:
 
   A_IndividualAddress_Response_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_IndividualAddress_Response;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_ADC_Read_PDU:public APDU
@@ -255,14 +254,14 @@ public:
   uint8_t read_count = 0;
 
   A_ADC_Read_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_ADC_Read;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_ADC_Response_PDU:public APDU
@@ -273,14 +272,14 @@ public:
   int16_t sum = 0;
 
   A_ADC_Response_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_ADC_Response;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_SystemNetworkParameter_Read_PDU:public APDU
@@ -289,14 +288,14 @@ public:
   // @todo
 
   A_SystemNetworkParameter_Read_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_SystemNetworkParameter_Read;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_SystemNetworkParameter_Response_PDU:public APDU
@@ -305,14 +304,14 @@ public:
   // @todo
 
   A_SystemNetworkParameter_Response_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_SystemNetworkParameter_Response;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_SystemNetworkParameter_Write_PDU:public APDU
@@ -321,15 +320,18 @@ public:
   // @todo
 
   A_SystemNetworkParameter_Write_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_SystemNetworkParameter_Write;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
+
+/** memory address type */
+using memaddr_t = uint16_t;
 
 class A_Memory_Read_PDU:public APDU
 {
@@ -338,14 +340,14 @@ public:
   memaddr_t address = 0;
 
   A_Memory_Read_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_Memory_Read;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_Memory_Response_PDU:public APDU
@@ -356,14 +358,14 @@ public:
   CArray data;
 
   A_Memory_Response_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_Memory_Response;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_Memory_Write_PDU:public APDU
@@ -374,14 +376,14 @@ public:
   CArray data;
 
   A_Memory_Write_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_Memory_Write;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_UserMemory_Read_PDU:public APDU
@@ -392,14 +394,14 @@ public:
   memaddr_t address = 0;
 
   A_UserMemory_Read_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_UserMemory_Read;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_UserMemory_Response_PDU:public APDU
@@ -411,14 +413,14 @@ public:
   CArray data;
 
   A_UserMemory_Response_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_UserMemory_Response;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_UserMemory_Write_PDU:public APDU
@@ -430,14 +432,14 @@ public:
   CArray data;
 
   A_UserMemory_Write_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_UserMemory_Write;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_UserMemoryBit_Write_PDU:public APDU
@@ -449,14 +451,14 @@ public:
   CArray xor_data;
 
   A_UserMemoryBit_Write_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_UserMemoryBit_Write;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_UserManufacturerInfo_Read_PDU:public APDU
@@ -464,14 +466,14 @@ class A_UserManufacturerInfo_Read_PDU:public APDU
 public:
 
   A_UserManufacturerInfo_Read_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_UserManufacturerInfo_Read;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_UserManufacturerInfo_Response_PDU:public APDU
@@ -481,14 +483,14 @@ public:
   uint16_t manufacturer_data = 0;
 
   A_UserManufacturerInfo_Response_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_UserManufacturerInfo_Response;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_FunctionPropertyCommand_PDU:public APDU
@@ -499,14 +501,14 @@ public:
   CArray data;
 
   A_FunctionPropertyCommand_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_FunctionPropertyCommand;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_FunctionPropertyState_Read_PDU:public APDU
@@ -517,14 +519,14 @@ public:
   CArray data;
 
   A_FunctionPropertyState_Read_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_FunctionPropertyState_Read;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_FunctionPropertyState_Response_PDU:public APDU
@@ -536,14 +538,14 @@ public:
   CArray data;
 
   A_FunctionPropertyState_Response_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_FunctionPropertyState_Response;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_DeviceDescriptor_Read_PDU:public APDU
@@ -552,14 +554,14 @@ public:
   uint8_t descriptor_type = 0;
 
   A_DeviceDescriptor_Read_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_DeviceDescriptor_Read;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_DeviceDescriptor_Response_PDU:public APDU
@@ -569,14 +571,14 @@ public:
   uint16_t device_descriptor = 0;
 
   A_DeviceDescriptor_Response_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_DeviceDescriptor_Response;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 // @todo A_DeviceDescriptor_InfoReport
@@ -589,14 +591,14 @@ public:
   uint8_t channel_number = 0;
 
   A_Restart_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_Restart;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_Restart_Response_PDU:public APDU
@@ -607,14 +609,14 @@ public:
   uint16_t process_time = 0;
 
   A_Restart_Response_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_Restart;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_Open_Routing_Table_Request_PDU:public APDU
@@ -623,14 +625,14 @@ public:
   CArray data;
 
   A_Open_Routing_Table_Request_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_Open_Routing_Table_Request;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_Read_Routing_Table_Request_PDU:public APDU
@@ -639,14 +641,14 @@ public:
   CArray data;
 
   A_Read_Routing_Table_Request_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_Read_Routing_Table_Request;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_Read_Routing_Table_Response_PDU:public APDU
@@ -655,14 +657,14 @@ public:
   CArray data;
 
   A_Read_Routing_Table_Response_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_Read_Routing_Table_Response;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_Write_Routing_Table_Request_PDU:public APDU
@@ -671,14 +673,14 @@ public:
   CArray data;
 
   A_Write_Routing_Table_Request_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_Write_Routing_Table_Request;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_Read_Router_Memory_Request_PDU:public APDU
@@ -687,14 +689,14 @@ public:
   CArray data;
 
   A_Read_Router_Memory_Request_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_Read_Router_Memory_Request;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_Read_Router_Memory_Response_PDU:public APDU
@@ -703,14 +705,14 @@ public:
   CArray data;
 
   A_Read_Router_Memory_Response_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_Read_Router_Memory_Response;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_Write_Router_Memory_Request_PDU:public APDU
@@ -719,14 +721,14 @@ public:
   CArray data;
 
   A_Write_Router_Memory_Request_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_Write_Router_Memory_Request;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_Read_Router_Status_Request_PDU:public APDU
@@ -735,14 +737,14 @@ public:
   CArray data;
 
   A_Read_Router_Status_Request_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_Read_Router_Status_Request;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_Read_Router_Status_Response_PDU:public APDU
@@ -751,14 +753,14 @@ public:
   CArray data;
 
   A_Read_Router_Status_Response_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_Read_Router_Status_Response;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_Write_Router_Status_Request_PDU:public APDU
@@ -767,14 +769,14 @@ public:
   CArray data;
 
   A_Write_Router_Status_Request_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_Write_Router_Status_Request;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_MemoryBit_Write_PDU:public APDU
@@ -786,14 +788,14 @@ public:
   CArray xor_data;
 
   A_MemoryBit_Write_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_MemoryBit_Write;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_Authorize_Request_PDU:public APDU
@@ -802,14 +804,14 @@ public:
   eibkey_type key = 0;
 
   A_Authorize_Request_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_Authorize_Request;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_Authorize_Response_PDU:public APDU
@@ -818,14 +820,14 @@ public:
   uint8_t level = 0;
 
   A_Authorize_Response_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_Authorize_Response;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_Key_Write_PDU:public APDU
@@ -835,14 +837,14 @@ public:
   eibkey_type key = 0;
 
   A_Key_Write_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_Key_Write;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_Key_Response_PDU:public APDU
@@ -851,14 +853,14 @@ public:
   uint8_t level = 0;
 
   A_Key_Response_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_Key_Response;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_PropertyValue_Read_PDU:public APDU
@@ -870,14 +872,14 @@ public:
   uint16_t start_index = 0;
 
   A_PropertyValue_Read_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_PropertyValue_Read;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_PropertyValue_Response_PDU:public APDU
@@ -890,14 +892,14 @@ public:
   CArray data;
 
   A_PropertyValue_Response_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_PropertyValue_Response;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_PropertyValue_Write_PDU:public APDU
@@ -910,14 +912,14 @@ public:
   CArray data;
 
   A_PropertyValue_Write_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_PropertyValue_Write;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_PropertyDescription_Read_PDU:public APDU
@@ -928,14 +930,14 @@ public:
   uint8_t property_index = 0;
 
   A_PropertyDescription_Read_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_PropertyDescription_Read;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_PropertyDescription_Response_PDU:public APDU
@@ -950,14 +952,14 @@ public:
   uint8_t access = 0;
 
   A_PropertyDescription_Response_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_PropertyDescription_Read;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_NetworkParameter_Read_PDU:public APDU
@@ -967,14 +969,14 @@ public:
   CArray test_info;
 
   A_NetworkParameter_Read_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_NetworkParameter_Read;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_NetworkParameter_Response_PDU:public APDU
@@ -984,14 +986,14 @@ public:
   CArray test_info_result; // @todo unclear where test_info ends and test_result begins
 
   A_NetworkParameter_Response_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_NetworkParameter_Response;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 // @todo A_NetworkParameter_InfoReport_PDU
@@ -1002,14 +1004,14 @@ public:
   serialnumber_t serial_number;
 
   A_IndividualAddressSerialNumber_Read_PDU ();
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_IndividualAddressSerialNumber_Read;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_IndividualAddressSerialNumber_Response_PDU:public APDU
@@ -1020,14 +1022,14 @@ public:
   CArray reserved;
 
   A_IndividualAddressSerialNumber_Response_PDU ();
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_IndividualAddressSerialNumber_Response;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_IndividualAddressSerialNumber_Write_PDU:public APDU
@@ -1038,14 +1040,14 @@ public:
   CArray reserved;
 
   A_IndividualAddressSerialNumber_Write_PDU ();
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_IndividualAddressSerialNumber_Write;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_ServiceInformation_Indication_Write_PDU:public APDU
@@ -1056,14 +1058,14 @@ public:
   bool appl_stopped = false;
 
   A_ServiceInformation_Indication_Write_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_ServiceInformation_Indication_Write;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_DomainAddress_Write_PDU:public APDU
@@ -1072,14 +1074,14 @@ public:
   domainaddr_t domain_address = 0;
 
   A_DomainAddress_Write_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_DomainAddress_Write;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_DomainAddress_Read_PDU:public APDU
@@ -1087,14 +1089,14 @@ class A_DomainAddress_Read_PDU:public APDU
 public:
 
   A_DomainAddress_Read_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_DomainAddress_Read;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_DomainAddress_Response_PDU:public APDU
@@ -1103,14 +1105,14 @@ public:
   domainaddr_t domain_address = 0;
 
   A_DomainAddress_Response_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_DomainAddress_Response;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_DomainAddressSelective_Read_PDU:public APDU
@@ -1121,14 +1123,14 @@ public:
   uint8_t range = 0;
 
   A_DomainAddressSelective_Read_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_DomainAddressSelective_Read;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_NetworkParameter_Write_PDU:public APDU
@@ -1138,14 +1140,14 @@ public:
   CArray value;
 
   A_NetworkParameter_Write_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_NetworkParameter_Write;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_Link_Read_PDU:public APDU
@@ -1155,14 +1157,14 @@ public:
   uint8_t start_index = 0;
 
   A_Link_Read_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_Link_Read;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_Link_Response_PDU:public APDU
@@ -1174,14 +1176,14 @@ public:
   CArray group_address_list;
 
   A_Link_Response_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_Link_Response;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_Link_Write_PDU:public APDU
@@ -1192,14 +1194,14 @@ public:
   eibaddr_t group_address = 0;
 
   A_Link_Write_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_Link_Write;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_GroupPropValue_Read_PDU:public APDU
@@ -1208,14 +1210,14 @@ public:
   // @todo
 
   A_GroupPropValue_Read_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_GroupPropValue_Read;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_GroupPropValue_Response_PDU:public APDU
@@ -1224,14 +1226,14 @@ public:
   // @todo
 
   A_GroupPropValue_Response_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_GroupPropValue_Response;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_GroupPropValue_Write_PDU:public APDU
@@ -1240,14 +1242,14 @@ public:
   // @todo
 
   A_GroupPropValue_Write_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_GroupPropValue_Write;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_GroupPropValue_InfoReport_PDU:public APDU
@@ -1256,14 +1258,14 @@ public:
   // @todo
 
   A_GroupPropValue_InfoReport_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_GroupPropValue_InfoReport;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_DomainAddressSerialNumber_Read_PDU:public APDU
@@ -1272,14 +1274,14 @@ public:
   serialnumber_t serial_number;
 
   A_DomainAddressSerialNumber_Read_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_DomainAddressSerialNumber_Read;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_DomainAddressSerialNumber_Response_PDU:public APDU
@@ -1289,14 +1291,14 @@ public:
   domainaddr_t domain_address = 0;
 
   A_DomainAddressSerialNumber_Response_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_DomainAddressSerialNumber_Response;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_DomainAddressSerialNumber_Write_PDU:public APDU
@@ -1306,14 +1308,14 @@ public:
   domainaddr_t domain_address = 0;
 
   A_DomainAddressSerialNumber_Write_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_DomainAddressSerialNumber_Write;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 class A_FileStream_InfoReport_PDU:public APDU
@@ -1324,14 +1326,14 @@ public:
   CArray file_block;
 
   A_FileStream_InfoReport_PDU () = default;
-  bool init (const CArray & p, TracePtr tr);
-  CArray ToPacket () const;
-  std::string Decode (TracePtr tr) const;
-  APDU_type getType () const
+  virtual bool init (const CArray & p, TracePtr tr) override;
+  virtual CArray ToPacket () const override;
+  virtual std::string Decode (TracePtr tr) const override;
+  virtual APDU_type getType () const override
   {
     return A_FileStream_InfoReport;
   }
-  bool isResponse (const APDU * req) const;
+  virtual bool isResponse (const APDU * req) const override;
 };
 
 #endif

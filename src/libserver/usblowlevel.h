@@ -66,6 +66,17 @@ class USBLowLevelDriver : public LowLevelDriver
 public:
   USBLowLevelDriver (LowLevelIface* p, IniSectionPtr& s);
   virtual ~USBLowLevelDriver ();
+
+  bool setup();
+  void start();
+  void stop();
+  void send_Data (CArray& l);
+  void abort_send();
+
+  // for use by callbacks only
+  void CompleteReceive(struct libusb_transfer *recvh);
+  void CompleteSend(struct libusb_transfer *recvh);
+
 private:
   libusb_device_handle *dev;
   /* libusb event loop */
@@ -94,20 +105,10 @@ private:
   void stop_();
 
   // need to do the trigger callbacks outside of libusb
-  ev::async read_trigger; void read_trigger_cb(ev::async &w, int revents);
-  ev::async write_trigger; void write_trigger_cb(ev::async &w, int revents);
-
-public:
-  bool setup();
-  void start();
-  void stop();
-  void send_Data (CArray& l);
-  void abort_send();
-
-
-  // for use by callbacks only
-  void CompleteReceive(struct libusb_transfer *recvh);
-  void CompleteSend(struct libusb_transfer *recvh);
+  ev::async read_trigger;
+  void read_trigger_cb(ev::async &w, int revents);
+  ev::async write_trigger;
+  void write_trigger_cb(ev::async &w, int revents);
 };
 
 #endif

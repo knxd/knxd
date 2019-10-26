@@ -32,23 +32,28 @@
 /** EMI2 backend */
 class EMI2Driver:public EMI_Common
 {
-  bool reset_ack_wait = false;
-  ev::timer reset_timer;
-
-  void cmdEnterMonitor();
-  void cmdLeaveMonitor();
-  void cmdOpen();
-  void cmdClose();
-  void started(); // do sendReset
-  const uint8_t * getIndTypes();
-  EMIVer getVersion() { return vEMI2; }
-  void sendLocal_done_cb(bool success);
-  void reset_timer_cb(ev::timer& w, int revents);
-  enum { N_bad, N_up, N_want_close, N_want_leave, N_down, N_open, N_enter } sendLocal_done_next = N_bad;
 public:
   EMI2Driver (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i = nullptr);
   virtual ~EMI2Driver () = default;
   void do_send_Next();
+
+private:
+  bool reset_ack_wait = false;
+  ev::timer reset_timer;
+
+  virtual void cmdEnterMonitor() override;
+  virtual void cmdLeaveMonitor() override;
+  virtual void cmdOpen() override;
+  virtual void cmdClose() override;
+  void started(); // do sendReset
+  virtual const uint8_t * getIndTypes() const override;
+  virtual EMIVer getVersion() const override
+  {
+    return vEMI2;
+  }
+  void sendLocal_done_cb(bool success);
+  void reset_timer_cb(ev::timer& w, int revents);
+  enum { N_bad, N_up, N_want_close, N_want_leave, N_down, N_open, N_enter } sendLocal_done_next = N_bad;
 };
 
 #endif

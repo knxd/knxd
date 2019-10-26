@@ -31,8 +31,9 @@
 
 /** convert L_Data_PDU to TP1 frame */
 CArray L_Data_to_CM_TP1 (const LDataPtr & p);
+
 /** create L_Data_PDU out of a TP1 frame */
-LDataPtr CM_TP1_to_L_Data (const CArray & c, TracePtr t);
+LDataPtr CM_TP1_to_L_Data (const CArray & c, TracePtr tr);
 
 #endif
 

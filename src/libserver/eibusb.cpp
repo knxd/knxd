@@ -140,7 +140,7 @@ USBConverterInterface::send_Init()
 {
   TRACEPRINTF (t, 2, "send_Init %d",version);
 
-  uchar init[64] =
+  uint8_t init[64] =
   {
     0x01, 0x13, 0x0a, 0x00, 0x08, 0x00, 0x02, 0x0f, 0x03, 0x00, 0x00, 0x05, 0x01
   };
@@ -172,7 +172,7 @@ USBDriver::started()
 }
 
 void
-USBDriver::timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
+USBDriver::timeout_cb(ev::timer &, int)
 {
   if (++cnt < 5)
     xmit();
@@ -202,7 +202,7 @@ USBDriver::do_send_Next()
 void
 USBDriver::xmit()
 {
-  const uchar ask[64] =
+  const uint8_t ask[64] =
   {
     0x01, 0x13, 0x09, 0x00, 0x08, 0x00, 0x01, 0x0f, 0x01, 0x00, 0x00, 0x01
   };

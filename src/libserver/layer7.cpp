@@ -130,8 +130,8 @@ Layer7_Connection::Request_Response (APDU * r)
 }
 
 int
-Layer7_Connection::A_Property_Read (uchar obj, uchar propertyid,
-                                    uint16_t start, uchar count, CArray & result)
+Layer7_Connection::A_Property_Read (uint8_t obj, uint8_t propertyid,
+                                    uint16_t start, uint8_t count, CArray & result)
 {
   A_PropertyValue_Read_PDU r;
   r.obj = obj;
@@ -147,8 +147,8 @@ Layer7_Connection::A_Property_Read (uchar obj, uchar propertyid,
 }
 
 int
-Layer7_Connection::A_Property_Write (uchar obj, uchar propertyid,
-                                     uint16_t start, uchar count,
+Layer7_Connection::A_Property_Write (uint8_t obj, uint8_t propertyid,
+                                     uint16_t start, uint8_t count,
                                      const CArray & data, CArray & result)
 {
   A_PropertyValue_Write_PDU r;
@@ -166,10 +166,10 @@ Layer7_Connection::A_Property_Write (uchar obj, uchar propertyid,
 }
 
 int
-Layer7_Connection::A_Property_Desc (uchar obj, uchar & property,
-                                    uchar property_index, uchar & type,
+Layer7_Connection::A_Property_Desc (uint8_t obj, uint8_t & property,
+                                    uint8_t property_index, uint8_t & type,
                                     uint16_t & max_nr_elements,
-                                    uchar & access)
+                                    uint8_t & access)
 {
   A_PropertyDescription_Read_PDU r;
   r.obj = obj;
@@ -189,7 +189,7 @@ Layer7_Connection::A_Property_Desc (uchar obj, uchar & property,
 }
 
 int
-Layer7_Connection::A_Device_Descriptor_Read (uint16_t & maskver, uchar type)
+Layer7_Connection::A_Device_Descriptor_Read (uint16_t & maskver, uint8_t type)
 {
   A_DeviceDescriptor_Read_PDU r;
   r.type = type & 0x3f;
@@ -203,7 +203,7 @@ Layer7_Connection::A_Device_Descriptor_Read (uint16_t & maskver, uchar type)
 }
 
 int
-Layer7_Connection::A_ADC_Read (uchar channel, uchar readcount,
+Layer7_Connection::A_ADC_Read (uint8_t channel, uint8_t readcount,
                                int16_t & value)
 {
   A_ADC_Read_PDU r;
@@ -219,7 +219,7 @@ Layer7_Connection::A_ADC_Read (uchar channel, uchar readcount,
 }
 
 int
-Layer7_Connection::A_Memory_Read (memaddr_t addr, uchar len, CArray & data)
+Layer7_Connection::A_Memory_Read (memaddr_t addr, uint8_t len, CArray & data)
 {
   A_Memory_Read_PDU r;
   r.addr = addr;
@@ -245,7 +245,7 @@ Layer7_Connection::A_Memory_Write (memaddr_t addr, const CArray & data)
 }
 
 int
-Layer7_Connection::A_Authorize (eibkey_type key, uchar & level)
+Layer7_Connection::A_Authorize (eibkey_type key, uint8_t & level)
 {
   A_Authorize_Request_PDU r;
   r.key = key;
@@ -259,7 +259,7 @@ Layer7_Connection::A_Authorize (eibkey_type key, uchar & level)
 }
 
 int
-Layer7_Connection::A_KeyWrite (eibkey_type key, uchar & level)
+Layer7_Connection::A_KeyWrite (eibkey_type key, uint8_t & level)
 {
   A_Key_Write_PDU r;
   r.key = key;
@@ -274,8 +274,8 @@ Layer7_Connection::A_KeyWrite (eibkey_type key, uchar & level)
 }
 
 int
-Layer7_Connection::X_Property_Write (uchar obj, uchar propertyid,
-                                     uint16_t start, uchar count,
+Layer7_Connection::X_Property_Write (uint8_t obj, uint8_t propertyid,
+                                     uint16_t start, uint8_t count,
                                      const CArray & data)
 {
   CArray d1;
@@ -425,8 +425,8 @@ Layer7_Individual::Request_Response (APDU * r)
 }
 
 int
-Layer7_Individual::A_Property_Read (uchar obj, uchar propertyid,
-                                    uint16_t start, uchar count, CArray & erg)
+Layer7_Individual::A_Property_Read (uint8_t obj, uint8_t propertyid,
+                                    uint16_t start, uint8_t count, CArray & erg)
 {
   A_PropertyValue_Read_PDU r;
   r.obj = obj;
@@ -443,8 +443,8 @@ Layer7_Individual::A_Property_Read (uchar obj, uchar propertyid,
 }
 
 int
-Layer7_Individual::A_Property_Write (uchar obj, uchar propertyid,
-                                     uint16_t start, uchar count,
+Layer7_Individual::A_Property_Write (uint8_t obj, uint8_t propertyid,
+                                     uint16_t start, uint8_t count,
                                      const CArray & data, CArray & result)
 {
   A_PropertyValue_Write_PDU r;

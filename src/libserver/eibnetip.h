@@ -151,12 +151,13 @@ public:
   struct sockaddr_in src;
 
   EIBNetIPPacket ();
+  virtual ~EIBNetIPPacket () = default;
+
   /** create from character array */
   static EIBNetIPPacket *fromPacket (const CArray & c,
                                      const struct sockaddr_in src);
   /** convert to character array */
   CArray ToPacket () const;
-  virtual ~EIBNetIPPacket () = default;
 };
 
 class EIBnet_ConnectRequest
@@ -166,7 +167,7 @@ public:
   struct sockaddr_in caddr;
   struct sockaddr_in daddr;
   CArray CRI;
-  bool nat;
+  bool nat = false;
   EIBNetIPPacket ToPacket () const;
 };
 
@@ -177,10 +178,10 @@ class EIBnet_ConnectResponse
 {
 public:
   EIBnet_ConnectResponse ();
-  uchar channel;
-  uchar status;
+  uint8_t channel = 0;
+  uint8_t status = 0;
   struct sockaddr_in daddr;
-  bool nat;
+  bool nat = false;
   CArray CRD;
   EIBNetIPPacket ToPacket () const;
 };
@@ -192,10 +193,10 @@ class EIBnet_ConnectionStateRequest
 {
 public:
   EIBnet_ConnectionStateRequest ();
-  uchar channel;
-  uchar status;
+  uint8_t channel = 0;
+  uint8_t status = 0;
   struct sockaddr_in caddr;
-  bool nat;
+  bool nat = false;
   EIBNetIPPacket ToPacket () const;
 };
 
@@ -206,21 +207,21 @@ class EIBnet_ConnectionStateResponse
 {
 public:
   EIBnet_ConnectionStateResponse ();
-  uchar channel;
-  uchar status;
+  uint8_t channel = 0;
+  uint8_t status = 0;
   EIBNetIPPacket ToPacket () const;
 };
 
 int parseEIBnet_ConnectionStateResponse (const EIBNetIPPacket & p,
-                                         EIBnet_ConnectionStateResponse & r);
+    EIBnet_ConnectionStateResponse & r);
 
 class EIBnet_DisconnectRequest
 {
 public:
   EIBnet_DisconnectRequest ();
   struct sockaddr_in caddr;
-  uchar channel;
-  bool nat;
+  uint8_t channel = 0;
+  bool nat = false;
   EIBNetIPPacket ToPacket () const;
 };
 
@@ -231,8 +232,8 @@ class EIBnet_DisconnectResponse
 {
 public:
   EIBnet_DisconnectResponse ();
-  uchar channel;
-  uchar status;
+  uint8_t channel = 0;
+  uint8_t status = 0;
   EIBNetIPPacket ToPacket () const;
 };
 
@@ -243,8 +244,8 @@ class EIBnet_TunnelRequest
 {
 public:
   EIBnet_TunnelRequest ();
-  uchar channel;
-  uchar seqno;
+  uint8_t channel = 0;
+  uint8_t seqno = 0;
   CArray CEMI;
   EIBNetIPPacket ToPacket () const;
 };
@@ -256,9 +257,9 @@ class EIBnet_TunnelACK
 {
 public:
   EIBnet_TunnelACK ();
-  uchar channel;
-  uchar seqno;
-  uchar status;
+  uint8_t channel = 0;
+  uint8_t seqno = 0;
+  uint8_t status = 0;
   EIBNetIPPacket ToPacket () const;
 };
 
@@ -268,8 +269,8 @@ class EIBnet_ConfigRequest
 {
 public:
   EIBnet_ConfigRequest ();
-  uchar channel;
-  uchar seqno;
+  uint8_t channel = 0;
+  uint8_t seqno = 0;
   CArray CEMI;
   EIBNetIPPacket ToPacket () const;
 };
@@ -281,9 +282,9 @@ class EIBnet_ConfigACK
 {
 public:
   EIBnet_ConfigACK ();
-  uchar channel;
-  uchar seqno;
-  uchar status;
+  uint8_t channel = 0;
+  uint8_t seqno = 0;
+  uint8_t status = 0;
   EIBNetIPPacket ToPacket () const;
 };
 

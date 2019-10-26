@@ -39,7 +39,10 @@ class GroupCache;
 
 struct GroupCacheEntry
 {
-  GroupCacheEntry(eibaddr_t dst) { this->dst = dst; }
+  GroupCacheEntry(eibaddr_t dst)
+  {
+    this->dst = dst;
+  }
   /** Layer 4 data */
   CArray data;
   /** source address */
@@ -68,38 +71,31 @@ public:
 };
 
 /** map last-updated sequence numbers to group addresses */
-typedef std::map<uint32_t, eibaddr_t> SeqMap;
+using SeqMap = std::map<uint32_t, eibaddr_t>;
 
 /** map group addresses to cache entries */
-typedef std::unordered_map<eibaddr_t, GroupCacheEntry> CacheMap;
+using CacheMap = std::unordered_map<eibaddr_t, GroupCacheEntry>;
 
 class GroupCache:public Driver
 {
-  std::vector < GroupCacheReader * > reader;
-  /** The Cache */
-  CacheMap cache;
-  /** controlled by .Start/Stop; if false, the whole code does nothing */
-  bool enable = false;
-  /** max size of cache */
-  uint16_t maxsize;
-  /** cached copy of main address */
-  eibaddr_t addr;
-
 public: // but only for GroupCacheReader
   bool setup();
   void start();
   void stop();
-  bool checkGroupAddress (eibaddr_t addr UNUSED) { return true; }
-  bool checkAddress (eibaddr_t addr UNUSED) { return false; }
-  bool hasAddress (eibaddr_t addr ) { return addr == this->addr; }
-  void addAddress (eibaddr_t addr UNUSED) { }
+  bool checkGroupAddress (eibaddr_t)
+  {
+    return true;
+  }
+  bool checkAddress (eibaddr_t)
+  {
+    return false;
+  }
+  bool hasAddress (eibaddr_t addr)
+  {
+    return addr == this->addr;
+  }
+  void addAddress (eibaddr_t) { }
 
-private:
-  ev::async remtrigger; void remtrigger_cb(ev::async &w, int revents);
-  /** signal that this entry has been updated */
-  virtual void updated(GroupCacheEntry &);
-
-public:
   /** constructor */
   GroupCache (const LinkConnectPtr& c, IniSectionPtr& s);
   /** destructor */
@@ -134,9 +130,25 @@ public:
                     GCLastCallback cb, ClientConnPtr c);
   void LastUpdates2 (uint32_t start, uint8_t timeout,
                      GCLastCallback cb, ClientConnPtr c);
+
+private:
+  std::vector < GroupCacheReader * > reader;
+  /** The Cache */
+  CacheMap cache;
+  /** controlled by .Start/Stop; if false, the whole code does nothing */
+  bool enable = false;
+  /** max size of cache */
+  uint16_t maxsize;
+  /** cached copy of main address */
+  eibaddr_t addr;
+
+  ev::async remtrigger;
+  void remtrigger_cb(ev::async &w, int revents);
+  /** signal that this entry has been updated */
+  virtual void updated(GroupCacheEntry &);
 };
 
-typedef std::shared_ptr<GroupCache> GroupCachePtr;
+using GroupCachePtr = std::shared_ptr<GroupCache>;
 
 #endif
 

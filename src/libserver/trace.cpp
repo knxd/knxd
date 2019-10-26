@@ -28,7 +28,7 @@ static bool trace_started = false;
 unsigned int trace_seq = 0;
 unsigned int trace_namelen = 3;
 
-std::string Trace::fullname()
+std::string Trace::fullname() const
 {
   if (!auxname.length())
     return name;
@@ -36,7 +36,7 @@ std::string Trace::fullname()
 }
 
 void
-Trace::TraceHeader (int layer)
+Trace::TraceHeader (const int layer)
 {
   struct timeval tv;
   gettimeofday(&tv, NULL);
@@ -63,8 +63,8 @@ Trace::TraceHeader (int layer)
 }
 
 void
-Trace::TracePacketUncond (int layer, const char *msg, int Len,
-                          const uchar * data)
+Trace::TracePacketUncond (const int layer, const char *msg, const int Len,
+                          const uint8_t * data)
 {
   int i;
   TraceHeader(layer);
@@ -87,7 +87,7 @@ static const char *error_levels[] =
 };
 
 static int
-error_level(std::string level, int def)
+error_level(const std::string level, const int def)
 {
   if (level.size() == 0)
     return def;
@@ -117,7 +117,7 @@ Trace::setup()
 }
 
 void
-Trace::setAuxName(std::string name)
+Trace::setAuxName(const std::string name)
 {
   if (name == this->name)
     return;
@@ -130,7 +130,7 @@ Trace::setAuxName(std::string name)
 }
 
 char
-Trace::get_level_char(int level)
+Trace::get_level_char(const int level) const
 {
   switch (level)
     {

@@ -20,7 +20,7 @@
 #include "emi.h"
 
 CArray
-L_Data_ToCEMI (uchar code, const LDataPtr & l1)
+L_Data_ToCEMI (uint8_t code, const LDataPtr & l1)
 {
   CArray pdu;
   assert (l1->data.size() >= 1);
@@ -48,22 +48,22 @@ L_Data_ToCEMI (uchar code, const LDataPtr & l1)
 }
 
 LDataPtr
-CEMI_to_L_Data (const CArray & data, TracePtr t)
+CEMI_to_L_Data (const CArray & data, TracePtr tr)
 {
   if (data.size() < 2)
     {
-      TRACEPRINTF (t, 7, "packet too short (%d)", data.size());
+      TRACEPRINTF (tr, 7, "packet too short (%d)", data.size());
       return nullptr;
     }
   unsigned start = data[1] + 2;
   if (data.size() < 7 + start)
     {
-      TRACEPRINTF (t, 7, "start too large (%d/%d)", data.size(),start);
+      TRACEPRINTF (tr, 7, "start too large (%d/%d)", data.size(),start);
       return nullptr;
     }
   if (data.size() < 7 + start + data[6 + start] + 1)
     {
-      TRACEPRINTF (t, 7, "packet too short (%d/%d)", data.size(), 7 + start + data[6 + start] + 1);
+      TRACEPRINTF (tr, 7, "packet too short (%d/%d)", data.size(), 7 + start + data[6 + start] + 1);
       return nullptr;
     }
 
@@ -80,14 +80,14 @@ CEMI_to_L_Data (const CArray & data, TracePtr t)
   c->address_type = (data[start + 1] & 0x80) ? GroupAddress : IndividualAddress;
   if (!(data[start] & 0x80) && (data[start + 1] & 0x0f))
     {
-      TRACEPRINTF (t, 7, "Length? invalid (%02x%02x)", data[start],data[start+1]);
+      TRACEPRINTF (tr, 7, "Length? invalid (%02x%02x)", data[start],data[start+1]);
       return 0;
     }
   return c;
 }
 
 LBusmonPtr
-CEMI_to_Busmonitor (const CArray & data, DriverPtr l2 UNUSED)
+CEMI_to_Busmonitor (const CArray & data, DriverPtr)
 {
   if (data.size() < 2)
     return nullptr;
@@ -110,7 +110,7 @@ enum
 cemi_header_type;
 
 CArray
-Busmonitor_to_CEMI (uchar code, const LBusmonPtr & p, int no)
+Busmonitor_to_CEMI (uint8_t code, const LBusmonPtr & p, int no)
 {
   CArray pdu;
   pdu.resize (p->pdu.size() + 9);
@@ -129,7 +129,7 @@ Busmonitor_to_CEMI (uchar code, const LBusmonPtr & p, int no)
 }
 
 CArray
-L_Data_ToEMI (uchar code, const LDataPtr & l1)
+L_Data_ToEMI (uint8_t code, const LDataPtr & l1)
 {
   CArray pdu;
   pdu.resize (l1->data.size() + 7);
@@ -148,7 +148,7 @@ L_Data_ToEMI (uchar code, const LDataPtr & l1)
 }
 
 LDataPtr
-EMI_to_L_Data (const CArray & data, TracePtr t UNUSED)
+EMI_to_L_Data (const CArray & data, TracePtr)
 {
   LDataPtr c = LDataPtr(new L_Data_PDU ());
   unsigned len;

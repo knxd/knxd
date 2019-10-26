@@ -281,7 +281,7 @@ new_a_conn:
 void
 ClientConnection::sendreject ()
 {
-  uchar buf[2];
+  uint8_t buf[2];
   EIBSETTYPE (buf, EIB_INVALID_REQUEST);
   sendmessage (2, buf);
 }
@@ -289,15 +289,15 @@ ClientConnection::sendreject ()
 void
 ClientConnection::sendreject (int type)
 {
-  uchar buf[2];
+  uint8_t buf[2];
   EIBSETTYPE (buf, type);
   sendmessage (2, buf);
 }
 
 void
-ClientConnection::sendmessage (int size, const uchar * msg)
+ClientConnection::sendmessage (int size, const uint8_t * msg)
 {
-  uchar head[2];
+  uint8_t head[2];
   assert (size >= 2);
   head[0] = (size >> 8) & 0xff;
   head[1] = (size) & 0xff;
