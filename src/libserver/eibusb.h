@@ -26,9 +26,9 @@
 #ifndef EIB_USB_EMI_H
 #define EIB_USB_EMI_H
 
+#include "emi_common.h"
 #include "link.h"
 #include "lowlevel.h"
-#include "emi_common.h"
 
 /*
  * The driver stack is: USB driver > [C]EMI[12] wrapper > USBConverterInterface > USBLowLevelDriver

@@ -17,14 +17,14 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#include "ipsupport.h"
+#include "config.h"
+
+#include <cerrno>
 #include <cstring>
 #include <netdb.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <cerrno>
-#include <netdb.h>
-#include "config.h"
-#include "ipsupport.h"
 #ifdef HAVE_LINUX_NETLINK
 #include <asm/types.h>
 #include <linux/netlink.h>

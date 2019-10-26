@@ -27,10 +27,10 @@
 #ifndef BUSMONITOR_H
 #define BUSMONITOR_H
 
-#include "link.h"
-#include "router.h"
 #include "client.h"
 #include "connection.h"
+#include "link.h"
+#include "router.h"
 
 /** implements busmonitor functions for a client */
 class A_Busmonitor:public L_Busmonitor_CallBack, public A__Base

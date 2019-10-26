@@ -28,12 +28,11 @@
 #define GROUPCACHE_H
 
 #include <ctime>
-
 #include <map>
 #include <unordered_map>
 
-#include "link.h"
 #include "client.h"
+#include "link.h"
 
 class GroupCache;
 

@@ -18,8 +18,9 @@
 */
 
 #include "groupcacheclient.h"
-#include "groupcache.h"
+
 #include "client.h"
+#include "groupcache.h"
 
 bool
 CreateGroupCache (Router& r, IniSectionPtr& s)

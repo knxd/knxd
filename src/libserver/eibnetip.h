@@ -27,12 +27,15 @@
 #ifndef EIBNETIP_H
 #define EIBNETIP_H
 
-#include <netinet/in.h>
 #include <ev++.h>
+#include <netinet/in.h>
+
+#include "apdu.h"
+#include "cm_ip.h"
 #include "common.h"
 #include "iobuf.h" // for nonblocking
-#include "lpdu.h"
 #include "ipsupport.h"
+#include "lpdu.h"
 
 // all values are from 03_08_01 5.* unless otherwise specified
 

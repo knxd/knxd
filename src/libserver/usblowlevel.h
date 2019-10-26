@@ -27,6 +27,7 @@
 #define EIB_USB_H
 
 #include <libusb.h>
+
 #include "lowlevel.h"
 #include "usb.h"
 

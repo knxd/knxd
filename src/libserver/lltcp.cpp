@@ -17,17 +17,17 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#include "lltcp.h"
 #include "config.h"
 
-#include <unistd.h>
 #include <cerrno>
 #include <fcntl.h>
-#include <netinet/tcp.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <sys/socket.h>
+#include <unistd.h>
 
 #include "ipsupport.h"
-#include "lltcp.h"
 
 bool
 LLtcp::setup()

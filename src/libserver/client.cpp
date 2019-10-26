@@ -17,21 +17,23 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#include "client.h"
+#include "config.h"
+
 #include <cerrno>
 #include <unistd.h>
-#include "server.h"
-#include "client.h"
+
 #ifdef HAVE_BUSMONITOR
 #include "busmonitor.h"
 #endif
 #include "connection.h"
-#include "config.h"
-#ifdef HAVE_MANAGEMENT
-#include "managementclient.h"
-#endif
 #ifdef HAVE_GROUPCACHE
 #include "groupcacheclient.h"
 #endif
+#ifdef HAVE_MANAGEMENT
+#include "managementclient.h"
+#endif
+#include "server.h"
 
 ClientConnection::ClientConnection (NetServerPtr s, int fd) : router(static_cast<Router&>(s->router)), sendbuf(fd),recvbuf(fd)
 {

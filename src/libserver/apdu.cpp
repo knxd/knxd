@@ -17,9 +17,10 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#include "apdu.h"
+
 #include <cstdio>
 #include <cstring>
-#include "apdu.h"
 
 APDUPtr
 APDU::fromPacket (const CArray & c, TracePtr tr)

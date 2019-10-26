@@ -27,9 +27,9 @@
 #define LOWLEVEL_H
 
 #include "common.h"
-#include "link.h"
 #include "emi.h"
 #include "iobuf.h"
+#include "link.h"
 
 /** Low level interface
  *

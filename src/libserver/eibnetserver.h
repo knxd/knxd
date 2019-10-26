@@ -28,11 +28,13 @@
 #define EIBNET_SERVER_H
 
 #include <ev++.h>
+
 #include "callbacks.h"
 #include "eibnetip.h"
 #include "link.h"
-#include "server.h"
 #include "lpdu.h"
+#include "server.h"
+
 #ifndef IFHWADDRLEN
 #define IFHWADDRLEN 6
 #endif

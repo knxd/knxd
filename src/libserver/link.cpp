@@ -18,8 +18,10 @@
 */
 
 #include "link.h"
-#include "router.h"
+
 #include <cstdio>
+
+#include "router.h"
 
 bool
 LinkRecv::link(LinkBasePtr next)

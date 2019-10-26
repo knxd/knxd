@@ -26,18 +26,20 @@
 #ifndef TRACE_H
 #define TRACE_H
 
-#include <cstdarg>
-#include <sys/time.h>
-#include <memory>
-#include <iostream>
-#include <fmt/format.h>
-#include "common.h"
-#include "inifile.h"
-
 #include "config.h"
+
+#include <cstdarg>
+#include <memory>
+#include <fmt/format.h>
 #if HAVE_FMT_PRINTF
 #include <fmt/printf.h>
 #endif
+#include <iostream>
+#include <sys/time.h>
+
+#include "common.h"
+#include "inifile.h"
+#include "types.h"
 
 enum trace_level
 {

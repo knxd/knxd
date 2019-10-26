@@ -27,9 +27,10 @@
 #define LLSERIAL
 
 #include <termios.h>
+
 #include "iobuf.h"
-#include "lowlevel.h"
 #include "lowlatency.h"
+#include "lowlevel.h"
 
 // also update SN() in tpuart.cpp
 

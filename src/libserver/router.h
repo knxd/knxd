@@ -29,10 +29,11 @@
 
 #include <unordered_map>
 
+#include <ev++.h>
+
 #include "link.h"
 #include "lowlevel.h"
 #include "lpdu.h"
-#include <ev++.h>
 
 class BaseServer;
 class GroupCache;

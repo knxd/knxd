@@ -18,9 +18,10 @@
 */
 
 #include "eibusb.h"
+
+#include "cemi.h"
 #include "emi1.h"
 #include "emi2.h"
-#include "cemi.h"
 #include "usblowlevel.h"
 
 USBConverterInterface::USBConverterInterface (LowLevelIface * p, IniSectionPtr& s)

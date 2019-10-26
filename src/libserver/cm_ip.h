@@ -27,6 +27,8 @@
 #ifndef CM_IP_H
 #define CM_IP_H
 
+#include "common.h"
+
 #endif
 
 /** @} */

@@ -17,15 +17,15 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include <cstring>
-#include <netdb.h>
-#include <net/if.h>
-#include <sys/socket.h>
-#include <unistd.h>
-#include <cerrno>
-#include <netdb.h>
 #include "eibnetip.h"
 #include "config.h"
+
+#include <cerrno>
+#include <cstring>
+#include <net/if.h>
+#include <netdb.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
 EIBNetIPPacket::EIBNetIPPacket ()
 {

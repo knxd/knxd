@@ -17,19 +17,19 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#include "llserial.h"
 #include "config.h"
 
-#include <unistd.h>
 #include <cerrno>
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <termios.h>
+#include <unistd.h>
 #ifdef HAVE_LINUX_LOWLATENCY
-#include <sys/ioctl.h>
 #include <cstring> // memcpy
+#include <sys/ioctl.h>
 #endif
 
-#include "llserial.h"
 
 static speed_t getbaud(int baud)
 {

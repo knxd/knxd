@@ -18,8 +18,9 @@
 */
 
 #include "managementclient.h"
-#include "management.h"
+
 #include "loadimage.h"
+#include "management.h"
 
 void
 ReadIndividualAddresses (ClientConnPtr c, uint8_t *buf, size_t len)

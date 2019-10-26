@@ -28,10 +28,8 @@
 #define IPSUPPORT_H
 
 #include <netinet/in.h>
-#include "common.h"
-#include "lpdu.h"
 
-class Trace;
+#include "trace.h"
 
 /** resolve host name */
 bool GetHostIP (TracePtr tr, struct sockaddr_in *sock, const std::string& name);

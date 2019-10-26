@@ -18,20 +18,22 @@
 */
 
 #include "eibnetserver.h"
-#include "emi.h"
 #include "config.h"
+
 #include <cstdlib>
-#include <sys/ioctl.h>
-#include <net/if.h>
-#include <net/if_arp.h>
-#include <unistd.h>
-#include <netinet/in.h>
 #include <cstring>
 #include <memory>
+#include <net/if.h>
+#include <net/if_arp.h>
+#include <netinet/in.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
 #ifndef SIOCGIFHWADDR
 #include <sys/sysctl.h>
 #include <net/if_dl.h>
 #endif
+
+#include "emi.h"
 
 EIBnetServer::EIBnetServer (BaseRouter& r, IniSectionPtr& s)
   : Server(r,s)

@@ -18,3 +18,9 @@
 */
 
 #include "cm_ip.h"
+#include "config.h"
+
+#include <net/if.h>
+#include <netdb.h>
+#include <sys/socket.h>
+#include <unistd.h>

@@ -29,6 +29,8 @@
 #include "common.h"
 #include "eibtypes.h"
 #include "iobuf.h"
+#include "router.h"
+#include "server.h"
 
 /** reads the type of a eibd packet */
 #define EIBTYPE(buf) (((buf)[0]<<8)|((buf)[1]))

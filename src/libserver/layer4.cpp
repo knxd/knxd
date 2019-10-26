@@ -18,8 +18,8 @@
 */
 
 #include "layer4.h"
-#include "tpdu.h"
 
+#include "tpdu.h"
 /***************** T_Brodcast *****************/
 
 T_Broadcast::T_Broadcast (T_Reader<BroadcastComm> *app, LinkConnectClientPtr lc, bool write_only)

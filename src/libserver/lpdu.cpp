@@ -17,10 +17,12 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include <cstdio>
 #include "lpdu.h"
-#include "tpdu.h"
+
+#include <cstdio>
+
 #include "cm_tp1.h"
+#include "tpdu.h"
 
 /* L_Data */
 

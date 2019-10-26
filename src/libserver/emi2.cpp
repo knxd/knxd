@@ -18,6 +18,7 @@
 */
 
 #include "emi2.h"
+
 #include "emi.h"
 
 EMI2Driver::EMI2Driver (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i) : EMI_Common(c,s,i)

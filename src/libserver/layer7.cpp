@@ -17,8 +17,9 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include "apdu.h"
 #include "layer7.h"
+
+#include "apdu.h"
 
 Layer7_Broadcast::Layer7_Broadcast (TracePtr tr)
 {

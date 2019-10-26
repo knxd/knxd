@@ -29,6 +29,7 @@
 
 #include <memory>
 
+#include "trace.h"
 
 /** Message Priority */
 enum EIB_Priority : uint8_t
@@ -45,8 +46,6 @@ enum EIB_AddrType : uint8_t
   IndividualAddress = 0,
   GroupAddress = 1
 };
-#include "common.h"
-#include "link.h"
 
 /** enumeration of Layer 2 frame types */
 enum LPDU_Type

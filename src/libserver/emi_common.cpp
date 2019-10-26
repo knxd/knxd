@@ -17,8 +17,9 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include "emi.h"
 #include "emi_common.h"
+
+#include "emi.h"
 
 EMIVer
 cfgEMIVersion(IniSectionPtr& s)

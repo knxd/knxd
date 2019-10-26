@@ -17,23 +17,26 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include "link.h"
-#include "server.h"
+#include "router.h"
+
+#include <iostream>
+#include <math.h>
 #include <sys/socket.h>
-#include "systemdserver.h"
-#include "lowlevel.h"
+#include <typeinfo>
+
+#include <ev++.h>
+#ifdef HAVE_SYSTEMD
+#include <systemd/sd-daemon.h>
+#endif
+
 #include "cm_tp1.h"
 #ifdef HAVE_GROUPCACHE
 #include "groupcacheclient.h"
 #endif
-#include <typeinfo>
-#include <iostream>
-#include <ev++.h>
-#include <math.h>
-
-#ifdef HAVE_SYSTEMD
-#include <systemd/sd-daemon.h>
-#endif
+#include "link.h"
+#include "lowlevel.h"
+#include "server.h"
+#include "systemdserver.h"
 
 /** global filter adapter, sending end */
 class RouterHigh : public Driver

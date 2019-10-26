@@ -27,15 +27,15 @@
 #ifndef DRIVER_BASE_H
 #define DRIVER_BASE_H
 
+#include <memory>
+#include <ostream>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
 #include "common.h"
 #include "inifile.h"
 #include "lpdu.h"
-
-#include <memory>
-#include <string>
-#include <ostream>
-#include <unordered_map>
-#include <vector>
 
 /*
  * This code implements the basis for the interface between the KNX router

@@ -18,8 +18,9 @@
 */
 
 #include "groupcache.h"
-#include "tpdu.h"
+
 #include "apdu.h"
+#include "tpdu.h"
 
 GroupCache::GroupCache (const LinkConnectPtr& c, IniSectionPtr& s)
   : Driver(c,s)

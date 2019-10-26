@@ -27,11 +27,12 @@
 #ifndef EIB_EMI_COMMON_H
 #define EIB_EMI_COMMON_H
 
-#include "link.h"
-#include "router.h"
-#include "lowlevel.h"
+#include <ev++.h>
+
 #include "emi.h"
-#include "ev++.h"
+#include "link.h"
+#include "lowlevel.h"
+#include "router.h"
 
 enum indTypes
 {

@@ -27,8 +27,8 @@
 #ifndef CONNECTION_H
 #define CONNECTION_H
 
-#include "layer4.h"
 #include "client.h"
+#include "layer4.h"
 
 class A__Base
 {
