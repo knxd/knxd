@@ -1,54 +1,63 @@
 noinst_LIBRARIES = libeibstack.a libserver.a
 
-AM_CPPFLAGS=-I$(top_srcdir)/src/include -I$(top_srcdir)/src/common -I$(top_srcdir)/src/usb $(LIBUSB_CFLAGS)
+AM_CPPFLAGS = -I$(top_srcdir)/src/include -I$(top_srcdir)/src/common -I$(top_srcdir)/src/usb $(LIBUSB_CFLAGS)
 
-if HAVE_SYSTEMD
-SYSTEMD_SERVER=systemdserver.cpp systemdserver.h
-else
-SYSTEMD_SERVER=
-endif
+### libeibstack
 
-COMMON=exception.h common.h common.cpp trace.h trace.cpp ipsupport.h ipsupport.cpp emi.h emi.cpp
-CMs=cm_tp1.h cm_tp1.cpp cm_ip.h cm_ip.cpp
-PDUs=lpdu.h lpdu.cpp tpdu.h tpdu.cpp apdu.h apdu.cpp
-CORE=lowlevel.h lowlevel.cpp router.h router.cpp layer4.h layer4.cpp link.h link.cpp
+COMMON = common.h common.cpp trace.h trace.cpp emi.h emi.cpp lowlevel.h lowlevel.cpp
+
+# 03.02 Communication Media
+CM = cm_tp1.h cm_tp1.cpp cm_ip.h cm_ip.cpp
+
+# 03.03 Communication
+L2 = lpdu.h lpdu.cpp link.h link.cpp
+L3 = router.h router.cpp
 if HAVE_GROUPCACHE
-CACHE=groupcache.h groupcache.cpp groupcacheclient.h groupcacheclient.cpp
-else
-CACHE=
+L3 += groupcache.h groupcache.cpp groupcacheclient.h groupcacheclient.cpp
+endif
+L4 = tpdu.h tpdu.cpp layer4.h layer4.cpp
+L7 = apdu.h apdu.cpp
+if HAVE_BUSMONITOR
+L7 += busmonitor.h busmonitor.cpp
 endif
 if HAVE_MANAGEMENT
-MANAGEMENT=management.h management.cpp layer7.h layer7.cpp
-MANAGEMENT_C=managementclient.h managementclient.cpp
-else
-MANAGEMENT=
-MANAGEMENT_C=
+L7 += management.h management.cpp layer7.h layer7.cpp
+L7 += managementclient.h managementclient.cpp
 endif
-FRONTEND_C=client.h client.cpp connection.h connection.cpp
-FRONT_C=$(FRONTEND_C) $(MANAGEMENT_C)
+
+# 03.06.03 External Message Interface
+
+# 03.08 KNXnet/IP
+NETIP = eibnetip.cpp eibnetip.h ipsupport.h ipsupport.cpp
+
+FRONTEND = client.h client.cpp connection.h connection.cpp
+
+libeibstack_a_SOURCES = $(COMMON) $(CM) $(L2) $(L3) $(L4) $(L7) $(CORE) $(NETIP) $(FRONTEND)
+
+### libserver
+
+if HAVE_SYSTEMD
+SYSTEMD_SERVER = systemdserver.cpp systemdserver.h
+else
+SYSTEMD_SERVER =
+endif
+
+if HAVE_EIBNETSERVER
+EIBNETIP = eibnetserver.cpp eibnetserver.h
+else
+EIBNETIP =
+endif
 
 if HAVE_EMI
-EMI=emi_common.h emi_common.cpp emi1.h emi1.cpp emi2.h emi2.cpp cemi.h cemi.cpp
+EMI = emi_common.h emi_common.cpp emi1.h emi1.cpp emi2.h emi2.cpp cemi.h cemi.cpp
 else
-EMI=
-endif
-if HAVE_BUSMONITOR
-BUSMON=busmonitor.h busmonitor.cpp 
-else
-BUSMON=
-endif
-NETIP=eibnetip.cpp eibnetip.h 
-if HAVE_EIBNETSERVER
-EIBNETIP=eibnetserver.cpp eibnetserver.h
-else
-EIBNETIP=
-endif
-if HAVE_USB
-USB=eibusb.cpp eibusb.h usblowlevel.cpp usblowlevel.h
-else
-USB=
+EMI =
 endif
 
-libeibstack_a_SOURCES =$(COMMON) $(CORE) $(CMs) $(PDUs) $(MANAGEMENT) $(NETIP) $(FRONT_C) $(CACHE) $(BUSMON)
+if HAVE_USB
+USB = eibusb.cpp eibusb.h usblowlevel.cpp usblowlevel.h
+else
+USB =
+endif
 
 libserver_a_SOURCES = server.h server.cpp localserver.h localserver.cpp inetserver.h inetserver.cpp $(SYSTEMD_SERVER) $(EIBNETIP) $(EMI) $(USB) llserial.h llserial.cpp lltcp.h lltcp.cpp lowlatency.h lowlatency.cpp

@@ -37,10 +37,6 @@
 /** sets the type of a eibd packet*/
 #define EIBSETTYPE(buf,type) do{(buf)[0]=((type)>>8)&0xff;(buf)[1]=(type)&0xff;}while(0)
 
-class NetServer;
-typedef std::shared_ptr<NetServer> NetServerPtr;
-
-class Router;
 class A__Base;
 
 /** implements a client connection */
