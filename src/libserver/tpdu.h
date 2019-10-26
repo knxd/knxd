@@ -97,7 +97,7 @@ public:
 class T_Data_Broadcast_PDU:public TPDU
 {
 public:
-  CArray data;
+  CArray tsdu;
 
   T_Data_Broadcast_PDU () = default;
   virtual bool init (const CArray & c, TracePtr tr) override;
@@ -113,7 +113,7 @@ public:
 class T_Data_SystemBroadcast_PDU:public TPDU
 {
 public:
-  CArray data;
+  CArray tsdu;
 
   T_Data_SystemBroadcast_PDU () = default;
   virtual bool init (const CArray & c, TracePtr tr) override;
@@ -129,7 +129,7 @@ public:
 class T_Data_Group_PDU:public TPDU
 {
 public:
-  CArray data;
+  CArray tsdu;
 
   T_Data_Group_PDU () = default;
   virtual bool init (const CArray & c, TracePtr tr) override;
@@ -145,7 +145,7 @@ public:
 class T_Data_Tag_Group_PDU:public TPDU
 {
 public:
-  CArray data;
+  CArray tsdu;
 
   T_Data_Tag_Group_PDU () = default;
   virtual bool init (const CArray & c, TracePtr tr) override;
@@ -161,7 +161,7 @@ public:
 class T_Data_Individual_PDU:public TPDU
 {
 public:
-  CArray data;
+  CArray tsdu;
 
   T_Data_Individual_PDU () = default;
   virtual bool init (const CArray & c, TracePtr tr) override;
@@ -178,7 +178,7 @@ class T_Data_Connected_PDU:public TPDU
 {
 public:
   uint8_t sequence_number = 0;
-  CArray data;
+  CArray tsdu;
 
   T_Data_Connected_PDU () = default;
   virtual bool init (const CArray & c, TracePtr tr) override;
