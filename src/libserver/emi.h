@@ -17,6 +17,13 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @ingroup KNX_03_06_03
+ * External Message Interface
+ * @{
+ */
+
 #ifndef EIB_EMI_H
 #define EIB_EMI_H
 
@@ -36,3 +43,5 @@ CArray L_Data_ToEMI (uchar code, const LDataPtr & p);
 LDataPtr EMI_to_L_Data (const CArray & data, TracePtr t);
 
 #endif
+
+/** @} */

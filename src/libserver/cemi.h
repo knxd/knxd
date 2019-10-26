@@ -20,6 +20,13 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @ingroup KNX_03_06_03_04
+ * Common External Message Interface
+ * @{
+ */
+
 #ifndef EIB_CEMI_H
 #define EIB_CEMI_H
 
@@ -59,3 +66,5 @@ public:
 };
 
 #endif  /* EIB_CEMI_H */
+
+/** @} */

@@ -17,6 +17,12 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @addtogroup Driver
+ * @{
+ */
+
 #ifndef LOWLEVEL_H
 #define LOWLEVEL_H
 
@@ -325,3 +331,5 @@ typedef LowLevelDriver *(*LowLevel_Create_Func) (const char *conf,
                                                           TracePtr tr);
 
 #endif
+
+/** @} */

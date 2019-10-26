@@ -19,10 +19,14 @@
 
 /**
  * @file
+ * @ingroup KNX_03_02_06
  * Communication Medium KNX IP
+ * @{
  */
 
 #ifndef CM_IP_H
 #define CM_IP_H
 
 #endif
+
+/** @} */

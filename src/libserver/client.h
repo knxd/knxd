@@ -17,6 +17,12 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @addtogroup Client
+ * @{
+ */
+
 #ifndef CLIENT_H
 #define CLIENT_H
 
@@ -80,3 +86,5 @@ public:
 typedef std::shared_ptr<ClientConnection> ClientConnPtr;
 
 #endif
+
+/** @} */

@@ -17,6 +17,13 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @ingroup KNX_03_02_06
+ * Communication Medium KNX IP
+ * @{
+ */
+
 #ifndef IPSUPPORT_H
 #define IPSUPPORT_H
 
@@ -41,3 +48,5 @@ bool compareIPAddress (const struct sockaddr_in &a,
                        const struct sockaddr_in &b);
 
 #endif
+
+/** @} */

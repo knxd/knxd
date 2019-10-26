@@ -17,6 +17,12 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @addtogroup Server
+ * @{
+ */
+
 #ifndef SERVER_H
 #define SERVER_H
 
@@ -67,3 +73,5 @@ protected:
 using NetServerPtr = std::shared_ptr<NetServer>;
 
 #endif
+
+/** @} */

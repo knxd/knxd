@@ -17,6 +17,13 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @ingroup KNX_03_05_02
+ * Management Procedures
+ * @{
+ */
+
 #ifndef MANAGEMENT_CLIENT_H
 #define MANAGEMENT_CLIENT_H
 
@@ -45,7 +52,8 @@ void WriteIndividualAddress (ClientConnPtr c, uint8_t *buf, size_t len);
  * @param c client connection
  */
 void ManagementConnection (ClientConnPtr c);
-class ManagementConnection : public A_Base {
+class ManagementConnection : public A_Base
+{
   ManagementConnection (ClientConnPtr c, uint8_t *buf, size_t len);
   void recv(uint8_t *buf, size_t len);
 };
@@ -58,9 +66,12 @@ void LoadImage (ClientConnPtr c, uint8_t *buf, size_t len);
 /** opens and handles a individual connection
  * @param c client connection
  */
-class ManagementIndividual : public A_Base {
+class ManagementIndividual : public A_Base
+{
   ManagementIndividual (ClientConnPtr c, uint8_t *buf, size_t len);
   void recv(uint8_t *buf, size_t len);
 };
 
 #endif
+
+/** @} */

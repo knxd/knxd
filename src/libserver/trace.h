@@ -17,6 +17,12 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @addtogroup Common
+ * @{
+ */
+
 #ifndef TRACE_H
 #define TRACE_H
 
@@ -229,3 +235,5 @@ typedef std::shared_ptr<Trace> TracePtr;
    } while (0)
 
 #endif
+
+/** @} */

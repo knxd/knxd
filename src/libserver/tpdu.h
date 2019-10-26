@@ -17,6 +17,13 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @ingroup KNX_03_03_04
+ * Transport Layer
+ * @{
+ */
+
 #ifndef TPDU_H
 #define TPDU_H
 
@@ -244,3 +251,5 @@ public:
 };
 
 #endif
+
+/** @} */

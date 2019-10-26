@@ -17,6 +17,13 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @ingroup KNX_03_05_02
+ * Management Procedures
+ * @{
+ */
+
 #ifndef MANAGEMENT_H
 #define MANAGEMENT_H
 
@@ -68,3 +75,5 @@ public:
 };
 
 #endif
+
+/** @} */

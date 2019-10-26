@@ -19,7 +19,9 @@
 
 /**
  * @file
+ * @ingroup KNX_03_02_02
  * Communication Medium TP1
+ * @{
  */
 
 #ifndef CM_TP1_H
@@ -33,3 +35,5 @@ CArray L_Data_to_CM_TP1 (const LDataPtr & p);
 LDataPtr CM_TP1_to_L_Data (const CArray & c, TracePtr t);
 
 #endif
+
+/** @} */

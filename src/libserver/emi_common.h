@@ -17,6 +17,13 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @ingroup KNX_03_06_03
+ * External Message Interface
+ * @{
+ */
+
 #ifndef EIB_EMI_COMMON_H
 #define EIB_EMI_COMMON_H
 
@@ -110,3 +117,5 @@ public:
 using EMIptr = std::shared_ptr<EMI_Common>;
 
 #endif
+
+/** @} */

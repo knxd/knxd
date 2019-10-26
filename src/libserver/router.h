@@ -17,6 +17,13 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @ingroup KNX_03_03_03
+ * Network Layer
+ * @{
+ */
+
 #ifndef ROUTER_H
 #define ROUTER_H
 
@@ -246,3 +253,5 @@ private:
 };
 
 #endif
+
+/** @} */

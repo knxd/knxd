@@ -17,6 +17,13 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @ingroup KNX_03_03_02
+ * Data Link Layer General
+ * @{
+ */
+
 #ifndef DRIVER_BASE_H
 #define DRIVER_BASE_H
 
@@ -756,3 +763,5 @@ protected:
 #include "driver_remap.h"
 
 #endif
+
+/** @} */

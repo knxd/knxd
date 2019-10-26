@@ -17,6 +17,12 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @addtogroup Driver
+ * @{
+ */
+
 #ifndef LOW_LATENCY_H
 #define LOW_LATENCY_H
 
@@ -39,3 +45,5 @@ bool set_low_latency (int fd, low_latency_save * save, bool really);
 void restore_low_latency (int fd, low_latency_save * save, bool really);
 
 #endif // LOW_LATENCY_H
+
+/** @} */

@@ -17,6 +17,12 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @addtogroup Common
+ * @{
+ */
+
 #ifndef COMMON_H
 #define COMMON_H
 
@@ -91,5 +97,6 @@ std::string FormatEIBKey (eibkey_type addr);
 #endif
 extern LOOP_RESULT loop;
 
-
 #endif
+
+/** @} */

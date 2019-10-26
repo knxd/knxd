@@ -17,6 +17,13 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @ingroup KNX_03_08_01
+ * KNXnet/IP
+ * @{
+ */
+
 #ifndef EIBNET_SERVER_H
 #define EIBNET_SERVER_H
 
@@ -170,3 +177,5 @@ public:
 using EIBnetServerPtr = std::shared_ptr<EIBnetServer>;
 
 #endif
+
+/** @} */

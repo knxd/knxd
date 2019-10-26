@@ -19,7 +19,9 @@
 
 /**
  * @file
+ * @ingroup KNX_03_03_02
  * Data Link Layer General
+ * @{
  */
 
 #ifndef LPDU_H

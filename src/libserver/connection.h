@@ -17,6 +17,13 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @ingroup KNX_03_03_07
+ * Application Layer
+ * @{
+ */
+
 #ifndef CONNECTION_H
 #define CONNECTION_H
 
@@ -141,3 +148,5 @@ public:
 };
 
 #endif
+
+/** @} */
