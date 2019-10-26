@@ -20,52 +20,6 @@
 #include "layer4.h"
 
 #include "tpdu.h"
-/***************** T_Brodcast *****************/
-
-T_Broadcast::T_Broadcast (T_Reader<BroadcastComm> *app, LinkConnectClientPtr lc, bool write_only)
-  : Layer4commonWO(app, lc,write_only)
-{
-  t->setAuxName("TBr");
-  TRACEPRINTF (t, 4, "OpenBroadcast %s", write_only ? "WO" : "RW");
-}
-
-T_Broadcast::~T_Broadcast ()
-{
-  TRACEPRINTF (t, 4, "CloseBroadcast");
-}
-
-void
-T_Broadcast::send_L_Data (LDataPtr l)
-{
-  BroadcastComm c;
-  TPDUPtr t = TPDU::fromPacket (l->address_type, l->destination_address, l->data, this->t);
-  if (t->getType () == T_Data_Broadcast)
-    {
-      T_Data_Broadcast_PDU *t1 = (T_Data_Broadcast_PDU *) &*t;
-      c.data = t1->data;
-      c.src = l->source_address;
-      app->send(c);
-    }
-  send_Next();
-}
-
-void
-T_Broadcast::recv_Data (const CArray & c)
-{
-  T_Data_Broadcast_PDU t;
-  t.data = c;
-  std::string s = t.Decode (this->t);
-  TRACEPRINTF (this->t, 4, "Recv Broadcast %s", s);
-  LDataPtr l = LDataPtr(new L_Data_PDU ());
-  l->source_address = 0;
-  l->destination_address = 0;
-  l->address_type = GroupAddress;
-  l->data = t.ToPacket ();
-  l->hop_count = 0x07;
-  auto r = recv.lock();
-  if (r != nullptr)
-    r->recv_L_Data (std::move(l));
-}
 
 /***************** T_Group *****************/
 
@@ -79,15 +33,15 @@ T_Group::T_Group (T_Reader<GroupComm> *app, LinkConnectClientPtr lc, eibaddr_t g
 }
 
 void
-T_Group::send_L_Data (LDataPtr l)
+T_Group::send_L_Data (LDataPtr lpdu)
 {
   GroupComm c;
-  TPDUPtr t = TPDU::fromPacket (l->address_type, l->destination_address, l->data, this->t);
-  if (t->getType () == T_Data_Group)
+  TPDUPtr tpdu = TPDU::fromPacket (lpdu->address_type, lpdu->destination_address, lpdu->lsdu, t);
+  if (tpdu->getType () == T_Data_Group)
     {
-      T_Data_Group_PDU *t1 = (T_Data_Group_PDU *) &*t;
-      c.data = t1->data;
-      c.src = l->source_address;
+      T_Data_Group_PDU *tpdu1 = (T_Data_Group_PDU *) &*tpdu;
+      c.data = tpdu1->tsdu;
+      c.src = lpdu->source_address;
       app->send(c);
     }
   send_Next();
@@ -96,18 +50,18 @@ T_Group::send_L_Data (LDataPtr l)
 void
 T_Group::recv_Data (const CArray & c)
 {
-  T_Data_Group_PDU t;
-  t.data = c;
-  std::string s = t.Decode (this->t);
-  TRACEPRINTF (this->t, 4, "Recv Group %s", s);
-  LDataPtr l = LDataPtr(new L_Data_PDU ());
-  l->source_address = 0;
-  l->destination_address = groupaddr;
-  l->address_type = GroupAddress;
-  l->data = t.ToPacket ();
+  T_Data_Group_PDU tpdu;
+  tpdu.tsdu = c;
+  std::string s = tpdu.Decode (t);
+  TRACEPRINTF (t, 4, "Recv Group %s", s);
+  LDataPtr lpdu = LDataPtr(new L_Data_PDU ());
+  lpdu->source_address = 0;
+  lpdu->destination_address = groupaddr;
+  lpdu->address_type = GroupAddress;
+  lpdu->lsdu = tpdu.ToPacket ();
   auto r = recv.lock();
   if (r != nullptr)
-    r->recv_L_Data (std::move(l));
+    r->recv_L_Data (std::move(lpdu));
 }
 
 T_Group::~T_Group ()
@@ -115,23 +69,69 @@ T_Group::~T_Group ()
   TRACEPRINTF (t, 4, "CloseGroup");
 }
 
-/***************** T_TPDU *****************/
+/***************** T_Broadcast *****************/
 
-T_TPDU::T_TPDU (T_Reader<TpduComm> *app, LinkConnectClientPtr lc, eibaddr_t src)
-  : Layer4common(app, lc)
+T_Broadcast::T_Broadcast (T_Reader<BroadcastComm> *app, LinkConnectClientPtr lc, bool write_only)
+  : Layer4commonWO(app, lc, write_only)
 {
-  t->setAuxName("TPdu");
-  TRACEPRINTF (t, 4, "OpenTPDU %s", FormatEIBAddr (src));
-  this->src = src;
+  t->setAuxName("TBr");
+  TRACEPRINTF (t, 4, "OpenBroadcast %s", write_only ? "WO" : "RW");
+}
+
+T_Broadcast::~T_Broadcast ()
+{
+  TRACEPRINTF (t, 4, "CloseBroadcast");
 }
 
 void
-T_TPDU::send_L_Data (LDataPtr l)
+T_Broadcast::send_L_Data (LDataPtr lpdu)
 {
-  TpduComm t;
-  t.data = l->data;
-  t.addr = l->source_address;
-  app->send(t);
+  BroadcastComm c;
+  TPDUPtr tpdu = TPDU::fromPacket (lpdu->address_type, lpdu->destination_address, lpdu->lsdu, t);
+  if (tpdu->getType () == T_Data_Broadcast)
+    {
+      T_Data_Broadcast_PDU *tpdu1 = (T_Data_Broadcast_PDU *) &*tpdu;
+      c.data = tpdu1->tsdu;
+      c.src = lpdu->source_address;
+      app->send(c);
+    }
+  send_Next();
+}
+
+void
+T_Broadcast::recv_Data (const CArray & c)
+{
+  T_Data_Broadcast_PDU tpdu;
+  tpdu.tsdu = c;
+  std::string s = tpdu.Decode (t);
+  TRACEPRINTF (t, 4, "Recv Broadcast %s", s);
+  LDataPtr lpdu = LDataPtr(new L_Data_PDU ());
+  lpdu->source_address = 0;
+  lpdu->destination_address = 0;
+  lpdu->address_type = GroupAddress;
+  lpdu->lsdu = tpdu.ToPacket ();
+  lpdu->hop_count = 0x07;
+  auto r = recv.lock();
+  if (r != nullptr)
+    r->recv_L_Data (std::move(lpdu));
+}
+
+/***************** T_TPDU *****************/
+
+T_TPDU::T_TPDU (T_Reader<TpduComm> *app, LinkConnectClientPtr lc, eibaddr_t src)
+  : Layer4common(app, lc), src(src)
+{
+  t->setAuxName("TPdu");
+  TRACEPRINTF (t, 4, "OpenTPDU %s", FormatEIBAddr (src));
+}
+
+void
+T_TPDU::send_L_Data (LDataPtr lpdu)
+{
+  TpduComm c;
+  c.data = lpdu->lsdu;
+  c.addr = lpdu->source_address;
+  app->send(c);
   send_Next();
 }
 
@@ -139,14 +139,14 @@ void
 T_TPDU::recv_Data (const TpduComm & c)
 {
   t->TracePacket (4, "Recv TPDU", c.data);
-  LDataPtr l = LDataPtr(new L_Data_PDU ());
-  l->source_address = src;
-  l->destination_address = c.addr;
-  l->address_type = IndividualAddress;
-  l->data = c.data;
+  LDataPtr lpdu = LDataPtr(new L_Data_PDU ());
+  lpdu->source_address = src;
+  lpdu->destination_address = c.addr;
+  lpdu->address_type = IndividualAddress;
+  lpdu->lsdu = c.data;
   auto r = recv.lock();
   if (r != nullptr)
-    r->recv_L_Data (std::move(l));
+    r->recv_L_Data (std::move(lpdu));
 }
 
 T_TPDU::~T_TPDU ()
@@ -157,33 +157,34 @@ T_TPDU::~T_TPDU ()
 /***************** T_Individual *****************/
 
 T_Individual::T_Individual (T_Reader<CArray> *app, LinkConnectClientPtr lc, eibaddr_t dest, bool write_only)
-  : Layer4commonWO(app, lc, write_only)
+  : Layer4commonWO(app, lc, write_only), dest(dest)
 {
   t->setAuxName("TInd");
   TRACEPRINTF (t, 4, "OpenIndividual %s %s",
                FormatEIBAddr (dest).c_str(), write_only ? "WO" : "RW");
-  this->dest = dest;
 }
 
 void
-T_Individual::send_L_Data (LDataPtr l)
+T_Individual::send_L_Data (LDataPtr lpdu)
 {
   CArray c;
-  TPDUPtr t = TPDU::fromPacket (l->address_type, l->destination_address, l->data, this->t);
-  switch (t->getType ())
+  TPDUPtr tpdu = TPDU::fromPacket (lpdu->address_type, lpdu->destination_address, lpdu->lsdu, t);
+  switch (tpdu->getType ())
     {
     case T_Data_Broadcast:
     {
-      T_Data_Broadcast_PDU *t1 = (T_Data_Broadcast_PDU *) &*t;
-      c = t1->data;
+      T_Data_Broadcast_PDU *tpdu1 = (T_Data_Broadcast_PDU *) &*tpdu;
+      c = tpdu1->tsdu;
       app->send(c);
     }
+    break;
     case T_Data_Individual:
     {
-      T_Data_Individual_PDU *t1 = (T_Data_Individual_PDU *) &*t;
-      c = t1->data;
+      T_Data_Individual_PDU *tpdu1 = (T_Data_Individual_PDU *) &*tpdu;
+      c = tpdu1->tsdu;
       app->send(c);
     }
+    break;
     default:
       /* ignore */
       break;
@@ -194,18 +195,18 @@ T_Individual::send_L_Data (LDataPtr l)
 void
 T_Individual::recv_Data (const CArray & c)
 {
-  T_Data_Individual_PDU t;
-  t.data = c;
-  std::string s = t.Decode (this->t);
-  TRACEPRINTF (this->t, 4, "Recv Individual %s", s);
-  LDataPtr l = LDataPtr(new L_Data_PDU ());
-  l->source_address = 0;
-  l->destination_address = dest;
-  l->address_type = IndividualAddress;
-  l->data = t.ToPacket ();
+  T_Data_Individual_PDU tpdu;
+  tpdu.tsdu = c;
+  std::string s = tpdu.Decode (t);
+  TRACEPRINTF (t, 4, "Recv Individual %s", s);
+  LDataPtr lpdu = LDataPtr(new L_Data_PDU ());
+  lpdu->source_address = 0;
+  lpdu->destination_address = dest;
+  lpdu->address_type = IndividualAddress;
+  lpdu->lsdu = tpdu.ToPacket ();
   auto r = recv.lock();
   if (r != nullptr)
-    r->recv_L_Data (std::move(l));
+    r->recv_L_Data (std::move(lpdu));
 }
 
 T_Individual::~T_Individual ()
@@ -215,17 +216,12 @@ T_Individual::~T_Individual ()
 
 /***************** T_Connection *****************/
 
-T_Connection::T_Connection (T_Reader<CArray> *app, LinkConnectClientPtr lc, eibaddr_t d)
-  : Layer4common (app, lc)
+T_Connection::T_Connection (T_Reader<CArray> *app, LinkConnectClientPtr lc, eibaddr_t dest)
+  : Layer4common (app, lc), dest(dest)
 {
   t->setAuxName("TConn");
-  TRACEPRINTF (t, 4, "OpenConnection %s", FormatEIBAddr (d));
+  TRACEPRINTF (t, 4, "OpenConnection %s", FormatEIBAddr (dest));
   timer.set <T_Connection, &T_Connection::timer_cb> (this);
-
-  dest = d;
-  recvno = 0;
-  sendno = 0;
-  mode = 0;
 }
 
 T_Connection::~T_Connection ()
@@ -237,25 +233,25 @@ T_Connection::~T_Connection ()
 }
 
 void
-T_Connection::send_L_Data (LDataPtr l)
+T_Connection::send_L_Data (LDataPtr lpdu)
 {
-  TPDUPtr t = TPDU::fromPacket (l->address_type, l->destination_address, l->data, this->t);
-  switch (t->getType ())
+  TPDUPtr tpdu = TPDU::fromPacket (lpdu->address_type, lpdu->destination_address, lpdu->lsdu, t);
+  switch (tpdu->getType ())
     {
     case T_Data_Connected:
     {
-      T_Data_Connected_PDU *t1 = (T_Data_Connected_PDU *) &*t;
-      if (t1->sequence_number != recvno && t1->sequence_number != ((recvno - 1) & 0x0f))
+      T_Data_Connected_PDU *tpdu1 = (T_Data_Connected_PDU *) &*tpdu;
+      if (tpdu1->sequence_number != recvno && tpdu1->sequence_number != ((recvno - 1) & 0x0f))
         stop();
-      else if (t1->sequence_number == recvno)
+      else if (tpdu1->sequence_number == recvno)
         {
-          t1->data[0] = t1->data[0] & 0x03;
-          app->send(t1->data);
+          tpdu1->tsdu[0] = tpdu1->tsdu[0] & 0x03;
+          app->send(tpdu1->tsdu);
           SendAck (recvno);
           recvno = (recvno + 1) & 0x0f;
         }
-      else if (t1->sequence_number == ((recvno - 1) & 0x0f))
-        SendAck (t1->sequence_number);
+      else if (tpdu1->sequence_number == ((recvno - 1) & 0x0f))
+        SendAck (tpdu1->sequence_number);
     }
     break;
     case T_Connect:
@@ -266,8 +262,8 @@ T_Connection::send_L_Data (LDataPtr l)
       break;
     case T_ACK:
     {
-      T_ACK_PDU *t1 = (T_ACK_PDU *) &*t;
-      if (t1->sequence_number != sendno)
+      T_ACK_PDU *tpdu1 = (T_ACK_PDU *) &*tpdu;
+      if (tpdu1->sequence_number != sendno)
         stop();
       else if (mode != 2)
         stop();
@@ -282,8 +278,8 @@ T_Connection::send_L_Data (LDataPtr l)
     break;
     case T_NAK:
     {
-      T_NAK_PDU *t1 = (T_NAK_PDU *) &*t;
-      if (t1->sequence_number != sendno)
+      T_NAK_PDU *tpdu1 = (T_NAK_PDU *) &*tpdu;
+      if (tpdu1->sequence_number != sendno)
         stop();
       else if (repcount >= 3 || mode != 2)
         stop();
@@ -327,13 +323,13 @@ void
 T_Connection::SendConnect ()
 {
   TRACEPRINTF (t, 4, "SendConnect");
-  T_Connect_PDU p;
-  LDataPtr l = LDataPtr(new L_Data_PDU ());
-  l->source_address = 0;
-  l->destination_address = dest;
-  l->address_type = IndividualAddress;
-  l->data = p.ToPacket ();
-  l->priority = PRIO_SYSTEM;
+  T_Connect_PDU tpdu;
+  LDataPtr lpdu = LDataPtr(new L_Data_PDU ());
+  lpdu->source_address = 0;
+  lpdu->destination_address = dest;
+  lpdu->address_type = IndividualAddress;
+  lpdu->lsdu = tpdu.ToPacket ();
+  lpdu->priority = PRIO_SYSTEM;
 
   mode = 1;
   sendno = 0;
@@ -341,56 +337,56 @@ T_Connection::SendConnect ()
   repcount = 0;
   auto r = recv.lock();
   if (r != nullptr)
-    r->recv_L_Data (std::move(l));
+    r->recv_L_Data (std::move(lpdu));
 }
 
 void
 T_Connection::SendDisconnect ()
 {
   TRACEPRINTF (t, 4, "SendDisconnect");
-  T_Disconnect_PDU p;
-  LDataPtr l = LDataPtr(new L_Data_PDU ());
-  l->source_address = 0;
-  l->destination_address = dest;
-  l->address_type = IndividualAddress;
-  l->data = p.ToPacket ();
-  l->priority = PRIO_SYSTEM;
+  T_Disconnect_PDU tpdu;
+  LDataPtr lpdu = LDataPtr(new L_Data_PDU ());
+  lpdu->source_address = 0;
+  lpdu->destination_address = dest;
+  lpdu->address_type = IndividualAddress;
+  lpdu->lsdu = tpdu.ToPacket ();
+  lpdu->priority = PRIO_SYSTEM;
   auto r = recv.lock();
   if (r != nullptr)
-    r->recv_L_Data (std::move(l));
+    r->recv_L_Data (std::move(lpdu));
 }
 
 void
 T_Connection::SendAck (int sequence_number)
 {
   TRACEPRINTF (t, 4, "SendACK %d", sequence_number);
-  T_ACK_PDU p;
-  p.sequence_number = sequence_number;
-  LDataPtr l = LDataPtr(new L_Data_PDU ());
-  l->source_address = 0;
-  l->destination_address = dest;
-  l->address_type = IndividualAddress;
-  l->data = p.ToPacket ();
+  T_ACK_PDU tpdu;
+  tpdu.sequence_number = sequence_number;
+  LDataPtr lpdu = LDataPtr(new L_Data_PDU ());
+  lpdu->source_address = 0;
+  lpdu->destination_address = dest;
+  lpdu->address_type = IndividualAddress;
+  lpdu->lsdu = tpdu.ToPacket ();
   auto r = recv.lock();
   if (r != nullptr)
-    r->recv_L_Data (std::move(l));
+    r->recv_L_Data (std::move(lpdu));
 }
 
 void
 T_Connection::SendData (int sequence_number, const CArray & c)
 {
-  T_Data_Connected_PDU p;
-  p.data = c;
-  p.sequence_number = sequence_number;
-  TRACEPRINTF (t, 4, "SendData %s", p.Decode (t));
-  LDataPtr l = LDataPtr(new L_Data_PDU ());
-  l->source_address = 0;
-  l->destination_address = dest;
-  l->address_type = IndividualAddress;
-  l->data = p.ToPacket ();
+  T_Data_Connected_PDU tpdu;
+  tpdu.tsdu = c;
+  tpdu.sequence_number = sequence_number;
+  TRACEPRINTF (t, 4, "SendData %s", tpdu.Decode (t));
+  LDataPtr lpdu = LDataPtr(new L_Data_PDU ());
+  lpdu->source_address = 0;
+  lpdu->destination_address = dest;
+  lpdu->address_type = IndividualAddress;
+  lpdu->lsdu = tpdu.ToPacket ();
   auto r = recv.lock();
   if (r != nullptr)
-    r->recv_L_Data (std::move(l));
+    r->recv_L_Data (std::move(lpdu));
 }
 
 /*
@@ -401,7 +397,7 @@ T_Connection::SendData (int sequence_number, const CArray & c)
  *
 */
 
-void T_Connection::timer_cb (ev::timer &w UNUSED, int revents UNUSED)
+void T_Connection::timer_cb (ev::timer &, int)
 {
   if (mode == 2 && repcount < 3)
     {
@@ -438,16 +434,16 @@ GroupSocket::~GroupSocket ()
 }
 
 void
-GroupSocket::send_L_Data (LDataPtr l)
+GroupSocket::send_L_Data (LDataPtr lpdu)
 {
   GroupAPDU c;
-  TPDUPtr t = TPDU::fromPacket (l->address_type, l->destination_address, l->data, this->t);
-  if (t->getType () == T_Data_Group)
+  TPDUPtr tpdu = TPDU::fromPacket (lpdu->address_type, lpdu->destination_address, lpdu->lsdu, t);
+  if (tpdu->getType () == T_Data_Group)
     {
-      T_Data_Group_PDU *t1 = (T_Data_Group_PDU *) &*t;
-      c.data = t1->data;
-      c.src = l->source_address;
-      c.dst = l->destination_address;
+      T_Data_Group_PDU *tpdu1 = (T_Data_Group_PDU *) &*tpdu;
+      c.data = tpdu1->tsdu;
+      c.src = lpdu->source_address;
+      c.dst = lpdu->destination_address;
       app->send(c);
     }
   send_Next();
@@ -456,17 +452,16 @@ GroupSocket::send_L_Data (LDataPtr l)
 void
 GroupSocket::recv_Data (const GroupAPDU & c)
 {
-  T_Data_Group_PDU t;
-  t.data = c.data;
-  std::string s = t.Decode (this->t);
-  TRACEPRINTF (this->t, 4, "Recv GroupSocket %s %s", FormatGroupAddr(c.dst), s);
-  LDataPtr l = LDataPtr(new L_Data_PDU ());
-  l->source_address = 0;
-  l->destination_address = c.dst;
-  l->address_type = GroupAddress;
-  l->data = t.ToPacket ();
+  T_Data_Group_PDU tpdu;
+  tpdu.tsdu = c.data;
+  std::string s = tpdu.Decode (t);
+  TRACEPRINTF (t, 4, "Recv GroupSocket %s %s", FormatGroupAddr(c.dst), s);
+  LDataPtr lpdu = LDataPtr(new L_Data_PDU ());
+  lpdu->source_address = 0;
+  lpdu->destination_address = c.dst;
+  lpdu->address_type = GroupAddress;
+  lpdu->lsdu = tpdu.ToPacket ();
   auto r = recv.lock();
   if (r != nullptr)
-    r->recv_L_Data (std::move(l));
+    r->recv_L_Data (std::move(lpdu));
 }
-
