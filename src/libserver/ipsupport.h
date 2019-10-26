@@ -38,11 +38,7 @@ bool GetHostIP (TracePtr tr, struct sockaddr_in *sock, const std::string& name);
 bool GetSourceAddress (TracePtr tr,
                        const struct sockaddr_in *dest,
                        struct sockaddr_in *src);
-/** convert a to EIBnet/IP format */
-CArray IPtoEIBNetIP (const struct sockaddr_in *a, bool nat);
-/** convert EIBnet/IP IP Address to a */
-bool EIBnettoIP (const CArray & buf, struct sockaddr_in *a,
-                const struct sockaddr_in *src, bool & nat);
+
 bool compareIPAddress (const struct sockaddr_in &a,
                        const struct sockaddr_in &b);
 
