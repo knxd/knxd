@@ -31,12 +31,12 @@
 /** aborts program with a printf like message */
 void die (const char *msg, ...);
 
-typedef struct
+struct L2options
 {
   unsigned int flags;
   unsigned int send_delay;
   TracePtr t;
-} L2options;
+};
 
 #define FLAG_B_TUNNEL_NOQUEUE (1<<0)
 #define FLAG_B_TPUARTS_ACKGROUP (1<<1)
