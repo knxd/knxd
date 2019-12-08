@@ -76,6 +76,7 @@ EMI_Common::start()
 void
 EMI_Common::started()
 {
+  state = E_idle;
   TRACEPRINTF (t, 2, "OpenL2");
   if (monitor)
     cmdEnterMonitor();
