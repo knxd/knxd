@@ -445,8 +445,17 @@ private:
   bool addr_local = true;
 
 public:
+  /** This is the main flow control mechanism. Whenever "send_more" is set,
+   * the router may call "send_L_Data" ONCE. It must then wait for
+   * "send_Next" to be called.
+   * (This call may happen during the call to "send_L_Data", or some time later.)
+   * The router may then send the next message.
+   * The call to send_L_Data must not be recursive; use an
+   * ev::event!
+   */
   bool send_more = true;
   virtual void send_L_Data (LDataPtr l);
+  virtual void send_Next ();
 
   /** This is responsible for setting up the filters. Don't call it twice!
    * Precondition: set_driver() has been called. */
@@ -466,7 +475,6 @@ public:
   virtual void recv_L_Busmonitor (LBusmonPtr l); // { l3.recv_L_Busmonitor(std::move(l), this); }
   virtual bool checkSysAddress(eibaddr_t addr);
   virtual bool checkSysGroupAddress(eibaddr_t addr);
-  virtual void send_Next ();
 };
 
 /** connection for a server's client */
