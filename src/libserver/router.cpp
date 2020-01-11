@@ -1074,9 +1074,9 @@ Router::send_L_Data(LDataPtr l1)
           auto ii = i->second;
           if (ii->state != L_up)
             continue;
-          if(!has_send_more(ii))
-            continue;
           if (ii->hasAddress(l1->source))
+            continue;
+          if(!has_send_more(ii))
             continue;
           if (l1->hopcount == 7 || ii->checkGroupAddress(l1->dest))
             i->second->send_L_Data (LDataPtr(new L_Data_PDU (*l1)));
@@ -1106,9 +1106,9 @@ Router::send_L_Data(LDataPtr l1)
           auto ii = i->second;
           if (ii->state != L_up)
             continue;
-          if(!has_send_more(ii))
-            continue;
           if (ii->hasAddress (l1->source))
+            continue;
+          if(!has_send_more(ii))
             continue;
           if (l1->hopcount == 7 || found ? ii->hasAddress (l1->dest) : ii->checkAddress (l1->dest))
             i->second->send_L_Data (LDataPtr(new L_Data_PDU (*l1)));
