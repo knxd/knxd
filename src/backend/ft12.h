@@ -32,12 +32,12 @@
 /** FT12-specific CEMI backend (separate commands for setup) */
 class FT12CEMIDriver : public CEMIDriver
 {
-  void cmdOpen(); 
+  void cmdOpen();
 public:
   FT12CEMIDriver (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver * i = nullptr) : CEMIDriver(c,s,i)
-    {
-      t->setAuxName("ft12cemi");
-    }
+  {
+    t->setAuxName("ft12cemi");
+  }
   virtual ~FT12CEMIDriver ();
 };
 
@@ -46,13 +46,16 @@ DRIVER_(FT12Driver,LowLevelAdapter,ft12)
 {
 public:
   FT12Driver(const LinkConnectPtr_& c, IniSectionPtr& s) : LowLevelAdapter(c,s)
-    {
-      t->setAuxName("ft12dr");
-    }
-  virtual ~FT12Driver();
+  {
+    t->setAuxName("ft12dr");
+  }
+  virtual ~FT12Driver() = default;
 
   bool setup();
-  virtual EMIVer getVersion() { return vEMI2; }
+  virtual EMIVer getVersion()
+  {
+    return vEMI2;
+  }
 private:
   bool make_EMI();
 };
@@ -61,12 +64,15 @@ DRIVER_(FT12cemiDriver, FT12Driver, ft12cemi)
 {
 public:
   FT12cemiDriver(const LinkConnectPtr_& c, IniSectionPtr& s) : FT12Driver(c,s)
-    {
-      t->setAuxName("ft12drc");
-    }
-  virtual ~FT12cemiDriver();
+  {
+    t->setAuxName("ft12drc");
+  }
+  virtual ~FT12cemiDriver() = default;
 
-  virtual EMIVer getVersion() { return vCEMI; }
+  virtual EMIVer getVersion()
+  {
+    return vCEMI;
+  }
 };
 
 class FT12wrap : public LowLevelFilter
@@ -95,9 +101,12 @@ class FT12wrap : public LowLevelFilter
   /** set up send and recv buffers, timers, etc. */
   void setup_buffers();
 
-  ev::async trigger; void trigger_cb (ev::async &w, int revents);
-  ev::timer timer; void timer_cb (ev::timer &w, int revents);
-  ev::timer sendtimer; void sendtimer_cb (ev::timer &w, int revents);
+  ev::async trigger;
+  void trigger_cb (ev::async &w, int revents);
+  ev::timer timer;
+  void timer_cb (ev::timer &w, int revents);
+  ev::timer sendtimer;
+  void sendtimer_cb (ev::timer &w, int revents);
   /** process incoming data */
   void process_read (bool is_timeout);
   void do_send_Next ();

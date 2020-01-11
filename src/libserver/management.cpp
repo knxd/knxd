@@ -80,35 +80,35 @@ Management_Connection::X_Get_PEIType (int16_t & val)
 }
 
 int
-Management_Connection::X_PropertyScan (Array < PropertyInfo > &p)
+Management_Connection::X_PropertyScan (std::vector < PropertyInfo > &p)
 {
   p.resize (0);
   PropertyInfo p1;
-  uchar obj, i;
+  uint8_t obj, i;
   obj = 0;
   do
     {
       i = 0;
       do
-	{
-	  p1.obj = obj;
-	  p1.property = 0;
-	  if (A_Property_Desc
-	      (obj, p1.property, i, p1.type, p1.count, p1.access) == -1)
-	    return -1;
-	  if (p1.property == 1 && p1.type == 4)
-	    {
-	      CArray a;
-	      if (A_Property_Read (obj, 1, 1, 1, a) == -1)
-		return -1;
-	      if (a.size() != 2)
-		return -1;
-	      p1.count = (a[0] << 8) | (a[1]);
-	    }
-	  if (p1.property != 0)
-	    p.push_back (p1);
-	  i++;
-	}
+        {
+          p1.obj = obj;
+          p1.property = 0;
+          if (A_Property_Desc
+              (obj, p1.property, i, p1.type, p1.count, p1.access) == -1)
+            return -1;
+          if (p1.property == 1 && p1.type == 4)
+            {
+              CArray a;
+              if (A_Property_Read (obj, 1, 1, 1, a) == -1)
+                return -1;
+              if (a.size() != 2)
+                return -1;
+              p1.count = (a[0] << 8) | (a[1]);
+            }
+          if (p1.property != 0)
+            p.push_back (p1);
+          i++;
+        }
       while (p1.property != 0);
       obj++;
     }

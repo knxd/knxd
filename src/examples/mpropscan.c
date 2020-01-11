@@ -21,7 +21,7 @@
 int
 main (int ac, char *ag[])
 {
-  uchar buf[10000];
+  uint8_t buf[10000];
   int len;
   int i;
   EIBConnection *con;
@@ -46,12 +46,12 @@ main (int ac, char *ag[])
   for (i = 0; i < len; i += 6)
     if (buf[i + 1] == 1 && buf[i + 2] == 4)
       printf ("Obj: %d Property: %d Type: %d Objtype:%d Access:%02X\n",
-	      buf[i + 0], buf[i + 1], buf[i + 2],
-	      (buf[i + 3] << 8) | buf[i + 4], buf[i + 5]);
+              buf[i + 0], buf[i + 1], buf[i + 2],
+              (buf[i + 3] << 8) | buf[i + 4], buf[i + 5]);
     else
       printf ("Obj: %d Property: %d Type: %d Count:%d Access:%02X\n",
-	      buf[i + 0], buf[i + 1], buf[i + 2],
-	      (buf[i + 3] << 8) | buf[i + 4], buf[i + 5]);
+              buf[i + 0], buf[i + 1], buf[i + 2],
+              (buf[i + 3] << 8) | buf[i + 4], buf[i + 5]);
 
   EIBClose (con);
   return 0;

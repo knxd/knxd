@@ -17,6 +17,13 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @ingroup KNX_03_03_04
+ * Transport Layer
+ * @{
+ */
+
 #ifndef GROUPCACHECLIENT_H
 #define GROUPCACHECLIENT_H
 
@@ -24,10 +31,12 @@
 #include "router.h"
 
 class ClientConnection;
-typedef std::shared_ptr<ClientConnection> ClientConnPtr;
+using ClientConnPtr = std::shared_ptr<ClientConnection>;
 
 bool CreateGroupCache (Router& r, IniSectionPtr& s);
 
 void GroupCacheRequest (ClientConnPtr c, uint8_t *buf, size_t len);
 
 #endif
+
+/** @} */

@@ -17,17 +17,18 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include <unistd.h>
-#include <errno.h>
-#include <sys/socket.h>
 #include "systemdserver.h"
+
+#include <cerrno>
+#include <sys/socket.h>
+#include <unistd.h>
 
 /*
  * systemd services are not controlled by the "usual" server logic,
  * so no SERVER macro here.
  */
 SystemdServer::SystemdServer (BaseRouter& r, IniSectionPtr& s, int systemd_fd)
-    : NetServer(r,s)
+  : NetServer(r,s)
 {
   t->setAuxName("systemd");
   fd = systemd_fd;

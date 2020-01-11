@@ -19,7 +19,7 @@
 
 #include <fcntl.h>
 #include <unistd.h>
-#include <errno.h>
+#include <cerrno>
 
 #include "ft12.h"
 
@@ -32,25 +32,28 @@
 #include "lltcp.h"
 #include "log.h"
 
-FT12Driver::~FT12Driver() {}
-FT12cemiDriver::~FT12cemiDriver() {}
-
 class FT12serial : public LLserial
 {
 public:
-  FT12serial(LowLevelIface* a, IniSectionPtr& b) : LLserial(a,b) { t->setAuxName("FT12_ser"); }
-  virtual ~FT12serial() {}
+  FT12serial(LowLevelIface* a, IniSectionPtr& b) : LLserial(a,b)
+  {
+    t->setAuxName("FT12_ser");
+  }
+  virtual ~FT12serial() = default;
 protected:
   void termios_settings (struct termios &t1)
-    {
-      t1.c_cflag = CS8 | CLOCAL | CREAD | PARENB;
-      t1.c_iflag = IGNBRK | INPCK | ISIG;
-      t1.c_oflag = 0;
-      t1.c_lflag = 0;
-      t1.c_cc[VTIME] = 1;
-      t1.c_cc[VMIN] = 0;
-    }
-  unsigned int default_baudrate() { return 19200; }
+  {
+    t1.c_cflag = CS8 | CLOCAL | CREAD | PARENB;
+    t1.c_iflag = IGNBRK | INPCK | ISIG;
+    t1.c_oflag = 0;
+    t1.c_lflag = 0;
+    t1.c_cc[VTIME] = 1;
+    t1.c_cc[VMIN] = 0;
+  }
+  unsigned int default_baudrate()
+  {
+    return 19200;
+  }
 };
 
 bool
@@ -71,7 +74,7 @@ FT12Driver::make_EMI()
       break;
     case vUnknown:
       return false;
-    default: 
+    default:
       TRACEPRINTF (t, 2, "Unsupported EMI");
       return false;
     }
@@ -84,8 +87,6 @@ FT12Driver::make_EMI()
 bool
 FT12Driver::setup()
 {
-  FDdriver *fdd;
-
   iface = new FT12wrap(this, cfg);
 
   if (t->ShowPrint(0))
@@ -130,7 +131,7 @@ FT12wrap::setup()
         }
       iface = new LLtcp(this, cfg);
     }
-  
+
   if (t->ShowPrint(0))
     iface = new LLlog (this,cfg, iface);
 
@@ -170,7 +171,7 @@ FT12wrap::setup_buffers()
   trigger.start();
 }
 
-void 
+void
 FT12wrap::stop_()
 {
   // XXX TODO add de-registration callback
@@ -180,7 +181,7 @@ FT12wrap::stop_()
   trigger.stop();
 }
 
-void 
+void
 FT12wrap::stop()
 {
   TRACEPRINTF (t, 1, "Close");
@@ -210,7 +211,7 @@ FT12wrap::do_send_Local (CArray& l, int raw)
     }
   if (!raw)
     {
-      uchar c;
+      uint8_t c;
       unsigned i;
 
       out.resize (l.size() + 7);
@@ -252,7 +253,7 @@ FT12wrap::recv_Data(CArray &c)
 }
 
 void
-FT12wrap::timer_cb(ev::timer &w UNUSED, int revents UNUSED)
+FT12wrap::timer_cb(ev::timer &, int)
 {
   process_read(true);
 }
@@ -311,7 +312,7 @@ FT12wrap::process_read(bool is_timeout)
             break;
           if (akt[1] == akt[2] && akt[3] == 0x16)
             {
-              uchar c1 = 0xE5;
+              uint8_t c1 = 0xE5;
               iface->send_Data(c1);
               if ((akt[1] == 0xF3 && !recvflag) ||
                   (akt[1] == 0xD3 && recvflag))
@@ -321,7 +322,7 @@ FT12wrap::process_read(bool is_timeout)
                 }
               if ((akt[1] & 0x0f) == 0)
                 {
-                  const uchar reset[1] = { 0xA0 };
+                  const uint8_t reset[1] = { 0xA0 };
                   CArray c = CArray (reset, sizeof (reset));
                   t->TracePacket (0, "RecvReset", c);
                   LowLevelFilter::recv_Data (c);
@@ -336,7 +337,7 @@ FT12wrap::process_read(bool is_timeout)
       else if (akt[0] == 0x68)
         {
           int len;
-          uchar c1;
+          uint8_t c1;
           if (akt.size() < 7)
             break;
           if (akt[1] != akt[2] || akt[3] != 0x68)
@@ -363,7 +364,8 @@ FT12wrap::process_read(bool is_timeout)
           iface->send_Data (c1);
 
           if (akt[4] == (recvflag ? 0xF3 : 0xD3))
-            { // repeat packet?
+            {
+              // repeat packet?
               if (CArray (akt.data() + 5, akt[1] - 1) != last)
                 {
                   TRACEPRINTF (t, 0, "Sequence jump");
@@ -387,7 +389,7 @@ FT12wrap::process_read(bool is_timeout)
           /* if timeout OR an unknown byte, drop it. */
           if (false)
             {
-      err_out:
+err_out:
               if (!is_timeout)
                 break;
             }
@@ -404,14 +406,14 @@ FT12wrap::process_read(bool is_timeout)
 }
 
 void
-FT12wrap::sendtimer_cb(ev::timer &w UNUSED, int revents UNUSED)
+FT12wrap::sendtimer_cb(ev::timer &, int)
 {
   send_wait = false;
   trigger.send();
 }
 
 void
-FT12wrap::trigger_cb (ev::async &w UNUSED, int revents UNUSED)
+FT12wrap::trigger_cb (ev::async &, int)
 {
   if (send_wait || !next_free)
     return;
@@ -426,7 +428,7 @@ FT12wrap::trigger_cb (ev::async &w UNUSED, int revents UNUSED)
 
 void FT12wrap::sendReset()
 {
-  const uchar t1[] = { 0x10, 0x40, 0x40, 0x16 };
+  const uint8_t t1[] = { 0x10, 0x40, 0x40, 0x16 };
   CArray l (t1, sizeof (t1));
   do_send_Local (l, 1);
 }
@@ -440,7 +442,7 @@ void
 FT12CEMIDriver::cmdOpen()
 {
   sendLocal_done_next = N_up;
-  const uchar t1[] = { 0xF6, 0x00, 0x08, 0x01, 0x34, 0x10, 0x01, 0x00 };
+  const uint8_t t1[] = { 0xF6, 0x00, 0x08, 0x01, 0x34, 0x10, 0x01, 0x00 };
   send_Local (CArray (t1, sizeof (t1)),1);
 }
 

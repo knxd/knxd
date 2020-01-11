@@ -1,7 +1,7 @@
 /*
     EIBD eib bus access and management daemon
     Copyright (C) 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
- 
+
     cEMI support for USB
     Copyright (C) 2013 Meik Felser <felser@cs.fau.de>
 
@@ -21,10 +21,11 @@
 */
 
 #include "cemi.h"
+
 #include "emi.h"
 
 unsigned int
-CEMIDriver::maxPacketLen()
+CEMIDriver::maxPacketLen() const
 {
   return 50;
 }
@@ -34,10 +35,6 @@ CEMIDriver::CEMIDriver (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i) :
   t->setAuxName("CEMI");
   sendLocal_done.set<CEMIDriver,&CEMIDriver::sendLocal_done_cb>(this);
   reset_timer.set<CEMIDriver,&CEMIDriver::reset_timer_cb>(this);
-}
-
-CEMIDriver::~CEMIDriver()
-{
 }
 
 void
@@ -56,10 +53,24 @@ CEMIDriver::sendLocal_done_cb(bool success)
     EMI_Common::started();
 }
 
-void CEMIDriver::cmdEnterMonitor() { errored(); stopped(); }
-void CEMIDriver::cmdLeaveMonitor() { errored(); stopped(); }
-void CEMIDriver::cmdOpen() { LowLevelDriver::started(); }
-void CEMIDriver::cmdClose() { LowLevelDriver::stop(); }
+void CEMIDriver::cmdEnterMonitor()
+{
+  errored();
+  stopped();
+}
+void CEMIDriver::cmdLeaveMonitor()
+{
+  errored();
+  stopped();
+}
+void CEMIDriver::cmdOpen()
+{
+  LowLevelDriver::started();
+}
+void CEMIDriver::cmdClose()
+{
+  LowLevelDriver::stop();
+}
 
 void CEMIDriver::started()
 {
@@ -68,7 +79,7 @@ void CEMIDriver::started()
   sendReset();
 }
 
-void CEMIDriver::reset_timer_cb(ev::timer &w, int revents)
+void CEMIDriver::reset_timer_cb(ev::timer &, int)
 {
   ERRORPRINTF(t, E_ERROR | 44, "reset timed out");
   errored();
@@ -87,9 +98,9 @@ void CEMIDriver::do_send_Next()
 }
 
 const uint8_t *
-CEMIDriver::getIndTypes()
-{ 
+CEMIDriver::getIndTypes() const
+{
   static const uint8_t indTypes[] = { 0x2E, 0x29, 0x2B };
   return indTypes;
-}   
+}
 

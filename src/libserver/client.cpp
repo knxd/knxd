@@ -17,21 +17,23 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include <errno.h>
-#include <unistd.h>
-#include "server.h"
 #include "client.h"
+#include "config.h"
+
+#include <cerrno>
+#include <unistd.h>
+
 #ifdef HAVE_BUSMONITOR
 #include "busmonitor.h"
 #endif
 #include "connection.h"
-#include "config.h"
-#ifdef HAVE_MANAGEMENT
-#include "managementclient.h"
-#endif
 #ifdef HAVE_GROUPCACHE
 #include "groupcacheclient.h"
 #endif
+#ifdef HAVE_MANAGEMENT
+#include "managementclient.h"
+#endif
+#include "server.h"
 
 ClientConnection::ClientConnection (NetServerPtr s, int fd) : router(static_cast<Router&>(s->router)), sendbuf(fd),recvbuf(fd)
 {
@@ -140,16 +142,17 @@ ClientConnection::read_cb (uint8_t *buf, size_t len)
   t->TracePacket (0, "ReadMessage", xlen, buf);
 
   int msg = EIBTYPE (buf);
-  if (a_conn) {
-    if (msg == EIB_RESET_CONNECTION)
-      {
-        exit_conn();
-        sendreject (EIB_RESET_CONNECTION);
-      }
-    else
-      a_conn->recv_Data(buf,xlen);
-    return xlen+2;
-  }
+  if (a_conn)
+    {
+      if (msg == EIB_RESET_CONNECTION)
+        {
+          exit_conn();
+          sendreject (EIB_RESET_CONNECTION);
+        }
+      else
+        a_conn->recv_Data(buf,xlen);
+      return xlen+2;
+    }
 
   switch (msg)
     {
@@ -253,7 +256,7 @@ ClientConnection::read_cb (uint8_t *buf, size_t len)
       sendreject ();
       break;
 
-    new_a_conn:
+new_a_conn:
       a_conn->on_error.set<ClientConnection,&ClientConnection::exit_conn>(this);
       if (a_conn->setup(buf,xlen))
         {
@@ -280,7 +283,7 @@ ClientConnection::read_cb (uint8_t *buf, size_t len)
 void
 ClientConnection::sendreject ()
 {
-  uchar buf[2];
+  uint8_t buf[2];
   EIBSETTYPE (buf, EIB_INVALID_REQUEST);
   sendmessage (2, buf);
 }
@@ -288,15 +291,15 @@ ClientConnection::sendreject ()
 void
 ClientConnection::sendreject (int type)
 {
-  uchar buf[2];
+  uint8_t buf[2];
   EIBSETTYPE (buf, type);
   sendmessage (2, buf);
 }
 
 void
-ClientConnection::sendmessage (int size, const uchar * msg)
+ClientConnection::sendmessage (int size, const uint8_t * msg)
 {
-  uchar head[2];
+  uint8_t head[2];
   assert (size >= 2);
   head[0] = (size >> 8) & 0xff;
   head[1] = (size) & 0xff;

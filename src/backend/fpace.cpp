@@ -102,14 +102,14 @@ PaceFilter::send_Next()
       want_next = true;
       break;
     case P_IDLE:
-      {
-        float this_delay;
-        state = P_BUSY;
-        this_delay = last_len*byte_delay + delay;
-        TRACEPRINTF (t, 2, "out 1/%d: delay for %.3f sec", last_len, this_delay);
-        timer.start(this_delay);
-      }
-      break;
+    {
+      float this_delay;
+      state = P_BUSY;
+      this_delay = last_len*byte_delay + delay;
+      TRACEPRINTF (t, 2, "out 1/%d: delay for %.3f sec", last_len, this_delay);
+      timer.start(this_delay);
+    }
+    break;
     case P_BUSY:
       ERRORPRINTF(t, E_WARNING | 111, "send_next on busy pacer?");
       break;
@@ -117,7 +117,7 @@ PaceFilter::send_Next()
 }
 
 void
-PaceFilter::timer_cb (ev::timer &w UNUSED, int revents UNUSED)
+PaceFilter::timer_cb (ev::timer &, int)
 {
   if (state != P_BUSY)
     {
@@ -141,7 +141,7 @@ PaceFilter::timer_cb (ev::timer &w UNUSED, int revents UNUSED)
 void
 PaceFilter::send_L_Data (LDataPtr l)
 {
-  last_len = l->data.size();
+  last_len = l->lsdu.size();
   Filter::send_L_Data(std::move(l));
 }
 
@@ -149,7 +149,7 @@ void
 PaceFilter::recv_L_Data (LDataPtr l)
 {
   nr_in += 1;
-  size_in = l->data.size();
+  size_in = l->lsdu.size();
   Filter::recv_L_Data(std::move(l));
 }
 

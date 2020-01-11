@@ -17,15 +17,23 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @ingroup KNX_03_03_03
+ * Network Layer
+ * @{
+ */
+
 #ifndef ROUTER_H
 #define ROUTER_H
 
 #include <unordered_map>
 
+#include <ev++.h>
+
 #include "link.h"
 #include "lowlevel.h"
 #include "lpdu.h"
-#include <ev++.h>
 
 class BaseServer;
 class GroupCache;
@@ -34,24 +42,26 @@ class Router;
 class RouterHigh;
 class RouterLow;
 
-typedef std::shared_ptr<RouterLow> RouterLowPtr;
-typedef std::shared_ptr<RouterHigh> RouterHighPtr;
+using RouterLowPtr = std::shared_ptr<RouterLow>;
+using RouterHighPtr = std::shared_ptr<RouterHigh>;
 
 /** stores a registered busmonitor callback */
-typedef struct
+struct Busmonitor_Info
 {
   L_Busmonitor_CallBack *cb;
-} Busmonitor_Info;
+};
 
-typedef struct
+struct IgnoreInfo
 {
   CArray data;
   timestamp_t end;
-} IgnoreInfo;
+};
 
-class Router : public BaseRouter {
+class Router : public BaseRouter
+{
   friend class RouterLow;
   friend class RouterHigh;
+
 public:
   Router(IniData& d, std::string sn);
   virtual ~Router();
@@ -63,8 +73,14 @@ public:
   eibaddr_t addr = 0;
 
   /** group cache */
-  std::shared_ptr<GroupCache> getCache() { return cache; }
-  void setCache(std::shared_ptr<GroupCache> cache) { this->cache = cache; }
+  std::shared_ptr<GroupCache> getCache()
+  {
+    return cache;
+  }
+  void setCache(std::shared_ptr<GroupCache> cache)
+  {
+    this->cache = cache;
+  }
 
   /** read and apply settings */
   bool setup();
@@ -121,6 +137,36 @@ public:
   /** packet buffer is empty */
   void send_Next();
 
+  /** Look up a filter by name */
+  FilterPtr get_filter(const LinkConnectPtr_ &link, IniSectionPtr& s, const std::string& filtername);
+
+  /** Create a temporary dummy driver stack to test arguments for filters etc.
+   * Testing the calling driver's config args is the caller#s job.
+   */
+  bool checkStack(IniSectionPtr& cfg);
+
+  /** name of our main section */
+  std::string main;
+
+  bool hasClientAddrs(bool complain = true);
+
+  /** eventual exit code. Inremebted on fatal error */
+  int exitcode = 0;
+
+  /** allow unparsed tags in the config file? */
+  bool unknown_ok = false;
+  /** flag whether systemd has passed us any file descriptors */
+  bool using_systemd = false;
+
+  bool isIdle()
+  {
+    return !some_running;
+  }
+  bool isRunning()
+  {
+    return all_running;
+  }
+
 private:
   Factory<Server>& servers;
   Factory<Driver>& drivers;
@@ -144,19 +190,6 @@ private:
   bool high_send_more = false;
   bool high_sending = false;
 
-public:
-  /** Look up a filter by name */
-  FilterPtr get_filter(const LinkConnectPtr_ &link, IniSectionPtr& s, const std::string& filtername);
-
-  /** Create a temporary dummy driver stack to test arguments for filters etc.
-   * Testing the calling driver's config args is the caller#s job.
-   */
-  bool checkStack(IniSectionPtr& cfg);
-
-  /** name of our main section */
-  std::string main;
-
-private:
   /** create a link */
   LinkConnectPtr setup_link(std::string& name);
 
@@ -181,7 +214,7 @@ private:
   Queue < LDataPtr > buf;
   Queue < LBusmonPtr > mbuf;
   /** buffer for packets to ignore when repeat flag is set */
-  Array < IgnoreInfo > ignore;
+  std::vector < IgnoreInfo > ignore;
 
   /** Start of address block to assign dynamically to clients */
   eibaddr_t client_addrs_start;
@@ -190,14 +223,10 @@ private:
   int client_addrs_pos;
   std::vector<bool> client_addrs;
 
-public:
-  bool hasClientAddrs(bool complain = true);
-
-private:
   /** busmonitor callbacks */
-  Array < Busmonitor_Info > busmonitor;
+  std::vector < Busmonitor_Info > busmonitor;
   /** vbusmonitor callbacks */
-  Array < Busmonitor_Info > vbusmonitor;
+  std::vector < Busmonitor_Info > vbusmonitor;
 
   /** flag whether some driver is active */
   bool some_running = false;
@@ -216,19 +245,6 @@ private:
   /** iterators are evil */
   bool links_changed = false;
 
-public:
-  /** eventual exit code. Inremebted on fatal error */
-  int exitcode = 0;
-
-  /** allow unparsed tags in the config file? */
-  bool unknown_ok = false;
-  /** flag whether systemd has passed us any file descriptors */
-  bool using_systemd = false;
-
-  bool isIdle() { return !some_running; }
-  bool isRunning() { return all_running; }
-
-private:
   ev::async cleanup;
   void cleanup_cb (ev::async &w, int revents);
   /** to-be-closed client connections*/
@@ -246,3 +262,5 @@ private:
 };
 
 #endif
+
+/** @} */

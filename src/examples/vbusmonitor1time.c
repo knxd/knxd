@@ -27,22 +27,22 @@ int
 main (int ac, char *ag[])
 {
 //MM hires-time
-  struct timeval tv; 
-  struct tm* ptm; 
-  char time_string[40]; 
-  long milliseconds; 
-  /* Obtain the time of day, and convert it to a tm struct. */ 
-  gettimeofday (&tv, NULL); 
-  ptm = localtime (&tv.tv_sec); 
-  /* Format the date and time, down to a single second. */ 
-  strftime (time_string, sizeof (time_string), "%Y-%m-%d %H:%M:%S", ptm); 
-  /* Compute milliseconds from microseconds. */ 
-  milliseconds = tv.tv_usec / 1000; 
-  /* Print the formatted time, in seconds, followed by a decimal point and the milliseconds. */ 
-  printf ("%s.%03ld\n", time_string, milliseconds); 
+  struct timeval tv;
+  struct tm* ptm;
+  char time_string[40];
+  long milliseconds;
+  /* Obtain the time of day, and convert it to a tm struct. */
+  gettimeofday (&tv, NULL);
+  ptm = localtime (&tv.tv_sec);
+  /* Format the date and time, down to a single second. */
+  strftime (time_string, sizeof (time_string), "%Y-%m-%d %H:%M:%S", ptm);
+  /* Compute milliseconds from microseconds. */
+  milliseconds = tv.tv_usec / 1000;
+  /* Print the formatted time, in seconds, followed by a decimal point and the milliseconds. */
+  printf ("%s.%03ld\n", time_string, milliseconds);
 //MM end time
 
-  uchar buf[255];
+  uint8_t buf[255];
   int len;
   EIBConnection *con;
   if (ac != 2)
@@ -58,12 +58,12 @@ main (int ac, char *ag[])
     {
       len = EIBGetBusmonitorPacket (con, sizeof (buf), buf);
       if (len == -1)
-	die ("Read failed");
+        die ("Read failed");
       buf[len] = 0;
-		  gettimeofday (&tv, NULL); 
-		  ptm = localtime (&tv.tv_sec); 
-		  strftime (time_string, sizeof (time_string), "%H:%M:%S", ptm); 
-		  milliseconds = tv.tv_usec / 1000; 
+      gettimeofday (&tv, NULL);
+      ptm = localtime (&tv.tv_sec);
+      strftime (time_string, sizeof (time_string), "%H:%M:%S", ptm);
+      milliseconds = tv.tv_usec / 1000;
       printf ("%s.%03ld %s\n", time_string, milliseconds, buf);
       fflush (stdout);
     }

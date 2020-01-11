@@ -18,23 +18,25 @@
 */
 
 #include "eibnetserver.h"
-#include "emi.h"
 #include "config.h"
-#include <stdlib.h>
-#include <sys/ioctl.h>
+
+#include <cstdlib>
+#include <cstring>
+#include <memory>
 #include <net/if.h>
 #include <net/if_arp.h>
-#include <unistd.h>
 #include <netinet/in.h>
-#include <string.h>
-#include <memory>
+#include <sys/ioctl.h>
+#include <unistd.h>
 #ifndef SIOCGIFHWADDR
 #include <sys/sysctl.h>
 #include <net/if_dl.h>
 #endif
 
+#include "emi.h"
+
 EIBnetServer::EIBnetServer (BaseRouter& r, IniSectionPtr& s)
-	: Server(r,s)
+  : Server(r,s)
   , mcast(NULL)
   , sock(NULL)
   , tunnel(false)
@@ -123,7 +125,7 @@ EIBnetDriver::setup()
     return false;
   if (! sock)
     return false;
-  
+
   return true;
 }
 
@@ -188,10 +190,10 @@ EIBnetServer::start()
 
   sock_mac = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
   if (sock_mac < 0)
-  {
-    ERRORPRINTF (t, E_ERROR | 27, "Lookup socket creation failed");
-    goto err_out0;
-  }
+    {
+      ERRORPRINTF (t, E_ERROR | 27, "Lookup socket creation failed");
+      goto err_out0;
+    }
   memset (&baddr, 0, sizeof (baddr));
 #ifdef HAVE_SOCKADDR_IN_LEN
   baddr.sin_len = sizeof (baddr);
@@ -202,10 +204,10 @@ EIBnetServer::start()
 
   sock = new EIBNetIPSocket (baddr, 1, t);
   if (!sock)
-  {
-    ERRORPRINTF (t, E_ERROR | 41, "EIBNetIPSocket creation failed");
-    goto err_out1;
-  }
+    {
+      ERRORPRINTF (t, E_ERROR | 41, "EIBNetIPSocket creation failed");
+      goto err_out1;
+    }
   sock->SetInterface(interface);
 
   if (!sock->init ())
@@ -288,7 +290,7 @@ void ConnState::send_L_Busmonitor (LBusmonPtr l)
     {
       out.put (Busmonitor_to_CEMI (0x2B, l, no++));
       if (! retries)
-	send_trigger.send();
+        send_trigger.send();
     }
 }
 
@@ -300,7 +302,7 @@ void ConnState::send_L_Data (LDataPtr l)
       do_send_next = true;
       out.put (L_Data_ToCEMI (0x29, l));
       if (! retries)
-	send_trigger.send();
+        send_trigger.send();
     }
 }
 
@@ -311,11 +313,11 @@ EIBnetServer::addClient (ConnType type, const EIBnet_ConnectRequest & r1,
   int id = 1;
 rt:
   ITER(i, connections)
-    if ((*i)->channel == id)
-      {
-	id++;
-	goto rt;
-      }
+  if ((*i)->channel == id)
+    {
+      id++;
+      goto rt;
+    }
   if (id <= 0xff)
     {
       LinkConnectClientPtr conn = LinkConnectClientPtr(new LinkConnectClient(std::dynamic_pointer_cast<EIBnetServer>(shared_from_this()), tunnel_cfg, t));
@@ -352,7 +354,7 @@ ConnState::ConnState (LinkConnectClientPtr c, eibaddr_t addr)
   TRACEPRINTF (t, 9, "has %s", FormatEIBAddr (addr));
 }
 
-void ConnState::sendtimeout_cb(ev::timer &w UNUSED, int revents UNUSED)
+void ConnState::sendtimeout_cb(ev::timer &, int)
 {
   if (++retries <= 2)
     {
@@ -364,9 +366,9 @@ void ConnState::sendtimeout_cb(ev::timer &w UNUSED, int revents UNUSED)
   stop();
 }
 
-void ConnState::send_trigger_cb(ev::async &w UNUSED, int revents UNUSED)
+void ConnState::send_trigger_cb(ev::async &, int)
 {
-  if (out.isempty ())
+  if (out.empty ())
     return;
   EIBNetIPPacket p;
   if (type == CT_CONFIG)
@@ -390,7 +392,7 @@ void ConnState::send_trigger_cb(ev::async &w UNUSED, int revents UNUSED)
   std::static_pointer_cast<EIBnetServer>(server)->mcast->Send (p, daddr);
 }
 
-void ConnState::timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
+void ConnState::timeout_cb(ev::timer &, int)
 {
   if (channel > 0)
     {
@@ -430,20 +432,20 @@ void EIBnetServer::drop_connection (ConnStatePtr s)
   drop_trigger.send();
 }
 
-void EIBnetServer::drop_trigger_cb(ev::async &w UNUSED, int revents UNUSED)
+void EIBnetServer::drop_trigger_cb(ev::async &, int)
 {
-  while (!drop_q.isempty())
+  while (!drop_q.empty())
     {
       ConnStatePtr s = drop_q.get();
       ITER(i,connections)
-        if (*i == s)
-          {
-            connections.erase (i);
-            auto c = std::dynamic_pointer_cast<LinkConnect>(s->conn.lock());
-            if (c != nullptr)
-              static_cast<Router &>(router).unregisterLink(c);
-            break;
-          }
+      if (*i == s)
+        {
+          connections.erase (i);
+          auto c = std::dynamic_pointer_cast<LinkConnect>(s->conn.lock());
+          if (c != nullptr)
+            static_cast<Router &>(router).unregisterLink(c);
+          break;
+        }
     }
 }
 
@@ -474,65 +476,65 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       ifc.ifc_len = sizeof(buf);
       ifc.ifc_buf = buf;
       if (ioctl(sock_mac, SIOCGIFCONF, &ifc) != -1)
-	{
-	  struct ifreq* it = ifc.ifc_req;
-	  const struct ifreq* const end = it + (ifc.ifc_len / sizeof(struct ifreq));
+        {
+          struct ifreq* it = ifc.ifc_req;
+          const struct ifreq* const end = it + (ifc.ifc_len / sizeof(struct ifreq));
 
-	  for (; it != end; ++it)
-	    {
-	      strcpy(ifr.ifr_name, it->ifr_name);
-	      if (ioctl(sock_mac, SIOCGIFFLAGS, &ifr))
-		continue;
-	      if (ifr.ifr_flags & IFF_LOOPBACK) // don't count loopback
-		continue;
+          for (; it != end; ++it)
+            {
+              strcpy(ifr.ifr_name, it->ifr_name);
+              if (ioctl(sock_mac, SIOCGIFFLAGS, &ifr))
+                continue;
+              if (ifr.ifr_flags & IFF_LOOPBACK) // don't count loopback
+                continue;
 #ifdef SIOCGIFHWADDR
-	      if (ioctl(sock_mac, SIOCGIFHWADDR, &ifr))
-		continue;
-	      if (ifr.ifr_hwaddr.sa_family != ARPHRD_ETHER)
-		continue;
-	      memcpy(mac_address, ifr.ifr_hwaddr.sa_data, sizeof(mac_address));
+              if (ioctl(sock_mac, SIOCGIFHWADDR, &ifr))
+                continue;
+              if (ifr.ifr_hwaddr.sa_family != ARPHRD_ETHER)
+                continue;
+              memcpy(mac_address, ifr.ifr_hwaddr.sa_data, sizeof(mac_address));
 #else
-	      /* for FreeBSD, doesn't have ioctl SIOCGIFHWADDR */
-	      int mib[6];
-	      size_t len;
-	      char *buf;
-	      unsigned char *ptr;
-	      struct if_msghdr	*ifm;
-	      struct sockaddr_dl	*sdl;
+              /* for FreeBSD, doesn't have ioctl SIOCGIFHWADDR */
+              int mib[6];
+              size_t len;
+              char *buf;
+              unsigned char *ptr;
+              struct if_msghdr        *ifm;
+              struct sockaddr_dl        *sdl;
 
-	      mib[0] = CTL_NET;
-	      mib[1] = AF_ROUTE;
-	      mib[2] = 0;
-	      mib[3] = AF_LINK;
-	      mib[4] = NET_RT_IFLIST;
+              mib[0] = CTL_NET;
+              mib[1] = AF_ROUTE;
+              mib[2] = 0;
+              mib[3] = AF_LINK;
+              mib[4] = NET_RT_IFLIST;
 
-	      if ((mib[5] = if_nametoindex(ifr.ifr_name)) == 0)
-	      {
-	        TRACEPRINTF(t, 2, "get_mac_address if_nametoindex error");
-	        goto out;
-	      }
-	      if (sysctl(mib, 6, NULL, &len, NULL, 0) < 0)
-	      {
-	        TRACEPRINTF(t, 2, "get_mac_address sysctl 1 error");
-	        goto out;
-	      }
+              if ((mib[5] = if_nametoindex(ifr.ifr_name)) == 0)
+                {
+                  TRACEPRINTF(t, 2, "get_mac_address if_nametoindex error");
+                  goto out;
+                }
+              if (sysctl(mib, 6, NULL, &len, NULL, 0) < 0)
+                {
+                  TRACEPRINTF(t, 2, "get_mac_address sysctl 1 error");
+                  goto out;
+                }
 
-	      buf = new char[len];
+              buf = new char[len];
 
-	      if (sysctl(mib, 6, buf, &len, NULL, 0) < 0)
-	      {
-	        TRACEPRINTF(t, 2, "get_mac_address sysctl 2 error");
-	        goto out;
-	      }
+              if (sysctl(mib, 6, buf, &len, NULL, 0) < 0)
+                {
+                  TRACEPRINTF(t, 2, "get_mac_address sysctl 2 error");
+                  goto out;
+                }
 
-	      ifm = (struct if_msghdr *)buf;
-	      sdl = (struct sockaddr_dl *)(ifm + 1);
-	      ptr = (unsigned char *)LLADDR(sdl);
-	      memcpy(mac_address, ptr, sizeof(mac_address));
+              ifm = (struct if_msghdr *)buf;
+              sdl = (struct sockaddr_dl *)(ifm + 1);
+              ptr = (unsigned char *)LLADDR(sdl);
+              memcpy(mac_address, ptr, sizeof(mac_address));
 #endif
-	      break;
-	    }
-	}
+              break;
+            }
+        }
     }
   /* End MAC Address */
 
@@ -564,7 +566,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       //FIXME: Hostname, MAC-addr
       memcpy(r2.MAC, mac_address, sizeof(r2.MAC));
       //FIXME: Hostname, indiv. address
-      strncpy ((char *) r2.name, servername.c_str(), sizeof(r2.name));
+      strncpy ((char *) r2.name, servername.c_str(), sizeof(r2.name) - 1);
       d.version = 1;
       d.family = 2; // core
       r2.services.push_back (d);
@@ -572,12 +574,12 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       //r2.services.add (d);
       d.family = 4;
       if (tunnel)
-	r2.services.push_back (d);
+        r2.services.push_back (d);
       d.family = 5;
       if (route)
-	r2.services.push_back (d);
+        r2.services.push_back (d);
       if (!GetSourceAddress (t, &r1.caddr, &r2.caddr))
-	goto out;
+        goto out;
       r2.caddr.sin_port = Port;
       isock->Send (r2.ToPacket (), r1.caddr);
       goto out;
@@ -603,19 +605,19 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       r2.multicastaddr = mcast->maddr.sin_addr;
       memcpy(r2.MAC, mac_address, sizeof(r2.MAC));
       //FIXME: Hostname, indiv. address
-      strncpy ((char *) r2.name, servername.c_str(), sizeof(r2.name));
+      strncpy ((char *) r2.name, servername.c_str(), sizeof(r2.name) - 1);
       d.version = 1;
       d.family = 2;
       if (discover)
-	r2.services.push_back (d);
+        r2.services.push_back (d);
       d.family = 3;
       r2.services.push_back (d);
       d.family = 4;
       if (tunnel)
-	r2.services.push_back (d);
+        r2.services.push_back (d);
       d.family = 5;
       if (route)
-	r2.services.push_back (d);
+        r2.services.push_back (d);
       isock->Send (r2.ToPacket (), r1.caddr);
       goto out;
     }
@@ -645,16 +647,16 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       r2.channel = r1.channel;
       r2.status = 0x21;
       ITER(i, connections)
-	if ((*i)->channel == r1.channel)
-	  {
-            TRACEPRINTF ((*i)->t, 8, "CONNECTIONSTATE_REQUEST on %d", r1.channel);
-            r2.status = 0;
-            (*i)->reset_timer();
-	    break;
-	  }
+      if ((*i)->channel == r1.channel)
+        {
+          TRACEPRINTF ((*i)->t, 8, "CONNECTIONSTATE_REQUEST on %d", r1.channel);
+          r2.status = 0;
+          (*i)->reset_timer();
+          break;
+        }
       if (r2.status)
         TRACEPRINTF (t, 2, "Unknown connection %d", r2.channel);
-        
+
       isock->Send (r2.ToPacket (), r1.caddr);
       goto out;
     }
@@ -670,13 +672,13 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       r2.status = 0x21;
       r2.channel = r1.channel;
       ITER(i,connections)
-	if ((*i)->channel == r1.channel)
-	  {
-            r2.status = 0;
-            TRACEPRINTF ((*i)->t, 8, "DISCONNECT_REQUEST");
-            (*i)->stop();
-            break;
-	  }
+      if ((*i)->channel == r1.channel)
+        {
+          r2.status = 0;
+          TRACEPRINTF ((*i)->t, 8, "DISCONNECT_REQUEST");
+          (*i)->stop();
+          break;
+        }
       if (r2.status)
         TRACEPRINTF (t, 8, "DISCONNECT_REQUEST on %d", r1.channel);
       isock->Send (r2.ToPacket (), r1.caddr);
@@ -693,14 +695,14 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
         }
       r2.status = E_CONNECTION_TYPE;
       if (r1.CRI.size() == 3 && r1.CRI[0] == 4)
-	{
-	  eibaddr_t a = tunnel ? static_cast<Router &>(router).get_client_addr (t) : 0;
-	  r2.CRD.resize (3);
-	  r2.CRD[0] = 0x04;
+        {
+          eibaddr_t a = tunnel ? static_cast<Router &>(router).get_client_addr (t) : 0;
+          r2.CRD.resize (3);
+          r2.CRD[0] = 0x04;
           if (tunnel)
             TRACEPRINTF (t, 8, "Tunnel CONNECTION_REQ with %s", FormatEIBAddr(a));
-	  r2.CRD[1] = (a >> 8) & 0xFF;
-	  r2.CRD[2] = (a >> 0) & 0xFF;
+          r2.CRD[1] = (a >> 8) & 0xFF;
+          r2.CRD[2] = (a >> 0) & 0xFF;
           if (!tunnel)
             TRACEPRINTF (t, 8, "Tunnel CONNECTION_REQ, ignored, not tunneling");
           else if (!a)
@@ -709,39 +711,39 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
               r2.status = E_NO_MORE_CONNECTIONS;
             }
           else if (r1.CRI[1] == 0x02 || r1.CRI[1] == 0x80)
-	    {
-	      int id = addClient ((r1.CRI[1] == 0x80) ? CT_BUSMONITOR : CT_STANDARD, r1, a);
-	      if (id <= 0xff)
-		{
-		  r2.channel = id;
-		  r2.status = E_NO_ERROR;
-		}
-	    }
+            {
+              int id = addClient ((r1.CRI[1] == 0x80) ? CT_BUSMONITOR : CT_STANDARD, r1, a);
+              if (id <= 0xff)
+                {
+                  r2.channel = id;
+                  r2.status = E_NO_ERROR;
+                }
+            }
           else
             {
               r2.status = E_TUNNELING_LAYER;
               TRACEPRINTF (t, 8, "bad CONNECTION_REQ: [1] x%02x", r1.CRI[1]);
             }
-	}
+        }
       else if (r1.CRI.size() == 1 && r1.CRI[0] == 3)
-	{
-	  r2.CRD.resize (1);
-	  r2.CRD[0] = 0x03;
-	  TRACEPRINTF (t, 8, "Tunnel CONNECTION_REQ, no addr (mgmt)");
-	  int id = addClient (CT_CONFIG, r1, 0);
-	  if (id <= 0xff)
-	    {
-	      r2.channel = id;
-	      r2.status = E_NO_ERROR;
-	    }
-	}
+        {
+          r2.CRD.resize (1);
+          r2.CRD[0] = 0x03;
+          TRACEPRINTF (t, 8, "Tunnel CONNECTION_REQ, no addr (mgmt)");
+          int id = addClient (CT_CONFIG, r1, 0);
+          if (id <= 0xff)
+            {
+              r2.channel = id;
+              r2.status = E_NO_ERROR;
+            }
+        }
       else
         {
           TRACEPRINTF (t, 8, "bad CONNECTION_REQ: size %d, [0] x%02x", r1.CRI.size(), r1.CRI[0]);
           // XXX set status to something more reasonable
         }
       if (!GetSourceAddress (t, &r1.caddr, &r2.daddr))
-	goto out;
+        goto out;
       if (tunnel && (r2.status != E_NO_ERROR))
         {
           if (r2.status == E_NO_MORE_CONNECTIONS)
@@ -765,11 +767,11 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
         }
       if (tunnel)
         ITER(i,connections)
-          if ((*i)->channel == r1.channel)
-            {
-              (*i)->tunnel_request(r1, isock);
-              goto out;
-            }
+        if ((*i)->channel == r1.channel)
+          {
+            (*i)->tunnel_request(r1, isock);
+            goto out;
+          }
       TRACEPRINTF (t, 8, "TUNNEL_REQ on unknown %d", r1.channel);
       goto out;
     }
@@ -783,11 +785,11 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
         }
       if (tunnel)
         ITER(i, connections)
-          if ((*i)->channel == r1.channel)
-            {
-              (*i)->tunnel_response (r1);
-              goto out;
-            }
+        if ((*i)->channel == r1.channel)
+          {
+            (*i)->tunnel_response (r1);
+            goto out;
+          }
       TRACEPRINTF (t, 8, "TUNNEL_ACK on unknown %d",r1.channel);
       goto out;
     }
@@ -802,11 +804,11 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
         }
       TRACEPRINTF (t, 8, "CONFIG_REQ on %d",r1.channel);
       ITER(i, connections)
-	if ((*i)->channel == r1.channel)
-	  {
-	    (*i)->config_request (r1, isock);
-	    break;
-	  }
+      if ((*i)->channel == r1.channel)
+        {
+          (*i)->config_request (r1, isock);
+          break;
+        }
       goto out;
     }
   if (p1->service == DEVICE_CONFIGURATION_ACK)
@@ -818,11 +820,11 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
           goto out;
         }
       ITER(i, connections)
-	if ((*i)->channel == r1.channel)
-	  {
-	    (*i)->config_response (r1);
-	    goto out;
-	  }
+      if ((*i)->channel == r1.channel)
+        {
+          (*i)->config_response (r1);
+          goto out;
+        }
       TRACEPRINTF (t, 8, "CONFIG_ACK on unknown channel %d",r1.channel);
       goto out;
     }
@@ -864,7 +866,7 @@ EIBnetServer::stop_()
   drop_trigger.stop();
 
   R_ITER(i,connections)
-    (*i)->stop();
+  (*i)->stop();
 
   if (mcast)
     {
@@ -920,7 +922,7 @@ void ConnState::tunnel_request(EIBnet_TunnelRequest &r1, EIBNetIPSocket *isock)
   if (rno != r1.seqno)
     {
       TRACEPRINTF (t, 8, "Wrong sequence %d<->%d",
-		   r1.seqno, rno);
+                   r1.seqno, rno);
       return;
     }
   if (type == CT_STANDARD)
@@ -928,23 +930,23 @@ void ConnState::tunnel_request(EIBnet_TunnelRequest &r1, EIBNetIPSocket *isock)
       TRACEPRINTF (t, 8, "TUNNEL_REQ");
       LDataPtr c = CEMI_to_L_Data (r1.CEMI, t);
       if (c)
-	{
-	  r2.status = 0;
+        {
+          r2.status = 0;
           if (r1.CEMI[0] == 0x11)
             {
               out.put (L_Data_ToCEMI (0x2E, c));
               if (! retries)
-		send_trigger.send();
+                send_trigger.send();
             }
-          if (c->source == 0)
-            c->source = addr;
+          if (c->source_address == 0)
+            c->source_address = addr;
           if (r1.CEMI[0] == 0x11 || r1.CEMI[0] == 0x29)
             recv_L_Data (std::move(c));
           else
             TRACEPRINTF (t, 8, "Wrong leader x%02x", r1.CEMI[0]);
-	}
+        }
       else
-	r2.status = 0x29;
+        r2.status = 0x29;
     }
   else
     {
@@ -963,7 +965,7 @@ void ConnState::tunnel_response (EIBnet_TunnelACK &r1)
   if (sno != r1.seqno)
     {
       TRACEPRINTF (t, 8, "Wrong sequence %d<->%d",
-		   r1.seqno, sno);
+                   r1.seqno, sno);
       return;
     }
   if (r1.status != 0)
@@ -987,7 +989,7 @@ void ConnState::tunnel_response (EIBnet_TunnelACK &r1)
   sendtimeout.stop();
   reset_timer(); // presumably the client is alive if it can ack
   retries = 0;
-  if (!out.isempty())
+  if (!out.empty())
     send_trigger.send();
   else if (do_send_next)
     {
@@ -1009,7 +1011,7 @@ void ConnState::config_request(EIBnet_ConfigRequest &r1, EIBNetIPSocket *isock)
   if (rno != r1.seqno)
     {
       TRACEPRINTF (t, 8, "Wrong sequence %d<->%d",
-		   r1.seqno, rno);
+                   r1.seqno, rno);
       return;
     }
   r2.channel = r1.channel;
@@ -1017,51 +1019,51 @@ void ConnState::config_request(EIBnet_ConfigRequest &r1, EIBNetIPSocket *isock)
   if (type == CT_CONFIG && r1.CEMI.size() > 1)
     {
       if (r1.CEMI[0] == 0xFC) // M_PropRead.req
-	{
-	  if (r1.CEMI.size() == 7)
-	    {
-	      CArray res, CEMI;
-	      int obj = (r1.CEMI[1] << 8) | r1.CEMI[2];
-	      int objno = r1.CEMI[3];
-	      int prop = r1.CEMI[4];
-	      int count = (r1.CEMI[5] >> 4) & 0x0f;
-	      int start = (r1.CEMI[5] & 0x0f) | r1.CEMI[6];
-	      res.resize (1);
-	      res[0] = 0;
-	      if (obj == 0 && objno == 0)
-		{
-		  if (prop == 0)
-		    {
-		      res.resize (2);
-		      res[0] = 0;
-		      res[1] = 0;
-		      start = 0;
-		    }
-		  else
-		    count = 0;
-		}
-	      else
-		count = 0;
-	      CEMI.resize (6 + res.size());
-	      CEMI[0] = 0xFB;
-	      CEMI[1] = (obj >> 8) & 0xff;
-	      CEMI[2] = obj & 0xff;
-	      CEMI[3] = objno;
-	      CEMI[4] = prop;
-	      CEMI[5] = ((count & 0x0f) << 4) | (start >> 8);
-	      CEMI[6] = start & 0xff;
-	      CEMI.setpart (res, 7);
-	      r2.status = E_NO_ERROR;
+        {
+          if (r1.CEMI.size() == 7)
+            {
+              CArray res, CEMI;
+              int obj = (r1.CEMI[1] << 8) | r1.CEMI[2];
+              int objno = r1.CEMI[3];
+              int prop = r1.CEMI[4];
+              int count = (r1.CEMI[5] >> 4) & 0x0f;
+              int start = (r1.CEMI[5] & 0x0f) | r1.CEMI[6];
+              res.resize (1);
+              res[0] = 0;
+              if (obj == 0 && objno == 0)
+                {
+                  if (prop == 0)
+                    {
+                      res.resize (2);
+                      res[0] = 0;
+                      res[1] = 0;
+                      start = 0;
+                    }
+                  else
+                    count = 0;
+                }
+              else
+                count = 0;
+              CEMI.resize (6 + res.size());
+              CEMI[0] = 0xFB;
+              CEMI[1] = (obj >> 8) & 0xff;
+              CEMI[2] = obj & 0xff;
+              CEMI[3] = objno;
+              CEMI[4] = prop;
+              CEMI[5] = ((count & 0x0f) << 4) | (start >> 8);
+              CEMI[6] = start & 0xff;
+              CEMI.setpart (res, 7);
+              r2.status = E_NO_ERROR;
 
-	      out.push (CEMI);
+              out.push (CEMI);
               if (! retries)
-		send_trigger.send();
-	    }
-	  else
-	    r2.status = E_DATA_CONNECTION;
-	}
+                send_trigger.send();
+            }
+          else
+            r2.status = E_DATA_CONNECTION;
+        }
       else
-	r2.status = E_DATA_CONNECTION;
+        r2.status = E_DATA_CONNECTION;
     }
   else
     r2.status = E_TUNNELING_LAYER;
@@ -1075,7 +1077,7 @@ void ConnState::config_response (EIBnet_ConfigACK &r1)
   if (sno != r1.seqno)
     {
       TRACEPRINTF (t, 8, "Wrong sequence %d<->%d",
-		   r1.seqno, sno);
+                   r1.seqno, sno);
       return;
     }
   if (r1.status != 0)
@@ -1098,7 +1100,7 @@ void ConnState::config_response (EIBnet_ConfigACK &r1)
 
   out.get ();
   retries = 0;
-  if (!out.isempty())
+  if (!out.empty())
     send_trigger.send();
   else if (do_send_next)
     {

@@ -20,7 +20,7 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
-#include <assert.h>
+#include <cassert>
 #include <queue>
 
 /** implement a generic FIFO queue*/
@@ -34,36 +34,30 @@ public:
   Queue () : std::queue<_T>() {};
 
   /** destructor */
-  virtual ~Queue () {}
+  virtual ~Queue () = default;
 
   using std::queue<_T>::front;
   using std::queue<_T>::pop;
   using std::queue<_T>::push;
+  using std::queue<_T>::empty;
 
   inline void clear()
-    {
-      while (!isempty())
-        pop();
-    }
+  {
+    while (!empty())
+      pop();
+  }
 
   inline void put (value_type && el)
-    {
-      std::queue<_T>::push(std::move(el));
-    }
+  {
+    std::queue<_T>::push(std::move(el));
+  }
 
   inline _T get ()
-    {
-      value_type v = std::move(std::queue<_T>::front());
-      std::queue<_T>::pop();
-      return v;
-    }
-
-  /** return true, if the queue is empty */
-  inline bool isempty () const
-    {
-      return std::queue<_T>::empty();
-    }
-
+  {
+    value_type v = std::move(std::queue<_T>::front());
+    std::queue<_T>::pop();
+    return v;
+  }
 };
 
 #endif

@@ -39,8 +39,11 @@
 DRIVER_(NCN5120,TPUART,ncn5120)
 {
 public:
-  NCN5120 (const LinkConnectPtr_& c, IniSectionPtr& s) : TPUART(c,s) { t->setAuxName("NCN"); } ;
-  virtual ~NCN5120 ();
+  NCN5120 (const LinkConnectPtr_& c, IniSectionPtr& s) : TPUART(c,s)
+  {
+    t->setAuxName("NCN");
+  } ;
+  virtual ~NCN5120 () = default;
   LowLevelFilter * create_wrapper(LowLevelIface* parent, IniSectionPtr& s, LowLevelDriver* i = nullptr);
 };
 

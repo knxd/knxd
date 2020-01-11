@@ -18,16 +18,13 @@
 */
 
 #include "emi2.h"
+
 #include "emi.h"
 
 EMI2Driver::EMI2Driver (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i) : EMI_Common(c,s,i)
 {
   t->setAuxName("EMI2");
   sendLocal_done.set<EMI2Driver,&EMI2Driver::sendLocal_done_cb>(this);
-}
-
-EMI2Driver::~EMI2Driver()
-{
 }
 
 void
@@ -45,13 +42,13 @@ EMI2Driver::sendLocal_done_cb(bool success)
   else if (sendLocal_done_next == N_open)
     {
       sendLocal_done_next = N_up;
-      const uchar t2[] = { 0xa9, 0x00, 0x18, 0x34, 0x56, 0x78, 0x0a };
+      const uint8_t t2[] = { 0xa9, 0x00, 0x18, 0x34, 0x56, 0x78, 0x0a };
       send_Local (CArray (t2, sizeof (t2)),1);
     }
   else if (sendLocal_done_next == N_enter)
     {
       sendLocal_done_next = N_up;
-      const uchar t2[] = { 0xa9, 0x90, 0x18, 0x34, 0x45, 0x67, 0x8a };
+      const uint8_t t2[] = { 0xa9, 0x90, 0x18, 0x34, 0x45, 0x67, 0x8a };
       send_Local (CArray (t2, sizeof (t2)),1);
     }
 
@@ -61,7 +58,7 @@ void
 EMI2Driver::cmdEnterMonitor ()
 {
   sendLocal_done_next = N_enter;
-  const uchar t1[] = { 0xa9, 0x1E, 0x12, 0x34, 0x56, 0x78, 0x9a };
+  const uint8_t t1[] = { 0xa9, 0x1E, 0x12, 0x34, 0x56, 0x78, 0x9a };
   send_Local (CArray (t1, sizeof (t1)),1);
 }
 
@@ -74,7 +71,7 @@ EMI2Driver::cmdLeaveMonitor ()
       return;
     }
   sendLocal_done_next = N_down;
-  uchar t[] = { 0xa9, 0x1E, 0x12, 0x34, 0x56, 0x78, 0x9a };
+  uint8_t t[] = { 0xa9, 0x1E, 0x12, 0x34, 0x56, 0x78, 0x9a };
   send_Local (CArray (t, sizeof (t)),1);
 }
 
@@ -82,7 +79,7 @@ void
 EMI2Driver::cmdOpen ()
 {
   sendLocal_done_next = N_open;
-  const uchar t1[] = { 0xa9, 0x1E, 0x12, 0x34, 0x56, 0x78, 0x9a };
+  const uint8_t t1[] = { 0xa9, 0x1E, 0x12, 0x34, 0x56, 0x78, 0x9a };
   send_Local (CArray (t1, sizeof (t1)),1);
 }
 
@@ -95,7 +92,7 @@ EMI2Driver::cmdClose ()
       return;
     }
   sendLocal_done_next = N_down;
-  uchar t[] = { 0xa9, 0x1E, 0x12, 0x34, 0x56, 0x78, 0x9a };
+  uint8_t t[] = { 0xa9, 0x1E, 0x12, 0x34, 0x56, 0x78, 0x9a };
   send_Local (CArray (t, sizeof (t)),1);
 }
 
@@ -106,7 +103,7 @@ void EMI2Driver::started()
   sendReset();
 }
 
-void EMI2Driver::reset_timer_cb(ev::timer& w, int revents)
+void EMI2Driver::reset_timer_cb(ev::timer&, int)
 {
   ERRORPRINTF(t, E_ERROR | 57, "reset timed out");
   errored();
@@ -135,9 +132,9 @@ void EMI2Driver::do_send_Next()
 }
 
 const uint8_t *
-EMI2Driver::getIndTypes()
+EMI2Driver::getIndTypes() const
 {
-    static const uint8_t indTypes[] = { 0x2E, 0x29, 0x2B };
-    return indTypes;
-}   
+  static const uint8_t indTypes[] = { 0x2E, 0x29, 0x2B };
+  return indTypes;
+}
 

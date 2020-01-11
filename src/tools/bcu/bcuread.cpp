@@ -17,9 +17,9 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdarg>
+#include <cstdio>
+#include <cstdlib>
 #include <argp.h>
 #include "addrtab.h"
 #include "lowlevelconf.h"
@@ -48,7 +48,8 @@ struct urldef
 };
 
 /** list of URLs */
-struct urldef URLs[] = {
+struct urldef URLs[] =
+{
 #undef L2_NAME
 #define L2_NAME(a) { a##_PREFIX, a##_CREATE },
 #include "lowlevelcreate.h"
@@ -68,7 +69,7 @@ Create (const char *url, TracePtr t)
   while (u->prefix)
     {
       if (strlen (u->prefix) == p && !memcmp (u->prefix, url, p))
-	return u->Create (url + p + 1, t);
+        return u->Create (url + p + 1, t);
       u++;
     }
   die ("url not supported");
@@ -112,7 +113,8 @@ readHex (const char *addr)
 static char args_doc[] = "URL addr len";
 
 /** option list */
-static struct argp_option options[] = {
+static struct argp_option options[] =
+{
 
   {"trace", 't', "LEVEL", 0, "set trace level"},
   {0}
@@ -178,7 +180,7 @@ main (int ac, char *ag[])
   else
     {
       ITER(i,result)
-	printf ("%02x ", *i);
+      printf ("%02x ", *i);
       printf ("\n");
     }
 

@@ -86,7 +86,7 @@ QueueFilter::send_Next()
       break;
     case Q_BUSY:
       trigger.send();
-      // fall thru
+    // fall thru
     case Q_SENDING:
       state = Q_IDLE;
       break;
@@ -94,9 +94,9 @@ QueueFilter::send_Next()
 }
 
 void
-QueueFilter::trigger_cb (ev::async &w UNUSED, int revents UNUSED)
+QueueFilter::trigger_cb (ev::async &, int)
 {
-  while (!buf.isempty() && state == Q_IDLE)
+  while (!buf.empty() && state == Q_IDLE)
     {
       state = Q_SENDING;
       LDataPtr l = buf.get();

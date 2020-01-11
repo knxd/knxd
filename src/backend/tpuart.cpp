@@ -18,9 +18,8 @@
 */
 
 #include <unistd.h>
-#include <errno.h>
+#include <cerrno>
 #include <fcntl.h>
-#include <errno.h>
 #include <sys/ioctl.h>
 #include "tpuart.h"
 #include "router.h"
@@ -30,25 +29,30 @@
 #include "llserial.h"
 #include "lltcp.h"
 #include "log.h"
-
-TPUART::~TPUART() {}
+#include "cm_tp1.h"
 
 class TPUARTserial : public LLserial
 {
 public:
-  TPUARTserial(LowLevelIface* a, IniSectionPtr& b) : LLserial(a,b) { t->setAuxName("TPU_ser"); }
-  virtual ~TPUARTserial();
+  TPUARTserial(LowLevelIface* a, IniSectionPtr& b) : LLserial(a,b)
+  {
+    t->setAuxName("TPU_ser");
+  }
+  virtual ~TPUARTserial() = default;
 protected:
   void termios_settings (struct termios &t1)
-    {
-      t1.c_cflag = CS8 | CLOCAL | CREAD | PARENB;
-      t1.c_iflag = IGNBRK | INPCK | ISIG;
-      t1.c_oflag = 0;
-      t1.c_lflag = 0;
-      t1.c_cc[VTIME] = 1;
-      t1.c_cc[VMIN] = 0;
-    }
-  unsigned int default_baudrate() { return 19200; }
+  {
+    t1.c_cflag = CS8 | CLOCAL | CREAD | PARENB;
+    t1.c_iflag = IGNBRK | INPCK | ISIG;
+    t1.c_oflag = 0;
+    t1.c_lflag = 0;
+    t1.c_cc[VTIME] = 1;
+    t1.c_cc[VMIN] = 0;
+  }
+  unsigned int default_baudrate()
+  {
+    return 19200;
+  }
 };
 
 LowLevelFilter *
@@ -70,17 +74,28 @@ static const char* SN(enum TSTATE s)
   static char buf[2][10];
   switch(s)
     {
-    case T_new:            return "new";
-    case T_error:          return "error";
-    case T_start:          return "start";
-    case T_in_reset:       return "in_reset";
-    case T_in_setaddr:     return "in_setaddr";
-    case T_in_getstate:    return "in_getstate";
-    case T_is_online:      return "is_online";
-    case T_wait:           return "wait";
-    case T_wait_more:      return "wait_more";
-    case T_wait_keepalive: return "wait_keepalive";
-    case T_busmonitor:     return "busmonitor";
+    case T_new:
+      return "new";
+    case T_error:
+      return "error";
+    case T_start:
+      return "start";
+    case T_in_reset:
+      return "in_reset";
+    case T_in_setaddr:
+      return "in_setaddr";
+    case T_in_getstate:
+      return "in_getstate";
+    case T_is_online:
+      return "is_online";
+    case T_wait:
+      return "wait";
+    case T_wait_more:
+      return "wait_more";
+    case T_wait_keepalive:
+      return "wait_keepalive";
+    case T_busmonitor:
+      return "busmonitor";
     default:
       x = 1-x;
       sprintf(buf[x],"? %d",s);
@@ -100,10 +115,6 @@ TPUART::setup()
     return false;
 
   return true;
-ex1:
-  delete iface;
-  iface = nullptr;
-  return false;
 }
 
 bool
@@ -118,7 +129,7 @@ TPUARTwrap::setup()
       if (cfg->value("ip-address","").length() > 0 ||
           cfg->value("port",-1) != -1)
         {
-            ERRORPRINTF (t, E_ERROR | 25, "Don't specify both device and IP options!");
+          ERRORPRINTF (t, E_ERROR | 25, "Don't specify both device and IP options!");
           return false;
         }
       iface = create_serial(this, cfg);
@@ -143,7 +154,7 @@ TPUARTwrap::setup()
       if (f)
         my_addr = f->addr;
     }
-  
+
   if (!LowLevelFilter::setup())
     return false;
 
@@ -158,13 +169,11 @@ TPUARTwrap::~TPUARTwrap ()
   sendtimer.stop();
 }
 
-TPUARTserial::~TPUARTserial() {}
-
 void
 TPUARTwrap::send_L_Data (LDataPtr l)
 {
   assert(out.size() == 0);
-  out = l->ToPacket ();
+  out = L_Data_to_CM_TP1 (l);
 
   send_again();
 }
@@ -216,11 +225,12 @@ TPUARTwrap::send_again()
       LowLevelFilter::send_Data(w);
       sendtimer.start(2,0);
 
-      if (out[0] & 0x20) {
-        // clear retry flag. for later comparison
-        out[0] ^= 0x20;
-        out[out.size()-1] ^= 0x20; // fix the checksum
-      }
+      if (out[0] & 0x20)
+        {
+          // clear retry flag. for later comparison
+          out[0] ^= 0x20;
+          out[out.size()-1] ^= 0x20; // fix the checksum
+        }
     }
 }
 
@@ -240,18 +250,18 @@ TPUARTwrap::stopped()
 }
 
 void
-TPUARTwrap::RecvLPDU (const uchar * data, int len)
+TPUARTwrap::RecvLPDU (const uint8_t * data, int len)
 {
   t->TracePacket (1, "RecvLP", len, data);
   if (state == T_busmonitor)
     {
-      LBusmonPtr l = LBusmonPtr(new L_Busmonitor_PDU ());
-      l->pdu.set (data, len);
+      LBusmonPtr l = LBusmonPtr(new L_Busmon_PDU ());
+      l->lpdu.set (data, len);
       recv_L_Busmonitor (std::move(l));
     }
   else if (state > T_start)
     {
-      LPDUPtr l = LPDU::fromPacket (CArray (data, len), t);
+      LPDUPtr l = CM_TP1_to_L_Data (CArray (data, len), t);
       if (l->getType () != L_Data)
         TRACEPRINTF (t, 1, "dropping packet: type %d", l->getType ());
       else
@@ -271,7 +281,7 @@ TPUARTwrap::TPUARTwrap(LowLevelIface* parent, IniSectionPtr& s, LowLevelDriver* 
 }
 
 void
-TPUARTwrap::sendtimer_cb(ev::timer &w UNUSED, int revents UNUSED)
+TPUARTwrap::sendtimer_cb(ev::timer &, int)
 {
   if (send_retry++ > 3)
     {
@@ -284,7 +294,7 @@ TPUARTwrap::sendtimer_cb(ev::timer &w UNUSED, int revents UNUSED)
 }
 
 void
-TPUARTwrap::timer_cb(ev::timer &w UNUSED, int revents UNUSED)
+TPUARTwrap::timer_cb(ev::timer &, int)
 {
   switch(state)
     {
@@ -313,13 +323,13 @@ TPUARTwrap::timer_cb(ev::timer &w UNUSED, int revents UNUSED)
       break;
 
     case T_in_setaddr:
-      {
-        uint8_t addrbuf[2] = { (uint8_t)((my_addr>>8)&0xFF), (uint8_t)(my_addr&0xFF) };
-        TRACEPRINTF (t, 0, "SendAddr %02X%02X", addrbuf[0],addrbuf[1]);
-        LowLevelIface::send_Data(CArray(addrbuf, sizeof(addrbuf)));
-        setstate(T_in_getstate);
-      }
-      break;
+    {
+      uint8_t addrbuf[2] = { (uint8_t)((my_addr>>8)&0xFF), (uint8_t)(my_addr&0xFF) };
+      TRACEPRINTF (t, 0, "SendAddr %02X%02X", addrbuf[0],addrbuf[1]);
+      LowLevelIface::send_Data(CArray(addrbuf, sizeof(addrbuf)));
+      setstate(T_in_getstate);
+    }
+    break;
 
     case T_wait:
       setstate(T_wait_keepalive);
@@ -357,7 +367,7 @@ TPUARTwrap::in_check()
             recvecho = true;
           else
             {
-              uchar c = 0x10;
+              uint8_t c = 0x10;
               if ((in[ext ? 1 : 5] & 0x80) == 0)
                 {
                   if (ackallindividual || checkSysAddress ((in[3+ext] << 8) | in[4+ext]))
@@ -431,7 +441,7 @@ TPUARTwrap::recv_Data(CArray &c)
               TRACEPRINTF (t, 8, "RESET_ACK");
               setstate(T_in_setaddr);
             }
-          else 
+          else
             TRACEPRINTF (t, 8, "spurious RESET_ACK");
         }
       else if (c == 0x8B) // L_DataConfirm positive
@@ -531,14 +541,14 @@ TPUARTwrap::setstate(enum TSTATE new_state)
     {
     case T_start:
       new_state = T_in_reset;
-      /* fall thru */
+    /* fall thru */
     case T_in_reset:
       if (state == T_in_reset)
         retry++;
       else
         retry = 1;
       {
-        uchar c = 0x01;
+        uint8_t c = 0x01;
         TRACEPRINTF (t, 0, "SendReset %02X", c);
         LowLevelIface::send_Data(c);
       }
@@ -548,42 +558,45 @@ TPUARTwrap::setstate(enum TSTATE new_state)
     case T_in_setaddr:
       if (my_addr)
         {
-          if(1) {
-            uint8_t addrbuf[3] = { 0x28, (uint8_t)((my_addr>>8)&0xFF), (uint8_t)(my_addr&0xFF) };
-            TRACEPRINTF (t, 0, "SendAddr %02X%02X", addrbuf[1],addrbuf[2]);
-            LowLevelIface::send_Data(CArray(addrbuf, sizeof(addrbuf)));
-          } else {
-            uchar c = 0x28;
-            TRACEPRINTF (t, 0, "SendAddr %02X", c);
-            LowLevelIface::send_Data(c);
-            timer.start(0.2,0);
-            break;
-          }
+          if(1)
+            {
+              uint8_t addrbuf[3] = { 0x28, (uint8_t)((my_addr>>8)&0xFF), (uint8_t)(my_addr&0xFF) };
+              TRACEPRINTF (t, 0, "SendAddr %02X%02X", addrbuf[1],addrbuf[2]);
+              LowLevelIface::send_Data(CArray(addrbuf, sizeof(addrbuf)));
+            }
+          else
+            {
+              uint8_t c = 0x28;
+              TRACEPRINTF (t, 0, "SendAddr %02X", c);
+              LowLevelIface::send_Data(c);
+              timer.start(0.2,0);
+              break;
+            }
         }
       new_state = T_in_getstate;
       TRACEPRINTF (t, 8, "addr zero: %s > %s", SN(state),SN(new_state));
-      // FALL THRU
+    // FALL THRU
     case T_in_getstate:
-      {
-        uchar c = 0x02;
-        TRACEPRINTF (t, 0, "Send GetState %02X", c);
-        LowLevelIface::send_Data(c);
-        timer.start(0.5,0);
-      }
-      break;
+    {
+      uint8_t c = 0x02;
+      TRACEPRINTF (t, 0, "Send GetState %02X", c);
+      LowLevelIface::send_Data(c);
+      timer.start(0.5,0);
+    }
+    break;
 
     case T_busmonitor:
-      {
-        uchar c = 0x05;
-        TRACEPRINTF (t, 0, "Send openBusmonitor %02X", c);
-        LowLevelIface::send_Data(c);
-      }
-      break;
+    {
+      uint8_t c = 0x05;
+      TRACEPRINTF (t, 0, "Send openBusmonitor %02X", c);
+      LowLevelIface::send_Data(c);
+    }
+    break;
 
     case T_is_online:
       new_state = T_wait;
       do__send_Next();
-      // fall thru
+    // fall thru
     case T_wait:
       timer.start(10,0);
       acked = false;
@@ -595,13 +608,13 @@ TPUARTwrap::setstate(enum TSTATE new_state)
       break;
 
     case T_wait_keepalive:
-      {
-        uchar c = 0x02;
-        TRACEPRINTF (t, 0, "Send GetState %02X", c);
-        LowLevelIface::send_Data(c);
-        timer.start(0.5,0);
-        break;
-      }
+    {
+      uint8_t c = 0x02;
+      TRACEPRINTF (t, 0, "Send GetState %02X", c);
+      LowLevelIface::send_Data(c);
+      timer.start(0.5,0);
+      break;
+    }
 
     case T_error:
       timer.start(1,0);
@@ -612,5 +625,3 @@ TPUARTwrap::setstate(enum TSTATE new_state)
     }
   state = new_state;
 }
-
-

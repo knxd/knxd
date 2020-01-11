@@ -18,7 +18,7 @@
 */
 
 /**
- * This 
+ * This
  */
 
 #ifndef CALLBACKS_H
@@ -31,91 +31,100 @@ typedef size_t (*data_cb_t)(void *data, uint8_t *buf, size_t len);
 typedef void (*info_cb_t)(void *data);
 typedef void (*state_cb_t)(void *data, bool success);
 
-class InfoCallback {
-    info_cb_t cb_code = 0;
-    void *cb_data = 0;
-
-    void set_ (const void *data, info_cb_t cb)
-    {
-      this->cb_data = (void *)data;
-      this->cb_code = cb;
-    }
-
+class InfoCallback
+{
 public:
-    // method callback
-    template<class K, void (K::*method)()>
-    void set (K *object)
-    {
-      set_ (object, method_thunk<K, method>);
-    }
+  // method callback
+  template<class K, void (K::*method)()>
+  void set (K *object)
+  {
+    set_ (object, method_thunk<K, method>);
+  }
 
-    template<class K, void (K::*method)()>
-    static void method_thunk (void *arg)
-    {
-      (static_cast<K *>(arg)->*method) ();
-    }
+  template<class K, void (K::*method)()>
+  static void method_thunk (void *arg)
+  {
+    (static_cast<K *>(arg)->*method) ();
+  }
 
-    void operator()() {
-        (*cb_code)(cb_data);
-    }
+  void operator()()
+  {
+    (*cb_code)(cb_data);
+  }
+
+private:
+  info_cb_t cb_code = 0;
+  void *cb_data = 0;
+
+  void set_ (const void *data, info_cb_t cb)
+  {
+    this->cb_data = (void *)data;
+    this->cb_code = cb;
+  }
 };
 
-class StateCallback {
-    state_cb_t cb_code = 0;
-    void *cb_data = 0;
-
-    void set_ (const void *data, state_cb_t cb)
-    {
-      this->cb_data = (void *)data;
-      this->cb_code = cb;
-    }
-
+class StateCallback
+{
 public:
-    // method callback
-    template<class K, void (K::*method)(bool success)>
-    void set (K *object)
-    {
-      set_ (object, method_thunk<K, method>);
-    }
+  // method callback
+  template<class K, void (K::*method)(bool success)>
+  void set (K *object)
+  {
+    set_ (object, method_thunk<K, method>);
+  }
 
-    template<class K, void (K::*method)(bool success)>
-    static void method_thunk (void *arg, bool success)
-    {
-      (static_cast<K *>(arg)->*method) (success);
-    }
+  template<class K, void (K::*method)(bool success)>
+  static void method_thunk (void *arg, bool success)
+  {
+    (static_cast<K *>(arg)->*method) (success);
+  }
 
-    void operator()(bool success) {
-        (*cb_code)(cb_data, success);
-    }
+  void operator()(bool success)
+  {
+    (*cb_code)(cb_data, success);
+  }
+
+private:
+  state_cb_t cb_code = 0;
+  void *cb_data = 0;
+
+  void set_ (const void *data, state_cb_t cb)
+  {
+    this->cb_data = (void *)data;
+    this->cb_code = cb;
+  }
 };
 
-class DataCallback {
-    data_cb_t cb_code = 0;
-    void *cb_data = 0;
-
-    void set_ (const void *data, data_cb_t cb)
-    {
-      this->cb_data = (void *)data;
-      this->cb_code = cb;
-    }
-
+class DataCallback
+{
 public:
-    // method callback
-    template<class K, size_t (K::*method)(uint8_t *buf, size_t len)>
-    void set (K *object)
-    {
-      set_ (object, method_thunk<K, method>);
-    }
+  // method callback
+  template<class K, size_t (K::*method)(uint8_t *buf, size_t len)>
+  void set (K *object)
+  {
+    set_ (object, method_thunk<K, method>);
+  }
 
-    template<class K, size_t (K::*method)(uint8_t *buf, size_t len)>
-    static size_t method_thunk (void *arg, uint8_t *buf, size_t len)
-    {
-      return (static_cast<K *>(arg)->*method) (buf,len);
-    }
+  template<class K, size_t (K::*method)(uint8_t *buf, size_t len)>
+  static size_t method_thunk (void *arg, uint8_t *buf, size_t len)
+  {
+    return (static_cast<K *>(arg)->*method) (buf,len);
+  }
 
-    size_t operator()(uint8_t *buf, size_t len) {
-        return (*cb_code)(cb_data, buf,len);
-    }
+  size_t operator()(uint8_t *buf, size_t len)
+  {
+    return (*cb_code)(cb_data, buf,len);
+  }
+
+private:
+  data_cb_t cb_code = 0;
+  void *cb_data = 0;
+
+  void set_ (const void *data, data_cb_t cb)
+  {
+    this->cb_data = (void *)data;
+    this->cb_code = cb;
+  }
 };
 
 #endif

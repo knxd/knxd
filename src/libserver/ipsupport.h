@@ -17,27 +17,31 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @ingroup KNX_03_02_06
+ * Communication Medium KNX IP
+ * @{
+ */
+
 #ifndef IPSUPPORT_H
 #define IPSUPPORT_H
 
 #include <netinet/in.h>
-#include "common.h"
-#include "lpdu.h"
 
-class Trace;
+#include "trace.h"
 
 /** resolve host name */
-bool GetHostIP (TracePtr t, struct sockaddr_in *sock, const std::string& name);
+bool GetHostIP (TracePtr tr, struct sockaddr_in *sock, const std::string& name);
+
 /** gets source address for a route */
-bool GetSourceAddress (TracePtr t, 
-                      const struct sockaddr_in *dest,
-		      struct sockaddr_in *src);
-/** convert a to EIBnet/IP format */
-CArray IPtoEIBNetIP (const struct sockaddr_in *a, bool nat);
-/** convert EIBnet/IP IP Address to a */
-bool EIBnettoIP (const CArray & buf, struct sockaddr_in *a,
-		const struct sockaddr_in *src, bool & nat);
+bool GetSourceAddress (TracePtr tr,
+                       const struct sockaddr_in *dest,
+                       struct sockaddr_in *src);
+
 bool compareIPAddress (const struct sockaddr_in &a,
-		       const struct sockaddr_in &b);
+                       const struct sockaddr_in &b);
 
 #endif
+
+/** @} */

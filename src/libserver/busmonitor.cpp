@@ -18,6 +18,7 @@
 */
 
 #include "busmonitor.h"
+
 #include "server.h"
 
 A_Busmonitor::~A_Busmonitor ()
@@ -100,18 +101,18 @@ A_Busmonitor::send_L_Busmonitor (LBusmonPtr p)
     {
       buf.resize (7);
       EIBSETTYPE (buf, EIB_BUSMONITOR_PACKET_TS);
-      buf[2] = p->status;
-      buf[3] = (p->timestamp >> 24) & 0xff;
-      buf[4] = (p->timestamp >> 16) & 0xff;
-      buf[5] = (p->timestamp >> 8) & 0xff;
-      buf[6] = (p->timestamp) & 0xff;
+      buf[2] = p->l_status;
+      buf[3] = (p->time_stamp >> 24) & 0xff;
+      buf[4] = (p->time_stamp >> 16) & 0xff;
+      buf[5] = (p->time_stamp >> 8) & 0xff;
+      buf[6] = (p->time_stamp) & 0xff;
     }
   else
     {
       buf.resize (2);
       EIBSETTYPE (buf, EIB_BUSMONITOR_PACKET);
     }
-  buf += p->pdu;
+  buf += p->lpdu;
 
   con->sendmessage (buf.size(), buf.data());
 }
@@ -120,7 +121,7 @@ void
 A_Text_Busmonitor::send_L_Busmonitor (LBusmonPtr p)
 {
   CArray buf;
-  String s = p->Decode (t);
+  std::string s = p->Decode (t);
   buf.resize (2 + s.length() + 1);
   EIBSETTYPE (buf, EIB_BUSMONITOR_PACKET);
   buf.setpart ((uint8_t *)s.c_str(), 2, s.length()+1);

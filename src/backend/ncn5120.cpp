@@ -22,43 +22,47 @@
 #include "ncn5120.h"
 #include "llserial.h"
 
-NCN5120::~NCN5120() { }
-
 class NCN5120wrap : public TPUARTwrap
 {
 public:
   NCN5120wrap (LowLevelIface* parent, IniSectionPtr& s, LowLevelDriver* i = nullptr) : TPUARTwrap(parent,s,i) {}
-  virtual ~NCN5120wrap() {}
+  virtual ~NCN5120wrap() = default;
 
 protected:
   void termios_settings(struct termios &t);
   unsigned int default_baudrate();
   void setstate(enum TSTATE state);
-  
-  void RecvLPDU (const uchar * data, int len);
+
+  void RecvLPDU (const uint8_t * data, int len);
   virtual FDdriver * create_serial(LowLevelIface* parent, IniSectionPtr& s);
 };
 
 class NCN5120serial : public LLserial
 {
 public:
-  NCN5120serial(LowLevelIface* a, IniSectionPtr& b) : LLserial(a,b) { t->setAuxName("NCN_ser"); }
-  virtual ~NCN5120serial () {};
+  NCN5120serial(LowLevelIface* a, IniSectionPtr& b) : LLserial(a,b)
+  {
+    t->setAuxName("NCN_ser");
+  }
+  virtual ~NCN5120serial () = default;
 
 protected:
-  unsigned int default_baudrate() { return 38400; }
+  unsigned int default_baudrate()
+  {
+    return 38400;
+  }
   void termios_settings(struct termios &t1)
-    {
-      t1.c_cflag = CS8 | CLOCAL | CREAD;
-      t1.c_iflag = IGNBRK | INPCK | ISIG;
-      t1.c_oflag = 0;
-      t1.c_lflag = 0;
-      t1.c_cc[VTIME] = 1;
-      t1.c_cc[VMIN] = 0;
-    }
+  {
+    t1.c_cflag = CS8 | CLOCAL | CREAD;
+    t1.c_iflag = IGNBRK | INPCK | ISIG;
+    t1.c_oflag = 0;
+    t1.c_lflag = 0;
+    t1.c_cc[VTIME] = 1;
+    t1.c_cc[VMIN] = 0;
+  }
 };
 
-LowLevelFilter * 
+LowLevelFilter *
 NCN5120::create_wrapper(LowLevelIface* parent, IniSectionPtr& s, LowLevelDriver* i)
 {
   return new NCN5120wrap(parent,s,i);
@@ -71,10 +75,10 @@ NCN5120wrap::create_serial(LowLevelIface* parent, IniSectionPtr& s)
   return new NCN5120serial(parent,s);
 }
 
-void NCN5120wrap::RecvLPDU (const uchar * data, int len)
+void NCN5120wrap::RecvLPDU (const uint8_t * data, int len)
 {
-    skip_char = true;
-    TPUARTwrap::RecvLPDU (data, len);
+  skip_char = true;
+  TPUARTwrap::RecvLPDU (data, len);
 }
 
 void

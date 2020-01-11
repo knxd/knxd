@@ -17,11 +17,14 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <ev++.h>
 #include "server.h"
+
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+#include <ev++.h>
+
 #include "client.h"
 
 void
@@ -35,7 +38,7 @@ NetServer::stop_()
     cleanup_q.pop();
 
   ITER(i,connections)
-    (*i)->stop();
+  (*i)->stop();
   connections.clear();
 
   if (fd > -1)
@@ -66,18 +69,18 @@ NetServer::deregister (ClientConnPtr con)
 }
 
 void
-NetServer::cleanup_cb (ev::async &w UNUSED, int revents UNUSED)
+NetServer::cleanup_cb (ev::async &, int)
 {
-  while (!cleanup_q.isempty())
+  while (!cleanup_q.empty())
     {
       ClientConnPtr con = cleanup_q.get();
 
       ITER(i, connections)
-        if (*i == con)
-          {
-	    connections.erase (i);
-	    break;
-          }
+      if (*i == con)
+        {
+          connections.erase (i);
+          break;
+        }
     }
 }
 
@@ -105,7 +108,7 @@ NetServer::start()
 }
 
 void
-NetServer::io_cb (ev::io &w UNUSED, int revents UNUSED)
+NetServer::io_cb (ev::io &, int)
 {
   int cfd;
   cfd = accept (fd, NULL,NULL);
@@ -137,7 +140,7 @@ NetServer::setup()
 }
 
 void
-NetServer::setupConnection (int cfd UNUSED)
+NetServer::setupConnection (int)
 {
   ignore_when_systemd = cfg->value("systemd-ignore",ignore_when_systemd);
 }

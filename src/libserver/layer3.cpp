@@ -17,47 +17,6 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#ifndef EXCEPTION_H
-#define EXCEPTION_H
+#include "layer3.h"
 
-#include "string.h"
-
-/** exception cause */
-typedef enum
-{
-  /** inconsistent PDU */
-  PDU_WRONG_FORMAT,
-  /** inconsistent size in a PDU */
-  PDU_INCONSISTENT_SIZE,
-  /** initialization failed */
-  DEV_OPEN_FAIL,
-  /** runtime system error */
-  DEV_SYSTEM_ERROR,
-  /** initialisation of a Layer 4 connection failed */
-  L4_INIT_FAIL,
-  /** no response on Layer 4 connection */
-  L4_NO_RESPONSE,
-} Exception_Type;
-
-/** represents an exception */
-class Exception
-{
-  /** stores exception code*/
-  Exception_Type ex;
-public:
-
-  /** initialises exception with code t */
-  Exception (Exception_Type t)
-    {
-      ex=t;
-    }
-
-  /** returns exception code */
-  Exception_Type getException()
-    {
-      return ex;
-    }
-};
-
-
-#endif
+#include "npdu.h"

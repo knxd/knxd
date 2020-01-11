@@ -19,13 +19,12 @@
 
 #include "lowlatency.h"
 
-#include <errno.h>
-
+#include <cerrno>
+#include <cstring> // memcpy
 #include <sys/ioctl.h>
-#include <string.h> // memcpy
 
 bool
-set_low_latency (int fd, low_latency_save * save, bool really)
+set_low_latency (int fd, low_latency_save * save, const bool really)
 {
   struct termios opts;
 
@@ -40,7 +39,7 @@ set_low_latency (int fd, low_latency_save * save, bool really)
       if(ioctl (fd, TIOCSSERIAL, &snew) < 0)
         {
           if (errno != ENOTTY && errno != EOPNOTSUPP)
-          return false;
+            return false;
         }
     }
 #endif
@@ -56,7 +55,7 @@ set_low_latency (int fd, low_latency_save * save, bool really)
 }
 
 void
-restore_low_latency (int fd, low_latency_save * save, bool really)
+restore_low_latency (int fd, low_latency_save * save, const bool really)
 {
 #ifdef HAVE_LINUX_LOWLATENCY
   if (really)

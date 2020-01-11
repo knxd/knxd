@@ -1,7 +1,7 @@
 /*
     EIBD eib bus access and management daemon
     Copyright (C) 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
- 
+
     cEMI support for USB
     Copyright (C) 2013 Meik Felser <felser@cs.fau.de>
 
@@ -20,6 +20,13 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @ingroup KNX_03_06_03_04
+ * Common External Message Interface
+ * @{
+ */
+
 #ifndef EIB_CEMI_H
 #define EIB_CEMI_H
 
@@ -28,34 +35,45 @@
 /** CEMI backend */
 class CEMIDriver:public EMI_Common
 {
-  void cmdEnterMonitor();
-  void cmdLeaveMonitor();
-  void cmdOpen(); 
-  void cmdClose();
-  void started(); // do sendReset
-  const uint8_t * getIndTypes(); 
-  EMIVer getVersion() { return vCEMI; }
+public:
+  CEMIDriver (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i = nullptr);
+  virtual ~CEMIDriver () = default;
+  void do_send_Next();
 
-  unsigned int maxPacketLen();
-  void sendLocal_done_cb(bool success);
-
-  bool after_reset = false;
 protected:
   enum { N_bad, N_up, N_down, N_open, N_reset } sendLocal_done_next = N_bad;
 
 private:
+  virtual void cmdEnterMonitor() override;
+  virtual void cmdLeaveMonitor() override;
+  virtual void cmdOpen() override;
+  virtual void cmdClose() override;
+  virtual void started() override; // do sendReset
+  virtual const uint8_t * getIndTypes() const override;
+  virtual EMIVer getVersion() const override
+  {
+    return vCEMI;
+  }
+
+  virtual unsigned int maxPacketLen() const override;
+  void sendLocal_done_cb(bool success);
+
+  bool after_reset = false;
+
   ev::timer reset_timer;
   void reset_timer_cb(ev::timer &w, int revents);
 
-  virtual CArray lData2EMI (uchar code, const LDataPtr &p) 
-  { return L_Data_ToCEMI(code, p); }
-  virtual LDataPtr EMI2lData (const CArray & data) 
-  { return CEMI_to_L_Data(data, t); }
+  virtual CArray lData2EMI (uint8_t code, const LDataPtr &p) const override
+  {
+    return L_Data_ToCEMI(code, p);
+  }
 
-public:
-  CEMIDriver (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i = nullptr);
-  virtual ~CEMIDriver ();
-  void do_send_Next();
+  virtual LDataPtr EMI2lData (const CArray & data) const override
+  {
+    return CEMI_to_L_Data(data, t);
+  }
 };
 
 #endif  /* EIB_CEMI_H */
+
+/** @} */

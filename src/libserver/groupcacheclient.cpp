@@ -18,8 +18,9 @@
 */
 
 #include "groupcacheclient.h"
-#include "groupcache.h"
+
 #include "client.h"
+#include "groupcache.h"
 
 bool
 CreateGroupCache (Router& r, IniSectionPtr& s)
@@ -55,7 +56,7 @@ ReadCallback(const GroupCacheEntry &gce, bool nowait, ClientConnPtr c)
 }
 
 void
-LastUpdatesCallback(const Array<eibaddr_t> &addrs, uint32_t end, ClientConnPtr c)
+LastUpdatesCallback(const std::vector<eibaddr_t> &addrs, uint32_t end, ClientConnPtr c)
 {
   CArray erg;
 
@@ -72,7 +73,7 @@ LastUpdatesCallback(const Array<eibaddr_t> &addrs, uint32_t end, ClientConnPtr c
 }
 
 void
-LastUpdates2Callback(const Array<eibaddr_t> &addrs, uint32_t end, ClientConnPtr c)
+LastUpdates2Callback(const std::vector<eibaddr_t> &addrs, uint32_t end, ClientConnPtr c)
 {
   CArray erg;
 
@@ -107,9 +108,9 @@ GroupCacheRequest (ClientConnPtr c, uint8_t *buf, size_t len)
     {
     case EIB_CACHE_ENABLE:
       if (cache->Start ())
-	c->sendreject (EIB_CACHE_ENABLE);
+        c->sendreject (EIB_CACHE_ENABLE);
       else
-	c->sendreject (EIB_CONNECTION_INUSE);
+        c->sendreject (EIB_CONNECTION_INUSE);
       break;
     case EIB_CACHE_DISABLE:
       cache->Stop ();
@@ -121,10 +122,10 @@ GroupCacheRequest (ClientConnPtr c, uint8_t *buf, size_t len)
       break;
     case EIB_CACHE_REMOVE:
       if (len < 4)
-	{
-	  c->sendreject ();
-	  return;
-	}
+        {
+          c->sendreject ();
+          return;
+        }
       dst = (buf[2] << 8) | (buf[3]);
       cache->remove (dst);
       c->sendreject (EIB_CACHE_REMOVE);
@@ -133,49 +134,49 @@ GroupCacheRequest (ClientConnPtr c, uint8_t *buf, size_t len)
     case EIB_CACHE_READ:
     case EIB_CACHE_READ_NOWAIT:
       if (len < 4)
-	{
-	  c->sendreject ();
-	  return;
-	}
+        {
+          c->sendreject ();
+          return;
+        }
       dst = (buf[2] << 8) | (buf[3]);
       if (EIBTYPE (buf) == EIB_CACHE_READ)
-	{
-	  if (len < 6)
-	    {
-	      c->sendreject ();
-	      return;
-	    }
-	  age = (buf[4] << 8) | (buf[5]);
-	}
+        {
+          if (len < 6)
+            {
+              c->sendreject ();
+              return;
+            }
+          age = (buf[4] << 8) | (buf[5]);
+        }
       cache->Read (dst, EIBTYPE (buf) == EIB_CACHE_READ_NOWAIT ? 0 : 1,
-		     age, ReadCallback, c);
+                   age, ReadCallback, c);
       break;
 
     case EIB_CACHE_LAST_UPDATES:
-      {
-        if (len < 5)
-          {
-            c->sendreject ();
-            return;
-          }
-        uint16_t start = (buf[2] << 8) | buf[3];
-        uint8_t timeout = buf[4];
-        cache->LastUpdates (start, timeout, &LastUpdatesCallback, c);
-        break;
-      }
+    {
+      if (len < 5)
+        {
+          c->sendreject ();
+          return;
+        }
+      uint16_t start = (buf[2] << 8) | buf[3];
+      uint8_t timeout = buf[4];
+      cache->LastUpdates (start, timeout, &LastUpdatesCallback, c);
+      break;
+    }
 
     case EIB_CACHE_LAST_UPDATES_2:
-      {
-        if (len < 7)
-          {
-            c->sendreject ();
-            return;
-          }
-        uint32_t start = (buf[2] << 24) | (buf[3] << 16) | (buf[4] << 8) | buf[5];
-        uint8_t timeout = buf[6];
-        cache->LastUpdates2 (start, timeout, &LastUpdates2Callback, c);
-        break;
-      }
+    {
+      if (len < 7)
+        {
+          c->sendreject ();
+          return;
+        }
+      uint32_t start = (buf[2] << 24) | (buf[3] << 16) | (buf[4] << 8) | buf[5];
+      uint8_t timeout = buf[6];
+      cache->LastUpdates2 (start, timeout, &LastUpdates2Callback, c);
+      break;
+    }
 
     default:
       c->sendreject ();

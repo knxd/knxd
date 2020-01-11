@@ -17,22 +17,35 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @ingroup KNX_03_06_03
+ * External Message Interface
+ * @{
+ */
+
 #ifndef EIB_EMI_H
 #define EIB_EMI_H
 
+#include "link.h"
 #include "lpdu.h"
 
 /** convert L_Data_PDU to CEMI frame */
-CArray L_Data_ToCEMI (uchar code, const LDataPtr & p);
+CArray L_Data_ToCEMI (uint8_t code, const LDataPtr & p);
+
 /** create L_Data_PDU out of a CEMI frame */
-LDataPtr CEMI_to_L_Data (const CArray & data, TracePtr t);
+LDataPtr CEMI_to_L_Data (const CArray & data, TracePtr tr);
 
 LBusmonPtr CEMI_to_Busmonitor (const CArray & data, DriverPtr l2);
-CArray Busmonitor_to_CEMI (uchar code, const LBusmonPtr &p, int no);
+
+CArray Busmonitor_to_CEMI (uint8_t code, const LBusmonPtr &p, int no);
 
 /** convert L_Data_PDU to EMI1/2 frame */
-CArray L_Data_ToEMI (uchar code, const LDataPtr & p);
+CArray L_Data_ToEMI (uint8_t code, const LDataPtr & p);
+
 /** create L_Data_PDU out of a EMI1/2 frame */
-LDataPtr EMI_to_L_Data (const CArray & data, TracePtr t);
+LDataPtr EMI_to_L_Data (const CArray & data, TracePtr tr);
 
 #endif
+
+/** @} */

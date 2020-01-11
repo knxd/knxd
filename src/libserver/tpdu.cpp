@@ -18,241 +18,361 @@
 */
 
 #include "tpdu.h"
+
 #include "apdu.h"
 
 TPDUPtr
-TPDU::fromPacket (const CArray & c, TracePtr tr)
+TPDU::fromPacket (const EIB_AddrType address_type, const eibaddr_t destination_address, const CArray & c, TracePtr tr)
 {
   TPDUPtr t;
   if (c.size() >= 1)
     {
-      if ((c[0] & 0xfc) == 0)
-	t = TPDUPtr(new T_DATA_XXX_REQ_PDU ());
-      else if (c[0] == 0x80)
-	t = TPDUPtr(new T_CONNECT_REQ_PDU ());
-      else if (c[0] == 0x81)
-	t = TPDUPtr(new T_DISCONNECT_REQ_PDU ());
-      else if ((c[0] & 0xC3) == 0xC2)
-	t = TPDUPtr(new T_ACK_PDU ());
-      else if ((c[0] & 0xC3) == 0xC3)
-	t = TPDUPtr(new T_NACK_PDU ());
-      else if ((c[0] & 0xC0) == 0x40)
-	t = TPDUPtr(new T_DATA_CONNECTED_REQ_PDU ());
+      if (address_type == GroupAddress)
+        {
+          if ((c[0] & 0xFC) == 0x00)
+            {
+              if (destination_address == 0)
+                t = TPDUPtr(new T_Data_Broadcast_PDU ()); // @todo T_Data_SystemBroadcast
+              else
+                t = TPDUPtr(new T_Data_Group_PDU ());
+            }
+          else if ((c[0] & 0xFC) == 0x04)
+            t = TPDUPtr(new T_Data_Tag_Group_PDU ());
+        }
+      else
+        {
+          if ((c[0] & 0xFC) == 0x00)
+            t = TPDUPtr(new T_Data_Individual_PDU ());
+          else if ((c[0] & 0xC0) == 0x40)
+            t = TPDUPtr(new T_Data_Connected_PDU ());
+          else if (c[0] == 0x80)
+            t = TPDUPtr(new T_Connect_PDU ());
+          else if (c[0] == 0x81)
+            t = TPDUPtr(new T_Disconnect_PDU ());
+          else if ((c[0] & 0xC3) == 0xC2)
+            t = TPDUPtr(new T_ACK_PDU ());
+          else if ((c[0] & 0xC3) == 0xC3)
+            t = TPDUPtr(new T_NAK_PDU ());
+        }
     }
   if (t && t->init (c, tr))
     return t;
 
-  t = TPDUPtr(new T_UNKNOWN_PDU ());
+  t = TPDUPtr(new T_Unknown_PDU ());
   t->init (c, tr);
   return t;
 }
 
 
-/* T_UNKNOWN  */
-
-T_UNKNOWN_PDU::T_UNKNOWN_PDU ()
-{
-}
+/* T_Unknown */
 
 bool
-T_UNKNOWN_PDU::init (const CArray & c, TracePtr t UNUSED)
+T_Unknown_PDU::init (const CArray & c, TracePtr)
 {
   pdu = c;
   return true;
 }
 
-CArray T_UNKNOWN_PDU::ToPacket ()
+CArray T_Unknown_PDU::ToPacket () const
 {
   return pdu;
 }
 
-String T_UNKNOWN_PDU::Decode (TracePtr t UNUSED)
+std::string T_Unknown_PDU::Decode (TracePtr) const
 {
-  String s ("Unknown TPDU: ");
+  std::string s ("Unknown TPDU: ");
 
   if (pdu.size() == 0)
     return "empty TPDU";
 
-  ITER (i,pdu)
-    addHex (s, *i);
+  C_ITER (i,pdu)
+  addHex (s, *i);
 
   return s;
 }
 
-/* T_DATA_XXX_REQ  */
-
-T_DATA_XXX_REQ_PDU::T_DATA_XXX_REQ_PDU ()
-{
-}
+/* T_Data_Broadcast */
 
 bool
-T_DATA_XXX_REQ_PDU::init (const CArray & c, TracePtr t UNUSED)
+T_Data_Broadcast_PDU::init (const CArray & c, TracePtr)
 {
   if (c.size() < 1)
     return false;
-  data = c;
+
+  tsdu = c;
   return true;
 }
 
-CArray T_DATA_XXX_REQ_PDU::ToPacket ()
+CArray T_Data_Broadcast_PDU::ToPacket () const
 {
-  assert (data.size() > 0);
-  CArray pdu (data);
-  pdu[0] = (pdu[0] & 0x3);
+  assert (tsdu.size() > 0);
+
+  CArray pdu (tsdu);
+  pdu[0] = pdu[0] & 0x03;
   return pdu;
 }
 
-String T_DATA_XXX_REQ_PDU::Decode (TracePtr t)
+std::string T_Data_Broadcast_PDU::Decode (TracePtr tr) const
 {
-  APDUPtr a = APDU::fromPacket (data, t);
-  String s ("T_DATA_XXX_REQ ");
-  s += a->Decode (t);
+  APDUPtr a = APDU::fromPacket (tsdu, tr);
+  std::string s ("T_Data_Broadcast ");
+  s += a->Decode (tr);
   return s;
 }
 
-/* T_DATA_CONNECTED_REQ  */
-
-T_DATA_CONNECTED_REQ_PDU::T_DATA_CONNECTED_REQ_PDU ()
-{
-  serno = 0;
-}
+/* T_Data_SystemBroadcast */
 
 bool
-T_DATA_CONNECTED_REQ_PDU::init (const CArray & c, TracePtr t UNUSED)
+T_Data_SystemBroadcast_PDU::init (const CArray & c, TracePtr)
 {
   if (c.size() < 1)
     return false;
-  data = c;
-  serno = (c[0] >> 2) & 0x0f;
+
+  tsdu = c;
   return true;
 }
 
-CArray T_DATA_CONNECTED_REQ_PDU::ToPacket ()
+CArray T_Data_SystemBroadcast_PDU::ToPacket () const
 {
-  assert (data.size() > 0);
-  assert ((serno & 0xf0) == 0);
-  CArray pdu (data);
-  pdu[0] = (pdu[0] & 0x3) | 0x40 | ((serno & 0x0f) << 2);
+  assert (tsdu.size() > 0);
+
+  CArray pdu (tsdu);
+  pdu[0] = pdu[0] & 0x03;
   return pdu;
 }
 
-String T_DATA_CONNECTED_REQ_PDU::Decode (TracePtr t)
+std::string T_Data_SystemBroadcast_PDU::Decode (TracePtr tr) const
 {
-  assert ((serno & 0xf0) == 0);
-  APDUPtr a = APDU::fromPacket (data, t);
-  String s ("T_DATA_CONNECTED_REQ serno:");
-  addHex (s, serno);
-  s += a->Decode (t);
+  APDUPtr a = APDU::fromPacket (tsdu, tr);
+  std::string s ("T_Data_SystemBroadcast ");
+  s += a->Decode (tr);
   return s;
 }
 
-/* T_CONNECT_REQ  */
-
-T_CONNECT_REQ_PDU::T_CONNECT_REQ_PDU ()
-{
-}
+/* T_Data_Group */
 
 bool
-T_CONNECT_REQ_PDU::init (const CArray & c, TracePtr t UNUSED)
+T_Data_Group_PDU::init (const CArray & c, TracePtr)
+{
+  if (c.size() < 1)
+    return false;
+
+  tsdu = c;
+  return true;
+}
+
+CArray T_Data_Group_PDU::ToPacket () const
+{
+  assert (tsdu.size() > 0);
+
+  CArray pdu (tsdu);
+  pdu[0] = pdu[0] & 0x03;
+  return pdu;
+}
+
+std::string T_Data_Group_PDU::Decode (TracePtr tr) const
+{
+  APDUPtr a = APDU::fromPacket (tsdu, tr);
+  std::string s ("T_Data_Group ");
+  s += a->Decode (tr);
+  return s;
+}
+
+/* T_Data_Tag_Group */
+
+bool
+T_Data_Tag_Group_PDU::init (const CArray & c, TracePtr)
+{
+  if (c.size() < 1)
+    return false;
+
+  tsdu = c;
+  return true;
+}
+
+CArray T_Data_Tag_Group_PDU::ToPacket () const
+{
+  assert (tsdu.size() > 0);
+
+  CArray pdu (tsdu);
+  pdu[0] = pdu[0] & 0x03;
+  return pdu;
+}
+
+std::string T_Data_Tag_Group_PDU::Decode (TracePtr tr) const
+{
+  APDUPtr a = APDU::fromPacket (tsdu, tr);
+  std::string s ("T_Data_Tag_Group ");
+  s += a->Decode (tr);
+  return s;
+}
+
+/* T_Data_Individual */
+
+bool
+T_Data_Individual_PDU::init (const CArray & c, TracePtr)
+{
+  if (c.size() < 1)
+    return false;
+
+  tsdu = c;
+  return true;
+}
+
+CArray T_Data_Individual_PDU::ToPacket () const
+{
+  assert (tsdu.size() > 0);
+
+  CArray pdu (tsdu);
+  pdu[0] = pdu[0] & 0x03;
+  return pdu;
+}
+
+std::string T_Data_Individual_PDU::Decode (TracePtr tr) const
+{
+  APDUPtr a = APDU::fromPacket (tsdu, tr);
+  std::string s ("T_Data_Individual ");
+  s += a->Decode (tr);
+  return s;
+}
+
+/* T_Data_Connected */
+
+bool
+T_Data_Connected_PDU::init (const CArray & c, TracePtr)
+{
+  if (c.size() < 1)
+    return false;
+
+  tsdu = c;
+  sequence_number = (c[0] >> 2) & 0x0f;
+  return true;
+}
+
+CArray T_Data_Connected_PDU::ToPacket () const
+{
+  assert (tsdu.size() > 0);
+  assert ((sequence_number & 0xf0) == 0);
+
+  CArray pdu (tsdu);
+  pdu[0] = 0x40 | ((sequence_number & 0x0f) << 2) | (pdu[0] & 0x03);
+  return pdu;
+}
+
+std::string T_Data_Connected_PDU::Decode (TracePtr tr) const
+{
+  assert ((sequence_number & 0xf0) == 0);
+
+  APDUPtr a = APDU::fromPacket (tsdu, tr);
+  std::string s ("T_Data_Connected serno:");
+  addHex (s, sequence_number);
+  s += a->Decode (tr);
+  return s;
+}
+
+/* T_Connect */
+
+bool
+T_Connect_PDU::init (const CArray & c, TracePtr)
 {
   if (c.size() != 1)
     return false;
   return true;
 }
 
-CArray T_CONNECT_REQ_PDU::ToPacket ()
+CArray T_Connect_PDU::ToPacket () const
 {
-  uchar c = 0x80;
-  return CArray (&c, 1);
+  CArray pdu;
+  pdu.resize(1);
+  pdu[0] = 0x80;
+  return pdu;
 }
 
-String T_CONNECT_REQ_PDU::Decode (TracePtr t UNUSED)
+std::string T_Connect_PDU::Decode (TracePtr) const
 {
-  return "T_CONNECT_REQ";
+  return "T_Connect";
 }
 
-/* T_DISCONNECT_REQ  */
-
-T_DISCONNECT_REQ_PDU::T_DISCONNECT_REQ_PDU ()
-{
-}
+/* T_Disconnect */
 
 bool
-T_DISCONNECT_REQ_PDU::init (const CArray & c, TracePtr t UNUSED)
+T_Disconnect_PDU::init (const CArray & c, TracePtr)
 {
   if (c.size() != 1)
     return false;
   return true;
 }
 
-CArray T_DISCONNECT_REQ_PDU::ToPacket ()
+CArray T_Disconnect_PDU::ToPacket () const
 {
-  uchar c = 0x81;
-  return CArray (&c, 1);
+  CArray pdu;
+  pdu.resize(1);
+  pdu[0] = 0x81;
+  return pdu;
 }
 
-String T_DISCONNECT_REQ_PDU::Decode (TracePtr t UNUSED)
+std::string T_Disconnect_PDU::Decode (TracePtr) const
 {
-  return "T_DISCONNECT_REQ";
+  return "T_Disconnect";
 }
 
 /* T_ACK */
 
-T_ACK_PDU::T_ACK_PDU ()
-{
-  serno = 0;
-}
-
 bool
-T_ACK_PDU::init (const CArray & c, TracePtr t UNUSED)
+T_ACK_PDU::init (const CArray & c, TracePtr)
 {
   if (c.size() != 1)
     return false;
-  serno = (c[0] >> 2) & 0x0f;
+
+  sequence_number = (c[0] >> 2) & 0x0f;
   return true;
 }
 
-CArray T_ACK_PDU::ToPacket ()
+CArray T_ACK_PDU::ToPacket () const
 {
-  assert ((serno & 0xf0) == 0);
-  uchar c = 0xC2 | ((serno & 0x0f) << 2);
-  return CArray (&c, 1);
+  assert ((sequence_number & 0xf0) == 0);
+
+  CArray pdu;
+  pdu.resize(1);
+  pdu[0] = 0xC2 | ((sequence_number & 0x0f) << 2);
+  return pdu;
 }
 
-String T_ACK_PDU::Decode (TracePtr t UNUSED)
+std::string T_ACK_PDU::Decode (TracePtr) const
 {
-  assert ((serno & 0xf0) == 0);
-  String s ("T_ACK Serno:");
-  addHex (s, serno);
+  assert ((sequence_number & 0xf0) == 0);
+
+  std::string s ("T_ACK Serno:");
+  addHex (s, sequence_number);
   return s;
 }
 
-/* T_NACK  */
+/* T_NAK  */
 
-T_NACK_PDU::T_NACK_PDU ()
-{
-  serno = 0;
-}
-
-bool T_NACK_PDU::init (const CArray & c, TracePtr t UNUSED)
+bool T_NAK_PDU::init (const CArray & c, TracePtr)
 {
   if (c.size() != 1)
     return false;
-  serno = (c[0] >> 2) & 0x0f;
+
+  sequence_number = (c[0] >> 2) & 0x0f;
   return true;
 }
 
-CArray T_NACK_PDU::ToPacket ()
+CArray T_NAK_PDU::ToPacket () const
 {
-  assert ((serno & 0xf0) == 0);
-  uchar c = 0xC3 | ((serno & 0x0f) << 2);
-  return CArray (&c, 1);
+  assert ((sequence_number & 0xf0) == 0);
+
+  CArray pdu;
+  pdu.resize(1);
+  pdu[0] = 0xC3 | ((sequence_number & 0x0f) << 2);
+  return pdu;
 }
 
-String T_NACK_PDU::Decode (TracePtr t UNUSED)
+std::string T_NAK_PDU::Decode (TracePtr) const
 {
-  assert ((serno & 0xf0) == 0);
-  String s ("T_NACK Serno:");
-  addHex (s, serno);
+  assert ((sequence_number & 0xf0) == 0);
+
+  std::string s ("T_NAK Serno:");
+  addHex (s, sequence_number);
   return s;
 }

@@ -22,9 +22,9 @@
 
 #include "types.h"
 
-String HexDump (CArray data);
+std::string HexDump (const CArray data);
 
-typedef enum
+enum STR_Type
 {
   S_Invalid,
   S_Unknown,
@@ -39,19 +39,17 @@ typedef enum
   S_BCU2Size,
   S_BCU2Start,
   S_BCU2Key,
-} STR_Type;
+};
 
 class STR_Stream
 {
 public:
-  virtual ~STR_Stream ()
-  {
-  }
+  virtual ~STR_Stream () = default;
   static STR_Stream *fromArray (const CArray & c);
   virtual bool init (const CArray & str) = 0;
-  virtual CArray toArray () = 0;
-  virtual STR_Type getType () = 0;
-  virtual String decode () = 0;
+  virtual CArray toArray () const = 0;
+  virtual STR_Type getType () const = 0;
+  virtual std::string decode () const = 0;
 };
 
 class STR_Invalid:public STR_Stream
@@ -59,45 +57,45 @@ class STR_Invalid:public STR_Stream
 public:
   CArray data;
 
-  STR_Invalid ();
-  bool init (const CArray & str);
-  CArray toArray ();
-  STR_Type getType ()
+  STR_Invalid () = default;
+  virtual bool init (const CArray & str) override;
+  virtual CArray toArray () const override;
+  virtual STR_Type getType () const override
   {
     return S_Invalid;
   }
-  String decode ();
+  virtual std::string decode () const override;
 };
 
 class STR_Unknown:public STR_Stream
 {
 public:
-  uint16_t type;
+  uint16_t type = 0;
   CArray data;
 
-    STR_Unknown ();
-  bool init (const CArray & str);
-  CArray toArray ();
-  STR_Type getType ()
+  STR_Unknown () = default;
+  virtual bool init (const CArray & str) override;
+  virtual CArray toArray () const override;
+  virtual STR_Type getType () const override
   {
     return S_Unknown;
   }
-  String decode ();
+  virtual std::string decode () const override;
 };
 
 class STR_BCUType:public STR_Stream
 {
 public:
-  uint16_t bcutype;
+  uint16_t bcutype = 0;
 
-  STR_BCUType ();
-  bool init (const CArray & str);
-  CArray toArray ();
-  STR_Type getType ()
+  STR_BCUType () = default;
+  virtual bool init (const CArray & str) override;
+  virtual CArray toArray () const override;
+  virtual STR_Type getType () const override
   {
     return S_BCUType;
   }
-  String decode ();
+  virtual std::string decode () const override;
 };
 
 class STR_Code:public STR_Stream
@@ -105,205 +103,205 @@ class STR_Code:public STR_Stream
 public:
   CArray code;
 
-  STR_Code ();
-  bool init (const CArray & str);
-  CArray toArray ();
-  STR_Type getType ()
+  STR_Code () = default;
+  virtual bool init (const CArray & str) override;
+  virtual CArray toArray () const override;
+  virtual STR_Type getType () const override
   {
     return S_Code;
   }
-  String decode ();
+  virtual std::string decode () const override;
 };
 
 class STR_StringParameter:public STR_Stream
 {
 public:
-  uint16_t addr;
-  uint16_t length;
-  String name;
+  uint16_t addr = 0;
+  uint16_t length = 0;
+  std::string name;
 
-    STR_StringParameter ();
-  bool init (const CArray & str);
-  CArray toArray ();
-  STR_Type getType ()
+  STR_StringParameter () = default;
+  virtual bool init (const CArray & str) override;
+  virtual CArray toArray () const override;
+  virtual STR_Type getType () const override
   {
     return S_StringParameter;
   }
-  String decode ();
+  virtual std::string decode () const override;
 };
 
 class STR_ListParameter:public STR_Stream
 {
 public:
-  uint16_t addr;
-  String name;
-    Array < String > elements;
+  uint16_t addr = 0;
+  std::string name;
+  std::vector < std::string > elements;
 
-    STR_ListParameter ();
-  bool init (const CArray & str);
-  CArray toArray ();
-  STR_Type getType ()
+  STR_ListParameter () = default;
+  virtual bool init (const CArray & str) override;
+  virtual CArray toArray () const override;
+  virtual STR_Type getType () const override
   {
     return S_ListParameter;
   }
-  String decode ();
+  virtual std::string decode () const override;
 };
 
 class STR_IntParameter:public STR_Stream
 {
 public:
   uint16_t addr;
-  int8_t type;
-  String name;
+  int8_t type = 0;
+  std::string name = "";
 
-    STR_IntParameter ();
-  bool init (const CArray & str);
-  CArray toArray ();
-  STR_Type getType ()
+  STR_IntParameter () = default;
+  virtual bool init (const CArray & str) override;
+  virtual CArray toArray () const override;
+  virtual STR_Type getType () const override
   {
     return S_IntParameter;
   }
-  String decode ();
+  virtual std::string decode () const;
 };
 
 class STR_FloatParameter:public STR_Stream
 {
 public:
-  uint16_t addr;
-  String name;
+  uint16_t addr = 0;
+  std::string name;
 
-    STR_FloatParameter ();
-  bool init (const CArray & str);
-  CArray toArray ();
-  STR_Type getType ()
+  STR_FloatParameter () = default;
+  virtual bool init (const CArray & str) override;
+  virtual CArray toArray () const override;
+  virtual STR_Type getType () const override
   {
     return S_FloatParameter;
   }
-  String decode ();
+  virtual std::string decode () const;
 };
 
 class STR_GroupObject:public STR_Stream
 {
 public:
-  uchar no;
-  String name;
+  uint8_t no = 0;
+  std::string name;
 
-    STR_GroupObject ();
-  bool init (const CArray & str);
-  CArray toArray ();
-  STR_Type getType ()
+  STR_GroupObject () = default;
+  virtual bool init (const CArray & str) override;
+  virtual CArray toArray () const override;
+  virtual STR_Type getType () const override
   {
     return S_GroupObject;
   }
-  String decode ();
+  virtual std::string decode () const;
 };
 
 class STR_BCU1Size:public STR_Stream
 {
 public:
-  uint16_t textsize;
-  uint16_t stacksize;
-  uint16_t datasize;
-  uint16_t bsssize;
+  uint16_t textsize = 0;
+  uint16_t stacksize = 0;
+  uint16_t datasize = 0;
+  uint16_t bsssize = 0;
 
-    STR_BCU1Size ();
-  bool init (const CArray & str);
-  CArray toArray ();
-  STR_Type getType ()
+  STR_BCU1Size () = default;
+  virtual bool init (const CArray & str) override;
+  virtual CArray toArray () const override;
+  virtual STR_Type getType () const override
   {
     return S_BCU1Size;
   }
-  String decode ();
+  virtual std::string decode () const;
 };
 
 class STR_BCU2Size:public STR_Stream
 {
 public:
-  uint16_t textsize;
-  uint16_t stacksize;
-  uint16_t lo_datasize;
-  uint16_t lo_bsssize;
-  uint16_t hi_datasize;
-  uint16_t hi_bsssize;
+  uint16_t textsize = 0;
+  uint16_t stacksize = 0;
+  uint16_t lo_datasize = 0;
+  uint16_t lo_bsssize = 0;
+  uint16_t hi_datasize = 0;
+  uint16_t hi_bsssize = 0;
 
-    STR_BCU2Size ();
-  bool init (const CArray & str);
-  CArray toArray ();
-  STR_Type getType ()
+  STR_BCU2Size () = default;
+  virtual bool init (const CArray & str) override;
+  virtual CArray toArray () const override;
+  virtual STR_Type getType () const override
   {
     return S_BCU2Size;
   }
-  String decode ();
+  virtual std::string decode () const;
 };
 
 class STR_BCU2Start:public STR_Stream
 {
 public:
-  uint16_t addrtab_start;
-  uint16_t addrtab_size;
-  uint16_t assoctab_start;
-  uint16_t assoctab_size;
-  uint16_t readonly_start;
-  uint16_t readonly_end;
-  uint16_t param_start;
-  uint16_t param_end;
+  uint16_t addrtab_start = 0;
+  uint16_t addrtab_size = 0;
+  uint16_t assoctab_start = 0;
+  uint16_t assoctab_size = 0;
+  uint16_t readonly_start = 0;
+  uint16_t readonly_end = 0;
+  uint16_t param_start = 0;
+  uint16_t param_end = 0;
 
-  uint16_t obj_ptr;
-  uint16_t obj_count;
-  uint16_t appcallback;
-  uint16_t groupobj_ptr;
-  uint16_t seg0;
-  uint16_t seg1;
-  uint16_t sphandler;
-  uint16_t initaddr;
-  uint16_t runaddr;
-  uint16_t saveaddr;
-  uint16_t eeprom_start;
-  uint16_t eeprom_end;
-  eibaddr_t poll_addr;
-  uint8_t poll_slot;
+  uint16_t obj_ptr = 0;
+  uint16_t obj_count = 0;
+  uint16_t appcallback = 0;
+  uint16_t groupobj_ptr = 0;
+  uint16_t seg0 = 0;
+  uint16_t seg1 = 0;
+  uint16_t sphandler = 0;
+  uint16_t initaddr = 0;
+  uint16_t runaddr = 0;
+  uint16_t saveaddr = 0;
+  uint16_t eeprom_start = 0;
+  uint16_t eeprom_end = 0;
+  eibaddr_t poll_addr = 0;
+  uint8_t poll_slot = 0;
 
-    STR_BCU2Start ();
-  bool init (const CArray & str);
-  CArray toArray ();
-  STR_Type getType ()
+  STR_BCU2Start () = default;
+  virtual bool init (const CArray & str) override;
+  virtual CArray toArray () const override;
+  virtual STR_Type getType () const override
   {
     return S_BCU2Start;
   }
-  String decode ();
+  virtual std::string decode () const;
 };
 
 class STR_BCU2Key:public STR_Stream
 {
 public:
-  eibkey_type installkey;
-  Array < eibkey_type > keys;
+  eibkey_type installkey = 0xFFFFFFFF;
+  std::vector < eibkey_type > keys;
 
-  STR_BCU2Key ();
-  bool init (const CArray & str);
-  CArray toArray ();
-  STR_Type getType ()
+  STR_BCU2Key () = default;
+  virtual bool init (const CArray & str) override;
+  virtual CArray toArray () const override;
+  virtual STR_Type getType () const override
   {
     return S_BCU2Key;
   }
-  String decode ();
+  virtual std::string decode () const;
 };
 
 class Image
 {
 public:
-  Array < STR_Stream * >str;
+  std::vector < STR_Stream * >str;
 
-  Image ();
+  Image () = default;
   virtual ~Image ();
 
   static Image *fromArray (CArray c);
-  CArray toArray ();
-  String decode ();
-  bool isValid ();
+  virtual CArray toArray () const;
+  virtual std::string decode () const;
+  bool isValid () const;
 
-  int findStreamNumber (STR_Type t);
-  STR_Stream *findStream (STR_Type t);
+  int findStreamNumber (const STR_Type t) const;
+  STR_Stream *findStream (const STR_Type t) const;
 };
 
 #endif

@@ -23,7 +23,7 @@ main (int ac, char *ag[])
 {
   int len, obj, prop, start, nr_of_elem;
   EIBConnection *con;
-  uchar buf[255];
+  uint8_t buf[255];
   eibaddr_t dest;
   char *prog = ag[0];
 
@@ -43,7 +43,7 @@ main (int ac, char *ag[])
 
   len =
     EIB_MC_PropertyRead (con, obj, prop, start, nr_of_elem, sizeof (buf),
-			 buf);
+                         buf);
   if (len == -1)
     die ("Read failed");
   printHex (len, buf);

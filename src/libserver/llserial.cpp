@@ -17,22 +17,22 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#include "llserial.h"
 #include "config.h"
 
-#include <unistd.h>
-#include <errno.h>
+#include <cerrno>
 #include <fcntl.h>
-#include <errno.h>
 #include <sys/ioctl.h>
 #include <termios.h>
+#include <unistd.h>
 #ifdef HAVE_LINUX_LOWLATENCY
+#include <cstring> // memcpy
 #include <sys/ioctl.h>
-#include <string.h> // memcpy
 #endif
 
-#include "llserial.h"
 
-static speed_t getbaud(int baud) {
+static speed_t getbaud(int baud)
+{
   switch(baud)
     {
     case 9600:
@@ -48,8 +48,6 @@ static speed_t getbaud(int baud) {
     }
 }
 
-LLserial::~LLserial () {}
-
 bool
 LLserial::setup()
 {
@@ -57,7 +55,7 @@ LLserial::setup()
     return false;
 
   dev = cfg->value("device","");
-  if(dev.size() == 0) 
+  if(dev.size() == 0)
     {
       ERRORPRINTF (t, E_ERROR | 22, "Missing device= config");
       return false;

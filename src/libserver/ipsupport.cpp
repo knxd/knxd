@@ -17,14 +17,14 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include <string.h>
+#include "ipsupport.h"
+#include "config.h"
+
+#include <cerrno>
+#include <cstring>
 #include <netdb.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <errno.h>
-#include <netdb.h>
-#include "config.h"
-#include "ipsupport.h"
 #ifdef HAVE_LINUX_NETLINK
 #include <asm/types.h>
 #include <linux/netlink.h>
@@ -42,7 +42,7 @@
 #endif
 
 bool
-GetHostIP (TracePtr t, struct sockaddr_in *sock, const std::string& name)
+GetHostIP (TracePtr tr, struct sockaddr_in *sock, const std::string& name)
 {
   struct hostent *h;
   if (name.size() == 0)
@@ -51,8 +51,8 @@ GetHostIP (TracePtr t, struct sockaddr_in *sock, const std::string& name)
   h = gethostbyname (name.c_str());
   if (!h)
     {
-      if (t)
-        ERRORPRINTF (t, E_ERROR | 50, "Resolving %s failed: %s", name, hstrerror(h_errno));
+      if (tr)
+        ERRORPRINTF (tr, E_ERROR | 50, "Resolving %s failed: %s", name, hstrerror(h_errno));
       return false;
     }
 #ifdef HAVE_SOCKADDR_IN_LEN
@@ -64,15 +64,15 @@ GetHostIP (TracePtr t, struct sockaddr_in *sock, const std::string& name)
 }
 
 #ifdef HAVE_LINUX_NETLINK
-typedef struct
+struct r_req
 {
   struct nlmsghdr n;
   struct rtmsg r;
   char data[1000];
-} r_req;
+};
 
 bool
-GetSourceAddress (TracePtr t UNUSED, const struct sockaddr_in *dest, struct sockaddr_in *src)
+GetSourceAddress (TracePtr, const struct sockaddr_in *dest, struct sockaddr_in *src)
 {
   int s;
   int l;
@@ -94,7 +94,7 @@ GetSourceAddress (TracePtr t UNUSED, const struct sockaddr_in *dest, struct sock
   a->rta_type = RTA_DST;
   a->rta_len = RTA_LENGTH (sizeof (dest->sin_addr.s_addr));
   memcpy (RTA_DATA (a), &dest->sin_addr.s_addr,
-	  sizeof (dest->sin_addr.s_addr));
+          sizeof (dest->sin_addr.s_addr));
   if (write (s, &req, req.n.nlmsg_len) < 0)
     goto err_out;
   if (read (s, &req, sizeof (req)) < 0)
@@ -106,12 +106,12 @@ GetSourceAddress (TracePtr t UNUSED, const struct sockaddr_in *dest, struct sock
   while (RTA_OK (a, l))
     {
       if (a->rta_type == RTA_PREFSRC
-	  && RTA_PAYLOAD (a) == sizeof (src->sin_addr.s_addr))
-	{
-	  src->sin_family = AF_INET;
-	  memcpy (&src->sin_addr.s_addr, RTA_DATA (a), RTA_PAYLOAD (a));
-	  return 1;
-	}
+          && RTA_PAYLOAD (a) == sizeof (src->sin_addr.s_addr))
+        {
+          src->sin_family = AF_INET;
+          memcpy (&src->sin_addr.s_addr, RTA_DATA (a), RTA_PAYLOAD (a));
+          return 1;
+        }
       a = RTA_NEXT (a, l);
     }
   return 0;
@@ -123,7 +123,7 @@ err_out:
 
 #ifdef HAVE_WINDOWS_IPHELPER
 bool
-GetSourceAddress (TracePtr t, const struct sockaddr_in *dest, struct sockaddr_in *src)
+GetSourceAddress (TracePtr tr, const struct sockaddr_in *dest, struct sockaddr_in *src)
 {
   DWORD d = 0;
   PMIB_IPADDRTABLE tab;
@@ -140,21 +140,21 @@ GetSourceAddress (TracePtr t, const struct sockaddr_in *dest, struct sockaddr_in
     {
       tab = (MIB_IPADDRTABLE *) realloc (tab, s);
       if (!tab)
-	return 0;
+        return 0;
     }
   if (GetIpAddrTable (tab, &s, 0) != NO_ERROR)
     {
       if (tab)
-	free (tab);
+        free (tab);
       return 0;
     }
   for (int i = 0; i < tab->dwNumEntries; i++)
     if (tab->table[i].dwIndex == d)
       {
-	src->sin_family = AF_INET;
-	src->sin_addr.s_addr = tab->table[i].dwAddr;
-	free (tab);
-	return 1;
+        src->sin_family = AF_INET;
+        src->sin_addr.s_addr = tab->table[i].dwAddr;
+        free (tab);
+        return 1;
       }
   free (tab);
   return 0;
@@ -162,11 +162,11 @@ GetSourceAddress (TracePtr t, const struct sockaddr_in *dest, struct sockaddr_in
 #endif
 
 #if HAVE_BSD_SOURCEINFO
-typedef struct
+struct r_req
 {
   struct rt_msghdr hdr;
   char data[1000];
-} r_req;
+};
 
 #ifndef HAVE_SA_SIZE
 static int
@@ -183,7 +183,7 @@ SA_SIZE (struct sockaddr *sa)
 #endif
 
 bool
-GetSourceAddress (TracePtr t, const struct sockaddr_in *dest, struct sockaddr_in *src)
+GetSourceAddress (TracePtr tr, const struct sockaddr_in *dest, struct sockaddr_in *src)
 {
   int s;
   r_req req;
@@ -209,16 +209,16 @@ GetSourceAddress (TracePtr t, const struct sockaddr_in *dest, struct sockaddr_in
   for (i = 1; i; i <<= 1)
     if (i & req.hdr.rtm_addrs)
       {
-	struct sockaddr *sa = (struct sockaddr *) cp;
-	if (i == RTA_IFA)
-	  {
-	    src->sin_len = sizeof (*src);
-	    src->sin_family = AF_INET;
-	    src->sin_addr.s_addr =
-	      ((struct sockaddr_in *) sa)->sin_addr.s_addr;
-	    return 1;
-	  }
-	cp += SA_SIZE (sa);
+        struct sockaddr *sa = (struct sockaddr *) cp;
+        if (i == RTA_IFA)
+          {
+            src->sin_len = sizeof (*src);
+            src->sin_family = AF_INET;
+            src->sin_addr.s_addr =
+              ((struct sockaddr_in *) sa)->sin_addr.s_addr;
+            return 1;
+          }
+        cp += SA_SIZE (sa);
       }
   return 0;
 err_out:
@@ -230,14 +230,10 @@ err_out:
 bool
 compareIPAddress (const struct sockaddr_in & a, const struct sockaddr_in & b)
 {
-  if (a.sin_family != AF_INET)
-    return false;
-  if (b.sin_family != AF_INET)
-    return false;
-  if (a.sin_port != b.sin_port)
-    return false;
-  if (a.sin_addr.s_addr != b.sin_addr.s_addr)
-    return false;
-  return true;
+  return
+    (a.sin_family == AF_INET) &&
+    (b.sin_family == AF_INET) &&
+    (a.sin_addr.s_addr == b.sin_addr.s_addr) &&
+    (a.sin_port == b.sin_port);
 }
 

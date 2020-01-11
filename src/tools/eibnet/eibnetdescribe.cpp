@@ -17,10 +17,10 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdarg.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cstdarg>
 #include <arpa/inet.h>
 #include <ev.h>
 #include "eibnetip.h"
@@ -39,7 +39,7 @@ die (const char *msg, ...)
 }
 
 void
-HexDump (const uchar * data, int Len)
+HexDump (const uint8_t * data, int Len)
 {
   for (int i = 0; i < Len; i++)
     printf (" %02X", data[i]);
@@ -68,7 +68,7 @@ recv_me (EIBNetIPPacket *p1)
   printf ("Optional: ");
   HexDump (resp.optional.data(), resp.optional.size());
   ITER(i, resp.services)
-    printf ("Service %d Version %d\n", i->family, i->version);
+  printf ("Service %d Version %d\n", i->family, i->version);
   ev_break(EV_DEFAULT_ EVBREAK_ALL);
 }
 
@@ -102,13 +102,13 @@ main (int ac, char *ag[])
     {
       *b = 0;
       for (c = b + 1; *c; c++)
-	if (*c == ':')
-	  break;
+        if (*c == ':')
+          break;
       if (*c == ':')
-	{
-	  *c = 0;
-	  sport = atoi (c + 1);
-	}
+        {
+          *c = 0;
+          sport = atoi (c + 1);
+        }
       dport = atoi (b + 1);
     }
   else
