@@ -88,6 +88,7 @@ private:
   CArray out;
   /** transmit retry counter */
   int send_retry = 0;
+  int send_timeout = 1000;
 
   UState state = sNone;
   bool stopping = false;
