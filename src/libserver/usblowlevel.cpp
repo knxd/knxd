@@ -154,6 +154,7 @@ detectUSBEndpoint (libusb_context *context, USBEndpoint e)
 USBLowLevelDriver::USBLowLevelDriver (LowLevelIface* p, IniSectionPtr& s) : LowLevelDriver(p,s)
 {
   t->setAuxName("usbL");
+  send_timeout = cfg->value("send-timeout", 1000);
   read_trigger.set<USBLowLevelDriver,&USBLowLevelDriver::read_trigger_cb>(this);
   write_trigger.set<USBLowLevelDriver,&USBLowLevelDriver::write_trigger_cb>(this);
   read_trigger.start();
@@ -475,7 +476,7 @@ USBLowLevelDriver::do_send()
     }
   libusb_fill_interrupt_transfer (sendh, dev, d.sendep, sendbuf,
                                   sizeof (sendbuf), usb_complete_send,
-                                  this, 1000);
+                                  this, send_timeout);
   int res = libusb_submit_transfer (sendh);
   if (res)
     {
