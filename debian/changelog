@@ -1,3 +1,15 @@
+knxd (0.14.31-1) unstable; urgency=medium
+
+  * Merge a heap of changes
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 09 Feb 2020 18:41:22 +0100
+
+knxd (0.14.30-1) unstable; urgency=medium
+
+  * Use a constant, dammit
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 18 Mar 2019 08:54:33 +0100
+
 knxd (0.14.29-5) unstable; urgency=medium
 
   * Add dependency from knxd-dev to -tools (for libeibclient.so)
