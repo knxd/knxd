@@ -1123,7 +1123,7 @@ Router::send_L_Data(LDataPtr l1)
           continue;
         if(!has_send_more(ii))
           continue;
-        if (l1->hop_count == 7 || ii->checkGroupAddress(l1->destination_address))
+        if (ii->checkGroupAddress(l1->destination_address))
           ii->send_L_Data (LDataPtr(new L_Data_PDU (*l1)));
       }
     }
