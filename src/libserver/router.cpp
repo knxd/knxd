@@ -1120,16 +1120,16 @@ Router::send_L_Data(LDataPtr l1)
         if (ii->state != L_up)
           continue;
         if (ii->hasAddress(l1->source_address))
-          continue;
+          continue; // don't return to same interface
         if(!has_send_more(ii))
-          continue;
+          continue; // internal error if not
         if (ii->checkGroupAddress(l1->destination_address))
           ii->send_L_Data (LDataPtr(new L_Data_PDU (*l1)));
       }
     }
   if (l1->address_type == IndividualAddress)
     {
-      // we want to send to the interface on which the address
+      // we want to send to the interface on which the destination address
       // has appeared. If it hasn't been seen yet, we send to all
       // interfaces.
       // Address ~0 is special; it's used for programming
@@ -1152,10 +1152,10 @@ Router::send_L_Data(LDataPtr l1)
         auto ii = i->second;
         if (ii->state != L_up)
           continue;
-        if(!has_send_more(ii))
-          continue;
         if (ii->hasAddress (l1->source_address))
-          continue;
+          continue; // don't return to same interface
+        if(!has_send_more(ii))
+          continue; // internal error if not
         if (l1->hop_count == 7 || found ? ii->hasAddress (l1->destination_address) : ii->checkAddress (l1->destination_address))
           i->second->send_L_Data (LDataPtr(new L_Data_PDU (*l1)));
       }
