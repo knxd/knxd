@@ -829,6 +829,7 @@ parseEIBnet_TunnelACK (const EIBNetIPPacket & p, EIBnet_TunnelACK & r)
 EIBNetIPPacket EIBnet_RoutingIndication::ToPacket () const
 {
   // @todo
+  abort();
 }
 
 int
@@ -840,6 +841,7 @@ parseEIBnet_RoutingIndication (const EIBNetIPPacket & p, EIBnet_RoutingIndicatio
 EIBNetIPPacket EIBnet_RoutingLostMessage::ToPacket () const
 {
   // @todo
+  abort();
 }
 
 int

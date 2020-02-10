@@ -21,6 +21,8 @@
 
 NPDUPtr NPDU::fromPacket (const CArray & c, TracePtr tr)
 {
+    // @todo
+    abort();
 }
 
 /* N_Data_Individual */
