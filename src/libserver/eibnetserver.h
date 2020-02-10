@@ -154,7 +154,7 @@ public:
   {
     return route;
   }
-  bool checkGroupAddress(eibaddr_t)
+  virtual bool checkGroupAddress(eibaddr_t) override
   {
     return route;
   }

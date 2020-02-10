@@ -81,7 +81,7 @@ public: // but only for GroupCacheReader
   bool setup();
   void start();
   void stop();
-  bool checkGroupAddress (eibaddr_t)
+  virtual bool checkGroupAddress (eibaddr_t) override
   {
     return true;
   }
