@@ -144,17 +144,19 @@ public:
   {
     Send (p, mcast->maddr);
   }
+
   inline void Send (EIBNetIPPacket p, struct sockaddr_in addr)
   {
     if (sock)
       sock->Send (p, addr);
   }
 
-  bool checkAddress(eibaddr_t)
+  bool checkAddress(eibaddr_t) const
   {
     return route;
   }
-  virtual bool checkGroupAddress(eibaddr_t) override
+
+  virtual bool checkGroupAddress(eibaddr_t) const override
   {
     return route;
   }

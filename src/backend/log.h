@@ -46,10 +46,10 @@ public:
   virtual void stopped();
   virtual void errored();
 
-  virtual bool hasAddress (eibaddr_t addr);
-  virtual void addAddress (eibaddr_t addr);
-  virtual bool checkAddress (eibaddr_t addr);
-  virtual bool checkGroupAddress (eibaddr_t addr);
+  virtual bool hasAddress (eibaddr_t addr) const override;
+  virtual void addAddress (eibaddr_t addr) override;
+  virtual bool checkAddress (eibaddr_t addr) const override;
+  virtual bool checkGroupAddress (eibaddr_t addr) const override;
 };
 
 class LLlog : public LowLevelFilter
@@ -59,8 +59,8 @@ public:
   virtual ~LLlog();
 
   virtual FilterPtr findFilter(std::string name);
-  virtual bool checkAddress(eibaddr_t addr);
-  virtual bool checkGroupAddress(eibaddr_t addr);
+  virtual bool checkAddress(eibaddr_t addr) const;
+  virtual bool checkGroupAddress(eibaddr_t addr) const;
   virtual bool checkSysAddress(eibaddr_t addr);
   virtual bool checkSysGroupAddress(eibaddr_t addr);
 

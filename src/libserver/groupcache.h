@@ -81,18 +81,21 @@ public: // but only for GroupCacheReader
   bool setup();
   void start();
   void stop();
-  virtual bool checkGroupAddress (eibaddr_t) override
+  virtual bool checkGroupAddress (eibaddr_t) const override
   {
     return true;
   }
-  bool checkAddress (eibaddr_t)
+
+  bool checkAddress (eibaddr_t) const
   {
     return false;
   }
-  bool hasAddress (eibaddr_t addr)
+
+  bool hasAddress (eibaddr_t addr) const
   {
     return addr == this->addr;
   }
+
   void addAddress (eibaddr_t) { }
 
   /** constructor */

@@ -122,13 +122,13 @@ public:
   void release_client_addr (eibaddr_t addr);
 
   /** check if any interface knows this address. */
-  bool hasAddress (eibaddr_t addr, LinkConnectPtr& link, bool quiet = false);
+  bool hasAddress (eibaddr_t addr, LinkConnectPtr& link, bool quiet = false) const;
   /** check if any interface accepts this address.
       'l2' says which interface NOT to check. */
-  bool checkAddress (eibaddr_t addr, LinkConnectPtr l2 = nullptr);
+  bool checkAddress (eibaddr_t addr, LinkConnectPtr l2 = nullptr) const;
   /** check if any interface accepts this group address.
       'l2' says which interface NOT to check. */
-  bool checkGroupAddress (eibaddr_t addr, LinkConnectPtr l2 = nullptr);
+  bool checkGroupAddress (eibaddr_t addr, LinkConnectPtr l2 = nullptr) const;
 
   /** accept a L_Data frame */
   void recv_L_Data (LDataPtr l, LinkConnect& link);
@@ -148,7 +148,7 @@ public:
   /** name of our main section */
   std::string main;
 
-  bool hasClientAddrs(bool complain = true);
+  bool hasClientAddrs(bool complain = true) const;
 
   /** eventual exit code. Inremebted on fatal error */
   int exitcode = 0;

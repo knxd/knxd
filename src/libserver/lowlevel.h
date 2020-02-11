@@ -79,7 +79,7 @@ public:
   LowLevelIface();
   virtual ~LowLevelIface();
 
-  virtual TracePtr tr() = 0;
+  virtual TracePtr tr() const = 0;
   virtual void started() = 0;
   virtual void stopped() = 0;
   virtual void errored() = 0;
@@ -145,8 +145,8 @@ public:
   }
 
   virtual FilterPtr findFilter(std::string name) = 0;
-  virtual bool checkAddress(eibaddr_t addr) = 0;
-  virtual bool checkGroupAddress(eibaddr_t addr) = 0;
+  virtual bool checkAddress(eibaddr_t addr) const = 0;
+  virtual bool checkGroupAddress(eibaddr_t addr) const = 0;
   virtual bool checkSysAddress(eibaddr_t addr) = 0;
   virtual bool checkSysGroupAddress(eibaddr_t addr) = 0;
 
@@ -166,7 +166,7 @@ class LowLevelDriver : public LowLevelIface
 public:
   typedef LowLevelIface* first_arg;
 
-  TracePtr tr()
+  TracePtr tr() const
   {
     return t;
   }
@@ -189,30 +189,37 @@ public:
   {
     return true;
   }
+
   virtual void start ()
   {
     started();
   }
+
   virtual void stop ()
   {
     stopped();
   }
+
   virtual FilterPtr findFilter(std::string name)
   {
     return master->findFilter(name);
   }
-  virtual bool checkAddress(eibaddr_t addr)
+
+  virtual bool checkAddress(eibaddr_t addr) const
   {
     return master->checkAddress(addr);
   }
-  virtual bool checkGroupAddress(eibaddr_t addr)
+
+  virtual bool checkGroupAddress(eibaddr_t addr) const
   {
     return master->checkGroupAddress(addr);
   }
+
   virtual bool checkSysAddress(eibaddr_t addr)
   {
     return master->checkSysAddress(addr);
   }
+
   virtual bool checkSysGroupAddress(eibaddr_t addr)
   {
     return master->checkSysGroupAddress(addr);
@@ -341,7 +348,7 @@ protected:
 class LowLevelAdapter : public BusDriver, public LowLevelIface
 {
 public:
-  TracePtr tr()
+  TracePtr tr() const
   {
     return t;
   }
@@ -425,18 +432,22 @@ ex:
   {
     return BusDriver::findFilter(name);
   }
-  virtual bool checkAddress(eibaddr_t addr)
+
+  virtual bool checkAddress(eibaddr_t addr) const
   {
     return BusDriver::checkAddress(addr);
   }
-  virtual bool checkGroupAddress(eibaddr_t addr)
+
+  virtual bool checkGroupAddress(eibaddr_t addr) const
   {
     return BusDriver::checkGroupAddress(addr);
   }
+
   virtual bool checkSysAddress(eibaddr_t addr)
   {
     return BusDriver::checkSysAddress(addr);
   }
+
   virtual bool checkSysGroupAddress(eibaddr_t addr)
   {
     return BusDriver::checkSysGroupAddress(addr);
