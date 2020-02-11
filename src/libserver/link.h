@@ -299,13 +299,13 @@ public:
   virtual void errored() = 0;
 
   /** Check whether this physical address has been seen on this link */
-  virtual bool hasAddress (eibaddr_t addr) = 0;
+  virtual bool hasAddress (eibaddr_t addr) const = 0;
   /** Remember that this physical address has been seen on this link */
   virtual void addAddress (eibaddr_t addr) = 0;
   /** Check whether this physical address may appear on this link */
-  virtual bool checkAddress (eibaddr_t addr) = 0;
+  virtual bool checkAddress (eibaddr_t addr) const = 0;
   /** Check whether this group address may appear on this link */
-  virtual bool checkGroupAddress (eibaddr_t addr) = 0;
+  virtual bool checkGroupAddress (eibaddr_t addr) const = 0;
 
   /* link() calls _link() which calls _link_(). See there. */
   virtual bool _link(LinkRecvPtr)
@@ -342,6 +342,7 @@ public:
 
   /** ask the system whether it knows this indiv address */
   virtual bool checkSysAddress(eibaddr_t addr) = 0;
+
   /** ask the system whether it knows this group address */
   virtual bool checkSysGroupAddress(eibaddr_t addr) = 0;
 
@@ -398,24 +399,29 @@ public:
     assert(false);
   }
 
-  virtual bool checkAddress (eibaddr_t addr)
+  virtual bool checkAddress (eibaddr_t addr) const override
   {
     return send->checkAddress(addr);
   }
-  virtual bool checkGroupAddress (eibaddr_t addr)
+
+  virtual bool checkGroupAddress (eibaddr_t addr) const override
   {
     return send->checkGroupAddress(addr);
   }
-  virtual bool hasAddress (eibaddr_t addr)
+
+  virtual bool hasAddress (eibaddr_t addr) const override
   {
     return send->hasAddress(addr);
   }
+
   virtual void addAddress (eibaddr_t addr)
   {
     send->addAddress(addr);
   }
-  virtual bool checkSysAddress(eibaddr_t addr);
-  virtual bool checkSysGroupAddress(eibaddr_t addr);
+
+  virtual bool checkSysAddress(eibaddr_t addr) override;
+
+  virtual bool checkSysGroupAddress(eibaddr_t addr) override;
 
 private:
   DriverPtr driver;
@@ -564,7 +570,7 @@ public:
   virtual ~LinkConnectSingle() = default;
 
   virtual bool setup();
-  virtual bool hasAddress (eibaddr_t addr)
+  virtual bool hasAddress (eibaddr_t addr) const
   {
     return addr == this->addr;
   }
@@ -619,19 +625,23 @@ public:
 
   /** Servers don't accept data */
   virtual void send_L_Data (LDataPtr) {}
-  virtual bool hasAddress (eibaddr_t)
+
+  virtual bool hasAddress (eibaddr_t) const
   {
     return false;
   }
+
   virtual void addAddress (eibaddr_t addr)
   {
     ERRORPRINTF(t,E_ERROR | 65,"Tried to add address %s to %s", FormatEIBAddr(addr), cfg->name);
   }
-  virtual bool checkAddress (eibaddr_t)
+
+  virtual bool checkAddress (eibaddr_t) const
   {
     return false;
   }
-  virtual bool checkGroupAddress (eibaddr_t)
+
+  virtual bool checkGroupAddress (eibaddr_t) const
   {
     return false;
   }
@@ -670,12 +680,12 @@ public:
 
   virtual void recv_L_Data (LDataPtr l); // recv->recv_L_Data(std::move(l));
   virtual void recv_L_Busmonitor (LBusmonPtr l); // recv->recv_L_Busmonitor(std::move(l));
-  virtual bool checkSysAddress(eibaddr_t addr);
-  virtual bool checkSysGroupAddress(eibaddr_t addr);
   virtual void send_Next ();
   virtual void started(); // recv->started()
   virtual void stopped(); // recv->stopped()
   virtual void errored(); // recv->errored()
+  virtual bool checkSysAddress(eibaddr_t addr) override;
+  virtual bool checkSysGroupAddress(eibaddr_t addr) override;
 
   /** Returns the filter's name, i.e. the config's filter= value */
   virtual const std::string& name();
@@ -714,19 +724,22 @@ public:
     else send->stop();
   }
 
-  virtual bool hasAddress (eibaddr_t addr)
+  virtual bool hasAddress (eibaddr_t addr) const override
   {
     return send->hasAddress(addr);
   }
-  virtual void addAddress (eibaddr_t addr)
+
+  virtual void addAddress (eibaddr_t addr) override
   {
     return send->addAddress(addr);
   }
-  virtual bool checkAddress (eibaddr_t addr)
+
+  virtual bool checkAddress (eibaddr_t addr) const override
   {
     return send->checkAddress(addr);
   }
-  virtual bool checkGroupAddress (eibaddr_t addr)
+
+  virtual bool checkGroupAddress (eibaddr_t addr) const override
   {
     return send->checkGroupAddress(addr);
   }
@@ -839,19 +852,22 @@ public:
   }
   virtual ~BusDriver() = default;
 
-  virtual bool hasAddress(eibaddr_t addr)
+  virtual bool hasAddress(eibaddr_t addr) const
   {
     return addrs[addr];
   }
+
   virtual void addAddress(eibaddr_t addr)
   {
     addrs[addr] = true;
   }
-  virtual bool checkAddress (eibaddr_t)
+
+  virtual bool checkAddress (eibaddr_t) const
   {
     return true;
   }
-  virtual bool checkGroupAddress (eibaddr_t)
+
+  virtual bool checkGroupAddress (eibaddr_t) const
   {
     return true;
   }
@@ -878,26 +894,29 @@ public:
   virtual ~LineDriver() = default;
 
   virtual bool setup(); // assigns the address
-  eibaddr_t getAddress()
+  eibaddr_t getAddress() const
   {
     return _addr;
   }
 
 protected:
-  virtual bool hasAddress(eibaddr_t addr)
+  virtual bool hasAddress(eibaddr_t addr) const
   {
     return addr == this->_addr;
   }
+
   virtual void addAddress(eibaddr_t addr)
   {
     if (addr != this->_addr)
       ERRORPRINTF(t,E_WARNING | 120,"%s: Addr mismatch: %s vs. %s", this->name(), FormatEIBAddr (addr), FormatEIBAddr (this->_addr));
   }
-  virtual bool checkAddress(eibaddr_t addr)
+
+  virtual bool checkAddress(eibaddr_t addr) const
   {
     return addr == this->_addr;
   }
-  virtual bool checkGroupAddress (eibaddr_t)
+
+  virtual bool checkGroupAddress (eibaddr_t) const
   {
     return true;
   }

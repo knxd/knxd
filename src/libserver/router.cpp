@@ -48,26 +48,31 @@ public:
 
   virtual void recv_L_Data (LDataPtr l);
   virtual void recv_L_Busmonitor (LBusmonPtr l);
+
   virtual void send_L_Data (LDataPtr l)
   {
     router->send_L_Data(std::move(l));
   }
-  virtual bool checkAddress (eibaddr_t addr)
+
+  virtual bool checkAddress (eibaddr_t addr) const override
   {
     LinkConnectPtr link = nullptr;
     return router->checkAddress(addr, link);
   }
-  virtual bool checkGroupAddress (eibaddr_t addr)
+
+  virtual bool checkGroupAddress (eibaddr_t addr) const override
   {
     LinkConnectPtr link = nullptr;
     return router->checkGroupAddress(addr, link);
   }
-  virtual bool hasAddress (eibaddr_t addr)
+
+  virtual bool hasAddress (eibaddr_t addr) const override
   {
     LinkConnectPtr link = nullptr;
     return router->hasAddress(addr, link);
   }
-  virtual void addAddress (eibaddr_t addr)
+
+  virtual void addAddress (eibaddr_t addr) override
   {
     if (addr != router->addr)
       ERRORPRINTF (t, E_ERROR | 80, "%s filter: Trying to add address %s", router->main, FormatEIBAddr(addr));
@@ -77,6 +82,7 @@ public:
   {
     router->start_();
   }
+
   virtual void stop()
   {
     router->stop_();
@@ -901,7 +907,7 @@ Router::unregisterLink(const LinkConnectPtr& link)
 }
 
 bool
-Router::hasAddress (eibaddr_t addr, LinkConnectPtr& link, bool quiet)
+Router::hasAddress (eibaddr_t addr, LinkConnectPtr& link, bool quiet) const
 {
   if (addr == this->addr)
     {
@@ -917,7 +923,7 @@ Router::hasAddress (eibaddr_t addr, LinkConnectPtr& link, bool quiet)
       return false;
     }
 
-  ITER(i,links)
+  C_ITER(i, links)
   {
     if (i->second == link)
       continue;
@@ -942,12 +948,12 @@ Router::hasAddress (eibaddr_t addr, LinkConnectPtr& link, bool quiet)
 }
 
 bool
-Router::checkAddress (eibaddr_t addr, LinkConnectPtr link)
+Router::checkAddress (eibaddr_t addr, LinkConnectPtr link) const
 {
   if (addr == 0) // always accept broadcast
     return true;
 
-  ITER(i, links)
+  C_ITER(i, links)
   {
     if (i->second == link)
       continue;
@@ -959,12 +965,12 @@ Router::checkAddress (eibaddr_t addr, LinkConnectPtr link)
 }
 
 bool
-Router::checkGroupAddress (eibaddr_t addr, LinkConnectPtr link)
+Router::checkGroupAddress (eibaddr_t addr, LinkConnectPtr link) const
 {
   if (addr == 0) // always accept broadcast
     return true;
 
-  ITER(i, links)
+  C_ITER(i, links)
   {
     if (i->second == link)
       continue;
@@ -1191,7 +1197,7 @@ Router::checkStack(IniSectionPtr& cfg)
 }
 
 bool
-Router::hasClientAddrs(bool complain)
+Router::hasClientAddrs(bool complain) const
 {
   if (client_addrs_len > 0)
     return true;

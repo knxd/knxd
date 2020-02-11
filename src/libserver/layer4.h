@@ -53,10 +53,11 @@ class Layer4commonWO:public Layer4common<COMM>
 public:
   Layer4commonWO (T_Reader<COMM> *app, LinkConnectClientPtr lc, bool write_only) : Layer4common<COMM>(app,lc), write_only(write_only) {}
 
-  bool checkAddress(eibaddr_t addr) const
+  virtual bool checkAddress(eibaddr_t addr) const
   {
     return !write_only && addr == this->getAddress();
   }
+
   virtual bool checkGroupAddress(eibaddr_t) const
   {
     return !write_only;
@@ -115,7 +116,7 @@ public:
   /** send APDU to L3 */
   void recv_Data (const CArray & c);
 
-  virtual bool checkGroupAddress(eibaddr_t addr) const override
+  virtual bool checkGroupAddress(eibaddr_t addr) const
   {
     return (addr == groupaddr);
   }

@@ -111,7 +111,7 @@ LogFilter::recv_L_Busmonitor (LBusmonPtr l)
 }
 
 bool
-LogFilter::hasAddress (eibaddr_t addr)
+LogFilter::hasAddress (eibaddr_t addr) const
 {
   bool res = Filter::hasAddress(addr);
   if (log_addr)
@@ -129,7 +129,7 @@ LogFilter::addAddress (eibaddr_t addr)
 }
 
 bool
-LogFilter::checkAddress (eibaddr_t addr)
+LogFilter::checkAddress (eibaddr_t addr) const
 {
   bool res = Filter::checkAddress(addr);
   if (log_addr)
@@ -139,7 +139,7 @@ LogFilter::checkAddress (eibaddr_t addr)
 }
 
 bool
-LogFilter::checkGroupAddress (eibaddr_t addr)
+LogFilter::checkGroupAddress (eibaddr_t addr) const
 {
   bool res = Filter::checkGroupAddress(addr);
   if (log_addr)
@@ -172,20 +172,23 @@ FilterPtr LLlog::findFilter(std::string name)
   tr()->TracePrintf (0, "Filter %s %sfound",name,x?"":"not ");
   return x;
 }
-bool LLlog::checkAddress(eibaddr_t addr)
+
+bool LLlog::checkAddress(eibaddr_t addr) const
 {
   bool x = master->checkAddress(addr);
   tr()->TracePrintf (0, "Has Addr %s: %s",
                      FormatEIBAddr(addr), x ? "yes" : "no");
   return x;
 }
-bool LLlog::checkGroupAddress(eibaddr_t addr)
+
+bool LLlog::checkGroupAddress(eibaddr_t addr) const
 {
   bool x = master->checkGroupAddress(addr);
   tr()->TracePrintf (0, "Has Addr %s: %s",
                      FormatGroupAddr(addr), x ? "yes" : "no");
   return x;
 }
+
 bool LLlog::checkSysAddress(eibaddr_t addr)
 {
   bool x = master->checkSysAddress(addr);
@@ -193,6 +196,7 @@ bool LLlog::checkSysAddress(eibaddr_t addr)
                      FormatEIBAddr(addr), x ? "yes" : "no");
   return x;
 }
+
 bool LLlog::checkSysGroupAddress(eibaddr_t addr)
 {
   bool x = master->checkSysGroupAddress(addr);
