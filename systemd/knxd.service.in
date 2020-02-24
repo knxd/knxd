@@ -5,7 +5,7 @@ Requires=knxd.socket
 
 [Service]
 EnvironmentFile=@sysconfdir@/knxd.conf
-ExecStart=@exec_prefix@/bin/knxd $KNXD_OPTS
+ExecStart=@bindir@/knxd $KNXD_OPTS
 User=knxd
 Group=knxd
 Type=notify
