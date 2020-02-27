@@ -58,5 +58,7 @@ ATTR{idVendor}=="145c", ATTR{idProduct}=="1330",OWNER="knxd",MODE="0600"
 ATTR{idVendor}=="147b", ATTR{idProduct}=="5120",OWNER="knxd",MODE="0600"
 # MDT SCN-USBR.01
 ATTR{idVendor}=="16d0", ATTR{idProduct}=="0491",OWNER="knxd",MODE="0600"
+# SATEL Sp. z o.o.: KNX-USB Interface
+ATTR{idVendor}=="24d5", ATTR{idProduct}=="0106",OWNER="knxd",MODE="0600"
 
 LABEL="knxd_end"
