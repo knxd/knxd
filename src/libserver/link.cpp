@@ -135,7 +135,7 @@ LinkConnect::setState(LConnState new_state)
   state = new_state;
   TRACEPRINTF(t, 5, "%s => %s", osn, stateName());
 
-  if (old_state == L_wait_retry || (old_state == L_up && new_state != L_up))
+  if (old_state == L_wait_retry || old_state == L_going_up || (old_state == L_up && new_state != L_up))
     retry_timer.stop();
 
   switch(old_state)
@@ -291,6 +291,12 @@ LinkConnect::retry_timer_cb (ev::timer &, int)
   if (state == L_up && !send_more)
     {
       ERRORPRINTF (t, E_ERROR | 55, "Driver timed out trying to send (%s)", cfg->name);
+      errored();
+      return;
+    }
+  if (state == L_going_up)
+    {
+      ERRORPRINTF (t, E_ERROR | 133, "Driver timed out trying to restart", cfg->name);
       errored();
       return;
     }

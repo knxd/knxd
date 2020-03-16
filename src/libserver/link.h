@@ -477,6 +477,8 @@ public:
   eibaddr_t addr = 0;
   /** Timeout for transmission */
   int send_timeout = 10;
+  /** Timeout for starting a driver */
+  int start_timeout = 30;
 
   /** current state */
   LConnState state = L_down;
