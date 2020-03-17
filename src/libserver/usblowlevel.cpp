@@ -239,8 +239,8 @@ USBLowLevelDriver::abort_send()
       out.clear();
       return;
     }
-  while (sendh)
-    ev_run(EV_DEFAULT_ EVRUN_ONCE);
+//while (sendh)
+//  ev_run(EV_DEFAULT_ EVRUN_ONCE);
 }
 
 void
@@ -257,8 +257,8 @@ USBLowLevelDriver::stop_()
     libusb_cancel_transfer (recvh);
   if (state > sClaimed)
     state = sClaimed;
-  while (sendh || recvh)
-    ev_run(EV_DEFAULT_ EVRUN_ONCE);
+//while (sendh || recvh)
+//  ev_run(EV_DEFAULT_ EVRUN_ONCE);
 
   TRACEPRINTF (t, 1, "Release");
   if (state > sStarted)
