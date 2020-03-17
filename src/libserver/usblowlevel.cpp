@@ -175,7 +175,10 @@ USBLowLevelDriver::start()
   stopping = false;
 
   if (state >= sStarted)
-    return;
+    {
+      ERRORPRINTF (t, E_FATAL | 132, "USBLowLevelDriver: not starting, state %d", state);
+      return;
+    }
   if (loop == nullptr)
     {
       ERRORPRINTF (t, E_FATAL | 107, "USBLowLevelDriver: setup not called");
