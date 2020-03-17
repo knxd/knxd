@@ -341,6 +341,12 @@ USBLowLevelDriver::write_trigger_cb(ev::async &, int)
       do_send();
       return;
     }
+  if (sendh->status == LIBUSB_TRANSFER_CANCELLED)
+    {
+      ERRORPRINTF (t, E_ERROR | 35, "SendError %lx cancel", (unsigned long)sendh);
+      sendh = nullptr;
+      return;
+    }
   ERRORPRINTF (t, E_ERROR | 35, "SendError %lx status %d", (unsigned long)sendh, sendh->status);
   sendh = nullptr;
   errored(); // TODO probably needs to be an async error
@@ -377,6 +383,12 @@ USBLowLevelDriver::read_trigger_cb(ev::async &, int)
   if (recvh == nullptr)
     return;
 
+  if (recvh->status == LIBUSB_TRANSFER_CANCELLED)
+    {
+      ERRORPRINTF (t, E_WARNING | 134, "Recv Canceled");
+      recvh = nullptr;
+      return;
+    }
   if (recvh->status != LIBUSB_TRANSFER_COMPLETED)
     {
       ERRORPRINTF (t, E_WARNING | 123, "RecvError %d", recvh->status);
