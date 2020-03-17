@@ -480,7 +480,7 @@ Router::send_Next()
 void
 Router::linkStateChanged(const LinkConnectPtr& link)
 {
-  TRACEPRINTF (link->t, 4, "%s", link->stateName());
+  TRACEPRINTF (link->t, 4, "link state changed: %s", link->stateName());
   linkChanges.push(link);
   state_trigger.send();
 }
@@ -549,7 +549,7 @@ Router::state_trigger_cb (ev::async &, int)
         if (ii->may_fail)
           continue;
       default:
-        TRACEPRINTF (ii->t, 4, "is %s", ii->stateName());
+        TRACEPRINTF (ii->t, 4, "state is %s", ii->stateName());
         n_going++;
         if (!want_up)
           ii->setState(L_going_down);
