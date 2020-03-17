@@ -536,7 +536,7 @@ Router::state_trigger_cb (ev::async &, int)
       case L_error:
         if (!ii->may_fail && !ii->ignore)
           {
-            TRACEPRINTF (ii->t, 4, "is down");
+            TRACEPRINTF (ii->t, 4, "is %s", ii->stateName());
             n_down++;
           }
         break;

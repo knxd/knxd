@@ -59,7 +59,7 @@ EMI_Common::setup()
     return false;
   if(!LowLevelFilter::setup())
     return false;
-  send_timeout = cfg->value("send-timeout",300) / 1000.;
+  send_timeout = cfg->value("send-timeout",500) / 1000.;
   max_retries = cfg->value("send-retries",3);
   monitor = cfg->value("monitor",false);
 
