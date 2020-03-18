@@ -411,6 +411,13 @@ These options apply to all drivers and servers.
 
   Default: 10 seconds.
 
+* start-timeout (int (seconds), ``--arg=start-timeout=NUM``)
+
+  Driver startup timeout. If a driver takes longer to start than this time,
+  it will be marked as failing.
+
+  Default: 30 seconds.
+
 If retrying is active but "may-fail" is false, the driver must start
 correctly when knxd starts up. It will only be restarted once knxd is,
 or rather has been, fully operative.

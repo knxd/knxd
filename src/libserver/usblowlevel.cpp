@@ -179,11 +179,34 @@ USBLowLevelDriver::start()
       ERRORPRINTF (t, E_FATAL | 132, "USBLowLevelDriver: not starting, state %d", state);
       return;
     }
-  if (loop == nullptr)
+  if (loop != nullptr)
     {
-      ERRORPRINTF (t, E_FATAL | 107, "USBLowLevelDriver: setup not called");
+      ERRORPRINTF (t, E_FATAL | 107, "USBLowLevelDriver: start called twice");
       goto ex;
     }
+
+  loop = new USBLoop (t);
+
+  if (!loop->context)
+    {
+      ERRORPRINTF (t, E_ERROR | 103, "setting up USB failed");
+      goto ex;
+    }
+
+  TRACEPRINTF (t, 1, "Detect");
+  {
+    d = detectUSBEndpoint (loop->context, e);
+  }
+  if (d.dev == nullptr)
+    {
+      TRACEPRINTF (t, 1, "No matching endpoint found.");
+      goto ex;
+    }
+
+  TRACEPRINTF (t, 1, "Using %d:%d:%d:%d:%d (%d:%d)",
+               libusb_get_bus_number (d.dev),
+               libusb_get_device_address (d.dev), d.config, d.altsetting,
+               d.interface, d.sendep, d.recvep);
 
   if ((res = libusb_open (d.dev, &dev))< 0)
     {
@@ -242,8 +265,8 @@ USBLowLevelDriver::abort_send()
       out.clear();
       return;
     }
-  while (sendh)
-    ev_run(EV_DEFAULT_ EVRUN_ONCE);
+//while (sendh)
+//  ev_run(EV_DEFAULT_ EVRUN_ONCE);
 }
 
 void
@@ -260,8 +283,8 @@ USBLowLevelDriver::stop_()
     libusb_cancel_transfer (recvh);
   if (state > sClaimed)
     state = sClaimed;
-  while (sendh || recvh)
-    ev_run(EV_DEFAULT_ EVRUN_ONCE);
+//while (sendh || recvh)
+//  ev_run(EV_DEFAULT_ EVRUN_ONCE);
 
   TRACEPRINTF (t, 1, "Release");
   if (state > sStarted)
@@ -344,6 +367,12 @@ USBLowLevelDriver::write_trigger_cb(ev::async &, int)
       do_send();
       return;
     }
+  if (sendh->status == LIBUSB_TRANSFER_CANCELLED)
+    {
+      ERRORPRINTF (t, E_ERROR | 35, "SendError %lx cancel", (unsigned long)sendh);
+      sendh = nullptr;
+      return;
+    }
   ERRORPRINTF (t, E_ERROR | 35, "SendError %lx status %d", (unsigned long)sendh, sendh->status);
   sendh = nullptr;
   stop(true); // TODO probably needs to be an async error
@@ -380,6 +409,12 @@ USBLowLevelDriver::read_trigger_cb(ev::async &, int)
   if (recvh == nullptr)
     return;
 
+  if (recvh->status == LIBUSB_TRANSFER_CANCELLED)
+    {
+      ERRORPRINTF (t, E_WARNING | 134, "Recv Canceled");
+      recvh = nullptr;
+      return;
+    }
   if (recvh->status != LIBUSB_TRANSFER_COMPLETED)
     {
       ERRORPRINTF (t, E_WARNING | 123, "RecvError %d", recvh->status);
@@ -492,32 +527,10 @@ USBLowLevelDriver::do_send()
 bool
 USBLowLevelDriver::setup()
 {
-  loop = new USBLoop (t);
+  if (!LowLevelDriver::setup())
+    return false;
 
-  if (!loop->context)
-    {
-      ERRORPRINTF (t, E_ERROR | 103, "setting up USB failed");
-      goto ex;
-    }
-
-  TRACEPRINTF (t, 1, "Detect");
-  {
-    USBEndpoint e = parseUSBEndpoint (cfg);
-    d = detectUSBEndpoint (loop->context, e);
-  }
-  if (d.dev == nullptr)
-    {
-      TRACEPRINTF (t, 1, "No matching endpoint found.");
-      goto ex;
-    }
-
-  TRACEPRINTF (t, 1, "Using %d:%d:%d:%d:%d (%d:%d)",
-               libusb_get_bus_number (d.dev),
-               libusb_get_device_address (d.dev), d.config, d.altsetting,
-               d.interface, d.sendep, d.recvep);
-
+  e = parseUSBEndpoint (cfg);
   return true;
-ex:
-  stop_();
-  return false;
 }
+

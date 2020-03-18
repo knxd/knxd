@@ -144,3 +144,7 @@ Makefile
 /systemd/*.socket
 
 /tools/test_inih
+/src/examples/eibread-cgi
+/src/examples/eibwrite-cgi
+/src/examples/knxtool
+/systemd/knxd.service.exp

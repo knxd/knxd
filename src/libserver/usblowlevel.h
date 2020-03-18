@@ -83,6 +83,7 @@ private:
   /* libusb event loop */
   USBLoop *loop;
   USBDevice d;
+  USBEndpoint e;
 
   /** transmit buffer */
   CArray out;
