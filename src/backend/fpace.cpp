@@ -85,12 +85,12 @@ PaceFilter::started()
 }
 
 void
-PaceFilter::stopped()
+PaceFilter::stopped(bool err)
 {
   state = P_DOWN;
   want_next = false;
   timer.stop();
-  Filter::stopped();
+  Filter::stopped(err);
 }
 
 void

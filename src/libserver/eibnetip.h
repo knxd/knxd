@@ -446,7 +446,7 @@ public:
                   SockMode mode = S_RDWR);
   virtual ~EIBNetIPSocket ();
   bool init ();
-  void stop();
+  void stop(bool err);
 
   /** enables multicast */
   bool SetMulticast (struct ip_mreq multicastaddr);
@@ -498,7 +498,7 @@ private:
 
   void error_cb()
   {
-    stop();
+    stop(true);
   }
   void next_cb() { }
 

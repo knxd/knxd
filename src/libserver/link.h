@@ -289,14 +289,12 @@ public:
     assert(setup_called);
   }
   /** Shut down. Ultimately calls stopped() */
-  virtual void stop() {}
+  virtual void stop(bool err) {}
 
   /** Note that this link has started */
   virtual void started() = 0;
   /** Note that this link has stopped */
-  virtual void stopped() = 0;
-  /** Notify the router that this link has encountered a fatal error */
-  virtual void errored() = 0;
+  virtual void stopped(bool err) = 0;
 
   /** Check whether this physical address has been seen on this link */
   virtual bool hasAddress (eibaddr_t addr) const = 0;
@@ -384,7 +382,7 @@ public:
 
   virtual bool setup();
   virtual void start();
-  virtual void stop();
+  virtual void stop(bool err);
 
   /** Link up a driver. Can't be in ctor because of the shared pointer. */
   void set_driver(DriverPtr d)
@@ -431,7 +429,7 @@ private:
 
   down => going_up => up => going_down => down     _ L_error
              |        |          |                /  (if no (more) retry)
-  errored::  V        V          V               /
+  error::    V        V          V               /
              \- L_up_error => L_going_down_error => L_wait_retry => L_going_up
                                                     (if retry)
  */
@@ -520,14 +518,13 @@ public:
 
   /* These just control the state machine */
   virtual void start();
-  virtual void stop();
+  virtual void stop(bool err);
 
   /** set this link's remotely-assigned address */
   virtual void setAddress(eibaddr_t addr);
 
   virtual void started();
-  virtual void stopped();
-  virtual void errored();
+  virtual void stopped(bool err);
   virtual void recv_L_Data (LDataPtr l); // { l3.recv_L_Data(std::move(l), this); }
   virtual void recv_L_Busmonitor (LBusmonPtr l); // { l3.recv_L_Busmonitor(std::move(l), this); }
   virtual bool checkSysAddress(eibaddr_t addr);
@@ -618,9 +615,9 @@ public:
   {
     started();
   }
-  virtual void stop()
+  virtual void stop(bool err)
   {
-    stopped();
+    stopped(err);
   }
 
   /** Servers don't accept data */
@@ -682,8 +679,7 @@ public:
   virtual void recv_L_Busmonitor (LBusmonPtr l); // recv->recv_L_Busmonitor(std::move(l));
   virtual void send_Next ();
   virtual void started(); // recv->started()
-  virtual void stopped(); // recv->stopped()
-  virtual void errored(); // recv->errored()
+  virtual void stopped(bool err); // recv->stopped(err)
   virtual bool checkSysAddress(eibaddr_t addr) override;
   virtual bool checkSysGroupAddress(eibaddr_t addr) override;
 
@@ -715,13 +711,13 @@ public:
 
   virtual void start()
   {
-    if (send == nullptr) stopped();
+    if (send == nullptr) stopped(true);
     else send->start();
   }
-  virtual void stop()
+  virtual void stop(bool err)
   {
-    if (send == nullptr) stopped();
-    else send->stop();
+    if (send == nullptr) stopped(err);
+    else send->stop(err);
   }
 
   virtual bool hasAddress (eibaddr_t addr) const override
@@ -793,17 +789,16 @@ public:
   virtual bool checkSysGroupAddress(eibaddr_t addr);
   virtual void send_Next ();
   virtual void started();
-  virtual void stopped();
-  virtual void errored();
+  virtual void stopped(bool err);
 
   virtual void send_L_Data(LDataPtr l) = 0;
   virtual void start()
   {
     started();
   }
-  virtual void stop()
+  virtual void stop(bool err)
   {
-    stopped();
+    stopped(err);
   }
 
   virtual bool _link(LinkRecvPtr prev)

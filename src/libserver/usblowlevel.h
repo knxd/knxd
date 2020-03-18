@@ -70,7 +70,7 @@ public:
 
   bool setup();
   void start();
-  void stop();
+  void stop(bool err);
   void send_Data (CArray& l);
   void abort_send();
 

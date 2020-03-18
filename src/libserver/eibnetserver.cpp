@@ -131,7 +131,7 @@ EIBnetDriver::setup()
 
 EIBnetServer::~EIBnetServer ()
 {
-  stop_();
+  stop_(false);
   TRACEPRINTF (t, 8, "Close");
 }
 
@@ -246,7 +246,7 @@ err_out1:
   close (sock_mac);
   sock_mac = -1;
 err_out0:
-  Server::stop();
+  Server::stop(true);
 }
 
 void EIBnetDriver::Send (EIBNetIPPacket p, struct sockaddr_in addr)
@@ -363,7 +363,7 @@ void ConnState::sendtimeout_cb(ev::timer &, int)
     }
   CArray p = out.get ();
   t->TracePacket (2, "dropped no-ACK", p.size(), p.data());
-  stop();
+  stop(true);
 }
 
 void ConnState::send_trigger_cb(ev::async &, int)
@@ -405,10 +405,10 @@ void ConnState::timeout_cb(ev::timer &, int)
           std::static_pointer_cast<EIBnetServer>(server)->Send (r.ToPacket (), caddr);
         }
     }
-  stop();
+  stop(true);
 }
 
-void ConnState::stop()
+void ConnState::stop(bool err)
 {
   TRACEPRINTF (t, 8, "Stop Conn %d", channel);
   if (type == CT_BUSMONITOR)
@@ -423,7 +423,7 @@ void ConnState::stop()
       dynamic_cast<Router *>(&server->router)->release_client_addr(addr);
       addr = 0;
     }
-  SubDriver::stop();
+  SubDriver::stop(err);
 }
 
 void EIBnetServer::drop_connection (ConnStatePtr s)
@@ -676,7 +676,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
         {
           r2.status = 0;
           TRACEPRINTF ((*i)->t, 8, "DISCONNECT_REQUEST");
-          (*i)->stop();
+          (*i)->stop(false);
           break;
         }
       if (r2.status)
@@ -843,7 +843,7 @@ void
 EIBnetServer::error_cb ()
 {
   ERRORPRINTF (t, E_ERROR | 46, "Communication error: %s", strerror(errno));
-  stop();
+  stop(true);
 }
 
 //void
@@ -854,19 +854,19 @@ EIBnetServer::error_cb ()
 //}
 
 void
-EIBnetServer::stop()
+EIBnetServer::stop(bool err)
 {
-  stop_();
-  Server::stop();
+  stop_(err);
+  Server::stop(err);
 }
 
 void
-EIBnetServer::stop_()
+EIBnetServer::stop_(bool err)
 {
   drop_trigger.stop();
 
   R_ITER(i,connections)
-  (*i)->stop();
+    (*i)->stop(err);
 
   if (mcast)
     {
@@ -874,7 +874,7 @@ EIBnetServer::stop_()
 
       if (c)
         {
-          c->stop();
+          c->stop(err);
           if(route)
             static_cast<Router &>(router).unregisterLink(c);
         }
@@ -904,7 +904,7 @@ EIBnetDriver::error_cb ()
 {
   EIBnetServer &parent = *std::static_pointer_cast<EIBnetServer>(server);
   ERRORPRINTF (t, E_ERROR | 47, "Communication error (driver): %s", strerror(errno));
-  parent.stop();
+  parent.stop(true);
 }
 
 void ConnState::tunnel_request(EIBnet_TunnelRequest &r1, EIBNetIPSocket *isock)

@@ -138,11 +138,11 @@ EIBNetIPSocket::EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr,
 EIBNetIPSocket::~EIBNetIPSocket ()
 {
   TRACEPRINTF (t, 0, "Close");
-  stop();
+  stop(false);
 }
 
 void
-EIBNetIPSocket::stop()
+EIBNetIPSocket::stop(bool err)
 {
   if (fd != -1)
     {

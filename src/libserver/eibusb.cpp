@@ -153,7 +153,7 @@ void
 USBConverterInterface::sendLocal_done_cb(bool success)
 {
   if (!success)
-    errored();
+    stop(true);
   else
     LowLevelFilter::started();
 }
@@ -181,16 +181,16 @@ USBDriver::timeout_cb(ev::timer &, int)
     {
       ERRORPRINTF (t, E_ERROR | 49, "No reply to setup");
       version = vTIMEOUT;
-      errored();
+      stop(true);
     }
 }
 
 void
-USBDriver::stopped()
+USBDriver::stopped(bool err)
 {
   if (version == vDiscovery)
     timeout.stop();
-  LowLevelAdapter::stopped();
+  LowLevelAdapter::stopped(err);
 }
 
 void
@@ -217,13 +217,13 @@ USBDriver::sendLocal_done_cb(bool success)
   if (!success)
     {
       timeout.stop();
-      errored();
+      stop(true);
     }
   else if (wait_make)
     {
       wait_make = false;
       if(!make_EMI())
-        errored();
+        stop(true);
     }
   else if (version > vERROR && version < vRaw)
     iface->started();
@@ -276,7 +276,7 @@ USBDriver::recv_Data(CArray& c)
       TRACEPRINTF (t, 2, "version x%02x not recognized", c[13]);
       version = vERROR;
       timeout.stop();
-      errored();
+      stop(true);
       return;
     }
 
@@ -292,7 +292,7 @@ USBDriver::recv_Data(CArray& c)
 
   if(!make_EMI())
     {
-      errored();
+      stop(true);
       return;
     }
 

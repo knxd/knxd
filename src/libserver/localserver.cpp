@@ -46,7 +46,7 @@ LocalServer::start()
   if (ignore_when_systemd && static_cast<Router &>(router).using_systemd)
     {
       may_fail = true;
-      stopped();
+      stopped(true);
       return;
     }
 
@@ -104,12 +104,12 @@ ex2:
   close (fd);
   fd = -1;
 ex3:
-  NetServer::stop();
+  NetServer::stop(true);
   return;
 }
 
 void
-LocalServer::stop()
+LocalServer::stop(bool err)
 {
   if (fd >= 0)
     {
@@ -118,7 +118,7 @@ LocalServer::stop()
       if (path.size())
         ::unlink (path.c_str());
     }
-  NetServer::stop();
+  NetServer::stop(err);
 }
 
 LocalServer::~LocalServer ()

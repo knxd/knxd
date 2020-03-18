@@ -46,7 +46,7 @@ public:
 
   bool setup();
   void start();
-  void stop();
+  void stop(bool err);
 
 private:
   low_latency_save sold;

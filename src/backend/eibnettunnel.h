@@ -81,7 +81,7 @@ public:
   virtual ~EIBNetIPTunnel ();
   bool setup();
   void start();
-  void stop();
+  void stop(bool err);
   void is_stopped();
   void restart();
 

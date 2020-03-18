@@ -67,7 +67,7 @@ public:
 
   virtual void start();
   virtual void started();
-  virtual void stopped();
+  virtual void stopped(bool err);
 
 };
 

@@ -193,7 +193,7 @@ public:
   /** send APDU to L3 */
   void recv_Data (const CArray & c);
 
-  void stop();
+  void stop(bool err);
 
 private:
   ev::timer timer;

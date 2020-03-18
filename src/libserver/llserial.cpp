@@ -138,14 +138,14 @@ ex2:
   close (fd);
   fd = -1;
 ex1:
-  stopped();
+  stopped(true);
 }
 
 void
-LLserial::stop()
+LLserial::stop(bool err)
 {
   if (fd >= 0)
     restore_low_latency (fd, &sold, low_latency);
-  FDdriver::stop();
+  FDdriver::stop(err);
 }
 

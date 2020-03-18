@@ -38,7 +38,7 @@ GroupCache::~GroupCache ()
   remtrigger.stop();
   R_ITER(i,reader)
   {
-    (*i)->stop();
+    (*i)->stop(false);
     delete *i;
   }
   TRACEPRINTF (t, 4, "GroupCacheDestroy");
@@ -63,10 +63,10 @@ GroupCache::start()
 }
 
 void
-GroupCache::stop()
+GroupCache::stop(bool err)
 {
   enable = false;
-  Driver::stop();
+  Driver::stop(err);
 }
 
 void
@@ -155,7 +155,7 @@ GroupCacheReader::~GroupCacheReader()
 }
 
 void
-GroupCacheReader::stop()
+GroupCacheReader::stop(bool err)
 {
   if (stopped)
     return;
@@ -222,7 +222,7 @@ public:
     if (stopped)
       return;
     timeout.stop();
-    GroupCacheReader::stop();
+    GroupCacheReader::stop(false);
   }
 private:
   void updated(GroupCacheEntry &c)
@@ -235,7 +235,7 @@ private:
     TRACEPRINTF (gc->t, 4, "GroupCache found: %s",
                  FormatEIBAddr (c.src).c_str());
     cb(c,false,cc);
-    stop();
+    stop(false);
   }
 
   void timeout_cb(ev::timer &, int)
@@ -246,8 +246,7 @@ private:
     GroupCacheEntry f(addr);
     TRACEPRINTF (gc->t, 4, "GroupCache reread timeout");
     cb(f,false,cc);
-    stop();
-    return;
+    stop(false);
   }
 };
 
@@ -326,12 +325,12 @@ public:
   {
     a.clear();
   }
-  void stop()
+  void stop(bool err)
   {
     if (stopped)
       return;
     timeout.stop();
-    GroupCacheReader::stop();
+    GroupCacheReader::stop(err);
   }
 private:
   void updated(GroupCacheEntry &)
@@ -349,7 +348,7 @@ private:
     if (handler())
       return;
     cb(a,gc->seq,cc);
-    stop();
+    stop(true);
   }
 
   bool handler()
@@ -364,7 +363,7 @@ private:
           break;
       }
     cb(a,gc->seq,cc);
-    stop();
+    stop(false);
     return true;
   }
 };

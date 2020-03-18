@@ -242,11 +242,11 @@ TPUARTwrap::started()
 }
 
 void
-TPUARTwrap::stopped()
+TPUARTwrap::stopped(bool err)
 {
   setstate(T_new);
 
-  LowLevelFilter::stopped();
+  LowLevelFilter::stopped(err);
 }
 
 void
@@ -299,7 +299,7 @@ TPUARTwrap::timer_cb(ev::timer &, int)
   switch(state)
     {
     case T_error:
-      stop();
+      stop(true);
       break;
     case T_new:
       break;
@@ -315,8 +315,7 @@ TPUARTwrap::timer_cb(ev::timer &, int)
     case T_in_getstate:
       if (retry > 5)
         {
-          errored();
-          setstate(T_new);
+          stop(true);
           return;
         }
       setstate(state);

@@ -41,7 +41,7 @@ public:
   virtual ~EIBNetIPRouter ();
   bool setup();
   void start();
-  void stop();
+  void stop(bool err);
 
   void send_L_Data (LDataPtr l);
 

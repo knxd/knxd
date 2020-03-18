@@ -37,7 +37,7 @@ public:
 
   bool setup();
   void start();
-  void stop();
+  void stop(bool err);
 
 private:
   std::string path;

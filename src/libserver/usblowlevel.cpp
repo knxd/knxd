@@ -225,7 +225,7 @@ USBLowLevelDriver::start()
   started();
   return;
 ex:
-  stop();
+  stop(true);
 }
 
 void
@@ -277,17 +277,17 @@ USBLowLevelDriver::stop_()
 }
 
 void
-USBLowLevelDriver::stop()
+USBLowLevelDriver::stop(bool err)
 {
   stop_();
-  LowLevelDriver::stop();
+  LowLevelDriver::stop(err);
 }
 
 USBLowLevelDriver::~USBLowLevelDriver ()
 {
-  stop();
   read_trigger.stop();
   write_trigger.stop();
+  stop_();
 }
 
 void
@@ -296,7 +296,7 @@ USBLowLevelDriver::send_Data (CArray& l)
   if (sendh != nullptr)
     {
       ERRORPRINTF (t, E_FATAL | 108, "Send while buffer not empty");
-      errored(); // XXX signal async
+      stop(true); // XXX signal async
       return;
     }
   out = l;
@@ -346,7 +346,7 @@ USBLowLevelDriver::write_trigger_cb(ev::async &, int)
     }
   ERRORPRINTF (t, E_ERROR | 35, "SendError %lx status %d", (unsigned long)sendh, sendh->status);
   sendh = nullptr;
-  errored(); // TODO probably needs to be an async error
+  stop(true); // TODO probably needs to be an async error
   return;
 }
 
@@ -384,7 +384,7 @@ USBLowLevelDriver::read_trigger_cb(ev::async &, int)
     {
       ERRORPRINTF (t, E_WARNING | 123, "RecvError %d", recvh->status);
       recvh = nullptr;
-      errored();
+      stop(true);
       return;
     }
   else
@@ -410,7 +410,7 @@ USBLowLevelDriver::StartUsbRecvTransfer()
   if (res)
     {
       ERRORPRINTF (t, E_ERROR | 100, "Error StartRecv: %s", libusb_error_name(res));
-      errored();
+      stop(true);
       return;
     }
   TRACEPRINTF (t, 10, "StartRecv");
@@ -456,7 +456,7 @@ USBLowLevelDriver::HandleReceiveUsb()
         {
           state = sRunning;
           ERRORPRINTF(t, E_ERROR | 101, "No connection");
-          stop(); // XXX TODO signal async error instead
+          stop(true); // XXX TODO signal async error instead
         }
     }
 }

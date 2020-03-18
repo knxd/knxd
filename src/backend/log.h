@@ -41,10 +41,9 @@ public:
   virtual void send_Next();
 
   virtual void start();
-  virtual void stop();
+  virtual void stop(bool err);
   virtual void started();
-  virtual void stopped();
-  virtual void errored();
+  virtual void stopped(bool err);
 
   virtual bool hasAddress (eibaddr_t addr) const override;
   virtual void addAddress (eibaddr_t addr) override;
@@ -66,10 +65,9 @@ public:
 
   virtual bool setup();
   virtual void start();
-  virtual void stop();
+  virtual void stop(bool err);
   virtual void started();
-  virtual void stopped();
-  virtual void errored();
+  virtual void stopped(bool err);
   virtual void recv_L_Data(LDataPtr l);
   virtual void recv_L_Busmonitor(LBusmonPtr l);
   virtual void send_L_Data(LDataPtr l);

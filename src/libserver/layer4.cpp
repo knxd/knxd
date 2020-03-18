@@ -227,7 +227,7 @@ T_Connection::T_Connection (T_Reader<CArray> *app, LinkConnectClientPtr lc, eiba
 T_Connection::~T_Connection ()
 {
   TRACEPRINTF (t, 4, "CloseConnection");
-  stop ();
+  stop (false);
   while (!buf.empty ())
     delete buf.get ();
 }
@@ -242,7 +242,7 @@ T_Connection::send_L_Data (LDataPtr lpdu)
     {
       T_Data_Connected_PDU *tpdu1 = (T_Data_Connected_PDU *) &*tpdu;
       if (tpdu1->sequence_number != recvno && tpdu1->sequence_number != ((recvno - 1) & 0x0f))
-        stop();
+        stop(true);
       else if (tpdu1->sequence_number == recvno)
         {
           tpdu1->tsdu[0] = tpdu1->tsdu[0] & 0x03;
@@ -255,18 +255,18 @@ T_Connection::send_L_Data (LDataPtr lpdu)
     }
     break;
     case T_Connect:
-      stop();
+      stop(true);
       break;
     case T_Disconnect:
-      stop();
+      stop(false);
       break;
     case T_ACK:
     {
       T_ACK_PDU *tpdu1 = (T_ACK_PDU *) &*tpdu;
       if (tpdu1->sequence_number != sendno)
-        stop();
+        stop(true);
       else if (mode != 2)
-        stop();
+        stop(true);
       else
         {
           mode = 1;
@@ -280,9 +280,9 @@ T_Connection::send_L_Data (LDataPtr lpdu)
     {
       T_NAK_PDU *tpdu1 = (T_NAK_PDU *) &*tpdu;
       if (tpdu1->sequence_number != sendno)
-        stop();
+        stop(true);
       else if (repcount >= 3 || mode != 2)
-        stop();
+        stop(true);
       else
         {
           repcount++;
@@ -406,11 +406,11 @@ void T_Connection::timer_cb (ev::timer &, int)
       timer.start(3,0);
     }
   else
-    stop();
+    stop(true);
 }
 
 void
-T_Connection::stop()
+T_Connection::stop(bool err)
 {
   mode = 0;
   timer.stop();

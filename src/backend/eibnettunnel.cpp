@@ -46,11 +46,11 @@ void EIBNetIPTunnel::is_stopped()
   sock = nullptr;
 }
 
-void EIBNetIPTunnel::stop()
+void EIBNetIPTunnel::stop(bool err)
 {
   restart();
   is_stopped();
-  BusDriver::stop();
+  BusDriver::stop(err);
 }
 
 bool
@@ -141,14 +141,14 @@ ex:
       sock = nullptr;
     }
   is_stopped();
-  stopped();
+  stopped(true);
 }
 
 void
 EIBNetIPTunnel::error_cb ()
 {
   ERRORPRINTF (t, E_ERROR | 20, "Communication error: %s", strerror(errno));
-  errored();
+  stop(true);
 }
 
 void
@@ -390,7 +390,7 @@ EIBNetIPTunnel::read_cb (EIBNetIPPacket *p1)
       else
         {
           TRACEPRINTF (t, 1, "Connection State Response Error %02x", csresp.status);
-          errored();
+          stop(true);
         }
       break;
     }
@@ -510,7 +510,7 @@ void EIBNetIPTunnel::conntimeout_cb(ev::timer &, int)
     {
       TRACEPRINTF (t, 1, "Connect timed out");
       is_stopped();
-      errored();
+      stop(true);
       // EIBnet_ConnectRequest creq = get_creq();
       // creq.CRI[1] =
       // ((connect_busmonitor && support_busmonitor) ? 0x80 : 0x02);

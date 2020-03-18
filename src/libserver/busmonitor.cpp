@@ -24,7 +24,7 @@
 A_Busmonitor::~A_Busmonitor ()
 {
   TRACEPRINTF (t, 7, "Close A_Busmonitor");
-  stop();
+  stop(false);
 }
 
 void
@@ -41,7 +41,7 @@ A_Busmonitor::start()
 }
 
 void
-A_Busmonitor::stop()
+A_Busmonitor::stop(bool err)
 {
   if (!running)
     return;

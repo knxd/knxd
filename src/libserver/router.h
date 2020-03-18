@@ -87,16 +87,15 @@ public:
   /** start up */
   void start();
   /** shut down*/
-  void stop();
+  void stop(bool err);
 
   /** second step, after hitting the global queue */
   void start_();
-  void stop_();
+  void stop_(bool err);
 
   /** last step, after hitting the global queue */
   void started();
-  void stopped();
-  void errored();
+  void stopped(bool err);
 
   /** callbacks from LinkConnect */
   void linkStateChanged(const LinkConnectPtr& link);

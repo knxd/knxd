@@ -83,16 +83,15 @@ public:
     router->start_();
   }
 
-  virtual void stop()
+  virtual void stop(bool err)
   {
-    router->stop_();
+    router->stop_(err);
   }
 
   /** prevent dup calls to started() */
   bool is_started = false;
   virtual void started();
-  virtual void stopped();
-  virtual void errored();
+  virtual void stopped(bool err);
 
 };
 
@@ -118,22 +117,18 @@ public:
   {
     send->start();
   }
-  virtual void stop()
+  virtual void stop(bool err)
   {
-    send->stop();
+    send->stop(err);
   }
 
   virtual void started()
   {
     router->started();
   }
-  virtual void stopped()
+  virtual void stopped(bool err)
   {
-    router->stopped();
-  }
-  virtual void errored()
-  {
-    router->errored();
+    router->stopped(err);
   }
 };
 
@@ -523,7 +518,7 @@ Router::state_trigger_cb (ev::async &, int)
       {
       case L_up_error:
       case L_going_down_error:
-        ii->stop();
+        ii->stop(true);
         break;
       default:
         break;
@@ -589,11 +584,11 @@ Router::state_trigger_cb (ev::async &, int)
           }
       }
       exitcode = 1;
-      stop();
+      stop(true);
     }
 
   if (osrn && !some_running)
-    r_high->stopped();
+    r_high->stopped(false);
   else if (!oarn && all_running)
     {
       r_high->started();
@@ -605,23 +600,23 @@ void
 Router::start_timer_cb(ev::timer &, int)
 {
   ERRORPRINTF (t, E_ERROR | 92, "Startup not successful.");
-  stop();
+  stop(true);
   // TODO only halt failing drivers
 }
 
 void
-Router::stop()
+Router::stop(bool err)
 {
   if (!want_up)
     return;
   want_up = false;
 
   TRACEPRINTF (t, 4, "trigger Going down");
-  r_low->stop();
+  r_low->stop(err);
 }
 
 void
-Router::stop_()
+Router::stop_(bool err)
 {
   all_running = false;
   bool seen = true;
@@ -629,7 +624,7 @@ Router::stop_()
   if (want_up)
     {
       // we get here when there's a failure to start the global filter chain
-      stop();
+      stop(err);
       return;
     }
 
@@ -677,25 +672,14 @@ Router::started()
 }
 
 void
-Router::stopped()
+Router::stopped(bool err)
 {
   TRACEPRINTF (t, 4, "down");
   if (want_up)
-    stop();
+    stop(err);
   else
     ev_break (EV_A_ EVBREAK_ALL);
 }
-
-void
-Router::errored()
-{
-  TRACEPRINTF (t, 4, "error");
-  if (want_up)
-    stop();
-  else
-    ev_break (EV_A_ EVBREAK_ALL);
-}
-
 
 Router::~Router()
 {
@@ -1217,17 +1201,10 @@ RouterHigh::started()
 }
 
 void
-RouterHigh::stopped()
+RouterHigh::stopped(bool err)
 {
   is_started = false;
-  Driver::stopped();
-}
-
-void
-RouterHigh::errored()
-{
-  is_started = false;
-  Driver::errored();
+  Driver::stopped(err);
 }
 
 void

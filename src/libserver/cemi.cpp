@@ -42,11 +42,11 @@ CEMIDriver::sendLocal_done_cb(bool success)
 {
   if (!success || sendLocal_done_next == N_bad)
     {
-      errored();
-      LowLevelFilter::stopped();
+      stopped(true);
+      LowLevelFilter::stopped(true);
     }
   else if (sendLocal_done_next == N_down)
-    LowLevelFilter::stopped();
+    LowLevelFilter::stopped(false);
   else if (sendLocal_done_next == N_up)
     LowLevelFilter::started();
   else if (sendLocal_done_next == N_reset)
@@ -55,13 +55,11 @@ CEMIDriver::sendLocal_done_cb(bool success)
 
 void CEMIDriver::cmdEnterMonitor()
 {
-  errored();
-  stopped();
+  stop(true);
 }
 void CEMIDriver::cmdLeaveMonitor()
 {
-  errored();
-  stopped();
+  stop(true);
 }
 void CEMIDriver::cmdOpen()
 {
@@ -69,7 +67,7 @@ void CEMIDriver::cmdOpen()
 }
 void CEMIDriver::cmdClose()
 {
-  LowLevelDriver::stop();
+  LowLevelDriver::stop(false);
 }
 
 void CEMIDriver::started()
@@ -82,7 +80,7 @@ void CEMIDriver::started()
 void CEMIDriver::reset_timer_cb(ev::timer &, int)
 {
   ERRORPRINTF(t, E_ERROR | 44, "reset timed out");
-  errored();
+  stop(true);
 }
 
 void CEMIDriver::do_send_Next()

@@ -49,7 +49,7 @@ public:
   virtual ~A_Busmonitor ();
   virtual bool setup(uint8_t *buf,size_t len) override;
   virtual void start() override;
-  virtual void stop() override;
+  virtual void stop(bool err) override;
 
   void send_L_Busmonitor (LBusmonPtr l);
   // dummy method

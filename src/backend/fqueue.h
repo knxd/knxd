@@ -53,7 +53,7 @@ public:
   virtual void send_Next();
 
   virtual void started();
-  virtual void stopped();
+  virtual void stopped(bool err);
 
 };
 

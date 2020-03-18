@@ -72,14 +72,14 @@ EIBNetIPRouter::start()
 err_out:
   delete sock;
   sock = 0;
-  stopped();
+  stopped(true);
 }
 
 void
-EIBNetIPRouter::stop()
+EIBNetIPRouter::stop(bool err)
 {
   stop_();
-  BusDriver::stop();
+  BusDriver::stop(err);
 }
 
 void

@@ -85,7 +85,7 @@ EMI_Common::started()
 }
 
 void
-EMI_Common::stop ()
+EMI_Common::stop (bool err)
 {
   TRACEPRINTF (t, 2, "CloseL2");
   if (monitor)
@@ -143,7 +143,7 @@ EMI_Common::timeout_cb(ev::timer &, int)
   if (state == E_wait)
     {
       state = E_timed_out;
-      errored();
+      stop(true);
       return;
     }
   assert (state == E_wait_confirm);
@@ -168,7 +168,7 @@ EMI_Common::recv_Data(CArray& c)
   if (c.size() > 0 && c[0] == 0xA0)
     {
       TRACEPRINTF (t, 2, "got reset ind");
-      errored();
+      stop(true);
     }
   else if (c.size() > 0 && c[0] == ind[I_CONFIRM])
     {

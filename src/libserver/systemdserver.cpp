@@ -40,14 +40,14 @@ SystemdServer::start()
   TRACEPRINTF (t, 8, "OpenSystemdSocket %d", fd);
   if (fd < 0)
     {
-      stopped();
+      stopped(true);
       return;
     }
 
   if (listen (fd, 10) == -1)
     {
       ERRORPRINTF (t, E_ERROR | 98, "OpenSystemdSocket: listen: %s", strerror(errno));
-      NetServer::stop();
+      NetServer::stop(true);
       return;
     }
 
@@ -56,7 +56,7 @@ SystemdServer::start()
 }
 
 void
-SystemdServer::stop()
+SystemdServer::stop(bool err)
 {
 //** actually, we can't, because we can't re-open. So fake it.
 //  if (fd > -1)
@@ -64,7 +64,7 @@ SystemdServer::stop()
 //      close(fd);
 //      fd = -1;
 //    }
-  NetServer::stop();
+  NetServer::stop(err);
 }
 
 SystemdServer::~SystemdServer()

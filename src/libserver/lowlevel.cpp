@@ -48,7 +48,7 @@ void
 LowLevelIface::sendLocal_done_cb(bool success)
 {
   if (!success)
-    errored();
+    stopped(true);
 }
 
 void
@@ -131,7 +131,7 @@ LowLevelAdapter::send_L_Data(LDataPtr l)
   if (!iface)
     {
       ERRORPRINTF (t, E_ERROR | 76, "Send: not running??");
-      errored();
+      stop(true);
       return;
     }
   iface->send_L_Data(std::move(l));
@@ -172,7 +172,7 @@ void
 FDdriver::error_cb()
 {
   ERRORPRINTF (t, E_ERROR | 77, "Communication error: %s", strerror(errno));
-  errored();
+  stop(true);
 }
 
 FDdriver::~FDdriver ()
@@ -202,7 +202,7 @@ FDdriver::start()
 }
 
 void
-FDdriver::stop()
+FDdriver::stop(bool err)
 {
   if (fd >= -1)
     {
@@ -212,7 +212,7 @@ FDdriver::stop()
       close(fd);
       fd = -1;
     }
-  LowLevelDriver::stop();
+  LowLevelDriver::stop(err);
 }
 
 size_t

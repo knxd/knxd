@@ -65,9 +65,9 @@ public:
   USBDriver (const LinkConnectPtr_& c, IniSectionPtr& s);
   bool setup();
   //void start();
-  //void stop();
+  //void stop(bool err);
   void started();
-  void stopped();
+  void stopped(bool err);
   void do_send_Next();
   bool make_EMI();
 

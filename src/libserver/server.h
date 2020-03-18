@@ -52,7 +52,7 @@ protected:
 
   bool setup();
   void start();
-  void stop();
+  void stop(bool err);
 
   /** deregister client connection */
   void deregister (ClientConnPtr con);
@@ -69,7 +69,7 @@ private:
 
   /** to-be-closed client connections*/
   Queue < ClientConnPtr > cleanup_q;
-  void stop_();
+  void stop_(bool err);
 };
 
 using NetServerPtr = std::shared_ptr<NetServer>;

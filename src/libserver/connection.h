@@ -51,7 +51,7 @@ public:
 
   virtual bool setup (uint8_t *buf,size_t len) = 0;
   virtual void start() { }
-  virtual void stop() { }
+  virtual void stop(bool err) { }
 };
 
 template<class TC>

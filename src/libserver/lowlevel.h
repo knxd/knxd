@@ -81,8 +81,7 @@ public:
 
   virtual TracePtr tr() const = 0;
   virtual void started() = 0;
-  virtual void stopped() = 0;
-  virtual void errored() = 0;
+  virtual void stopped(bool err) = 0;
   virtual void recv_Data(CArray& c) = 0;
   virtual void send_Data(CArray& c) = 0;
 
@@ -195,9 +194,9 @@ public:
     started();
   }
 
-  virtual void stop ()
+  virtual void stop (bool err)
   {
-    stopped();
+    stopped(err);
   }
 
   virtual FilterPtr findFilter(std::string name)
@@ -229,13 +228,9 @@ public:
   {
     master->started();
   }
-  void stopped()
+  void stopped(bool err)
   {
-    master->stopped();
-  }
-  void errored()
-  {
-    master->errored();
+    master->stopped(err);
   }
   void do_send_Next()
   {
@@ -285,7 +280,7 @@ public:
   virtual ~FDdriver ();
   bool setup();
   void start();
-  void stop();
+  void stop(bool err);
 
 protected:
   /** device connection */
@@ -316,9 +311,9 @@ public:
   {
     iface->start();
   }
-  virtual void stop ()
+  virtual void stop (bool err)
   {
-    iface->stop();
+    iface->stop(err);
   }
   virtual void sendReset()
   {
@@ -381,14 +376,14 @@ ex:
     if (iface)
       iface->start();
     else
-      stopped();
+      stopped(true);
   }
-  void stop()
+  void stop(bool err)
   {
     if (iface)
-      iface->stop();
+      iface->stop(err);
     else
-      stopped();
+      stopped(err);
   }
 
   void send_L_Data(LDataPtr l);
@@ -414,13 +409,9 @@ ex:
   {
     BusDriver::started();
   }
-  void stopped()
+  void stopped(bool err)
   {
-    BusDriver::stopped();
-  }
-  void errored()
-  {
-    BusDriver::errored();
+    BusDriver::stopped(err);
   }
   void do_send_Next()
   {

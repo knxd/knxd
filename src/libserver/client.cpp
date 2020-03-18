@@ -62,7 +62,7 @@ ClientConnection::~ClientConnection ()
 void
 ClientConnection::error_cb ()
 {
-  stop();
+  stop(true);
 }
 
 bool
@@ -84,14 +84,14 @@ ClientConnection::start()
   if (!addr)
     {
       sendreject (EIB_RESET_CONNECTION);
-      stop();
+      stop(true);
       return;
     }
   running = true;
 }
 
 void
-ClientConnection::stop()
+ClientConnection::stop(bool err)
 {
   if (addr)
     {
@@ -117,7 +117,7 @@ ClientConnection::exit_conn()
 {
   if (! a_conn)
     return;
-  a_conn->stop();
+  a_conn->stop(false);
   if (a_conn->lc != nullptr)
     {
       router.unregisterLink(a_conn->lc);

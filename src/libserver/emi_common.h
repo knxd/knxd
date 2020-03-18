@@ -73,7 +73,7 @@ public:
   bool setup();
   void start();
   void started();
-  void stop();
+  void stop(bool err);
 
   void send_L_Data (LDataPtr l);
   void do_send_Next();

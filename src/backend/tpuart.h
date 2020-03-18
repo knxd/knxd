@@ -102,7 +102,7 @@ protected:
 public:
   bool setup();
   void started();
-  void stopped();
+  void stopped(bool err);
 
   void send_L_Data (LDataPtr l);
 

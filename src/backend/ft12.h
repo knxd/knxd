@@ -118,7 +118,7 @@ public:
   virtual ~FT12wrap ();
   bool setup ();
   void start ();
-  void stop ();
+  void stop (bool err);
 
   void recv_Data (CArray &c);
   void send_Data (CArray& l);

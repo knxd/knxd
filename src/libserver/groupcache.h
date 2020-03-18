@@ -66,7 +66,7 @@ public:
   bool stopped = false;
   GroupCache *gc;
   virtual void updated(GroupCacheEntry &) = 0;
-  virtual void stop();
+  virtual void stop(bool err);
 };
 
 /** map last-updated sequence numbers to group addresses */
@@ -80,7 +80,7 @@ class GroupCache:public Driver
 public: // but only for GroupCacheReader
   bool setup();
   void start();
-  void stop();
+  void stop(bool err);
   virtual bool checkGroupAddress (eibaddr_t) const override
   {
     return true;

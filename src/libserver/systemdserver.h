@@ -36,7 +36,7 @@ public:
   virtual ~SystemdServer ();
 
   void start();
-  void stop();
+  void stop(bool err);
 };
 
 #endif

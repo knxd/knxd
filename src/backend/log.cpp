@@ -46,11 +46,11 @@ LogFilter::start()
 }
 
 void
-LogFilter::stop()
+LogFilter::stop(bool err)
 {
   if (log_state)
-    t->TracePrintf (0, "State stop");
-  Filter::stop();
+    t->TracePrintf (0, "State %s", err ? "error" : "stop");
+  Filter::stop(err);
 }
 
 void
@@ -62,21 +62,12 @@ LogFilter::started()
 }
 
 void
-LogFilter::stopped()
+LogFilter::stopped(bool err)
 {
   if (log_state)
-    t->TracePrintf (0, "State stopped");
-  Filter::stopped();
+    t->TracePrintf (0, "State %s", err ? "errored" : "stopped");
+  Filter::stopped(err);
 }
-
-void
-LogFilter::errored()
-{
-  if (log_state)
-    t->TracePrintf (0, "State errored");
-  Filter::errored();
-}
-
 
 void
 LogFilter::recv_L_Data (LDataPtr l)
@@ -220,10 +211,10 @@ void LLlog::start ()
   iface->start();
 }
 
-void LLlog::stop ()
+void LLlog::stop (bool err)
 {
   tr()->TracePrintf (0, "Stop");
-  iface->stop();
+  iface->stop(err);
 }
 
 void LLlog::started ()
@@ -232,16 +223,10 @@ void LLlog::started ()
   master->started();
 }
 
-void LLlog::stopped ()
+void LLlog::stopped (bool err)
 {
-  tr()->TracePrintf (0, "Stopped");
-  master->stopped();
-}
-
-void LLlog::errored ()
-{
-  tr()->TracePrintf (0, "Errored");
-  master->errored();
+  tr()->TracePrintf (0, err ? "Errored" : "Stopped");
+  master->stopped(err);
 }
 
 void LLlog::recv_L_Data(LDataPtr l)

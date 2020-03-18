@@ -58,7 +58,7 @@ public:
   virtual ~ClientConnection ();
   bool setup();
   void start();
-  void stop();
+  void stop(bool err);
 
   size_t read_cb(uint8_t *buf, size_t len);
   void error_cb();

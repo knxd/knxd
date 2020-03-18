@@ -66,11 +66,11 @@ QueueFilter::started()
 }
 
 void
-QueueFilter::stopped()
+QueueFilter::stopped(bool err)
 {
   buf.clear();
   state = Q_DOWN;
-  Filter::stopped();
+  Filter::stopped(err);
 }
 
 void

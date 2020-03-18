@@ -58,7 +58,7 @@ public:
   virtual ~ConnState ();
   bool setup();
   // void start();
-  void stop();
+  void stop(bool err);
 
   EIBnetServer *parent;
 
@@ -106,7 +106,7 @@ public:
 
   bool setup();
   // void start();
-  // void stop();
+  // void stop(bool err);
 
   void Send (EIBNetIPPacket p, struct sockaddr_in addr);
 
@@ -132,7 +132,7 @@ public:
   virtual ~EIBnetServer ();
   bool setup ();
   void start();
-  void stop();
+  void stop(bool err);
 
   void handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock);
 
@@ -190,7 +190,7 @@ private:
   void recv_cb(EIBNetIPPacket *p);
   void error_cb();
 
-  void stop_();
+  void stop_(bool err);
 };
 
 using EIBnetServerPtr = std::shared_ptr<EIBnetServer>;

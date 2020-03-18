@@ -469,7 +469,7 @@ x1:
   ERRORPRINTF(r->t, E_NOTICE | 128, "Shutting down.");
 
   stopping = false; // re-set by a second signal
-  r->stop();
+  r->stop(false);
   while (!r->isIdle() && !stopping)
     ev_run (EV_A_ stop_now ? EVRUN_NOWAIT : EVRUN_ONCE);
 

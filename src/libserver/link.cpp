@@ -173,7 +173,7 @@ LinkConnect::setState(LConnState new_state)
           break;
         case L_going_down:
         case L_down:
-          stop();
+          stop(false);
           break;
         case L_error:
           state = L_up_error;
@@ -189,7 +189,7 @@ LinkConnect::setState(LConnState new_state)
           retries = 0;
           break;
         case L_going_down:
-          stop();
+          stop(false);
           break;
         case L_down:
           goto retry;
@@ -235,7 +235,7 @@ LinkConnect::setState(LConnState new_state)
         {
         case L_going_down:
           state = L_going_down_error;
-          stop();
+          stop(true);
           break;
         case L_down:
           goto retry;
@@ -291,7 +291,7 @@ LinkConnect::retry_timer_cb (ev::timer &, int)
   if (state == L_up && !send_more)
     {
       ERRORPRINTF (t, E_ERROR | 55, "Driver timed out trying to send (%s)", cfg->name);
-      errored();
+      stop(true);
       return;
     }
   if (state != L_wait_retry)
@@ -335,18 +335,18 @@ LinkConnect_::start()
 }
 
 void
-LinkConnect::stop()
+LinkConnect::stop(bool err)
 {
   TRACEPRINTF(t, 5, "Stopping");
   changed = time(NULL);
-  LinkConnect_::stop();
+  LinkConnect_::stop(err);
 }
 
 void
-LinkConnect_::stop()
+LinkConnect_::stop(bool err)
 {
-  send->stop();
-  LinkRecv::stop();
+  send->stop(err);
+  LinkRecv::stop(err);
 }
 
 const std::string&
@@ -508,15 +508,9 @@ LinkConnect::send_L_Data (LDataPtr l)
 }
 
 void
-LinkConnect::stopped()
+LinkConnect::stopped(bool err)
 {
-  setState(L_down);
-}
-
-void
-LinkConnect::errored()
-{
-  setState(L_error);
+  setState(err ? L_error : L_down);
 }
 
 void
@@ -686,35 +680,19 @@ Filter::started()
 }
 
 void
-Driver::stopped()
+Driver::stopped(bool err)
 {
   auto r = recv.lock();
   if (r != nullptr)
-    r->stopped();
+    r->stopped(err);
 }
 
 void
-Driver::errored()
+Filter::stopped(bool err)
 {
   auto r = recv.lock();
   if (r != nullptr)
-    r->errored();
-}
-
-void
-Filter::stopped()
-{
-  auto r = recv.lock();
-  if (r != nullptr)
-    r->stopped();
-}
-
-void
-Filter::errored()
-{
-  auto r = recv.lock();
-  if (r != nullptr)
-    r->errored();
+    r->stopped(err);
 }
 
 bool

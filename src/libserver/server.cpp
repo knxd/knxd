@@ -28,7 +28,7 @@
 #include "client.h"
 
 void
-NetServer::stop_()
+NetServer::stop_(bool err)
 {
   TRACEPRINTF (t, 8, "StopServer");
 
@@ -38,7 +38,7 @@ NetServer::stop_()
     cleanup_q.pop();
 
   ITER(i,connections)
-  (*i)->stop();
+  (*i)->stop(err);
   connections.clear();
 
   if (fd > -1)
@@ -49,16 +49,16 @@ NetServer::stop_()
 }
 
 void
-NetServer::stop()
+NetServer::stop(bool err)
 {
-  stop_();
-  stopped();
+  stop_(err);
+  stopped(err);
 }
 
 NetServer::~NetServer ()
 {
   // stopped() may not be called from a destructor
-  stop_();
+  stop_(false);
 }
 
 void
@@ -95,7 +95,7 @@ NetServer::start()
 {
   if (fd == -1)
     {
-      stopped();
+      stopped(true);
       return;
     }
   set_non_blocking(fd);

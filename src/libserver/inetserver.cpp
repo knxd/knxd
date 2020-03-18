@@ -52,7 +52,7 @@ InetServer::start()
   if (ignore_when_systemd && static_cast<Router &>(router).using_systemd)
     {
       may_fail = true;
-      stopped();
+      stopped(true);
       return;
     }
 
@@ -91,19 +91,19 @@ ex2:
   close (fd);
   fd = -1;
 ex1:
-  stop();
+  stop(true);
   return;
 }
 
 void
-InetServer::stop()
+InetServer::stop(bool err)
 {
   if (fd >= 0)
     {
       close(fd);
       fd = -1;
     }
-  NetServer::stop();
+  NetServer::stop(err);
 }
 
 InetServer::~InetServer()
