@@ -24,33 +24,51 @@ supports it.
 
 */
 
-#ifndef FQUEUE_H
-#define FQUEUE_H
+#ifndef FRETRY_H
+#define FRETRY_H
 #include "link.h"
-#include "queue.h"
 
-enum QSTATE
+enum RSTATE
 {
-  Q_DOWN,    // not running
-  Q_IDLE,    // no packet submitted
-  Q_BUSY,    // packet submitted, not in send loop
-  Q_SENDING, // packet submitted, in send loop
+  R_DOWN,       // not running
+  R_GOING_UP,   // in startup
+  R_UP,         // running, no packet submitted
+  R_WAIT,       // running, packet submitted
+  R_GOING_DOWN, // in shutdown
+  R_GOING_ERROR,// in shutdown after error
+  R_ERROR,      // not running, had error
 };
 
-FILTER(QueueFilter,queue)
+FILTER(RetryFilter, retry)
 {
-  Queue < LDataPtr > buf;
-  enum QSTATE state;
+  enum RSTATE state;
   ev::async trigger;
   void trigger_cb (ev::async &w, int revents);
+  ev::timer timeout;
+  void timeout_cb (ev::timer &w, int revents);
+
+  bool flush = false;
+  bool may_fail = false;
+  int max_retry = 0;
+  int open_timeout = 0;
+  int send_timeout = 0;
+
+  bool want_up = false;
+  int retries = 0;
+  LDataPtr msg = nullptr;
+
+  void stop_(bool err);
 
 public:
-  QueueFilter (const LinkConnectPtr_& c, IniSectionPtr& s);
-  virtual ~QueueFilter ();
+  RetryFilter (const LinkConnectPtr_& c, IniSectionPtr& s);
+  virtual ~RetryFilter ();
 
   virtual bool setup();
   virtual void send_L_Data (LDataPtr l);
   virtual void send_Next();
+
+  virtual void start();
+  virtual void stop(bool err);
 
   virtual void started();
   virtual void stopped(bool err);
