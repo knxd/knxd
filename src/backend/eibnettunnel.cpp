@@ -32,7 +32,7 @@ EIBNetIPTunnel::EIBNetIPTunnel (const LinkConnectPtr_& c, IniSectionPtr& s)
 
 EIBNetIPTunnel::~EIBNetIPTunnel ()
 {
-  TRACEPRINTF (t, 2, "Close");
+  TRACEPRINTF (t, 2, "Close A");
   // restart();
   is_stopped();
 }

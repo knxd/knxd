@@ -137,7 +137,7 @@ EIBNetIPSocket::EIBNetIPSocket (struct sockaddr_in bindaddr, bool reuseaddr,
 
 EIBNetIPSocket::~EIBNetIPSocket ()
 {
-  TRACEPRINTF (t, 0, "Close");
+  TRACEPRINTF (t, 0, "Close D");
   stop(false);
 }
 

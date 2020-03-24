@@ -88,7 +88,9 @@ void
 EMI_Common::stop (bool err)
 {
   TRACEPRINTF (t, 2, "CloseL2");
-  if (monitor)
+  if (err)
+    LowLevelFilter::stop(err);
+  else if (monitor)
     cmdLeaveMonitor();
   else
     cmdClose();

@@ -132,7 +132,7 @@ EIBnetDriver::setup()
 EIBnetServer::~EIBnetServer ()
 {
   stop_(false);
-  TRACEPRINTF (t, 8, "Close");
+  TRACEPRINTF (t, 8, "Close E");
 }
 
 EIBnetDriver::~EIBnetDriver ()

@@ -205,9 +205,6 @@ private:
   void mtrigger_cb (ev::async &w, int revents);
   ev::async state_trigger;
   void state_trigger_cb (ev::async &w, int revents);
-  ev::timer start_timer;
-  void start_timer_cb (ev::timer &w, int revents);
-  float start_timeout;
 
   /** buffer queues for receiving from L2 */
   Queue < LDataPtr > buf;

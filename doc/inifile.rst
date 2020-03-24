@@ -100,6 +100,12 @@ The config file generation code tries to keep the generated file reasonably
 simple. Thus the "log" filters (unlike the "pace" filter) don't have a
 section of their own, because they don't have arguments.
 
+At startup, knxd will set up all configured drivers (unless they're
+marked with ``ignore``).
+If a driver fails, knxd will terminate with an error.
+Use the ``retry`` filter to modify this.
+
+
 main
 ====
 
@@ -382,47 +388,6 @@ These options apply to all drivers and servers.
   The driver is configured, but not started up automatically.
 
   *Note*: Starting up knxd still fails if there is a configuration error.
-
-* may-fail (bool; ``--arg=may-fail=true``)
-
-  If the driver doesn't initially start up, knxd will continue anyway
-  instead of terminating with an error.
-
-* retry-delay (int (seconds), ``--arg=retry-delay=NUM``)
-
-  If the driver fails to start (or dies), knxd will restart it after this
-  many seconds.
-
-  Default: zero: no restart.
-
-* max-retry (int, ``--arg=max-retry=NUM``)
-
-  The maximum number of retries before giving up.
-
-  Default: zero: infinite (if retry-delay is positive)
-
-* send-timeout (int (seconds), ``--arg=send-timeout=NUM``)
-
-  Transmission timeout. If a driver does not indicate that it's ready for
-  the next transmission after this many seconds, it will be marked as
-  failing.
-
-  Note that this value is ineffective when using the "queue" filter.
-
-  Default: 10 seconds.
-
-* start-timeout (int (seconds), ``--arg=start-timeout=NUM``)
-
-  Driver startup timeout. If a driver takes longer to start than this time,
-  it will be marked as failing.
-
-  Default: 30 seconds.
-
-If retrying is active but "may-fail" is false, the driver must start
-correctly when knxd starts up. It will only be restarted once knxd is,
-or rather has been, fully operative.
-
-A restarting driver will not participate in packet transmission.
 
 dummy
 -----
@@ -1027,6 +992,47 @@ knxd.
 Unlike the "single" filter, "remap" does not take an address parameter
 because its whole point is to use the address assigned to the link by knxd.
 
+retry
+-----
+
+If an interface fails, the default behavior is to terminate knxd.
+You can use this module to try to restart the interface instead.
+
+Also, this module can be used to restart an interface if transmission
+of a message takes longer than some predefined time.
+
+* max-retry (int, counter)
+
+  The maximum number of retries.
+ 
+  The default is zero: unlimited.
+
+* send-timeout (float, msec)
+
+  The time after which a message must have been transmitted.
+
+  The default is zero: no timeout.
+
+* start-timeout (float, msec)
+
+  The maximum time (re-)opening the interface may take.
+
+  The default is zero: no timeout.
+
+* flush (bool)
+
+  Flag whether to-be-transmitted packets are discarded while the interface is down.
+
+  The default is False: packet transmission will halt. You might want to use a ``queue``
+  filter in front of ``retry``.
+
+* may-fail (bool)
+
+  Flag whether the initial start of this driver may fail, i.e. this module
+  affects the driver's initial start-up.
+ 
+  The default is False, i.e. ``retry`` only kicks in after the driver is operational.
+
 queue
 -----
 
@@ -1038,6 +1044,7 @@ This filter implements a queue which decouples an interface, so that its
 speed does not affect the rest of the system.
 
 The "queue" filter does not yet have any parameters.
+
 
 pace
 ----

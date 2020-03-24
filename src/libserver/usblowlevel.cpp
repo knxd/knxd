@@ -270,21 +270,28 @@ USBLowLevelDriver::abort_send()
 }
 
 void
-USBLowLevelDriver::stop_()
+USBLowLevelDriver::stop_(bool force)
 {
-  TRACEPRINTF (t, 1, "Close");
+  TRACEPRINTF (t, 1, "Close G");
+  if(loop == nullptr)
+    return;
   stopping = true;
 
-  if (state > sClaimed)
-    state = sClaimed;
-  if (sendh)
-    libusb_cancel_transfer (sendh);
-  if (recvh)
-    libusb_cancel_transfer (recvh);
-  if (state > sClaimed)
-    state = sClaimed;
-//while (sendh || recvh)
-//  ev_run(EV_DEFAULT_ EVRUN_ONCE);
+  if (state > sReleasing)
+    {
+      state = sReleasing;
+      if (sendh)
+        libusb_cancel_transfer (sendh);
+      if (recvh)
+        libusb_cancel_transfer (recvh);
+    }
+
+  if(state == sReleasing && !force)
+    {
+      if (state == sReleasing && (sendh || recvh))
+        return;
+      LowLevelDriver::stop(stopped_err);
+    }
 
   TRACEPRINTF (t, 1, "Release");
   if (state > sStarted)
@@ -293,7 +300,11 @@ USBLowLevelDriver::stop_()
       libusb_attach_kernel_driver (dev, d.interface);
     }
   if (state > sNone)
-    libusb_close (dev);
+    {
+      sendh = nullptr;
+      recvh = nullptr;
+      libusb_close (dev);
+    }
   delete loop;
   loop = nullptr;
   reset();
@@ -302,15 +313,15 @@ USBLowLevelDriver::stop_()
 void
 USBLowLevelDriver::stop(bool err)
 {
-  stop_();
-  LowLevelDriver::stop(err);
+  stopped_err = err;
+  stop_(false);
 }
 
 USBLowLevelDriver::~USBLowLevelDriver ()
 {
   read_trigger.stop();
   write_trigger.stop();
-  stop_();
+  stop_(true);
 }
 
 void
@@ -351,32 +362,32 @@ USBLowLevelDriver::write_trigger_cb(ev::async &, int)
   TRACEPRINTF (t, 10, "SendComplete %lx %d", (unsigned long)sendh, sendh->actual_length);
   if (sendh == nullptr)
     return;
-  if (sendh->status == LIBUSB_TRANSFER_COMPLETED)
-    {
-      libusb_free_transfer (sendh);
-      send_retry = 0;
-      sendh = nullptr;
-      send_Next();
-      return;
-    }
-  if (sendh->status == LIBUSB_TRANSFER_TIMED_OUT && ++send_retry < 3)
-    {
-      ERRORPRINTF (t, E_WARNING | 122, "SendError %lx timeout, retrying", (unsigned long)sendh);
-      libusb_free_transfer (sendh);
-      sendh = nullptr;
-      do_send();
-      return;
-    }
-  if (sendh->status == LIBUSB_TRANSFER_CANCELLED)
-    {
-      ERRORPRINTF (t, E_ERROR | 35, "SendError %lx cancel", (unsigned long)sendh);
-      sendh = nullptr;
-      return;
-    }
-  ERRORPRINTF (t, E_ERROR | 35, "SendError %lx status %d", (unsigned long)sendh, sendh->status);
+  auto s = sendh->status;
+  libusb_free_transfer (sendh);
   sendh = nullptr;
-  stop(true); // TODO probably needs to be an async error
-  return;
+
+  if (stopping)
+    {
+      stop_(false);
+      return;
+    }
+  else if (s == LIBUSB_TRANSFER_COMPLETED)
+    {
+      send_retry = 0;
+      send_Next();
+    }
+  else if (s == LIBUSB_TRANSFER_TIMED_OUT && ++send_retry < 3)
+    {
+      ERRORPRINTF (t, E_WARNING | 122, "SendError timeout, retrying");
+      do_send();
+    }
+  else if (s == LIBUSB_TRANSFER_CANCELLED)
+    ERRORPRINTF (t, E_ERROR | 35, "SendError cancel");
+  else
+    {
+      ERRORPRINTF (t, E_ERROR | 35, "SendError status %d", s);
+      stop(true); // TODO probably needs to be an async error
+    }
 }
 
 void
@@ -409,29 +420,27 @@ USBLowLevelDriver::read_trigger_cb(ev::async &, int)
   if (recvh == nullptr)
     return;
 
-  if (recvh->status == LIBUSB_TRANSFER_CANCELLED)
+  if (stopping)
     {
-      ERRORPRINTF (t, E_WARNING | 134, "Recv Canceled");
+      libusb_free_transfer (recvh);
       recvh = nullptr;
+      stop_(false);
       return;
     }
-  if (recvh->status != LIBUSB_TRANSFER_COMPLETED)
+
+  if (recvh->status == LIBUSB_TRANSFER_CANCELLED)
+    ERRORPRINTF (t, E_WARNING | 134, "Recv Canceled");
+  else if (recvh->status != LIBUSB_TRANSFER_COMPLETED)
     {
       ERRORPRINTF (t, E_WARNING | 123, "RecvError %d", recvh->status);
-      recvh = nullptr;
       stop(true);
       return;
     }
   else
     HandleReceiveUsb();
 
-  if (state > sNone && !stopping)
+  if (state > sNone)
     StartUsbRecvTransfer();
-  else
-    {
-      libusb_free_transfer (recvh);
-      recvh = nullptr;
-    }
 }
 
 
@@ -491,7 +500,7 @@ USBLowLevelDriver::HandleReceiveUsb()
         {
           state = sRunning;
           ERRORPRINTF(t, E_ERROR | 101, "No connection");
-          stop(true); // XXX TODO signal async error instead
+          stop(true);
         }
     }
 }

@@ -184,7 +184,7 @@ FT12wrap::stop_()
 void
 FT12wrap::stop(bool err)
 {
-  TRACEPRINTF (t, 1, "Close");
+  TRACEPRINTF (t, 1, "Close B");
 
   stop_();
   LowLevelFilter::stop(err);

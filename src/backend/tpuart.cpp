@@ -163,7 +163,7 @@ TPUARTwrap::setup()
 
 TPUARTwrap::~TPUARTwrap ()
 {
-  TRACEPRINTF (t, 2, "Close");
+  TRACEPRINTF (t, 2, "Close C");
 
   timer.stop();
   sendtimer.stop();

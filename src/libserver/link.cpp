@@ -61,8 +61,6 @@ Driver::assureFilter(std::string name, bool first)
 
 LinkConnect::~LinkConnect()
 {
-  retry_timer.stop();
-
   if (addr && addr_local)
     static_cast<Router &>(router).release_client_addr(addr);
 }
@@ -94,7 +92,6 @@ LinkConnect::LinkConnect(BaseRouter& r, IniSectionPtr& c, TracePtr tr)
 {
   t->setAuxName("Conn");
   //Router& rt = dynamic_cast<Router&>(r);
-  retry_timer.set <LinkConnect,&LinkConnect::retry_timer_cb> (this);
 }
 
 const char *
@@ -132,11 +129,8 @@ LinkConnect::setState(LConnState new_state)
 
   LConnState old_state = state;
   const char *osn = stateName();
-  state = new_state;
+ state = new_state;
   TRACEPRINTF(t, 5, "%s => %s", osn, stateName());
-
-  if (old_state == L_wait_retry || old_state == L_going_up || (old_state == L_up && new_state != L_up))
-    retry_timer.stop();
 
   switch(old_state)
     {
@@ -172,11 +166,12 @@ LinkConnect::setState(LConnState new_state)
           state = L_up;
           break;
         case L_going_down:
-        case L_down:
           stop(false);
           break;
+        case L_down:
+          goto retry;
         case L_error:
-          state = L_up_error;
+          state = L_error;
           break;
         default:
           goto inval;
@@ -194,7 +189,7 @@ LinkConnect::setState(LConnState new_state)
         case L_down:
           goto retry;
         case L_error:
-          state = L_up_error;
+          state = L_error;
           break;
         default:
           goto inval;
@@ -274,7 +269,6 @@ retry:
     {
       TRACEPRINTF (t, 5, "retry in %d sec", retry_delay);
       state = L_wait_retry;
-      retry_timer.start (retry_delay,0);
     }
   else
     {
@@ -283,27 +277,6 @@ retry:
       state = L_error;
       static_cast<Router&>(router).linkStateChanged(std::dynamic_pointer_cast<LinkConnect>(shared_from_this()));
     }
-}
-
-void
-LinkConnect::retry_timer_cb (ev::timer &, int)
-{
-  if (state == L_up && !send_more)
-    {
-      ERRORPRINTF (t, E_ERROR | 55, "Driver timed out trying to send (%s)", cfg->name);
-      stop(true);
-      return;
-    }
-  if (state == L_going_up)
-    {
-      ERRORPRINTF (t, E_ERROR | 133, "Driver timed out trying to restart", cfg->name);
-      errored();
-      return;
-    }
-  if (state != L_wait_retry)
-    return;
-  retries++;
-  setState(L_going_up);
 }
 
 void
@@ -329,7 +302,6 @@ LinkConnect::start()
 {
   TRACEPRINTF(t, 5, "Starting");
   send_more = true;
-  changed = time(NULL);
   LinkConnect_::start();
 }
 
@@ -343,8 +315,7 @@ LinkConnect_::start()
 void
 LinkConnect::stop(bool err)
 {
-  TRACEPRINTF(t, 5, "Stopping");
-  changed = time(NULL);
+  TRACEPRINTF(t, 5, "L Stopping");
   LinkConnect_::stop(err);
 }
 
@@ -411,7 +382,6 @@ LinkConnect::setup()
   may_fail = cfg->value("may-fail",false);
   retry_delay = cfg->value("retry-delay",0);
   max_retries = cfg->value("max-retry",0);
-  send_timeout = cfg->value("send-timeout", 10);
   return true;
 }
 
@@ -489,7 +459,6 @@ void
 LinkConnect::started()
 {
   setState(L_up);
-  changed = time(NULL);
   TRACEPRINTF(t, 5, "Started");
 }
 
@@ -497,8 +466,6 @@ void
 LinkConnect::send_Next()
 {
   send_more = true;
-  if (state == L_up)
-    retry_timer.stop();
   TRACEPRINTF(t, 6, "sendNext called, send_more set");
   static_cast<Router&>(router).send_Next();
 }
@@ -508,7 +475,6 @@ LinkConnect::send_L_Data (LDataPtr l)
 {
   send_more = false;
   assert (state == L_up);
-  retry_timer.start(send_timeout,0);
   TRACEPRINTF(t, 6, "sending, send_more clear");
   LinkConnect_::send_L_Data(std::move(l));
 }

@@ -165,6 +165,7 @@ USBDriver::started()
     {
       version = vDiscovery;
       timeout.set<USBDriver,&USBDriver::timeout_cb>(this);
+      is_local = false; // was set by xmit => send_Local
       xmit();
       return;
     }

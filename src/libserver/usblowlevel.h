@@ -57,6 +57,7 @@ enum UState
 {
   sNone = 0,
   sStarted,
+  sReleasing,
   sClaimed,
   sRunning,
   sConnected,
@@ -93,6 +94,7 @@ private:
 
   UState state = sNone;
   bool stopping = false;
+  bool stopped_err = false;
   uint8_t sendbuf[64];
   uint8_t recvbuf[64];
   bool startUsbRecvTransferFailed = false;
@@ -105,7 +107,7 @@ private:
   virtual void reset();
   void do_send();
   void do_send_Next();
-  void stop_();
+  void stop_(bool force);
 
   // need to do the trigger callbacks outside of libusb
   ev::async read_trigger;

@@ -182,7 +182,6 @@ Router::Router (IniData& d, std::string sn) : BaseRouter(d)
   trigger.set<Router, &Router::trigger_cb>(this);
   mtrigger.set<Router, &Router::mtrigger_cb>(this);
   state_trigger.set<Router, &Router::state_trigger_cb>(this);
-  start_timer.set<Router, &Router::start_timer_cb>(this);
   trigger.start();
   mtrigger.start();
   state_trigger.start();
@@ -200,12 +199,6 @@ Router::setup()
   force_broadcast = s->value("force-broadcast", false);
   unknown_ok = s->value("unknown-ok", false);
 
-  start_timeout = s->value("timeout",0);
-  if (std::isnan(start_timeout) || start_timeout < 0)
-    {
-      ERRORPRINTF (t, E_ERROR | 83, "timeout must be >0");
-      goto ex;
-    }
   x = s->value("addr","");
   if (!x.size())
     {
@@ -404,8 +397,6 @@ Router::start()
 
   TRACEPRINTF (t, 4, "trigger going up");
   r_low->start();
-  if (start_timeout > 0)
-    start_timer.start(start_timeout);
 }
 
 void
@@ -529,7 +520,7 @@ Router::state_trigger_cb (ev::async &, int)
       {
       case L_down:
       case L_error:
-        if (!ii->may_fail && !ii->ignore)
+        if (!ii->may_fail && !ii->ignore && !ii->can_retry())
           {
             TRACEPRINTF (ii->t, 4, "is %s", ii->stateName());
             n_down++;
@@ -590,18 +581,7 @@ Router::state_trigger_cb (ev::async &, int)
   if (osrn && !some_running)
     r_high->stopped(false);
   else if (!oarn && all_running)
-    {
-      r_high->started();
-      start_timer.stop();
-    }
-}
-
-void
-Router::start_timer_cb(ev::timer &, int)
-{
-  ERRORPRINTF (t, E_ERROR | 92, "Startup not successful.");
-  stop(true);
-  // TODO only halt failing drivers
+    r_high->started();
 }
 
 void
@@ -639,7 +619,7 @@ Router::stop_(bool err)
         auto ii = i->second;
         if (ii->seq >= seq)
           continue; // already told it
-        TRACEPRINTF (ii->t, 4, "Stopping");
+        TRACEPRINTF (ii->t, 4, "R Stopping");
         seen = true;
         ii->seq = seq;
         ii->setState(L_going_down);
@@ -688,7 +668,6 @@ Router::~Router()
   trigger.stop();
   mtrigger.stop();
   state_trigger.stop();
-  start_timer.stop();
 
   R_ITER(i,vbusmonitor)
   ERRORPRINTF (t, E_WARNING | 55, "VBusmonitor '%s' didn't de-register!", i->cb->name);

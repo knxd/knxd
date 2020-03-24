@@ -473,10 +473,6 @@ public:
   bool is_local = false;
   /** address assigned to this link */
   eibaddr_t addr = 0;
-  /** Timeout for transmission */
-  int send_timeout = 10;
-  /** Timeout for starting a driver */
-  int start_timeout = 30;
 
   /** current state */
   LConnState state = L_down;
@@ -494,11 +490,6 @@ public:
   int pos = 0;
   /** last state change */
   time_t changed = 0;
-  /** retry timer */
-  int retry_delay = 0;
-  /** how often …? */
-  int retries = 0;
-  int max_retries = 0;
 
   /** This is the main flow control mechanism. Whenever "send_more" is set,
    * the router may call "send_L_Data" ONCE. It must then wait for
