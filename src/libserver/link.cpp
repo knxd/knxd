@@ -113,8 +113,6 @@ LinkConnect::stateName()
       return "up/error";
     case L_going_down_error:
       return ">down/error";
-    case L_wait_retry:
-      return "error/retry";
     default:
       abort();
       return "?!?";
@@ -169,7 +167,7 @@ LinkConnect::setState(LConnState new_state)
           stop(false);
           break;
         case L_down:
-          goto retry;
+          break;
         case L_error:
           state = L_error;
           break;
@@ -181,29 +179,14 @@ LinkConnect::setState(LConnState new_state)
       switch(new_state)
         {
         case L_up:
-          retries = 0;
           break;
         case L_going_down:
           stop(false);
           break;
         case L_down:
-          goto retry;
+          break;
         case L_error:
           state = L_error;
-          break;
-        default:
-          goto inval;
-        }
-      break;
-    case L_wait_retry:
-      switch(new_state)
-        {
-        case L_going_up:
-          start();
-          break;
-        case L_going_down:
-          TRACEPRINTF(t, 5, "retrying halted");
-          state = L_down;
           break;
         default:
           goto inval;
@@ -212,15 +195,13 @@ LinkConnect::setState(LConnState new_state)
     case L_error:
       switch(new_state)
         {
-        case L_wait_retry:
-          goto retry;
         case L_error:
           break;
         case L_going_down:
           state = L_error;
           break;
         case L_down:
-          goto retry;
+          break;
         default:
           goto inval;
         }
@@ -233,7 +214,6 @@ LinkConnect::setState(LConnState new_state)
           stop(true);
           break;
         case L_down:
-          goto retry;
           break;
         case L_error:
           break;
@@ -245,7 +225,6 @@ LinkConnect::setState(LConnState new_state)
       switch(new_state)
         {
         case L_down:
-          goto retry;
         case L_error:
           break;
         case L_going_down:
@@ -263,20 +242,6 @@ inval:
   ERRORPRINTF (t, E_ERROR | 60, "invalid transition: %s => %s", osn, stateName());
   abort();
   return;
-
-retry:
-  if ((retry_delay > 0 && !max_retries) || retries < max_retries)
-    {
-      TRACEPRINTF (t, 5, "retry in %d sec", retry_delay);
-      state = L_wait_retry;
-    }
-  else
-    {
-      if (retry_delay > 0)
-        TRACEPRINTF (t, 5, "retrying finished");
-      state = L_error;
-      static_cast<Router&>(router).linkStateChanged(std::dynamic_pointer_cast<LinkConnect>(shared_from_this()));
-    }
 }
 
 void
@@ -379,9 +344,9 @@ LinkConnect::setup()
     return false;
 
   ignore = cfg->value("ignore",false);
-  may_fail = cfg->value("may-fail",false);
-  retry_delay = cfg->value("retry-delay",0);
-  max_retries = cfg->value("max-retry",0);
+  x_may_fail = cfg->value("may-fail",false);
+  x_max_retries = cfg->value("max-retries",-1);
+  x_retry_delay = cfg->value("retry-delay",0.);
   return true;
 }
 

@@ -24,7 +24,7 @@
 #include "cm_tp1.h"
 
 EIBNetIPRouter::EIBNetIPRouter (const LinkConnectPtr_& c, IniSectionPtr& s)
-  : BusDriver(c,s)
+  : HWBusDriver(c,s)
 {
   t->setAuxName("ip");
 }
@@ -66,7 +66,7 @@ EIBNetIPRouter::start()
   if (!sock->SetMulticast (mcfg))
     goto err_out;
   TRACEPRINTF (t, 2, "Opened");
-  BusDriver::start();
+  HWBusDriver::start();
   return;
 
 err_out:
@@ -79,7 +79,7 @@ void
 EIBNetIPRouter::stop(bool err)
 {
   stop_();
-  BusDriver::stop(err);
+  HWBusDriver::stop(err);
 }
 
 void
@@ -103,7 +103,7 @@ EIBNetIPRouter::setup()
 {
   if (!assureFilter("pace"))
     return false;
-  if(!BusDriver::setup())
+  if(!HWBusDriver::setup())
     return false;
   multicastaddr = cfg->value("multicast-address","224.0.23.12");
   port = cfg->value("port",3671);

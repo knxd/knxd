@@ -25,7 +25,7 @@
 #include "nat.h"
 
 EIBNetIPTunnel::EIBNetIPTunnel (const LinkConnectPtr_& c, IniSectionPtr& s)
-  : BusDriver(c,s)
+  : HWBusDriver(c,s)
 {
   t->setAuxName("ipt");
 }
@@ -50,7 +50,7 @@ void EIBNetIPTunnel::stop(bool err)
 {
   restart();
   is_stopped();
-  BusDriver::stop(err);
+  HWBusDriver::stop(err);
 }
 
 bool
@@ -60,7 +60,7 @@ EIBNetIPTunnel::setup()
   if (!assureFilter("queue", true))
     return false;
 
-  if (!BusDriver::setup())
+  if (!HWBusDriver::setup())
     return false;
   dest = cfg->value("ip-address","");
   if (!dest.size())
@@ -223,7 +223,7 @@ EIBNetIPTunnel::read_cb (EIBNetIPPacket *p1)
       if (heartbeat_time)
         conntimeout.start(heartbeat_time,0);
       heartbeat = 0;
-      BusDriver::start();
+      HWBusDriver::start();
       break;
     }
     case TUNNEL_REQUEST:

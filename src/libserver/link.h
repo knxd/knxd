@@ -56,14 +56,14 @@
  *           i.e. anything that's not a driver (those get their packets
  *           from somewhere else).
  *
- * LinkConnect: class that holds a reference to the driver stack;
+ * LinkConnect(LinkRecv): class that holds a reference to the driver stack;
  *              this is what the Router talks to
  *
  * LinkConnectClient: a LinkConnect that was created by a server's new connection
  *
  * LinkConnectSingle: a LinkConnectClient guaranteed to only have one address
  *
- * Driver: an interface to the outside world, created by configuration
+ * Driver(LinkBase): an interface to the outside world, created by configuration
  *
  * LineDriver: base class for the driver that's linked to a LinkConnectClient
  *             an address gets assigned when connecting
@@ -71,7 +71,7 @@
  *
  * Filter(LinkRecv): able to modify packets
  *
- * Server: creates new LinkConnect+Filter+Driver stacks on demand.
+ * Server(LinkConnect): creates new LinkConnect+Filter+Driver stacks on demand.
  *         It is a LinkConnect subclass by convenience, because
  *         that way the router only needs one loop.
  *
@@ -80,13 +80,13 @@
  *
  * Setup: Router calls LinkConnect(*this, ini_section)
  *
- *        LinkConnect looks up the drivers and filters, links them,
+ *        LinkConnect looks up the driver and its filters, links them,
  *        and calls setup() on each member.
  *        setup() is synchronous. Do not connect to external servers here.
  *
  * Start: Filters call start()/stop() on the next element of the chain.
- *        The driver is responsible for calling started() or stopped().
- *        That call propagates down the stack, LinkConnect forwards to
+ *        The driver is responsible for calling started() or stopped() back.
+ *        That call propagates down the stack, LinkConnect forwards it to
  *        the router.
  *
  *        Starting is asynchronous but must complete eventually.
@@ -427,11 +427,10 @@ private:
 
 /* The link connection state tells what the link's state is.
 
-  down => going_up => up => going_down => down     _ L_error
-             |        |          |                /  (if no (more) retry)
-  error::    V        V          V               /
-             \- L_up_error => L_going_down_error => L_wait_retry => L_going_up
-                                                    (if retry)
+  down => going_up => up => going_down => down
+             |        |          |
+  error::    V        V          V
+             \- L_up_error => L_going_down_error => L_error
  */
 enum LConnState
 {
@@ -439,7 +438,6 @@ enum LConnState
   L_going_down,
   L_up,
   L_going_up,
-  L_wait_retry,
   L_error,
   L_up_error,
   L_going_down_error,
@@ -467,8 +465,6 @@ public:
   bool ignore = false;
   /** client: don't shutdown when this connection ends */
   bool transient = false;
-  /** Ignore startup failures */
-  bool may_fail = false;
   /** originates with my own address */
   bool is_local = false;
   /** address assigned to this link */
@@ -522,6 +518,11 @@ public:
   virtual void recv_L_Busmonitor (LBusmonPtr l); // { l3.recv_L_Busmonitor(std::move(l), this); }
   virtual bool checkSysAddress(eibaddr_t addr);
   virtual bool checkSysGroupAddress(eibaddr_t addr);
+
+  /** Compatibility with older config files */
+  bool x_may_fail = false;
+  float x_retry_delay = 0;
+  int x_max_retries = -1;
 
 private:
   ev::timer retry_timer;
@@ -743,7 +744,7 @@ protected:
 };
 
 #define DDRIVER(_cls,_name) \
-class _cls : public BusDriver
+class _cls : public HWBusDriver
 #define DDRIVER_(_cls,_base,_name) \
 class _cls : public _base
 
@@ -751,7 +752,7 @@ class _cls : public _base
 static constexpr const char _cls##_name[] = #_name; \
 class _cls; \
 static AutoRegister<_cls,Driver,_cls##_name> _auto_D_##_name; \
-class _cls : public BusDriver
+class _cls : public HWBusDriver
 
 #define RDRIVER_(_cls,_base,_name) \
 static constexpr const char _cls##_name[] = #_name; \
@@ -862,6 +863,16 @@ public:
 
 private:
   std::vector<bool> addrs;
+};
+
+/** Base class for drivers with retry-able busses behind them */
+class HWBusDriver : public BusDriver
+{
+public:
+  HWBusDriver(const LinkConnectPtr_& c, IniSectionPtr& s) : BusDriver(c,s) {}
+  virtual ~HWBusDriver() = default;
+
+  virtual bool setup(); // sets up the retry filter
 };
 
 /** Base class for server-linked drivers with busses behind them */

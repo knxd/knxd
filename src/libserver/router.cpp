@@ -486,7 +486,7 @@ Router::state_trigger_cb (ev::async &, int)
   while (!linkChanges.empty())
     {
       LinkConnectPtr l = linkChanges.get();
-      if (!want_up && l->state != L_down && l->state < L_wait_retry)
+      if (!want_up && l->state != L_down && l->state < L_error)
         l->setState(L_going_down); // again, for good measure
     }
 
@@ -520,7 +520,7 @@ Router::state_trigger_cb (ev::async &, int)
       {
       case L_down:
       case L_error:
-        if (!ii->may_fail && !ii->ignore && !ii->can_retry())
+        if (!ii->ignore)
           {
             TRACEPRINTF (ii->t, 4, "is %s", ii->stateName());
             n_down++;
@@ -531,9 +531,6 @@ Router::state_trigger_cb (ev::async &, int)
         break;
       case L_up_error:
       case L_going_down_error:
-      case L_wait_retry:
-        if (ii->may_fail)
-          continue;
       default:
         TRACEPRINTF (ii->t, 4, "state is %s", ii->stateName());
         n_going++;
@@ -570,7 +567,7 @@ Router::state_trigger_cb (ev::async &, int)
           {
           case L_down:
           case L_error:
-            if (!ii->may_fail && !ii->ignore)
+            if (!ii->ignore)
               ERRORPRINTF (ii->t, E_FATAL | 105, "Link down, terminating");
           }
       }

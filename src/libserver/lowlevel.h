@@ -340,7 +340,7 @@ protected:
 /** Base class for accepting a high-level KNX packet and forwarding it to
  * a LowLevelDriver
  */
-class LowLevelAdapter : public BusDriver, public LowLevelIface
+class LowLevelAdapter : public HWBusDriver, public LowLevelIface
 {
 public:
   TracePtr tr() const
@@ -348,7 +348,7 @@ public:
     return t;
   }
 
-  LowLevelAdapter(const LinkConnectPtr_& c, IniSectionPtr& s) : BusDriver(c,s),LowLevelIface()
+  LowLevelAdapter(const LinkConnectPtr_& c, IniSectionPtr& s) : HWBusDriver(c,s),LowLevelIface()
   {
     t->setAuxName("LowA");
   }
@@ -360,7 +360,7 @@ public:
       return false;
     if (!iface->setup())
       goto ex;
-    if (!BusDriver::setup())
+    if (!HWBusDriver::setup())
       goto ex;
     return true;
 
@@ -389,11 +389,11 @@ ex:
   void send_L_Data(LDataPtr l);
   void recv_L_Data(LDataPtr l)
   {
-    BusDriver::recv_L_Data(std::move(l));
+    HWBusDriver::recv_L_Data(std::move(l));
   }
   void recv_L_Busmonitor(LBusmonPtr l)
   {
-    BusDriver::recv_L_Busmonitor(std::move(l));
+    HWBusDriver::recv_L_Busmonitor(std::move(l));
   }
 
   void recv_Data(CArray& c)
@@ -407,41 +407,41 @@ ex:
 
   void started()
   {
-    BusDriver::started();
+    HWBusDriver::started();
   }
   void stopped(bool err)
   {
-    BusDriver::stopped(err);
+    HWBusDriver::stopped(err);
   }
   void do_send_Next()
   {
-    BusDriver::send_Next();
+    HWBusDriver::send_Next();
   }
   void do_send_Local(CArray &d, int raw);
 
   FilterPtr findFilter(std::string name)
   {
-    return BusDriver::findFilter(name);
+    return HWBusDriver::findFilter(name);
   }
 
   virtual bool checkAddress(eibaddr_t addr) const
   {
-    return BusDriver::checkAddress(addr);
+    return HWBusDriver::checkAddress(addr);
   }
 
   virtual bool checkGroupAddress(eibaddr_t addr) const
   {
-    return BusDriver::checkGroupAddress(addr);
+    return HWBusDriver::checkGroupAddress(addr);
   }
 
   virtual bool checkSysAddress(eibaddr_t addr)
   {
-    return BusDriver::checkSysAddress(addr);
+    return HWBusDriver::checkSysAddress(addr);
   }
 
   virtual bool checkSysGroupAddress(eibaddr_t addr)
   {
-    return BusDriver::checkSysGroupAddress(addr);
+    return HWBusDriver::checkSysGroupAddress(addr);
   }
 
 protected:

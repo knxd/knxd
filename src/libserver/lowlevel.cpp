@@ -223,3 +223,13 @@ FDdriver::read_cb(uint8_t *buf, size_t len)
   return len;
 }
 
+bool
+HWBusDriver::setup()
+{
+  if (! BusDriver::setup())
+    return false;
+  if (! assureFilter("retry"))
+    return false;
+  return true;
+}
+

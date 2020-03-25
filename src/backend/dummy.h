@@ -25,7 +25,7 @@
 DRIVER(DummyL2Driver,dummy)
 {
 public:
-  DummyL2Driver (const LinkConnectPtr_& c, IniSectionPtr& s) : BusDriver(c,s) {}
+  DummyL2Driver (const LinkConnectPtr_& c, IniSectionPtr& s) : HWBusDriver(c,s) {}
   virtual ~DummyL2Driver () = default;
 
   void send_L_Data (LDataPtr)
@@ -34,7 +34,7 @@ public:
   }
   bool setup()
   {
-    if (!BusDriver::setup())
+    if (!HWBusDriver::setup())
       return false;
     return true;
   }

@@ -33,7 +33,6 @@ enum RSTATE
   R_DOWN,       // not running
   R_GOING_UP,   // in startup
   R_UP,         // running, no packet submitted
-  R_WAIT,       // running, packet submitted
   R_GOING_DOWN, // in shutdown
   R_GOING_ERROR,// in shutdown after error
   R_ERROR,      // not running, had error
@@ -41,22 +40,30 @@ enum RSTATE
 
 FILTER(RetryFilter, retry)
 {
+  friend class LinkConnect;
+
   enum RSTATE state;
   ev::async trigger;
   void trigger_cb (ev::async &w, int revents);
   ev::timer timeout;
   void timeout_cb (ev::timer &w, int revents);
 
+  // if true, throw away messages while starting up
   bool flush = false;
+  // if true, retry on initial startup error
   bool may_fail = false;
   int max_retry = 0;
-  int open_timeout = 0;
-  int send_timeout = 0;
+  float retry_delay = 1;
+  float start_timeout = 10;
+  float send_timeout = 5;
 
+  // signalled from router?
   bool want_up = false;
   int retries = 0;
+  // storage for in-flight transmitted message
   LDataPtr msg = nullptr;
 
+  // internal stop handler
   void stop_(bool err);
 
 public:

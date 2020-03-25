@@ -198,7 +198,7 @@ void
 USBDriver::do_send_Next()
 {
   if (version >= vEMI1 && version <= vCEMI)
-    BusDriver::send_Next();
+    HWBusDriver::send_Next();
 }
 
 void

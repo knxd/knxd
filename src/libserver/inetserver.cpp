@@ -51,7 +51,7 @@ InetServer::start()
 
   if (ignore_when_systemd && static_cast<Router &>(router).using_systemd)
     {
-      may_fail = true;
+      ignore = true;
       stopped(true);
       return;
     }

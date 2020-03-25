@@ -555,12 +555,12 @@ The following options control repetition of unacknowledged packets. They
 also apply to the "ft12" and "ft12cemi" drivers which wrap EMI1 / CEMI data
 in a serial protocol.
 
-* send-timeout (int; ``--send-delay=MSEC``)
+* send-timeout (int; ``--send-timeout=MSEC``)
 
   USB devices confirm packet transmission. This option controls how long
   to wait until proceeding. A warning is printed when that happens.
 
-  The default is 0.3 seconds.
+  The default is 300 milliseconds.
 
   Note that this driver's old "send-delay" option is misnamed, as the
   timeout is pre-emted when the remote side signals that is has accepted
@@ -995,43 +995,66 @@ because its whole point is to use the address assigned to the link by knxd.
 retry
 -----
 
-If an interface fails, the default behavior is to terminate knxd.
-You can use this module to try to restart the interface instead.
+If a driver fails, the default behavior is to terminate knxd.
+You can use this module to restart the driver instead.
 
-Also, this module can be used to restart an interface if transmission
+Also, this module can be used to restart a driver if transmission
 of a message takes longer than some predefined time.
 
-* max-retry (int, counter)
+This module is transparently inserted in front of line drivers.
 
-  The maximum number of retries.
+* max-retries (int, counter)
+
+  The maximum number of retries when opening a driver or sending a packet.
  
-  The default is zero: unlimited.
+  The default is one: if the first attempt fails, the error is propagated
+  to the router. Set to zero if the number of retries should not be limited.
 
-* send-timeout (float, msec)
+  For compatibility with older configuration, this option may be used
+  on the driver.
 
-  The time after which a message must have been transmitted.
+* retry-delay (float, seconds)
+
+  The time before (re-)opening the driver when a failure occurred.
 
   The default is zero: no timeout.
 
-* start-timeout (float, msec)
+  For compatibility with older configuration, this option may be used
+  on the driver.
 
-  The maximum time (re-)opening the interface may take.
+* send-timeout (float, seconds)
+
+  The time after which a message must have been transmitted.
+  Otherwise the driver is closed and re-opened.
+
+  The default is zero: no timeout.
+
+  This option is also accepted on some drivers, but the semantics is
+  different: the ``retry`` filter always restarts the driver before
+  retrying, whereas the driver should assume a soft transmission error.
+
+* start-timeout (float, seconds)
+
+  The maximum time (re-)opening the driver may take.
 
   The default is zero: no timeout.
 
 * flush (bool)
 
-  Flag whether to-be-transmitted packets are discarded while the interface is down.
+  Flag whether to-be-transmitted packets are discarded while the driver is down.
 
   The default is False: packet transmission will halt. You might want to use a ``queue``
   filter in front of ``retry``.
 
 * may-fail (bool)
 
-  Flag whether the initial start of this driver may fail, i.e. this module
+  Flag whether the initial start of this driver may fail, i.e. if set, this module
   affects the driver's initial start-up.
  
-  The default is False, i.e. ``retry`` only kicks in after the driver is operational.
+  The default is False, i.e. retrying only kicks in after the driver is operational.
+
+  For compatibility with older configuration, this option may be used
+  on the driver.
 
 queue
 -----
