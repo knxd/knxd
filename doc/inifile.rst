@@ -306,7 +306,10 @@ A "debug" section may contain these options:
 
       "packet-level tracing" does *not* include the data / control messages
       that are exchanged between the KNXD core and one of its drivers. You
-      should thus also add ``-B log``.
+      need to also add ``-B log`` if you want to see what's going on.
+      
+      This is not the default because you often need different subsets for
+      verbosity and messaging.
  
 .. Note::
 
@@ -399,11 +402,13 @@ It does not have any options.
 ip
 --
 
-This driver attaches to the multicast system. It is a minimal version of
-the "router" server's routing code (no tunnel server, no discovery).
+This driver attaches to the IP multicast system. It is a minimal version of
+the ``ets_router`` server's routing code (no tunnel server, no autodiscovery).
 
-Never use this driver and the "ets_router" server on the same multicast
-address.
+.. Warning::
+
+    **Never** use this driver and the ``ets_router`` server at the same time (unless you
+    specify different multicast addresses).
 
 * multicast-address (string: IP address)
 
@@ -423,6 +428,12 @@ address.
 
   Optional; the default is the first broadcast-capable interface on your
   system, or the interface which your default route uses.
+
+.. Note::
+
+    You **must** use a multicast address here. Direct links to Ip
+    interfaces are called "tunnels" and accessed with the ``ipt`` driver,
+    below.
 
 ipt
 ---
@@ -488,6 +499,12 @@ The following options are not recognized unless "nat" is set.
   ??
   
   Mandatory if "nat" is set, otherwise disallowed.
+
+.. Note::
+
+    You **must not** use a multicast address here. Using multicast links
+    is called "routing"; multicast is accessed either with the ``ip``
+    driver, above, or the ``ets_router`` server, below.
 
 iptn
 ----
@@ -777,8 +794,10 @@ ets_router
 The "ets_router" server allows clients to discover knxd and to connect to it
 with the standardized KNX tunneling or routing protocols.
 
-*Do not* use this server and the "ip" driver at the same time (unless you
-specify different multicast addresses).
+.. Warning::
+
+    **Never** use this server and the ``ip`` driver at the same time (unless you
+    specify different multicast addresses).
 
 * tunnel (str; ``-T|--Tunnelling``)
 
