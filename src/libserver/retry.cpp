@@ -55,8 +55,8 @@ RetryFilter::setup()
   may_fail = cfg->value("may-fail", c->x_may_fail);
   max_retry = cfg->value("max-retries", (c->x_max_retries < 0) ? 1 : c->x_max_retries);
   retry_delay = cfg->value("retry-delay", c->x_retry_delay);
-  send_timeout = cfg->value("send-timeout", 0.);
-  start_timeout = cfg->value("start-timeout", 0.);
+  send_timeout = cfg->value("send-timeout", 5.);
+  start_timeout = cfg->value("start-timeout", 10.);
   return true;
 }
 
