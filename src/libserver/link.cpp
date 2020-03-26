@@ -346,7 +346,7 @@ LinkConnect::setup()
   ignore = cfg->value("ignore",false);
   x_may_fail = cfg->value("may-fail",false);
   x_max_retries = cfg->value("max-retries",-1);
-  x_retry_delay = cfg->value("retry-delay",0.);
+  x_retry_delay = cfg->value("retry-delay",1.);
   return true;
 }
 
