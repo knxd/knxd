@@ -170,7 +170,7 @@ RetryFilter::stop_(bool err)
 void
 RetryFilter::stopped(bool err)
 {
-  if (! want_up)
+  if (! want_up || !err)
     goto off;
 
   switch(state)
@@ -179,11 +179,11 @@ RetryFilter::stopped(bool err)
     case R_UP:
       state = R_ERROR;
       if (!retries && !may_fail)
-        goto off;
+        goto off2;
 
       retries++;
       if (max_retry && (retries >= max_retry))
-        goto off;
+        goto off2;
 
       if (msg && flush)
         {
@@ -199,7 +199,12 @@ RetryFilter::stopped(bool err)
 
 off:
   state = R_DOWN;
-  msg = nullptr;
+off2:
+  if (msg)
+    {
+      msg = nullptr;
+      Filter::send_Next();
+    }
   Filter::stopped(err);
 }
 
