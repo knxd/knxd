@@ -108,9 +108,9 @@ LinkConnect::stateName()
     case L_going_up:
       return ">up";
     case L_error:
-      return "down/error";
-    case L_going_down_error:
-      return ">down/error";
+      return "error";
+    case L_going_error:
+      return ">error";
     default:
       abort();
       return "?!?";
@@ -147,7 +147,7 @@ LinkConnect::setState(LConnState new_state)
       switch(new_state)
         {
         case L_error:
-          state = L_going_down_error;
+          state = L_going_error;
           break;
         case L_down:
           break;
@@ -204,14 +204,14 @@ LinkConnect::setState(LConnState new_state)
           goto inval;
         }
       break;
-    case L_going_down_error:
+    case L_going_error:
       switch(new_state)
         {
         case L_down:
         case L_error:
           break;
         case L_going_down:
-          state = L_going_down_error;
+          state = L_going_error;
           break;
         default:
           goto inval;

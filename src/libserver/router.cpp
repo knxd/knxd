@@ -480,14 +480,15 @@ Router::state_trigger_cb (ev::async &, int)
   int n_up = 0;
   int n_going = 0;
   int n_down = 0;
+  int n_error = 0;
 
   TRACEPRINTF (t, 4, "check start");
 
   while (!linkChanges.empty())
     {
       LinkConnectPtr l = linkChanges.get();
-      if (!want_up && l->state != L_down && l->state < L_error)
-        l->setState(L_going_down); // again, for good measure
+      if (!want_up && l->state >= L_up)
+        l->setState(L_going_down);
     }
 
   ITER(i,links)
@@ -497,7 +498,7 @@ Router::state_trigger_cb (ev::async &, int)
 
     if (ii->transient)
       {
-        if (!want_up && lcs != L_down && lcs != L_error)
+        if (!want_up && lcs >= L_up)
           {
             ii->setState(L_going_down);
             n_going ++;
@@ -505,44 +506,36 @@ Router::state_trigger_cb (ev::async &, int)
         continue;
       }
 
-    switch(lcs)
-      {
-      case L_going_down_error:
-        ii->stop(true);
-        break;
-      default:
-        break;
-      }
-
     lcs = ii->state;
     switch(lcs)
       {
       case L_down:
+        TRACEPRINTF (ii->t, 4, "is %s", ii->stateName());
+        if (!ii->ignore)
+          n_down++;
+        break;
       case L_error:
         if (!ii->ignore)
           {
-            TRACEPRINTF (ii->t, 4, "is %s", ii->stateName());
             n_down++;
+            n_error++;
           }
         break;
       case L_up:
         n_up++;
         break;
-      case L_going_down_error:
       default:
         TRACEPRINTF (ii->t, 4, "state is %s", ii->stateName());
         n_going++;
-        if (!want_up)
-          ii->setState(L_going_down);
       }
   }
 
-  if (!n_going && n_down == 0 && n_up > 0)
+  if (!n_going && !n_down && n_up)
     {
       all_running = true;
       some_running = true;
     }
-  else if (!n_going && n_up == 0)
+  else if (!n_going && !n_up)
     {
       some_running = false;
       all_running = false;
@@ -554,7 +547,7 @@ Router::state_trigger_cb (ev::async &, int)
     }
 
   TRACEPRINTF (t, 4, "check end: want_up %d some %d>%d all %d>%d, going %d up %d down %d", want_up, osrn,some_running, oarn,all_running, n_going,n_up,n_down);
-  if (want_up && n_down > 0)
+  if (want_up && n_error)
     {
       // Hard report errors
       ITER(i,links)
@@ -563,7 +556,6 @@ Router::state_trigger_cb (ev::async &, int)
         LConnState lcs = ii->state;
         switch(lcs)
           {
-          case L_down:
           case L_error:
             if (!ii->ignore)
               ERRORPRINTF (ii->t, E_FATAL | 105, "Link down, terminating");
@@ -574,7 +566,7 @@ Router::state_trigger_cb (ev::async &, int)
     }
 
   if (osrn && !some_running)
-    r_high->stopped(false);
+    r_high->stopped(n_error > 0);
   else if (!oarn && all_running)
     r_high->started();
 }

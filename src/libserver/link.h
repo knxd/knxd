@@ -432,23 +432,16 @@ private:
   down => going_up => up => going_down => down
              |        |          |
   error::    V        V          V
-             \- L_up_error => L_going_down_error => L_error
+             \- L_up_error => L_going_error => L_error
  */
 enum LConnState
 {
+  L_error,
+  L_going_error,
   L_down,
   L_going_down,
   L_up,
   L_going_up,
-  L_error,
-  L_going_down_error,
-};
-
-enum LRouterState
-{
-  R_down,
-  R_other,
-  R_up,
 };
 
 /**
@@ -479,9 +472,6 @@ public:
   void setState(LConnState new_state);
   /** name of the the current state */
   const char *stateName();
-
-  /** state which the router saw last */
-  LRouterState stateR;
 
   /** loop counter for the router */
   int seq = 0;
