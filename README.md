@@ -23,6 +23,26 @@ Check [the Wiki page](https://github.com/knxd/knxd/wiki) for other version(s) to
 
 ### see https://github.com/knxd/knxd/blob/v0.12/README.md for earlier changes
 
+* 0.14.33
+  
+  * There is a new "retry" filter which controls closing and re-opening a
+    misbehaving driver. This filter is implicitly auto-inserted in front of
+    a driver.
+
+  * Internal: Driver errors are now signalled with "stopped(true)" instead
+    of "errored" which reduces code duplication.
+
+  * Default timeout for EMI acks increased to 2 seconds
+    Some USB interfaces manage to be abysmally slow
+    Also hopefully-fixed USB retry and shutdown handling so that the
+    "retry" filter can do its work.
+
+* 0.14.32
+
+  * Tags no longer use a leading 'v'.
+
+  * udev rule for SATEL USB interface
+
 * 0.14
 
   * Code configuration
