@@ -439,7 +439,6 @@ enum LConnState
   L_up,
   L_going_up,
   L_error,
-  L_up_error,
   L_going_down_error,
 };
 

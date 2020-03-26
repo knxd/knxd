@@ -507,7 +507,6 @@ Router::state_trigger_cb (ev::async &, int)
 
     switch(lcs)
       {
-      case L_up_error:
       case L_going_down_error:
         ii->stop(true);
         break;
@@ -529,7 +528,6 @@ Router::state_trigger_cb (ev::async &, int)
       case L_up:
         n_up++;
         break;
-      case L_up_error:
       case L_going_down_error:
       default:
         TRACEPRINTF (ii->t, 4, "state is %s", ii->stateName());
