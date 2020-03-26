@@ -22,7 +22,6 @@
 RetryFilter::RetryFilter (const LinkConnectPtr_& c, IniSectionPtr& s) : Filter(c,s)
 {
   trigger.set<RetryFilter, &RetryFilter::trigger_cb>(this);
-  trigger.start();
   timeout.set<RetryFilter, &RetryFilter::timeout_cb>(this);
   state = R_DOWN;
 }
@@ -89,6 +88,7 @@ RetryFilter::send_Next()
       else
         {
           msg = nullptr;
+          timeout.stop();
           Filter::send_Next();
         }
       break;
@@ -110,8 +110,8 @@ RetryFilter::send_L_Data (LDataPtr l)
       else
         {
           msg = LDataPtr(new L_Data_PDU (*l));
-          Filter::send_L_Data(std::move(l));
           timeout.start(send_timeout, 0);
+          Filter::send_L_Data(std::move(l));
         }
       break;
 
