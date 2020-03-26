@@ -125,7 +125,7 @@ LinkConnect::setState(LConnState new_state)
 
   LConnState old_state = state;
   const char *osn = stateName();
- state = new_state;
+  state = new_state;
   TRACEPRINTF(t, 5, "%s => %s", osn, stateName());
 
   switch(old_state)
