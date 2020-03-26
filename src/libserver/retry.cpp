@@ -56,7 +56,17 @@ RetryFilter::setup()
   max_retry = cfg->value("max-retries", (c->x_max_retries < 0) ? 1 : c->x_max_retries);
   retry_delay = cfg->value("retry-delay", c->x_retry_delay);
   send_timeout = cfg->value("send-timeout", 5.);
+  if (send_timeout < 0.01)
+    {
+      ERRORPRINTF(t, E_ERROR | 144, "send_timeout must be positive");
+      return false;
+    }
   start_timeout = cfg->value("start-timeout", 10.);
+  if (start_timeout < 0.01)
+    {
+      ERRORPRINTF(t, E_ERROR | 145, "start_timeout must be positive");
+      return false;
+    }
   return true;
 }
 
