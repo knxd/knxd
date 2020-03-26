@@ -720,6 +720,7 @@ Router::recv_L_Data (LDataPtr l, LinkConnect& link)
       link.addAddress (l->source_address);
     }
 
+  l->source = &link;
   r_high->recv_L_Data(std::move(l));
 }
 
@@ -1066,6 +1067,10 @@ Router::send_L_Data(LDataPtr l1)
   assert(high_send_more);
   high_sending = true;
   high_send_more = false;
+
+  auto source = l1->source;
+  l1->source = nullptr;
+
   if (l1->address_type == GroupAddress)
     {
       // This is easy: send to all other L2 which subscribe to the
@@ -1075,7 +1080,9 @@ Router::send_L_Data(LDataPtr l1)
         auto ii = i->second;
         if (ii->state != L_up)
           continue;
-        if (ii->hasAddress(l1->source_address))
+        if ((l1->source_address == 0xFFFF) // programming
+             ? &*ii == source
+             : ii->hasAddress(l1->source_address))
           continue; // don't return to same interface
         if(!has_send_more(ii))
           continue; // internal error if not
@@ -1083,7 +1090,7 @@ Router::send_L_Data(LDataPtr l1)
           ii->send_L_Data (LDataPtr(new L_Data_PDU (*l1)));
       }
     }
-  if (l1->address_type == IndividualAddress)
+  else if (l1->address_type == IndividualAddress)
     {
       // we want to send to the interface on which the destination address
       // has appeared. If it hasn't been seen yet, we send to all

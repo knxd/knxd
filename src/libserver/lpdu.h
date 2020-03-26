@@ -115,6 +115,10 @@ public:
   bool valid_length = true;
   uint8_t hop_count = 0x06;
 
+  /** Source interface. Only valid within the router. Opaque pointer
+   * because irrelevant. */
+  void *source = nullptr;
+
   L_Data_PDU () = default;
 
   virtual std::string Decode (TracePtr tr) const override;

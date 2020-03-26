@@ -37,6 +37,9 @@ Check [the Wiki page](https://github.com/knxd/knxd/wiki) for other version(s) to
     Also hopefully-fixed USB retry and shutdown handling so that the
     "retry" filter can do its work.
 
+  * Replies from devices in programming mode are no longer retransmitted to
+    the originating interface.
+
 * 0.14.32
 
   * Tags no longer use a leading 'v'.
