@@ -97,10 +97,12 @@
  *                 pointer.
  *
  * Sending data: LinkConnect::send_L_Data() calls the first filter, which
- *               forwards to tne driver, via the .send pointer.
+ *               forwards to the driver, via the .send pointer.
+ *               When the packet has been transmitted successfully, 
+ *               the driver MUST call "send_Next", which tells the router
+ *               that the driver is ready for the next packet.
  *
- *
- * Pointers from LinkConnect towards the driver, along the .send chain,
+ * All pointers from LinkConnect towards the driver, along the .send chain,
  * are shared pointers. All pointers towards LinkConnect, along the .recv
  * chain, are weak pointers.
  */
@@ -370,7 +372,7 @@ public:
 
 /**
  * This is the base class for LinkConnect, the bottom node of a filter stack.
- * This class separates the parts that are used in the global filter chain.
+ * This class collects the parts that "RouterLow" needs for the global filter chain.
  */
 class LinkConnect_ : public LinkRecv
 {
@@ -453,27 +455,29 @@ enum LRouterState
  * A LinkConnect is something which the router knows about.
  * For non-servers, it holds a pointer to the driver and to the bottom of
  * the filter stack.
- * This contains the parts useable on a per-link filter chain.
+ * This builds on "LinkConnect_" to add the parts necessary to act as the
+ * base of a per-link filter chain.
  */
 class LinkConnect : public LinkConnect_
 {
 public:
   LinkConnect(BaseRouter& r, IniSectionPtr& s, TracePtr tr);
   virtual ~LinkConnect();
-  /** Don't auto-start */
+
+  /** Don't auto-start this connection */
   bool ignore = false;
-  /** client: don't shutdown when this connection ends */
+  /** this is a client: do not shutdown when this connection errors */
   bool transient = false;
   /** originates with my own address */
   bool is_local = false;
-  /** address assigned to this link */
+  /** the address assigned to this link */
   eibaddr_t addr = 0;
 
   /** current state */
   LConnState state = L_down;
   /** … and a controlled way to set it */
   void setState(LConnState new_state);
-  /** … and code to print the state */
+  /** name of the the current state */
   const char *stateName();
 
   /** state which the router saw last */
@@ -487,12 +491,9 @@ public:
   time_t changed = 0;
 
   /** This is the main flow control mechanism. Whenever "send_more" is set,
-   * the router may call "send_L_Data" ONCE. It must then wait for
-   * "send_Next" to be called.
+   * the router may call "send_L_Data" ONCE. It will then wait for
+   * "send_Next" to be called before sending the next message.
    * (This call may happen during the call to "send_L_Data", or some time later.)
-   * The router may then send the next message.
-   * The call to send_L_Data must not be recursive; use an
-   * ev::event!
    */
   bool send_more = true;
   virtual void send_L_Data (LDataPtr l);

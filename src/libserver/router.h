@@ -42,6 +42,10 @@ class Router;
 class RouterHigh;
 class RouterLow;
 
+/** "RouterHigh" (subclass of Driver) and "RouterLow" (subclass of LinkConnect_)
+ * are internal classes of Router, declared in libserver/router.cpp.
+ * They are used for bracketing global filters.
+ */
 using RouterLowPtr = std::shared_ptr<RouterLow>;
 using RouterHighPtr = std::shared_ptr<RouterHigh>;
 
