@@ -50,8 +50,9 @@ FILTER(RetryFilter, retry)
 
   // if true, throw away messages while starting up
   bool flush = false;
-  // if true, retry on initial startup error
-  bool may_fail = false;
+  // if set, retry on initial startup error
+  // if ==2, "started" has been sent to the router
+  uint8_t may_fail = 0;
   int max_retry = 0;
   float retry_delay = 1;
   float start_timeout = 10;

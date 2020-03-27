@@ -23,6 +23,7 @@ RetryFilter::RetryFilter (const LinkConnectPtr_& c, IniSectionPtr& s) : Filter(c
 {
   trigger.set<RetryFilter, &RetryFilter::trigger_cb>(this);
   timeout.set<RetryFilter, &RetryFilter::timeout_cb>(this);
+  trigger.start();
   state = R_DOWN;
 }
 
@@ -123,6 +124,7 @@ RetryFilter::start()
     {
     case R_DOWN:
       state = R_GOING_UP;
+      want_up = true;
       break;
 
     default:
@@ -137,12 +139,21 @@ RetryFilter::started()
 {
   switch(state)
     {
+    case R_GOING_ERROR:
+      ERRORPRINTF(t, E_ERROR | 146, "Crossed start+stop? this should not happen");
+      return;
+
     case R_GOING_UP:
       state = R_UP;
-      trigger.start();
+      timeout.stop();
       retries = 0;
-      may_fail = true;
-      break;
+      if (may_fail < 2)
+      {
+        may_fail = 2;
+        Filter::started();
+      }
+      trigger.send();
+      return;
 
     default:
       ERRORPRINTF(t, E_WARNING | 113, "state %d??", state);
@@ -172,26 +183,28 @@ RetryFilter::stop_(bool err)
 void
 RetryFilter::stopped(bool err)
 {
-  if (! want_up || !err)
+  if (!want_up || !err)
     goto off;
 
   switch(state)
     {
     case R_GOING_UP:
+    case R_GOING_ERROR:
     case R_UP:
-      state = R_ERROR;
-      if (!retries && !may_fail)
-        goto off2;
+      if (!may_fail)
+        goto off;
 
       retries++;
       if (max_retry && (retries >= max_retry))
-        goto off2;
+        goto off;
 
       if (msg && flush)
         {
           msg = nullptr;
           Filter::send_Next();
         }
+
+      state = R_ERROR;
       timeout.start(retry_delay);
       return;
 
@@ -201,7 +214,6 @@ RetryFilter::stopped(bool err)
 
 off:
   state = R_DOWN;
-off2:
   if (msg)
     {
       msg = nullptr;
@@ -241,29 +253,24 @@ RetryFilter::timeout_cb (ev::timer &, int)
           ERRORPRINTF(t, E_WARNING | 139, "spurious timeout UP");
           break;
         }
-      retries++;
-      if ((max_retry > 0) && (retries >= max_retry))
-        {
-          ERRORPRINTF(t, E_WARNING | 140, "send: max retries");
-          stop_(true);
-        }
-      timeout.start(send_timeout);
-      Filter::send_L_Data(LDataPtr(new L_Data_PDU (*msg)));
+      // FALL THRU
+    case R_GOING_UP:
+      state = R_GOING_ERROR;
+      Filter::stop(true);
       break;
 
-    case R_GOING_UP:
     case R_ERROR:
-      if (!retries && !may_fail)
+      if (!may_fail)
         {
-          stop_(true);
+	  stop_(true);
           break;
         }
-      retries++;
       if (max_retry && (retries >= max_retry))
         {
           stop_(true);
           break;
         }
+
       ERRORPRINTF(t, E_WARNING | 140, "open: retrying");
       state = R_GOING_UP;
       timeout.start(start_timeout);
