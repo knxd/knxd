@@ -1,4 +1,4 @@
-knxd (0.14.33-1) unstable; urgency=medium
+knxd (0.14.33) unstable; urgency=medium
 
   * New version.
   * No longer blocks ETS programming
