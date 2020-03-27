@@ -23,6 +23,10 @@ Check [the Wiki page](https://github.com/knxd/knxd/wiki) for other version(s) to
 
 ### see https://github.com/knxd/knxd/blob/v0.12/README.md for earlier changes
 
+* 0.14.34
+
+  * Cleanup: remove debian packaging, will be in a separate branch
+
 * 0.14.33
   
   * There is a new "retry" filter which controls closing and re-opening a
