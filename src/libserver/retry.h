@@ -60,7 +60,10 @@ FILTER(RetryFilter, retry)
 
   // signalled from router?
   bool want_up = false;
-  int retries = 0;
+  // count failing attempts to send something
+  int send_retries = 0;
+  // count failing attempts to restart
+  int start_retries = 0;
   // storage for in-flight transmitted message
   LDataPtr msg = nullptr;
 

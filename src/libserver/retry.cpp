@@ -49,7 +49,8 @@ RetryFilter::setup()
   if (!Filter::setup())
     return false;
 
-  retries = 0;
+  start_retries = 0;
+  send_retries = 0;
 
   auto c = std::static_pointer_cast<LinkConnect>(conn.lock());
   flush = cfg->value("flush", false);
@@ -82,6 +83,7 @@ RetryFilter::send_Next()
       else
         {
           msg = nullptr;
+	  send_retries = 0;
           timeout.stop();
           Filter::send_Next();
         }
@@ -146,7 +148,7 @@ RetryFilter::started()
     case R_GOING_UP:
       state = R_UP;
       timeout.stop();
-      retries = 0;
+      start_retries = 0;
       if (may_fail < 2)
       {
         may_fail = 2;
@@ -194,8 +196,8 @@ RetryFilter::stopped(bool err)
       if (!may_fail)
         goto off;
 
-      retries++;
-      if (max_retry && (retries >= max_retry))
+      start_retries++;
+      if (max_retry && (start_retries >= max_retry))
         goto off;
 
       if (msg && flush)
@@ -253,6 +255,12 @@ RetryFilter::timeout_cb (ev::timer &, int)
           ERRORPRINTF(t, E_WARNING | 139, "spurious timeout UP");
           break;
         }
+      if (max_retry && (send_retries > max_retry))
+        {
+	  stop_(true);
+          break;
+	}
+      send_retries ++;
       // FALL THRU
     case R_GOING_UP:
       state = R_GOING_ERROR;
@@ -265,7 +273,7 @@ RetryFilter::timeout_cb (ev::timer &, int)
 	  stop_(true);
           break;
         }
-      if (max_retry && (retries >= max_retry))
+      if (max_retry && (start_retries >= max_retry))
         {
           stop_(true);
           break;
