@@ -17,6 +17,6 @@ T=$(tempfile)
 rm -f $T
 mkdir $T
 cd $T
-trap 'cd /; cat overall.log; rm -rf $T' 0 1 2 15
+trap 'cat overall.log; cd /; rm -rf $T' 0 1 2 15
 
 DGIT_DRS_EMAIL_NOREPLY=smurf@debian.org dgit-repos-server debian . /usr/share/keyrings/debian-keyring.gpg,a --tag2upload https://salsa.debian.org/smurf/knxd.git "$D"
