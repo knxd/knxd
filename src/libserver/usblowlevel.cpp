@@ -274,7 +274,10 @@ USBLowLevelDriver::stop_(bool force)
 {
   TRACEPRINTF (t, 1, "Close G");
   if(loop == nullptr)
-    return;
+    {
+      LowLevelDriver::stop(stopped_err);
+      return;
+    }
   stopping = true;
 
   if (state > sReleasing)
