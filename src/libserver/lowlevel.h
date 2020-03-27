@@ -298,7 +298,7 @@ protected:
 };
 
 
-/** low-level filter: pass data to a driver, or tio another filter */
+/** low-level filter: pass data to a driver, or to another filter */
 class LowLevelFilter : public LowLevelDriver
 {
 public:
