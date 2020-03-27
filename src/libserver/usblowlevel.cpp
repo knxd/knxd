@@ -291,7 +291,7 @@ USBLowLevelDriver::stop_(bool force)
 
   if(state == sReleasing && !force)
     {
-      if (state == sReleasing && (sendh || recvh))
+      if (sendh || recvh)
         return;
       LowLevelDriver::stop(stopped_err);
     }
