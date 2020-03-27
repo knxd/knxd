@@ -71,23 +71,6 @@ RetryFilter::setup()
 }
 
 void
-RetryFilter::started()
-{
-  switch(state)
-    {
-    case R_GOING_UP:
-      state = R_UP;
-      trigger.start();
-      break;
-
-    default:
-      ERRORPRINTF(t, E_WARNING | 113, "state %d??", state);
-      break;
-    }
-  Filter::started();
-}
-
-void
 RetryFilter::send_Next()
 {
   switch(state)
@@ -147,6 +130,25 @@ RetryFilter::start()
       break;
     }
   Filter::start();
+}
+
+void
+RetryFilter::started()
+{
+  switch(state)
+    {
+    case R_GOING_UP:
+      state = R_UP;
+      trigger.start();
+      retries = 0;
+      may_fail = true;
+      break;
+
+    default:
+      ERRORPRINTF(t, E_WARNING | 113, "state %d??", state);
+      break;
+    }
+  Filter::started();
 }
 
 void
