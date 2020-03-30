@@ -9,7 +9,12 @@ https://www.auto.tuwien.ac.at/~mkoegler/index.php/bcusdk
 
 For a (german only) history and discussion why knxd emerged please also see: [eibd(war bcusdk) Fork -> knxd](http://knx-user-forum.de/forum/öffentlicher-bereich/knx-eib-forum/39972-eibd-war-bcusdk-fork-knxd)
 
-# Future stable version
+# This is the Debian version
+
+This is the `deb` branch, which contains Debian packaging.
+Use this branch if you're installing knxd on Ubuntu or their derivatives.
+
+# Stable version
 
 This version should be OK for general use.
 
