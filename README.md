@@ -9,7 +9,13 @@ https://www.auto.tuwien.ac.at/~mkoegler/index.php/bcusdk
 
 For a (german only) history and discussion why knxd emerged please also see: [eibd(war bcusdk) Fork -> knxd](http://knx-user-forum.de/forum/öffentlicher-bereich/knx-eib-forum/39972-eibd-war-bcusdk-fork-knxd)
 
-# Future stable version
+# STOP if you install on Debian
+
+Debian packaging has been moved to the ``deb`` branch. Please use that
+branch (by way of `git checkout deb`) if you're following some (outdated …)
+installation instructions for Debian, Ubuntu or their derivatives.
+
+# Stable version
 
 This version should be OK for general use.
 
@@ -22,6 +28,10 @@ Check [the Wiki page](https://github.com/knxd/knxd/wiki) for other version(s) to
 ## New Features since 0.12
 
 ### see https://github.com/knxd/knxd/blob/v0.12/README.md for earlier changes
+
+* 0.14.34
+
+  * Cleanup: remove debian packaging, will be in a separate branch
 
 * 0.14.33
   
