@@ -1,0 +1,22 @@
+#!/sbin/openrc-run
+# Copyright 1999-2015 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+
+# knxd-@SLOT@
+
+pidfile="/run/knxd/knxd-@SLOT@.pid"
+command="/usr/bin/knxd"
+command_args="--pid-file=${pidfile} --daemon=${KNXD_LOGFILE} ${KNXD_OPTS}"
+start_stop_daemon_args="-u ${KNXD_USER}"
+description="Daemon for accessing the EIB/KNX bus"
+
+depend() {
+	need localmount
+	need net
+	provide knxd
+}
+
+start_pre() {
+	checkpath --directory --owner ${KNXD_USER} --mode 0774 ${pidfile%/*}
+	checkpath --file --owner ${KNXD_USER} --mode 0664 ${KNXD_LOGFILE}
+}
