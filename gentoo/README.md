@@ -4,8 +4,15 @@
 
 1. Create the local repo
    `$ mkdir -p /usr/portage/local/knxd`
-2. checkout the overlay (using svn is easiest method I think)
-   `$ svn co https://github.com/knxd/knxd/trunk/gentoo /usr/portage/local/knxd`
+2. checkout the overlay and symlink to the gentoo folder
+
+```bash
+cd ~
+git clone https://github.com/knxd/knxd.git
+# as user root
+ln -s /home/user/knxd/gentoo /usr/portage/local/knxd
+```
+
 3. Edit `/etc/portage/make.conf` and add this line
    `source /usr/portage/local/knxd/make.conf`
 
