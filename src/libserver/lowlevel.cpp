@@ -17,18 +17,16 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include <unistd.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <errno.h>
 #include "lowlevel.h"
+
+#include <cerrno>
+#include <fcntl.h>
+#include <unistd.h>
 
 LowLevelAdapter::~LowLevelAdapter()
 {
   delete iface;
 }
-
-LowLevelDriver::~LowLevelDriver() {}
 
 LowLevelIface::~LowLevelIface()
 {
@@ -50,7 +48,7 @@ void
 LowLevelIface::sendLocal_done_cb(bool success)
 {
   if (!success)
-    errored();
+    stopped(true);
 }
 
 void
@@ -58,14 +56,14 @@ LowLevelIface::send_Local(CArray &d, int raw)
 {
   assert(!is_local);
   is_local = true;
-  local_timeout.start(0.9, 0);
+  local_timeout.start(1.5, 0);
   TRACEPRINTF (tr(), 0, "starting send_Local");
 
   do_send_Local(d, raw);
 }
 
 LowLevelFilter::LowLevelFilter (LowLevelIface* parent, IniSectionPtr& s, LowLevelDriver* i)
-      : LowLevelDriver(parent,s)
+  : LowLevelDriver(parent,s)
 {
   t->setAuxName("LowF");
   if (i != nullptr)
@@ -106,9 +104,9 @@ LowLevelAdapter::do_send_Local(CArray &d, int raw)
 }
 
 void
-LowLevelIface::local_timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
+LowLevelIface::local_timeout_cb(ev::timer &, int)
 {
-  ERRORPRINTF (tr(), E_ERROR, "send_Local timed out!");
+  ERRORPRINTF (tr(), E_ERROR | 75, "send_Local timed out!");
   is_local = false;
   sendLocal_done(false);
 }
@@ -132,15 +130,15 @@ LowLevelAdapter::send_L_Data(LDataPtr l)
 {
   if (!iface)
     {
-      ERRORPRINTF (t, E_ERROR, "Send: not running??");
-      errored();
+      ERRORPRINTF (t, E_ERROR | 76, "Send: not running??");
+      stop(true);
       return;
     }
   iface->send_L_Data(std::move(l));
 }
 
 FDdriver::FDdriver (LowLevelIface* p, IniSectionPtr& s)
-	: sendbuf(), recvbuf(), LowLevelDriver (p,s)
+  : sendbuf(), recvbuf(), LowLevelDriver (p,s)
 {
   t->setAuxName("FD");
 }
@@ -173,13 +171,13 @@ FDdriver::setup_buffers()
 void
 FDdriver::error_cb()
 {
-  ERRORPRINTF (t, E_ERROR | 23, "Communication error: %s", strerror(errno));
-  errored();
+  ERRORPRINTF (t, E_ERROR | 77, "Communication error: %s", strerror(errno));
+  stop(true);
 }
 
 FDdriver::~FDdriver ()
 {
-  TRACEPRINTF (t, 2, "Close");
+  TRACEPRINTF (t, 2, "Close F");
 
   if (fd != -1)
     {
@@ -204,7 +202,7 @@ FDdriver::start()
 }
 
 void
-FDdriver::stop()
+FDdriver::stop(bool err)
 {
   if (fd >= -1)
     {
@@ -214,7 +212,7 @@ FDdriver::stop()
       close(fd);
       fd = -1;
     }
-  LowLevelDriver::stop();
+  LowLevelDriver::stop(err);
 }
 
 size_t
@@ -223,5 +221,15 @@ FDdriver::read_cb(uint8_t *buf, size_t len)
   CArray c(buf,len);
   recv_Data(c);
   return len;
+}
+
+bool
+HWBusDriver::setup()
+{
+  if (! BusDriver::setup())
+    return false;
+  if (! assureFilter("retry"))
+    return false;
+  return true;
 }
 

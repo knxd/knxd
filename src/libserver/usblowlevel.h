@@ -17,23 +17,30 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @addtogroup Driver
+ * @{
+ */
+
 #ifndef EIB_USB_H
 #define EIB_USB_H
 
 #include <libusb.h>
+
 #include "lowlevel.h"
 #include "usb.h"
 
-typedef struct
+struct USBEndpoint
 {
   int bus;
   int device;
   int config;
   int altsetting;
   int interface;
-} USBEndpoint;
+};
 
-typedef struct
+struct USBDevice
 {
   libusb_device *dev;
   int config;
@@ -41,37 +48,53 @@ typedef struct
   int interface;
   int sendep;
   int recvep;
-} USBDevice;
+};
 
 USBEndpoint parseUSBEndpoint (const char *addr);
 USBDevice detectUSBEndpoint (USBEndpoint e);
 
-typedef enum {
-    sNone = 0,
-    sStarted,
-    sClaimed,
-    sRunning,
-    sConnected,
-} UState;
+enum UState
+{
+  sNone = 0,
+  sStarted,
+  sReleasing,
+  sClaimed,
+  sRunning,
+  sConnected,
+};
 
 class USBLowLevelDriver : public LowLevelDriver
 {
 public:
   USBLowLevelDriver (LowLevelIface* p, IniSectionPtr& s);
   virtual ~USBLowLevelDriver ();
+
+  bool setup();
+  void start();
+  void stop(bool err);
+  void send_Data (CArray& l);
+  void abort_send();
+
+  // for use by callbacks only
+  void CompleteReceive(struct libusb_transfer *recvh);
+  void CompleteSend(struct libusb_transfer *recvh);
+
 private:
   libusb_device_handle *dev;
   /* libusb event loop */
   USBLoop *loop;
   USBDevice d;
+  USBEndpoint e;
 
   /** transmit buffer */
   CArray out;
   /** transmit retry counter */
   int send_retry = 0;
+  int send_timeout = 1000;
 
   UState state = sNone;
   bool stopping = false;
+  bool stopped_err = false;
   uint8_t sendbuf[64];
   uint8_t recvbuf[64];
   bool startUsbRecvTransferFailed = false;
@@ -84,23 +107,15 @@ private:
   virtual void reset();
   void do_send();
   void do_send_Next();
-  void stop_();
+  void stop_(bool force);
 
   // need to do the trigger callbacks outside of libusb
-  ev::async read_trigger; void read_trigger_cb(ev::async &w, int revents);
-  ev::async write_trigger; void write_trigger_cb(ev::async &w, int revents);
-
-public:
-  bool setup();
-  void start();
-  void stop();
-  void send_Data (CArray& l);
-  void abort_send();
-
-
-  // for use by callbacks only
-  void CompleteReceive(struct libusb_transfer *recvh);
-  void CompleteSend(struct libusb_transfer *recvh);
+  ev::async read_trigger;
+  void read_trigger_cb(ev::async &w, int revents);
+  ev::async write_trigger;
+  void write_trigger_cb(ev::async &w, int revents);
 };
 
 #endif
+
+/** @} */

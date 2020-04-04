@@ -17,10 +17,9 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include "emi.h"
 #include "emi_common.h"
 
-unsigned int maxPacketLen() { return 0x10; }
+#include "emi.h"
 
 EMIVer
 cfgEMIVersion(IniSectionPtr& s)
@@ -60,15 +59,11 @@ EMI_Common::setup()
     return false;
   if(!LowLevelFilter::setup())
     return false;
-  send_timeout = cfg->value("send-timeout",300) / 1000.;
+  send_timeout = cfg->value("send-timeout",2000) / 1000.;
   max_retries = cfg->value("send-retries",3);
   monitor = cfg->value("monitor",false);
 
   return true;
-}
-
-EMI_Common::~EMI_Common ()
-{
 }
 
 void
@@ -81,6 +76,7 @@ EMI_Common::start()
 void
 EMI_Common::started()
 {
+  state = E_idle;
   TRACEPRINTF (t, 2, "OpenL2");
   if (monitor)
     cmdEnterMonitor();
@@ -89,10 +85,12 @@ EMI_Common::started()
 }
 
 void
-EMI_Common::stop ()
+EMI_Common::stop (bool err)
 {
   TRACEPRINTF (t, 2, "CloseL2");
-  if (monitor)
+  if (err)
+    LowLevelFilter::stop(err);
+  else if (monitor)
     cmdLeaveMonitor();
   else
     cmdClose();
@@ -103,16 +101,16 @@ EMI_Common::send_L_Data (LDataPtr l)
 {
   if (state != E_idle)
     {
-      ERRORPRINTF(t, E_ERROR, "EMI_common: send while waiting");
+      ERRORPRINTF(t, E_ERROR | 59, "EMI_common: send while waiting (%d)", state);
       return;
     }
-    
-  assert (l->data.size() >= 1);
+
+  assert (l->lsdu.size() >= 1);
   // discard long frames, they are not supported yet
   // TODO add support for long frames!
-  if (l->data.size() > maxPacketLen())
+  if (l->lsdu.size() > maxPacketLen())
     {
-      TRACEPRINTF (t, 2, "Oversize (%d), discarded", l->data.size());
+      TRACEPRINTF (t, 2, "Oversize (%d), discarded", l->lsdu.size());
       LowLevelFilter::do_send_Next();
       return;
     }
@@ -140,14 +138,14 @@ EMI_Common::send_Data(CArray &pdu)
 }
 
 void
-EMI_Common::timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
+EMI_Common::timeout_cb(ev::timer &, int)
 {
   if (state <= E_timed_out)
     return;
   if (state == E_wait)
     {
       state = E_timed_out;
-      errored();
+      stop(true);
       return;
     }
   assert (state == E_wait_confirm);
@@ -159,7 +157,7 @@ EMI_Common::timeout_cb(ev::timer &w UNUSED, int revents UNUSED)
     }
 
   // TODO raise an error instead?
-  ERRORPRINTF(t, E_WARNING, "EMI: No confirm, packet discarded");
+  ERRORPRINTF(t, E_WARNING | 119, "EMI: No confirm, packet discarded");
 
   state = E_idle;
   LowLevelFilter::do_send_Next();
@@ -172,7 +170,7 @@ EMI_Common::recv_Data(CArray& c)
   if (c.size() > 0 && c[0] == 0xA0)
     {
       TRACEPRINTF (t, 2, "got reset ind");
-      errored();
+      stop(true);
     }
   else if (c.size() > 0 && c[0] == ind[I_CONFIRM])
     {
@@ -196,10 +194,10 @@ EMI_Common::recv_Data(CArray& c)
     }
   else if (c.size() > 4 && c[0] == ind[I_BUSMON] && monitor)
     {
-      LBusmonPtr p = LBusmonPtr(new L_Busmonitor_PDU ());
-      p->status = c[1];
-      p->timestamp = (c[2] << 24) | (c[3] << 16);
-      p->pdu.set (c.data() + 4, c.size() - 4);
+      LBusmonPtr p = LBusmonPtr(new L_Busmon_PDU ());
+      p->l_status = c[1];
+      p->time_stamp = (c[2] << 24) | (c[3] << 16);
+      p->lpdu.set (c.data() + 4, c.size() - 4);
       master->recv_L_Busmonitor (std::move(p));
     }
   else

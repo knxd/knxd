@@ -24,7 +24,7 @@
 
 #include "types.h"
 
-typedef struct
+struct EIBLoadRequest
 {
   BCU_LOAD_RESULT error;
   uint8_t obj;
@@ -34,7 +34,7 @@ typedef struct
   CArray result;
   uint16_t memaddr;
   uint16_t len;
-} EIBLoadRequest;
+};
 
 class BCUImage
 {
@@ -44,14 +44,14 @@ public:
     B_bcu1, B_bcu20, B_bcu21
   } BCUType;
   CArray code;
-  Array < EIBLoadRequest > load;
+  std::vector < EIBLoadRequest > load;
   eibaddr_t addr;
   eibkey_type installkey;
-  Array < eibkey_type > keys;
+  std::vector < eibkey_type > keys;
 };
 
 BCU_LOAD_RESULT PrepareLoadImage (const CArray & c, BCUImage * &img);
 
-String decodeBCULoadResult (BCU_LOAD_RESULT r);
+std::string decodeBCULoadResult (const BCU_LOAD_RESULT r);
 
 #endif

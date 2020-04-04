@@ -17,83 +17,63 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @addtogroup Common
+ * @{
+ */
+
 #ifndef COMMON_H
 #define COMMON_H
 
-#include "types.h"
-#include <assert.h>
+#include <cassert>
+
 #include <ev++.h>
 
-/** Domain address */
-typedef uint16_t domainaddr_t;
-/** serial number */
-typedef uchar serialnumber_t[6];
-/** memory pointer for EIB devices */
-typedef uint16_t memaddr_t;
+#include "queue.h"
+#include "trace.h"
+#include "types.h"
 
-/** object index type */
-typedef uchar objectno_t;
-/** property ID type */
-typedef uchar propertyid_t;
+/** Domain address */
+using domainaddr_t = uint16_t;
 
 /** timestamp type*/
-typedef long long timestamp_t;
+using timestamp_t = long long;
 
-/** EIB message priority */
-typedef enum
-{
-  PRIO_LOW,
-  PRIO_NORMAL,
-  PRIO_URGENT,
-  PRIO_SYSTEM,
-} EIB_Priority;
-
-/** EIB address type */
-typedef enum
-{ GroupAddress, IndividualAddress } EIB_AddrType;
-
-
-#include "queue.h"
-#include "exception.h"
-
-/** add c to s as hex value
+/**
+ * add c to s as hex value
  * @param s string
  * @param c byte
  */
-void addHex (String & s, uchar c);
-/** add c to s as hex value
+void addHex (std::string & s, const uint8_t c);
+
+/**
+ * add c to s as hex value
  * @param s string
  * @param c 16 bit int
  */
-void add16Hex (String & s, uint16_t c);
+void add16Hex (std::string & s, const uint16_t c);
 
 /** get current time */
 timestamp_t getTime ();
 
 /** formats an EIB individual address */
-String FormatEIBAddr (eibaddr_t a);
+std::string FormatEIBAddr (const eibaddr_t a);
 /** formats an EIB group address */
-String FormatGroupAddr (eibaddr_t a);
+std::string FormatGroupAddr (const eibaddr_t a);
 /** formats an EIB domain address */
-String FormatDomainAddr (domainaddr_t addr);
+std::string FormatDomainAddr (const domainaddr_t addr);
 /** formats an EIB key */
-String FormatEIBKey (eibkey_type addr);
-
-#include "trace.h"
-
-template<typename T>
-inline T ignore_result(T x __attribute__((unused)))
-{
-    return x;
-}
+std::string FormatEIBKey (const eibkey_type addr);
 
 /** libev */
 #if EV_MULTIPLICITY
-  typedef struct ev_loop *LOOP_RESULT;
+using LOOP_RESULT = struct ev_loop *;
 #else
-  typedef int LOOP_RESULT;
+using LOOP_RESULT = int;
 #endif
 extern LOOP_RESULT loop;
 
-
 #endif
+
+/** @} */

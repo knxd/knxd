@@ -19,8 +19,6 @@
 
 #include "log.h"
 
-LogFilter::~LogFilter() { }
-
 bool
 LogFilter::setup()
 {
@@ -48,11 +46,11 @@ LogFilter::start()
 }
 
 void
-LogFilter::stop()
+LogFilter::stop(bool err)
 {
   if (log_state)
-    t->TracePrintf (0, "State stop");
-  Filter::stop();
+    t->TracePrintf (0, "State %s", err ? "error" : "stop");
+  Filter::stop(err);
 }
 
 void
@@ -64,21 +62,12 @@ LogFilter::started()
 }
 
 void
-LogFilter::stopped()
+LogFilter::stopped(bool err)
 {
   if (log_state)
-    t->TracePrintf (0, "State stopped");
-  Filter::stopped();
+    t->TracePrintf (0, "State %s", err ? "errored" : "stopped");
+  Filter::stopped(err);
 }
-
-void
-LogFilter::errored()
-{
-  if (log_state)
-    t->TracePrintf (0, "State errored");
-  Filter::errored();
-}
-
 
 void
 LogFilter::recv_L_Data (LDataPtr l)
@@ -113,12 +102,12 @@ LogFilter::recv_L_Busmonitor (LBusmonPtr l)
 }
 
 bool
-LogFilter::hasAddress (eibaddr_t addr)
+LogFilter::hasAddress (eibaddr_t addr) const
 {
   bool res = Filter::hasAddress(addr);
   if (log_addr)
     t->TracePrintf (0, "Has Addr %s: %s",
-        FormatEIBAddr(addr), res ? "yes" : "no");
+                    FormatEIBAddr(addr), res ? "yes" : "no");
   return res;
 }
 
@@ -131,22 +120,22 @@ LogFilter::addAddress (eibaddr_t addr)
 }
 
 bool
-LogFilter::checkAddress (eibaddr_t addr)
+LogFilter::checkAddress (eibaddr_t addr) const
 {
   bool res = Filter::checkAddress(addr);
   if (log_addr)
     t->TracePrintf (0, "Addr Check %s: %s",
-        FormatEIBAddr(addr), res ? "yes" : "no");
+                    FormatEIBAddr(addr), res ? "yes" : "no");
   return res;
 }
 
 bool
-LogFilter::checkGroupAddress (eibaddr_t addr)
+LogFilter::checkGroupAddress (eibaddr_t addr) const
 {
   bool res = Filter::checkGroupAddress(addr);
   if (log_addr)
     t->TracePrintf (0, "Addr Check %s: %s",
-        FormatGroupAddr(addr), res ? "yes" : "no");
+                    FormatGroupAddr(addr), res ? "yes" : "no");
   return res;
 }
 
@@ -174,32 +163,36 @@ FilterPtr LLlog::findFilter(std::string name)
   tr()->TracePrintf (0, "Filter %s %sfound",name,x?"":"not ");
   return x;
 }
-bool LLlog::checkAddress(eibaddr_t addr)
+
+bool LLlog::checkAddress(eibaddr_t addr) const
 {
   bool x = master->checkAddress(addr);
   tr()->TracePrintf (0, "Has Addr %s: %s",
-      FormatEIBAddr(addr), x ? "yes" : "no");
+                     FormatEIBAddr(addr), x ? "yes" : "no");
   return x;
 }
-bool LLlog::checkGroupAddress(eibaddr_t addr)
+
+bool LLlog::checkGroupAddress(eibaddr_t addr) const
 {
   bool x = master->checkGroupAddress(addr);
   tr()->TracePrintf (0, "Has Addr %s: %s",
-      FormatGroupAddr(addr), x ? "yes" : "no");
+                     FormatGroupAddr(addr), x ? "yes" : "no");
   return x;
 }
+
 bool LLlog::checkSysAddress(eibaddr_t addr)
 {
   bool x = master->checkSysAddress(addr);
   tr()->TracePrintf (0, "Known Addr %s: %s",
-      FormatEIBAddr(addr), x ? "yes" : "no");
+                     FormatEIBAddr(addr), x ? "yes" : "no");
   return x;
 }
+
 bool LLlog::checkSysGroupAddress(eibaddr_t addr)
 {
   bool x = master->checkSysGroupAddress(addr);
   tr()->TracePrintf (0, "Known Addr %s: %s",
-      FormatGroupAddr(addr), x ? "yes" : "no");
+                     FormatGroupAddr(addr), x ? "yes" : "no");
   return x;
 }
 
@@ -218,10 +211,10 @@ void LLlog::start ()
   iface->start();
 }
 
-void LLlog::stop ()
+void LLlog::stop (bool err)
 {
   tr()->TracePrintf (0, "Stop");
-  iface->stop();
+  iface->stop(err);
 }
 
 void LLlog::started ()
@@ -230,16 +223,10 @@ void LLlog::started ()
   master->started();
 }
 
-void LLlog::stopped ()
+void LLlog::stopped (bool err)
 {
-  tr()->TracePrintf (0, "Stopped");
-  master->stopped();
-}
-
-void LLlog::errored ()
-{
-  tr()->TracePrintf (0, "Errored");
-  master->errored();
+  tr()->TracePrintf (0, err ? "Errored" : "Stopped");
+  master->stopped(err);
 }
 
 void LLlog::recv_L_Data(LDataPtr l)

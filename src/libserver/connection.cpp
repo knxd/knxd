@@ -18,6 +18,7 @@
 */
 
 #include "connection.h"
+
 #include "server.h"
 #include "trace.h"
 
@@ -128,8 +129,8 @@ A_Individual::setup(uint8_t *buf,size_t len)
   lc = LinkConnectSinglePtr(new LinkConnectSingle(con->server, con->server->cfg, t));
   lc->setAddress(con->addr);
   c = T_IndividualPtr(
-    new T_Individual (this, lc, (buf[2] << 8) | (buf[3]),
-		      buf[4] != 0));
+        new T_Individual (this, lc, (buf[2] << 8) | (buf[3]),
+                          buf[4] != 0));
   lc->set_driver(c);
   if (!lc->setup())
     {
@@ -201,42 +202,42 @@ A_Broadcast::~A_Broadcast ()
 {
   TRACEPRINTF (con->t, 7, "CloseBroadcast");
   if (c)
-    c->stop();
+    c->stop(false);
 }
 
 A_Group::~A_Group ()
 {
   TRACEPRINTF (con->t, 7, "CloseGroup");
   if (c)
-    c->stop();
+    c->stop(false);
 }
 
 A_TPDU::~A_TPDU ()
 {
   TRACEPRINTF (con->t, 7, "CloseTPDU");
   if (c)
-    c->stop();
+    c->stop(false);
 }
 
 A_Individual::~A_Individual ()
 {
   TRACEPRINTF (con->t, 7, "CloseIndividual");
   if (c)
-    c->stop();
+    c->stop(false);
 }
 
 A_Connection::~A_Connection ()
 {
   TRACEPRINTF (con->t, 7, "CloseConnection");
   if (c)
-    c->stop();
+    c->stop(false);
 }
 
 A_GroupSocket::~A_GroupSocket ()
 {
   TRACEPRINTF (con->t, 7, "CloseGroupSocket");
   if (c)
-    c->stop();
+    c->stop(false);
 }
 
 void

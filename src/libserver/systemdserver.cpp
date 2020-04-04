@@ -17,17 +17,18 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include <unistd.h>
-#include <errno.h>
-#include <sys/socket.h>
 #include "systemdserver.h"
+
+#include <cerrno>
+#include <sys/socket.h>
+#include <unistd.h>
 
 /*
  * systemd services are not controlled by the "usual" server logic,
  * so no SERVER macro here.
  */
 SystemdServer::SystemdServer (BaseRouter& r, IniSectionPtr& s, int systemd_fd)
-    : NetServer(r,s)
+  : NetServer(r,s)
 {
   t->setAuxName("systemd");
   fd = systemd_fd;
@@ -39,14 +40,14 @@ SystemdServer::start()
   TRACEPRINTF (t, 8, "OpenSystemdSocket %d", fd);
   if (fd < 0)
     {
-      stopped();
+      stopped(true);
       return;
     }
 
   if (listen (fd, 10) == -1)
     {
-      ERRORPRINTF (t, E_ERROR | 19, "OpenSystemdSocket: listen: %s", strerror(errno));
-      NetServer::stop();
+      ERRORPRINTF (t, E_ERROR | 98, "OpenSystemdSocket: listen: %s", strerror(errno));
+      NetServer::stop(true);
       return;
     }
 
@@ -55,7 +56,7 @@ SystemdServer::start()
 }
 
 void
-SystemdServer::stop()
+SystemdServer::stop(bool err)
 {
 //** actually, we can't, because we can't re-open. So fake it.
 //  if (fd > -1)
@@ -63,7 +64,7 @@ SystemdServer::stop()
 //      close(fd);
 //      fd = -1;
 //    }
-  NetServer::stop();
+  NetServer::stop(err);
 }
 
 SystemdServer::~SystemdServer()

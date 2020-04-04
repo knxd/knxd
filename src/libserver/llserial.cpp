@@ -17,22 +17,22 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#include "llserial.h"
 #include "config.h"
 
-#include <unistd.h>
-#include <errno.h>
+#include <cerrno>
 #include <fcntl.h>
-#include <errno.h>
 #include <sys/ioctl.h>
 #include <termios.h>
+#include <unistd.h>
 #ifdef HAVE_LINUX_LOWLATENCY
+#include <cstring> // memcpy
 #include <sys/ioctl.h>
-#include <string.h> // memcpy
 #endif
 
-#include "llserial.h"
 
-static speed_t getbaud(int baud) {
+static speed_t getbaud(int baud)
+{
   switch(baud)
     {
     case 9600:
@@ -48,8 +48,6 @@ static speed_t getbaud(int baud) {
     }
 }
 
-LLserial::~LLserial () {}
-
 bool
 LLserial::setup()
 {
@@ -57,7 +55,7 @@ LLserial::setup()
     return false;
 
   dev = cfg->value("device","");
-  if(dev.size() == 0) 
+  if(dev.size() == 0)
     {
       ERRORPRINTF (t, E_ERROR | 22, "Missing device= config");
       return false;
@@ -65,9 +63,10 @@ LLserial::setup()
   baudrate = cfg->value("baudrate", (int)default_baudrate());
   if (getbaud(baudrate) == 0)
     {
-      ERRORPRINTF (t, E_ERROR | 22, "Wrong baudrate= config");
+      ERRORPRINTF (t, E_ERROR | 66, "Wrong baudrate= config");
       return false;
     }
+  low_latency = cfg->value("low-latency",false);
 
   return true;
 }
@@ -81,13 +80,13 @@ LLserial::start()
   fd = open (dev.c_str(), O_RDWR | O_NOCTTY | O_NDELAY | O_SYNC);
   if (fd == -1)
     {
-      ERRORPRINTF (t, E_ERROR | 22, "Opening %s failed: %s", dev, strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 67, "Opening %s failed: %s", dev, strerror(errno));
       goto ex1;
     }
 
-  if (!set_low_latency (fd, &sold))
+  if (!set_low_latency (fd, &sold, low_latency))
     {
-      ERRORPRINTF (t, E_ERROR | 22, "low_latency %s failed: %s", dev, strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 68, "low_latency %s failed: %s", dev, strerror(errno));
       goto ex2;
     }
 
@@ -96,7 +95,7 @@ LLserial::start()
   fd = open (dev.c_str(), O_RDWR | O_NOCTTY | O_SYNC);
   if (fd == -1)
     {
-      ERRORPRINTF (t, E_ERROR | 23, "Opening %s failed: %s", dev, strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 69, "Opening %s failed: %s", dev, strerror(errno));
       goto ex1;
     }
 
@@ -108,7 +107,7 @@ LLserial::start()
 
   if (tcgetattr (fd, &t1))
     {
-      ERRORPRINTF (t, E_ERROR | 25, "tcgetattr %s failed: %s", dev, strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 70, "tcgetattr %s failed: %s", dev, strerror(errno));
       goto ex3;
     }
 
@@ -116,7 +115,7 @@ LLserial::start()
   term_baudrate = getbaud(baudrate);
   if (term_baudrate == -1)
     {
-      ERRORPRINTF (t, E_ERROR | 58, "baudrate %d not recognized", baudrate);
+      ERRORPRINTF (t, E_ERROR | 71, "baudrate %d not recognized", baudrate);
       goto ex3;
     }
   TRACEPRINTF(t, 0, "Opened %s with baud %d", dev, baudrate);
@@ -134,19 +133,19 @@ LLserial::start()
   return;
 
 ex3:
-  restore_low_latency (fd, &sold);
+  restore_low_latency (fd, &sold, low_latency);
 ex2:
   close (fd);
   fd = -1;
 ex1:
-  stopped();
+  stopped(true);
 }
 
 void
-LLserial::stop()
+LLserial::stop(bool err)
 {
   if (fd >= 0)
-    restore_low_latency (fd, &sold);
-  FDdriver::stop();
+    restore_low_latency (fd, &sold, low_latency);
+  FDdriver::stop(err);
 }
 

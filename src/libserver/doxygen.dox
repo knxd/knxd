@@ -1,0 +1,75 @@
+/**
+ * @defgroup KNX KNX Standard
+ *
+ *   @defgroup KNX_03 System Specifications
+ *   @ingroup KNX
+ *
+ *     @defgroup KNX_03_02 Communication Media
+ *     @ingroup KNX_03
+ *
+ *       @defgroup KNX_03_02_02 Communication Medium TP1
+ *       @ingroup KNX_03_02
+ *
+ *       @defgroup KNX_03_02_06 Communication Medium KNX IP
+ *       @ingroup KNX_03_02
+ *
+ *     @defgroup KNX_03_03 Communication
+ *     @ingroup KNX_03
+ *
+ *       @defgroup KNX_03_03_02 Data Link Layer General
+ *       @ingroup KNX_03_03
+ *
+ *       @defgroup KNX_03_03_03 Network Layer
+ *       @ingroup KNX_03_03
+ *
+ *       @defgroup KNX_03_03_04 Transport Layer
+ *       @ingroup KNX_03_03
+ *
+ *       @defgroup KNX_03_03_07 Application Layer
+ *       @ingroup KNX_03_03
+ *
+ *     @defgroup KNX_03_05 Management
+ *     @ingroup KNX_03
+ *
+ *       @defgroup KNX_03_05_01 Resources
+ *       @ingroup KNX_03_05
+ *
+ *       @defgroup KNX_03_05_02 Management Procedures
+ *       @ingroup KNX_03_05
+ *
+ *       @defgroup KNX_03_05_03 Configuration Procedures
+ *       @ingroup KNX_03_05
+ *
+ *     @defgroup KNX_03_06 Standardized Interfaces
+ *     @ingroup KNX_03
+ *
+ *       @defgroup KNX_03_06_03 External Message Interface
+ *       @ingroup KNX_03_06
+ *
+ *         @defgroup KNX_03_06_03_03 EMI1 and EMI2
+ *         @ingroup KNX_03_06_03
+ *
+ *         @defgroup KNX_03_06_03_04 cEMI
+ *         @ingroup KNX_03_06_03
+ *
+ *     @defgroup KNX_03_08 KNXnet/IP
+ *     @ingroup KNX_03
+ *
+ *       @defgroup KNX_03_08_01 Overview
+ *       @ingroup KNX_03_08
+ *
+ *       @defgroup KNX_03_08_02 Core
+ *       @ingroup KNX_03_08
+ *
+ *       @defgroup KNX_03_08_03 Management
+ *       @ingroup KNX_03_08
+ *
+ *       @defgroup KNX_03_08_04 Tunnelling
+ *       @ingroup KNX_03_08
+ *
+ *       @defgroup KNX_03_08_05 Routing
+ *       @ingroup KNX_03_08
+ *
+ *       @defgroup KNX_03_08_07 Remote Diagnosis and Configuration
+ *       @ingroup KNX_03_08
+ */

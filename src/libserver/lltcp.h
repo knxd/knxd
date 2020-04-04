@@ -17,6 +17,12 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @addtogroup Driver
+ * @{
+ */
+
 #ifndef LLTCP
 #define LLTCP
 
@@ -25,18 +31,21 @@
 
 class LLtcp:public FDdriver
 {
-  std::string dest;
-  uint16_t port;
-
 public:
   LLtcp (LowLevelIface* parent, IniSectionPtr& s) : FDdriver(parent,s)
-    {
-      t->setAuxName("TCP");
-    }
-  virtual ~LLtcp ();
+  {
+    t->setAuxName("TCP");
+  }
+  virtual ~LLtcp () = default;
 
   bool setup();
   void start();
+
+private:
+  std::string dest;
+  uint16_t port;
 };
 
 #endif
+
+/** @} */

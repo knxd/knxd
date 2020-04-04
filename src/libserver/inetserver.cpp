@@ -17,14 +17,15 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include <sys/types.h>
-#include <sys/socket.h>
+#include "inetserver.h"
+
+#include <cerrno>
+#include <cstring>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 #include <unistd.h>
-#include <string.h>
-#include <errno.h>
-#include "inetserver.h"
 
 InetServer::InetServer (BaseRouter& r, IniSectionPtr& s)
   : NetServer(r,s)
@@ -50,8 +51,8 @@ InetServer::start()
 
   if (ignore_when_systemd && static_cast<Router &>(router).using_systemd)
     {
-      may_fail = true;
-      stopped();
+      ignore = true;
+      stopped(true);
       return;
     }
 
@@ -90,19 +91,19 @@ ex2:
   close (fd);
   fd = -1;
 ex1:
-  stop();
+  stop(true);
   return;
 }
 
 void
-InetServer::stop()
+InetServer::stop(bool err)
 {
   if (fd >= 0)
     {
       close(fd);
       fd = -1;
     }
-  NetServer::stop();
+  NetServer::stop(err);
 }
 
 InetServer::~InetServer()

@@ -17,14 +17,15 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include <unistd.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <ctype.h>
-#include <stdlib.h>
-#include <stdio.h>
-
 #include "usblowlevel.h"
+
+#include <cctype>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <fcntl.h>
+#include <unistd.h>
+
 #include "usb.h"
 
 USBEndpoint
@@ -65,68 +66,68 @@ check_device (libusb_device * dev, USBEndpoint e, USBDevice & e2)
   for (j = 0; j < desc.bNumConfigurations; j++)
     {
       if (libusb_get_config_descriptor (dev, j, &cfg))
-	continue;
+        continue;
       if (cfg->bConfigurationValue != e.config && e.config != -1)
-	{
-	  libusb_free_config_descriptor (cfg);
-	  continue;
-	}
+        {
+          libusb_free_config_descriptor (cfg);
+          continue;
+        }
 
       for (k = 0; k < cfg->bNumInterfaces; k++)
-	{
-	  intf = &cfg->interface[k];
-	  for (l = 0; l < intf->num_altsetting; l++)
-	    {
-	      alts = &intf->altsetting[l];
-	      if (alts->bInterfaceClass != LIBUSB_CLASS_HID)
-		continue;
-	      if (alts->bAlternateSetting != e.altsetting
-		  && e.altsetting != -1)
-		continue;
-	      if (alts->bInterfaceNumber != e.interface && e.interface != -1)
-		continue;
+        {
+          intf = &cfg->interface[k];
+          for (l = 0; l < intf->num_altsetting; l++)
+            {
+              alts = &intf->altsetting[l];
+              if (alts->bInterfaceClass != LIBUSB_CLASS_HID)
+                continue;
+              if (alts->bAlternateSetting != e.altsetting
+                  && e.altsetting != -1)
+                continue;
+              if (alts->bInterfaceNumber != e.interface && e.interface != -1)
+                continue;
 
-	      in = 0;
-	      out = 0;
-	      for (m = 0; m < alts->bNumEndpoints; m++)
-		{
-		  ep = &alts->endpoint[m];
-		  if (ep->wMaxPacketSize == 64)
-		    {
-		      if (ep->bEndpointAddress & LIBUSB_ENDPOINT_IN)
-			{
-			  if ((ep->bmAttributes & LIBUSB_TRANSFER_TYPE_MASK)
-			      == LIBUSB_TRANSFER_TYPE_INTERRUPT)
-			    in = ep->bEndpointAddress;
-			}
-		      else
-			{
-			  if ((ep->bmAttributes & LIBUSB_TRANSFER_TYPE_MASK)
-			      == LIBUSB_TRANSFER_TYPE_INTERRUPT)
-			    out = ep->bEndpointAddress;
-			}
-		    }
-		}
+              in = 0;
+              out = 0;
+              for (m = 0; m < alts->bNumEndpoints; m++)
+                {
+                  ep = &alts->endpoint[m];
+                  if (ep->wMaxPacketSize == 64)
+                    {
+                      if (ep->bEndpointAddress & LIBUSB_ENDPOINT_IN)
+                        {
+                          if ((ep->bmAttributes & LIBUSB_TRANSFER_TYPE_MASK)
+                              == LIBUSB_TRANSFER_TYPE_INTERRUPT)
+                            in = ep->bEndpointAddress;
+                        }
+                      else
+                        {
+                          if ((ep->bmAttributes & LIBUSB_TRANSFER_TYPE_MASK)
+                              == LIBUSB_TRANSFER_TYPE_INTERRUPT)
+                            out = ep->bEndpointAddress;
+                        }
+                    }
+                }
 
-	      if (!in || !out)
-		continue;
-	      if (!libusb_open (dev, &h))
-		{
-		  USBDevice e1;
-		  e1.dev = dev;
-		  libusb_ref_device (dev);
-		  e1.config = cfg->bConfigurationValue;
-		  e1.interface = alts->bInterfaceNumber;
-		  e1.altsetting = alts->bAlternateSetting;
-		  e1.sendep = out;
-		  e1.recvep = in;
-		  libusb_close (h);
-		  e2 = e1;
-		  libusb_free_config_descriptor (cfg);
-		  return true;
-		}
-	    }
-	}
+              if (!in || !out)
+                continue;
+              if (!libusb_open (dev, &h))
+                {
+                  USBDevice e1;
+                  e1.dev = dev;
+                  libusb_ref_device (dev);
+                  e1.config = cfg->bConfigurationValue;
+                  e1.interface = alts->bInterfaceNumber;
+                  e1.altsetting = alts->bAlternateSetting;
+                  e1.sendep = out;
+                  e1.recvep = in;
+                  libusb_close (h);
+                  e2 = e1;
+                  libusb_free_config_descriptor (cfg);
+                  return true;
+                }
+            }
+        }
       libusb_free_config_descriptor (cfg);
     }
   return false;
@@ -153,6 +154,7 @@ detectUSBEndpoint (libusb_context *context, USBEndpoint e)
 USBLowLevelDriver::USBLowLevelDriver (LowLevelIface* p, IniSectionPtr& s) : LowLevelDriver(p,s)
 {
   t->setAuxName("usbL");
+  send_timeout = cfg->value("send-timeout", 1000);
   read_trigger.set<USBLowLevelDriver,&USBLowLevelDriver::read_trigger_cb>(this);
   write_trigger.set<USBLowLevelDriver,&USBLowLevelDriver::write_trigger_cb>(this);
   read_trigger.start();
@@ -173,12 +175,38 @@ USBLowLevelDriver::start()
   stopping = false;
 
   if (state >= sStarted)
-    return;
-  if (loop == nullptr)
     {
-      ERRORPRINTF (t, E_FATAL | 28, "USBLowLevelDriver: setup not called");
+      ERRORPRINTF (t, E_FATAL | 132, "USBLowLevelDriver: not starting, state %d", state);
+      return;
+    }
+  if (loop != nullptr)
+    {
+      ERRORPRINTF (t, E_FATAL | 107, "USBLowLevelDriver: start called twice");
       goto ex;
     }
+
+  loop = new USBLoop (t);
+
+  if (!loop->context)
+    {
+      ERRORPRINTF (t, E_ERROR | 103, "setting up USB failed");
+      goto ex;
+    }
+
+  TRACEPRINTF (t, 1, "Detect");
+  {
+    d = detectUSBEndpoint (loop->context, e);
+  }
+  if (d.dev == nullptr)
+    {
+      TRACEPRINTF (t, 1, "No matching endpoint found.");
+      goto ex;
+    }
+
+  TRACEPRINTF (t, 1, "Using %d:%d:%d:%d:%d (%d:%d)",
+               libusb_get_bus_number (d.dev),
+               libusb_get_device_address (d.dev), d.config, d.altsetting,
+               d.interface, d.sendep, d.recvep);
 
   if ((res = libusb_open (d.dev, &dev))< 0)
     {
@@ -214,13 +242,13 @@ USBLowLevelDriver::start()
     {
       ERRORPRINTF (t, E_ERROR | 34, "Error AllocRecv: %s", strerror(errno));
       goto ex;
-    } 
+    }
   StartUsbRecvTransfer();
   state = sRunning;
   started();
   return;
 ex:
-  stop();
+  stop(true);
 }
 
 void
@@ -232,31 +260,41 @@ USBLowLevelDriver::abort_send()
 
   if ((res = libusb_cancel_transfer (sendh)) < 0)
     {
-      ERRORPRINTF (t, E_ERROR | 31, "cancel %lx: %s", (unsigned long) sendh, libusb_error_name(res));
+      ERRORPRINTF (t, E_ERROR | 99, "cancel %lx: %s", (unsigned long) sendh, libusb_error_name(res));
       sendh = nullptr; // XXX does this make sense?
       out.clear();
       return;
     }
-  while (sendh)
-    ev_run(EV_DEFAULT_ EVRUN_ONCE);
+//while (sendh)
+//  ev_run(EV_DEFAULT_ EVRUN_ONCE);
 }
 
 void
-USBLowLevelDriver::stop_()
+USBLowLevelDriver::stop_(bool force)
 {
-  TRACEPRINTF (t, 1, "Close");
+  TRACEPRINTF (t, 1, "Close G");
+  if(loop == nullptr)
+    {
+      LowLevelDriver::stop(stopped_err);
+      return;
+    }
   stopping = true;
 
-  if (state > sClaimed)
-    state = sClaimed;
-  if (sendh)
-    libusb_cancel_transfer (sendh);
-  if (recvh)
-    libusb_cancel_transfer (recvh);
-  if (state > sClaimed)
-    state = sClaimed;
-  while (sendh || recvh)
-    ev_run(EV_DEFAULT_ EVRUN_ONCE);
+  if (state > sReleasing)
+    {
+      state = sReleasing;
+      if (sendh)
+        libusb_cancel_transfer (sendh);
+      if (recvh)
+        libusb_cancel_transfer (recvh);
+    }
+
+  if(state == sReleasing && !force)
+    {
+      if (sendh || recvh)
+        return;
+      LowLevelDriver::stop(stopped_err);
+    }
 
   TRACEPRINTF (t, 1, "Release");
   if (state > sStarted)
@@ -265,24 +303,28 @@ USBLowLevelDriver::stop_()
       libusb_attach_kernel_driver (dev, d.interface);
     }
   if (state > sNone)
-    libusb_close (dev);
+    {
+      sendh = nullptr;
+      recvh = nullptr;
+      libusb_close (dev);
+    }
   delete loop;
   loop = nullptr;
   reset();
 }
 
 void
-USBLowLevelDriver::stop()
+USBLowLevelDriver::stop(bool err)
 {
-  stop_();
-  LowLevelDriver::stop();
+  stopped_err = err;
+  stop_(false);
 }
 
 USBLowLevelDriver::~USBLowLevelDriver ()
 {
-  stop();
   read_trigger.stop();
   write_trigger.stop();
+  stop_(true);
 }
 
 void
@@ -290,8 +332,8 @@ USBLowLevelDriver::send_Data (CArray& l)
 {
   if (sendh != nullptr)
     {
-      ERRORPRINTF (t, E_FATAL | 35, "Send while buffer not empty");
-      errored(); // XXX signal async
+      ERRORPRINTF (t, E_FATAL | 108, "Send while buffer not empty");
+      stop(true); // XXX signal async
       return;
     }
   out = l;
@@ -302,7 +344,7 @@ void
 usb_complete_send (struct libusb_transfer *transfer)
 {
   USBLowLevelDriver *
-    instance = (USBLowLevelDriver *) transfer->user_data;
+  instance = (USBLowLevelDriver *) transfer->user_data;
   instance->CompleteSend(transfer);
 }
 
@@ -310,7 +352,7 @@ void
 USBLowLevelDriver::CompleteSend(struct libusb_transfer *transfer)
 {
   if (transfer != sendh)
-    ERRORPRINTF (t, E_WARNING | 35, "SendComp %lx %lx",(unsigned long)transfer,(unsigned long)sendh);
+    ERRORPRINTF (t, E_WARNING | 121, "SendComp %lx %lx",(unsigned long)transfer,(unsigned long)sendh);
   assert(transfer == sendh);
 
   TRACEPRINTF (t, 10, "SendCB %lx", (unsigned long) sendh);
@@ -318,31 +360,37 @@ USBLowLevelDriver::CompleteSend(struct libusb_transfer *transfer)
 }
 
 void
-USBLowLevelDriver::write_trigger_cb(ev::async &w UNUSED, int revents UNUSED)
+USBLowLevelDriver::write_trigger_cb(ev::async &, int)
 {
   TRACEPRINTF (t, 10, "SendComplete %lx %d", (unsigned long)sendh, sendh->actual_length);
   if (sendh == nullptr)
     return;
-  if (sendh->status == LIBUSB_TRANSFER_COMPLETED)
-    {
-      libusb_free_transfer (sendh);
-      send_retry = 0;
-      sendh = nullptr;
-      send_Next();
-      return;
-    }
-  if (sendh->status == LIBUSB_TRANSFER_TIMED_OUT && ++send_retry < 3)
-    {
-      ERRORPRINTF (t, E_WARNING | 35, "SendError %lx timeout, retrying", (unsigned long)sendh);
-      libusb_free_transfer (sendh);
-      sendh = nullptr;
-      do_send();
-      return;
-    }
-  ERRORPRINTF (t, E_ERROR | 35, "SendError %lx status %d", (unsigned long)sendh, sendh->status);
+  auto s = sendh->status;
+  libusb_free_transfer (sendh);
   sendh = nullptr;
-  errored(); // TODO probably needs to be an async error
-  return;
+
+  if (stopping)
+    {
+      stop_(false);
+      return;
+    }
+  else if (s == LIBUSB_TRANSFER_COMPLETED)
+    {
+      send_retry = 0;
+      send_Next();
+    }
+  else if (s == LIBUSB_TRANSFER_TIMED_OUT && ++send_retry < 3)
+    {
+      ERRORPRINTF (t, E_WARNING | 122, "SendError timeout, retrying");
+      do_send();
+    }
+  else if (s == LIBUSB_TRANSFER_CANCELLED)
+    ERRORPRINTF (t, E_ERROR | 35, "SendError cancel");
+  else
+    {
+      ERRORPRINTF (t, E_ERROR | 35, "SendError status %d", s);
+      stop(true); // TODO probably needs to be an async error
+    }
 }
 
 void
@@ -356,11 +404,11 @@ void
 usb_complete_recv (struct libusb_transfer *transfer)
 {
   USBLowLevelDriver *
-    instance = (USBLowLevelDriver *) transfer->user_data;
+  instance = (USBLowLevelDriver *) transfer->user_data;
   instance->CompleteReceive(transfer);
 }
 
-void 
+void
 USBLowLevelDriver::CompleteReceive(struct libusb_transfer *transfer)
 {
   assert (transfer == recvh);
@@ -369,33 +417,37 @@ USBLowLevelDriver::CompleteReceive(struct libusb_transfer *transfer)
 }
 
 void
-USBLowLevelDriver::read_trigger_cb(ev::async &w UNUSED, int revents UNUSED)
+USBLowLevelDriver::read_trigger_cb(ev::async &, int)
 {
   TRACEPRINTF (t, 10, "RecvComplete %lx %d", (unsigned long) recvh, recvh->actual_length);
   if (recvh == nullptr)
     return;
 
-  if (recvh->status != LIBUSB_TRANSFER_COMPLETED)
+  if (stopping)
     {
-      ERRORPRINTF (t, E_WARNING | 33, "RecvError %d", recvh->status);
+      libusb_free_transfer (recvh);
       recvh = nullptr;
-      errored();
+      stop_(false);
+      return;
+    }
+
+  if (recvh->status == LIBUSB_TRANSFER_CANCELLED)
+    ERRORPRINTF (t, E_WARNING | 134, "Recv Canceled");
+  else if (recvh->status != LIBUSB_TRANSFER_COMPLETED)
+    {
+      ERRORPRINTF (t, E_WARNING | 123, "RecvError %d", recvh->status);
+      stop(true);
       return;
     }
   else
     HandleReceiveUsb();
 
-  if (state > sNone && !stopping)
+  if (state > sNone)
     StartUsbRecvTransfer();
-  else
-    {
-      libusb_free_transfer (recvh);
-      recvh = nullptr;
-    }
 }
 
 
-void 
+void
 USBLowLevelDriver::StartUsbRecvTransfer()
 {
   libusb_fill_interrupt_transfer (recvh, dev, d.recvep, recvbuf,
@@ -404,8 +456,8 @@ USBLowLevelDriver::StartUsbRecvTransfer()
   int res = libusb_submit_transfer (recvh);
   if (res)
     {
-      ERRORPRINTF (t, E_ERROR | 32, "Error StartRecv: %s", libusb_error_name(res));
-      errored();
+      ERRORPRINTF (t, E_ERROR | 100, "Error StartRecv: %s", libusb_error_name(res));
+      stop(true);
       return;
     }
   TRACEPRINTF (t, 10, "StartRecv");
@@ -422,7 +474,7 @@ bool get_connection_state(uint8_t *recvbuf)
   return recvbuf[12] & 0x1;
 }
 
-void 
+void
 USBLowLevelDriver::HandleReceiveUsb()
 {
   CArray res;
@@ -438,20 +490,20 @@ USBLowLevelDriver::HandleReceiveUsb()
     {
       if (state == sRunning)
         {
-          ERRORPRINTF(t, E_INFO, "Connected");
+          ERRORPRINTF(t, E_INFO | 130, "Connected");
           state = sConnected;
           LowLevelDriver::start();
         }
       else if (state < sRunning)
-        ERRORPRINTF(t, E_WARNING, "Connected in state %d", state);
+        ERRORPRINTF(t, E_WARNING | 124, "Connected in state %d", state);
     }
   else
     {
       if (state == sConnected)
         {
           state = sRunning;
-          ERRORPRINTF(t, E_ERROR, "No connection");
-          stop(); // XXX TODO signal async error instead
+          ERRORPRINTF(t, E_ERROR | 101, "No connection");
+          stop(true);
         }
     }
 }
@@ -469,12 +521,12 @@ USBLowLevelDriver::do_send()
   sendh = libusb_alloc_transfer (0);
   if (!sendh)
     {
-      ERRORPRINTF (t, E_ERROR | 36, "Error AllocSend: %s", strerror(errno));
+      ERRORPRINTF (t, E_ERROR | 102, "Error AllocSend: %s", strerror(errno));
       return;
     }
   libusb_fill_interrupt_transfer (sendh, dev, d.sendep, sendbuf,
                                   sizeof (sendbuf), usb_complete_send,
-                                  this, 1000);
+                                  this, send_timeout);
   int res = libusb_submit_transfer (sendh);
   if (res)
     {
@@ -487,32 +539,10 @@ USBLowLevelDriver::do_send()
 bool
 USBLowLevelDriver::setup()
 {
-  loop = new USBLoop (t);
+  if (!LowLevelDriver::setup())
+    return false;
 
-  if (!loop->context)
-    {
-      ERRORPRINTF (t, E_ERROR | 36, "setting up USB failed");
-      goto ex;
-    }
-
-  TRACEPRINTF (t, 1, "Detect");
-  {
-    USBEndpoint e = parseUSBEndpoint (cfg);
-    d = detectUSBEndpoint (loop->context, e);
-  }
-  if (d.dev == nullptr)
-    {
-      TRACEPRINTF (t, 1, "No matching endpoint found.");
-      goto ex;
-    }
-
-  TRACEPRINTF (t, 1, "Using %d:%d:%d:%d:%d (%d:%d)",
-	       libusb_get_bus_number (d.dev),
-	       libusb_get_device_address (d.dev), d.config, d.altsetting,
-	       d.interface, d.sendep, d.recvep);
-
+  e = parseUSBEndpoint (cfg);
   return true;
-ex:
-  stop_();
-  return false;
 }
+

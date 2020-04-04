@@ -29,7 +29,7 @@ class USBLoop
 {
   TracePtr t;
 
-  Array < ev::io * > fds;
+  std::vector < ev::io * > fds;
   ev::timer tm;
   void timer();
 

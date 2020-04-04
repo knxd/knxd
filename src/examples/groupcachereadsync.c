@@ -26,7 +26,7 @@ main (int ac, char *ag[])
   EIBConnection *con;
   eibaddr_t dest;
   eibaddr_t src;
-  uchar buf[200];
+  uint8_t buf[200];
 
   if (ac != 3 && ac != 4)
     die ("usage: %s url eibaddr [age]", ag[0]);
@@ -56,9 +56,9 @@ main (int ac, char *ag[])
     {
       printf (": ");
       if (len == 2)
-	printf ("%02X", buf[1] & 0x3F);
+        printf ("%02X", buf[1] & 0x3F);
       else
-	printHex (len - 2, buf + 2);
+        printHex (len - 2, buf + 2);
     }
   printf ("\n");
 

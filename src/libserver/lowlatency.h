@@ -17,6 +17,12 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @addtogroup Driver
+ * @{
+ */
+
 #ifndef LOW_LATENCY_H
 #define LOW_LATENCY_H
 
@@ -27,14 +33,17 @@
 #include <linux/serial.h>
 #endif
 
-typedef struct {
-	struct termios term;
+struct low_latency_save
+{
+  struct termios term;
 #ifdef HAVE_LINUX_LOWLATENCY
-	serial_struct ser;
+  serial_struct ser;
 #endif
-} low_latency_save;
+};
 
-bool set_low_latency (int fd, low_latency_save * save);
-void restore_low_latency (int fd, low_latency_save * save);
+bool set_low_latency (int fd, low_latency_save * save, const bool really);
+void restore_low_latency (int fd, low_latency_save * save, const bool really);
 
 #endif // LOW_LATENCY_H
+
+/** @} */

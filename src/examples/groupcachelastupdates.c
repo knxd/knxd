@@ -27,7 +27,7 @@ main (int ac, char *ag[])
   int start;
   int timeout;
   uint32_t end;
-  uchar buf[300];
+  uint8_t buf[300];
 
   if (ac != 4)
     die ("usage: %s url start-position timeout", ag[0]);

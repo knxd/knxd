@@ -46,95 +46,95 @@ cgidie (const char *msg)
 
 char *parseRequest ()
 {
-   unsigned long size;
-   char *buffer = NULL;
-   char *request = getenv("REQUEST_METHOD");
-   char *contentlen;
-   char *cgi_str;
+  unsigned long size;
+  char *buffer = NULL;
+  char *request = getenv("REQUEST_METHOD");
+  char *contentlen;
+  char *cgi_str;
 
-   // check METHOD
-   if(  NULL == request )
-      return NULL;
-   else if( strcmp(request, "GET") == 0 )
-      {
-         cgi_str = getenv("QUERY_STRING");
-         if( NULL == cgi_str )
+  // check METHOD
+  if(  NULL == request )
+    return NULL;
+  else if( strcmp(request, "GET") == 0 )
+    {
+      cgi_str = getenv("QUERY_STRING");
+      if( NULL == cgi_str )
+        return NULL;
+      else
+        {
+          buffer =(char *) strdup(cgi_str);
+          return buffer;
+        }
+    }
+  else if( strcmp(request, "POST") == 0 )
+    {
+      contentlen = getenv("CONTENT_LENGTH");
+      if( NULL == contentlen )
+        return NULL;
+      else
+        {
+          size = (unsigned long) atoi(contentlen);
+          if(size <= 0 && size > MAX_POSTSIZE) //avoid insane
             return NULL;
-         else
+        }
+      buffer =(char *) malloc(size+1);
+      if( NULL == buffer )
+        return NULL;
+      else
+        {
+          if( NULL == fgets(buffer, size+1, stdin) )
             {
-               buffer =(char *) strdup(cgi_str);
-               return buffer;
+              free(buffer);
+              return NULL;
             }
-      }
-   else if( strcmp(request, "POST") == 0 )
-      {
-         contentlen = getenv("CONTENT_LENGTH");
-         if( NULL == contentlen )
-            return NULL;
-         else
-            {
-               size = (unsigned long) atoi(contentlen);
-               if(size <= 0 && size > MAX_POSTSIZE) //avoid insane
-                  return NULL;
-            }
-         buffer =(char *) malloc(size+1);
-         if( NULL == buffer )
-            return NULL;
-         else
-            {
-               if( NULL == fgets(buffer, size+1, stdin) )
-                  {
-                     free(buffer);
-                     return NULL;
-                  }
-               else
-                  return buffer;
-            }
-      }
-   else /* no GET or POST */
-      return NULL;
+          else
+            return buffer;
+        }
+    }
+  else /* no GET or POST */
+    return NULL;
 }
 
 /* convert 2xHex to char */
 char convHtoA(char *hex)
 {
-   char ascii;
-   ascii =
-   (hex[0] >= 'A' ? ((hex[0] & 0xdf) - 'A')+10 : (hex[0] - '0'));
-   ascii <<= 4;
-   ascii +=
-   (hex[1] >= 'A' ? ((hex[1] & 0xdf) - 'A')+10 : (hex[1] - '0'));
-   return ascii;
+  char ascii;
+  ascii =
+    (hex[0] >= 'A' ? ((hex[0] & 0xdf) - 'A')+10 : (hex[0] - '0'));
+  ascii <<= 4;
+  ascii +=
+    (hex[1] >= 'A' ? ((hex[1] & 0xdf) - 'A')+10 : (hex[1] - '0'));
+  return ascii;
 }
 /* FIXME: better handling non-hex chars ? */
 
 /* conv urlized Hex (%xx) to ASCII */
 void hex2ascii(char *str)
 {
-   int x,y;
-   for(x=0,y=0; str[y] != '\0'; ++x,++y)
-      {
-         str[x] = str[y];
-         if(str[x] == '%')
-            {
-               str[x] = convHtoA(&str[y+1]);
-               y+=2;
-/* FIXME: Buffer overflow */
-            }
-         else if( str[x] == '+')
-            str[x]=' ';
-      }
-   str[x] = '\0';
+  int x,y;
+  for(x=0,y=0; str[y] != '\0'; ++x,++y)
+    {
+      str[x] = str[y];
+      if(str[x] == '%')
+        {
+          str[x] = convHtoA(&str[y+1]);
+          y+=2;
+          /* FIXME: Buffer overflow */
+        }
+      else if( str[x] == '+')
+        str[x]=' ';
+    }
+  str[x] = '\0';
 }
 
 int isNumeric(char *str)
 {
   while(*str)
-  {
-    if(!isdigit(*str))
-      return 0;
-    str++;
-  }
+    {
+      if(!isdigit(*str))
+        return 0;
+      str++;
+    }
   return 1;
 }
 
@@ -152,60 +152,60 @@ void readParseCGI()
   hex2ascii(cgistr);
   params=strtok(cgistr,"&");
   while( params != NULL && i < MAX_GA)
-  {
+    {
       valuepairs[i] = (char *)malloc(strlen(params)+1);
       if(valuepairs[i] == NULL)
-         return;
+        return;
       valuepairs[i] = params;
       params=strtok(NULL,"&");
       i++;
-  }
+    }
   while (i > j)
-  {
+    {
       value=strtok(valuepairs[j],"=");
       if ( value != NULL )
-      {
+        {
           if (strcmp (value,"url") == 0)
-          {
-            value=strtok(NULL,"=");
-#ifdef BETA
-            if ( value != NULL )
-                 *eiburl = (char *) strdup(value);
-/* FIXME: Security - define url from ENV - Parameter only for devel */
-#endif
-          }
-          else if (strcmp (value,"a") == 0)
-          {
-            value=strtok(NULL,"=");
-            if (value==NULL)
-        	break;
-            if (isNumeric(value))
-              gadest=atoi(value);
-            else
-              gadest=readgaddr(value);
-          }
-          else if (strcmp (value,"d") == 0)
-          {
-            value=strtok(NULL,"=");
-            if (isNumeric(value))
             {
-              dpt=atoi(value);
+              value=strtok(NULL,"=");
+#ifdef BETA
+              if ( value != NULL )
+                *eiburl = (char *) strdup(value);
+              /* FIXME: Security - define url from ENV - Parameter only for devel */
+#endif
             }
-          }
+          else if (strcmp (value,"a") == 0)
+            {
+              value=strtok(NULL,"=");
+              if (value==NULL)
+                break;
+              if (isNumeric(value))
+                gadest=atoi(value);
+              else
+                gadest=readgaddr(value);
+            }
+          else if (strcmp (value,"d") == 0)
+            {
+              value=strtok(NULL,"=");
+              if (isNumeric(value))
+                {
+                  dpt=atoi(value);
+                }
+            }
           else if (strcmp (value,"v") == 0)
-          {
-            value=strtok(NULL,"=");
-            if ( value != NULL && strlen(value)<50 )
-              strcpy(data,value);
-          }
+            {
+              value=strtok(NULL,"=");
+              if ( value != NULL && strlen(value)<50 )
+                strcpy(data,value);
+            }
           else
-          {
-            //printf ("Unknown param %s\n",value); //debug
-          }
+            {
+              //printf ("Unknown param %s\n",value); //debug
+            }
 
-      }
+        }
       j++;
-  }
+    }
 }
 
 
@@ -218,7 +218,7 @@ main ()
   double fval;
   int sign=0,exp=0,mant=0;
   eibaddr_t dest;
-  uchar buf[255] = { 0, 0x80 };
+  uint8_t buf[255] = { 0, 0x80 };
   char tmpbuf[255];
   printf("Content-Type: text/plain\r\n\r\n");
 
@@ -237,20 +237,20 @@ main ()
   if (!gadest || !(strlen(data)>0))
     cgidie ("Need ga(g),value(v)");
   switch (dpt)
-  {
+    {
     case 0:
       len=1;
       for(i = 0; i < strlen(data)/2; i++)
-      {
-        tmpbuf[0] = data[i*2];
-        tmpbuf[1] = data[(i*2)+1];
-        sscanf(tmpbuf, "%x", &j);
-        buf[i+1] = j;
-        len++;
-      }
+        {
+          tmpbuf[0] = data[i*2];
+          tmpbuf[1] = data[(i*2)+1];
+          sscanf(tmpbuf, "%x", &j);
+          buf[i+1] = j;
+          len++;
+        }
       // only allow A_GroupValue_Write
       if ((buf[1] &0x80) != 0x80)
-            cgidie ("Only A_GroupValue_Write allowed");
+        cgidie ("Only A_GroupValue_Write allowed");
       break;
     case 1:
       buf[1] |= atoi(data) & 0x3f;
@@ -271,14 +271,15 @@ main ()
       len=3;
       break;
     case 9:
-    	fval=atof(data);
+      fval=atof(data);
       if (fval<0)
         sign = 0x8000;
       mant = (int)(fval * 100.0);
-      while (abs(mant) > 2047) {
+      while (abs(mant) > 2047)
+        {
           mant = mant >> 1;
           exp++;
-      }
+        }
       i = sign | (exp << 11) | (mant & 0x07ff);
       buf[2] = i >> 8;
       buf[3] = i & 0xff;
@@ -287,12 +288,12 @@ main ()
       break;
     case 16:
       len=2;
-      for (i=0;i<strlen(data); i++)
-      {
-        buf[i+2] = (int)(data[i]);
-        len++;
-      }
-  }
+      for (i=0; i<strlen(data); i++)
+        {
+          buf[i+2] = (int)(data[i]);
+          len++;
+        }
+    }
 
   len = EIBSendAPDU (con, len, buf);
   if (len == -1)

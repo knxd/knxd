@@ -16,13 +16,15 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
+#include <sys/socket.h>
 
 #include "eibnetrouter.h"
 #include "emi.h"
 #include "config.h"
+#include "cm_tp1.h"
 
 EIBNetIPRouter::EIBNetIPRouter (const LinkConnectPtr_& c, IniSectionPtr& s)
-  : BusDriver(c,s)
+  : HWBusDriver(c,s)
 {
   t->setAuxName("ip");
 }
@@ -64,20 +66,20 @@ EIBNetIPRouter::start()
   if (!sock->SetMulticast (mcfg))
     goto err_out;
   TRACEPRINTF (t, 2, "Opened");
-  BusDriver::start();
+  HWBusDriver::start();
   return;
 
 err_out:
   delete sock;
   sock = 0;
-  stopped();
+  stopped(true);
 }
 
 void
-EIBNetIPRouter::stop()
+EIBNetIPRouter::stop(bool err)
 {
   stop_();
-  BusDriver::stop();
+  HWBusDriver::stop(err);
 }
 
 void
@@ -101,7 +103,7 @@ EIBNetIPRouter::setup()
 {
   if (!assureFilter("pace"))
     return false;
-  if(!BusDriver::setup())
+  if(!HWBusDriver::setup())
     return false;
   multicastaddr = cfg->value("multicast-address","224.0.23.12");
   port = cfg->value("port",3671);
@@ -150,10 +152,9 @@ EIBNetIPRouter::read_cb(EIBNetIPPacket *p)
         recv_L_Data (std::move(c));
       else
         {
-          LBusmonPtr p1 = LBusmonPtr(new L_Busmonitor_PDU ());
-          p1->pdu = c->ToPacket ();
+          LBusmonPtr p1 = LBusmonPtr(new L_Busmon_PDU ());
+          p1->lpdu = L_Data_to_CM_TP1 (c);
           recv_L_Busmonitor (std::move(p1));
         }
     }
 }
-

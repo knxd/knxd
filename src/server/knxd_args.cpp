@@ -19,9 +19,9 @@
 */
 
 #include <argp.h>
-#include <stdio.h>
+#include <cstdio>
 #include <iostream>
-#include <stdarg.h>
+#include <cstdarg>
 #include <unordered_map>
 
 #include "inifile.h"
@@ -31,11 +31,12 @@
 /** aborts program with a printf like message */
 void die (const char *msg, ...);
 
-typedef struct {
+struct L2options
+{
   unsigned int flags;
   unsigned int send_delay;
   TracePtr t;
-} L2options;
+};
 
 #define FLAG_B_TUNNEL_NOQUEUE (1<<0)
 #define FLAG_B_TPUARTS_ACKGROUP (1<<1)
@@ -57,7 +58,7 @@ typedef struct {
 #define OPT_MULTI_PORT 10
 #define OPT_NO_TIMESTAMP 11
 
-#define OPT_ARG(_arg,_state,_default) (arg ? arg : \
+#define OPT_ARG(_arg,_state,_default) (_arg ? _arg : \
         (state->argv[state->next] && state->argv[state->next][0] && (state->argv[state->next][0] != '-')) ?  \
             state->argv[state->next++] : _default)
 
@@ -122,10 +123,10 @@ public:
 
 public:
   /** The current tracer */
-  Array < std::string > filters;
+  std::vector < std::string > filters;
 
-  arguments () { }
-  virtual ~arguments () { }
+  arguments () = default;
+  virtual ~arguments () = default;
 
   /** get the current tracer.
    * Call with 'true' when you want to change the tracer
@@ -138,91 +139,92 @@ public:
 
   std::unordered_map<std::string,std::string> more_args;
   void add_arg(char *arg)
-    {
-      if (!*arg)
-        return;
+  {
+    if (!*arg)
+      return;
 
-      char *val = strchr(arg,'=');
-      if (val)
-        {
-          *val++ = 0;
-          more_args.emplace(arg,val);
-        }
-      else if (*arg == '!' && arg[1])
-        more_args.emplace(arg+1,"false");
-      else if (*arg == '!')
-        return;
-      else
-        more_args.emplace(arg,"true");
-    }
+    char *val = strchr(arg,'=');
+    if (val)
+      {
+        *val++ = 0;
+        more_args.emplace(arg,val);
+      }
+    else if (*arg == '!' && arg[1])
+      more_args.emplace(arg+1,"false");
+    else if (*arg == '!')
+      return;
+    else
+      more_args.emplace(arg,"true");
+  }
 
   void do_filter(const char *name)
-    {
-      if (more_args.size() > 0)
-        {
-          link_to(name);
-          ITER(i, more_args)
-            (*ini[link])[i->first] = i->second;
-          (*ini[link])["filter"] = name;
-          more_args.clear();
-          filters.push_back(link);
-        }
-      else
-        filters.push_back(name);
-    }
+  {
+    if (more_args.size() > 0)
+      {
+        link_to(name);
+        ITER(i, more_args)
+        (*ini[link])[i->first] = i->second;
+        (*ini[link])["filter"] = name;
+        more_args.clear();
+        filters.push_back(link);
+      }
+    else
+      filters.push_back(name);
+  }
 
   void stack(const std::string section, bool clear = true)
-    {
-      if (l2opts.send_delay)
-        {
-          char buf[15];
-          snprintf(buf,sizeof(buf),"delay=%d",l2opts.send_delay);
-          add_arg(buf);
-          do_filter("pace");
-        }
-      ITER(i,filters)
-        ADD((*ini[section])["filters"],(*i));
-      if (l2opts.flags & FLAG_B_TPUARTS_ACKGROUP)
-        (*ini[section])["ack-group"] = "true";
-      if (l2opts.flags & FLAG_B_TPUARTS_ACKINDIVIDUAL)
-        (*ini[section])["ack-individual"] = "true";
-      if (l2opts.flags & FLAG_B_TPUARTS_DISCH_RESET)
-        (*ini[section])["reset"] = "true";
-      if (l2opts.flags & FLAG_B_NO_MONITOR)
-        (*ini[section])["monitor"] = "false";
-      ITER(i, more_args)
-        (*ini[section])[i->first] = i->second;
-      more_args.clear();
-      if (tracelevel >= 0 || errorlevel >= 0 || no_timestamps) {
-          char b1[10],b2[50];
-          snprintf(b2,sizeof(b2),"debug-%s",section.c_str());
-          (*ini[section])["debug"] = b2;
-          if (tracelevel >= 0)
-            {
-              snprintf(b1,sizeof(b1),"0x%x",tracelevel);
-              (*ini[b2])["trace-mask"] = b1;
-            }
-          if (errorlevel >= 0)
-            {
-              snprintf(b1,sizeof(b1),"0x%x",errorlevel);
-              (*ini[b2])["error-level"] = b1;
-            }
-          if (no_timestamps)
-            {
-              (*ini[b2])["timestamps"] = "false";
-            }
+  {
+    if (l2opts.send_delay)
+      {
+        char buf[15];
+        snprintf(buf,sizeof(buf),"delay=%d",l2opts.send_delay);
+        add_arg(buf);
+        do_filter("pace");
       }
-      if (clear)
-        reset();
-    }
+    ITER(i,filters)
+    ADD((*ini[section])["filters"],(*i));
+    if (l2opts.flags & FLAG_B_TPUARTS_ACKGROUP)
+      (*ini[section])["ack-group"] = "true";
+    if (l2opts.flags & FLAG_B_TPUARTS_ACKINDIVIDUAL)
+      (*ini[section])["ack-individual"] = "true";
+    if (l2opts.flags & FLAG_B_TPUARTS_DISCH_RESET)
+      (*ini[section])["reset"] = "true";
+    if (l2opts.flags & FLAG_B_NO_MONITOR)
+      (*ini[section])["monitor"] = "false";
+    ITER(i, more_args)
+    (*ini[section])[i->first] = i->second;
+    more_args.clear();
+    if (tracelevel >= 0 || errorlevel >= 0 || no_timestamps)
+      {
+        char b1[12],b2[50];
+        snprintf(b2,sizeof(b2),"debug-%s",section.c_str());
+        (*ini[section])["debug"] = b2;
+        if (tracelevel >= 0)
+          {
+            snprintf(b1,sizeof(b1) - 1,"0x%x",tracelevel);
+            (*ini[b2])["trace-mask"] = b1;
+          }
+        if (errorlevel >= 0)
+          {
+            snprintf(b1,sizeof(b1) - 1,"0x%x",errorlevel);
+            (*ini[b2])["error-level"] = b1;
+          }
+        if (no_timestamps)
+          {
+            (*ini[b2])["timestamps"] = "false";
+          }
+      }
+    if (clear)
+      reset();
+  }
   void reset()
-    {
-        filters.clear();
-        l2opts = L2options();
-        tracelevel = -1;
-        errorlevel = -1;
-        no_timestamps = false;
-    }
+  {
+    filters.clear();
+    l2opts = L2options();
+    tracelevel = -1;
+    errorlevel = -1;
+    no_timestamps = false;
+  }
 };
 
 void driver_argsv(const char *arg, char *ap, ...);
@@ -280,7 +282,7 @@ void driver_args(const char *arg, char *ap)
       driver_argsv("ipt",ap, "!ip-address","dest-port","src-port","nat-ip","data-port", NULL);
       (*ini[link])["nat"] = "true";
     }
-  else if(!strcmp(arg,"ft12") || !strcmp(arg,"ncn5120") || !strcmp(arg,"tpuarts") || !strcmp(arg,"ft12cemi"))
+  else if(!strcmp(arg,"ft12") || !strcmp(arg,"ncn5120") || !strcmp(arg,"tpuarts") || !strcmp(arg,"ft12cemi") || !strcmp(arg,"tpuart"))
     {
       if (!strcmp(arg,"tpuarts"))
         arg = "tpuart";
@@ -340,74 +342,133 @@ readaddrblock (const char *addr)
 }
 
 /** version */
-static struct argp_option options[] = {
-  {"listen-tcp", 'i', "PORT", OPTION_ARG_OPTIONAL,
-   "listen at TCP port PORT (default 6720)"},
-  {"listen-local", 'u', "FILE", OPTION_ARG_OPTIONAL,
-   "listen at Unix domain socket FILE (default /run/knx)"},
-  {"no-timestamp", OPT_NO_TIMESTAMP, 0, 0,
-   "don't print timestamps when logging"},
-  {"trace", 't', "MASK", 0,
-   "set trace flags (bitmask)"},
-  {"error", 'f', "LEVEL", 0,
-   "set error level (default 3: warnings)"},
-  {"eibaddr", 'e', "EIBADDR", 0,
-   "set our EIB address to EIBADDR (default 0.0.1)"},
-  {"client-addrs", 'E', "ADDRSTART", 0,
-   "assign addresses ADDRSTART through ADDRSTART+n to clients"},
+static struct argp_option options[] =
+{
+  {
+    "listen-tcp", 'i', "PORT", OPTION_ARG_OPTIONAL,
+    "listen at TCP port PORT (default 6720)"
+  },
+  {
+    "listen-local", 'u', "FILE", OPTION_ARG_OPTIONAL,
+    "listen at Unix domain socket FILE (default /run/knx)"
+  },
+  {
+    "no-timestamp", OPT_NO_TIMESTAMP, 0, 0,
+    "don't print timestamps when logging"
+  },
+  {
+    "trace", 't', "MASK", 0,
+    "set trace flags (bitmask)"
+  },
+  {
+    "error", 'f', "LEVEL", 0,
+    "set error level (default 3: warnings)"
+  },
+  {
+    "eibaddr", 'e', "EIBADDR", 0,
+    "set our EIB address to EIBADDR (default 0.0.1)"
+  },
+  {
+    "client-addrs", 'E', "ADDRSTART", 0,
+    "assign addresses ADDRSTART through ADDRSTART+n to clients"
+  },
   {"pid-file", 'p', "FILE", 0, "write the PID of the process to FILE"},
-  {"daemon", 'd', "FILE", OPTION_ARG_OPTIONAL,
-   "start the programm as daemon. Output will be written to FILE if given"},
+  {
+    "daemon", 'd', "FILE", OPTION_ARG_OPTIONAL,
+    "start the programm as daemon. Output will be written to FILE if given"
+  },
 #ifdef HAVE_EIBNETIPSERVER
-  {"Tunnelling", 'T', 0, 0,
-   "enable EIBnet/IP Tunneling in the EIBnet/IP server"},
-  {"Routing", 'R', 0, 0,
-   "enable EIBnet/IP Routing in the EIBnet/IP server"},
-  {"Discovery", 'D', 0, 0,
-   "enable the EIBnet/IP server to answer discovery and description requests (SEARCH, DESCRIPTION)"},
-  {"Server", 'S', "ip[:port]", OPTION_ARG_OPTIONAL,
-   "starts an EIBnet/IP multicast server"},
-  {"Interface", 'I', "intf", 0,
-   "Interface to use"},
-  {"Name", 'n', "SERVERNAME", 0,
-   "name of the EIBnet/IP server (default is 'knxd')"},
-  {"single-port", OPT_SINGLE_PORT, 0, 0,
-   "Use one common port for multicast. This is an ETS4/ETS5 bug workaround."},
-  {"multi-port", OPT_MULTI_PORT, 0, 0,
-   "Use two ports for multicast. This lets you run multiple KNX processes."},
+  {
+    "Tunnelling", 'T', 0, 0,
+    "enable EIBnet/IP Tunneling in the EIBnet/IP server"
+  },
+  {
+    "Routing", 'R', 0, 0,
+    "enable EIBnet/IP Routing in the EIBnet/IP server"
+  },
+  {
+    "Discovery", 'D', 0, 0,
+    "enable the EIBnet/IP server to answer discovery and description requests (SEARCH, DESCRIPTION)"
+  },
+  {
+    "Server", 'S', "ip[:port]", OPTION_ARG_OPTIONAL,
+    "starts an EIBnet/IP multicast server"
+  },
+  {
+    "Interface", 'I', "intf", 0,
+    "Interface to use"
+  },
+  {
+    "Name", 'n', "SERVERNAME", 0,
+    "name of the EIBnet/IP server (default is 'knxd')"
+  },
+  {
+    "single-port", OPT_SINGLE_PORT, 0, 0,
+    "Use one common port for multicast. This is an ETS4/ETS5 bug workaround."
+  },
+  {
+    "multi-port", OPT_MULTI_PORT, 0, 0,
+    "Use two ports for multicast. This lets you run multiple KNX processes."
+  },
 #endif
-  {"layer2", 'b', "driver:[arg]", 0,
-   "a Layer-2 driver to use (knxd supports more than one)"},
-  {"filter", 'B', "filter", 0,
-   "a Layer-2 filter to use in front of the next driver"},
-  {"arg", 'A', "name=value", 0,
-   "an additional configuration item for the next filter or driver"},
+  {
+    "layer2", 'b', "driver:[arg]", 0,
+    "a Layer-2 driver to use (knxd supports more than one)"
+  },
+  {
+    "filter", 'B', "filter", 0,
+    "a Layer-2 filter to use in front of the next driver"
+  },
+  {
+    "arg", 'A', "name=value", 0,
+    "an additional configuration item for the next filter or driver"
+  },
 #ifdef HAVE_GROUPCACHE
-  {"GroupCache", 'c', "SIZE", OPTION_ARG_OPTIONAL,
-   "enable caching of group communication network state"},
+  {
+    "GroupCache", 'c', "SIZE", OPTION_ARG_OPTIONAL,
+    "enable caching of group communication network state"
+  },
 #endif
 #ifdef HAVE_EIBNETIPTUNNEL
-  {"no-tunnel-client-queuing", OPT_BACK_TUNNEL_NOQUEUE, 0, 0,
-   "wait 30msec between transmitting packets. Obsolete, please use --send-delay=30"},
+  {
+    "no-tunnel-client-queuing", OPT_BACK_TUNNEL_NOQUEUE, 0, 0,
+    "wait 30msec between transmitting packets. Obsolete, please use --send-delay=30"
+  },
 #endif
-#if defined(HAVE_TPUARTs) || defined(HAVE_TPUARTs_TCP)
-  {"tpuarts-ack-all-group", OPT_BACK_TPUARTS_ACKGROUP, 0, 0,
-   "tpuarts backend should generate L2 acks for all group telegrams"},
-  {"tpuarts-ack-all-individual", OPT_BACK_TPUARTS_ACKINDIVIDUAL, 0, 0,
-   "tpuarts backend should generate L2 acks for all individual telegrams"},
-  {"tpuarts-disch-reset", OPT_BACK_TPUARTS_DISCH_RESET, 0, 0,
-   "tpuarts backend should should use a full interface reset (for Disch TPUART interfaces)"},
+#if defined(HAVE_TPUART)
+  {
+    "tpuarts-ack-all-group", OPT_BACK_TPUARTS_ACKGROUP, 0, 0,
+    "tpuarts backend should generate L2 acks for all group telegrams"
+  },
+  {
+    "tpuarts-ack-all-individual", OPT_BACK_TPUARTS_ACKINDIVIDUAL, 0, 0,
+    "tpuarts backend should generate L2 acks for all individual telegrams"
+  },
+  {
+    "tpuarts-disch-reset", OPT_BACK_TPUARTS_DISCH_RESET, 0, 0,
+    "tpuarts backend should should use a full interface reset (for Disch TPUART interfaces)"
+  },
 #endif
-  {"send-delay", OPT_BACK_SEND_DELAY, "DELAY", OPTION_ARG_OPTIONAL,
-   "wait after sending a packet"},
-  {"no-emi-send-queuing", OPT_BACK_EMI_NOQUEUE, 0, 0,
-   "wait for ACK after transmitting packets. Obsolete, please use --send-delay=500"},
-  {"no-monitor", 'N', 0, 0,
-   "the next Driver interface may not enter monitor mode"},
-  {"allow-forced-broadcast", OPT_FORCE_BROADCAST, 0, 0,
-   "Treat routing counter 7 as per KNX spec (dangerous)"},
-  {"stop-right-now", OPT_STOP_NOW, 0, OPTION_HIDDEN,
-   "immediately stops the server after a successful start"},
+  {
+    "send-delay", OPT_BACK_SEND_DELAY, "DELAY", OPTION_ARG_OPTIONAL,
+    "wait after sending a packet"
+  },
+  {
+    "no-emi-send-queuing", OPT_BACK_EMI_NOQUEUE, 0, 0,
+    "wait for ACK after transmitting packets. Obsolete, please use --send-delay=500"
+  },
+  {
+    "no-monitor", 'N', 0, 0,
+    "the next Driver interface may not enter monitor mode"
+  },
+  {
+    "allow-forced-broadcast", OPT_FORCE_BROADCAST, 0, 0,
+    "Treat routing counter 7 as per KNX spec (dangerous)"
+  },
+  {
+    "stop-right-now", OPT_STOP_NOW, 0, OPTION_HIDDEN,
+    "immediately stops the server after a successful start"
+  },
   {0}
 };
 
@@ -444,91 +505,92 @@ parse_opt (int key, char *arg, struct argp_state *state)
       (*ini["server"])["interface"] = arg;
       break;
     case 'S':
-      {
-        if (arguments->filters.size())
-          die("Use filters in front of -R or -T, not -S");
-        ADD((*ini["main"])["connections"], "server");
-        (*ini["server"])["server"] = "ets_router";
-        arguments->want_server = false;
-        // (*ini["server"])["driver"] = "ets-link";
+    {
+      if (arguments->filters.size())
+        die("Use filters in front of -R or -T, not -S");
+      ADD((*ini["main"])["connections"], "server");
+      (*ini["server"])["server"] = "ets_router";
+      arguments->want_server = false;
+      // (*ini["server"])["driver"] = "ets-link";
 
-        const char *serverip;
-        const char *name = arguments->servername.c_str();
-        std::string tracename;
+      const char *name = arguments->servername.c_str();
+      std::string tracename;
 
-        int port = 0;
-        char *a = strdup (OPT_ARG(arg, state, ""));
-        char *b = strchr (a, ':');
-        if (b)
-          {
-            *b++ = 0;
-            if (atoi (b) > 0)
-              (*ini["server"])["port"] = b;
-          }
-        if (*a) 
-          (*ini["server"])["multicast-address"] = a;
-
-        if (!name || !*name) {
-            name = "knxd";
-            tracename = "mcast";
-        } else {
-            tracename = "mcast:";
-            tracename += name;
+      char *a = strdup (OPT_ARG(arg, state, ""));
+      char *b = strchr (a, ':');
+      if (b)
+        {
+          *b++ = 0;
+          if (atoi (b) > 0)
+            (*ini["server"])["port"] = b;
         }
-        (*ini["debug-server"])["name"] = tracename;
-        (*ini["server"])["debug"] = "debug-server";
-        arguments->stack("server");
-        break;
-      }
+      if (*a)
+        (*ini["server"])["multicast-address"] = a;
+
+      if (!name || !*name)
+        {
+          name = "knxd";
+          tracename = "mcast";
+        }
+      else
+        {
+          tracename = "mcast:";
+          tracename += name;
+        }
+      (*ini["debug-server"])["name"] = tracename;
+      (*ini["server"])["debug"] = "debug-server";
+      arguments->stack("server");
+      break;
+    }
 
     case 'n':
       if (*arg == '=')
-	arg++;
+        arg++;
       if(strlen(arg) >= 30)
         die("Server name must be shorter than 30 bytes");
       (*ini["main"])["name"] = arg;
       break;
 
     case 'u':
-      {
-        if (arguments->want_server)
-          die("You need -S after -D/-T/-R");
-        link_to("unix");
-        ADD((*ini["main"])["connections"], link);
-        (*ini[link])["server"] = "knxd_unix";
-        // (*ini[link])["driver"] = "knx-link";
-        const char *name = OPT_ARG(arg,state,NULL);
-        if (name)
-          {
-            (*ini[link])["path"] = name;
-            (*ini[link])["systemd-ignore"] = "false";
-          }
-        else
-          (*ini[link])["systemd-ignore"] = "true";
-        arguments->stack(link);
-      }
-      break;
+    {
+      if (arguments->want_server)
+        die("You need -S after -D/-T/-R");
+      link_to("unix");
+      ADD((*ini["main"])["connections"], link);
+      (*ini[link])["server"] = "knxd_unix";
+      // (*ini[link])["driver"] = "knx-link";
+      const char *name = OPT_ARG(arg,state,NULL);
+      if (name)
+        {
+          (*ini[link])["path"] = name;
+          (*ini[link])["systemd-ignore"] = "false";
+        }
+      else
+        (*ini[link])["systemd-ignore"] = "true";
+      arguments->stack(link);
+    }
+    break;
 
     case 'i':
-      {
-        if (arguments->want_server)
-          die("You need -S after -D/-T/-R");
-        link_to("tcp");
-        ADD((*ini["main"])["connections"], link);
-        (*ini[link])["server"] = "knxd_tcp";
-        // (*ini[link])["driver"] = "knx-link";
-        const char *port = OPT_ARG(arg,state,"");
-        if (*port && atoi(port) > 0)
-          {
-            (*ini[link])["port"] = port;
-            (*ini[link])["systemd-ignore"] = "false";
-          }
-        else
-          (*ini[link])["systemd-ignore"] = "true";
+    {
+      if (arguments->want_server)
+        die("You need -S after -D/-T/-R");
+      link_to("tcp");
+      ADD((*ini["main"])["connections"], link);
+      (*ini[link])["server"] = "knxd_tcp";
+      // (*ini[link])["driver"] = "knx-link";
+      const char *port = OPT_ARG(arg,state,"");
+      if (*port && atoi(port) > 0)
+        {
+          (*ini[link])["port"] = port;
+          (*ini[link])["systemd-ignore"] = "false";
+        }
+      else
+        (*ini[link])["systemd-ignore"] = "true";
 
-        arguments->stack(link);
-      }
-      break;
+      arguments->stack(link);
+    }
+    break;
 
     case 't':
       if (arg)
@@ -561,13 +623,13 @@ parse_opt (int key, char *arg, struct argp_state *state)
       (*ini["main"])["pidfile"] = arg;
       break;
     case 'd':
-      {
-        const char *arg = OPT_ARG(arg,state,NULL);
-        (*ini["main"])["background"] = "true";
-        if (arg)
-          (*ini["main"])["logfile"] = arg;
-      }
-      break;
+    {
+      const char *file = OPT_ARG(arg,state,NULL);
+      (*ini["main"])["background"] = "true";
+      if (file)
+        (*ini["main"])["logfile"] = file;
+    }
+    break;
     case 'c':
       if (arguments->l2opts.flags || arguments->l2opts.send_delay)
         die("You cannot apply flags to the group cache.");
@@ -609,18 +671,18 @@ parse_opt (int key, char *arg, struct argp_state *state)
       break;
     case ARGP_KEY_ARG:
     case 'b':
-      {
-        if (arguments->want_server)
-          die("You need -S after -D/-T/-R");
-        link_to(arg);
-        ADD((*ini["main"])["connections"], link);
-        char *ap = strchr(arg,':');
-        if (ap)
-          *ap++ = '\0';
-        driver_args(arg,ap);
-        arguments->stack(link);
-        break;
-      }
+    {
+      if (arguments->want_server)
+        die("You need -S after -D/-T/-R");
+      link_to(arg);
+      ADD((*ini["main"])["connections"], link);
+      char *ap = strchr(arg,':');
+      if (ap)
+        *ap++ = '\0';
+      driver_args(arg,ap);
+      arguments->stack(link);
+      break;
+    }
     case 'B':
       arguments->do_filter(arg);
       break;
@@ -642,7 +704,7 @@ parse_opt (int key, char *arg, struct argp_state *state)
       if (arguments->filters.size() || arguments->more_args.size())
         die ("You need to use filters and arguments in front of the affected backend");
       if (arguments->l2opts.flags || arguments->l2opts.send_delay)
-	die ("You provided flags after specifying an interface.");
+        die ("You provided flags after specifying an interface.");
       break;
 
     default:
@@ -653,9 +715,9 @@ parse_opt (int key, char *arg, struct argp_state *state)
 
 /** information for the argument parser*/
 static struct argp argp = { options, parse_opt, "URL",
-"knxd -- a stack for EIB/KNX\n"
-"\n"
-"Please read the manpage for detailed options.\n"
+  "knxd -- a stack for EIB/KNX\n"
+  "\n"
+  "Please read the manpage for detailed options.\n"
 };
 
 int

@@ -17,6 +17,12 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @addtogroup Server
+ * @{
+ */
+
 #ifndef INETSERVER_H
 #define INETSERVER_H
 
@@ -25,18 +31,20 @@
 /** implements a server listening on a TCP port */
 SERVER_(InetServer,NetServer,knxd_tcp)
 {
-protected:
-  void setupConnection (int cfd);
-  uint16_t port;
-  std::string addr;
-
 public:
   InetServer (BaseRouter& r, IniSectionPtr& s);
   virtual ~InetServer ();
 
   bool setup();
   void start();
-  void stop();
+  void stop(bool err);
+
+protected:
+  void setupConnection (int cfd);
+  uint16_t port;
+  std::string addr;
 };
 
 #endif
+
+/** @} */

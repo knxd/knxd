@@ -36,10 +36,11 @@ This is probably not intentional, and thus warned about.
 #define FPACE_H
 #include "link.h"
 
-enum PSTATE {
-    P_DOWN,    // not running, not marked as requiring a Pace
-    P_IDLE,    // no packet submitted, no Pace
-    P_BUSY,    // packet submitted, no Pace, wait before replying
+enum PSTATE
+{
+  P_DOWN,    // not running, not marked as requiring a Pace
+  P_IDLE,    // no packet submitted, no Pace
+  P_BUSY,    // packet submitted, no Pace, wait before replying
 };
 
 FILTER(PaceFilter,pace)
@@ -52,7 +53,8 @@ FILTER(PaceFilter,pace)
   float factor_in;
   size_t last_len;
   enum PSTATE state;
-  ev::timer timer; void timer_cb(ev::timer &w, int revents);
+  ev::timer timer;
+  void timer_cb(ev::timer &w, int revents);
 
 public:
   PaceFilter (const LinkConnectPtr_& c, IniSectionPtr& s);
@@ -65,7 +67,7 @@ public:
 
   virtual void start();
   virtual void started();
-  virtual void stopped();
+  virtual void stopped(bool err);
 
 };
 

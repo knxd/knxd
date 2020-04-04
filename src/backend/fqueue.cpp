@@ -36,12 +36,12 @@ QueueFilter::setup()
 {
   if(std::dynamic_pointer_cast<LinkConnect>(conn.lock()) == nullptr)
     {
-      ERRORPRINTF(t, E_ERROR, "You can't use the 'queue' filter globally");
+      ERRORPRINTF(t, E_ERROR | 4, "You can't use the 'queue' filter globally");
       return false;
     }
   if (findFilter("queue", true) != nullptr)
     {
-      ERRORPRINTF(t, E_WARNING, "Two queue filters on a link does not make sense");
+      ERRORPRINTF(t, E_WARNING | 112, "Two queue filters on a link does not make sense");
       return false;
     }
   if (!Filter::setup())
@@ -59,18 +59,18 @@ QueueFilter::started()
       state = Q_IDLE;
       break;
     default:
-      ERRORPRINTF(t, E_WARNING, "state %d??", state);
+      ERRORPRINTF(t, E_WARNING | 113, "state %d??", state);
       break;
     }
   Filter::started();
 }
 
 void
-QueueFilter::stopped()
+QueueFilter::stopped(bool err)
 {
   buf.clear();
   state = Q_DOWN;
-  Filter::stopped();
+  Filter::stopped(err);
 }
 
 void
@@ -79,14 +79,14 @@ QueueFilter::send_Next()
   switch(state)
     {
     case Q_DOWN:
-      ERRORPRINTF(t, E_WARNING, "send_Next while down");
+      ERRORPRINTF(t, E_WARNING | 114, "send_Next while down");
       break;
     case Q_IDLE:
-      ERRORPRINTF(t, E_WARNING, "spurious send_Next");
+      ERRORPRINTF(t, E_WARNING | 115, "spurious send_Next");
       break;
     case Q_BUSY:
       trigger.send();
-      // fall thru
+    // fall thru
     case Q_SENDING:
       state = Q_IDLE;
       break;
@@ -94,9 +94,9 @@ QueueFilter::send_Next()
 }
 
 void
-QueueFilter::trigger_cb (ev::async &w UNUSED, int revents UNUSED)
+QueueFilter::trigger_cb (ev::async &, int)
 {
-  while (!buf.isempty() && state == Q_IDLE)
+  while (!buf.empty() && state == Q_IDLE)
     {
       state = Q_SENDING;
       LDataPtr l = buf.get();

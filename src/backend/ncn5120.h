@@ -22,15 +22,28 @@
 #include <termios.h>
 #include "lowlatency.h"
 
+#ifndef NO_MAP
+#define REAL_NO_MAP
 #define NO_MAP
+#endif
+
+#include "link.h"
 #include "tpuart.h"
+
+#ifdef REAL_NO_MAP
+#undef NO_MAP
+#include "driver_remap.h"
+#endif
 
 /** TPUART-derived driver */
 DRIVER_(NCN5120,TPUART,ncn5120)
 {
 public:
-  NCN5120 (const LinkConnectPtr_& c, IniSectionPtr& s) : TPUART(c,s) { t->setAuxName("NCN"); } ;
-  virtual ~NCN5120 ();
+  NCN5120 (const LinkConnectPtr_& c, IniSectionPtr& s) : TPUART(c,s)
+  {
+    t->setAuxName("NCN");
+  } ;
+  virtual ~NCN5120 () = default;
   LowLevelFilter * create_wrapper(LowLevelIface* parent, IniSectionPtr& s, LowLevelDriver* i = nullptr);
 };
 

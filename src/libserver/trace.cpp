@@ -17,18 +17,18 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include <stdio.h>
-#include <stdarg.h>
-#include <sys/time.h>
-
 #include "trace.h"
+
+#include <cstdarg>
+#include <cstdio>
+#include <sys/time.h>
 
 static bool trace_started = false;
 
 unsigned int trace_seq = 0;
 unsigned int trace_namelen = 3;
 
-std::string Trace::fullname()
+std::string Trace::fullname() const
 {
   if (!auxname.length())
     return name;
@@ -36,22 +36,24 @@ std::string Trace::fullname()
 }
 
 void
-Trace::TraceHeader (int layer)
+Trace::TraceHeader (const int layer)
 {
   struct timeval tv;
   gettimeofday(&tv, NULL);
-  if (tv.tv_usec < started.tv_usec) {
-    tv.tv_usec += 1000000;
-    tv.tv_sec -= 1;
-  }
+  if (tv.tv_usec < started.tv_usec)
+    {
+      tv.tv_usec += 1000000;
+      tv.tv_sec -= 1;
+    }
   tv.tv_usec -= started.tv_usec;
   tv.tv_sec -= started.tv_sec;
 
-  if (!trace_started) {
+  if (!trace_started)
+    {
       trace_started = true;
       setvbuf(stdout, NULL, _IOLBF, 0);
       setvbuf(stderr, NULL, _IOLBF, 0);
-  }
+    }
   if (servername.length())
     fmt::printf("%s: ",servername);
   if (timestamps)
@@ -61,8 +63,8 @@ Trace::TraceHeader (int layer)
 }
 
 void
-Trace::TracePacketUncond (int layer, const char *msg, int Len,
-			  const uchar * data)
+Trace::TracePacketUncond (const int layer, const char *msg, const int Len,
+                          const uint8_t * data)
 {
   int i;
   TraceHeader(layer);
@@ -72,19 +74,20 @@ Trace::TracePacketUncond (int layer, const char *msg, int Len,
   fmt::printf ("\n");
 }
 
-static const char *error_levels[] = {
-    "none",
-    "fatal",
-    "error",
-    "warning",
-    "note",
-    "info",
-    "debug",
-    "trace",
+static const char *error_levels[] =
+{
+  "none",
+  "fatal",
+  "error",
+  "warning",
+  "note",
+  "info",
+  "debug",
+  "trace",
 };
 
 static int
-error_level(std::string level, int def)
+error_level(const std::string level, const int def)
 {
   if (level.size() == 0)
     return def;
@@ -114,7 +117,7 @@ Trace::setup()
 }
 
 void
-Trace::setAuxName(std::string name)
+Trace::setAuxName(const std::string name)
 {
   if (name == this->name)
     return;
@@ -127,7 +130,7 @@ Trace::setAuxName(std::string name)
 }
 
 char
-Trace::get_level_char(int level)
+Trace::get_level_char(const int level) const
 {
   switch (level)
     {

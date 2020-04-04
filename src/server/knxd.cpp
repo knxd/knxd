@@ -19,9 +19,9 @@
 */
 
 #include <argp.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstdarg>
 #include <signal.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -40,20 +40,34 @@ bool stop_now = false;
 bool do_list = false;
 bool background = false;
 bool stopping = false;
-const char *pidfile = NULL;
-const char *logfile = NULL;
+char *pidfile = NULL;
+char *logfile = NULL;
 const char *cfgfile = NULL;
 const char *mainsection = NULL;
 char *const *argv;
+int argc;
 
 LOOP_RESULT loop;
 
-/** aborts program with a printf like message */
-void die (const char *msg, ...);
-
 void usage()
 {
-  die("Usage: knxd configfile [main-section]");
+  if (argc > 1)
+    {
+      char *s = (char *)malloc(strlen(argv[0])+7);
+      sprintf(s,"%s_args",argv[0]);
+      execvp(s, argv);
+
+      execv(LIBEXECDIR "/knxd_args", argv);
+    }
+
+  fprintf(stderr,"Usage: knxd [-l?V] [--list] [--help] [--usage] [--version]\n");
+  fprintf(stderr,"       knxd configfile [main_section]\n");
+  fprintf(stderr,"Please consult /usr/share/doc/knxd/inifile.rst\n");
+
+  if (pidfile && *pidfile)
+    unlink (pidfile);
+
+  exit (2);
 }
 
 // The NOQUEUE options are deprecated
@@ -62,8 +76,10 @@ void usage()
 /** number of file descriptors passed in by systemd */
 #ifdef HAVE_SYSTEMD
 int num_fds;
+bool using_systemd;
 #else
 const int num_fds = 0;
+const bool using_systemd = false;
 #endif
 
 /** aborts program with a printf like message */
@@ -81,19 +97,19 @@ die (const char *msg, ...)
     fprintf (stderr, "\n");
   va_end (ap);
 
-  if (pidfile)
+  if (pidfile && *pidfile)
     unlink (pidfile);
 
   exit (1);
 }
 
 /** version */
-const char *argp_program_version = "knxd " REAL_VERSION;
+//const char *argp_program_version = "knxd " REAL_VERSION;
 /** documentation */
 static char doc[] =
   "knxd -- a commonication stack for EIB/KNX\n"
   "(C) 2005-2015 Martin Koegler <mkoegler@auto.tuwien.ac.at> et al.\n"
-  "(C) 2016-2017 Matthias Urlichs <matthias@urlichs.de>\n"
+  "(C) 2016-2018 Matthias Urlichs <matthias@urlichs.de>\n"
   "\n"
   "Usage: knxd configfile [main-section]\n"
   "\n"
@@ -101,11 +117,20 @@ static char doc[] =
   ;
 
 /** option list */
-static struct argp_option options[] = {
-  {"stop", OPT_STOP_NOW, 0, OPTION_HIDDEN,
-   "immediately stops the server after a successful start"},
-  {"list", 'l', 0, 0,
-   "list known drivers, filters, or servers"},
+static struct argp_option options[] =
+{
+  {
+    "stop", OPT_STOP_NOW, 0, OPTION_HIDDEN,
+    "immediately stops the server after a successful start"
+  },
+  {
+    "list", 'l', 0, 0,
+    "list known drivers, filters, or servers"
+  },
+  {
+    "version", 'V', 0, 0,
+    "show version"
+  },
   {0}
 };
 
@@ -141,7 +166,7 @@ void fork_args_helper()
 
 /** parses and stores an option */
 static error_t
-parse_opt (int key, char *arg, struct argp_state *state UNUSED)
+parse_opt (int key, char *arg, struct argp_state *)
 {
   switch (key)
     {
@@ -154,6 +179,10 @@ parse_opt (int key, char *arg, struct argp_state *state UNUSED)
     case 'l':
       do_list = true;
       break;
+
+    case 'V':
+      fprintf(stderr,"knxd %s\n",REAL_VERSION);
+      exit(0);
 
     case ARGP_KEY_ARG:
       if (cfgfile == NULL)
@@ -194,7 +223,7 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
 // #define EV_TRACE
 
 static void
-signal_cb (EV_P_ ev_signal *w UNUSED, int revents UNUSED)
+signal_cb (EV_P_ ev_signal *, int)
 {
   ev_break (EV_A_ EVBREAK_ALL);
   stopping = true;
@@ -208,14 +237,15 @@ timeout_cb (EV_P_ ev_timer *w, int revents)
 }
 #endif
 
-struct _hup {
+struct _hup
+{
   struct ev_signal sighup;
   const char *logfile;
   TracePtr t;
 } hup;
 
 static void
-sighup_cb (EV_P_ ev_signal *w, int revents UNUSED)
+sighup_cb (EV_P_ ev_signal *w, int)
 {
   struct _hup *hup = (struct _hup *)w;
 
@@ -223,15 +253,14 @@ sighup_cb (EV_P_ ev_signal *w, int revents UNUSED)
     {
       int fd = open (hup->logfile, O_WRONLY | O_APPEND | O_CREAT, 0660);
       if (fd == -1)
-      {
-        ERRORPRINTF (hup->t, E_ERROR | 21, "can't open log file %s", hup->logfile);
-        return;
-      }
-      close (1);
-      close (2);
+        {
+          ERRORPRINTF (hup->t, E_ERROR | 21, "can't open log file %s", hup->logfile);
+          return;
+        }
       dup2 (fd, 1);
       dup2 (fd, 2);
-      close (fd);
+      if (fd > 2)
+        close (fd);
     }
 }
 
@@ -242,6 +271,7 @@ main (int ac, char *ag[])
   setlinebuf(stdout);
 
   argv = ag;
+  argc = ac;
 
 // set up libev
   loop = ev_default_loop(EVFLAG_AUTO | EVFLAG_NOSIGMASK | EVBACKEND_SELECT);
@@ -259,9 +289,10 @@ main (int ac, char *ag[])
 #endif
 
 #ifdef HAVE_SYSTEMD
+  using_systemd = (getenv("JOURNAL_STREAM") != NULL) && (getppid() == 1);
   num_fds = sd_listen_fds(0);
   if( num_fds < 0 )
-    die("Error getting fds from systemd.");
+    die("Error getting sockets from systemd.");
 #endif
 #ifdef EV_TRACE
   ev_timer_init (&timer, timeout_cb, 1., 10.);
@@ -285,11 +316,11 @@ main (int ac, char *ag[])
 
       if (cfgfile == NULL)
         {
-        x1:
+x1:
           printf(""
-            "Requires type of structure to list.\n"
-            "Either 'driver', 'filter' or 'server'.\n"
-            );
+                 "Requires type of structure to list.\n"
+                 "Either 'driver', 'filter' or 'server'.\n"
+                );
         }
       else // if (mainsection == NULL)
         {
@@ -328,64 +359,83 @@ main (int ac, char *ag[])
     die("Parse error of '%s' in line %d", cfgfile, errl);
   IniSectionPtr main = i[mainsection];
 
-  pidfile = main->value("pidfile","").c_str();
-  if (num_fds)
-    pidfile = "";
+  if(!using_systemd)
+    {
 
-  logfile = main->value("logfile","").c_str();
-  if (num_fds)
-    logfile = NULL;
+      std::string PidFile = main->value("pidfile","");
 
-  background = main->value("background",false);
-  if (num_fds)
-    background = false;
+      pidfile = new char[ PidFile.length()+1 ];
+      strncpy(pidfile, PidFile.c_str(), PidFile.length());
+      pidfile[ PidFile.length() ] = '\0';
+
+      std::string LogFile = main->value("logfile","");
+
+      logfile = new char[ LogFile.length()+1 ];
+      strncpy(logfile, LogFile.c_str(),LogFile.length());
+      logfile[ LogFile.length() ] = '\0';
+
+      background=main->value("background",false);
+    }
 
   if (!stop_now)
     stop_now = main->value("stop-after-setup",false);
 
-  if (logfile && *logfile)
+  {
+    // handle stdin/out/err
+    int fd = open("/dev/null", O_RDONLY);
+    dup2 (fd, 0);
+
+    // don't redirect if started by systemd
+    if (logfile && *logfile)
+      {
+        if (fd > 0)
+          close (fd);
+        fd = open (logfile, O_WRONLY | O_APPEND | O_CREAT, 0660);
+        if (fd == -1)
+          die ("Can not open file %s", logfile);
+
+        dup2 (fd, 1);
+        dup2 (fd, 2);
+      }
+    if (fd > 2)
+      close (fd);
+  }
+
+  if (background)
     {
-      int fd = open (logfile, O_WRONLY | O_APPEND | O_CREAT, 0660);
-      if (fd == -1)
-        die ("Can not open file %s", logfile);
       int i = fork ();
       if (i < 0)
         die ("fork failed");
       if (i > 0)
         exit (0);
-      close (1);
-      close (2);
-      close (0);
-      dup2 (fd, 1);
-      dup2 (fd, 2);
-      close (fd);
       setsid ();
     }
 
   Router *r = new Router(i,mainsection);
 
-  ERRORPRINTF (r->t, E_INFO | 0, "%s:%s", REAL_VERSION, arg_str);
+  ERRORPRINTF (r->t, E_INFO | 131, "%s:%s", REAL_VERSION, arg_str);
 
   if (!r->setup())
     {
-      ERRORPRINTF(r->t, E_FATAL,"Error setting up the KNX router.");
+      ERRORPRINTF(r->t, E_FATAL | 109, "Error setting up the KNX router.");
       exit(2);
     }
   if (!strcmp(cfgfile, "-"))
-    ERRORPRINTF(r->t, E_WARNING,"Consider using a config file.");
+    ERRORPRINTF(r->t, E_WARNING | 125,"Consider using a config file.");
 
-  if (background) {
-    hup.t = TracePtr(new Trace(*r->t));
-    hup.t->setAuxName("reload");
-    hup.logfile = logfile;
-    ev_signal_init (&hup.sighup, sighup_cb, SIGHUP);
-    ev_signal_start (EV_A_ &hup.sighup);
-  }
+  if (background)
+    {
+      hup.t = TracePtr(new Trace(*r->t));
+      hup.t->setAuxName("reload");
+      hup.logfile = logfile;
+      ev_signal_init (&hup.sighup, sighup_cb, SIGHUP);
+      ev_signal_start (EV_A_ &hup.sighup);
+    }
 
   signal (SIGPIPE, SIG_IGN);
 
   if (getuid () == 0)
-    ERRORPRINTF (r->t, E_WARNING | 20, "knxd should not run as root");
+    ERRORPRINTF (r->t, E_WARNING | 126, "knxd should not run as root");
 
   if (!stop_now)
     {
@@ -416,10 +466,10 @@ main (int ac, char *ag[])
 #ifdef HAVE_SYSTEMD
   sd_notify(0,"STOPPING=1");
 #endif
-  ERRORPRINTF(r->t, E_NOTICE,"Shutting down.");
+  ERRORPRINTF(r->t, E_NOTICE | 128, "Shutting down.");
 
   stopping = false; // re-set by a second signal
-  r->stop();
+  r->stop(false);
   while (!r->isIdle() && !stopping)
     ev_run (EV_A_ stop_now ? EVRUN_NOWAIT : EVRUN_ONCE);
 

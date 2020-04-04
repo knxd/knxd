@@ -32,7 +32,7 @@ FILTER(LogFilter,log)
 
 public:
   LogFilter (const LinkConnectPtr_& c, IniSectionPtr& s) : Filter(c,s) {}
-  virtual ~LogFilter ();
+  virtual ~LogFilter () = default;
 
   virtual bool setup();
   virtual void recv_L_Data (LDataPtr l);
@@ -41,15 +41,14 @@ public:
   virtual void send_Next();
 
   virtual void start();
-  virtual void stop();
+  virtual void stop(bool err);
   virtual void started();
-  virtual void stopped();
-  virtual void errored();
+  virtual void stopped(bool err);
 
-  virtual bool hasAddress (eibaddr_t addr);
-  virtual void addAddress (eibaddr_t addr);
-  virtual bool checkAddress (eibaddr_t addr);
-  virtual bool checkGroupAddress (eibaddr_t addr);
+  virtual bool hasAddress (eibaddr_t addr) const override;
+  virtual void addAddress (eibaddr_t addr) override;
+  virtual bool checkAddress (eibaddr_t addr) const override;
+  virtual bool checkGroupAddress (eibaddr_t addr) const override;
 };
 
 class LLlog : public LowLevelFilter
@@ -59,17 +58,16 @@ public:
   virtual ~LLlog();
 
   virtual FilterPtr findFilter(std::string name);
-  virtual bool checkAddress(eibaddr_t addr);
-  virtual bool checkGroupAddress(eibaddr_t addr);
+  virtual bool checkAddress(eibaddr_t addr) const;
+  virtual bool checkGroupAddress(eibaddr_t addr) const;
   virtual bool checkSysAddress(eibaddr_t addr);
   virtual bool checkSysGroupAddress(eibaddr_t addr);
 
   virtual bool setup();
   virtual void start();
-  virtual void stop();
+  virtual void stop(bool err);
   virtual void started();
-  virtual void stopped();
-  virtual void errored();
+  virtual void stopped(bool err);
   virtual void recv_L_Data(LDataPtr l);
   virtual void recv_L_Busmonitor(LBusmonPtr l);
   virtual void send_L_Data(LDataPtr l);

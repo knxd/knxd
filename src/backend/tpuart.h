@@ -26,7 +26,8 @@
 #include "lowlevel.h"
 
 // also update SN() in tpuart.cpp
-enum TSTATE {
+enum TSTATE
+{
   T_new = 0,
   T_error,
   T_start = 11,
@@ -44,10 +45,10 @@ DRIVER_(TPUART,LowLevelAdapter,tpuart)
 {
 public:
   TPUART(const LinkConnectPtr_& c, IniSectionPtr& s) : LowLevelAdapter(c,s)
-    {
-      t->setAuxName("tpuart");
-    }
-  virtual ~TPUART();
+  {
+    t->setAuxName("tpuart");
+  }
+  virtual ~TPUART() = default;
 
   bool setup();
 protected:
@@ -67,7 +68,7 @@ protected:
   bool ackallindividual;
 
   /** process a received frame */
-  virtual void RecvLPDU (const uchar * data, int len);
+  virtual void RecvLPDU (const uint8_t * data, int len);
 
   virtual void do_send_Next();
   void do__send_Next();
@@ -80,8 +81,10 @@ protected:
   bool send_wait = false;
 
   /** main loop state */
-  ev::timer timer; void timer_cb(ev::timer &w, int revents);
-  ev::timer sendtimer; void sendtimer_cb(ev::timer &w, int revents);
+  ev::timer timer;
+  void timer_cb(ev::timer &w, int revents);
+  ev::timer sendtimer;
+  void sendtimer_cb(ev::timer &w, int revents);
 
   LPDUPtr sending;
   CArray in, out;
@@ -99,7 +102,7 @@ protected:
 public:
   bool setup();
   void started();
-  void stopped();
+  void stopped(bool err);
 
   void send_L_Data (LDataPtr l);
 

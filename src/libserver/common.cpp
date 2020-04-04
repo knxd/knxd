@@ -17,8 +17,9 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include <stdio.h>
 #include "common.h"
+
+#include <cstdio>
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
@@ -31,25 +32,25 @@ getTime ()
   return ((timestamp_t) t.tv_sec) * 1000000 + ((timestamp_t) t.tv_usec);
 }
 
-String
+std::string
 FormatEIBAddr (eibaddr_t addr)
 {
   char buf[255];
   sprintf (buf, "%d.%d.%d", (addr >> 12) & 0xf, (addr >> 8) & 0xf,
-	   (addr) & 0xff);
+           (addr) & 0xff);
   return buf;
 }
 
-String
+std::string
 FormatGroupAddr (eibaddr_t addr)
 {
   char buf[255];
   sprintf (buf, "%d/%d/%d", (addr >> 11) & 0x1f, (addr >> 8) & 0x7,
-	   (addr) & 0xff);
+           (addr) & 0xff);
   return buf;
 }
 
-String
+std::string
 FormatDomainAddr (domainaddr_t addr)
 {
   char buf[255];
@@ -57,7 +58,7 @@ FormatDomainAddr (domainaddr_t addr)
   return buf;
 }
 
-String
+std::string
 FormatEIBKey (eibkey_type key)
 {
   char buf[255];
@@ -66,7 +67,7 @@ FormatEIBKey (eibkey_type key)
 }
 
 void
-addHex (String & s, uchar c)
+addHex (std::string & s, const uint8_t c)
 {
   char buf[4];
   sprintf (buf, "%02X ", c);
@@ -74,7 +75,7 @@ addHex (String & s, uchar c)
 }
 
 void
-add16Hex (String & s, uint16_t c)
+add16Hex (std::string & s, const uint16_t c)
 {
   char buf[6];
   sprintf (buf, "%04X ", c);

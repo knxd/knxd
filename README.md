@@ -9,7 +9,13 @@ https://www.auto.tuwien.ac.at/~mkoegler/index.php/bcusdk
 
 For a (german only) history and discussion why knxd emerged please also see: [eibd(war bcusdk) Fork -> knxd](http://knx-user-forum.de/forum/öffentlicher-bereich/knx-eib-forum/39972-eibd-war-bcusdk-fork-knxd)
 
-# Future stable version
+# STOP if you install on Debian
+
+Debian packaging has been moved to the ``deb`` branch. Please use that
+branch (by way of `git checkout deb`) if you're following some (outdated …)
+installation instructions for Debian, Ubuntu or their derivatives.
+
+# Stable version
 
 This version should be OK for general use.
 
@@ -23,9 +29,36 @@ Check [the Wiki page](https://github.com/knxd/knxd/wiki) for other version(s) to
 
 ### see https://github.com/knxd/knxd/blob/v0.12/README.md for earlier changes
 
+* 0.14.34
+
+  * Cleanup: remove debian packaging, will be in a separate branch
+
+* 0.14.33
+  
+  * There is a new "retry" filter which controls closing and re-opening a
+    misbehaving driver. This filter is implicitly auto-inserted in front of
+    a driver.
+
+  * Internal: Driver errors are now signalled with "stopped(true)" instead
+    of "errored" which reduces code duplication.
+
+  * Default timeout for EMI acks increased to 2 seconds
+    Some USB interfaces manage to be abysmally slow
+    Also hopefully-fixed USB retry and shutdown handling so that the
+    "retry" filter can do its work.
+
+  * Replies from devices in programming mode are no longer retransmitted to
+    the originating interface.
+
+* 0.14.32
+
+  * Tags no longer use a leading 'v'.
+
+  * udev rule for SATEL USB interface
+
 * 0.14
 
-  * Configuration
+  * Code configuration
 
     * There are no longer separate --enable-tpuarts and --enable-tpuarttcp
       options. Instead, you control both with --enable-tpuart. (This is the
@@ -35,7 +68,7 @@ Check [the Wiki page](https://github.com/knxd/knxd/wiki) for other version(s) to
 
     * includes a translator (knxd\_args) from options to config file
     
-    * Most (if not all) settings are still usable via the command line
+    * All settings are still usable via the command line
 
   * Complete stack refactored
 
@@ -61,17 +94,16 @@ Check [the Wiki page](https://github.com/knxd/knxd/wiki) for other version(s) to
 
   * use libfmt for sane and type-safe formatting of error and trace messages
 
-  * logging packets is now done with a filter
+  * packet-level "logging" calls in various drivers have been removed
 
-    * packet-level "logging" calls in various drivers have been removed
+    * logging packets is now done with the new "log" filter
 
-  * Complain loudly (and early) if knxd needs -E / client-addrs=X.Y.Z:N
-
-  * There is now a "log" filter. Logging of complete packets
-    (inconsistently bit 1, 2, or 8 of the tracing mask) has been removed
-    from individual drivers.
+    * Logging of complete packets (inconsistently bit 1, 2, or 8 of the
+      tracing mask) has been removed
 
     This also applies to global packet logging.
+
+  * Complain loudly (and early) if knxd needs -E / client-addrs=X.Y.Z:N
 
   * knxd can restart links when they fail, or start to come up.
 
@@ -80,7 +112,7 @@ Check [the Wiki page](https://github.com/knxd/knxd/wiki) for other version(s) to
     There is no longer a way to switch between these modes;
     "knxtool busmonitor" will no longer change the state of any interface.
 
-  * Queuing and flow control.
+  * Queuing and flow control
 
     Previously, all drivers implemented their own queueing for
     outgoing packets, resulting in duplicate code and hidden errors.
@@ -88,7 +120,13 @@ Check [the Wiki page](https://github.com/knxd/knxd/wiki) for other version(s) to
     In v0.14, the main queueing system will pace packets for the slowest device.
     If you don't want that, use the "queue" filter on the slow device(s).
 
-    Output queues in drivers have been removed.
+    All queues in individual drivers have been removed.
+
+  * EMI handling refactored
+
+    This eliminated some common code, found a couple of bugs, and lets us
+    use a common logging module (controlled by bit 0 of the tracing mask)
+    for comprehensive packet debugging.
 
 ## Building
 
@@ -98,19 +136,21 @@ On Debian:
     # If "dpkg-buildpackage" complains about missing packages
     # ("Unmet build dependencies"): install them
     # (apt-get install …) and try that step again.
-    # If it wants "x | y", try just x; install y if that doesn't work.
+    # If it wants "x | y", try to install just x; install y if that doesn't work.
     # Also, if it complains about conflicting packages, remove them (duh).
 
-    # first, install build tools and get the source code
+    # first, install build tools and dependencies
     sudo apt-get install git-core build-essential
+
+    # now get the source code
     git clone https://github.com/knxd/knxd.git
 
     # now build+install knxd
     cd knxd
     git checkout master
     dpkg-buildpackage -b -uc
-    # To repeat: if this fails because of missing dependencies,
-    # fix them instead of using dpkg-buildpackage's "-d" option.
+    # To repeat: if this step fails because of missing dependencies,
+    # fix them and try again! See this section's first paragraph, above.
     cd ..
     sudo dpkg -i knxd_*.deb knxd-tools_*.deb
 
@@ -122,21 +162,25 @@ On Debian:
     cd ..
     sudo dpkg -i knxd_*.deb knxd-tools_*.deb
 
+Additions for other Linux distributions are very welcome.
+
+On MacOS or Windows, please use a Linux VM.
+If somebody would like to submit patches for Mac OSX or Windows, go ahead
+and create a pull request, but please be prepared to maintain your code.
+
 ### Test failures
 
 The build script runs a comprehensive set of tests to make sure that knxd
-actually works. It obviously can't test codee talking to directly-connected
+actually works. It obviously can't test code talking to directly-connected
 hardware, but the core parts are exercised.
 
 If the test fails:
 
 * Do you have a default route?
 
-* Are you filtering local multicasts to 224.99.98.97?
+* Are you filtering packets to 224.99.98.97, or to UDP port 3671?
 
 * Is something on your network echoing multicast packets? (Yes, that happens.)
-
-The test pass OK on Travis (or at least they should pass).
 
 If you can't figure out the cause of the failure, please open an issue.
 
@@ -157,6 +201,10 @@ You need to either change their configuration, or add "-u /tmp/eib"
 to knxd's options.
 (This was the default for "-u" before version 0.11.)
 
+### New ".ini" configuration file
+
+
+
 ### Adding a TPUART USB interface
 
 If you attach a (properly programmed) TUL (http://busware.de/tiki-index.php?page=TUL) to your computer, it'll show up as ``/dev/ttyACM0``.
@@ -172,37 +220,49 @@ Therefore, you do this:
 * Copy the following line to ``/etc/udev/rules.d/70-knxd.rules``:
 
   ```
-  ACTION=="add", SUBSYSTEM=="tty", ATTRS{idVendor}=="03eb", ATTRS{idProduct}=="204b", KERNELS=="something", SYMLINK+="ttyKNX1", OWNER="knxd"
+  ACTION=="add", SUBSYSTEM=="tty", ATTRS{idVendor}=="03eb", ATTRS{idProduct}=="204b", KERNELS=="something", SYMLINK+="knx1", OWNER="knxd"
   ```
 
   Of course you need to replace the ``something`` with whatever ``udevadm`` displayed.
-  An example file may be in ``/lib/udev/rules.d/``.
+  An example file should be in ``/lib/udev/rules.d/``.
 
 * Run ``udevadm test /sys/bus/usb/drivers/cdc_acm/*/tty/ttyACM0``.
 
-* verify that ``/dev/ttyKNX1`` exists and belongs to "knxd":
+* verify that ``/dev/knx1`` exists and belongs to "knxd":
   
-  ``ls -lL /dev/ttyKNX1``
+  ``ls -lL /dev/knx1``
 
-* add ``-b tpuarts:/dev/ttyKNX1`` to the options in ``/etc/knxd.conf``.
+* add ``-b tpuarts:/dev/knx1`` to the options in ``/etc/knxd.conf``.
 
-If you have a second TPUART, repeat with "ttyACM1" and "ttyKNX2".
+If you have a second TPUART, repeat with "ttyACM1" and "knx2".
 
 You'll have to update your rule if you ever plug your TPUART into a different USB port.
 This is intentional.
 
+### Adding any other USB interface
+
+These interfaces should be covered by the `udev` file knxd installs in
+``/lib/udev/rules``. Simply use ``-b usb:`` to talk to it, assuming you
+don't have more than one.
+
 ### Adding a TPUART serial interface to the Raspberry Pi
 
-The console is /dev/ttyAMA0. The udev line is
+On the Raspberry Pi 2 and 3 the console is /dev/ttyAMA0. The udev line is:
 
   ```
-  ACTION=="add", SUBSYSTEM=="tty", KERNELS="ttyAMA0", SYMLINK+="ttyKNX1", OWNER="knxd"
+  ACTION=="add", SUBSYSTEM=="tty", KERNELS="ttyAMA0", SYMLINK+="knx1", OWNER="knxd"
   ```
 
-This rule creates a symlink /dev/ttyKNX1 which points to the console. The
+On the Raspberry Pi 4 the console is on /dev/ttyACM0. The udev line is:
+
+  ```
+  ACTION=="add", SUBSYSTEM=="tty", KERNELS=="ttyACM0", SYMLINK+="knx1", OWNER="knxd"
+  ```
+
+This rule creates a symlink ``/dev/knx1`` which points to the console. The
 knxd configuration will use that symlink.
 
-You need to disable the serial console. Edit ``/boot/cmdline.txt`` and
+On the Raspberry Pi 2 and 3 you need to disable the serial console. Edit ``/boot/cmdline.txt`` and
 remove the ``console=ttyAMA0`` entry. Then reboot.
 
 On the Raspberry Pi 3, the serial console is on ``ttyAMA1`` by default.
@@ -214,10 +274,16 @@ port to be somewhat unreliable. If this happens, disable bluetooth by adding
   dtoverlay=pi3-disable-bt
   ```
 
-to ``/boot/config.txt``, executing ``systemctl disable hciuart``, and
+to ``/boot/config.txt``, run ``systemctl disable hciuart``, and
 rebooting. The TPUART module is now back on ``ttyAMA0``.
 
 ## Migrating to 0.14
+
+* If you build knxd yourself: install the ``libfmt-dev`` package, if
+  possible.
+  
+  The knxd build process will try to download and build libfmt when that
+  package is not present.
 
 * knxd is now configured with a .ini-style configuration file.
 
@@ -227,11 +293,8 @@ rebooting. The TPUART module is now back on ``ttyAMA0``.
   You can use ``/usr/lib/knxd_args <args-to-knxd>`` to emit a file that
   corresponds to your old list of arguments.
 
-* Not configuring client addresses for the knxd\_\* servers (options -i -u),
-  systemd sockets, or the router's tunnel mode (-T) now results in that
-  service not being offered at all, instead of only failing when a client
-  connects. An error message is emitted. The multicast server will not
-  start at all, and systemd startup will fail.
+* Not configuring client addresses is now a hard error if you use the knxd\_\*
+  servers (options -i -u), systemd sockets, or the router's tunnel mode.
 
 * knxd will not start routing any packets unless startup is successful on
   all interfaces.
@@ -239,8 +302,11 @@ rebooting. The TPUART module is now back on ``ttyAMA0``.
   This means that it is now safe to use "socket activation" mode with
   systemd. Previously, knxd might have lost the initial packets.
 
+* knxd can now attach filters to a single interface, or to the core
+  (i.e. all packets get filtered).
+
 * Tracing no longer logs the actual decoded contents of packet.
-  If you need that, use the "log" filter.
+  If you need that, use a "log" filter appropriately.
 
 * knxd now transmits data synchronously, i.e. individual drivers no longer
   buffer data for transmission. If you don't want that, use the "queue"

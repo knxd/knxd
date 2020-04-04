@@ -19,22 +19,26 @@
 
 #ifndef NAT_H
 #define NAT_H
+
 #include "link.h"
 
-/** NAT filter
+/**
+ * NAT filter
  * outgoing packets: remember src/dest combination, zero src
  * incoming: restore dest
  */
-typedef struct {
+struct phys_comm
+{
   eibaddr_t src;
   eibaddr_t dest;
-} phys_comm;
+};
 
+/**
+ * Fakes local source addresses so that knxd appears as a single KNX
+ * device to the remote side
+ */
 FILTER(NatL2Filter,single)
 {
-  /** source addresses when the destination is my own */
-  Array < phys_comm > revaddr; // TODO: replace with a map
-
 public:
   eibaddr_t addr;
 
@@ -50,7 +54,29 @@ public:
   void addReverseAddress (eibaddr_t src, eibaddr_t dest);
   eibaddr_t getDestinationAddress (eibaddr_t src);
 
-  void setAddress(eibaddr_t addr) { this->addr = addr; }
+  void setAddress(eibaddr_t addr)
+  {
+    this->addr = addr;
+  }
+
+protected:
+  std::vector < phys_comm > revaddr; // TODO: replace with a map
+};
+
+/**
+ * Fakes remote source addresses so that a remote link appears as a
+ * single KNX device to knxd
+ */
+FILTER_(MapL2Filter,NatL2Filter,remap)
+{
+public:
+  MapL2Filter (const LinkConnectPtr_& c, IniSectionPtr& s) : NatL2Filter(c,s) {}
+  virtual ~MapL2Filter ();
+
+  bool setup();
+
+  void recv_L_Data (LDataPtr l);
+  void send_L_Data (LDataPtr l);
 };
 
 #endif

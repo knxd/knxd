@@ -18,6 +18,7 @@
 */
 
 #include "emi1.h"
+
 #include "emi.h"
 
 EMI1Driver::EMI1Driver (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i) : EMI_Common(c,s,i)
@@ -26,15 +27,11 @@ EMI1Driver::EMI1Driver (LowLevelIface* c, IniSectionPtr& s, LowLevelDriver *i) :
   sendLocal_done.set<EMI1Driver,&EMI1Driver::sendLocal_done_cb>(this);
 }
 
-EMI1Driver::~EMI1Driver()
-{
-}
-
 void
 EMI1Driver::cmdEnterMonitor()
 {
   sendLocal_done_next = N_up;
-  const uchar t[] = { 0x46, 0x01, 0x00, 0x60, 0x90 };
+  const uint8_t t[] = { 0x46, 0x01, 0x00, 0x60, 0x90 };
   // pth_usleep (1000000);
   send_Local (CArray (t, sizeof (t)), 1);
 }
@@ -44,17 +41,17 @@ EMI1Driver::sendLocal_done_cb(bool success)
 {
   if (!success || sendLocal_done_next == N_bad)
     {
-      errored();
-      LowLevelFilter::stopped();
+      stop(true);
+      LowLevelFilter::stop(true);
     }
   else if (sendLocal_done_next == N_down)
-    LowLevelFilter::stop();
+    LowLevelFilter::stop(false);
   else if (sendLocal_done_next == N_up)
     LowLevelFilter::started();
   else if (sendLocal_done_next == N_open)
     {
       sendLocal_done_next = N_up;
-      const uchar t[] = { 0x46, 0x01, 0x00, 0x60, 0x12 };
+      const uint8_t t[] = { 0x46, 0x01, 0x00, 0x60, 0x12 };
       send_Local (CArray (t, sizeof (t)),1);
     }
 }
@@ -63,7 +60,7 @@ void
 EMI1Driver::cmdLeaveMonitor()
 {
   sendLocal_done_next = N_down;
-  uchar t[] = { 0x46, 0x01, 0x00, 0x60, 0xc0 };
+  uint8_t t[] = { 0x46, 0x01, 0x00, 0x60, 0xc0 };
   send_Local (CArray (t, sizeof (t)),1);
   // pth_usleep (1000000);
 }
@@ -72,7 +69,7 @@ void
 EMI1Driver::cmdOpen ()
 {
   sendLocal_done_next = N_open;
-  const uchar ta[] = { 0x46, 0x01, 0x01, 0x16, 0x00 }; // clear addr tab
+  const uint8_t ta[] = { 0x46, 0x01, 0x01, 0x16, 0x00 }; // clear addr tab
   send_Local (CArray (ta, sizeof (t)),1);
 }
 
@@ -85,7 +82,7 @@ EMI1Driver::cmdClose ()
       return;
     }
   sendLocal_done_next = N_down;
-  uchar t[] = { 0x46, 0x01, 0x00, 0x60, 0xc0 };
+  uint8_t t[] = { 0x46, 0x01, 0x00, 0x60, 0xc0 };
   send_Local (CArray (t, sizeof (t)),1);
 }
 
@@ -102,8 +99,8 @@ EMI1Driver::do_send_Next ()
 }
 
 const uint8_t *
-EMI1Driver::getIndTypes()
+EMI1Driver::getIndTypes() const
 {
-    static const uint8_t indTypes[] = { 0x4E, 0x49, 0x49 };
-    return indTypes;
+  static const uint8_t indTypes[] = { 0x4E, 0x49, 0x49 };
+  return indTypes;
 }

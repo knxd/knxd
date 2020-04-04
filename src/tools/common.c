@@ -22,7 +22,7 @@
 #include <stdarg.h>
 
 void
-printHex (int len, uchar * data)
+printHex (int len, uint8_t * data)
 {
   int i;
   for (i = 0; i < len; i++)
@@ -33,11 +33,15 @@ void die (const char *msg, ...) __attribute__((noreturn));
 void
 die (const char *msg, ...)
 {
+  int serrno = errno;
   va_list ap;
   va_start (ap, msg);
   vfprintf (stderr, msg, ap);
   va_end (ap);
-  fprintf (stderr, ": %s\n", strerror (errno));
+  if (serrno)
+    fprintf (stderr, ": %s\n", strerror (serrno));
+  else
+    putc('\n', stderr);
   exit (1);
 }
 
@@ -88,9 +92,9 @@ readHex (const char *addr)
 }
 
 int
-readBlock (uchar * buf, int size, int ac, char *ag[])
+readBlock (uint8_t * buf, int size, int ac, char *ag[])
 {
-  uchar *bp = buf;
+  uint8_t *bp = buf;
   if (size < ac)
     return -1;
   while (ac)

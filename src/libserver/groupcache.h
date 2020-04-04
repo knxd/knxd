@@ -17,22 +17,31 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @ingroup KNX_03_03_04
+ * Transport Layer
+ * @{
+ */
+
 #ifndef GROUPCACHE_H
 #define GROUPCACHE_H
 
-#include <time.h>
-
+#include <ctime>
 #include <map>
 #include <unordered_map>
 
-#include "link.h"
 #include "client.h"
+#include "link.h"
 
 class GroupCache;
 
 struct GroupCacheEntry
 {
-  GroupCacheEntry(eibaddr_t dst) { this->dst = dst; }
+  GroupCacheEntry(eibaddr_t dst)
+  {
+    this->dst = dst;
+  }
   /** Layer 4 data */
   CArray data;
   /** source address */
@@ -46,53 +55,49 @@ struct GroupCacheEntry
 };
 
 typedef void (*GCReadCallback)(const GroupCacheEntry &foo, bool nowait, ClientConnPtr c);
-typedef void (*GCLastCallback)(const Array<eibaddr_t> &foo, uint32_t end, ClientConnPtr c);
+typedef void (*GCLastCallback)(const std::vector<eibaddr_t> &foo, uint32_t end, ClientConnPtr c);
 
 class GroupCacheReader
 {
 public:
-  GroupCacheReader(GroupCache *); 
+  GroupCacheReader(GroupCache *);
   virtual ~GroupCacheReader();
 
   bool stopped = false;
   GroupCache *gc;
   virtual void updated(GroupCacheEntry &) = 0;
-  virtual void stop();
+  virtual void stop(bool err);
 };
 
 /** map last-updated sequence numbers to group addresses */
-typedef std::map<uint32_t, eibaddr_t> SeqMap;
+using SeqMap = std::map<uint32_t, eibaddr_t>;
 
 /** map group addresses to cache entries */
-typedef std::unordered_map<eibaddr_t, GroupCacheEntry> CacheMap;
+using CacheMap = std::unordered_map<eibaddr_t, GroupCacheEntry>;
 
 class GroupCache:public Driver
 {
-  Array < GroupCacheReader * > reader;
-  /** The Cache */
-  CacheMap cache;
-  /** controlled by .Start/Stop; if false, the whole code does nothing */
-  bool enable = false;
-  /** max size of cache */
-  uint16_t maxsize;
-  /** cached copy of main address */
-  eibaddr_t addr;
-
 public: // but only for GroupCacheReader
   bool setup();
   void start();
-  void stop();
-  bool checkGroupAddress (eibaddr_t addr UNUSED) { return true; }
-  bool checkAddress (eibaddr_t addr UNUSED) { return false; }
-  bool hasAddress (eibaddr_t addr ) { return addr == this->addr; }
-  void addAddress (eibaddr_t addr UNUSED) { }
+  void stop(bool err);
+  virtual bool checkGroupAddress (eibaddr_t) const override
+  {
+    return true;
+  }
 
-private:
-  ev::async remtrigger; void remtrigger_cb(ev::async &w, int revents);
-  /** signal that this entry has been updated */
-  virtual void updated(GroupCacheEntry &);
+  bool checkAddress (eibaddr_t) const
+  {
+    return false;
+  }
 
-public:
+  bool hasAddress (eibaddr_t addr) const
+  {
+    return addr == this->addr;
+  }
+
+  void addAddress (eibaddr_t) { }
+
   /** constructor */
   GroupCache (const LinkConnectPtr& c, IniSectionPtr& s);
   /** destructor */
@@ -127,8 +132,26 @@ public:
                     GCLastCallback cb, ClientConnPtr c);
   void LastUpdates2 (uint32_t start, uint8_t timeout,
                      GCLastCallback cb, ClientConnPtr c);
+
+private:
+  std::vector < GroupCacheReader * > reader;
+  /** The Cache */
+  CacheMap cache;
+  /** controlled by .Start/Stop; if false, the whole code does nothing */
+  bool enable = false;
+  /** max size of cache */
+  uint16_t maxsize;
+  /** cached copy of main address */
+  eibaddr_t addr;
+
+  ev::async remtrigger;
+  void remtrigger_cb(ev::async &w, int revents);
+  /** signal that this entry has been updated */
+  virtual void updated(GroupCacheEntry &);
 };
 
-typedef std::shared_ptr<GroupCache> GroupCachePtr;
+using GroupCachePtr = std::shared_ptr<GroupCache>;
 
 #endif
+
+/** @} */

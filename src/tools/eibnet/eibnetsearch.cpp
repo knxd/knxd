@@ -17,10 +17,10 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdarg.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cstdarg>
 #include <arpa/inet.h>
 #include "eibnetip.h"
 
@@ -40,7 +40,7 @@ die (const char *msg, ...)
 bool shortlist = false;
 
 void
-HexDump (const uchar * data, int Len)
+HexDump (const uint8_t * data, int Len)
 {
   for (int i = 0; i < Len; i++)
     printf (" %02X", data[i]);
@@ -73,16 +73,16 @@ recv_me (EIBNetIPPacket *p1)
   else
     {
       printf
-        ("Medium: %d\nState: %d\nAddr: %s\nInstallID: %d\nSerial:",
-          resp.KNXmedium, resp.devicestatus,
-          FormatEIBAddr (resp.individual_addr).c_str(), resp.installid);
+      ("Medium: %d\nState: %d\nAddr: %s\nInstallID: %d\nSerial:",
+       resp.KNXmedium, resp.devicestatus,
+       FormatEIBAddr (resp.individual_addr).c_str(), resp.installid);
       HexDump (resp.serial, sizeof (resp.serial));
       printf ("Multicast-Addr: %s\nMAC:",
               inet_ntoa (resp.multicastaddr));
       HexDump (resp.MAC, sizeof (resp.MAC));
       printf ("Name: %s\n", resp.name);
       ITER(i, resp.services)
-        printf ("Service %d Version %d\n", i->family, i->version);
+      printf ("Service %d Version %d\n", i->family, i->version);
     }
   printf ("\n");
 }
@@ -96,8 +96,8 @@ main (int ac, char *ag[])
   char *a, *b, *c;
   if (ac != 2 && ac != 3)
     die
-      ("Usage: %s [/]ip[:dst-port[:src-port]] [tracelevel]     use - as default ip",
-       ag[0]);
+    ("Usage: %s [/]ip[:dst-port[:src-port]] [tracelevel]     use - as default ip",
+     ag[0]);
   struct sockaddr_in saddr;
   struct sockaddr_in caddr;
   EIBNetIPSocket *sock;
@@ -105,7 +105,7 @@ main (int ac, char *ag[])
   ev_timer_init(&timeout, &end_me, 10.,0.);
   ev_timer_start(EV_DEFAULT_ &timeout);
 
-  
+
   tracelevel = 0;
   if (ac == 3)
     tracelevel = atoi (ag[2]);
@@ -125,13 +125,13 @@ main (int ac, char *ag[])
     {
       *b = 0;
       for (c = b + 1; *c; c++)
-	if (*c == ':')
-	  break;
+        if (*c == ':')
+          break;
       if (*c == ':')
-	{
-	  *c = 0;
-	  sport = atoi (c + 1);
-	}
+        {
+          *c = 0;
+          sport = atoi (c + 1);
+        }
       dport = atoi (b + 1);
     }
   else

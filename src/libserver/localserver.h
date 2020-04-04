@@ -17,6 +17,12 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @addtogroup Server
+ * @{
+ */
+
 #ifndef LOCALSERVER_H
 #define LOCALSERVER_H
 
@@ -31,9 +37,12 @@ public:
 
   bool setup();
   void start();
-  void stop();
+  void stop(bool err);
+
 private:
   std::string path;
 };
 
 #endif
+
+/** @} */

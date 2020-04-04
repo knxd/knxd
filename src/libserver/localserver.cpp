@@ -17,14 +17,15 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+#include "localserver.h"
+
+#include <cerrno>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
-#include <errno.h>
-#include "localserver.h"
 
 LocalServer::LocalServer (BaseRouter& r, IniSectionPtr& s)
-    : NetServer (r,s)
+  : NetServer (r,s)
 {
   t->setAuxName("local");
 }
@@ -44,15 +45,15 @@ LocalServer::start()
 {
   if (ignore_when_systemd && static_cast<Router &>(router).using_systemd)
     {
-      may_fail = true;
-      stopped();
+      ignore = true;
+      stopped(true);
       return;
     }
 
   struct sockaddr_un addr;
   TRACEPRINTF (t, 8, "OpenLocalSocket %s", path);
   addr.sun_family = AF_LOCAL;
-  strncpy (addr.sun_path, path.c_str(), sizeof (addr.sun_path));
+  strncpy (addr.sun_path, path.c_str(), sizeof (addr.sun_path) - 1);
 
   fd = socket (AF_LOCAL, SOCK_STREAM, 0);
   if (fd == -1)
@@ -63,14 +64,14 @@ LocalServer::start()
 
   if (bind (fd, (struct sockaddr *) &addr, sizeof (addr)) == -1)
     {
-      /* 
-       * dead file? 
+      /*
+       * dead file?
        */
       if (errno == EADDRINUSE)
         {
           if (connect(fd, (struct sockaddr *) &addr, sizeof (addr)) == 0)
             {
-          ex:
+ex:
               ERRORPRINTF (t, E_ERROR | 16, "OpenLocalSocket %s: bind: %s", path, strerror(errno));
               goto ex2;
             }
@@ -103,12 +104,12 @@ ex2:
   close (fd);
   fd = -1;
 ex3:
-  NetServer::stop();
+  NetServer::stop(true);
   return;
 }
 
 void
-LocalServer::stop()
+LocalServer::stop(bool err)
 {
   if (fd >= 0)
     {
@@ -117,7 +118,7 @@ LocalServer::stop()
       if (path.size())
         ::unlink (path.c_str());
     }
-  NetServer::stop();
+  NetServer::stop(err);
 }
 
 LocalServer::~LocalServer ()

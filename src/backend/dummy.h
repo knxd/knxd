@@ -25,16 +25,19 @@
 DRIVER(DummyL2Driver,dummy)
 {
 public:
-  DummyL2Driver (const LinkConnectPtr_& c, IniSectionPtr& s) : BusDriver(c,s) {}
-  virtual ~DummyL2Driver ();
+  DummyL2Driver (const LinkConnectPtr_& c, IniSectionPtr& s) : HWBusDriver(c,s) {}
+  virtual ~DummyL2Driver () = default;
 
-  void send_L_Data (LDataPtr l UNUSED) { send_Next(); }
+  void send_L_Data (LDataPtr)
+  {
+    send_Next();
+  }
   bool setup()
-    {
-      if (!BusDriver::setup())
-        return false;
-      return true;
-    }
+  {
+    if (!HWBusDriver::setup())
+      return false;
+    return true;
+  }
 };
 
 /** dummy L2 filter, is transparent */
@@ -42,7 +45,7 @@ FILTER(DummyL2Filter,dummy)
 {
 public:
   DummyL2Filter (const LinkConnectPtr_& c, IniSectionPtr& s) : Filter(c,s) {}
-  virtual ~DummyL2Filter ();
+  virtual ~DummyL2Filter () = default;
 };
 
 #endif

@@ -17,8 +17,9 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
-#include "apdu.h"
 #include "layer7.h"
+
+#include "apdu.h"
 
 Layer7_Broadcast::Layer7_Broadcast (TracePtr tr)
 {
@@ -51,10 +52,10 @@ Layer7_Broadcast::A_IndividualAddress_Write (eibaddr_t addr)
   l4->recv (a.ToPacket ());
 }
 
-Array < eibaddr_t >
-  Layer7_Broadcast::A_IndividualAddress_Read (TracePtr tr, unsigned timeout)
+std::vector < eibaddr_t >
+Layer7_Broadcast::A_IndividualAddress_Read (TracePtr tr, unsigned timeout)
 {
-  Array < eibaddr_t > addrs;
+  std::vector < eibaddr_t > addrs;
   A_IndividualAddress_Read_PDU r;
   APDUPtr a;
   l4->recv (r.ToPacket ());
@@ -63,13 +64,13 @@ Array < eibaddr_t >
     {
       BroadcastComm *c = l4->Get (t);
       if (c)
-	{
-	  a = APDU::fromPacket (c->data, tr);
-	  if (a->isResponse (&r))
-	    addrs.push_back (c->src);
-	  delete a;
-	  delete c;
-	}
+        {
+          a = APDU::fromPacket (c->data, tr);
+          if (a->isResponse (&r))
+            addrs.push_back (c->src);
+          delete a;
+          delete c;
+        }
     }
   pth_event_free (t, PTH_FREE_THIS);
   return addrs;
@@ -80,10 +81,6 @@ Layer7_Connection::Layer7_Connection (TracePtr tr, eibaddr_t d)
   t = tr;
   TRACEPRINTF (t, 5, "L7Connection open");
   dest = d;
-}
-
-Layer7_Connection::~Layer7_Connection ()
-{
 }
 
 bool Layer7_Connection::setup()
@@ -134,8 +131,8 @@ Layer7_Connection::Request_Response (APDU * r)
 }
 
 int
-Layer7_Connection::A_Property_Read (uchar obj, uchar propertyid,
-				    uint16_t start, uchar count, CArray & result)
+Layer7_Connection::A_Property_Read (uint8_t obj, uint8_t propertyid,
+                                    uint16_t start, uint8_t count, CArray & result)
 {
   A_PropertyValue_Read_PDU r;
   r.obj = obj;
@@ -151,9 +148,9 @@ Layer7_Connection::A_Property_Read (uchar obj, uchar propertyid,
 }
 
 int
-Layer7_Connection::A_Property_Write (uchar obj, uchar propertyid,
-				     uint16_t start, uchar count,
-				     const CArray & data, CArray & result)
+Layer7_Connection::A_Property_Write (uint8_t obj, uint8_t propertyid,
+                                     uint16_t start, uint8_t count,
+                                     const CArray & data, CArray & result)
 {
   A_PropertyValue_Write_PDU r;
   r.obj = obj;
@@ -170,10 +167,10 @@ Layer7_Connection::A_Property_Write (uchar obj, uchar propertyid,
 }
 
 int
-Layer7_Connection::A_Property_Desc (uchar obj, uchar & property,
-				    uchar property_index, uchar & type,
-				    uint16_t & max_nr_elements,
-				    uchar & access)
+Layer7_Connection::A_Property_Desc (uint8_t obj, uint8_t & property,
+                                    uint8_t property_index, uint8_t & type,
+                                    uint16_t & max_nr_elements,
+                                    uint8_t & access)
 {
   A_PropertyDescription_Read_PDU r;
   r.obj = obj;
@@ -193,7 +190,7 @@ Layer7_Connection::A_Property_Desc (uchar obj, uchar & property,
 }
 
 int
-Layer7_Connection::A_Device_Descriptor_Read (uint16_t & maskver, uchar type)
+Layer7_Connection::A_Device_Descriptor_Read (uint16_t & maskver, uint8_t type)
 {
   A_DeviceDescriptor_Read_PDU r;
   r.type = type & 0x3f;
@@ -207,8 +204,8 @@ Layer7_Connection::A_Device_Descriptor_Read (uint16_t & maskver, uchar type)
 }
 
 int
-Layer7_Connection::A_ADC_Read (uchar channel, uchar readcount,
-			       int16_t & value)
+Layer7_Connection::A_ADC_Read (uint8_t channel, uint8_t readcount,
+                               int16_t & value)
 {
   A_ADC_Read_PDU r;
   r.channel = channel & 0x3f;
@@ -223,7 +220,7 @@ Layer7_Connection::A_ADC_Read (uchar channel, uchar readcount,
 }
 
 int
-Layer7_Connection::A_Memory_Read (memaddr_t addr, uchar len, CArray & data)
+Layer7_Connection::A_Memory_Read (memaddr_t addr, uint8_t len, CArray & data)
 {
   A_Memory_Read_PDU r;
   r.addr = addr;
@@ -249,7 +246,7 @@ Layer7_Connection::A_Memory_Write (memaddr_t addr, const CArray & data)
 }
 
 int
-Layer7_Connection::A_Authorize (eibkey_type key, uchar & level)
+Layer7_Connection::A_Authorize (eibkey_type key, uint8_t & level)
 {
   A_Authorize_Request_PDU r;
   r.key = key;
@@ -263,7 +260,7 @@ Layer7_Connection::A_Authorize (eibkey_type key, uchar & level)
 }
 
 int
-Layer7_Connection::A_KeyWrite (eibkey_type key, uchar & level)
+Layer7_Connection::A_KeyWrite (eibkey_type key, uint8_t & level)
 {
   A_Key_Write_PDU r;
   r.key = key;
@@ -278,9 +275,9 @@ Layer7_Connection::A_KeyWrite (eibkey_type key, uchar & level)
 }
 
 int
-Layer7_Connection::X_Property_Write (uchar obj, uchar propertyid,
-				     uint16_t start, uchar count,
-				     const CArray & data)
+Layer7_Connection::X_Property_Write (uint8_t obj, uint8_t propertyid,
+                                     uint16_t start, uint8_t count,
+                                     const CArray & data)
 {
   CArray d1;
   if (A_Property_Write (obj, propertyid, start, count, data, d1) == -1)
@@ -317,15 +314,15 @@ Layer7_Connection::X_Memory_Write_Block (memaddr_t addr, const CArray & data)
   for (i = 0; i < data.size(); i++)
     {
       if (data[i] == prev[i])
-	continue;
+        continue;
       j = 0;
       while (data[i + j] != prev[i + j] && j < blocksize && i + j < data.size())
-	j++;
+        j++;
       k = X_Memory_Write (addr + i, CArray (data, i, j));
       if (k == -1)
-	return -1;
+        return -1;
       if (k == -2)
-	res = -2;
+        res = -2;
       i += j - 1;
     }
 
@@ -340,17 +337,17 @@ Layer7_Connection::X_Memory_Read_Block (memaddr_t addr, unsigned int len, CArray
   erg.resize (len);
   for (unsigned i = 0; i < len; i += blocksize)
     {
-    rt:
+rt:
       if (A_Memory_Read
-	  (addr + i, (len - i > blocksize ? blocksize : len - i), e) == -1)
-	{
-	  if (blocksize == 12)
-	    {
-	      blocksize = 2;
-	      goto rt;
-	    }
-	  return -1;
-	}
+          (addr + i, (len - i > blocksize ? blocksize : len - i), e) == -1)
+        {
+          if (blocksize == 12)
+            {
+              blocksize = 2;
+              goto rt;
+            }
+          return -1;
+        }
       erg.setpart (e, i);
     }
   return 0;
@@ -368,10 +365,10 @@ Layer7_Connection::A_Memory_Write_Block (memaddr_t addr, const CArray & data)
     {
       j = blocksize;
       if (i + j > data.size())
-	j = data.size() - i;
+        j = data.size() - i;
       k = A_Memory_Write (addr + i, CArray (data.data() + i, j));
       if (k == -1)
-	return -1;
+        return -1;
     }
 
   return res;
@@ -382,10 +379,6 @@ Layer7_Individual::Layer7_Individual (TracePtr tr, eibaddr_t d)
   t = tr;
   TRACEPRINTF (t, 5, "L7Individual open");
   dest = d;
-}
-
-Layer7_Individual::~Layer7_Individual ()
-{
 }
 
 bool Layer7_Individual::setup()
@@ -410,31 +403,31 @@ Layer7_Individual::Request_Response (APDU * r)
     {
       c = l4->Get (t);
       if (c)
-	{
-	  if (c->size() == 0)
-	    {
-	      delete c;
-	      pth_event_free (t, PTH_FREE_THIS);
-	      return 0;
-	    }
-	  a = APDU::fromPacket (*c, this->t);
-	  delete c;
-	  if (a->isResponse (r))
-	    {
-	      pth_event_free (t, PTH_FREE_THIS);
-	      return a;
-	    }
-	  pth_event_free (t, PTH_FREE_THIS);
-	  return 0;
-	}
+        {
+          if (c->size() == 0)
+            {
+              delete c;
+              pth_event_free (t, PTH_FREE_THIS);
+              return 0;
+            }
+          a = APDU::fromPacket (*c, this->t);
+          delete c;
+          if (a->isResponse (r))
+            {
+              pth_event_free (t, PTH_FREE_THIS);
+              return a;
+            }
+          pth_event_free (t, PTH_FREE_THIS);
+          return 0;
+        }
     }
   pth_event_free (t, PTH_FREE_THIS);
   return 0;
 }
 
 int
-Layer7_Individual::A_Property_Read (uchar obj, uchar propertyid,
-				    uint16_t start, uchar count, CArray & erg)
+Layer7_Individual::A_Property_Read (uint8_t obj, uint8_t propertyid,
+                                    uint16_t start, uint8_t count, CArray & erg)
 {
   A_PropertyValue_Read_PDU r;
   r.obj = obj;
@@ -451,9 +444,9 @@ Layer7_Individual::A_Property_Read (uchar obj, uchar propertyid,
 }
 
 int
-Layer7_Individual::A_Property_Write (uchar obj, uchar propertyid,
-				     uint16_t start, uchar count,
-				     const CArray & data, CArray & result)
+Layer7_Individual::A_Property_Write (uint8_t obj, uint8_t propertyid,
+                                     uint16_t start, uint8_t count,
+                                     const CArray & data, CArray & result)
 {
   A_PropertyValue_Write_PDU r;
   r.obj = obj;

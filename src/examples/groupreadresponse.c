@@ -30,8 +30,8 @@ main (int ac, char *ag[])
   fd_set read;
   eibaddr_t dest;
   eibaddr_t src;
-  uchar req_buf[2] = { 0, 0 };
-  uchar buf[200];
+  uint8_t req_buf[2] = { 0, 0 };
+  uint8_t buf[200];
   struct timeval tv;
 
   if (ac != 3)
@@ -53,70 +53,70 @@ main (int ac, char *ag[])
     {
       tv.tv_usec=0;
       tv.tv_sec=10;
-    lp:
+lp:
       FD_ZERO (&read);
       FD_SET (EIB_Poll_FD (con), &read);
 
       if (select (EIB_Poll_FD (con) + 1, &read, 0, 0, &tv) == -1)
-	die ("select failed");
+        die ("select failed");
 
       len = EIB_Poll_Complete (con);
       if (len == -1)
-	die ("Read failed");
+        die ("Read failed");
       if (len == 0)
-	{
-	  if(tv.tv_sec == 0 && tv.tv_usec==0)
-	    goto end;
-	goto lp;
-	}
+        {
+          if(tv.tv_sec == 0 && tv.tv_usec==0)
+            goto end;
+          goto lp;
+        }
 
       len = EIBGetAPDU_Src (con, sizeof (buf), buf, &src);
       if (len == -1)
-	die ("Read failed");
+        die ("Read failed");
       if (len < 2)
-	die ("Invalid Packet");
+        die ("Invalid Packet");
       if (buf[0] & 0x3 || (buf[1] & 0xC0) == 0xC0)
-	{
-	  printf ("Unknown APDU from ");
-	  printIndividual (src);
-	  printf (": ");
-	  printHex (len, buf);
-	  printf ("\n");
-	}
+        {
+          printf ("Unknown APDU from ");
+          printIndividual (src);
+          printf (": ");
+          printHex (len, buf);
+          printf ("\n");
+        }
       else
-	{
-	  switch (buf[1] & 0xC0)
-	    {
-	    case 0x00:
-	      printf ("Read");
-	      break;
-	    case 0x40:
-	      printf ("Response");
-	      break;
-	    case 0x80:
-	      printf ("Write");
-	      break;
-	    }
-	  printf (" from ");
-	  printIndividual (src);
-	  if (buf[1] & 0xC0)
-	    {
-	      printf (": ");
-	      if (len == 2)
-		printf ("%02X", buf[1] & 0x3F);
-	      else
-		printHex (len - 2, buf + 2);
-	    }
-	  printf ("\n");
-	  switch (buf[1] & 0xC0)
-	    {
-	    case 0x80:
-	    case 0x40:
-	      goto end;
-	    }
-	}
+        {
+          switch (buf[1] & 0xC0)
+            {
+            case 0x00:
+              printf ("Read");
+              break;
+            case 0x40:
+              printf ("Response");
+              break;
+            case 0x80:
+              printf ("Write");
+              break;
+            }
+          printf (" from ");
+          printIndividual (src);
+          if (buf[1] & 0xC0)
+            {
+              printf (": ");
+              if (len == 2)
+                printf ("%02X", buf[1] & 0x3F);
+              else
+                printHex (len - 2, buf + 2);
+            }
+          printf ("\n");
+          switch (buf[1] & 0xC0)
+            {
+            case 0x80:
+            case 0x40:
+              goto end;
+            }
+        }
     }
- end:
+end:
   EIBClose (con);
   return 0;
 }

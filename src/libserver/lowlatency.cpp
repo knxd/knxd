@@ -19,26 +19,29 @@
 
 #include "lowlatency.h"
 
-#include <errno.h>
-
+#include <cerrno>
+#include <cstring> // memcpy
 #include <sys/ioctl.h>
-#include <string.h> // memcpy
 
 bool
-set_low_latency (int fd, low_latency_save * save)
+set_low_latency (int fd, low_latency_save * save, const bool really)
 {
   struct termios opts;
 
 #ifdef HAVE_LINUX_LOWLATENCY
-  struct serial_struct snew;
-  ioctl (fd, TIOCGSERIAL, &save->ser);
-  memcpy(&snew, &save->ser, sizeof(snew));
-  snew.flags |= ASYNC_LOW_LATENCY;
-  // not all serial drivers support this call, so don't bail out on failure with ENOTTY
-  if(ioctl (fd, TIOCSSERIAL, &snew) < 0) {
-    if (errno != ENOTTY && errno != EOPNOTSUPP)
-      return false;
-  }
+  if (really)
+    {
+      struct serial_struct snew;
+      ioctl (fd, TIOCGSERIAL, &save->ser);
+      memcpy(&snew, &save->ser, sizeof(snew));
+      snew.flags |= ASYNC_LOW_LATENCY;
+      // not all serial drivers support this call, so don't bail out on failure with ENOTTY
+      if(ioctl (fd, TIOCSSERIAL, &snew) < 0)
+        {
+          if (errno != ENOTTY && errno != EOPNOTSUPP)
+            return false;
+        }
+    }
 #endif
 
   tcgetattr(fd, &save->term);
@@ -52,10 +55,11 @@ set_low_latency (int fd, low_latency_save * save)
 }
 
 void
-restore_low_latency (int fd, low_latency_save * save)
+restore_low_latency (int fd, low_latency_save * save, const bool really)
 {
 #ifdef HAVE_LINUX_LOWLATENCY
-  ioctl (fd, TIOCSSERIAL, &save->ser);
+  if (really)
+    ioctl (fd, TIOCSSERIAL, &save->ser);
 #endif
   ioctl (fd, TCSANOW, &save->term);
 }

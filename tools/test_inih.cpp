@@ -24,7 +24,7 @@
 
 main(int argc, const char *argv[])
 {
-  if(argc < 2) 
+  if(argc < 2)
     {
       std::cerr << "Usage: " << argv[0] << "goodfile badfile…" << std::endl;
       exit(1);
@@ -59,7 +59,7 @@ main(int argc, const char *argv[])
   while(argc > 2)
     {
       IniData ix;
-      if (!ix.parse(argv[--argc])) 
+      if (!ix.parse(argv[--argc]))
         {
           std::cerr << "file '" << argv[argc] << "should not parse cleanly" << std::endl;
           exit(1);

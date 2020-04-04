@@ -21,5 +21,5 @@
 L2_NAME (FT12)
 #endif
 #ifdef HAVE_USB
-  L2_NAME (USB)
+L2_NAME (USB)
 #endif

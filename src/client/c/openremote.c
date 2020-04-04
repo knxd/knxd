@@ -7,12 +7,12 @@
     the Free Software Foundation; either version 2 of the License, or
     (at your option) any later version.
 
-    In addition to the permissions in the GNU General Public License, 
+    In addition to the permissions in the GNU General Public License,
     you may link the compiled version of this file into combinations
-    with other programs, and distribute those combinations without any 
-    restriction coming from the use of this file. (The General Public 
-    License restrictions do apply in other respects; for example, they 
-    cover modification of the file, and distribution when not linked into 
+    with other programs, and distribute those combinations without any
+    restriction coming from the use of this file. (The General Public
+    License restrictions do apply in other respects; for example, they
+    cover modification of the file, and distribution when not linked into
     a combine executable.)
 
     This program is distributed in the hope that it will be useful,
@@ -58,12 +58,12 @@ GetHostIP (struct sockaddr_in *sock, const char *Name)
     {
       res = gethostbyname_r (Name, &host, buf, len, &h, &err);
       if (res == ERANGE)
-	{
-	  len += 2000;
-	  buf = (char *) realloc (buf, len);
-	}
+        {
+          len += 2000;
+          buf = (char *) realloc (buf, len);
+        }
       if (!buf)
-	return 0;
+        return 0;
     }
   while (res == ERANGE);
 

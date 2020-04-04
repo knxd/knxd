@@ -17,19 +17,38 @@
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
 
+/**
+ * @file
+ * @addtogroup Driver
+ * @{
+ */
+
 #ifndef LLSERIAL
 #define LLSERIAL
 
 #include <termios.h>
+
 #include "iobuf.h"
-#include "lowlevel.h"
 #include "lowlatency.h"
+#include "lowlevel.h"
 
 // also update SN() in tpuart.cpp
 
 /** TPUART user mode driver */
 class LLserial:public FDdriver
 {
+public:
+  LLserial (LowLevelIface* parent, IniSectionPtr& s) : FDdriver(parent,s)
+  {
+    t->setAuxName("Serial");
+  }
+  virtual ~LLserial () = default;
+
+  bool setup();
+  void start();
+  void stop(bool err);
+
+private:
   low_latency_save sold;
   struct termios old;
 
@@ -38,17 +57,9 @@ class LLserial:public FDdriver
 
   std::string dev;
   int baudrate;
-
-public:
-  LLserial (LowLevelIface* parent, IniSectionPtr& s) : FDdriver(parent,s)
-    {
-      t->setAuxName("Serial");
-    }
-  virtual ~LLserial ();
-
-  bool setup();
-  void start();
-  void stop();
+  bool low_latency;
 };
 
 #endif
+
+/** @} */

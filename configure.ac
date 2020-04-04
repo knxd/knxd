@@ -23,21 +23,20 @@ dnl ##    OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 dnl ##    SUCH DAMAGE.
 
 
-AC_PREREQ(2.59)
+AC_PREREQ([2.59])
+LT_PREREQ([2.2.0])
 
-AC_INIT(knxd, m4_esyscmd(sh ./tools/version.sh))
+AC_INIT(knxd, m4_esyscmd(sh -c "./tools/version.sh | tr -d '\n'"))
 AM_INIT_AUTOMAKE([foreign])
+LT_INIT
 
 AC_CANONICAL_HOST
 AC_PROG_CC
 AC_PROG_CXX
-AC_STDC_HEADERS
 AC_PROG_YACC
 AC_PROG_LEX
 AM_PROG_AS
-AC_PROG_RANLIB
-AC_PROG_LIBTOOL
-AC_LANG_CPLUSPLUS
+AC_LANG([C++])
 
 AC_CHECK_HEADERS([sys/time.h sys/select.h])
 AX_CXX_COMPILE_STDCXX(11)
@@ -56,7 +55,9 @@ AX_ENABLE_SYSTEMD
 
 AC_CHECK_HEADER(argp.h,,[AC_MSG_ERROR([argp_parse not found])])
 AC_SEARCH_LIBS(argp_parse,argp,,[AC_MSG_ERROR([argp_parse not found])])
-AC_CHECK_HEADER(linux/serial.h,[AC_DEFINE(HAVE_LINUX_LOWLATENCY, 1 , [Linux low latency mode enabled])],[AC_MSG_WARN([No supported low latency mode found])])
+
+dnl does not seem to work correctly. Disabled.
+dnl AC_CHECK_HEADER(linux/serial.h,[AC_DEFINE(HAVE_LINUX_LOWLATENCY, 1 , [Linux low latency mode enabled])],[AC_MSG_WARN([No supported low latency mode found])])
 have_source_info=no
 have_linux_api=no
 AC_CHECK_HEADER(linux/rtnetlink.h,[AC_DEFINE(HAVE_LINUX_NETLINK, 1,[Linux netlink layer available]) have_source_info=yes],[],[-])
@@ -64,7 +65,12 @@ AC_CHECK_HEADER(linux/usbdevice_fs.h,[AC_DEFINE(OS_LINUX, 1, [Linux usb availabl
 AC_CHECK_HEADER(iphlpapi.h,[AC_DEFINE(HAVE_WINDOWS_IPHELPER, 1,[Windows IPHelper available]) 
   LIBS="-liphlpapi $LIBS"; have_source_info=yes],[],[-])
 
-AC_CHECK_DECL(SA_SIZE,[AC_DEFINE(HAVE_SA_SIZE, 1,[SA_SIZE function available])],[],[#include <net/route.h>])
+AC_CHECK_DECL(SA_SIZE,[AC_DEFINE(HAVE_SA_SIZE, 1,[SA_SIZE function available])],[],[
+  #include <stdint.h>
+  #include <sys/socket.h>
+  #include <net/if.h>
+  #include <net/route.h>
+		       ])
 have_bsd_source_info=no
 AC_CHECK_DECL(__FreeBSD__,[have_bsd_source_info=yes],[],[])
 AC_CHECK_DECL(__APPLE__,[have_bsd_source_info=yes],[],[])
@@ -249,8 +255,16 @@ AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <fmt/format.h>], [fmt::format("The ans
     [HAVE_FMT=1],                                           
     [
 CC=${CC} CXX=${CXX} sh ${ac_aux_dir}/tools/get_libfmt || exit 1
+if test -d libfmt/include/fmt ; then 
+CPPFLAGS="$CPPFLAGS -I$(pwd)/libfmt/include"
+else
 CPPFLAGS="$CPPFLAGS -I$(pwd)/libfmt"
+fi
+if test -f libfmt/libfmt.a ; then
+LDFLAGS="$LDFLAGS -L$(pwd)/libfmt"
+else
 LDFLAGS="$LDFLAGS -L$(pwd)/libfmt/fmt"
+fi
 
 AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <fmt/format.h>], [fmt::format("The answer is {}", 42);
 ])],
@@ -304,12 +318,14 @@ AC_CHECK_MEMBER([struct sockaddr_in.sin_len],[AC_DEFINE(HAVE_SOCKADDR_IN_LEN,1,[
 ])
 
 AC_CONFIG_HEADERS(config.h)
-AC_OUTPUT(Makefile 
+AC_CONFIG_FILES([Makefile 
 src/common/Makefile
 src/Makefile src/include/Makefile  src/client/Makefile src/examples/Makefile src/libserver/Makefile src/server/Makefile src/backend/Makefile
 src/client/def/Makefile src/client/c/Makefile src/client/java/Makefile src/client/php/Makefile src/client/cs/Makefile
 src/client/perl/Makefile src/client/python/Makefile src/client/pascal/Makefile src/client/ruby/Makefile src/client/lua/Makefile src/client/go/Makefile
-src/tools/eibnet/Makefile src/tools/bcu/Makefile src/usb/Makefile src/tools/Makefile systemd/Makefile systemd/knxd.service systemd/knxd.socket
-)
+src/usb/Makefile src/tools/Makefile systemd/Makefile systemd/knxd.service systemd/knxd.socket
+])
+dnl src/tools/eibnet/Makefile src/tools/bcu/Makefile
+AC_OUTPUT
 
 AC_CONFIG_MACRO_DIR([m4])
