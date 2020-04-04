@@ -1,0 +1,8 @@
+# knxd v0.14
+KNXD_OPTS="/etc/knxd.conf main"
+
+KNXD_USER="knxd:knxd"
+# for convenience set logfile and pidfile
+# to the same values as given in your /etc/knxd.conf !
+KNXD_LOGFILE="/var/log/knxd.log"
+KNXD_PIDFILE="/run/knxd/knxd.pid"
