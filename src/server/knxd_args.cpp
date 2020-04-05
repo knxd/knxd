@@ -435,7 +435,7 @@ static struct argp_option options[] =
     "wait 30msec between transmitting packets. Obsolete, please use --send-delay=30"
   },
 #endif
-#if defined(HAVE_TPUARTs) || defined(HAVE_TPUARTs_TCP)
+#if defined(HAVE_TPUART)
   {
     "tpuarts-ack-all-group", OPT_BACK_TPUARTS_ACKGROUP, 0, 0,
     "tpuarts backend should generate L2 acks for all group telegrams"
