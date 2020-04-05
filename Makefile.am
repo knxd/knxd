@@ -2,7 +2,6 @@ AUTOMAKE_OPTIONS=1.9
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST=SubmittingPatches .gitignore tools/version.sh
 
-CONFIGURE_DEPENDENCIES=debian/changelog
 ## rebuild when the version changes
 
 BUILDDIRS = 
@@ -34,7 +33,6 @@ help HELP:
 	@echo ""
 
 # update version number
-configure: debian/changelog
 config.h: configure
 
 test: all
