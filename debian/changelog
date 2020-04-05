@@ -1,3 +1,9 @@
+knxd (0.14.36-1) unstable; urgency=medium
+
+  * Merge current master
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sun, 05 Apr 2020 22:09:14 +0200
+
 knxd (0.14.35-1) unstable; urgency=medium
 
   * Cleanup for spurious files
