@@ -1,6 +1,6 @@
 /*
-    EIBD eib bus access and management daemon
-    Copyright (C) 2005-2011 Martin Koegler <mkoegler@auto.tuwien.ac.at>
+    EIBD eib bus monitor filter
+    Copyright (C) 2020 MagicBear <mb@bilibili.com>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -23,20 +23,46 @@
 bool
 MonitorL2Filter::setup()
 {
+  if (!Filter::setup())
+    return false;
   auto cn = conn.lock();
   if (cn == nullptr)
     return false;
-  t->TracePrintf (0, "State setup");
+  mon_send = cfg->value("send",true);
+  mon_recv = cfg->value("recv",true);
+
   return true;
+}
+
+
+void
+MonitorL2Filter::recv_L_Busmonitor (LBusmonPtr l)
+{
+  Filter::recv_L_Busmonitor(std::move(l));
 }
 
 
 void
 MonitorL2Filter::recv_L_Data (LDataPtr l)
 {
-  CArray cm_tp1_array = L_Data_to_CM_TP1(l);
-  LBusmonPtr mon_l = LBusmonPtr(new L_Busmon_PDU ());
-  mon_l->lpdu.set (cm_tp1_array);
-  Filter::recv_L_Busmonitor(std::move(mon_l));
+  if (mon_recv){
+    CArray cm_tp1_array = L_Data_to_CM_TP1(l);
+    LBusmonPtr mon_l = LBusmonPtr(new L_Busmon_PDU ());
+    mon_l->lpdu.set (cm_tp1_array);
+    Filter::recv_L_Busmonitor(std::move(mon_l));
+  }
   Filter::recv_L_Data(std::move(l));
+}
+
+
+void
+MonitorL2Filter::send_L_Data (LDataPtr l)
+{
+  if (mon_send){
+    CArray cm_tp1_array = L_Data_to_CM_TP1(l);
+    LBusmonPtr mon_l = LBusmonPtr(new L_Busmon_PDU ());
+    mon_l->lpdu.set (cm_tp1_array);
+    Filter::recv_L_Busmonitor(std::move(mon_l));
+  }
+  Filter::send_L_Data(std::move(l));
 }

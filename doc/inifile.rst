@@ -1136,7 +1136,14 @@ monitor
 This filter forwards all packets passing through it to knxd's bus monitoring
 system.
 
-TODO.
+* recv (bool; ``--arg=recv=BOOL``)
+
+  Monitor incoming packets. Defaults to true.
+
+* send (bool; ``--arg=send=BOOL``)
+
+  Monitor outgoing packets. Defaults to true.
+
 
 log
 ---

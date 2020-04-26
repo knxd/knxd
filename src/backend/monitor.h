@@ -1,6 +1,6 @@
 /*
-    EIBD eib bus access and management daemon
-    Copyright (C) 2015 Matthias Urlichs <matthias@urlichs.de>
+    EIBD eib bus monitor filter
+    Copyright (C) 2020 MagicBear <mb@bilibili.com>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,12 +24,16 @@
 /** monitor L2 filter, is transparent */
 FILTER(MonitorL2Filter,monitor)
 {
+  bool mon_send;
+  bool mon_recv;
+
 public:
   MonitorL2Filter (const LinkConnectPtr_& c, IniSectionPtr& s) : Filter(c,s) {}
   virtual ~MonitorL2Filter () = default;
   
   virtual bool setup();
   virtual void recv_L_Data (LDataPtr l);
+  virtual void send_L_Data (LDataPtr l);
   virtual void recv_L_Busmonitor (LBusmonPtr l);
 };
 
