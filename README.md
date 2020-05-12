@@ -250,7 +250,7 @@ don't have more than one.
 On the Raspberry Pi 2 and 3 the console is /dev/ttyAMA0. The udev line is:
 
   ```
-  ACTION=="add", SUBSYSTEM=="tty", KERNELS="ttyAMA0", SYMLINK+="knx1", OWNER="knxd"
+  ACTION=="add", SUBSYSTEM=="tty", KERNELS=="ttyAMA0", SYMLINK+="knx1", OWNER="knxd"
   ```
 
 On the Raspberry Pi 4 the console is on /dev/ttyACM0. The udev line is:
