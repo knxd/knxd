@@ -29,6 +29,15 @@ Check [the Wiki page](https://github.com/knxd/knxd/wiki) for other version(s) to
 
 ### see https://github.com/knxd/knxd/blob/v0.12/README.md for earlier changes
 
+* 0.14.37
+
+  * Fix a memory leak in the FT12 driver
+  * fix the console rule in README
+
+* 0.14.35
+
+  * Fixes for FreeBSD
+
 * 0.14.34
 
   * Cleanup: remove debian packaging, will be in a separate branch
