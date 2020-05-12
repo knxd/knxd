@@ -377,10 +377,9 @@ FT12wrap::process_read(bool is_timeout)
           else if (akt[4] == (recvflag ? 0xD3 : 0xF3))
             {
               recvflag = !recvflag;
-              CArray *c = new CArray;
-              c->setpart (akt.data() + 5, 0, len - 7);
-              last = *c;
-              LowLevelFilter::recv_Data (*c);
+              CArray c(akt.data() + 5, 0, len - 7);
+              last = c;
+              LowLevelFilter::recv_Data (c);
             }
           akt.deletepart (0, len);
         }
