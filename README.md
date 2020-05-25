@@ -29,6 +29,11 @@ Check [the Wiki page](https://github.com/knxd/knxd/wiki) for other version(s) to
 
 ### see https://github.com/knxd/knxd/blob/v0.12/README.md for earlier changes
 
+* 0.14.38
+
+  * knxd's udev rules were lost in the Debian branch.
+    Restored (to systemd subdir).
+
 * 0.14.37
 
   * Fix a memory leak in the FT12 driver
