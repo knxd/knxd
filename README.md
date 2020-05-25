@@ -147,18 +147,15 @@ On Debian:
     # If it wants "x | y", try to install just x; install y if that doesn't work.
     # Also, if it complains about conflicting packages, remove them (duh).
 
-    # first, install build tools and dependencies
-    sudo apt-get install git-core build-essential
+    sudo apt-get install git-core
 
     # now get the source code
     git clone https://github.com/knxd/knxd.git
 
     # now build+install knxd
     cd knxd
-    git checkout master
-    dpkg-buildpackage -b -uc
-    # To repeat: if this step fails because of missing dependencies,
-    # fix them and try again! See this section's first paragraph, above.
+    git checkout debian
+    sh build-deb.sh
     cd ..
     sudo dpkg -i knxd_*.deb knxd-tools_*.deb
 
@@ -166,7 +163,7 @@ On Debian:
     rm knxd*.deb
     cd knxd
     git pull
-    dpkg-buildpackage -b -uc
+    sh build-deb.sh
     cd ..
     sudo dpkg -i knxd_*.deb knxd-tools_*.deb
 
