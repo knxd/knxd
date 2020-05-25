@@ -143,7 +143,7 @@ Check [the Wiki page](https://github.com/knxd/knxd/wiki) for other version(s) to
 
 ## Building
 
-On Debian:
+On Debian/Ubuntu:
 
     # Do not use "sudo" unless told to do so.
     # If "dpkg-buildpackage" complains about missing packages
@@ -158,23 +158,17 @@ On Debian:
     git clone https://github.com/knxd/knxd.git
 
     # now build+install knxd
-    cd knxd
-    git checkout debian
-    sh build-deb.sh
-    cd ..
-    sudo dpkg -i knxd_*.deb knxd-tools_*.deb
+    sh knxd/install-debian.sh
 
     # … and if you'd like to update knxd:
     rm knxd*.deb
-    cd knxd
-    git pull
-    sh build-deb.sh
-    cd ..
-    sudo dpkg -i knxd_*.deb knxd-tools_*.deb
+    sh knxd/install-debian.sh
 
-Additions for other Linux distributions are very welcome.
+Instructions for other flavors of Linux distributions should be in the
+corresponding branches. Additions welcome.
 
 On MacOS or Windows, please use a Linux VM.
+
 If somebody would like to submit patches for Mac OSX or Windows, go ahead
 and create a pull request, but please be prepared to maintain your code.
 
