@@ -142,82 +142,48 @@ Check [the Wiki page](https://github.com/knxd/knxd/wiki) for other version(s) to
     use a common logging module (controlled by bit 0 of the tracing mask)
     for comprehensive packet debugging.
 
+0.12
+
+  * knxd was rewritten to use libev instead of pthsem.
+
+  * knxd now supports multiple interfaces, back-ends, and KNX packet filters.
+
 ## Building
 
-On Debian:
+When in doubt, please check out the branch corresponding to your Linux
+distribution's flavor, and read this section there.
 
-    # Do not use "sudo" unless told to do so.
-    # If "dpkg-buildpackage" complains about missing packages
-    # ("Unmet build dependencies"): install them
-    # (apt-get install …) and try that step again.
-    # If it wants "x | y", try to install just x; install y if that doesn't work.
-    # Also, if it complains about conflicting packages, remove them (duh).
+This part covers "manual" installation.
 
-    # first, install build tools and dependencies
-    sudo apt-get install git-core build-essential
+    # first, install build tools and dependencies. You need git, autotools, and gcc/g++.
+    #: check your Linux distribution's documentation if you don't know how
+    # You also need a "knxd" user.
 
-    # now get the source code
+    # get the source code
     git clone https://github.com/knxd/knxd.git
 
-    # now build+install knxd
+    # build+install knxd
     cd knxd
     git checkout master
-    dpkg-buildpackage -b -uc
-    # To repeat: if this step fails because of missing dependencies,
-    # fix them and try again! See this section's first paragraph, above.
+    sh bootstrap.sh
+    ./configure --help
+    ./configure --your-chosen-options
+    make
+    make install
     cd ..
-    sudo dpkg -i knxd_*.deb knxd-tools_*.deb
 
-    # … and if you'd like to update knxd:
-    rm knxd*.deb
-    cd knxd
-    git pull
-    dpkg-buildpackage -b -uc
-    cd ..
-    sudo dpkg -i knxd_*.deb knxd-tools_*.deb
+    # Now switch to the "knxd" user and start the daemon.
 
-Additions for other Linux distributions are very welcome.
-
-On MacOS or Windows, please use a Linux VM.
-If somebody would like to submit patches for Mac OSX or Windows, go ahead
+If you would like to submit patches for Mac OSX or Windows, go ahead
 and create a pull request, but please be prepared to maintain your code.
-
-### Test failures
-
-The build script runs a comprehensive set of tests to make sure that knxd
-actually works. It obviously can't test code talking to directly-connected
-hardware, but the core parts are exercised.
-
-If the test fails:
-
-* Do you have a default route?
-
-* Are you filtering packets to 224.99.98.97, or to UDP port 3671?
-
-* Is something on your network echoing multicast packets? (Yes, that happens.)
-
-If you can't figure out the cause of the failure, please open an issue.
-
-### Daemon Configuration
-
-Daemon configuration differs depending on whether you use systemd.
-If "systemctl status" emits something reasonable, you are.
-
-If you use systemd, the configuration file is ``/etc/knxd.conf``.
-Socket activation is used for the default IP and Unix sockets
-(port 6720 and /run/knx, respectively).
-
-Without systemd, on Debian, edit ``/etc/default/knxd``.
-
-The default Unix socket is ``/run/knx``.
-Old eibd clients may still use ``/tmp/eib`` to talk to knxd.
-You need to either change their configuration, or add "-u /tmp/eib"
-to knxd's options.
-(This was the default for "-u" before version 0.11.)
 
 ### New ".ini" configuration file
 
+knxd is typically started with "knxd /etc/knxd.ini".
 
+The file format is documented in "doc/inifile.rst". You might want to use
+the program "/usr/lib/knxd_args" to create it from previous versions'
+command-line arguments.
 
 ### Adding a TPUART USB interface
 
@@ -256,7 +222,7 @@ This is intentional.
 ### Adding any other USB interface
 
 These interfaces should be covered by the `udev` file knxd installs in
-``/lib/udev/rules``. Simply use ``-b usb:`` to talk to it, assuming you
+``/lib/udev/rules.d``. Simply use ``-b usb:`` to talk to it, assuming you
 don't have more than one.
 
 ### Adding a TPUART serial interface to the Raspberry Pi
@@ -280,16 +246,16 @@ On the Raspberry Pi 2 and 3 you need to disable the serial console. Edit ``/boot
 remove the ``console=ttyAMA0`` entry. Then reboot.
 
 On the Raspberry Pi 3, the serial console is on ``ttyAMA1`` by default.
-However, that is a software-driven serial port (the hardware serial
-interface is used for Bluetooth on the Pi3). Varying CPU speed causes this
-port to be somewhat unreliable. If this happens, disable bluetooth by adding
+However, that is a software-driven serial port – the single hardware serial
+interface is used for Bluetooth on the Pi3. Varying CPU speed causes this
+port to be somewhat unreliable. If this happens, disable Bluetooth by adding
 
   ```
   dtoverlay=pi3-disable-bt
   ```
 
 to ``/boot/config.txt``, run ``systemctl disable hciuart``, and
-rebooting. The TPUART module is now back on ``ttyAMA0``.
+reboot. The TPUART module is now back on ``ttyAMA0``.
 
 ## Migrating to 0.14
 
@@ -304,11 +270,11 @@ rebooting. The TPUART module is now back on ``ttyAMA0``.
   The old way of configuring knxd via a heap of position-dependent
   arguments is still supported.
 
-  You can use ``/usr/lib/knxd_args <args-to-knxd>`` to emit a file that
-  corresponds to your old list of arguments.
+  You can use ``/usr/lib/knxd_args <args-to-knxd>`` to emit a .ini file
+  that corresponds to your old list of arguments.
 
-* Not configuring client addresses is now a hard error if you use the knxd\_\*
-  servers (options -i -u), systemd sockets, or the router's tunnel mode.
+* Not configuring client addresses is now a hard error. Knxd will no longer
+  multiplex its clients onto its own address.
 
 * knxd will not start routing any packets unless startup is successful on
   all interfaces.
