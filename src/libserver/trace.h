@@ -31,7 +31,7 @@
 #include <cstdarg>
 #include <memory>
 #include <fmt/format.h>
-#if HAVE_FMT_PRINTF
+#ifdef HAVE_FMT_PRINTF
 #include <fmt/printf.h>
 #endif
 #include <iostream>

@@ -1,0 +1,8 @@
+add_subdirectory(backend)
+add_subdirectory(client/c)
+add_subdirectory(common)
+add_subdirectory(include)
+add_subdirectory(libserver)
+add_subdirectory(server)
+add_subdirectory(tools)
+add_subdirectory(usb)

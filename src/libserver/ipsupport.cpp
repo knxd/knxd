@@ -36,7 +36,7 @@
 #include <iphlpapi.h>
 #undef Array
 #endif
-#if HAVE_BSD_SOURCEINFO
+#ifdef HAVE_BSD_SOURCEINFO
 #include <net/if.h>
 #include <net/route.h>
 #endif
@@ -161,7 +161,7 @@ GetSourceAddress (TracePtr tr, const struct sockaddr_in *dest, struct sockaddr_i
 }
 #endif
 
-#if HAVE_BSD_SOURCEINFO
+#ifdef HAVE_BSD_SOURCEINFO
 struct r_req
 {
   struct rt_msghdr hdr;
