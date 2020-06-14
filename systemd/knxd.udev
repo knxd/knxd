@@ -19,6 +19,7 @@ ACTION!="add", GOTO="knxd_end"
 #
 #ACTION=="add", SUBSYSTEM=="usb",ENV{DEVTYPE}=="usb_device", ATTRS{idVendor}=="dead", ATTRS{idProduct}=="beef", OWNER="knxd"
 
+ACTION!="add", GOTO="knxd_end"
 SUBSYSTEM!="usb", GOTO="knxd_end"
 ENV{DEVTYPE}!="usb_device", GOTO="knxd_end"
 
