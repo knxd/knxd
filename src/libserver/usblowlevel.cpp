@@ -155,6 +155,7 @@ USBLowLevelDriver::USBLowLevelDriver (LowLevelIface* p, IniSectionPtr& s) : LowL
 {
   t->setAuxName("usbL");
   send_timeout = cfg->value("send-timeout", 1000);
+  loop = nullptr;
   read_trigger.set<USBLowLevelDriver,&USBLowLevelDriver::read_trigger_cb>(this);
   write_trigger.set<USBLowLevelDriver,&USBLowLevelDriver::write_trigger_cb>(this);
   read_trigger.start();

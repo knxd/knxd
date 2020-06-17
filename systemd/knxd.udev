@@ -19,6 +19,7 @@ ACTION!="add", GOTO="knxd_end"
 #
 #ACTION=="add", SUBSYSTEM=="usb",ENV{DEVTYPE}=="usb_device", ATTRS{idVendor}=="dead", ATTRS{idProduct}=="beef", OWNER="knxd"
 
+ACTION!="add", GOTO="knxd_end"
 SUBSYSTEM!="usb", GOTO="knxd_end"
 ENV{DEVTYPE}!="usb_device", GOTO="knxd_end"
 
@@ -60,5 +61,7 @@ ATTR{idVendor}=="147b", ATTR{idProduct}=="5120",OWNER="knxd",MODE="0600"
 ATTR{idVendor}=="16d0", ATTR{idProduct}=="0491",OWNER="knxd",MODE="0600"
 # SATEL Sp. z o.o.: KNX-USB Interface
 ATTR{idVendor}=="24d5", ATTR{idProduct}=="0106",OWNER="knxd",MODE="0600"
+# Züblin
+ATTR{idVendor}=="28c2", ATTR{idProduct}=="0007",OWNER="knxd",MODE="0600"
 
 LABEL="knxd_end"
