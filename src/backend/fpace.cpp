@@ -132,7 +132,7 @@ PaceFilter::timer_cb (ev::timer &, int)
       float this_delay = (size_in*byte_delay + nr_in*delay) * factor_in;
       TRACEPRINTF (t, 2, "in %d/%d %f/%f/%f: delay more, for %.3f sec", nr_in,size_in, delay,byte_delay,factor_in, this_delay);
       timer.start(this_delay);
-      nr_in  = 0;
+      nr_in = 0;
       size_in = 0;
       return;
     }
@@ -151,8 +151,11 @@ PaceFilter::send_L_Data (LDataPtr l)
 void
 PaceFilter::recv_L_Data (LDataPtr l)
 {
-  nr_in += 1;
-  size_in = l->lsdu.size();
+  if (state == P_BUSY)
+    {
+      nr_in += 1;
+      size_in += l->lsdu.size();
+    }
   Filter::recv_L_Data(std::move(l));
 }
 
