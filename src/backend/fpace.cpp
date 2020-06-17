@@ -21,6 +21,9 @@
 
 PaceFilter::PaceFilter (const LinkConnectPtr_& c, IniSectionPtr& s) : Filter(c,s)
 {
+  last_len=0;
+  nr_in = 0;
+  size_in = 0;
   timer.set<PaceFilter, &PaceFilter::timer_cb>(this);
   state = P_DOWN;
 }
