@@ -6,6 +6,7 @@
 /*.log
 /*.debhelper
 /*.substvars
+/knxd.udev
 /files
 /knxd.install
 /knxd.service
