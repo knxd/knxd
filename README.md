@@ -11,7 +11,7 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 
 # This is the Debian version
 
-This is the `deb` branch, which contains Debian packaging.
+This is the `debian` branch, which contains Debian packaging.
 Use this branch if you're installing knxd on Ubuntu or their derivatives.
 
 # Stable version
@@ -27,6 +27,11 @@ Check [the Wiki page](https://github.com/knxd/knxd/wiki) for other version(s) to
 ## New Features since 0.12
 
 ### see https://github.com/knxd/knxd/blob/v0.12/README.md for earlier changes
+
+* 0.14.39
+
+  * Fixed two problems with the "pace" filter that resulted in excessive
+    delays.
 
 * 0.14.38
 
