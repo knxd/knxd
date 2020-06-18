@@ -11,8 +11,8 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 
 # STOP if you install on Debian
 
-Debian packaging has been moved to the ``deb`` branch. Please use that
-branch (by way of `git checkout deb`) if you're following some (outdated …)
+Debian packaging has been moved to the ``debian`` branch. Please use that
+branch (by way of ``git checkout debian``) if you're following some (outdated …)
 installation instructions for Debian, Ubuntu or their derivatives.
 
 # Stable version
