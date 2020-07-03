@@ -15,7 +15,7 @@ HOMEPAGE="https://github.com/knxd/knxd"
 LICENSE="GPL-2"
 SLOT="0"
 KEYWORDS=""
-IUSE="eibd ft12 tpuart eibnetip eibnetiptunnel eibnetipserver usb java dummy systemd"
+IUSE="knxd ft12 tpuart eibnetip eibnetiptunnel eibnetipserver usb java dummy systemd"
 
 DEPEND="dev-libs/libfmt
 	dev-libs/libev
