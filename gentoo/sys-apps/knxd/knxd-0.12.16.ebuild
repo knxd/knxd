@@ -15,7 +15,7 @@ HOMEPAGE="https://github.com/knxd/knxd"
 LICENSE="GPL-2"
 SLOT="0"
 KEYWORDS=""
-IUSE="eibd ft12 tpuarts eibnetip eibnetiptunnel eibnetipserver usb groupcache java ncn5120 dummy systemd"
+IUSE="knxd ft12 tpuarts eibnetip eibnetiptunnel eibnetipserver usb groupcache java ncn5120 dummy systemd"
 
 DEPEND="dev-libs/libev
 	usb? ( virtual/libusb )
