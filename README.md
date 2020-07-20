@@ -159,7 +159,7 @@ On Debian/Ubuntu:
     sudo apt-get install git-core
 
     # get the source code
-    git clone https://github.com/knxd/knxd.git
+    git clone --branch debian https://github.com/knxd/knxd.git
 
     # now build+install knxd
     sh knxd/install-debian.sh
