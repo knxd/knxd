@@ -1,3 +1,9 @@
+knxd (0.14.39-3) unstable; urgency=medium
+
+  * debian-install.sh: Install 'equivs'.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 06 Aug 2020 08:03:45 +0200
+
 knxd (0.14.39-2) unstable; urgency=medium
 
   * Tooling requires git

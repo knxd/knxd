@@ -4,7 +4,7 @@ set -ex
 cd "$(dirname "$0")"
 
 : 1 install tools, minimal variant
-sudo apt-get install --no-install-recommends build-essential devscripts
+sudo apt-get install --no-install-recommends build-essential devscripts equivs
 
 : 2 auto-install packages required for building knxd
 sudo mk-build-deps --install --tool='apt-get --no-install-recommends --yes --allow-unauthenticated' debian/control
