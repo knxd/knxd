@@ -4,6 +4,7 @@ Priority: optional
 Maintainer: Matthias Urlichs <matthias@urlichs.de>
 Build-Depends: debhelper (>= 10),
   autoconf, automake, libtool,
+  git,
   libusb-1.0-0-dev (>= 1.0.9),
   pkg-config,
   libsystemd-dev (>= 228) | libsystemd-daemon-dev (>= 200) | base-files (<< 8),
