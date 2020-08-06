@@ -1,6 +1,8 @@
 #!/bin/sh
 
 set -ex
+export LC_ALL=C.UTF-8
+
 cd "$(dirname "$0")"
 
 : 1 install tools, minimal variant

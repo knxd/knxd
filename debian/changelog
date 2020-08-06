@@ -1,3 +1,10 @@
+knxd (0.14.39-4) unstable; urgency=medium
+
+  * debian-install.sh: set locale to C.UTF-8
+    for reproducability and no more stupid messages from perl
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 06 Aug 2020 08:21:57 +0200
+
 knxd (0.14.39-3) unstable; urgency=medium
 
   * debian-install.sh: Install 'equivs'.
