@@ -215,7 +215,7 @@ public:
     this->addr = addr;
     this->age = age;
     timeout.set<GCReader,&GCReader::timeout_cb>(this);
-    timeout.start(Timeout,0);
+    timeout.start(Timeout/1000.0, 0);
   }
   virtual ~GCReader()
   {
