@@ -148,7 +148,7 @@ GroupCacheRequest (ClientConnPtr c, uint8_t *buf, size_t len)
             }
           age = (buf[4] << 8) | (buf[5]);
         }
-      cache->Read (dst, EIBTYPE (buf) == EIB_CACHE_READ_NOWAIT ? 0 : 1,
+      cache->Read (dst, EIBTYPE (buf) == EIB_CACHE_READ_NOWAIT ? 0 : 75,
                    age, ReadCallback, c);
       break;
 
