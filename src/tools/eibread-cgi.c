@@ -232,6 +232,8 @@ void readParseCGI()
       else if (strcmp (param,"t") == 0)
         {
           timeout=atoi(value);
+          if (timeout == 0)
+            timeout = 1;
         }
       else if (strcmp (param,"a") == 0)
         {
@@ -300,7 +302,7 @@ main ()
     {
       for (i = 1; i < UINT16; i++) // skip all-zero GA
         {
-          if ((subscribedGA[dest>>3]&(1<<((dest&7)))) || (subscribedGA[0] & 1))
+          if ((subscribedGA[i>>3]&(1<<((i&7)))) || (subscribedGA[0] & 1))
             {
               dest = i;
               len_gread = EIB_Cache_Read_Sync (con, dest, &src, sizeof (buf_gread), buf_gread, 0);
