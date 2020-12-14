@@ -1,3 +1,9 @@
+knxd (0.14.36-1) unstable; urgency=medium
+
+  * eibread-cgi fixes
+
+ -- root <root@multihome>  Mon, 14 Dec 2020 16:26:37 +0100
+
 knxd (0.14.35-1) unstable; urgency=medium
 
   * Cleanup for spurious files
