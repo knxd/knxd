@@ -296,16 +296,15 @@ main ()
 
   memset(seenGA,0,sizeof(seenGA));
 
-  if (lastpos==0 ) //initial read
+  if (lastpos==0) // initial read from the bus
     {
-      lastpos = 1;
       for (i = 1; i < UINT16; i++) // skip all-zero GA
         {
-          if (subscribedGA[i>>3]&(1<<(i&7)))
+          if ((subscribedGA[dest>>3]&(1<<((dest&7)))) || (subscribedGA[0] & 1))
             {
               dest = i;
 
-              len_gread = EIB_Cache_Read_Sync (con, dest, &src, sizeof (buf_gread), buf_gread, timeout);
+              len_gread = EIB_Cache_Read_Sync (con, dest, &src, sizeof (buf_gread), buf_gread, 0);
               //printf("%d/%d/%d",(dest >> 11) & 0x1f, (dest >> 8) & 0x07, dest & 0xff); //debug
               //printf(" %d len %d %c",dest,len_gread,buf_gread[1]); //debug
               if (len_gread >= 0)
