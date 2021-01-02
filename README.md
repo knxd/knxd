@@ -22,11 +22,18 @@ Check [the Wiki page](https://github.com/knxd/knxd/wiki) for other version(s) to
 
 ## Known bugs
 
-* ETS programming has not yet been tested
+* ETS programming may or may not work out of the box. You might need to use the
+  `single` filter in front of your KNX interface.
 
 ## New Features since 0.12
 
 ### see https://github.com/knxd/knxd/blob/v0.12/README.md for earlier changes
+
+* 0.14.40
+
+  * speed up CGI initial setup (a lot)
+  * support another USB interface
+  * found another uninitialized variable
 
 * 0.14.39
 
