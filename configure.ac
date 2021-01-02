@@ -38,6 +38,20 @@ AC_PROG_LEX
 AM_PROG_AS
 AC_LANG([C++])
 
+dnl Oh come on Apple ...
+case $host in
+   *-*-darwin*)
+    link_all_option="-all_load"
+    no_link_all_option="-noall_load"
+    ;;
+   *)
+    link_all_option="--whole-archive"
+    no_link_all_option="--no-whole-archive"
+    ;;
+esac
+AC_SUBST(LINK_ALL,$link_all_option)
+AC_SUBST(NO_LINK_ALL,$no_link_all_option)
+
 AC_CHECK_HEADERS([sys/time.h sys/select.h])
 AX_CXX_COMPILE_STDCXX(11)
 

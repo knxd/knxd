@@ -8,5 +8,5 @@ knxd.service.exp: knxd.service
 	cp -p $@ $<
 endif
 
-EXTRA_DIST=knxd.conf sysusers.d/knxd.conf
+EXTRA_DIST=knxd.conf sysusers.d/knxd.conf knxd.udev
 

@@ -4,7 +4,7 @@
 #
 Summary:      A KNX daemon and tools
 Name:         knxd
-Version:      0.14.30
+Version:      0.14.40
 Release:      0%{?dist}
 Group:        Applications/Interpreters
 Source:       %{name}-%{version}.tar.gz
