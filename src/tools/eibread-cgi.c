@@ -232,11 +232,6 @@ void readParseCGI()
       else if (strcmp (param,"t") == 0)
         {
           timeout=atoi(value);
-          if (timeout==0)
-            {
-              lastpos=0;
-              timeout=1;
-            }
         }
       else if (strcmp (param,"a") == 0)
         {
@@ -301,11 +296,11 @@ main ()
 
   memset(seenGA,0,sizeof(seenGA));
 
-  if (lastpos==0 ) //initial read
+  if (lastpos==0) // initial read from the bus
     {
       for (i = 1; i < UINT16; i++) // skip all-zero GA
         {
-          if (subscribedGA[i>>3]&(1<<(i&7)))
+          if ((subscribedGA[dest>>3]&(1<<((dest&7)))) || (subscribedGA[0] & 1))
             {
               dest = i;
               len_gread = EIB_Cache_Read_Sync (con, dest, &src, sizeof (buf_gread), buf_gread, 0);

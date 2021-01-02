@@ -1,3 +1,9 @@
+knxd (0.14.41-1) unstable; urgency=medium
+
+  * Merge current master
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sat, 02 Jan 2021 18:28:26 +0100
+
 knxd (0.14.37-1) unstable; urgency=medium
 
   * Merge current master
