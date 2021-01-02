@@ -303,7 +303,6 @@ main ()
           if ((subscribedGA[dest>>3]&(1<<((dest&7)))) || (subscribedGA[0] & 1))
             {
               dest = i;
-
               len_gread = EIB_Cache_Read_Sync (con, dest, &src, sizeof (buf_gread), buf_gread, 0);
               //printf("%d/%d/%d",(dest >> 11) & 0x1f, (dest >> 8) & 0x07, dest & 0xff); //debug
               //printf(" %d len %d %c",dest,len_gread,buf_gread[1]); //debug
