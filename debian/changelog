@@ -1,3 +1,9 @@
+knxd (0.14.40-2) unstable; urgency=medium
+
+  * Branch name
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sat, 02 Jan 2021 18:22:48 +0100
+
 knxd (0.14.40-1) unstable; urgency=medium
 
   * Merge
