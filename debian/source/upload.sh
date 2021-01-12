@@ -12,6 +12,7 @@ if test -z "$D" ; then
 	D="$(git describe --tags --exact-match debian)"
 fi
 test -n "$D"
+git push salsa $D
 
 T=$(tempfile)
 rm -f $T
