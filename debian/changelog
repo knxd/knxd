@@ -1,3 +1,9 @@
+knxd (0.14.44-1) unstable; urgency=medium
+
+  * Another stupid version uptick
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 13 Jan 2021 15:10:54 +0100
+
 knxd (0.14.43-1) unstable; urgency=medium
 
   * automake is a heap of steaming inconsistencies.
