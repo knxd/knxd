@@ -1,3 +1,10 @@
+knxd (0.14.41-5) unstable; urgency=medium
+
+  * Modernize configure.ac
+    * Closes: #979866
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 13 Jan 2021 13:01:28 +0100
+
 knxd (0.14.41-4) unstable; urgency=medium
 
   * More versioning nonsense
