@@ -28,7 +28,6 @@ LT_PREREQ([2.2.0])
 
 AC_INIT(knxd, m4_esyscmd(sh -c "./tools/version.sh | tr -d '\n'"))
 AC_CONFIG_SRCDIR([src/server/knxd.cpp])
-AM_INIT_AUTOMAKE
 LT_INIT
 
 AC_CANONICAL_HOST
