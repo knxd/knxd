@@ -1,6 +1,6 @@
 #!/bin/sh
 set -ex
-B="$(git describe --tags --exact-match master)"
+B="$(git describe --tags master | sed -e s/-.*//)"
 test -n "$B"
 git push salsa $B
 
