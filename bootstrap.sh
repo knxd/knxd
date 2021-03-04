@@ -10,6 +10,13 @@ case `uname` in
 	*)
 		LIBTOOLIZE=libtoolize ;;
 esac
+
+# on systems with debian package manager pkg-config has to be installed
+if which dpkg && ! which pkg-config ; then
+	echo "Package pkg-config missing."
+	exit 2
+fi
+
 $LIBTOOLIZE --copy --force --install && \
 	aclocal -I m4 --force && \
 	autoheader && \
