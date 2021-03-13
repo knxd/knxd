@@ -261,15 +261,21 @@ TPUARTwrap::RecvLPDU (const uint8_t * data, int len)
     }
   else if (state > T_start)
     {
-      LPDUPtr l = CM_TP1_to_L_Data (CArray (data, len), t);
-      if (l->getType () != L_Data)
-        TRACEPRINTF (t, 1, "dropping packet: type %d", l->getType ());
+      if (LPDUPtr l = CM_TP1_to_L_Data (CArray (data, len), t))
+        {
+          if (l->getType () != L_Data)
+            TRACEPRINTF (t, 1, "dropping packet: type %d", l->getType ());
+          else
+            {
+              if (((L_Data_PDU *)(&*l))->valid_checksum)
+                recv_L_Data (dynamic_unique_cast<L_Data_PDU>(std::move(l)));
+              else
+                TRACEPRINTF (t, 1, "dropping packet: checksum invalid");
+            }
+        }
       else
         {
-          if (((L_Data_PDU *)(&*l))->valid_checksum)
-            recv_L_Data (dynamic_unique_cast<L_Data_PDU>(std::move(l)));
-          else
-            TRACEPRINTF (t, 1, "dropping packet: invalid");
+          TRACEPRINTF (t, 1, "dropping packet: invalid");
         }
     }
 }
