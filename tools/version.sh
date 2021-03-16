@@ -1,4 +1,3 @@
 #!/bin/sh
 
-test -d .git || exit
-git describe --tags
+dpkg-parsechangelog -SVersion | sed -e 's/.*://' -e 's/-.*//'

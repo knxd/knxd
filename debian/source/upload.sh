@@ -1,6 +1,6 @@
 #!/bin/sh
 set -ex
-B="$(git describe --tags --exact-match master)"
+B="$(git describe --tags master | sed -e s/-.*//)"
 test -n "$B"
 git push salsa $B
 
@@ -12,6 +12,7 @@ if test -z "$D" ; then
 	D="$(git describe --tags --exact-match debian)"
 fi
 test -n "$D"
+git push salsa $D
 
 T=$(tempfile)
 rm -f $T
