@@ -4,10 +4,6 @@ knxd [![Build Status](https://travis-ci.org/knxd/knxd.svg)](https://travis-ci.or
 KNX is a very common building automation protocol which runs on dedicated 9600-baud wire as well as IP multicast.
 ``knxd`` is an advanced router/gateway which runs on any Linux computer; it can talk to all known KNX interfaces.
 
-This code is a fork of eibd 0.0.5 (from bcusdk)
-https://www.auto.tuwien.ac.at/~mkoegler/index.php/bcusdk
-
-For a (german only) history and discussion why knxd emerged please also see: [eibd(war bcusdk) Fork -> knxd](http://knx-user-forum.de/forum/öffentlicher-bereich/knx-eib-forum/39972-eibd-war-bcusdk-fork-knxd)
 
 # This is the Debian version
 
@@ -24,6 +20,35 @@ Check [the Wiki page](https://github.com/knxd/knxd/wiki) for other version(s) to
 
 * ETS programming may or may not work out of the box. You might need to use the
   `single` filter in front of your KNX interface.
+
+## Configuration
+### Daemon Configuration
+
+Daemon configuration differs depending on whether you use systemd.
+If "systemctl status" emits something reasonable, you are.
+
+If you use systemd, the configuration file is ``/etc/knxd.conf``.
+Socket activation is used for the default IP and Unix sockets
+(port 6720 and /run/knx, respectively).
+
+Without systemd, on Debian, edit ``/etc/default/knxd``.
+
+In ``knxd`` or ``knxd.conf``, either the (legacy) command line argument can be passed as KNXD_OPTS (default behavior), or the new .ini File can be passed (e.g. ``KNXD_OPTS=/etc/knxd.ini``)
+
+### New ".ini" configuration file
+Note: The default behavior in Debian does not use the knxd.ini. This must be configured via ``/etc/default/knxd`` or ``/etc/knxd.conf``, see "Daemon configuration" above.
+knxd is typically started with "knxd /etc/knxd.ini".
+
+The file format is documented in "doc/inifile.rst". You might want to use
+the program "/usr/lib/knxd_args" to create it from previous versions'
+command-line arguments.
+
+### Backward-Compatibility
+The default Unix socket is ``/run/knx``.
+Old eibd clients may still use ``/tmp/eib`` to talk to knxd.
+You need to either change their configuration, or add "-u /tmp/eib"
+to knxd's options.
+(This was the default for "-u" before version 0.11.)
 
 ## New Features since 0.12
 
@@ -159,6 +184,12 @@ Check [the Wiki page](https://github.com/knxd/knxd/wiki) for other version(s) to
 
   * knxd now supports multiple interfaces, back-ends, and KNX packet filters.
 
+## History
+This code is a fork of eibd 0.0.5 (from bcusdk)
+https://www.auto.tuwien.ac.at/~mkoegler/index.php/bcusdk
+
+For a (german only) history and discussion why knxd emerged please also see: [eibd(war bcusdk) Fork -> knxd](http://knx-user-forum.de/forum/öffentlicher-bereich/knx-eib-forum/39972-eibd-war-bcusdk-fork-knxd)
+
 ## Building
 
 On Debian/Ubuntu:
@@ -198,32 +229,6 @@ If the test fails:
 * Is something on your network echoing multicast packets? (Yes, that happens.)
 
 If you can't figure out the cause of the failure, please open an issue.
-
-### Daemon Configuration
-
-Daemon configuration differs depending on whether you use systemd.
-If "systemctl status" emits something reasonable, you are.
-
-If you use systemd, the configuration file is ``/etc/knxd.conf``.
-Socket activation is used for the default IP and Unix sockets
-(port 6720 and /run/knx, respectively).
-
-Without systemd, on Debian, edit ``/etc/default/knxd``.
-
-The default Unix socket is ``/run/knx``.
-Old eibd clients may still use ``/tmp/eib`` to talk to knxd.
-You need to either change their configuration, or add "-u /tmp/eib"
-to knxd's options.
-(This was the default for "-u" before version 0.11.)
-
-
-### New ".ini" configuration file
-
-knxd is typically started with "knxd /etc/knxd.ini".
-
-The file format is documented in "doc/inifile.rst". You might want to use
-the program "/usr/lib/knxd_args" to create it from previous versions'
-command-line arguments.
 
 ### Adding a TPUART USB interface
 
