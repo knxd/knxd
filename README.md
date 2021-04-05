@@ -12,7 +12,7 @@ For a (german only) history and discussion why knxd emerged please also see: [ei
 # This is the Debian version
 
 This is the `debian` branch, which contains Debian packaging.
-Use this branch if you're installing knxd on Debian, Ubuntu or their derivatives.
+Use this branch if you're installing knxd on Ubuntu or their derivatives.
 
 # Stable version
 
@@ -161,32 +161,61 @@ Check [the Wiki page](https://github.com/knxd/knxd/wiki) for other version(s) to
 
 ## Building
 
-When in doubt, please check out the branch corresponding to your Linux
-distribution's flavor, and read this section there.
+On Debian/Ubuntu:
 
-This part covers "manual" installation.
-
-    # first, install build tools and dependencies. You need git, autotools, and gcc/g++.
-    #: check your Linux distribution's documentation if you don't know how
-    # You also need a "knxd" user.
+    sudo apt-get install git-core
 
     # get the source code
-    git clone https://github.com/knxd/knxd.git
+    git clone -b debian https://github.com/knxd/knxd.git
 
-    # build+install knxd
-    cd knxd
-    git checkout master
-    sh bootstrap.sh
-    ./configure --help
-    ./configure --your-chosen-options
-    make
-    make install
-    cd ..
+    # now build+install knxd
+    sh knxd/install-debian.sh
 
-    # Now switch to the "knxd" user and start the daemon.
+    # … and if you'd like to update knxd:
+    rm knxd*.deb
+    sh knxd/install-debian.sh
 
-If you would like to submit patches for Mac OSX or Windows, go ahead
+Instructions for other flavors of Linux distributions should be in the
+corresponding branches. Additions welcome.
+
+On MacOS or Windows, please use a Linux VM.
+
+If somebody would like to submit patches for Mac OSX or Windows, go ahead
 and create a pull request, but please be prepared to maintain your code.
+
+### Test failures
+
+The build script runs a comprehensive set of tests to make sure that knxd
+actually works. It obviously can't test code talking to directly-connected
+hardware, but the core parts are exercised.
+
+If the test fails:
+
+* Do you have a default route?
+
+* Are you filtering packets to 224.99.98.97, or to UDP port 3671?
+
+* Is something on your network echoing multicast packets? (Yes, that happens.)
+
+If you can't figure out the cause of the failure, please open an issue.
+
+### Daemon Configuration
+
+Daemon configuration differs depending on whether you use systemd.
+If "systemctl status" emits something reasonable, you are.
+
+If you use systemd, the configuration file is ``/etc/knxd.conf``.
+Socket activation is used for the default IP and Unix sockets
+(port 6720 and /run/knx, respectively).
+
+Without systemd, on Debian, edit ``/etc/default/knxd``.
+
+The default Unix socket is ``/run/knx``.
+Old eibd clients may still use ``/tmp/eib`` to talk to knxd.
+You need to either change their configuration, or add "-u /tmp/eib"
+to knxd's options.
+(This was the default for "-u" before version 0.11.)
+
 
 ### New ".ini" configuration file
 

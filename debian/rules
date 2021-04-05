@@ -16,6 +16,7 @@ export DH_OPTIONS
 override_dh_clean:
 	dh_clean
 	rm -f debian/knxd.install
+	rm -f debian/knxd.udev
 
 override_dh_auto_configure: configure install-sh
 	dh_auto_configure -- --enable-usb --enable-groupcache --enable-ft12 --enable-tpuart --enable-dummy --libexecdir=/usr/lib --enable-dependency-tracking --enable-silent-rules
@@ -23,15 +24,10 @@ override_dh_auto_configure: configure install-sh
 configure install-sh: configure.ac
 	sh bootstrap.sh
 
-override_dh_install: debian/knxd.install debian/knxd.socket debian/knxd.service
+override_dh_install: debian/knxd.install debian/knxd.socket debian/knxd.service debian/knxd.udev
 	dh_install
 	dh_systemd_enable || true
 	dh_systemd_start || true
-
-#override_dh_installudev: debian/knxd.udev
-#	# install the udev file to /etc since it needs to be modified
-#	mkdir -p debian/knxd/usr/share/doc/knxd/examples
-#	install debian/knxd.udev debian/knxd/usr/share/doc/knxd/examples/70-knxd.rules.sample
 
 override_dh_compress:
 	dh_compress -X.rst
@@ -39,6 +35,9 @@ override_dh_compress:
 debian/knxd.install: debian/knxd.install.in
 	cp $^ $@
 	grep -qs 'HAVE_SYSTEMD_TRUE.*#' config.status || cat $@.systemd >> $@
+
+debian/knxd.udev: systemd/knxd.udev
+	cp $^ $@
 
 debian/knxd.socket: systemd/knxd.socket
 	test -e $^ && cp $^ $@
