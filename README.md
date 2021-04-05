@@ -176,7 +176,7 @@ This part covers "manual" installation.
 
     # build+install knxd
     cd knxd
-    git checkout master
+    git checkout main
     sh bootstrap.sh
     ./configure --help
     ./configure --your-chosen-options
