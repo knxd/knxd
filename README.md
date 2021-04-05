@@ -164,6 +164,7 @@ Check [the Wiki page](https://github.com/knxd/knxd/wiki) for other version(s) to
 On Debian/Ubuntu:
 
     sudo apt-get install git-core
+    sudo apt-get install -y libev4 libfmt7 libusb-1.0-0
 
     # get the source code
     git clone -b debian https://github.com/knxd/knxd.git
