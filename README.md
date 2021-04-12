@@ -4,15 +4,9 @@ knxd [![Build Status](https://travis-ci.org/knxd/knxd.svg)](https://travis-ci.or
 KNX is a very common building automation protocol which runs on dedicated 9600-baud wire as well as IP multicast.
 ``knxd`` is an advanced router/gateway which runs on any Linux computer; it can talk to all known KNX interfaces.
 
-This code is a fork of eibd 0.0.5 (from bcusdk)
-https://www.auto.tuwien.ac.at/~mkoegler/index.php/bcusdk
-
-For a (german only) history and discussion why knxd emerged please also see: [eibd(war bcusdk) Fork -> knxd](http://knx-user-forum.de/forum/öffentlicher-bereich/knx-eib-forum/39972-eibd-war-bcusdk-fork-knxd)
-
-# This is the Debian version
-
 This is the `debian` branch, which contains Debian packaging.
-Use this branch if you're installing knxd on Ubuntu or their derivatives.
+Use this branch if you're installing knxd on Debian, Ubuntu or one of their
+derivatives.
 
 # Stable version
 
@@ -24,6 +18,36 @@ Check [the Wiki page](https://github.com/knxd/knxd/wiki) for other version(s) to
 
 * ETS programming may or may not work out of the box. You might need to use the
   `single` filter in front of your KNX interface.
+
+## Configuration
+
+### Daemon Configuration
+
+Daemon configuration differs depending on whether you use systemd.
+If "systemctl status" emits something reasonable, you are.
+
+If you use Linux and systemd, the configuration file is ``/etc/knxd.conf``.
+Socket activation is used for the default IP and Unix sockets (port 6720
+and /run/knx, respectively). If not, the location of your configuration
+file depends on your init system.
+
+In ``knxd`` or ``knxd.conf``, KNXD\_OPTS can be set to either the legacy command line arguments, or the location of the new .ini (e.g. ``KNXD_OPTS=/etc/knxd.ini``)
+
+### New ".ini" configuration file
+
+knxd is typically started with "knxd /etc/knxd.ini".
+
+The file format is documented in "doc/inifile.rst". You might want to use
+the program "/usr/lib/knxd\_args" to create it from previous versions'
+command-line arguments.
+
+### Backward Compatibility
+
+The default Unix socket is ``/run/knx``.
+Old eibd clients may still use ``/tmp/eib`` to talk to knxd.
+You need to either change their configuration, or add "-u /tmp/eib"
+to knxd's options.
+(This was the default for "-u" before version 0.11.)
 
 ## New Features since 0.12
 
@@ -159,6 +183,15 @@ Check [the Wiki page](https://github.com/knxd/knxd/wiki) for other version(s) to
 
   * knxd now supports multiple interfaces, back-ends, and KNX packet filters.
 
+## History
+
+This code is a fork of eibd 0.0.5 (from bcusdk)
+https://www.auto.tuwien.ac.at/~mkoegler/index.php/bcusdk
+
+For a (german only) history and discussion why knxd emerged,
+please also see: [eibd(war bcusdk) Fork -> knxd](http://knx-user-forum.de/forum/öffentlicher-bereich/knx-eib-forum/39972-eibd-war-bcusdk-fork-knxd)
+
+
 ## Building
 
 On Debian/Ubuntu:
@@ -175,25 +208,43 @@ On Debian/Ubuntu:
     rm knxd*.deb
     sh knxd/install-debian.sh
 
+The `knxd/install-debian.sh` script should work without problems on any
+up-to-date Debian or Debian-derived system. If not, please do this before
+filing an issue:
+
+* Verify that your system is 100% up-to-date.
+
+* Verify that you did not pin any packages, either via ``aptitude`` or
+  ``/etc/apt/preferences``.
+
+* Otherwise, installing the file ``knxd-build-deps_*.deb`` with ``dpkg``
+  and resolving its dependencies via ``aptitude -f install`` should fix
+  whatever happens to be wrong with your system. Remove the build-deps
+  package *without* auto-removing the ``-dev`` packages it depends on, then
+  try again.
+
+* If that doesn't work either, open an issue. Add the log from the
+  previous step.
+
 Instructions for other flavors of Linux distributions should be in the
 corresponding branches. Additions welcome.
 
 On MacOS or Windows, please use a Linux VM.
 
-If somebody would like to submit patches for Mac OSX or Windows, go ahead
+If you would like to submit patches for Mac OSX or Windows, go ahead
 and create a pull request, but please be prepared to maintain your code.
 
 ### Test failures
 
 The build script runs a comprehensive set of tests to make sure that knxd
-actually works. It obviously can't test code talking to directly-connected
+actually works. It obviously can't test code that talks to directly-connected
 hardware, but the core parts are exercised.
 
 If the test fails:
 
 * Do you have a default route?
 
-* Are you filtering packets to 224.99.98.97, or to UDP port 3671?
+* Are you filtering packets to multicast address 224.99.98.97, or to UDP port 3671?
 
 * Is something on your network echoing multicast packets? (Yes, that happens.)
 
