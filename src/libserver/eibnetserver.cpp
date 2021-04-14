@@ -456,7 +456,7 @@ ConnState::~ConnState()
 
 void ConnState::reset_timer()
 {
-  timeout.set(120,0);
+  timeout.set(CONNECTION_ALIVE_TIME,0);
 }
 
 void
