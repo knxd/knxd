@@ -863,6 +863,11 @@ with the standardized KNX tunneling or routing protocols.
 
   Optional: default: the name configured in the "main" section, or "knxd".
 
+* heartbeat-timeout (integer: keep-alive timeout)
+
+  The maximum time between status messages from tunnel clients. A client
+  that doesn't send any packets for this long is disconnected.
+
 On the command line, this server is typically used as "-DTRS". The
 -S|--Server argument has to be used last and accepted the options mentioned
 above.

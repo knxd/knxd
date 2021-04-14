@@ -73,6 +73,7 @@ public:
 
   ev::timer timeout;
   void timeout_cb(ev::timer &w, int revents);
+
   ev::timer sendtimeout;
   void sendtimeout_cb(ev::timer &w, int revents);
   ev::async send_trigger;
@@ -177,6 +178,7 @@ private:
   uint16_t port;
   std::string interface;
   std::string servername;
+  ev::tstamp keepalive;
   IniSectionPtr router_cfg;
   IniSectionPtr tunnel_cfg;
 

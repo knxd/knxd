@@ -1,3 +1,9 @@
+knxd (0.14.51-1) unstable; urgency=medium
+
+  * Added a "heartbeat-timeout" option to the tunnel server
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 14 Apr 2021 13:51:57 +0200
+
 knxd (0.14.46-1) unstable; urgency=medium
 
   * *sigh*

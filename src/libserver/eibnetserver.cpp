@@ -160,6 +160,8 @@ EIBnetServer::setup()
   port = cfg->value("port",3671);
   interface = cfg->value("interface","");
   servername = cfg->value("name", dynamic_cast<Router *>(&router)->servername);
+  keepalive = cfg->value("heartbeat-timeout", CONNECTION_ALIVE_TIME);
+
 
   if (tunnel)
     {
@@ -349,7 +351,7 @@ ConnState::ConnState (LinkConnectClientPtr c, eibaddr_t addr)
   sendtimeout.set <ConnState,&ConnState::sendtimeout_cb> (this);
   send_trigger.set<ConnState,&ConnState::send_trigger_cb>(this);
   send_trigger.start();
-  timeout.start(CONNECTION_ALIVE_TIME, 0);
+  timeout.start(parent->keepalive, 0);
   this->addr = addr;
   TRACEPRINTF (t, 9, "has %s", FormatEIBAddr (addr));
 }
@@ -456,7 +458,7 @@ ConnState::~ConnState()
 
 void ConnState::reset_timer()
 {
-  timeout.set(120,0);
+  timeout.set(parent->keepalive, 0);
 }
 
 void
