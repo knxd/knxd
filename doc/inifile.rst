@@ -190,7 +190,7 @@ line.
 
 * unknown-ok (bool; ``-A|--arg=unknown-ok=true``)
 
-  Mark that arguments ``knxd`` doesn't know whould emit a warning instead
+  Mark that arguments ``knxd`` doesn't know would emit a warning instead
   of being fatal. This is useful if you want a config file that allows
   for backwards compatibility.
 
