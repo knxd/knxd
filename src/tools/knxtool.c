@@ -881,6 +881,24 @@ end:
         die ("Request failed");
       printf ("Send request\n");
     }
+  else if (strcmp (prog, "groupsocketswrite") == 0)
+    {
+      uint8_t lbuf[3] = { 0x0, 0x80 };
+
+      if (ac != 4)
+        die ("usage: %s url eibaddr val", prog);
+      con = open_con(ag[1]);
+      dest = readgaddr (ag[2]);
+      lbuf[1] |= readHex (ag[3]) & 0x3f;
+
+      if (EIBOpen_GroupSocket (con, 1) == -1)
+        die ("Connect failed");
+
+      len = EIBSendGroup (con, dest, 2, lbuf);
+      if (len == -1)
+        die ("Request failed");
+      printf ("Send request\n");
+    }
   else if (strcmp (prog, "groupsresponse") == 0)
     {
       uint8_t lbuf[3] = { 0x0, 0x40 };
