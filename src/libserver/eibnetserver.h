@@ -54,7 +54,7 @@ enum ConnType
 class ConnState: public SubDriver, public L_Busmonitor_CallBack
 {
 public:
-  ConnState (LinkConnectClientPtr c, eibaddr_t addr);
+  ConnState (EIBnetServer *parent, LinkConnectClientPtr c, eibaddr_t addr);
   virtual ~ConnState ();
   bool setup();
   // void start();

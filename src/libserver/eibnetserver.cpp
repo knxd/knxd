@@ -323,7 +323,7 @@ rt:
   if (id <= 0xff)
     {
       LinkConnectClientPtr conn = LinkConnectClientPtr(new LinkConnectClient(std::dynamic_pointer_cast<EIBnetServer>(shared_from_this()), tunnel_cfg, t));
-      ConnStatePtr s = ConnStatePtr(new ConnState(conn, addr));
+      ConnStatePtr s = ConnStatePtr(new ConnState(this, conn, addr));
       conn->set_driver(s);
       s->channel = id;
       s->daddr = r1.daddr;
@@ -343,9 +343,10 @@ rt:
   return id;
 }
 
-ConnState::ConnState (LinkConnectClientPtr c, eibaddr_t addr)
+ConnState::ConnState (EIBnetServer *parent, LinkConnectClientPtr c, eibaddr_t addr)
   : L_Busmonitor_CallBack(c->t->name), SubDriver (c)
 {
+  this->parent = parent;
   t->setAuxName(FormatEIBAddr(addr));
   timeout.set <ConnState,&ConnState::timeout_cb> (this);
   sendtimeout.set <ConnState,&ConnState::sendtimeout_cb> (this);
