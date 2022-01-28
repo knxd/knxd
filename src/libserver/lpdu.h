@@ -35,8 +35,8 @@
 enum EIB_Priority : uint8_t
 {
   PRIO_SYSTEM = 0,
-  PRIO_URGENT = 1,
-  PRIO_NORMAL = 2,
+  PRIO_NORMAL = 1,
+  PRIO_URGENT = 2,
   PRIO_LOW = 3
 };
 
