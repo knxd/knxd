@@ -1,8 +1,8 @@
 knxd (0.14.54-1) unstable; urgency=medium
 
-  * Merge
+  * Merge. Closes: #1004310
 
- -- Matthias Urlichs <matthias@urlichs.de>  Tue, 25 Oct 2022 14:27:52 +0200
+ -- Matthias Urlichs <matthias@urlichs.de>  Tue, 25 Oct 2022 14:28:34 +0200
 
 knxd (0.14.53-1) unstable; urgency=medium
 
