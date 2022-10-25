@@ -68,13 +68,13 @@ struct L2options
 } while(0)
 
 IniData ini;
-char link[99] = "@.";
+char link_target[99] = "@.";
 void link_to(const char *arg)
 {
   char *p;
-  ++*link;
-  strcpy(link+2,arg);
-  p = strchr(link+2,':');
+  ++*link_target;
+  strcpy(link_target+2,arg);
+  p = strchr(link_target+2,':');
   if (p)
     *p = 0;
 }
@@ -163,10 +163,10 @@ public:
       {
         link_to(name);
         ITER(i, more_args)
-        (*ini[link])[i->first] = i->second;
-        (*ini[link])["filter"] = name;
+        (*ini[link_target])[i->first] = i->second;
+        (*ini[link_target])["filter"] = name;
         more_args.clear();
-        filters.push_back(link);
+        filters.push_back(link_target);
       }
     else
       filters.push_back(name);
@@ -232,7 +232,7 @@ void driver_argsv(const char *arg, char *ap, ...)
 {
   va_list apl;
   va_start(apl, ap);
-  (*ini[link])["driver"] = arg;
+  (*ini[link_target])["driver"] = arg;
   char *pa = NULL;
 
   while(ap)
@@ -250,7 +250,7 @@ void driver_argsv(const char *arg, char *ap, ...)
       if (*pa == '!') // required-argument flag
         pa++;
       if (*ap) // skip empty arguments
-        (*ini[link])[pa] = ap;
+        (*ini[link_target])[pa] = ap;
       ap = p2;
     }
   if (pa != NULL)
@@ -280,7 +280,7 @@ void driver_args(const char *arg, char *ap)
   else if(!strcmp(arg,"iptn"))
     {
       driver_argsv("ipt",ap, "!ip-address","dest-port","src-port","nat-ip","data-port", NULL);
-      (*ini[link])["nat"] = "true";
+      (*ini[link_target])["nat"] = "true";
     }
   else if(!strcmp(arg,"ft12") || !strcmp(arg,"ncn5120") || !strcmp(arg,"tpuarts") || !strcmp(arg,"ft12cemi") || !strcmp(arg,"tpuart"))
     {
@@ -556,18 +556,18 @@ parse_opt (int key, char *arg, struct argp_state *state)
       if (arguments->want_server)
         die("You need -S after -D/-T/-R");
       link_to("unix");
-      ADD((*ini["main"])["connections"], link);
-      (*ini[link])["server"] = "knxd_unix";
-      // (*ini[link])["driver"] = "knx-link";
+      ADD((*ini["main"])["connections"], link_target);
+      (*ini[link_target])["server"] = "knxd_unix";
+      // (*ini[link_target])["driver"] = "knx-link";
       const char *name = OPT_ARG(arg,state,NULL);
       if (name)
         {
-          (*ini[link])["path"] = name;
-          (*ini[link])["systemd-ignore"] = "false";
+          (*ini[link_target])["path"] = name;
+          (*ini[link_target])["systemd-ignore"] = "false";
         }
       else
-        (*ini[link])["systemd-ignore"] = "true";
-      arguments->stack(link);
+        (*ini[link_target])["systemd-ignore"] = "true";
+      arguments->stack(link_target);
     }
     break;
 
@@ -576,19 +576,19 @@ parse_opt (int key, char *arg, struct argp_state *state)
       if (arguments->want_server)
         die("You need -S after -D/-T/-R");
       link_to("tcp");
-      ADD((*ini["main"])["connections"], link);
-      (*ini[link])["server"] = "knxd_tcp";
-      // (*ini[link])["driver"] = "knx-link";
+      ADD((*ini["main"])["connections"], link_target);
+      (*ini[link_target])["server"] = "knxd_tcp";
+      // (*ini[link_target])["driver"] = "knx-link";
       const char *port = OPT_ARG(arg,state,"");
       if (*port && atoi(port) > 0)
         {
-          (*ini[link])["port"] = port;
-          (*ini[link])["systemd-ignore"] = "false";
+          (*ini[link_target])["port"] = port;
+          (*ini[link_target])["systemd-ignore"] = "false";
         }
       else
-        (*ini[link])["systemd-ignore"] = "true";
+        (*ini[link_target])["systemd-ignore"] = "true";
 
-      arguments->stack(link);
+      arguments->stack(link_target);
     }
     break;
 
@@ -635,8 +635,8 @@ parse_opt (int key, char *arg, struct argp_state *state)
         die("You cannot apply flags to the group cache.");
 
       link_to("cache");
-      (*ini["main"])["cache"] = link;
-      arguments->stack(link);
+      (*ini["main"])["cache"] = link_target;
+      arguments->stack(link_target);
       break;
     case OPT_FORCE_BROADCAST:
       (*ini["main"])["force-broadcast"] = "true";
@@ -675,12 +675,12 @@ parse_opt (int key, char *arg, struct argp_state *state)
       if (arguments->want_server)
         die("You need -S after -D/-T/-R");
       link_to(arg);
-      ADD((*ini["main"])["connections"], link);
+      ADD((*ini["main"])["connections"], link_target);
       char *ap = strchr(arg,':');
       if (ap)
         *ap++ = '\0';
       driver_args(arg,ap);
-      arguments->stack(link);
+      arguments->stack(link_target);
       break;
     }
     case 'B':
