@@ -1,6 +1,7 @@
-knxd (0.14.54-1) unstable; urgency=medium
+knxd (0.14.54.1) unstable; urgency=medium
 
   * Merge. Closes: #1004310
+  * Packaging native sources because not just using git is beyond annoying.
 
  -- Matthias Urlichs <matthias@urlichs.de>  Tue, 25 Oct 2022 14:28:34 +0200
 
