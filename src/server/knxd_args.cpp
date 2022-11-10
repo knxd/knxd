@@ -69,6 +69,7 @@ struct L2options
 
 IniData ini;
 char link_target[99] = "@.";
+void link_to(const char *arg)
 {
   char *p;
   ++*link_target;
