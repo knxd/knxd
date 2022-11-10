@@ -1108,19 +1108,19 @@ Limit the rate at which packets are transmitted to an interface.
 
   Additional delay per byte of longer messages, in milliseconds.
   
+  Note that protocol headers and other overhead is ignored here.
+  The fixed-overhead part of the KNX protocol must be factored into the
+  ``delay`` parameter.
+
   Optional; the default is 1 msec, which roughly corresponds to one byte
   at 9600 baud (speed of the KNX bus).
 
-  Note that the fixed part of the protocol is ignored here: a "short
-  write" has an additional length delay of zero. The fixed-overhead part
-  of the KNX protocol should be factored into the per-message delay.
-
 * incoming (float, proportion)
 
-  Normally, the "pace" filter only considers outgoing packets. However,
+  The "pace" filter only considers outgoing packets. However,
   since KNX is a bus, incoming data also need to be considered.
 
-  This parameter controls how much incoming data should contribute to the
+  This parameter controls whether incoming data should contribute to the
   filter's delay.
 
   Optional. The default is 0.75.
@@ -1132,8 +1132,12 @@ buggy KNX interfaces out there which acknowledge reception of packets
 *before* checking whether they have free buffer space for more data …
 
 Note that knxd schedules packet transmission synchronously. Thus, this
-filter acts globally (it delays transmission to *all* interfaces) unless
+filter acts globally (it delays sending to *all* interfaces) unless
 there is a ``queue`` filter in front of it.
+
+If you use this filter to rate-limit a sender by more than the recipient's
+data rate, you should set the ``incoming`` parameter to zero. Otherwise a
+high rate of incoming messages will block the sender entirely.
 
 monitor
 -------
@@ -1141,7 +1145,14 @@ monitor
 This filter forwards all packets passing through it to knxd's bus monitoring
 system.
 
-TODO.
+* recv (bool; ``--arg=recv=BOOL``)
+
+  Monitor incoming packets. Defaults to true.
+
+* send (bool; ``--arg=send=BOOL``)
+
+  Monitor outgoing packets. Defaults to true.
+
 
 log
 ---
