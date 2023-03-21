@@ -1092,6 +1092,8 @@ speed does not affect the rest of the system.
 
 The "queue" filter does not yet have any parameters.
 
+Currently, a queue can grow without bounds; it also does **not** filter
+multiple packets to the same group address.
 
 pace
 ----
