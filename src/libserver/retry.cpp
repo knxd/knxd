@@ -224,6 +224,14 @@ off:
   Filter::stopped(err);
 }
 
+bool
+RetryFilter::hasAddress (eibaddr_t addr)
+{
+  if (state != R_UP)
+    return false;
+  return Filter::hasAddress(addr);
+}
+
 void
 RetryFilter::trigger_cb (ev::async &, int)
 {
