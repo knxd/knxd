@@ -225,7 +225,7 @@ off:
 }
 
 bool
-RetryFilter::hasAddress (eibaddr_t addr)
+RetryFilter::hasAddress (eibaddr_t addr) const
 {
   if (state != R_UP)
     return false;
