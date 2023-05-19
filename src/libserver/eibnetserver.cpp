@@ -35,6 +35,9 @@
 
 #include "emi.h"
 
+/* add formatter for fmt >= 10.0.0 */
+int format_as(ConnType t) { return t; }
+
 EIBnetServer::EIBnetServer (BaseRouter& r, IniSectionPtr& s)
   : Server(r,s)
   , mcast(NULL)

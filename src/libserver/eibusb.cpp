@@ -24,6 +24,9 @@
 #include "emi2.h"
 #include "usblowlevel.h"
 
+/* add formatter for fmt >= 10.0.0 */
+int format_as(EMIVer t) { return t; }
+
 USBConverterInterface::USBConverterInterface (LowLevelIface * p, IniSectionPtr& s)
   : LowLevelFilter(p,s)
 {
