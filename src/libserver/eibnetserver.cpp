@@ -320,7 +320,7 @@ rt:
       id++;
       goto rt;
     }
-  if (id <= 0xff)
+  if (id <= 0xff)  // TODO configurable maximum
     {
       LinkConnectClientPtr conn = LinkConnectClientPtr(new LinkConnectClient(std::dynamic_pointer_cast<EIBnetServer>(shared_from_this()), tunnel_cfg, t));
       ConnStatePtr s = ConnStatePtr(new ConnState(this, conn, addr));
@@ -339,8 +339,9 @@ rt:
       if(!static_cast<Router &>(router).registerLink(conn, true))
         return -1;
       connections.push_back(s);
+      return id;
     }
-  return id;
+  return -1;
 }
 
 ConnState::ConnState (EIBnetServer *parent, LinkConnectClientPtr c, eibaddr_t addr)
@@ -716,7 +717,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
           else if (r1.CRI[1] == 0x02 || r1.CRI[1] == 0x80)
             {
               int id = addClient ((r1.CRI[1] == 0x80) ? CT_BUSMONITOR : CT_STANDARD, r1, a);
-              if (id <= 0xff)
+              if (id >= 0)
                 {
                   r2.channel = id;
                   r2.status = E_NO_ERROR;
@@ -734,7 +735,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
           r2.CRD[0] = 0x03;
           TRACEPRINTF (t, 8, "Tunnel CONNECTION_REQ, no addr (mgmt)");
           int id = addClient (CT_CONFIG, r1, 0);
-          if (id <= 0xff)
+          if (id >= 0)
             {
               r2.channel = id;
               r2.status = E_NO_ERROR;
