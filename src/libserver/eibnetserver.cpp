@@ -936,14 +936,14 @@ void ConnState::tunnel_request(EIBnet_TunnelRequest &r1, EIBNetIPSocket *isock)
       if (c)
         {
           r2.status = 0;
+          if (c->source_address == 0)
+            c->source_address = addr;
           if (r1.CEMI[0] == 0x11)
             {
               out.put (L_Data_ToCEMI (0x2E, c));
               if (! retries)
                 send_trigger.send();
             }
-          if (c->source_address == 0)
-            c->source_address = addr;
           if (r1.CEMI[0] == 0x11 || r1.CEMI[0] == 0x29)
             recv_L_Data (std::move(c));
           else
