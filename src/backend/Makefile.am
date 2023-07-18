@@ -26,5 +26,11 @@ noinst_LIBRARIES = libbackend.a
 AM_CPPFLAGS=-I$(top_srcdir)/src/libserver -I$(top_srcdir)/src/common -I$(top_srcdir)/src/usb $(LIBUSB_CFLAGS)
 
 libbackend_a_SOURCES= $(FT12) $(TPUART_COMMON) $(EIBNETIP) $(EIBNETIPTUNNEL) \
-	log.cpp dummy.cpp nat.cpp fqueue.cpp fpace.cpp
+	log.cpp \
+	dummy.cpp \
+	nat.cpp \
+	fqueue.cpp \
+	fpace.cpp \
+	monitor.cpp \
+	# end
 
