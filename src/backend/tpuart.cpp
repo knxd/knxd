@@ -31,6 +31,9 @@
 #include "log.h"
 #include "cm_tp1.h"
 
+/* add formatter for fmt >= 10.0.0 */
+int format_as(LPDU_Type t) { return t; }
+
 class TPUARTserial : public LLserial
 {
 public:

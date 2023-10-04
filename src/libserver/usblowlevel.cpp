@@ -28,6 +28,10 @@
 
 #include "usb.h"
 
+/* add formatter for fmt >= 10.0.0 */
+int format_as(UState t) { return t; }
+int format_as(libusb_transfer_status t) { return t; }
+
 USBEndpoint
 parseUSBEndpoint (IniSectionPtr s)
 {

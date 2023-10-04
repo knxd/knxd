@@ -21,6 +21,9 @@
 
 #include "emi.h"
 
+/* add formatter for fmt >= 10.0.0 */
+int format_as(E_state t) { return t; }
+
 EMIVer
 cfgEMIVersion(IniSectionPtr& s)
 {

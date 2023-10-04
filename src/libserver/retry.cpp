@@ -19,6 +19,9 @@
 
 #include "retry.h"
 
+/* add formatter for fmt >= 10.0.0 */
+int format_as(RSTATE t) { return t; }
+
 RetryFilter::RetryFilter (const LinkConnectPtr_& c, IniSectionPtr& s) : Filter(c,s)
 {
   trigger.set<RetryFilter, &RetryFilter::trigger_cb>(this);
