@@ -108,9 +108,9 @@ public:
 
 protected:
   virtual FDdriver * create_serial(LowLevelIface* parent, IniSectionPtr& s);
+  FDdriver *fd_driver = NULL;
 
 private:
-  FDdriver *fd_driver = NULL;
   int enableInputParityCheck();
 };
 
