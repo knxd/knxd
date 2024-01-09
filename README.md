@@ -4,11 +4,13 @@ knxd [![Build Status](https://travis-ci.org/knxd/knxd.svg)](https://travis-ci.or
 KNX is a very common building automation protocol which runs on dedicated 9600-baud wire as well as IP multicast.
 ``knxd`` is an advanced router/gateway which runs on any Linux computer; it can talk to all known KNX interfaces.
 
-# STOP if you install on Debian
+# STOP if you install on Debian (or Ubuntu or …)
 
-Debian packaging has been moved to the ``debian`` branch. Please use that
+Debian/Ubuntu packaging has moved to the ``debian`` branch. Please use that
 branch (by way of ``git checkout debian``) if you're following some (outdated …)
 installation instructions for Debian, Ubuntu or their derivatives.
+
+In the ``debian`` branch, this file contains build instructions for Debian.
 
 # Stable version
 
