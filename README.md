@@ -394,9 +394,10 @@ there is no free replacement. (I'd like to change that.)
 Thus, wearing my hat as the (current) main author, I (Matthias Urlichs)
 would like to ask you to consider contributing to knxd's development.
 
-* paypal: matthias@urlichs.de
-* bitcoin: 1G2NKavCVt2adxEUZVG437J2tHvM931aYd
-* SEPA: DE25760400610535260401 @ COBADEFFXXX
+* paypal: urlichs@m-u-it.de
+* SEPA: DE34430609671145580100 @ GENIDEM1GLS
+* Ethereum: please ask
+* Bitcoin: please don't waste power
 
 I can issue a commercial invoice if required.
 
