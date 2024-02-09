@@ -394,8 +394,9 @@ there is no free replacement. (I'd like to change that.)
 Thus, wearing my hat as the (current) main author, I (Matthias Urlichs)
 would like to ask you to consider contributing to knxd's development.
 
-* paypal: urlichs@m-u-it.de
-* SEPA: DE34430609671145580100 @ GENIDEM1GLS
+* [LiberaPay](https://liberapay.com/knxd/)
+* Paypal: urlichs@m-u-it.de
+* SEPA: DE34430609671145580100 @ GENODEM1GLS
 * Ethereum: please ask
 * Bitcoin: please don't waste power
 
