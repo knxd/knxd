@@ -60,7 +60,7 @@ EIBnetDriver::EIBnetDriver (LinkConnectClientPtr c,
   : SubDriver(c)
 {
   struct sockaddr_in baddr;
-  struct ip_mreq mcfg;
+  struct ip_mreqn mcfg;
   sock = 0;
   t->setAuxName("driver");
 
@@ -99,7 +99,8 @@ EIBnetDriver::EIBnetDriver (LinkConnectClientPtr c,
     }
 
   mcfg.imr_multiaddr = maddr.sin_addr;
-  mcfg.imr_interface.s_addr = htonl (INADDR_ANY);
+  mcfg.imr_address.s_addr = htonl (INADDR_ANY);
+  mcfg.imr_ifindex = if_nametoindex(intf.c_str());
   if (!sock->SetMulticast (mcfg))
     goto err_out;
 
