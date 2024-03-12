@@ -74,7 +74,7 @@ EIBNetIPTunnel::setup()
   monitor = cfg->value("monitor",false);
   if(NAT)
     {
-      srcip = cfg->value("nat-ip","");
+      srcip = cfg->value("nat-ip","0.0.0.0");
       dataport = cfg->value("data-port",0);
     }
   heartbeat_time = cfg->value("heartbeat-timer",30);
