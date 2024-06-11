@@ -225,7 +225,7 @@ This part covers "manual" installation.
 If you would like to submit patches for Mac OSX or Windows, go ahead
 and create a pull request, but please be prepared to maintain your code.
 
-### Adding a TPUART USB interface
+### Adding a TPUART USB interface (serial, USB)
 
 If you attach a (properly programmed) TUL (http://busware.de/tiki-index.php?page=TUL) to your computer, it'll show up as ``/dev/ttyACM0``.
 This is a problem because (a) it's owned by root, thus knxd can't access it, and (b) if you ever add another serial interface that uses the same driver, knxd will use the wrong device.
@@ -265,7 +265,7 @@ These interfaces should be covered by the `udev` file knxd installs in
 ``/lib/udev/rules.d``. Simply use ``-b usb:`` to talk to it, assuming you
 don't have more than one.
 
-### Adding a TPUART serial interface to the Raspberry Pi
+### Adding a TPUART (Pi HAT) interface to the Raspberry Pi
 
 On the Raspberry Pi 2 and 3 the console is /dev/ttyAMA0. The udev line is:
 
@@ -282,20 +282,21 @@ On the Raspberry Pi 4 the console is on /dev/ttyACM0. The udev line is:
 This rule creates a symlink ``/dev/knx1`` which points to the console. The
 knxd configuration will use that symlink.
 
-On the Raspberry Pi 2 and 3 you need to disable the serial console. Edit ``/boot/cmdline.txt`` and
-remove the ``console=ttyAMA0`` entry. Then reboot.
+On the Raspberry Pi 2 and 3 you need to disable the kernel's serial console.
+Edit ``/boot/cmdline.txt`` and remove the ``console=ttyAMA0`` entry. Then reboot.
 
 On the Raspberry Pi 3, the serial console is on ``ttyAMA1`` by default.
-However, that is a software-driven serial port – the single hardware serial
+However, that is a software-driven serial port – the hardware serial
 interface is used for Bluetooth on the Pi3. Varying CPU speed causes this
-port to be somewhat unreliable. If this happens, disable Bluetooth by adding
+port to be somewhat unreliable. You should disable Bluetooth by adding
 
   ```
   dtoverlay=pi3-disable-bt
   ```
 
 to ``/boot/config.txt``, run ``systemctl disable hciuart``, and
-reboot. The TPUART module is now back on ``ttyAMA0``.
+reboot. The console and the TPUART module is now back on ``ttyAMA0``.
+
 
 ## Migrating to 0.14
 
