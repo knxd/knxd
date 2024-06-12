@@ -381,20 +381,22 @@ reboot. The console and the TPUART module is now back on ``ttyAMA0``.
 
 ## Contributions
 
-* Any contribution is *very* welcome
-* Please use Github and create a pull request with your patches
+* Contributions are *very* welcome
+* Please use Github and create a pull request with your patches.
 * Please see SubmittingPatches to correctly Sign-Off your code and add yourself to AUTHORS (`tools/list_AUTHORS > AUTHORS`)
-* Adhere to our [coding conventions](https://github.com/knxd/knxd/wiki/CodingConventions). The git archive includes a helpful .vimrc file if you use VIM.
+* Adhere to our [coding conventions](https://github.com/knxd/knxd/wiki/CodingConventions).
+* The git archive includes a helpful .vimrc file if you use VIM.
 
 ### Compensation – personal statement
 
 KNX development is not a simple matter and requires both time and dedicated
 hardware for tests. The ETS software isn't exactly cheap, either, and
-there is no free replacement. (I'd like to change that.)
+there is no free replacement. (I'd like to change that, but time is fleeting.)
 
 Thus, wearing my hat as the (current) main author, I (Matthias Urlichs)
 would like to ask you to consider contributing to knxd's development.
 
+* [Github](https://github.com/sponsors/smurfix)
 * [LiberaPay](https://liberapay.com/knxd/)
 * Paypal: urlichs@m-u-it.de
 * SEPA: DE34430609671145580100 @ GENODEM1GLS
