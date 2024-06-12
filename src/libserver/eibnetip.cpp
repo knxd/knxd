@@ -199,7 +199,7 @@ EIBNetIPSocket::port ()
 }
 
 bool
-EIBNetIPSocket::SetMulticast (struct ip_mreq multicastaddr)
+EIBNetIPSocket::SetMulticast (struct ip_mreqn multicastaddr)
 {
   if (multicast)
     return false;

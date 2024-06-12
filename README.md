@@ -284,7 +284,7 @@ The file format is documented in "doc/inifile.rst". You might want to use
 the program "/usr/lib/knxd_args" to create it from previous versions'
 command-line arguments.
 
-### Adding a TPUART USB interface
+### Adding a TPUART USB interface (serial, USB)
 
 If you attach a (properly programmed) TUL (http://busware.de/tiki-index.php?page=TUL) to your computer, it'll show up as ``/dev/ttyACM0``.
 This is a problem because (a) it's owned by root, thus knxd can't access it, and (b) if you ever add another serial interface that uses the same driver, knxd will use the wrong device.
@@ -324,7 +324,7 @@ These interfaces should be covered by the `udev` file knxd installs in
 ``/lib/udev/rules.d``. Simply use ``-b usb:`` to talk to it, assuming you
 don't have more than one.
 
-### Adding a TPUART serial interface to the Raspberry Pi
+### Adding a TPUART (Pi HAT) interface to the Raspberry Pi
 
 On the Raspberry Pi 2 and 3 the console is /dev/ttyAMA0. The udev line is:
 
@@ -341,20 +341,21 @@ On the Raspberry Pi 4 the console is on /dev/ttyACM0. The udev line is:
 This rule creates a symlink ``/dev/knx1`` which points to the console. The
 knxd configuration will use that symlink.
 
-On the Raspberry Pi 2 and 3 you need to disable the serial console. Edit ``/boot/cmdline.txt`` and
-remove the ``console=ttyAMA0`` entry. Then reboot.
+On the Raspberry Pi 2 and 3 you need to disable the kernel's serial console.
+Edit ``/boot/cmdline.txt`` and remove the ``console=ttyAMA0`` entry. Then reboot.
 
 On the Raspberry Pi 3, the serial console is on ``ttyAMA1`` by default.
-However, that is a software-driven serial port – the single hardware serial
+However, that is a software-driven serial port – the hardware serial
 interface is used for Bluetooth on the Pi3. Varying CPU speed causes this
-port to be somewhat unreliable. If this happens, disable Bluetooth by adding
+port to be somewhat unreliable. You should disable Bluetooth by adding
 
   ```
   dtoverlay=pi3-disable-bt
   ```
 
 to ``/boot/config.txt``, run ``systemctl disable hciuart``, and
-reboot. The TPUART module is now back on ``ttyAMA0``.
+reboot. The console and the TPUART module is now back on ``ttyAMA0``.
+
 
 ## Migrating to 0.14
 
@@ -439,20 +440,22 @@ reboot. The TPUART module is now back on ``ttyAMA0``.
 
 ## Contributions
 
-* Any contribution is *very* welcome
-* Please use Github and create a pull request with your patches
+* Contributions are *very* welcome
+* Please use Github and create a pull request with your patches.
 * Please see SubmittingPatches to correctly Sign-Off your code and add yourself to AUTHORS (`tools/list_AUTHORS > AUTHORS`)
-* Adhere to our [coding conventions](https://github.com/knxd/knxd/wiki/CodingConventions). The git archive includes a helpful .vimrc file if you use VIM.
+* Adhere to our [coding conventions](https://github.com/knxd/knxd/wiki/CodingConventions).
+* The git archive includes a helpful .vimrc file if you use VIM.
 
 ### Compensation – personal statement
 
 KNX development is not a simple matter and requires both time and dedicated
 hardware for tests. The ETS software isn't exactly cheap, either, and
-there is no free replacement. (I'd like to change that.)
+there is no free replacement. (I'd like to change that, but time is fleeting.)
 
 Thus, wearing my hat as the (current) main author, I (Matthias Urlichs)
 would like to ask you to consider contributing to knxd's development.
 
+* [Github](https://github.com/sponsors/smurfix)
 * [LiberaPay](https://liberapay.com/knxd/)
 * Paypal: urlichs@m-u-it.de
 * SEPA: DE34430609671145580100 @ GENODEM1GLS
