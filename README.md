@@ -284,6 +284,7 @@ The file format is documented in "doc/inifile.rst". You might want to use
 the program "/usr/lib/knxd_args" to create it from previous versions'
 command-line arguments.
 
+
 ### Adding a TPUART USB interface (serial, USB)
 
 If you attach a (properly programmed) TUL (http://busware.de/tiki-index.php?page=TUL) to your computer, it'll show up as ``/dev/ttyACM0``.
@@ -318,11 +319,16 @@ If you have a second TPUART, repeat with "ttyACM1" and "knx2".
 You'll have to update your rule if you ever plug your TPUART into a different USB port.
 This is intentional.
 
-### Adding any other USB interface
+
+### Adding some other USB interface
 
 These interfaces should be covered by the `udev` file knxd installs in
 ``/lib/udev/rules.d``. Simply use ``-b usb:`` to talk to it, assuming you
 don't have more than one.
+
+If your interface isn't covered by our udev file, please add its vendor+product
+and send us a patch.
+
 
 ### Adding a TPUART (Pi HAT) interface to the Raspberry Pi
 
