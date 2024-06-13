@@ -34,7 +34,7 @@ EIBNetIPPacket::EIBNetIPPacket ()
 }
 
 EIBNetIPPacket *
-EIBNetIPPacket::fromPacket (const CArray & c, const struct sockaddr_in src)
+EIBNetIPPacket::fromPacket (const CArray & c, const struct sockaddr_in src, HostProtocolCode protocol)
 {
   EIBNetIPPacket *p;
   if (c.size() < 6)
@@ -48,6 +48,7 @@ EIBNetIPPacket::fromPacket (const CArray & c, const struct sockaddr_in src)
   p->service = (c[2] << 8) | c[3];
   p->data.set (c.data() + 6, len - 6);
   p->src = src;
+  p->protocol = protocol;
   return p;
 }
 
@@ -311,12 +312,12 @@ EIBnet_SearchRequest::EIBnet_SearchRequest ()
   memset (&caddr, 0, sizeof (caddr));
 }
 
-EIBNetIPPacket EIBnet_SearchRequest::ToPacket ()const
+EIBNetIPPacket EIBnet_SearchRequest::ToPacket (HostProtocolCode protocol)const
 {
   EIBNetIPPacket
   p;
   CArray
-  ca = IPtoEIBNetIP (&caddr, nat);
+  ca = IPtoEIBNetIP (&caddr, nat, protocol);
   p.service = SEARCH_REQUEST;
   p.data = ca;
   return p;
@@ -329,7 +330,7 @@ parseEIBnet_SearchRequest (const EIBNetIPPacket & p, EIBnet_SearchRequest & r)
     return 1;
   if (p.data.size() != 8)
     return 1;
-  if (EIBnettoIP (p.data, &r.caddr, &p.src, r.nat))
+  if (EIBnettoIP (p.data, &r.caddr, &p.src, r.nat, p.protocol))
     return 1;
   return 0;
 }
@@ -343,10 +344,10 @@ EIBnet_SearchResponse::EIBnet_SearchResponse ()
   memset (&name, 0, sizeof (name));
 }
 
-EIBNetIPPacket EIBnet_SearchResponse::ToPacket ()const
+EIBNetIPPacket EIBnet_SearchResponse::ToPacket (HostProtocolCode protocol)const
 {
   EIBNetIPPacket p;
-  CArray ca = IPtoEIBNetIP (&caddr, nat);
+  CArray ca = IPtoEIBNetIP (&caddr, nat, protocol);
   p.service = SEARCH_RESPONSE;
   p.data.resize (64 + services.size() * 2);
   p.data.setpart (ca, 0);
@@ -381,7 +382,7 @@ parseEIBnet_SearchResponse (const EIBNetIPPacket & p,
     return 1;
   if (p.data.size() < 64)
     return 1;
-  if (EIBnettoIP (CArray (p.data.data() + 0, 8), &r.caddr, &p.src, r.nat))
+  if (EIBnettoIP (CArray (p.data.data() + 0, 8), &r.caddr, &p.src, r.nat, p.protocol))
     return 1;
   if (p.data[8] != 54)
     return 1;
@@ -416,12 +417,12 @@ EIBnet_DescriptionRequest::EIBnet_DescriptionRequest ()
   memset (&caddr, 0, sizeof (caddr));
 }
 
-EIBNetIPPacket EIBnet_DescriptionRequest::ToPacket ()const
+EIBNetIPPacket EIBnet_DescriptionRequest::ToPacket (HostProtocolCode protocol)const
 {
   EIBNetIPPacket
   p;
   CArray
-  ca = IPtoEIBNetIP (&caddr, nat);
+  ca = IPtoEIBNetIP (&caddr, nat, protocol);
   p.service = DESCRIPTION_REQUEST;
   p.data = ca;
   return p;
@@ -435,7 +436,7 @@ parseEIBnet_DescriptionRequest (const EIBNetIPPacket & p,
     return 1;
   if (p.data.size() != 8)
     return 1;
-  if (EIBnettoIP (p.data, &r.caddr, &p.src, r.nat))
+  if (EIBnettoIP (p.data, &r.caddr, &p.src, r.nat, p.protocol))
     return 1;
   return 0;
 }
@@ -448,7 +449,7 @@ EIBnet_DescriptionResponse::EIBnet_DescriptionResponse ()
   memset (&name, 0, sizeof (name));
 }
 
-EIBNetIPPacket EIBnet_DescriptionResponse::ToPacket ()const
+EIBNetIPPacket EIBnet_DescriptionResponse::ToPacket (HostProtocolCode protocol)const
 {
   EIBNetIPPacket
   p;
@@ -522,12 +523,12 @@ EIBnet_ConnectRequest::EIBnet_ConnectRequest ()
   memset (&daddr, 0, sizeof (daddr));
 }
 
-EIBNetIPPacket EIBnet_ConnectRequest::ToPacket ()const
+EIBNetIPPacket EIBnet_ConnectRequest::ToPacket (HostProtocolCode protocol)const
 {
   EIBNetIPPacket p;
   CArray ca, da;
-  ca = IPtoEIBNetIP (&caddr, nat);
-  da = IPtoEIBNetIP (&daddr, nat);
+  ca = IPtoEIBNetIP (&caddr, nat, protocol);
+  da = IPtoEIBNetIP (&daddr, nat, protocol);
   p.service = CONNECTION_REQUEST;
   p.data.resize (ca.size() + da.size() + 1 + CRI.size());
   p.data.setpart (ca, 0);
@@ -545,9 +546,9 @@ parseEIBnet_ConnectRequest (const EIBNetIPPacket & p,
     return 1;
   if (p.data.size() < 18)
     return 1;
-  if (EIBnettoIP (CArray (p.data.data(), 8), &r.caddr, &p.src, r.nat))
+  if (EIBnettoIP (CArray (p.data.data(), 8), &r.caddr, &p.src, r.nat, p.protocol))
     return 1;
-  if (EIBnettoIP (CArray (p.data.data() + 8, 8), &r.daddr, &p.src, r.nat))
+  if (EIBnettoIP (CArray (p.data.data() + 8, 8), &r.daddr, &p.src, r.nat, p.protocol))
     return 1;
   if (p.data.size() - 16 != p.data[16])
     return 1;
@@ -560,10 +561,10 @@ EIBnet_ConnectResponse::EIBnet_ConnectResponse ()
   memset (&daddr, 0, sizeof (daddr));
 }
 
-EIBNetIPPacket EIBnet_ConnectResponse::ToPacket ()const
+EIBNetIPPacket EIBnet_ConnectResponse::ToPacket (HostProtocolCode protocol)const
 {
   EIBNetIPPacket p;
-  CArray da = IPtoEIBNetIP (&daddr, nat);
+  CArray da = IPtoEIBNetIP (&daddr, nat, protocol);
   p.service = CONNECTION_RESPONSE;
   if (status != 0)
     p.data.resize (2);
@@ -598,7 +599,7 @@ parseEIBnet_ConnectResponse (const EIBNetIPPacket & p,
     }
   if (p.data.size() < 12)
     return 1;
-  if (EIBnettoIP (CArray (p.data.data() + 2, 8), &r.daddr, &p.src, r.nat))
+  if (EIBnettoIP (CArray (p.data.data() + 2, 8), &r.daddr, &p.src, r.nat, p.protocol))
     return 1;
   if (p.data.size() - 10 != p.data[10])
     return 1;
@@ -613,10 +614,10 @@ EIBnet_ConnectionStateRequest::EIBnet_ConnectionStateRequest ()
   memset (&caddr, 0, sizeof (caddr));
 }
 
-EIBNetIPPacket EIBnet_ConnectionStateRequest::ToPacket ()const
+EIBNetIPPacket EIBnet_ConnectionStateRequest::ToPacket (HostProtocolCode protocol)const
 {
   EIBNetIPPacket p;
-  CArray ca = IPtoEIBNetIP (&caddr, nat);
+  CArray ca = IPtoEIBNetIP (&caddr, nat, protocol);
   p.service = CONNECTIONSTATE_REQUEST;
   p.data.resize (ca.size() + 2);
   p.data[0] = channel;
@@ -633,13 +634,13 @@ parseEIBnet_ConnectionStateRequest (const EIBNetIPPacket & p,
     return 1;
   if (p.data.size() != 10)
     return 1;
-  if (EIBnettoIP (CArray (p.data.data() + 2, 8), &r.caddr, &p.src, r.nat))
+  if (EIBnettoIP (CArray (p.data.data() + 2, 8), &r.caddr, &p.src, r.nat, p.protocol))
     return 1;
   r.channel = p.data[0];
   return 0;
 }
 
-EIBNetIPPacket EIBnet_ConnectionStateResponse::ToPacket ()const
+EIBNetIPPacket EIBnet_ConnectionStateResponse::ToPacket (HostProtocolCode protocol)const
 {
   EIBNetIPPacket p;
   p.service = CONNECTIONSTATE_RESPONSE;
@@ -667,10 +668,10 @@ EIBnet_DisconnectRequest::EIBnet_DisconnectRequest ()
   memset (&caddr, 0, sizeof (caddr));
 }
 
-EIBNetIPPacket EIBnet_DisconnectRequest::ToPacket ()const
+EIBNetIPPacket EIBnet_DisconnectRequest::ToPacket (HostProtocolCode protocol)const
 {
   EIBNetIPPacket p;
-  CArray ca = IPtoEIBNetIP (&caddr, nat);
+  CArray ca = IPtoEIBNetIP (&caddr, nat, protocol);
   p.service = DISCONNECT_REQUEST;
   p.data.resize (ca.size() + 2);
   p.data[0] = channel;
@@ -687,13 +688,13 @@ parseEIBnet_DisconnectRequest (const EIBNetIPPacket & p,
     return 1;
   if (p.data.size() != 10)
     return 1;
-  if (EIBnettoIP (CArray (p.data.data() + 2, 8), &r.caddr, &p.src, r.nat))
+  if (EIBnettoIP (CArray (p.data.data() + 2, 8), &r.caddr, &p.src, r.nat, p.protocol))
     return 1;
   r.channel = p.data[0];
   return 0;
 }
 
-EIBNetIPPacket EIBnet_DisconnectResponse::ToPacket ()const
+EIBNetIPPacket EIBnet_DisconnectResponse::ToPacket (HostProtocolCode protocol)const
 {
   EIBNetIPPacket p;
   p.service = DISCONNECT_RESPONSE;
@@ -716,7 +717,7 @@ parseEIBnet_DisconnectResponse (const EIBNetIPPacket & p,
   return 0;
 }
 
-EIBNetIPPacket EIBnet_ConfigRequest::ToPacket ()const
+EIBNetIPPacket EIBnet_ConfigRequest::ToPacket (HostProtocolCode protocol)const
 {
   EIBNetIPPacket p;
   p.service = DEVICE_CONFIGURATION_REQUEST;
@@ -744,7 +745,7 @@ parseEIBnet_ConfigRequest (const EIBNetIPPacket & p, EIBnet_ConfigRequest & r)
   return 0;
 }
 
-EIBNetIPPacket EIBnet_ConfigACK::ToPacket ()const
+EIBNetIPPacket EIBnet_ConfigACK::ToPacket (HostProtocolCode protocol)const
 {
   EIBNetIPPacket p;
   p.service = DEVICE_CONFIGURATION_ACK;
@@ -771,7 +772,7 @@ parseEIBnet_ConfigACK (const EIBNetIPPacket & p, EIBnet_ConfigACK & r)
   return 0;
 }
 
-EIBNetIPPacket EIBnet_TunnelRequest::ToPacket ()const
+EIBNetIPPacket EIBnet_TunnelRequest::ToPacket (HostProtocolCode protocol)const
 {
   EIBNetIPPacket p;
   p.service = TUNNEL_REQUEST;
@@ -799,7 +800,7 @@ parseEIBnet_TunnelRequest (const EIBNetIPPacket & p, EIBnet_TunnelRequest & r)
   return 0;
 }
 
-EIBNetIPPacket EIBnet_TunnelACK::ToPacket ()const
+EIBNetIPPacket EIBnet_TunnelACK::ToPacket (HostProtocolCode protocol)const
 {
   EIBNetIPPacket p;
   p.service = TUNNEL_RESPONSE;
@@ -826,7 +827,7 @@ parseEIBnet_TunnelACK (const EIBNetIPPacket & p, EIBnet_TunnelACK & r)
   return 0;
 }
 
-EIBNetIPPacket EIBnet_RoutingIndication::ToPacket () const
+EIBNetIPPacket EIBnet_RoutingIndication::ToPacket (HostProtocolCode protocol) const
 {
   // @todo
   abort();
@@ -838,7 +839,7 @@ parseEIBnet_RoutingIndication (const EIBNetIPPacket & p, EIBnet_RoutingIndicatio
   return 0;
 }
 
-EIBNetIPPacket EIBnet_RoutingLostMessage::ToPacket () const
+EIBNetIPPacket EIBnet_RoutingLostMessage::ToPacket (HostProtocolCode protocol) const
 {
   // @todo
   abort();

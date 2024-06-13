@@ -37,6 +37,7 @@
 #include "lowlevel.h"
 #include "server.h"
 #include "systemdserver.h"
+#include "tcptunserver.h"
 
 /** global filter adapter, sending end */
 class RouterHigh : public Driver
@@ -235,21 +236,56 @@ Router::setup()
 
 #ifdef HAVE_SYSTEMD
   {
-    std::string sd_name = s->value("systemd","");
-    if (sd_name.size() > 0)
+    std::string sd_name_knxd = s->value("systemd","");
+    std::string sd_name_tun = s->value("systemd_tcptunsrv","");
+    if (sd_name_knxd.size() > 0 || sd_name_tun.size() > 0)
       {
         // IniSectionPtr sd = ini[sd_name];
-        (void) ini[sd_name]; // set the section's "referenced" bit, for error checking
-        int num_fds = sd_listen_fds(0);
+        // set the section's "referenced" bit, for error checking
+        if (sd_name_knxd.size() > 0)
+          (void) ini[sd_name_knxd];
+        if (sd_name_tun.size() > 0)
+          (void) ini[sd_name_tun];
+
+        char** fd_names_c = nullptr;
+        int num_fds = sd_listen_fds_with_names(0, &fd_names_c);
         if( num_fds < 0 )
           {
             ERRORPRINTF (t, E_ERROR | 85, "Error getting fds from systemd.");
             goto ex;
           }
 
+        std::vector<std::string> fd_names;
+        if (fd_names_c)
+          {
+            for (char** name = fd_names_c; *name; name++)
+              {
+                fd_names.push_back(*name);
+                free(*name);
+              }
+            free(fd_names_c);
+          }
+        if (fd_names.size() < num_fds)
+          {
+            ERRORPRINTF (t, E_ERROR | 147, "Got too few fds names from systemd.");
+            goto ex;
+          }
+
         // zero FDs from systemd is not a bug
         for( int fd = SD_LISTEN_FDS_START; fd < SD_LISTEN_FDS_START+num_fds; ++fd )
           {
+            std::string name = fd_names[fd - SD_LISTEN_FDS_START];
+            TRACEPRINTF (t, 4, "Got fd %d with name '%s'", fd, name);
+            std::string sd_name;
+            bool is_tun;
+            if (name == "knxnetip") {
+              sd_name = sd_name_tun;
+              is_tun = true;
+            } else {
+              sd_name = sd_name_knxd;
+              is_tun = false;
+            }
+
             IniSectionPtr sds = ini.add_auto(sd_name);
 
             (*sds)["use"] = sd_name;
@@ -259,10 +295,16 @@ Router::setup()
                 goto ex;
               }
 
-            ServerPtr sdp = ServerPtr(new SystemdServer(*this, sds, fd));
+            ServerPtr sdp;
+            if (is_tun) {
+              sdp = ServerPtr(new TcpTunSystemdServer(*this, sds, fd));
+            } else {
+              sdp = ServerPtr(new SystemdServer(*this, sds, fd));
+            }
             if (!sdp->setup())
               goto ex;
             registerLink(sdp);
+
             using_systemd = true;
           }
       }

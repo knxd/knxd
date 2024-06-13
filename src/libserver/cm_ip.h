@@ -30,11 +30,11 @@
 #include "common.h"
 
 /** convert a to EIBnet/IP format */
-CArray IPtoEIBNetIP (const struct sockaddr_in *a, bool nat);
+CArray IPtoEIBNetIP (const struct sockaddr_in *a, bool nat, uint8_t protocol);
 
 /** convert EIBnet/IP IP Address to a */
 bool EIBnettoIP (const CArray & buf, struct sockaddr_in *a,
-                 const struct sockaddr_in *src, bool & nat);
+                 const struct sockaddr_in *src, bool & nat, uint8_t protocol);
 
 #endif
 
