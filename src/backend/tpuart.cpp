@@ -31,6 +31,9 @@
 #include "log.h"
 #include "cm_tp1.h"
 
+/* add formatter for fmt >= 10.0.0 */
+int format_as(LPDU_Type t) { return t; }
+
 class TPUARTserial : public LLserial
 {
 public:
@@ -43,7 +46,7 @@ protected:
   void termios_settings (struct termios &t1)
   {
     t1.c_cflag = CS8 | CLOCAL | CREAD | PARENB;
-    t1.c_iflag = IGNBRK | INPCK | ISIG;
+    t1.c_iflag = IGNBRK | ISIG;
     t1.c_oflag = 0;
     t1.c_lflag = 0;
     t1.c_cc[VTIME] = 1;
@@ -64,7 +67,8 @@ TPUART::create_wrapper(LowLevelIface* parent, IniSectionPtr& s, LowLevelDriver* 
 FDdriver *
 TPUARTwrap::create_serial(LowLevelIface* parent, IniSectionPtr& s)
 {
-  return new TPUARTserial(parent,s);
+  fd_driver = new TPUARTserial(parent,s);
+  return fd_driver;
 }
 
 
@@ -358,6 +362,31 @@ TPUARTwrap::timer_cb(ev::timer &, int)
     }
 }
 
+int
+TPUARTwrap::enableInputParityCheck()
+{
+  struct termios t1;
+
+  TRACEPRINTF (t, 8, "Enabling input parity check on fd %d\n", fd_driver->get_fd());
+
+  if (tcgetattr (fd_driver->get_fd(), &t1))
+  {
+    ERRORPRINTF (t, E_ERROR | 70, "tcgetattr failed: %s", strerror(errno));
+    return -1;
+  }
+
+  t1.c_iflag = t1.c_iflag | INPCK;
+
+  if (tcsetattr (fd_driver->get_fd(), TCSANOW, &t1))
+  {
+    ERRORPRINTF (t, E_ERROR | 70, "tcsetattr failed: %s", strerror(errno));
+    return -2;
+  }
+
+  return 0;
+}
+
+
 void
 TPUARTwrap::in_check()
 {
@@ -444,7 +473,9 @@ TPUARTwrap::recv_Data(CArray &c)
           if (state == T_in_reset)
             {
               TRACEPRINTF (t, 8, "RESET_ACK");
-              setstate(T_in_setaddr);
+              if (enableInputParityCheck()>=0)
+                setstate(T_in_setaddr);
+              // else time out
             }
           else
             TRACEPRINTF (t, 8, "spurious RESET_ACK");

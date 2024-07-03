@@ -84,6 +84,7 @@ public:
   virtual void started();
   virtual void stopped(bool err);
 
+  virtual bool hasAddress (eibaddr_t addr) const;
 };
 
 

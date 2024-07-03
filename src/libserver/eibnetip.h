@@ -449,7 +449,7 @@ public:
   void stop(bool err);
 
   /** enables multicast */
-  bool SetMulticast (struct ip_mreq multicastaddr);
+  bool SetMulticast (struct ip_mreqn multicastaddr);
   /** sends a packet */
   void Send (EIBNetIPPacket p, struct sockaddr_in addr);
   void Send (EIBNetIPPacket p)
@@ -507,7 +507,7 @@ private:
   void send_q_drop();
 
   /** multicast address */
-  struct ip_mreq maddr;
+  struct ip_mreqn maddr;
   /** file descriptor */
   int fd;
   /** multicast in use? */

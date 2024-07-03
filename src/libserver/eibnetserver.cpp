@@ -35,6 +35,9 @@
 
 #include "emi.h"
 
+/* add formatter for fmt >= 10.0.0 */
+int format_as(ConnType t) { return t; }
+
 EIBnetServer::EIBnetServer (BaseRouter& r, IniSectionPtr& s)
   : Server(r,s)
   , mcast(NULL)
@@ -57,7 +60,7 @@ EIBnetDriver::EIBnetDriver (LinkConnectClientPtr c,
   : SubDriver(c)
 {
   struct sockaddr_in baddr;
-  struct ip_mreq mcfg;
+  struct ip_mreqn mcfg;
   sock = 0;
   t->setAuxName("driver");
 
@@ -96,7 +99,8 @@ EIBnetDriver::EIBnetDriver (LinkConnectClientPtr c,
     }
 
   mcfg.imr_multiaddr = maddr.sin_addr;
-  mcfg.imr_interface.s_addr = htonl (INADDR_ANY);
+  mcfg.imr_address.s_addr = htonl (INADDR_ANY);
+  mcfg.imr_ifindex = if_nametoindex(intf.c_str());
   if (!sock->SetMulticast (mcfg))
     goto err_out;
 
@@ -320,7 +324,7 @@ rt:
       id++;
       goto rt;
     }
-  if (id <= 0xff)
+  if (id <= 0xff)  // TODO configurable maximum
     {
       LinkConnectClientPtr conn = LinkConnectClientPtr(new LinkConnectClient(std::dynamic_pointer_cast<EIBnetServer>(shared_from_this()), tunnel_cfg, t));
       ConnStatePtr s = ConnStatePtr(new ConnState(this, conn, addr));
@@ -339,8 +343,9 @@ rt:
       if(!static_cast<Router &>(router).registerLink(conn, true))
         return -1;
       connections.push_back(s);
+      return id;
     }
-  return id;
+  return -1;
 }
 
 ConnState::ConnState (EIBnetServer *parent, LinkConnectClientPtr c, eibaddr_t addr)
@@ -716,7 +721,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
           else if (r1.CRI[1] == 0x02 || r1.CRI[1] == 0x80)
             {
               int id = addClient ((r1.CRI[1] == 0x80) ? CT_BUSMONITOR : CT_STANDARD, r1, a);
-              if (id <= 0xff)
+              if (id >= 0)
                 {
                   r2.channel = id;
                   r2.status = E_NO_ERROR;
@@ -734,7 +739,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
           r2.CRD[0] = 0x03;
           TRACEPRINTF (t, 8, "Tunnel CONNECTION_REQ, no addr (mgmt)");
           int id = addClient (CT_CONFIG, r1, 0);
-          if (id <= 0xff)
+          if (id >= 0)
             {
               r2.channel = id;
               r2.status = E_NO_ERROR;
@@ -935,14 +940,14 @@ void ConnState::tunnel_request(EIBnet_TunnelRequest &r1, EIBNetIPSocket *isock)
       if (c)
         {
           r2.status = 0;
+          if (c->source_address == 0)
+            c->source_address = addr;
           if (r1.CEMI[0] == 0x11)
             {
               out.put (L_Data_ToCEMI (0x2E, c));
               if (! retries)
                 send_trigger.send();
             }
-          if (c->source_address == 0)
-            c->source_address = addr;
           if (r1.CEMI[0] == 0x11 || r1.CEMI[0] == 0x29)
             recv_L_Data (std::move(c));
           else

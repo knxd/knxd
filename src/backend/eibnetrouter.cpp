@@ -16,6 +16,7 @@
     along with this program; if not, write to the Free Software
     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 */
+#include <net/if.h>
 #include <sys/socket.h>
 
 #include "eibnetrouter.h"
@@ -33,7 +34,7 @@ void
 EIBNetIPRouter::start()
 {
   struct sockaddr_in baddr;
-  struct ip_mreq mcfg;
+  struct ip_mreqn mcfg;
   TRACEPRINTF (t, 2, "Open");
   memset (&baddr, 0, sizeof (baddr));
 #ifdef HAVE_SOCKADDR_IN_LEN
@@ -62,7 +63,8 @@ EIBNetIPRouter::start()
   sock->localaddr.sin_port = sock->sendaddr.sin_port;
 
   mcfg.imr_multiaddr = sock->sendaddr.sin_addr;
-  mcfg.imr_interface.s_addr = htonl (INADDR_ANY);
+  mcfg.imr_address.s_addr = htonl (INADDR_ANY);
+  mcfg.imr_ifindex = if_nametoindex(interface.c_str());
   if (!sock->SetMulticast (mcfg))
     goto err_out;
   TRACEPRINTF (t, 2, "Opened");

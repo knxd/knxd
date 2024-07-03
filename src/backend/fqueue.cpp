@@ -19,6 +19,9 @@
 
 #include "fqueue.h"
 
+/* add formatter for fmt >= 10.0.0 */
+int format_as(QSTATE t) { return t; }
+
 QueueFilter::QueueFilter (const LinkConnectPtr_& c, IniSectionPtr& s) : Filter(c,s)
 {
   trigger.set<QueueFilter, &QueueFilter::trigger_cb>(this);
