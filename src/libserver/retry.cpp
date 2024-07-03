@@ -19,6 +19,9 @@
 
 #include "retry.h"
 
+/* add formatter for fmt >= 10.0.0 */
+int format_as(RSTATE t) { return t; }
+
 RetryFilter::RetryFilter (const LinkConnectPtr_& c, IniSectionPtr& s) : Filter(c,s)
 {
   trigger.set<RetryFilter, &RetryFilter::trigger_cb>(this);
@@ -222,6 +225,14 @@ off:
       Filter::send_Next();
     }
   Filter::stopped(err);
+}
+
+bool
+RetryFilter::hasAddress (eibaddr_t addr) const
+{
+  if (state != R_UP)
+    return false;
+  return Filter::hasAddress(addr);
 }
 
 void

@@ -72,7 +72,8 @@ NCN5120::create_wrapper(LowLevelIface* parent, IniSectionPtr& s, LowLevelDriver*
 FDdriver *
 NCN5120wrap::create_serial(LowLevelIface* parent, IniSectionPtr& s)
 {
-  return new NCN5120serial(parent,s);
+  fd_driver = new NCN5120serial(parent,s);
+  return fd_driver;
 }
 
 void NCN5120wrap::RecvLPDU (const uint8_t * data, int len)

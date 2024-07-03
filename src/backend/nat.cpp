@@ -40,7 +40,7 @@ NatL2Filter::setup()
           // LinkConnect – which happens when you try to apply the filter
           // globally. The former is exceedingly unlikely, but …
           if (conn.lock() != nullptr)
-            ERRORPRINTF(t, E_ERROR | 7, "%s: cannot be used globally");
+            ERRORPRINTF(t, E_ERROR | 7, "%s: cannot be used globally", name().c_str());
           return false;
         }
       addr = dynamic_cast<Router *>(&c->router)->addr;

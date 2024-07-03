@@ -19,6 +19,9 @@
 
 #include "fpace.h"
 
+/* add formatter for fmt >= 10.0.0 */
+int format_as(PSTATE t) { return t; }
+
 PaceFilter::PaceFilter (const LinkConnectPtr_& c, IniSectionPtr& s) : Filter(c,s)
 {
   last_len=0;
