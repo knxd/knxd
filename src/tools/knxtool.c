@@ -287,7 +287,7 @@ vbusmonitor1time\n");
                       int m = d1 & 0x7ff;
                       int ex = (d1 & 0x7800) >> 11;
                       float temp = ((float) m * (1 << ex) / 100);
-                      // printf ("d1=%d;m=%d;ex=%d;temp=%f\n", d1, m, ex, temp);
+                      /* printf ("d1=%d;m=%d;ex=%d;temp=%f\n", d1, m, ex, temp); */
                       printf ("%2.1f", temp);
                     }
                   else
@@ -1490,7 +1490,7 @@ lp1:
     }
   else if (strcmp (prog, "vbusmonitor1time") == 0)
     {
-      // hires-time
+      /* hires-time */
       struct timeval tv;
       struct tm* ptm;
       char time_string[40];

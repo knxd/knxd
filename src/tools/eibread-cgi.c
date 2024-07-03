@@ -39,12 +39,15 @@ uint32_t lastpos = 0;
 int timeout = 300;
 int subscribedGA[UINT16 >>3];
 int seenGA[UINT16 >>3];
-//int gaDPT[UINT16];
 
-//struct gaconfig_s {
-//  int ga;
-//  int dpt;
-//};
+#if 0
+int gaDPT[UINT16];
+
+struct gaconfig_s {
+  int ga;
+  int dpt;
+};
+#endif
 
 
 
@@ -77,7 +80,7 @@ char *parseRequest ()
   char *contentlen;
   char *cgi_str;
 
-  // check METHOD
+  /* check METHOD */
   if(  NULL == request )
     return NULL;
   else if( strcmp(request, "GET") == 0 )
@@ -99,7 +102,7 @@ char *parseRequest ()
       else
         {
           size = (unsigned long) atoi(contentlen);
-          if(size <= 0 && size > MAX_POSTSIZE) //avoid insane
+          if(size > MAX_POSTSIZE) /* avoid insane */
             return NULL;
         }
       buffer =(char *) malloc(size+1);
@@ -167,7 +170,7 @@ void readConfig()
   char fname[] = "/etc/wiregate/eibga.conf";
   FILE* fp;       /*Declare file pointer variable*/
   char buf[BUFSIZE], *tok;
-  //char *buf, *tok;
+  /* char *buf, *tok; */
   int hg,mg,ga;
   int currentga=0,ptr;
   if ((fp = fopen(fname,"r")) == NULL)
@@ -183,10 +186,12 @@ void readConfig()
             {
               currentga=((hg & 0x01f) << 11) | ((mg & 0x07) << 8) | ((ga & 0xff));
             }
-//      else if (currentga && (ptr=strstr(tok,"DPTId")) )
-//      {
-//          sscanf(tok,"%*s = %d",&gaDPT[currentga]);
-//      }
+#if 0
+        else if (currentga && (ptr=strstr(tok,"DPTId")) )
+        {
+            sscanf(tok,"%*s = %d",&gaDPT[currentga]);
+        }
+#endif
         }
     }/*until EOF*/
   fclose(fp);
@@ -194,7 +199,7 @@ void readConfig()
 #endif
 
 
-// read parameters
+/* read parameters */
 void readParseCGI()
 {
   char *param,*nextp;
@@ -253,10 +258,10 @@ void readParseCGI()
                 subscribedGA[ga >> 3] |= 1<<(ga&7);
             }
         }
-      //FIXME: Session,filter?
+      /* FIXME: Session,filter? */
       else
         {
-          //printf ("Unknown param %s\n",value); //debug
+          /* printf ("Unknown param %s\n",value); // debug  */
         }
     }
 }
@@ -278,12 +283,11 @@ main ()
   time_t tstart;
   char seen = 0;
   tstart = time(NULL);
-  //strcat(outbuf,"Content-Type: application/json\n\n");
-  //printf("Content-Type: application/json\n\n");
-  printf("Content-Type: text/plain\r\n\r\n"); //workaround for uhttpd
+  /* strcat(outbuf,"Content-Type: application/json\n\n"); */
+  printf("Content-Type: text/plain\r\n\r\n"); /* workaround for uhttpd */
 
   readParseCGI();
-  //readConfig();
+  /* readConfig(); */
   if (*eiburl == NULL)
     *eiburl = "local:/run/knx";
 
@@ -296,16 +300,18 @@ main ()
 
   memset(seenGA,0,sizeof(seenGA));
 
-  if (lastpos==0) // initial read from the bus
+  if (lastpos==0) /* initial read from the bus */
     {
-      for (i = 1; i < UINT16; i++) // skip all-zero GA
+      for (i = 1; i < UINT16; i++) /* skip all-zero GA */
         {
           if ((subscribedGA[i>>3]&(1<<((i&7)))) || (subscribedGA[0] & 1))
             {
               dest = i;
               len_gread = EIB_Cache_Read_Sync (con, dest, &src, sizeof (buf_gread), buf_gread, 0);
-              //printf("%d/%d/%d",(dest >> 11) & 0x1f, (dest >> 8) & 0x07, dest & 0xff); //debug
-              //printf(" %d len %d %c",dest,len_gread,buf_gread[1]); //debug
+#if 0 /* debug */
+              printf("%d/%d/%d",(dest >> 11) & 0x1f, (dest >> 8) & 0x07, dest & 0xff);
+              printf(" %d len %d %c",dest,len_gread,buf_gread[1]);
+#endif
               if (len_gread >= 0)
                 {
                   if (buf_gread[1] & 0xC0)
@@ -333,7 +339,7 @@ main ()
                 }
               else
                 {
-                  //printf ("read failed!\n");
+                  /* printf ("read failed!\n"); */
                 }
             }
         }
@@ -348,14 +354,14 @@ main ()
       for (i = 0; i < len; i += 2)
         {
           dest = (buf[i] << 8) | buf[i + 1];
-          // and output only one if changed multiple times to save the planet
+          /* and output only one if changed multiple times to save the planet */
           if (seenGA[dest>>3]&(1<<((dest&7))))
             continue;
           seenGA[dest>>3] |= 1<<((dest&7));
 
           if ((subscribedGA[dest>>3]&(1<<((dest&7)))) || (subscribedGA[0] & 1))
             {
-              // read value from cache
+              /* read value from cache */
               len_gread = EIB_Cache_Read (con, dest, &src, sizeof(buf_gread), buf_gread);
               if (len_gread != -1)
                 {
@@ -366,8 +372,10 @@ main ()
                       else
                         seen=1;
 
-                      //sprintf (tmpbuf,"%d,\"%s",dest, decodeDPT(buf_gread[j+2],gaDPT[dest]));
-                      //sprintf (tmpbuf,"%d,\"YES %02X", dest, buf_gread[1] & 0x3F);
+#if 0
+                      sprintf (tmpbuf,"%d,\"%s",dest, decodeDPT(buf_gread[j+2],gaDPT[dest]));
+                      sprintf (tmpbuf,"%d,\"YES %02X", dest, buf_gread[1] & 0x3F);
+#endif
                       if (len_gread == 2)
                         {
                           outptr += snprintf (outptr,OPL, "\"%d/%d/%d\":\"%02X", (dest >> 11) & 0x1f, (dest >> 8) & 0x07, dest & 0xff, buf_gread[1] & 0x3F);
@@ -379,7 +387,7 @@ main ()
                             {
                               outptr += snprintf (outptr,OPL, "%02X", buf_gread[j+2]);
                             }
-                          //printHex (len_gread - 2, buf_gread + 2);
+                          /* printHex (len_gread - 2, buf_gread + 2); */
                         }
                       *outptr++ = '"';
                     }
