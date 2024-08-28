@@ -367,6 +367,11 @@ TPUARTwrap::enableInputParityCheck()
 {
   struct termios t1;
 
+  if (fd_driver == nullptr)
+  {
+    return -3;
+  }
+
   TRACEPRINTF (t, 8, "Enabling input parity check on fd %d\n", fd_driver->get_fd());
 
   if (tcgetattr (fd_driver->get_fd(), &t1))
