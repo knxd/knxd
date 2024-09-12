@@ -1141,6 +1141,15 @@ If you use this filter to rate-limit a sender by more than the recipient's
 data rate, you should set the ``incoming`` parameter to zero. Otherwise a
 high rate of incoming messages will block the sender entirely.
 
+.. Note::
+
+    If you need this filter for reliable operation on an "ipt" tunnel
+    interface, this is an indication of sloppy programming on the other
+    end. A gateway *must not* acknowledge a message which it then
+    throws away, presumably because its send buffer is full.
+
+    Please file a complaint with the gateway's manufacturer.
+
 monitor
 -------
 
