@@ -50,6 +50,9 @@ enum ConnType
   CT_CONFIG,
 };
 
+/* add formatter for fmt >= 10.0.0 */
+inline int format_as(ConnType t) { return t; }
+
 /** Driver for tunnels */
 class ConnState: public SubDriver, public L_Busmonitor_CallBack
 {
