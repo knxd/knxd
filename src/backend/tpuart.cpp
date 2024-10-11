@@ -656,7 +656,7 @@ TPUARTwrap::setstate(enum TSTATE new_state)
         retry = 1;
 
       uint8_t c = 0x02;
-      TRACEPRINTF (t, 0, "Send GetState %02X", c);
+      TRACEPRINTF (t, 0, "Send keepalive GetState %02X", c);
       LowLevelIface::send_Data(c);
       timer.start(0.5,0);
       break;
