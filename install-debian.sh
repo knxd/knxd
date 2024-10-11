@@ -10,9 +10,9 @@ sudo apt-get install --no-install-recommends build-essential devscripts equivs
 
 : 2 auto-install packages required for building knxd
 sudo mk-build-deps --install --tool='apt-get --no-install-recommends --yes --allow-unauthenticated' debian/control
-rm -f knxd-build-deps_*.deb
+rm -f knxd-build-deps_*.deb ../knxd_*.deb ../knxd-tools_*.deb
 
-: 3 Build. Takes a while.
+: 3 Build. This takes a while.
 dpkg-buildpackage -b -uc
 
 cd ..
