@@ -349,7 +349,7 @@ TPUARTwrap::timer_cb(ev::timer &, int)
       setstate(T_wait);
       break;
     case T_wait_keepalive:
-      if (retry < 3)
+      if (retry > 2)
         {
           setstate(T_in_reset);
           return;
@@ -650,6 +650,11 @@ TPUARTwrap::setstate(enum TSTATE new_state)
 
     case T_wait_keepalive:
     {
+      if (state == T_in_keepalive)
+        retry++;
+      else
+        retry = 1;
+
       uint8_t c = 0x02;
       TRACEPRINTF (t, 0, "Send GetState %02X", c);
       LowLevelIface::send_Data(c);
