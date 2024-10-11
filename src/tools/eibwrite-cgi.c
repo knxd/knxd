@@ -52,7 +52,7 @@ char *parseRequest ()
   char *contentlen;
   char *cgi_str;
 
-  // check METHOD
+  /* check METHOD */
   if(  NULL == request )
     return NULL;
   else if( strcmp(request, "GET") == 0 )
@@ -74,7 +74,7 @@ char *parseRequest ()
       else
         {
           size = (unsigned long) atoi(contentlen);
-          if(size <= 0 && size > MAX_POSTSIZE) //avoid insane
+          if(size <= 0 && size > MAX_POSTSIZE) /* avoid insane */
             return NULL;
         }
       buffer =(char *) malloc(size+1);
@@ -138,7 +138,7 @@ int isNumeric(char *str)
   return 1;
 }
 
-// read parameters
+/* read parameters */
 void readParseCGI()
 {
   char* params;
@@ -200,7 +200,7 @@ void readParseCGI()
             }
           else
             {
-              //printf ("Unknown param %s\n",value); //debug
+              /* printf ("Unknown param %s\n",value); // debug */
             }
 
         }
@@ -248,7 +248,7 @@ main ()
           buf[i+1] = j;
           len++;
         }
-      // only allow A_GroupValue_Write
+      /* only allow A_GroupValue_Write */
       if ((buf[1] &0x80) != 0x80)
         cgidie ("Only A_GroupValue_Write allowed");
       break;
@@ -257,7 +257,7 @@ main ()
       len=2;
       break;
     case 3:
-      // EIS2/DPT3 4bit dim
+      /* EIS2/DPT3 4bit dim */
       buf[1] |= atoi(data) & 0x3f;
       len=2;
       break;
@@ -283,7 +283,7 @@ main ()
       i = sign | (exp << 11) | (mant & 0x07ff);
       buf[2] = i >> 8;
       buf[3] = i & 0xff;
-      //return $data >> 8, $data & 0xff;
+      /* return $data >> 8, $data & 0xff; */
       len=4;
       break;
     case 16:
@@ -298,10 +298,12 @@ main ()
   len = EIBSendAPDU (con, len, buf);
   if (len == -1)
     cgidie ("Request failed");
-  printf ("{'success':%d}\n",len-1); //don't confuse client with leading 0x00
+  printf ("{'success':%d}\n",len-1); /*don't confuse client with leading 0x00 */
 
-  //printf("size %d %d\n",sizeof(buf),strlen(buf));
-  //printf("buf 0x%02X 0x%02X 0x%02X 0x%02X v:%s l:%d\n" ,buf[1],buf[2],buf[3],buf[4],data,strlen(data));
+#if 0
+  printf("size %d %d\n",sizeof(buf),strlen(buf));
+  printf("buf 0x%02X 0x%02X 0x%02X 0x%02X v:%s l:%d\n" ,buf[1],buf[2],buf[3],buf[4],data,strlen(data));
+#endif
   EIBClose (con);
   return 0;
 }

@@ -20,13 +20,13 @@
 #include "common.h"
 #include <time.h>
 #ifdef HAVE_SYS_TIME_H
-#include <sys/time.h> // for gettimeofday
+#include <sys/time.h> /* for gettimeofday */
 #endif
 
 int
 main (int ac, char *ag[])
 {
-//MM hires-time
+  /* hires-time */
   struct timeval tv;
   struct tm* ptm;
   char time_string[40];
@@ -40,7 +40,7 @@ main (int ac, char *ag[])
   milliseconds = tv.tv_usec / 1000;
   /* Print the formatted time, in seconds, followed by a decimal point and the milliseconds. */
   printf ("%s.%03ld\n", time_string, milliseconds);
-//MM end time
+  /* end time */
 
   uint8_t buf[255];
   int len;

@@ -349,7 +349,7 @@ TPUARTwrap::timer_cb(ev::timer &, int)
       setstate(T_wait);
       break;
     case T_wait_keepalive:
-      if (retry < 3)
+      if (retry > 2)
         {
           setstate(T_in_reset);
           return;
@@ -366,6 +366,11 @@ int
 TPUARTwrap::enableInputParityCheck()
 {
   struct termios t1;
+
+  if (fd_driver == nullptr)
+  {
+    return -3;
+  }
 
   TRACEPRINTF (t, 8, "Enabling input parity check on fd %d\n", fd_driver->get_fd());
 
@@ -645,8 +650,13 @@ TPUARTwrap::setstate(enum TSTATE new_state)
 
     case T_wait_keepalive:
     {
+      if (state == T_in_keepalive)
+        retry++;
+      else
+        retry = 1;
+
       uint8_t c = 0x02;
-      TRACEPRINTF (t, 0, "Send GetState %02X", c);
+      TRACEPRINTF (t, 0, "Send keepalive GetState %02X", c);
       LowLevelIface::send_Data(c);
       timer.start(0.5,0);
       break;
