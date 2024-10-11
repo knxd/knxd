@@ -215,9 +215,13 @@ On Debian/Ubuntu:
     # now build+install knxd
     sh knxd/install-debian.sh
 
-    # … and if you'd like to update knxd:
-    rm knxd*.deb
-    sh knxd/install-debian.sh
+That's all (well, except for configuring knxd).
+
+For updating:
+
+    cd knxd
+    git pull
+    sh install-debian.sh
 
 The `knxd/install-debian.sh` script should work without problems on any
 up-to-date Debian or Debian-derived system. If not, please do this before
