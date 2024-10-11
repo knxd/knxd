@@ -650,7 +650,7 @@ TPUARTwrap::setstate(enum TSTATE new_state)
 
     case T_wait_keepalive:
     {
-      if (state == T_in_keepalive)
+      if (state == T_wait_keepalive)
         retry++;
       else
         retry = 1;
