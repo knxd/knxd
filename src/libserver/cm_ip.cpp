@@ -27,12 +27,12 @@
 #include <unistd.h>
 
 CArray
-IPtoEIBNetIP (const struct sockaddr_in * a, bool nat)
+IPtoEIBNetIP (const struct sockaddr_in * a, bool nat, uint8_t protocol)
 {
   CArray buf;
   buf.resize (8);
   buf[0] = 0x08;
-  buf[1] = 0x01;
+  buf[1] = protocol;
   if (nat)
     {
       buf[2] = 0;
@@ -56,11 +56,11 @@ IPtoEIBNetIP (const struct sockaddr_in * a, bool nat)
 
 bool
 EIBnettoIP (const CArray & buf, struct sockaddr_in *a,
-            const struct sockaddr_in *src, bool & nat)
+            const struct sockaddr_in *src, bool & nat, uint8_t protocol)
 {
   int ip, port;
   memset (a, 0, sizeof (*a));
-  if (buf[0] != 0x8 || buf[1] != 0x1)
+  if (buf[0] != 0x8 || buf[1] != protocol)
     return true;
   ip = (buf[2] << 24) | (buf[3] << 16) | (buf[4] << 8) | (buf[5]);
   port = (buf[6] << 8) | (buf[7]);

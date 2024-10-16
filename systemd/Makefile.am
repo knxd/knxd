@@ -1,5 +1,5 @@
 if HAVE_SYSTEMD
-systemdsystemunit_DATA=knxd.service knxd.socket
+systemdsystemunit_DATA=knxd.service knxd.socket knxnetip.socket
 sysconf_DATA=knxd.conf
 systemdsysusers_DATA=sysusers.d/knxd.conf
 all: knxd.service.exp
