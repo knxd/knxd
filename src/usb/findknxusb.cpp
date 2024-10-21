@@ -123,7 +123,6 @@ main ()
       fprintf (stderr, "libusb init failure\n");
       exit (1);
     }
-  libusb_set_debug (context, 0);
   printf ("Possible addresses for KNX USB devices:\n");
   count = libusb_get_device_list (context, &devs);
 
