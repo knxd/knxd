@@ -68,7 +68,7 @@ return;
 void
 cgidie (const char *msg)
 {
-  printf ("{'error': '%s'}\n", msg);
+  printf ("{\"error\": \"%s\"}\n", msg);
   exit (1);
 }
 

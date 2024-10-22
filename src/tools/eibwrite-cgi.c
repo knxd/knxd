@@ -40,7 +40,7 @@ int gadest,dpt=0;
 void
 cgidie (const char *msg)
 {
-  printf ("{'error': '%s'}\n", msg);
+  printf ("{\"error\": \"%s\"}\n", msg);
   exit (1);
 }
 
@@ -298,7 +298,7 @@ main ()
   len = EIBSendAPDU (con, len, buf);
   if (len == -1)
     cgidie ("Request failed");
-  printf ("{'success':%d}\n",len-1); /*don't confuse client with leading 0x00 */
+  printf ("{\"success\":%d}\n",len-1); /*don't confuse client with leading 0x00 */
 
 #if 0
   printf("size %d %d\n",sizeof(buf),strlen(buf));
