@@ -490,15 +490,16 @@ The following options are not recognized unless "nat" is set.
 
 * nat-ip (string: IP address)
 
-  ??
+  Target IP address for the tunnelling servers responses and requests.
+  When set to zero the server shall use the IP address in the IP packet received.
   
-  Mandatory if "nat" is set, otherwise disallowed.
+  Defaults to "0.0.0.0" if "nat" is set, otherwise ignored.
 
 * data-port (int)
 
-  ??
+  Target port number for the tunnelling servers responses and requests.
   
-  Mandatory if "nat" is set, otherwise disallowed.
+  Defaults to 0 if "nat" is set, otherwise ignored.
 
 .. Note::
 

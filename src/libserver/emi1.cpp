@@ -70,7 +70,7 @@ EMI1Driver::cmdOpen ()
 {
   sendLocal_done_next = N_open;
   const uint8_t ta[] = { 0x46, 0x01, 0x01, 0x16, 0x00 }; // clear addr tab
-  send_Local (CArray (ta, sizeof (t)),1);
+  send_Local (CArray (ta, sizeof (ta)),1);
 }
 
 void

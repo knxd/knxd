@@ -59,6 +59,7 @@ private:
   void sendLocal_done_cb(bool success);
 
   bool after_reset = false;
+  bool sent_comm_mode = false;
 
   ev::timer reset_timer;
   void reset_timer_cb(ev::timer &w, int revents);
