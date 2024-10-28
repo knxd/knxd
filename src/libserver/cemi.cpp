@@ -72,6 +72,7 @@ void CEMIDriver::cmdClose()
 
 void CEMIDriver::started()
 {
+  sent_comm_mode = false;
   after_reset = true;
   reset_timer.start(0.5,0);
   sendReset();
@@ -87,9 +88,32 @@ void CEMIDriver::do_send_Next()
 {
   if (after_reset)
     {
-      after_reset = false;
-      reset_timer.stop();
-      EMI_Common::started();
+      if (!sent_comm_mode)
+        {
+          sent_comm_mode = true;
+
+          // Set the comm mode to "Data Link Layer" (0x00)
+          CArray set_comm_mode;
+          set_comm_mode.resize (8);
+          set_comm_mode[0] = 0xf6; // Message Code (MC), M_PropWrite.req
+          // Interface Object Type = cEMI Server Object
+          set_comm_mode[1] = 0x00; // IOTH
+          set_comm_mode[2] = 0x08; // IOTL
+          set_comm_mode[3] = 0x01; // Object Instance (OI)
+          set_comm_mode[4] = 0x34; // Property ID (PID), PID_COMM_MODE (52)
+          // number of elements (NoE) = 0x1
+          // start index (SIx) = 0x001
+          set_comm_mode[5] = 0x10; // NoE, SIx
+          set_comm_mode[6] = 0x01; // SIx
+          set_comm_mode[7] = 0x00; // Data (0x00 is "Data Link Layer")
+          send_Data (set_comm_mode);
+        }
+      else
+        {
+          after_reset = false;
+          reset_timer.stop();
+          EMI_Common::started();
+        }
     }
   else
     EMI_Common::do_send_Next();
