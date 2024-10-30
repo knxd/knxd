@@ -30,23 +30,25 @@
 #include "link.h"
 #include "router.h"
 
-class ClientConnection;
-using ClientConnPtr = std::shared_ptr<ClientConnection>;
+class ClientConnectionBase;
+using ClientConnBasePtr = std::shared_ptr<ClientConnectionBase>;
 
 /** implements the frontend (but opens no connection) */
-class NetServer: public Server
+class NetServerBase: public Server
 {
   friend class ClientConnection;
 
 public:
-  virtual ~NetServer ();
+  virtual ~NetServerBase ();
   bool ignore_when_systemd = false;
 
 protected:
-  NetServer (BaseRouter& l3, IniSectionPtr& s);
+  NetServerBase (BaseRouter& l3, IniSectionPtr& s);
 
   /** server socket */
   int fd;
+
+  virtual ClientConnBasePtr createConnection (int cfd) = 0;
 
   virtual void setupConnection (int cfd);
 
@@ -55,21 +57,30 @@ protected:
   void stop(bool err);
 
   /** deregister client connection */
-  void deregister (ClientConnPtr con);
+  void deregister (ClientConnBasePtr con);
 
 private:
   ev::io io;
   void io_cb (ev::io &w, int revents);
 
   /** open client connections*/
-  std::vector < ClientConnPtr > connections;
+  std::vector < ClientConnBasePtr > connections;
 
   ev::async cleanup;
   void cleanup_cb (ev::async &w, int revents);
 
   /** to-be-closed client connections*/
-  Queue < ClientConnPtr > cleanup_q;
+  Queue < ClientConnBasePtr > cleanup_q;
   void stop_(bool err);
+};
+
+class NetServer: public NetServerBase
+{
+protected:
+  NetServer (BaseRouter& l3, IniSectionPtr& s);
+  virtual ~NetServer ();
+
+  ClientConnBasePtr createConnection(int cfd);
 };
 
 using NetServerPtr = std::shared_ptr<NetServer>;

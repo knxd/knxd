@@ -39,12 +39,23 @@
 
 class A__Base;
 
-/** implements a client connection */
-class ClientConnection : public std::enable_shared_from_this<ClientConnection>
+/** a client connection, either for the knxd protocol or for tcp tunnelling */
+class ClientConnectionBase
 {
 public:
-  bool running = false;
+  virtual ~ClientConnectionBase ();
 
+  virtual bool setup() = 0;
+  virtual void start() = 0;
+  virtual void stop(bool err) = 0;
+
+  bool running = false;
+};
+
+/** implements a knxd protocol client connection */
+class ClientConnection : public ClientConnectionBase, public std::enable_shared_from_this<ClientConnection>
+{
+public:
   /** Layer 3 interface */
   Router &router;
   /** my address */

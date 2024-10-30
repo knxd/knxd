@@ -872,6 +872,60 @@ On the command line, this server is typically used as "-DTRS". The
 -S|--Server argument has to be used last and accepted the options mentioned
 above.
 
+tcptunsrv
+----------
+
+The "tcptunsrv" server allows clients to connect knxd using the KNXnet/ip
+TCP tunneling protocol.
+
+* tunnel (str)
+
+  This option names a section with configuration for tunnelled
+  connections. It's OK if that section doesn't exist or is empty.
+
+* port (int)
+
+  The TCP port to listen on / transmit to.
+
+  Optional; the default is 3671.
+
+* systemd-ignore (bool)
+
+  Ignore this server when knxd is started via systemd.
+
+  Optional; default "true" if listening on TCP port 3671.
+
+* heartbeat-timeout (integer: keep-alive timeout)
+
+  The maximum time between status messages from tunnel clients. A client
+  that doesn't send any packets for this long is disconnected.
+
+unixtunsrv
+----------
+
+The "unixtunsrv" server allows clients to connect knxd using the KNXnet/ip
+TCP tunneling protocol over Unix domain sockets.
+
+* tunnel (str)
+
+  This option names a section with configuration for tunnelled
+  connections. It's OK if that section doesn't exist or is empty.
+
+* path (string: file name)
+
+  Path to the socket file to use.
+
+* systemd-ignore (bool)
+
+  Ignore this server when knxd is started via systemd.
+
+  Optional; default is "false"
+
+* heartbeat-timeout (integer: keep-alive timeout)
+
+  The maximum time between status messages from tunnel clients. A client
+  that doesn't send any packets for this long is disconnected.
+
 knxd_unix
 ---------
 
