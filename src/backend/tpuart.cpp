@@ -369,7 +369,8 @@ TPUARTwrap::enableInputParityCheck()
 
   if (fd_driver == nullptr)
   {
-    return -3;
+    // Not possible and not necessary to enable on TCP connections, so just continue.
+    return 0;
   }
 
   TRACEPRINTF (t, 8, "Enabling input parity check on fd %d\n", fd_driver->get_fd());
