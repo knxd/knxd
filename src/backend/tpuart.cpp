@@ -131,7 +131,7 @@ TPUARTwrap::setup()
   if (cfg->value("device","").length() > 0)
     {
       if (cfg->value("ip-address","").length() > 0 ||
-          cfg->value("port",-1) != -1)
+          cfg->value("dest-port",-1) != -1)
         {
           ERRORPRINTF (t, E_ERROR | 25, "Don't specify both device and IP options!");
           return false;
@@ -369,7 +369,8 @@ TPUARTwrap::enableInputParityCheck()
 
   if (fd_driver == nullptr)
   {
-    return -3;
+    // Not possible and not necessary to enable on TCP connections, so just continue.
+    return 0;
   }
 
   TRACEPRINTF (t, 8, "Enabling input parity check on fd %d\n", fd_driver->get_fd());
