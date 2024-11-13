@@ -1,3 +1,10 @@
+knxd (0.14.67.1) UNRELEASED; urgency=medium
+
+  * Merge
+  * Various bugfixes
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 13 Nov 2024 10:08:04 +0100
+
 knxd (0.14.63.1) unstable; urgency=medium
 
   * Merge

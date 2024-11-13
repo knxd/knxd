@@ -565,12 +565,10 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       r2.individual_addr = dynamic_cast<Router *>(&router)->addr;
       r2.installid = 0;
       r2.multicastaddr = mcast->maddr.sin_addr;
-      r2.serial[0]=1;
-      r2.serial[1]=2;
-      r2.serial[2]=3;
-      r2.serial[3]=4;
-      r2.serial[4]=5;
-      r2.serial[5]=6;
+      // Serial must be deterministic and should consider multiple instances on a system.
+      std::copy(mac_address, mac_address + sizeof(mac_address), r2.serial.begin());
+      r2.serial[0] ^= (Port >> 8) & 0xff;
+      r2.serial[1] ^= Port & 0xff;
       //FIXME: Hostname, MAC-addr
       memcpy(r2.MAC, mac_address, sizeof(r2.MAC));
       //FIXME: Hostname, indiv. address

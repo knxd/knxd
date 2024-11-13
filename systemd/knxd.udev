@@ -3,20 +3,39 @@ ACTION!="add", GOTO="knxd_end"
 # Do not modify this file. Instead, create a file named
 # /etc/udev/rules.d/70-your-knxd.rules
 # and add your rule there.
-#
+# (Don't forget the ACTION and SUBSYSTEM guards.)
+
+SUBSYSTEM!="tty", GOTO="knxd_tty_end"
+
 # TPUART:
 # Run "udevadm info --attribute-walk /sys/bus/usb/drivers/cdc_acm/*/tty/ttyACM0", find the block with ATTRS{manufacturer}=="busware.de".
 # You need to replace the 'something' with the USB path of your TPUART interface.
 # (If you're sure that you'll never have more than one, you might delete that condition instead.)
-#ACTION=="add", SUBSYSTEM=="tty", ATTRS{idVendor}=="03eb", ATTRS{idProduct}=="204b", KERNELS=="something", SYMLINK+="ttyKNX1", OWNER="knxd"
+#ATTRS{idVendor}=="03eb", ATTRS{idProduct}=="204b", KERNELS=="something", SYMLINK+="ttyKNX1", OWNER="knxd"
 # 
-# For a TPUART or BAOS interface on top of the Raspberry Pi, use this:
-#ACTION=="add", SUBSYSTEM=="tty", KERNEL=="ttyAMA0", SYMLINK+="ttyKNX1", OWNER="knxd"
+# For a TPUART or BAOS interface as a Raspberry Pi HAT, use this:
+#pi3
+#KERNEL=="ttyAMA0", SYMLINK+="ttyKNX1", OWNER="knxd"
 #
-# For USB interfaces, replace the ATTRS with your interface's IDs.
+#pi4
+#KERNELS=="107d001000.serial", SYMLINK+="ttyKNX1", OWNER="knxd"
+#
+#pi5
+#KERNELS=="1f00030000.serial", SYMLINK+="ttyKNX1", OWNER="knxd"
+#
+#
+#boot/firmware/config.txt:
+#[all]
+#dtparam=uart0=on
+#enable_uart=1
+#dtoverlay=disable-bt
+#dtoverlay=pi3-disable-bt
+#
+# For USB serial interfaces, replace the ATTRS with your interface's IDs.
 # You get these from "lsusb". If your interface isn't already in the list
 # below, please submit a bug so that I can include it.
 #
+LABEL="knxd_tty_end"
 
 # The rest of this file is intended for USB-HID devices. These are always 
 # accessed via /dev/usb/XXX/YYY, so we only need to change the ownership.
