@@ -5,6 +5,24 @@ knxd (0.14.67.1) UNRELEASED; urgency=medium
 
  -- Matthias Urlichs <matthias@urlichs.de>  Wed, 13 Nov 2024 10:08:04 +0100
 
+knxd (0.14.66-2) unstable; urgency=medium
+
+  * Merge
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 28 Oct 2024 21:40:42 +0100
+
+knxd (0.14.65-1) unstable; urgency=medium
+
+  * Merge
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 11 Oct 2024 17:10:37 +0200
+
+knxd (0.14.64-1) unstable; urgency=medium
+
+  * Merge
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Fri, 11 Oct 2024 17:06:58 +0200
+
 knxd (0.14.63.1) unstable; urgency=medium
 
   * Merge
@@ -24,6 +42,30 @@ knxd (0.14.54.1) unstable; urgency=medium
   * Packaging native sources because not just using git is beyond annoying.
 
  -- Matthias Urlichs <matthias@urlichs.de>  Tue, 25 Oct 2022 14:28:34 +0200
+
+knxd (0.14.62-1) unstable; urgency=medium
+
+  * Merge
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 12 Jun 2024 12:37:49 +0200
+
+knxd (0.14.60-1) unstable; urgency=medium
+
+  * Merge
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Tue, 09 Jan 2024 15:45:39 +0100
+
+knxd (0.14.59-1) unstable; urgency=medium
+
+  * Merge
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Tue, 18 Jul 2023 19:05:00 +0200
+
+knxd (0.14.54-1) unstable; urgency=medium
+
+  * Merge
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Sat, 29 Jan 2022 14:40:31 +0100
 
 knxd (0.14.53-1) unstable; urgency=medium
 
