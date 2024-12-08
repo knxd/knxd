@@ -19,7 +19,7 @@ override_dh_clean:
 	rm -f debian/knxd.udev
 
 override_dh_auto_configure: configure install-sh
-	dh_auto_configure -- --enable-usb --enable-groupcache --enable-ft12 --enable-tpuart --enable-dummy --libexecdir=/usr/lib --enable-dependency-tracking --enable-silent-rules
+	dh_auto_configure -- --enable-usb --enable-groupcache --enable-ft12 --enable-tpuart --enable-dummy --libexecdir=/usr/lib --enable-dependency-tracking
 
 configure install-sh: configure.ac
 	sh bootstrap.sh
