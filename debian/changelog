@@ -2,6 +2,7 @@ knxd (0.14.67.1) UNRELEASED; urgency=medium
 
   * Merge
   * Various bugfixes
+  * Bump Standards-Version to 4.7.0.1
 
  -- Matthias Urlichs <matthias@urlichs.de>  Wed, 13 Nov 2024 10:08:04 +0100
 

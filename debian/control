@@ -12,9 +12,9 @@ Build-Depends: debhelper (>= 10),
   libfmt-dev | libfmt3-dev | cmake (>= 2.8.12),
   libfmt-dev | libfmt3-dev | git,
 Build-Conflicts: libsystemd-daemon-dev (<< 200)
-Standards-Version: 4.3.0.1
+Standards-Version: 4.7.0.1
 Homepage: https://github.com/knxd/knxd
-Vcs-Git: https://github.com/knxd/knxd.git
+Vcs-Git: https://github.com/knxd/knxd.git -b debian
 Vcs-Browser: https://github.com/knxd/knxd
 
 Package: knxd
