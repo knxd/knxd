@@ -7,19 +7,6 @@ Copyright:
  © 2005-2019 knxd project members; see AUTHORS file
 License: GPL-2.0+
 
-Files: contrib/arch-build-system/*
-Copyright:
- © 2015 Ole Krueger <ole@vprsm.de>
- © 2015-2018 Claus Klingberg <cjk@pobox.com>
-License: GPL-2.0+
-
-Files: contrib/gentoo/*
-Copyright:
- © 2015 Marc Joliet <marcec@gmx.de>
- © 2015-2017 Michael Kefeder <m.kefeder@gmail.com>
- © 2015-2017 Matthias Urlichs <matthias@urlichs.de>
-License: GPL-2.0+
-
 Files: contrib/udev/*
 Copyright:
  © 2015 Sven Fischer <svenihoney@users.noreply.github.com>
@@ -76,13 +63,6 @@ License: GPL-2.0+
 Files: res/*
 Copyright:
  © 2017 Joerg Mattiello <dev@mjoe.org>
-License: GPL-2.0+
-
-Files: rpm/*
-Copyright:
- © 2015 Juergen Sauermann <juergen.sauermann@t-online.de>
- © 2016-2017 Michael Kefeder <m.kefeder@gmail.com>
- © 2017 Matthias Urlichs <matthias@urlichs.de>
 License: GPL-2.0+
 
 Files: src/backend/ncn5120.cpp
