@@ -1105,7 +1105,7 @@ Limit the rate at which packets are transmitted to an interface.
 
   The delay between transmissions.
   
-  Optional. The default is 20 msec.
+  Optional. The default is 15 msec.
 
 * delay-per-byte (float, msec)
 
