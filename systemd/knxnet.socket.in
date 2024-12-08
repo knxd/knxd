@@ -1,0 +1,12 @@
+[Unit]
+Description=KNXnet/IP socket
+
+[Socket]
+FileDescriptorName=knxnet
+ListenStream=@RUNDIR@/knxnet
+SocketGroup=knxd
+SocketMode=0660
+Service=knxd.service
+
+[Install]
+WantedBy=sockets.target
