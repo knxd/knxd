@@ -3,8 +3,7 @@
 
 # Uncomment this to turn on verbose mode.
 export DH_VERBOSE=1
-export DEB_BUILD_MAINT_OPTIONS=hardening=-format
-export DEB_BUILD_HARDENING_FORMAT=0
+export DEB_BUILD_MAINT_OPTIONS=hardening=+all
 
 
 # This has to be exported to make some magic below work.
