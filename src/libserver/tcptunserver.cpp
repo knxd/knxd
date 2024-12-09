@@ -49,16 +49,16 @@ TcpTunConn::TcpTunConn(TcpTunServerBase *parent, uint32_t connectionID, int fd)
       localSocketAddress.sin_family != AF_INET)
     {
       char str[64];
-      snprintf(str, sizeof(str), "stream-%d", connectionID);
+      snprintf(str, sizeof(str), "stream-%u", connectionID);
       t->setAuxName(str);
     }
   else
     {
-      char addrStr[64];
+      char addrStr[INET_ADDRSTRLEN];
       if (inet_ntop(localSocketAddress.sin_family, &localSocketAddress.sin_addr, addrStr, sizeof(addrStr)))
         {
-          char addrPortStr[64];
-          snprintf(addrPortStr, sizeof(addrPortStr), "%s:%d", addrStr, localSocketAddress.sin_port);
+          char addrPortStr[INET_ADDRSTRLEN + 6];
+          snprintf(addrPortStr, sizeof(addrPortStr), "%s:%hu", addrStr, localSocketAddress.sin_port);
           t->setAuxName(addrPortStr);
         }
       else
