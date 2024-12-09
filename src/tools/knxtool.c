@@ -379,7 +379,7 @@ vbusmonitor1time\n");
               char logfile[32];
               FILE *new_fd;
               prev_day = loctim->tm_yday;
-              snprintf (logfile, 31, "knx-%d-%d-%d.log",
+              snprintf (logfile, 31, "knx-%hd-%02hd-%02hd.log",
                         loctim->tm_year + 1900,
                         loctim->tm_mon + 1, loctim->tm_mday);
 
@@ -398,7 +398,7 @@ vbusmonitor1time\n");
                   fprintf (log_fd, "Logfile opened\n");
                 }
             }
-          fprintf (log_fd, "%d-%02d-%02d %d:%d:%d : %s\n",
+          fprintf (log_fd, "%d-%02d-%02d %02d:%02d:%02d : %s\n",
                    loctim->tm_year + 1900,
                    loctim->tm_mon + 1,
                    loctim->tm_mday,
