@@ -1,11 +1,10 @@
 CC = $(CC_FOR_BUILD)
-CPPFLAGS = $(CPPFLAGS_FOR_BUILD)
-CFLAGS = $(CFLAGS_FOR_BUILD)
-LDFLAGS = $(LDFLAGS_FOR_BUILD)
 LIBS = $(LIBS_FOR_BUILD)
 EXEEXT = $(EXEEXT_FOR_BUILD)
 
-AM_CPPFLAGS=-I$(top_srcdir)/src/include -I$(top_srcdir)/src/client -I$(top_builddir)/src/client
+AM_CPPFLAGS=-I$(top_srcdir)/src/include -I$(top_srcdir)/src/client -I$(top_builddir)/src/client $(CPPFLAGS_FOR_BUILD)
+AM_CFLAGS = $(CFLAGS_FOR_BUILD)
+AM_LDFLAGS = $(LDFLAGS_FOR_BUILD)
 
 EXTRA_DIST = io.inc
 CLEANFILES = gen.inc EIBConnection.lua result.inc
