@@ -13,7 +13,7 @@ esac
 
 # on Debian systems we need pkg-config
 if which dpkg >/dev/null && ! which pkg-config >/dev/null ; then
-	echo "Package 'pkg-config' missing."
+	echo "Tool 'pkg-config' missing. Install package 'pkgconf' or older 'pkg-config'."
 	exit 2
 fi
 

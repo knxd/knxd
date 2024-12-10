@@ -1,8 +1,10 @@
 knxd (0.14.68-1) unstable; urgency=medium
 
   * Merge
+  * Various bugfixes
+  * Bump Standards-Version to 4.7.0.1
 
- -- Matthias Urlichs <matthias@urlichs.de>  Tue, 10 Dec 2024 01:45:15 +0100
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 13 Nov 2024 10:08:04 +0100
 
 knxd (0.14.66-2) unstable; urgency=medium
 
@@ -21,6 +23,26 @@ knxd (0.14.64-1) unstable; urgency=medium
   * Merge
 
  -- Matthias Urlichs <matthias@urlichs.de>  Fri, 11 Oct 2024 17:06:58 +0200
+
+knxd (0.14.63.1) unstable; urgency=medium
+
+  * Merge
+  * Remove C++ line-based comments from C files. Closes: #1075116
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Wed, 03 Jul 2024 15:05:04 +0200
+
+knxd (0.14.56.2) unstable; urgency=medium
+
+  * Merge
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 10 Nov 2022 19:19:25 +0100
+
+knxd (0.14.54.1) unstable; urgency=medium
+
+  * Merge. Closes: #1004310
+  * Packaging native sources because not just using git is beyond annoying.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Tue, 25 Oct 2022 14:28:34 +0200
 
 knxd (0.14.62-1) unstable; urgency=medium
 
