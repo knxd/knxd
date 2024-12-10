@@ -35,6 +35,10 @@
 #endif
 #include "server.h"
 
+ClientConnectionBase::~ClientConnectionBase ()
+{
+}
+
 ClientConnection::ClientConnection (NetServerPtr s, int fd) : router(static_cast<Router&>(s->router)), sendbuf(fd),recvbuf(fd)
 {
   t = TracePtr(new Trace(*(s->t)));

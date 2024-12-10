@@ -39,6 +39,9 @@
 
 // all values are from 03_08_01 5.* unless otherwise specified
 
+#define KNXNETIP_VERSION_10   0x10
+#define HEADER_SIZE_10        0x06
+
 /** Service type identifiers */
 enum ServiceType : uint16_t
 {
@@ -129,6 +132,14 @@ enum HostProtocolCode : uint8_t
   IPV4_TCP = 0x02,
 };
 
+/** Tunnelling KNX layers */
+enum TunnellingLayer : uint8_t
+{
+  TUNNEL_LINKLAYER = 0x02,
+  TUNNEL_RAW = 0x04,
+  TUNNEL_BUSMONITOR = 0x80,
+};
+
 /* Timeout constants */
 constexpr ev::tstamp CONNECT_REQUEST_TIMEOUT = 10;
 constexpr ev::tstamp CONNECTIONSTATE_REQUEST_TIMEOUT = 10;
@@ -148,6 +159,15 @@ struct DIB_service_Entry
   uint8_t version;
 };
 
+// A sockaddr_in for "Route Back" HPAIs
+// See ISO 22510:2019 section 5.2.8.6.2 b)
+inline sockaddr_in routeBackAddr()
+{
+  sockaddr_in addr;
+  memset(&addr, 0, sizeof(addr));
+  return addr;
+}
+
 /** represents a EIBnet/IP packet */
 class EIBNetIPPacket
 {
@@ -156,6 +176,8 @@ public:
   int service;
   /** payload */
   CArray data;
+  /** the protocol over which the packet is transported */
+  HostProtocolCode protocol;
   /** source address */
   struct sockaddr_in src;
 
@@ -164,7 +186,8 @@ public:
 
   /** create from character array */
   static EIBNetIPPacket *fromPacket (const CArray & c,
-                                     const struct sockaddr_in src);
+                                     const struct sockaddr_in src,
+                                     HostProtocolCode protocol = IPV4_UDP);
   /** convert to character array */
   CArray ToPacket () const;
 };
@@ -175,7 +198,7 @@ public:
   EIBnet_SearchRequest ();
   struct sockaddr_in caddr;
   bool nat = false;
-  EIBNetIPPacket ToPacket () const;
+  EIBNetIPPacket ToPacket (HostProtocolCode protocol = IPV4_UDP) const;
 };
 
 int parseEIBnet_SearchRequest (const EIBNetIPPacket & p,
@@ -196,7 +219,7 @@ public:
   char name[30];
   struct sockaddr_in caddr;
   bool nat = false;
-  EIBNetIPPacket ToPacket () const;
+  EIBNetIPPacket ToPacket (HostProtocolCode protocol = IPV4_UDP) const;
 };
 
 int parseEIBnet_SearchResponse (const EIBNetIPPacket & p,
@@ -208,7 +231,7 @@ public:
   EIBnet_DescriptionRequest ();
   struct sockaddr_in caddr;
   bool nat = false;
-  EIBNetIPPacket ToPacket () const;
+  EIBNetIPPacket ToPacket (HostProtocolCode protocol = IPV4_UDP) const;
 };
 
 int parseEIBnet_DescriptionRequest (const EIBNetIPPacket & p,
@@ -228,7 +251,7 @@ public:
   uint8_t MAC[6];
   char name[30];
   CArray optional;
-  EIBNetIPPacket ToPacket () const;
+  EIBNetIPPacket ToPacket (HostProtocolCode protocol = IPV4_UDP) const;
 };
 
 int parseEIBnet_DescriptionResponse (const EIBNetIPPacket & p,
@@ -242,7 +265,7 @@ public:
   struct sockaddr_in daddr;
   CArray CRI;
   bool nat = false;
-  EIBNetIPPacket ToPacket () const;
+  EIBNetIPPacket ToPacket (HostProtocolCode protocol = IPV4_UDP) const;
 };
 
 int parseEIBnet_ConnectRequest (const EIBNetIPPacket & p,
@@ -257,7 +280,7 @@ public:
   struct sockaddr_in daddr;
   bool nat = false;
   CArray CRD;
-  EIBNetIPPacket ToPacket () const;
+  EIBNetIPPacket ToPacket (HostProtocolCode protocol = IPV4_UDP) const;
 };
 
 int parseEIBnet_ConnectResponse (const EIBNetIPPacket & p,
@@ -271,7 +294,7 @@ public:
   uint8_t status = 0;
   struct sockaddr_in caddr;
   bool nat = false;
-  EIBNetIPPacket ToPacket () const;
+  EIBNetIPPacket ToPacket (HostProtocolCode protocol = IPV4_UDP) const;
 };
 
 int parseEIBnet_ConnectionStateRequest (const EIBNetIPPacket & p,
@@ -283,7 +306,7 @@ public:
   EIBnet_ConnectionStateResponse () = default;
   uint8_t channel = 0;
   uint8_t status = 0;
-  EIBNetIPPacket ToPacket () const;
+  EIBNetIPPacket ToPacket (HostProtocolCode protocol = IPV4_UDP) const;
 };
 
 int parseEIBnet_ConnectionStateResponse (const EIBNetIPPacket & p,
@@ -296,7 +319,7 @@ public:
   struct sockaddr_in caddr;
   uint8_t channel = 0;
   bool nat = false;
-  EIBNetIPPacket ToPacket () const;
+  EIBNetIPPacket ToPacket (HostProtocolCode protocol = IPV4_UDP) const;
 };
 
 int parseEIBnet_DisconnectRequest (const EIBNetIPPacket & p,
@@ -308,7 +331,7 @@ public:
   EIBnet_DisconnectResponse () = default;
   uint8_t channel = 0;
   uint8_t status = 0;
-  EIBNetIPPacket ToPacket () const;
+  EIBNetIPPacket ToPacket (HostProtocolCode protocol = IPV4_UDP) const;
 };
 
 int parseEIBnet_DisconnectResponse (const EIBNetIPPacket & p,
@@ -321,7 +344,7 @@ public:
   uint8_t channel = 0;
   uint8_t seqno = 0;
   CArray CEMI;
-  EIBNetIPPacket ToPacket () const;
+  EIBNetIPPacket ToPacket (HostProtocolCode protocol = IPV4_UDP) const;
 };
 
 int parseEIBnet_ConfigRequest (const EIBNetIPPacket & p,
@@ -334,7 +357,7 @@ public:
   uint8_t channel = 0;
   uint8_t seqno = 0;
   uint8_t status = 0;
-  EIBNetIPPacket ToPacket () const;
+  EIBNetIPPacket ToPacket (HostProtocolCode protocol = IPV4_UDP) const;
 };
 
 int parseEIBnet_ConfigACK (const EIBNetIPPacket & p, EIBnet_ConfigACK & r); // @todo rename to parseEIBnet_DeviceConfigurationAck
@@ -346,7 +369,7 @@ public:
   uint8_t channel = 0;
   uint8_t seqno = 0;
   CArray CEMI;
-  EIBNetIPPacket ToPacket () const;
+  EIBNetIPPacket ToPacket (HostProtocolCode protocol = IPV4_UDP) const;
 };
 
 int parseEIBnet_TunnelRequest (const EIBNetIPPacket & p,
@@ -359,21 +382,21 @@ public:
   uint8_t channel = 0;
   uint8_t seqno = 0;
   uint8_t status = 0;
-  EIBNetIPPacket ToPacket () const;
+  EIBNetIPPacket ToPacket (HostProtocolCode protocol = IPV4_UDP) const;
 };
 
 int parseEIBnet_TunnelACK (const EIBNetIPPacket & p, EIBnet_TunnelACK & r);
 
 class EIBnet_RoutingIndication
 {
-  EIBNetIPPacket ToPacket () const;
+  EIBNetIPPacket ToPacket (HostProtocolCode protocol = IPV4_UDP) const;
 };
 
 int parseEIBnet_RoutingIndication (const EIBNetIPPacket & p, EIBnet_RoutingIndication & r);
 
 class EIBnet_RoutingLostMessage
 {
-  EIBNetIPPacket ToPacket () const;
+  EIBNetIPPacket ToPacket (HostProtocolCode protocol = IPV4_UDP) const;
 };
 
 int parseEIBnet_RoutingLostMessage (const EIBNetIPPacket & p, EIBnet_RoutingLostMessage & r);

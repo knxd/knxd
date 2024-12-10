@@ -53,7 +53,7 @@ PaceFilter::setup()
   byte_delay = cfg->value("delay-per-byte",1)/1000.;
   if (byte_delay < 0)
     {
-      ERRORPRINTF(t, E_ERROR | 1, "The delay must be >0");
+      ERRORPRINTF(t, E_ERROR | 1, "The byte delay must be >=0");
       return false;
     }
   factor_in = cfg->value("incoming",0.75);

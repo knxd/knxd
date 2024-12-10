@@ -115,7 +115,7 @@ FT12wrap::setup()
   if (cfg->value("device","").length() > 0)
     {
       if (cfg->value("ip-address","").length() > 0 ||
-          cfg->value("port",-1) != -1)
+          cfg->value("dest-port",-1) != -1)
         {
           ERRORPRINTF (t, E_ERROR | 5, "Don't specify both device and IP options!");
           return false;

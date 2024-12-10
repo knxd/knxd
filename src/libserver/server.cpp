@@ -28,7 +28,7 @@
 #include "client.h"
 
 void
-NetServer::stop_(bool err)
+NetServerBase::stop_(bool err)
 {
   TRACEPRINTF (t, 8, "StopServer");
 
@@ -49,31 +49,31 @@ NetServer::stop_(bool err)
 }
 
 void
-NetServer::stop(bool err)
+NetServerBase::stop(bool err)
 {
   stop_(err);
   stopped(err);
 }
 
-NetServer::~NetServer ()
+NetServerBase::~NetServerBase ()
 {
   // stopped() may not be called from a destructor
   stop_(false);
 }
 
 void
-NetServer::deregister (ClientConnPtr con)
+NetServerBase::deregister (ClientConnBasePtr con)
 {
   cleanup_q.push(con);
   cleanup.send();
 }
 
 void
-NetServer::cleanup_cb (ev::async &, int)
+NetServerBase::cleanup_cb (ev::async &, int)
 {
   while (!cleanup_q.empty())
     {
-      ClientConnPtr con = cleanup_q.get();
+      ClientConnBasePtr con = cleanup_q.get();
 
       ITER(i, connections)
       if (*i == con)
@@ -84,14 +84,14 @@ NetServer::cleanup_cb (ev::async &, int)
     }
 }
 
-NetServer::NetServer (BaseRouter& r, IniSectionPtr& s) : Server (r,s)
+NetServerBase::NetServerBase (BaseRouter& r, IniSectionPtr& s) : Server (r,s)
 {
   t->setAuxName("NetServ");
   fd = -1;
 }
 
 void
-NetServer::start()
+NetServerBase::start()
 {
   if (fd == -1)
     {
@@ -99,16 +99,16 @@ NetServer::start()
       return;
     }
   set_non_blocking(fd);
-  io.set<NetServer, &NetServer::io_cb>(this);
+  io.set<NetServerBase, &NetServerBase::io_cb>(this);
   io.start(fd,ev::READ);
-  cleanup.set<NetServer, &NetServer::cleanup_cb>(this);
+  cleanup.set<NetServerBase, &NetServerBase::cleanup_cb>(this);
   cleanup.start();
 
   started();
 }
 
 void
-NetServer::io_cb (ev::io &, int)
+NetServerBase::io_cb (ev::io &, int)
 {
   int cfd;
   cfd = accept (fd, NULL,NULL);
@@ -116,7 +116,9 @@ NetServer::io_cb (ev::io &, int)
     {
       TRACEPRINTF (t, 8, "New Connection");
       setupConnection (cfd);
-      ClientConnPtr c = std::shared_ptr<ClientConnection>(new ClientConnection (std::static_pointer_cast<NetServer>(shared_from_this()), cfd));
+      ClientConnBasePtr c = createConnection(cfd);
+      if (!c)
+        return;
       if (!c->setup())
         return;
       c->start();
@@ -128,7 +130,7 @@ NetServer::io_cb (ev::io &, int)
 }
 
 bool
-NetServer::setup()
+NetServerBase::setup()
 {
   if (!Server::setup())
     return false;
@@ -140,7 +142,21 @@ NetServer::setup()
 }
 
 void
-NetServer::setupConnection (int)
+NetServerBase::setupConnection (int)
 {
   ignore_when_systemd = cfg->value("systemd-ignore",ignore_when_systemd);
+}
+
+NetServer::NetServer (BaseRouter& r, IniSectionPtr& s) : NetServerBase (r,s)
+{
+}
+
+NetServer::~NetServer ()
+{
+}
+
+ClientConnBasePtr
+NetServer::createConnection(int cfd)
+{
+  return std::shared_ptr<ClientConnection>(new ClientConnection (std::static_pointer_cast<NetServer>(shared_from_this()), cfd));
 }
