@@ -21,6 +21,7 @@
 #include "config.h"
 #include "tunchannel.h"
 
+#include <unistd.h>
 #include <netinet/tcp.h>
 #include <sys/un.h>
 #include <arpa/inet.h>
