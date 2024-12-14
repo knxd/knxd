@@ -23,7 +23,7 @@ override_dh_auto_configure: configure install-sh
 configure install-sh: configure.ac
 	sh bootstrap.sh
 
-override_dh_install: debian/knxd.install debian/knxd.socket debian/knxd.service debian/knxd.udev
+override_dh_install: debian/knxd.install debian/knxd.socket debian/knxnet.socket debian/knxd.service debian/knxd.udev
 	dh_install
 	dh_systemd_enable || true
 	dh_systemd_start || true
@@ -40,9 +40,11 @@ debian/knxd.udev: systemd/knxd.udev
 
 debian/knxd.socket: systemd/knxd.socket
 	test -e $^ && cp $^ $@
+debian/knxnet.socket: systemd/knxnet.socket
+	test -e $^ && cp $^ $@
 debian/knxd.service: systemd/knxd.service
 	test -e $^ && cp $^ $@
-systemd/knxd.socket systemd/knxd.service:
+systemd/knxd.socket systemd/knxnet.socket systemd/knxd.service:
 	$(MAKE) -C systemd
 
 override_dh_auto_test:
