@@ -1,7 +1,7 @@
 [Unit]
 Description=KNX Daemon
-After=network.target knxd.socket knxnet.socket
-Requires=knxd.socket knxnet.socket
+After=network.target knxd.socket knxd-net.socket
+Requires=knxd.socket knxd-net.socket
 
 [Service]
 EnvironmentFile=@sysconfdir@/knxd.conf
@@ -15,4 +15,4 @@ RestartSec=10
 
 [Install]
 WantedBy=multi-user.target network-online.target
-Also=knxd.socket knxnet.socket
+Also=knxd.socket knxd-net.socket

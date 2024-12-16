@@ -11,7 +11,7 @@
 /knxd.install
 /knxd.service
 /knxd.socket
-/knxnet.socket
+/knxd-net.socket
 /autoreconf.after
 /autoreconf.before
 /debhelper-build-stamp
