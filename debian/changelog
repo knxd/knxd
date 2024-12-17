@@ -1,3 +1,9 @@
+knxd (0.14.71-1) unstable; urgency=medium
+
+  * Merge
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Tue, 17 Dec 2024 22:22:04 +0100
+
 knxd (0.14.70-1) unstable; urgency=medium
 
   * Use the system libinih.

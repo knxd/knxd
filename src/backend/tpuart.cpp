@@ -548,7 +548,7 @@ TPUARTwrap::recv_Data(CArray &c)
         */
       else if (c == 0xCC || c == 0xC0 || c == 0x0C)
         {
-          RecvLPDU (in.data(), 1);
+          RecvLPDU (&c, 1);
         }
       else if ((c & 0x50) == 0x10) // Matches KNX control byte L_Data_Standard/Extended Frame
         {
