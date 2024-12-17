@@ -333,14 +333,36 @@ AC_CHECK_MEMBER([struct sockaddr_in.sin_len],[AC_DEFINE(HAVE_SOCKADDR_IN_LEN,1,[
 ])
 
 AC_CONFIG_HEADERS(config.h)
-AC_CONFIG_FILES([Makefile 
+AC_CONFIG_FILES([
+Makefile 
+src/Makefile
 src/common/Makefile
-src/Makefile src/include/Makefile  src/client/Makefile src/examples/Makefile src/libserver/Makefile src/server/Makefile src/backend/Makefile
-src/client/def/Makefile src/client/c/Makefile src/client/java/Makefile src/client/php/Makefile src/client/cs/Makefile
-src/client/perl/Makefile src/client/python/Makefile src/client/pascal/Makefile src/client/ruby/Makefile src/client/lua/Makefile src/client/go/Makefile
-src/usb/Makefile src/tools/Makefile systemd/Makefile systemd/knxd.service systemd/knxd.socket systemd/knxd-net.socket
+src/backend/Makefile
+src/include/Makefile
+src/libserver/Makefile
+src/server/Makefile
+src/tools/Makefile
+src/usb/Makefile
+systemd/knxd-net.socket
+systemd/knxd.service
+systemd/knxd.socket
+systemd/Makefile
+src/client/Makefile
+src/client/c/Makefile
+src/client/cs/Makefile
+src/client/def/Makefile
+src/client/go/Makefile
+src/client/java/Makefile
+src/client/lua/Makefile
+src/client/pascal/Makefile
+src/client/perl/Makefile
+src/client/php/Makefile
+src/client/python/Makefile
+src/client/ruby/Makefile
 ])
-dnl src/tools/eibnet/Makefile src/tools/bcu/Makefile
+dnl src/examples/Makefile
+dnl src/tools/eibnet/Makefile
+dnl src/tools/bcu/Makefile
 AC_OUTPUT
 
 AC_CONFIG_MACRO_DIR([m4])
