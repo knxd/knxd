@@ -80,6 +80,9 @@ AC_CHECK_HEADER(linux/usbdevice_fs.h,[AC_DEFINE(OS_LINUX, 1, [Linux usb availabl
 AC_CHECK_HEADER(iphlpapi.h,[AC_DEFINE(HAVE_WINDOWS_IPHELPER, 1,[Windows IPHelper available]) 
   LIBS="-liphlpapi $LIBS"; have_source_info=yes],[],[])
 
+AC_CHECK_HEADER(ini.h,[AC_DEFINE(HAVE_LIBINIH, 1,[libinih available]) have_inih=yes],[],[])
+AM_CONDITIONAL(HAVE_INIH, test x$have_inih = xyes)
+
 AC_CHECK_DECL(SA_SIZE,[AC_DEFINE(HAVE_SA_SIZE, 1,[SA_SIZE function available])],[],[
   #include <stdint.h>
   #include <sys/socket.h>
