@@ -1,0 +1,243 @@
+From: 
+Subject: Debian changes
+
+The Debian packaging of knxd is maintained in git, using a workflow
+similar to the one described in dgit-maint-merge(7).
+The Debian delta is represented by this one combined patch; there isn't a
+patch queue that can be represented as a quilt series.
+
+A detailed breakdown of the changes is available from their canonical
+representation -- git commits in the packaging repository.
+For example, to see the changes made by the Debian maintainer in the first
+upload of upstream version 1.2.3, you could use:
+
+    % git clone https://git.dgit.debian.org/knxd
+    % cd knxd
+    % git log --oneline 1.2.3..debian/1.2.3-1 -- . ':!debian'
+
+(If you have dgit, use `dgit clone knxd`, rather than plain `git clone`.)
+
+We don't use debian/source/options single-debian-patch because it has bugs.
+Therefore, NMUs etc. may nevertheless have made additional patches.
+
+---
+
+diff --git a/.gitignore b/.gitignore
+index bcbe340..951d7cf 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -1,4 +1,3 @@
+-/debian/
+ *~
+ *.swp
+ *.la
+diff --git a/Makefile.am b/Makefile.am
+index e66b4b2..9ecf9da 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -2,6 +2,7 @@ AUTOMAKE_OPTIONS=1.9
+ ACLOCAL_AMFLAGS = -I m4
+ EXTRA_DIST=SubmittingPatches .gitignore tools/version.sh
+ 
++CONFIGURE_DEPENDENCIES=debian/changelog
+ ## rebuild when the version changes
+ 
+ BUILDDIRS = 
+@@ -33,6 +34,7 @@ help HELP:
+ 	@echo ""
+ 
+ # update version number
++configure: debian/changelog
+ config.h: configure
+ 
+ test: all
+diff --git a/README.md b/README.md
+index 930e190..b9f1749 100644
+--- a/README.md
++++ b/README.md
+@@ -4,13 +4,14 @@ knxd [![Build Status](https://travis-ci.org/knxd/knxd.svg)](https://travis-ci.or
+ KNX is a very common building automation protocol which runs on dedicated 9600-baud wire as well as IP multicast.
+ ``knxd`` is an advanced router/gateway which runs on any Linux computer; it can talk to all known KNX interfaces.
+ 
+-# STOP if you install on Debian (or Ubuntu or …)
++# STOP if you are not on Debian (or Ubuntu or …)
+ 
+-Debian/Ubuntu packaging has moved to the ``debian`` branch. Please use that
+-branch (by way of ``git checkout debian``) if you're following some (outdated …)
+-installation instructions for Debian, Ubuntu or their derivatives.
++This is the ``debian`` branch, which includes Debian-specific packaging and
++some minor related changes. If you're using some other Linux flavor, please
++check out the corresponding branch, or use ``main`` for "manual"
++installation to ``/usr/local``.
+ 
+-In the ``debian`` branch, this file contains build instructions for Debian.
++Otherwise see the installation instructions, below.
+ 
+ # Stable version
+ 
+@@ -57,6 +58,10 @@ to knxd's options.
+ 
+ ### see https://github.com/knxd/knxd/blob/v0.12/README.md for earlier changes
+ 
++* 0.14.51
++
++  * Added a "heartbeat-timeout" option to the tunnel server
++
+ * 0.14.41
+ 
+   * speed up CGI initial setup (a lot)
+@@ -198,33 +203,94 @@ please also see: [eibd(war bcusdk) Fork -> knxd](http://knx-user-forum.de/forum/
+ 
+ ## Building
+ 
+-When in doubt, please check out the branch corresponding to your Linux
+-distribution's flavor, and read this section there.
++Run these steps as normal user, not as root.
+ 
+-This part covers "manual" installation.
++On Debian/Ubuntu:
+ 
+-    # first, install build tools and dependencies. You need git, autotools, and gcc/g++.
+-    #: check your Linux distribution's documentation if you don't know how
+-    # You also need a "knxd" user.
++    sudo apt-get install git
+ 
+     # get the source code
+-    git clone https://github.com/knxd/knxd.git
++    git clone -b debian https://github.com/knxd/knxd.git
++
++    # now build+install knxd
++    sh knxd/install-debian.sh
++
++That's all (well, except for configuring knxd).
++
++For updating:
+ 
+-    # build+install knxd
+     cd knxd
+-    git checkout main
+-    sh bootstrap.sh
+-    ./configure --help
+-    ./configure --your-chosen-options
+-    make
+-    make install
+-    cd ..
++    git pull
++    sh install-debian.sh
+ 
+-    # Now switch to the "knxd" user and start the daemon.
++The `knxd/install-debian.sh` script should work without problems on any
++up-to-date Debian or Debian-derived system. If not, please do this before
++filing an issue:
++
++* Verify that your system is 100% up-to-date.
++
++* Verify that you did not pin any packages, either via ``aptitude`` or
++  ``/etc/apt/preferences``.
++
++* Otherwise, installing the file ``knxd-build-deps_*.deb`` with ``dpkg``
++  and resolving its dependencies via ``aptitude -f install`` should fix
++  whatever happens to be wrong with your system. Remove the build-deps
++  package *without* auto-removing the ``-dev`` packages it depends on, then
++  try again.
++
++* If that doesn't work either, open an issue. Add the log from the
++  previous step.
++
++Instructions for other flavors of Linux distributions should be in the
++corresponding branches. Additions welcome.
++
++On MacOS or Windows, please use a Linux VM.
+ 
+ If you would like to submit patches for Mac OSX or Windows, go ahead
+ and create a pull request, but please be prepared to maintain your code.
+ 
++### Test failures
++
++The build script runs a comprehensive set of tests to make sure that knxd
++actually works. It obviously can't test code that talks to directly-connected
++hardware, but the core parts are exercised.
++
++If the test fails:
++
++* Do you have a default route?
++
++* Are you filtering packets to multicast address 224.99.98.97, or to UDP port 3671?
++
++* Is something on your network echoing multicast packets? (Yes, that happens.)
++
++If you can't figure out the cause of the failure, please open an issue.
++
++### Daemon Configuration
++
++Daemon configuration differs depending on whether you use systemd.
++If "systemctl status" emits something reasonable, you are.
++
++If you use systemd, the configuration file is ``/etc/knxd.conf``.
++Socket activation is used for the default IP and Unix sockets
++(port 6720 and /run/knx, respectively).
++
++Without systemd, on Debian, edit ``/etc/default/knxd``.
++
++The default Unix socket is ``/run/knx``.
++Old eibd clients may still use ``/tmp/eib`` to talk to knxd.
++You need to either change their configuration, or add "-u /tmp/eib"
++to knxd's options.
++(This was the default for "-u" before version 0.11.)
++
++
++### New ".ini" configuration file
++
++knxd is typically started with "knxd /etc/knxd.ini".
++
++The file format is documented in "doc/inifile.rst". You might want to use
++the program "/usr/lib/knxd_args" to create it from previous versions'
++command-line arguments.
++
+ 
+ ### Adding a TPUART USB interface (serial, USB)
+ 
+diff --git a/bootstrap.sh b/bootstrap.sh
+index fd3eca7..365058a 100644
+--- a/bootstrap.sh
++++ b/bootstrap.sh
+@@ -13,7 +13,7 @@ esac
+ 
+ # on Debian systems we need pkg-config
+ if which dpkg >/dev/null && ! which pkg-config >/dev/null ; then
+-	echo "Package 'pkg-config' missing."
++	echo "Tool 'pkg-config' missing. Install package 'pkgconf' or older 'pkg-config'."
+ 	exit 2
+ fi
+ 
+diff --git a/install-debian.sh b/install-debian.sh
+new file mode 100644
+index 0000000..e1432de
+--- /dev/null
++++ b/install-debian.sh
+@@ -0,0 +1,25 @@
++#!/bin/sh
++
++set -ex
++export LC_ALL=C.UTF-8
++
++cd "$(dirname "$0")"
++
++: 1 install tools, minimal variant
++sudo apt-get install --no-install-recommends build-essential devscripts equivs --yes
++
++: 2 auto-install packages required for building knxd
++sudo mk-build-deps --install --tool='apt-get --no-install-recommends --yes --allow-unauthenticated' debian/control
++rm -f knxd-build-deps_*.deb ../knxd_*.deb ../knxd-tools_*.deb
++
++: 3 Build. This takes a while.
++dpkg-buildpackage -b -uc
++
++cd ..
++
++: 4 Install knxd. Have fun.
++sudo dpkg -i knxd_*.deb knxd-tools_*.deb
++
++: 5 Clean up. Optional. Remove this if you want to rebuild soon-ish.
++sudo apt remove --autoremove knxd-build-deps --yes
++
