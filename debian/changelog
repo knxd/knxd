@@ -1,3 +1,13 @@
+knxd (0.14.70-1) unstable; urgency=medium
+
+  * Use the system libinih.
+    Closes:958248
+  * Some autoconf modernizations and de-warning-s.
+  * Use debhelper-compat
+  * Upgrade to level 13.
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Tue, 17 Dec 2024 11:37:45 +0100
+
 knxd (0.14.69-2) stable; urgency=medium
 
   * Fix install location

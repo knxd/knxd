@@ -2,7 +2,7 @@ Source: knxd
 Section: net
 Priority: optional
 Maintainer: Matthias Urlichs <matthias@urlichs.de>
-Build-Depends: debhelper (>= 10),
+Build-Depends: debhelper (>= 13), debhelper-compat (=13),
   autoconf, automake, libtool,
   git,
   libusb-1.0-0-dev (>= 1.0.9),
@@ -11,6 +11,7 @@ Build-Depends: debhelper (>= 10),
   libev-dev,
   libfmt-dev | libfmt3-dev | cmake (>= 2.8.12),
   libfmt-dev | libfmt3-dev | git,
+  libinih-dev,
 Build-Conflicts: libsystemd-daemon-dev (<< 200)
 Standards-Version: 4.7.0.1
 Homepage: https://github.com/knxd/knxd

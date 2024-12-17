@@ -10,3 +10,8 @@ knxd_args_DEPENDENCIES=../common/libcommon.a
 knxd_args_LDADD=../common/libcommon.a
 knxd_SOURCES=knxd.cpp
 knxd_args_SOURCES=knxd_args.cpp
+
+if HAVE_INIH
+knxd_LDADD+=-linih
+knxd_args_LDADD+=-linih
+endif

@@ -23,10 +23,10 @@ dnl ##    OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 dnl ##    SUCH DAMAGE.
 
 
-AC_PREREQ([2.59])
+AC_PREREQ([2.72])
 LT_PREREQ([2.2.0])
 
-AC_INIT(knxd, m4_esyscmd(sh -c "./tools/version.sh | tr -d '\n'"))
+AC_INIT([knxd],m4_esyscmd(sh -c "./tools/version.sh | tr -d '\n'"))
 AC_CONFIG_SRCDIR([src/server/knxd.cpp])
 AM_INIT_AUTOMAKE
 LT_INIT
@@ -34,9 +34,6 @@ LT_INIT
 AC_CANONICAL_HOST
 AC_PROG_CC
 AC_PROG_CXX
-AC_PROG_YACC
-AC_PROG_LEX
-AM_PROG_AS
 AC_LANG([C++])
 
 dnl Oh come on Apple ...
@@ -78,10 +75,13 @@ dnl does not seem to work correctly. Disabled.
 dnl AC_CHECK_HEADER(linux/serial.h,[AC_DEFINE(HAVE_LINUX_LOWLATENCY, 1 , [Linux low latency mode enabled])],[AC_MSG_WARN([No supported low latency mode found])])
 have_source_info=no
 have_linux_api=no
-AC_CHECK_HEADER(linux/rtnetlink.h,[AC_DEFINE(HAVE_LINUX_NETLINK, 1,[Linux netlink layer available]) have_source_info=yes],[],[-])
-AC_CHECK_HEADER(linux/usbdevice_fs.h,[AC_DEFINE(OS_LINUX, 1, [Linux usb available]) have_linux_api=yes; have_usb=yes],[],[-])
+AC_CHECK_HEADER(linux/rtnetlink.h,[AC_DEFINE(HAVE_LINUX_NETLINK, 1,[Linux netlink layer available]) have_source_info=yes],[],[])
+AC_CHECK_HEADER(linux/usbdevice_fs.h,[AC_DEFINE(OS_LINUX, 1, [Linux usb available]) have_linux_api=yes; have_usb=yes],[],[])
 AC_CHECK_HEADER(iphlpapi.h,[AC_DEFINE(HAVE_WINDOWS_IPHELPER, 1,[Windows IPHelper available]) 
-  LIBS="-liphlpapi $LIBS"; have_source_info=yes],[],[-])
+  LIBS="-liphlpapi $LIBS"; have_source_info=yes],[],[])
+
+AC_CHECK_HEADER(ini.h,[AC_DEFINE(HAVE_LIBINIH, 1,[libinih available]) have_inih=yes],[],[])
+AM_CONDITIONAL(HAVE_INIH, test x$have_inih = xyes)
 
 AC_CHECK_DECL(SA_SIZE,[AC_DEFINE(HAVE_SA_SIZE, 1,[SA_SIZE function available])],[],[
   #include <stdint.h>
@@ -336,14 +336,36 @@ AC_CHECK_MEMBER([struct sockaddr_in.sin_len],[AC_DEFINE(HAVE_SOCKADDR_IN_LEN,1,[
 ])
 
 AC_CONFIG_HEADERS(config.h)
-AC_CONFIG_FILES([Makefile 
+AC_CONFIG_FILES([
+Makefile 
+src/Makefile
 src/common/Makefile
-src/Makefile src/include/Makefile  src/client/Makefile src/examples/Makefile src/libserver/Makefile src/server/Makefile src/backend/Makefile
-src/client/def/Makefile src/client/c/Makefile src/client/java/Makefile src/client/php/Makefile src/client/cs/Makefile
-src/client/perl/Makefile src/client/python/Makefile src/client/pascal/Makefile src/client/ruby/Makefile src/client/lua/Makefile src/client/go/Makefile
-src/usb/Makefile src/tools/Makefile systemd/Makefile systemd/knxd.service systemd/knxd.socket systemd/knxd-net.socket
+src/backend/Makefile
+src/include/Makefile
+src/libserver/Makefile
+src/server/Makefile
+src/tools/Makefile
+src/usb/Makefile
+systemd/knxd-net.socket
+systemd/knxd.service
+systemd/knxd.socket
+systemd/Makefile
+src/client/Makefile
+src/client/c/Makefile
+src/client/cs/Makefile
+src/client/def/Makefile
+src/client/go/Makefile
+src/client/java/Makefile
+src/client/lua/Makefile
+src/client/pascal/Makefile
+src/client/perl/Makefile
+src/client/php/Makefile
+src/client/python/Makefile
+src/client/ruby/Makefile
 ])
-dnl src/tools/eibnet/Makefile src/tools/bcu/Makefile
+dnl src/examples/Makefile
+dnl src/tools/eibnet/Makefile
+dnl src/tools/bcu/Makefile
 AC_OUTPUT
 
 AC_CONFIG_MACRO_DIR([m4])
