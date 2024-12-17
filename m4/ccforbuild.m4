@@ -75,7 +75,7 @@ EOF
 gmp_compile="$1 conftest.c"
 cc_for_build_works=no
 if AC_TRY_EVAL(gmp_compile); then
-  if (./a.out || ./b.out || ./a.exe || ./a_out.exe || ./conftest) >&AC_FD_CC 2>&1; then
+  if (./a.out || ./b.out || ./a.exe || ./a_out.exe || ./conftest) >&AS_MESSAGE_LOG_FD 2>&1; then
     cc_for_build_works=yes
   fi
 fi
@@ -105,7 +105,7 @@ if test -z "$CPP_FOR_BUILD"; then
 EOF
   for i in "$CC_FOR_BUILD -E" "$CC_FOR_BUILD -E -traditional-cpp" "/lib/cpp"; do
     gmp_compile="$i conftest.c"
-    if AC_TRY_EVAL(gmp_compile) >&AC_FD_CC 2>&1; then
+    if AC_TRY_EVAL(gmp_compile) >&AS_MESSAGE_LOG_FD 2>&1; then
       gmp_cv_prog_cpp_for_build=$i
       break
     fi
@@ -149,7 +149,7 @@ EOF
 for i in .exe ,ff8 ""; do
   gmp_compile="$CC_FOR_BUILD conftest.c -o conftest$i"
   if AC_TRY_EVAL(gmp_compile); then
-    if (./conftest) 2>&AC_FD_CC; then
+    if (./conftest) 2>&AS_MESSAGE_LOG_FD; then
       gmp_cv_prog_exeext_for_build=$i
       break
     fi
