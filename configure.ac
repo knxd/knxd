@@ -75,10 +75,10 @@ dnl does not seem to work correctly. Disabled.
 dnl AC_CHECK_HEADER(linux/serial.h,[AC_DEFINE(HAVE_LINUX_LOWLATENCY, 1 , [Linux low latency mode enabled])],[AC_MSG_WARN([No supported low latency mode found])])
 have_source_info=no
 have_linux_api=no
-AC_CHECK_HEADER(linux/rtnetlink.h,[AC_DEFINE(HAVE_LINUX_NETLINK, 1,[Linux netlink layer available]) have_source_info=yes],[],[-])
-AC_CHECK_HEADER(linux/usbdevice_fs.h,[AC_DEFINE(OS_LINUX, 1, [Linux usb available]) have_linux_api=yes; have_usb=yes],[],[-])
+AC_CHECK_HEADER(linux/rtnetlink.h,[AC_DEFINE(HAVE_LINUX_NETLINK, 1,[Linux netlink layer available]) have_source_info=yes],[],[])
+AC_CHECK_HEADER(linux/usbdevice_fs.h,[AC_DEFINE(OS_LINUX, 1, [Linux usb available]) have_linux_api=yes; have_usb=yes],[],[])
 AC_CHECK_HEADER(iphlpapi.h,[AC_DEFINE(HAVE_WINDOWS_IPHELPER, 1,[Windows IPHelper available]) 
-  LIBS="-liphlpapi $LIBS"; have_source_info=yes],[],[-])
+  LIBS="-liphlpapi $LIBS"; have_source_info=yes],[],[])
 
 AC_CHECK_DECL(SA_SIZE,[AC_DEFINE(HAVE_SA_SIZE, 1,[SA_SIZE function available])],[],[
   #include <stdint.h>
