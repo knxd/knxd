@@ -1,1 +1,3 @@
 usr/bin/findknxusb
+usr/lib/${DEB_HOST_MULTIARCH}/libeibclient.a
+usr/lib/${DEB_HOST_MULTIARCH}/libeibclient.la
