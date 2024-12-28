@@ -216,7 +216,7 @@ This part covers "manual" installation.
     sh bootstrap.sh
     ./configure --help
     ./configure --your-chosen-options
-    make
+    make -j$(nproc)
     make install
     cd ..
 
