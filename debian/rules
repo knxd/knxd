@@ -8,6 +8,9 @@ export DEB_BUILD_MAINT_OPTIONS=hardening=+all
 # This has to be exported to make some magic below work.
 export DH_OPTIONS
 
+# For backwards compatibility to <= Bookworm, can be removed when Trixie is the minimum supported release, also update knxd.install.systemd then
+export deb_systemdsystemunitdir = $(shell pkg-config --variable=systemdsystemunitdir systemd | sed s,^/,,)
+
 %:
 	dh $@
 
