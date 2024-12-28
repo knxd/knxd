@@ -1,3 +1,5 @@
 etc/knxd.conf
+lib/systemd/system/knxd.service
+lib/systemd/system/knxd.socket
 lib/systemd/system/knxd-net.socket
 usr/lib/sysusers.d
