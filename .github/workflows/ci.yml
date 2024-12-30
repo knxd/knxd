@@ -105,7 +105,10 @@ jobs:
         fetch-depth: 0 # Full history to be able to determine version number
 
     - name: Merge into debian branch
-      run: git checkout debian && git merge "$GITHUB_REF"
+      run: |
+        git switch -C ci
+        git checkout debian
+        git merge ci
 
     - name: Build and install
       run: sh install-debian.sh
