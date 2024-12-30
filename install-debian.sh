@@ -21,5 +21,4 @@ cd ..
 sudo dpkg -i knxd_*.deb knxd-tools_*.deb
 
 : 5 Clean up. Optional. Remove this if you want to rebuild soon-ish.
-sudo apt remove --autoremove knxd-build-deps --yes
-
+sudo apt-get remove --autoremove knxd-build-deps --yes
