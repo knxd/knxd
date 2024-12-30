@@ -1,3 +1,9 @@
+knxd (0.14.72-1) unstable; urgency=medium
+
+  * Merge: Various build fixes
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Mon, 30 Dec 2024 15:23:52 +0100
+
 knxd (0.14.71-1) unstable; urgency=medium
 
   * Merge

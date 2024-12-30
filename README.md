@@ -1,4 +1,4 @@
-knxd [![Build Status](https://travis-ci.org/knxd/knxd.svg)](https://travis-ci.org/knxd/knxd)
+knxd [![CI](https://github.com/knxd/knxd/actions/workflows/ci.yml/badge.svg)](https://github.com/knxd/knxd/actions/workflows/ci.yml)
 ====
 
 KNX is a very common building automation protocol which runs on dedicated 9600-baud wire as well as IP multicast.

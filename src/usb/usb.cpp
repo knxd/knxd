@@ -19,7 +19,7 @@
 
 #include <cstdlib>
 #include <cerrno>
-#include <sys/poll.h>
+#include <poll.h>
 #include "usb.h"
 #include "types.h"
 

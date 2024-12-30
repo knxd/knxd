@@ -7,7 +7,7 @@ export LD_LIBRARY_PATH=src/client/c/.libs${LD_LIBRARY_PATH:+:}$LD_LIBRARY_PATH
 set -ex
 export PATH="$(pwd)/src/tools/.libs:$(pwd)/src/tools:$(pwd)/src/server/.libs:$(pwd)/src/server:$(pwd)/src/server:$PATH"
 
-EF=$(tempfile)
+EF=$(mktemp)
 
 # first test argument handling
 if knxd -e 1.2.3 --stop-right-now >$EF 2>&1; then
@@ -52,19 +52,19 @@ if ! knxd -e 1.2.3 --stop-right-now -c -b dummy: -b dummy: >$EF 2>&1; then
   exit 0
 fi
 
-S1=$(tempfile); rm $S1
-S2=$(tempfile); rm $S2
-S3=$(tempfile); rm $S3
-L1=$(tempfile)
-L2=$(tempfile)
-L3=$(tempfile)
-L4=$(tempfile)
-L5=$(tempfile)
-E1=$(tempfile)
-E2=$(tempfile)
-E3=$(tempfile)
-E4=$(tempfile)
-E5=$(tempfile)
+S1=$(mktemp); rm $S1
+S2=$(mktemp); rm $S2
+S3=$(mktemp); rm $S3
+L1=$(mktemp)
+L2=$(mktemp)
+L3=$(mktemp)
+L4=$(mktemp)
+L5=$(mktemp)
+E1=$(mktemp)
+E2=$(mktemp)
+E3=$(mktemp)
+E4=$(mktemp)
+E5=$(mktemp)
 
 PORT=$((9999 + $$))
 PORT2=$((9998 + $$))
