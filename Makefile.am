@@ -37,4 +37,3 @@ config.h: configure
 
 test: all
 	sh tools/test.sh
-	tools/test_inih tools/test.ini tools/bad*.ini

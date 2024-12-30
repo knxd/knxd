@@ -1,0 +1,111 @@
+name: CI
+
+on:
+  push:
+    branches: "*"
+  pull_request:
+    branches: "*"
+
+permissions: {}
+
+jobs:
+  # On Ubuntu, because that is the standard OS of GitHub Actions.
+  build_ubuntu:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get dist-upgrade -y
+        sudo apt-get install -y --no-install-recommends libusb-1.0-0-dev libsystemd-dev libev-dev libfmt-dev libinih-dev
+
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # Full history to be able to determine version number
+
+    - name: Bootstrap
+      run: sh bootstrap.sh
+
+    - name: Configure
+      run: ./configure
+
+    - name: Build
+      run: make -j$(nproc)
+
+    - name: Test
+      run: make -j1 test
+
+    - name: Install
+      run: sudo make -j1 install
+
+  # On Alpine, because it's a tiny distro heavily used in containers.
+  build_alpine:
+
+    runs-on: ubuntu-latest
+    container: alpine
+
+    steps:
+    - name: Install build dependencies
+      run: |
+        apk update
+        apk upgrade
+        apk add git build-base autoconf automake libtool argp-standalone linux-headers libusb-dev libev-dev fmt-dev inih-dev
+
+    - name: Configure git in container
+      run: |
+        git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # Full history to be able to determine version number
+
+    - name: Bootstrap
+      run: sh bootstrap.sh
+
+    - name: Configure
+      run: ./configure --disable-systemd
+
+    - name: Build
+      run: make -j$(nproc)
+
+    - name: Test
+      run: make -j1 test
+
+    - name: Install
+      run: make -j1 install
+
+  # Debian packaging; May break when code changes require updates to the Debian package.
+  # Merges the pushed/proposed code changes to the `debian` branch and builds that then.
+  package_debian:
+
+    strategy:
+      fail-fast: false
+      matrix:
+        suite: [testing, stable, oldstable]
+    runs-on: ubuntu-latest
+    container: debian:${{ matrix.suite }}-slim
+
+    steps:
+    - name: Install dependencies
+      run: |
+        apt-get update
+        apt-get dist-upgrade -y
+        apt-get install -y --no-install-recommends ca-certificates git sudo
+
+    - name: Configure git in container
+      run: |
+        git config --global --add safe.directory "$GITHUB_WORKSPACE"
+        git config --global user.name "Your Name"
+        git config --global user.email "you@example.com"
+
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # Full history to be able to determine version number
+
+    - name: Merge into debian branch
+      run: git checkout debian && git merge "$GITHUB_REF"
+
+    - name: Build and install
+      run: sh install-debian.sh

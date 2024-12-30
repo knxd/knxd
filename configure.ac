@@ -23,10 +23,10 @@ dnl ##    OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 dnl ##    SUCH DAMAGE.
 
 
-AC_PREREQ([2.72])
+AC_PREREQ([2.69])
 LT_PREREQ([2.2.0])
 
-AC_INIT([knxd],m4_esyscmd(sh -c "./tools/version.sh | tr -d '\n'"))
+AC_INIT([knxd],m4_esyscmd_s([./tools/version.sh]))
 AC_CONFIG_SRCDIR([src/server/knxd.cpp])
 AM_INIT_AUTOMAKE
 LT_INIT
