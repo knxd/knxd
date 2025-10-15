@@ -33,7 +33,7 @@ LogFilter::setup()
   log_addr = cfg->value("addr",false);
   log_monitor = cfg->value("monitor",false);
   if (log_state)
-    t->TracePrintf (0, "State setup");
+    t->TracePrintf (0, "State setup===============seawin");
   return true;
 }
 
