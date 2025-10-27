@@ -1,8 +1,8 @@
 #ifndef ADDRESSFILTER_H
 #define ADDRESSFILTER_H
 
-#include "filter.h"
-#include "ini.h"
+#include "link.h"
+#include "inifile.h"
 #include "eibtypes.h"
 #include <set>
 #include <string>
