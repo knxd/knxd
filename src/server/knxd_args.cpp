@@ -274,7 +274,7 @@ void driver_args(const char *arg, char *ap)
       driver_argsv(cut,ap, "!ip-address","!dest-port", NULL);
     }
   else if(!strcmp(arg,"usb"))
-    driver_argsv(arg,ap, "bus","device","config","interface", NULL);
+    driver_argsv(arg,ap, "bus","device","config","setting","interface", NULL);
   else if(!strcmp(arg,"ipt"))
     driver_argsv(arg,ap, "!ip-address","dest-port","src-port", NULL);
   else if(!strcmp(arg,"iptn"))

@@ -1,3 +1,9 @@
+knxd (0.14.75-1) unstable; urgency=medium
+
+  * Merge
+
+ -- Matthias Urlichs <matthias@urlichs.de>  Thu, 08 Jan 2026 17:40:34 +0100
+
 knxd (0.14.74-1) unstable; urgency=medium
 
   * Merge.

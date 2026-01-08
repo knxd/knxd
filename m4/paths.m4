@@ -39,7 +39,7 @@ SHAREDIR=`eval echo $prefix/share`
 AC_SUBST(SHAREDIR)
 
 dnl Not part of a ./configure option, does LSB define it?
-RUNDIR="/var/run"
+RUNDIR="/run"
 AC_SUBST(RUNDIR)
 
 CONFIG_DIR=/etc

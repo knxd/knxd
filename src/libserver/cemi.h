@@ -57,9 +57,18 @@ private:
 
   virtual unsigned int maxPacketLen() const override;
   void sendLocal_done_cb(bool success);
+  virtual void recv_Data(CArray& c) override;
 
   bool after_reset = false;
   bool sent_comm_mode = false;
+  int init_step = 0;
+
+  // USB interface address handling
+  eibaddr_t config_addr = 0;      // Address from config
+  bool config_addr_set = false;   // Whether addr was configured
+  uint8_t read_subnet = 0;        // Read subnet value from USB
+  uint8_t read_device = 0;        // Read device value from USB
+  bool need_write_addr = false;   // Whether we need to program USB address
 
   ev::timer reset_timer;
   void reset_timer_cb(ev::timer &w, int revents);
