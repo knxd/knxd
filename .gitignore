@@ -150,3 +150,4 @@ Makefile
 /src/examples/eibwrite-cgi
 /src/examples/knxtool
 /systemd/knxd.service.exp
+/knx_build_deps_*
