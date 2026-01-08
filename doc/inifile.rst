@@ -569,6 +569,11 @@ Warning: bus+device numbers may change after rebooting.
 
   Default: None, the protocol to be used is auto-detected.
 
+* addr (KNX physical address string)
+
+  For CEMI interfaces, write this address to the adapter (if unconfigured) /
+  verify that the adapter has this address (if configured).
+
 The following options control repetition of unacknowledged packets. They
 also apply to the "ft12" and "ft12cemi" drivers which wrap EMI1 / CEMI data
 in a serial protocol.
