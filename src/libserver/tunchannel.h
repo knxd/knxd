@@ -136,7 +136,7 @@ public:
 class TunServiceConfig : public TunService
 {
 public:
-  TunServiceConfig(const std::shared_ptr<TunChannel>& channel);
+  TunServiceConfig(const std::shared_ptr<TunChannel>& channel, uint16_t maxAPDULength = 0);
   virtual ~TunServiceConfig();
 
   bool setupService() override;
@@ -144,6 +144,8 @@ public:
   void stop(bool err) override;
 
   ErrorCode handleConfigRequest(EIBnet_ConfigRequest &r1) override;
+
+  uint16_t maxAPDULength;
 };
 
 #endif

@@ -162,6 +162,22 @@ EIBnetServer::setup()
   interface = cfg->value("interface","");
   servername = cfg->value("name", dynamic_cast<Router *>(&router)->servername);
   keepalive = cfg->value("heartbeat-timeout", CONNECTION_ALIVE_TIME);
+  {
+    // 03_05_01 Resources v01.10.01, §4.3.7.1: range 15..254
+    // 0 = not configured, auto-detect from hardware driver in start()
+    int v = cfg->value("max-apdu-length", -1);
+    if (v > 254)
+      {
+        ERRORPRINTF (t, E_ERROR | 150, "max-apdu-length %d exceeds 254, clamping", v);
+        v = 254;
+      }
+    else if (v >= 0 && v < 15)
+      {
+        ERRORPRINTF (t, E_ERROR | 153, "max-apdu-length %d below minimum 15, clamping", v);
+        v = 15;
+      }
+    maxAPDULength = (v >= 0) ? v : 0;
+  }
 
 
   if (tunnel)
@@ -188,6 +204,14 @@ EIBnetServer::start()
 {
   struct sockaddr_in baddr;
   LinkConnectClientPtr mcast_conn;
+
+  if (maxAPDULength == 0)
+    {
+      unsigned int fl = static_cast<Router &>(router).maxFrameLength();
+      maxAPDULength = (fl > 8) ? fl - 8 : 15;
+      if (maxAPDULength > 254)
+        maxAPDULength = 254;
+    }
 
   TRACEPRINTF (t, 8, "Open");
 
@@ -335,6 +359,7 @@ rt:
       s->no = 1;
       s->type = type;
       s->nat = r1.nat;
+      s->maxAPDULength = maxAPDULength;
       if(!conn->setup())
         return -1;
       if(!static_cast<Router &>(router).registerLink(conn, true))
@@ -1041,6 +1066,12 @@ void ConnState::config_request(EIBnet_ConfigRequest &r1, EIBNetIPSocket *isock)
                       res[0] = 0;
                       res[1] = 0;
                       start = 0;
+                    }
+                  else if (prop == PID_MAX_APDULENGTH)
+                    {
+                      res.resize (2);
+                      res[0] = (maxAPDULength >> 8) & 0xFF;
+                      res[1] = maxAPDULength & 0xFF;
                     }
                   else
                     count = 0;

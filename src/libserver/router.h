@@ -153,6 +153,12 @@ public:
 
   bool hasClientAddrs(bool complain = true) const;
 
+  /** Returns the minimum maxFrameLength across all connected bus drivers.
+   *  Skips drivers that return 0 (unknown/not a bus driver).
+   *  Returns 23 (standard KNX frame) if no driver reports a value.
+   */
+  unsigned int maxFrameLength() const;
+
   /** eventual exit code. Inremebted on fatal error */
   int exitcode = 0;
 

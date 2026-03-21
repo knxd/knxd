@@ -50,6 +50,12 @@ enum ConnType
   CT_CONFIG,
 };
 
+/** Device Object property IDs — 03_05_01 Resources v01.10.01, §4.3.7 */
+enum PropertyID : uint8_t
+{
+  PID_MAX_APDULENGTH = 56,  // PDT_UNSIGNED_INT (2 bytes)
+};
+
 /* add formatter for fmt >= 10.0.0 */
 inline int format_as(ConnType t) { return t; }
 
@@ -73,6 +79,7 @@ public:
   ConnType type = CT_NONE;
   int no;
   bool nat;
+  uint16_t maxAPDULength = 0;
 
   ev::timer timeout;
   void timeout_cb(ev::timer &w, int revents);
@@ -182,6 +189,7 @@ private:
   std::string interface;
   std::string servername;
   ev::tstamp keepalive;
+  uint16_t maxAPDULength = 0;
   IniSectionPtr router_cfg;
   IniSectionPtr tunnel_cfg;
 

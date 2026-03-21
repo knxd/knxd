@@ -1206,6 +1206,22 @@ Router::hasClientAddrs(bool complain) const
 
 }
 
+unsigned int Router::maxFrameLength() const
+{
+  unsigned int result = 0;
+  C_ITER(i, links)
+  {
+    auto drv = i->second->getDriver();
+    if (drv)
+    {
+      unsigned int len = drv->maxFrameLength();
+      if (len > 0 && (result == 0 || len < result))
+        result = len;
+    }
+  }
+  return result > 0 ? result : 23; // conservative: standard KNX frame
+}
+
 void
 RouterHigh::started()
 {

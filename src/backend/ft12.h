@@ -52,6 +52,10 @@ public:
   }
   virtual ~FT12Driver() = default;
 
+  // FT12: conservative default for unknown BCU hardware.
+  // Standard KNX frame = 23 bytes max.
+  unsigned int maxFrameLength() const override { return 23; }
+
   bool setup();
   virtual EMIVer getVersion()
   {

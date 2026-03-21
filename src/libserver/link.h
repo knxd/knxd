@@ -423,6 +423,8 @@ public:
 
   virtual bool checkSysGroupAddress(eibaddr_t addr) override;
 
+  DriverPtr getDriver() const { return driver; }
+
 private:
   DriverPtr driver;
 };
@@ -774,6 +776,15 @@ public:
   virtual void send_Next ();
   virtual void started();
   virtual void stopped(bool err);
+
+  /** Maximum KNX frame length (bytes) this driver can transmit.
+   *  Includes all headers and checksum. 0 = unknown (not a bus driver).
+   *  Override in hardware drivers:
+   *    TPUART v1/v2/v2+: 63 (64-byte buffer, 6-bit index max 62, end max 63)
+   *    NCN5120/NCN5121:  263 (9-bit index via U_L_DataOffset.req)
+   *    FT12/USB:         23 (conservative: standard frame only)
+   */
+  virtual unsigned int maxFrameLength() const { return 0; }
 
   virtual void send_L_Data(LDataPtr l) = 0;
   virtual void start()

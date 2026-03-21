@@ -52,6 +52,11 @@ public:
   virtual ~TPUART() = default;
 
   bool setup();
+
+  // TPUART: 64-byte send buffer, U_L_DataContinue index 1-62,
+  // U_L_DataEnd length 7-63. No U_L_DataOffset support.
+  unsigned int maxFrameLength() const override { return 63; }
+
 protected:
   virtual LowLevelFilter * create_wrapper(LowLevelIface* parent, IniSectionPtr& s, LowLevelDriver* i = nullptr);
 };

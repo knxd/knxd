@@ -63,6 +63,11 @@ public:
   EMIVer version = vUnknown;
 
   USBDriver (const LinkConnectPtr_& c, IniSectionPtr& s);
+
+  // USB: conservative default for unknown interface hardware.
+  // Standard KNX frame = 23 bytes max.
+  unsigned int maxFrameLength() const override { return 23; }
+
   bool setup();
   //void start();
   //void stop(bool err);

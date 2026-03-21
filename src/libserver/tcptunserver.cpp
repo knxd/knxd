@@ -565,6 +565,15 @@ TcpTunServer::start()
 {
   int reuse = 1;
 
+  if (maxAPDULength == 0)
+    {
+      // 03_05_01 Resources v01.10.01, §4.3.7.1: range 15..254
+      unsigned int fl = static_cast<Router &>(router).maxFrameLength();
+      maxAPDULength = (fl > 8) ? fl - 8 : 15;
+      if (maxAPDULength > 254)
+        maxAPDULength = 254;
+    }
+
   if (ignore_when_systemd && static_cast<Router &>(router).using_systemd)
     {
       ignore = true;
@@ -642,6 +651,15 @@ void
 UnixTunServer::start()
 {
   int reuse = 1;
+
+  if (maxAPDULength == 0)
+    {
+      // 03_05_01 Resources v01.10.01, §4.3.7.1: range 15..254
+      unsigned int fl = static_cast<Router &>(router).maxFrameLength();
+      maxAPDULength = (fl > 8) ? fl - 8 : 15;
+      if (maxAPDULength > 254)
+        maxAPDULength = 254;
+    }
 
   if (ignore_when_systemd && static_cast<Router &>(router).using_systemd)
     {
@@ -726,6 +744,15 @@ TcpTunSystemdServer::TcpTunSystemdServer(BaseRouter& r, IniSectionPtr& s, int sy
 void
 TcpTunSystemdServer::start()
 {
+  if (maxAPDULength == 0)
+    {
+      // 03_05_01 Resources v01.10.01, §4.3.7.1: range 15..254
+      unsigned int fl = static_cast<Router &>(router).maxFrameLength();
+      maxAPDULength = (fl > 8) ? fl - 8 : 15;
+      if (maxAPDULength > 254)
+        maxAPDULength = 254;
+    }
+
   TRACEPRINTF (t, 8, "OpenSystemdSocket %d", fd);
   if (fd < 0)
     {

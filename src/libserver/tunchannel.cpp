@@ -19,6 +19,7 @@
 
 #include "tunchannel.h"
 #include "tcptunserver.h"
+#include "eibnetserver.h"
 
 TunChannel::TunChannel(const TcpTunConnPtr& connection, uint8_t channelID)
   : t(TracePtr(new Trace(*connection->t)))
@@ -324,8 +325,8 @@ void TunServiceBusMonitor::send_L_Busmonitor(LBusmonPtr l)
   no++;
 }
 
-TunServiceConfig::TunServiceConfig(const TunChannelPtr& channel)
-  : TunService(channel)
+TunServiceConfig::TunServiceConfig(const TunChannelPtr& channel, uint16_t maxAPDULength)
+  : TunService(channel), maxAPDULength(maxAPDULength)
 {
 }
 
@@ -371,6 +372,12 @@ ErrorCode TunServiceConfig::handleConfigRequest(EIBnet_ConfigRequest &r1)
                   res[0] = 0;
                   res[1] = 0;
                   start = 0;
+                }
+              else if (prop == PID_MAX_APDULENGTH)
+                {
+                  res.resize (2);
+                  res[0] = (maxAPDULength >> 8) & 0xFF;
+                  res[1] = maxAPDULength & 0xFF;
                 }
               else
                 count = 0;
