@@ -7,6 +7,6 @@ if test -s debian/changelog && which dpkg-parsechangelog >/dev/null ; then
     exit
 fi
 
-test -d .git || exit
+test -d .git -o -f .git || exit
 # git describe --tags
 git log --format=format:%D | perl -ne 'next unless s#.*tag: ##; s#,.*##; next if m#/#; print; exit;'

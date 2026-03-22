@@ -235,6 +235,22 @@ TcpTunConn::send(const EIBNetIPPacket& p)
 {
   CArray data = p.ToPacket();
 
+  // If this connection has an active secure session, wrap in SECURE_WRAPPER
+  if (secure_session_id != 0)
+    {
+      auto wrapped = parent->ip_secure.wrapSecure(secure_session_id,
+                                                    data.data(), data.size());
+      if (wrapped.empty())
+        {
+          TRACEPRINTF(t, 2, "IP Secure: wrap failed for session %d", secure_session_id);
+          return;
+        }
+      t->TracePacket(0, "TCP send (secure)", wrapped.size(), wrapped.data());
+      if (fd >= 0)
+        sendbuf.write(wrapped.data(), wrapped.size());
+      return;
+    }
+
   t->TracePacket(0, "TCP send", data.size(), data.data());
 
   if (fd >= 0)
@@ -244,6 +260,143 @@ TcpTunConn::send(const EIBNetIPPacket& p)
 void
 TcpTunConn::handlePacket(const EIBNetIPPacket &p1)
 {
+  // KNX IP Secure: handle SESSION_REQUEST (unencrypted)
+  if (p1.service == SESSION_REQUEST_SVC && parent->ip_secure.isEnabled())
+    {
+      CArray raw = p1.ToPacket();
+      auto resp = parent->ip_secure.handleSessionRequest(raw.data(), raw.size());
+      if (resp.empty())
+        {
+          TRACEPRINTF(t, 2, "IP Secure: SESSION_REQUEST rejected");
+          return;
+        }
+      // Extract session ID from response (bytes 6-7)
+      secure_session_id = ((uint16_t)resp[6] << 8) | resp[7];
+      TRACEPRINTF(t, 2, "IP Secure: new session %d", secure_session_id);
+      t->TracePacket(0, "TCP send SESSION_RESPONSE", resp.size(), resp.data());
+      if (fd >= 0)
+        sendbuf.write(resp.data(), resp.size());
+      reset_timer();
+      return;
+    }
+
+  // KNX IP Secure: unwrap SECURE_WRAPPER
+  if (p1.service == SECURE_WRAPPER_SVC && secure_session_id != 0)
+    {
+      CArray raw = p1.ToPacket();
+      uint16_t sid = 0;
+      auto inner = parent->ip_secure.unwrapSecure(raw.data(), raw.size(), sid);
+      if (inner.empty())
+        {
+          TRACEPRINTF(t, 2, "IP Secure: SECURE_WRAPPER decrypt/verify failed");
+          return;
+        }
+      if (sid != secure_session_id)
+        {
+          TRACEPRINTF(t, 2, "IP Secure: session ID mismatch %d != %d", sid, secure_session_id);
+          return;
+        }
+
+      t->TracePacket(0, "IP Secure unwrapped", inner.size(), inner.data());
+      reset_timer();
+
+      // Parse the inner KNXnet/IP frame
+      CArray inner_arr(inner.data(), inner.size());
+      std::unique_ptr<EIBNetIPPacket> inner_pkt(
+        EIBNetIPPacket::fromPacket(inner_arr, routeBackAddr(), IPV4_TCP));
+      if (!inner_pkt)
+        {
+          TRACEPRINTF(t, 2, "IP Secure: cannot parse inner packet");
+          return;
+        }
+
+      // Handle SESSION_AUTHENTICATE
+      if (inner_pkt->service == SESSION_AUTHENTICATE_SVC)
+        {
+          auto* session = parent->ip_secure.findSession(secure_session_id);
+          bool ok = parent->ip_secure.handleSessionAuthenticate(
+            secure_session_id, inner.data(), inner.size());
+          if (ok)
+            {
+              TRACEPRINTF(t, 2, "IP Secure: session %d authenticated (user %d)",
+                          secure_session_id, session ? session->user_id : 0);
+              auto status = parent->ip_secure.buildSessionStatus(
+                secure_session_id, STATUS_AUTH_SUCCESS);
+              if (!status.empty())
+                {
+                  t->TracePacket(0, "TCP send SESSION_STATUS (success)", status.size(), status.data());
+                  if (fd >= 0)
+                    sendbuf.write(status.data(), status.size());
+                }
+            }
+          else
+            {
+              TRACEPRINTF(t, 2, "IP Secure: session %d auth FAILED", secure_session_id);
+              auto status = parent->ip_secure.buildSessionStatus(
+                secure_session_id, STATUS_AUTH_FAILED);
+              if (!status.empty() && fd >= 0)
+                sendbuf.write(status.data(), status.size());
+              parent->ip_secure.removeSession(secure_session_id);
+              secure_session_id = 0;
+            }
+          return;
+        }
+
+      // Handle SESSION_STATUS (keepalive/close)
+      if (inner_pkt->service == SESSION_STATUS_SVC_ID)
+        {
+          if (inner.size() >= 7)
+            {
+              uint8_t status = inner[6];
+              if (status == STATUS_CLOSE)
+                {
+                  TRACEPRINTF(t, 2, "IP Secure: client closed session %d", secure_session_id);
+                  auto resp = parent->ip_secure.buildSessionStatus(
+                    secure_session_id, STATUS_CLOSE);
+                  if (!resp.empty() && fd >= 0)
+                    sendbuf.write(resp.data(), resp.size());
+                  parent->ip_secure.removeSession(secure_session_id);
+                  secure_session_id = 0;
+                  stop(false);
+                }
+              else if (status == STATUS_KEEPALIVE)
+                {
+                  auto* session = parent->ip_secure.findSession(secure_session_id);
+                  if (session && session->state != SecureSession::AUTHENTICATED)
+                    {
+                      // Keepalive on unauthenticated session
+                      auto resp = parent->ip_secure.buildSessionStatus(
+                        secure_session_id, STATUS_UNAUTHENTICATED);
+                      if (!resp.empty() && fd >= 0)
+                        sendbuf.write(resp.data(), resp.size());
+                      parent->ip_secure.removeSession(secure_session_id);
+                      secure_session_id = 0;
+                    }
+                  // Authenticated keepalive is a no-op (timer already reset)
+                }
+            }
+          return;
+        }
+
+      // Check authentication before forwarding any other service
+      auto* session = parent->ip_secure.findSession(secure_session_id);
+      if (!session || session->state != SecureSession::AUTHENTICATED)
+        {
+          TRACEPRINTF(t, 2, "IP Secure: rejecting service in unauthenticated session");
+          auto resp = parent->ip_secure.buildSessionStatus(
+            secure_session_id, STATUS_UNAUTHENTICATED);
+          if (!resp.empty() && fd >= 0)
+            sendbuf.write(resp.data(), resp.size());
+          parent->ip_secure.removeSession(secure_session_id);
+          secure_session_id = 0;
+          return;
+        }
+
+      // Forward the unwrapped inner packet to normal handler
+      handlePacket(*inner_pkt);
+      return;
+    }
+
   if (p1.service == CONNECTIONSTATE_REQUEST)
     {
       EIBnet_ConnectionStateRequest r1;
@@ -830,6 +983,32 @@ TcpTunServer::setup()
   }
   manufacturerCode = cfg->value("manufacturer-code", 0);
   ignore_when_systemd = cfg->value("systemd-ignore", port == 3671);
+
+  // KNX IP Secure configuration
+  {
+    std::string keyring = cfg->value("keyring", "");
+    std::string keyring_pwd = cfg->value("keyring-password", "");
+    std::string device_auth = cfg->value("device-auth", "");
+    std::string user_pwd = cfg->value("user-password", "");
+
+    if (!keyring.empty())
+      {
+        if (ip_secure.loadKeyring(keyring, keyring_pwd))
+          TRACEPRINTF(t, 2, "IP Secure: loaded keys from keyring %s", keyring.c_str());
+        else
+          TRACEPRINTF(t, 2, "IP Secure: failed to load keyring %s", keyring.c_str());
+      }
+    if (!device_auth.empty())
+      ip_secure.setDeviceAuthPassword(device_auth);
+    if (!user_pwd.empty())
+      {
+        // Set as user 1 (management) and user 2 (tunnelling)
+        ip_secure.setUserPassword(1, user_pwd);
+        ip_secure.setUserPassword(2, user_pwd);
+      }
+    if (ip_secure.isEnabled())
+      TRACEPRINTF(t, 2, "IP Secure: enabled for TCP tunnel server");
+  }
 
   /* Check that we have client addresses. */
   if (!static_cast<Router&>(router).hasClientAddrs())

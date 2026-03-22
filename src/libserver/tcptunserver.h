@@ -30,6 +30,7 @@
 #include "eibnetip.h"
 #include "server.h"
 #include "client.h"
+#include "ipsecure.h"
 
 class TunChannel;
 using TunChannelPtr = std::shared_ptr<TunChannel>;
@@ -71,6 +72,9 @@ public:
 
   void send(const EIBNetIPPacket& p);
 
+  // IP Secure session for this connection (0 = not secure)
+  uint16_t secure_session_id = 0;
+
 protected:
   uint32_t connectionID;
 
@@ -106,6 +110,9 @@ protected:
   uint16_t maxAPDULength = 0;
   uint16_t manufacturerCode = 0;
   IniSectionPtr tunnel_cfg;
+
+  /** KNX IP Secure */
+  IPSecure ip_secure;
 };
 
 SERVER_(TcpTunServer,TcpTunServerBase,tcptunsrv)
