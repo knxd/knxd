@@ -44,6 +44,11 @@ public:
     t->setAuxName("NCN");
   } ;
   virtual ~NCN5120 () = default;
+
+  // NCN5120/NCN5121: supports U_L_DataOffset.req for 9-bit index,
+  // extended frames up to 263 bytes (datasheet: "263 bytes").
+  unsigned int maxFrameLength() const override { return 263; }
+
   LowLevelFilter * create_wrapper(LowLevelIface* parent, IniSectionPtr& s, LowLevelDriver* i = nullptr);
 };
 

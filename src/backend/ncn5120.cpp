@@ -34,6 +34,7 @@ protected:
   void setstate(enum TSTATE state);
 
   void RecvLPDU (const uint8_t * data, int len);
+  void encode_frame(const CArray& frame, CArray& uart_buf) override;
   virtual LLserial * create_serial(LowLevelIface* parent, IniSectionPtr& s);
 };
 
@@ -92,4 +93,44 @@ NCN5120wrap::setstate(enum TSTATE new_state)
       new_state = T_in_getstate;
     }
   TPUARTwrap::setstate(new_state);
+}
+
+void
+NCN5120wrap::encode_frame(const CArray& frame, CArray& uart_buf)
+{
+  unsigned z = frame.size();
+
+  // For short frames, use standard TPUART encoding
+  if (z <= 63)
+    {
+      TPUARTwrap::encode_frame(frame, uart_buf);
+      return;
+    }
+
+  // NCN5120/NCN5121: insert U_L_DataOffset.req (0x08 | offset) at each
+  // 64-byte boundary to set upper 3 bits of 9-bit data index.
+  // Offsets 5-7 are forbidden per datasheet; max frame = 263 bytes.
+  unsigned extra = 0;
+  for (unsigned i = 1; i < z; i++)
+    if ((i >> 6) != ((i - 1) >> 6))
+      extra++;
+  uart_buf.resize(z * 2 + extra);
+
+  unsigned wi = 0;
+  unsigned cur_offset = 0;
+  for (unsigned i = 0; i < z; i++)
+    {
+      unsigned new_offset = i >> 6;
+      if (new_offset != cur_offset)
+        {
+          uart_buf[wi++] = 0x08 | (new_offset & 0x07);
+          cur_offset = new_offset;
+        }
+      uart_buf[wi] = 0x80 | (i & 0x3f);
+      uart_buf[wi + 1] = frame[i];
+      wi += 2;
+    }
+  // Mark last as U_L_DataEnd
+  wi -= 2;
+  uart_buf[wi] = (uart_buf[wi] & 0x3f) | 0x40;
 }

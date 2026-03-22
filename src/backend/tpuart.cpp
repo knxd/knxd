@@ -204,6 +204,22 @@ TPUARTwrap::do__send_Next()
 }
 
 void
+TPUARTwrap::encode_frame(const CArray& frame, CArray& uart_buf)
+{
+  // Standard TPUART: 6-bit index, 2 UART bytes per KNX byte, max 63 bytes.
+  // U_L_DataStart/Continue = 0x80 | (index & 0x3F), U_L_DataEnd = 0x40 | (index & 0x3F)
+  unsigned z = frame.size();
+  uart_buf.resize(z * 2);
+  for (unsigned i = 0; i < z; i++)
+    {
+      uart_buf[2 * i] = 0x80 | (i & 0x3f);
+      uart_buf[2 * i + 1] = frame[i];
+    }
+  unsigned last = (z - 1) * 2;
+  uart_buf[last] = (uart_buf[last] & 0x3f) | 0x40;
+}
+
+void
 TPUARTwrap::send_again()
 {
   if (out.size() > 0 && state > T_is_online && state < T_busmonitor)
@@ -215,17 +231,7 @@ TPUARTwrap::send_again()
         }
 
       CArray w;
-      unsigned i;
-      unsigned z = out.size();
-
-      w.resize (z * 2);
-      for (i = 0; i < z; i++)
-        {
-          w[2 * i] = 0x80 | (i & 0x3f);
-          w[2 * i + 1] = out[i];
-        }
-      z = (z - 1) * 2;
-      w[z] = (w[z] & 0x3f) | 0x40;
+      encode_frame(out, w);
       LowLevelFilter::send_Data(w);
       sendtimer.start(2,0);
 

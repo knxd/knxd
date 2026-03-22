@@ -81,6 +81,12 @@ protected:
   void send_again();
   void in_check();
 
+  /** Encode KNX frame bytes into UART command sequence.
+   *  Base: standard TPUART 6-bit index (max 63 bytes).
+   *  Override for chips with extended frame support (NCN5120, Elmos).
+   */
+  virtual void encode_frame(const CArray& frame, CArray& uart_buf);
+
   /** OK to send next packet */
   bool next_free = true;
   /** waiting for OK to send next packet */
