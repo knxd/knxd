@@ -802,6 +802,7 @@ TcpTunServer::setup()
       }
     maxAPDULength = (v >= 0) ? v : 0;
   }
+  manufacturerCode = cfg->value("manufacturer-code", 0);
   ignore_when_systemd = cfg->value("systemd-ignore", port == 3671);
 
   /* Check that we have client addresses. */

@@ -68,6 +68,8 @@ public:
   uint8_t sno = 0;
   // Receiving sequence counter
   uint8_t rno = 0;
+  // TUNNEL_FEATURE_INFO enable (feature 0x08)
+  bool featureInfoEnabled = false;
 };
 
 class TunService
