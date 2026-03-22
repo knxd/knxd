@@ -11,15 +11,12 @@
 */
 
 #include "ipsecure.h"
+#include "eibnetip.h"
 
 #include <openssl/evp.h>
 #include <openssl/sha.h>
-#include <openssl/rand.h>
 #include <cstring>
 #include <fstream>
-
-// X25519 key exchange
-#include <openssl/x509.h>
 
 // KNXnet/IP header helpers
 #define KNXIP_HEADER_LEN 6
@@ -69,20 +66,6 @@ static bool aes_cbc_encrypt(const uint8_t key[16], const uint8_t iv[16],
   int fl = 0;
   EVP_EncryptFinal_ex(ctx, ct + len, &fl);
   *ct_len += fl;
-  EVP_CIPHER_CTX_free(ctx);
-  return true;
-}
-
-// AES-128-CTR — continuous stream encrypt/decrypt
-static bool aes_ctr_stream(const uint8_t key[16], const uint8_t ctr0[16],
-                           uint8_t* data, size_t len) {
-  EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
-  if (!ctx) return false;
-  EVP_EncryptInit_ex(ctx, EVP_aes_128_ctr(), NULL, key, ctr0);
-  int outl = 0;
-  EVP_EncryptUpdate(ctx, data, &outl, data, len);
-  uint8_t dummy;
-  EVP_EncryptFinal_ex(ctx, &dummy, &outl);
   EVP_CIPHER_CTX_free(ctx);
   return true;
 }
@@ -180,14 +163,15 @@ void IPSecure::xorBytes(uint8_t* out, const uint8_t* a, const uint8_t* b, size_t
 }
 
 uint16_t IPSecure::allocSessionId() {
-  // Find a free session ID (1..0xFFFE, 0 is reserved for multicast)
+  if ((int)sessions.size() >= IPSEC_MAX_SESSIONS)
+    return 0;
   for (int i = 0; i < 0xFFFE; i++) {
     uint16_t id = next_session_id++;
     if (next_session_id > 0xFFFE) next_session_id = 1;
     if (sessions.find(id) == sessions.end())
       return id;
   }
-  return 0; // all full
+  return 0;
 }
 
 SecureSession* IPSecure::findSession(uint16_t session_id) {
@@ -197,6 +181,7 @@ SecureSession* IPSecure::findSession(uint16_t session_id) {
 }
 
 void IPSecure::removeSession(uint16_t session_id) {
+  // SecureSession destructor clears key material
   sessions.erase(session_id);
 }
 
@@ -209,7 +194,6 @@ bool IPSecure::computeMAC16(const uint8_t key[IPSEC_KEY_SIZE],
                             const uint8_t* aad, size_t aad_len,
                             const uint8_t* payload, size_t payload_len,
                             uint8_t mac[IPSEC_MAC_SIZE]) {
-  // Input: B0(16) + len_aad(2) + aad + payload, padded to 16 bytes
   size_t input_len = 16 + 2 + aad_len + payload_len;
   size_t padded_len = ((input_len + 15) / 16) * 16;
 
@@ -230,7 +214,6 @@ bool IPSecure::computeMAC16(const uint8_t key[IPSEC_KEY_SIZE],
     return false;
   if (ct_len < 16) return false;
 
-  // MAC = last 16 bytes of CBC output
   memcpy(mac, ct.data() + ct_len - 16, IPSEC_MAC_SIZE);
   return true;
 }
@@ -242,17 +225,12 @@ bool IPSecure::computeMAC16(const uint8_t key[IPSEC_KEY_SIZE],
 bool IPSecure::ctrEncrypt(const uint8_t key[IPSEC_KEY_SIZE],
                           const uint8_t ctr0[16],
                           uint8_t* data, size_t data_len) {
-  // For IP Secure SECURE_WRAPPER, the CTR keystream is:
+  // IP Secure CTR keystream layout:
   //   Block 0 (bytes 0-15) → encrypts MAC (16 bytes)
   //   Block 1+ (bytes 16+) → encrypts payload
-  // But on the wire the order is: [payload][MAC]
-  // So we need to generate the full keystream and XOR manually.
-  //
-  // For handshake MACs (SESSION_RESPONSE, SESSION_AUTHENTICATE),
-  // only 16 bytes of MAC are encrypted (no payload), so this function
-  // works as a simple XOR with CTR block 0.
+  // On the wire: [payload][MAC], so XOR must be applied out of order.
+  // For handshake MACs (16 bytes only), just XOR with block 0.
 
-  // Generate keystream blocks using AES-ECB
   size_t total_ks_needed = IPSEC_MAC_SIZE + (data_len > IPSEC_MAC_SIZE ? data_len - IPSEC_MAC_SIZE : 0);
   size_t num_blocks = (total_ks_needed + 15) / 16;
 
@@ -268,7 +246,6 @@ bool IPSecure::ctrEncrypt(const uint8_t key[IPSEC_KEY_SIZE],
   for (size_t b = 0; b < num_blocks; b++) {
     int outl = 0;
     EVP_EncryptUpdate(ctx, keystream.data() + b * 16, &outl, counter, 16);
-    // Increment counter (last byte)
     for (int j = 15; j >= 0; j--) {
       if (++counter[j] != 0) break;
     }
@@ -276,16 +253,14 @@ bool IPSecure::ctrEncrypt(const uint8_t key[IPSEC_KEY_SIZE],
   EVP_CIPHER_CTX_free(ctx);
 
   if (data_len <= IPSEC_MAC_SIZE) {
-    // Handshake MAC only (16 bytes)
+    // Handshake MAC only
     for (size_t i = 0; i < data_len; i++)
       data[i] ^= keystream[i];
   } else {
-    // SecureWrapper: payload(data_len - 16) then MAC(16)
-    // Payload XOR with keystream[16..]
+    // SecureWrapper: [payload][MAC] on wire, keystream: [MAC ks][payload ks]
     size_t payload_len = data_len - IPSEC_MAC_SIZE;
     for (size_t i = 0; i < payload_len; i++)
       data[i] ^= keystream[IPSEC_MAC_SIZE + i];
-    // MAC XOR with keystream[0..15]
     for (size_t i = 0; i < IPSEC_MAC_SIZE; i++)
       data[payload_len + i] ^= keystream[i];
   }
@@ -294,22 +269,14 @@ bool IPSecure::ctrEncrypt(const uint8_t key[IPSEC_KEY_SIZE],
 }
 
 // =====================================================
-// Handle IPSEC_SESSION_REQUEST → generate IPSEC_SESSION_RESPONSE
+// Handle SESSION_REQUEST → generate SESSION_RESPONSE
 // =====================================================
 
 std::vector<uint8_t> IPSecure::handleSessionRequest(const uint8_t* data, size_t len) {
-  // IPSEC_SESSION_REQUEST: header(6) + HPAI(8) + client_pub_key(32) = 46 bytes
   if (len != 46) return {};
-
-  // Verify header
   if (data[0] != KNXIP_HEADER_LEN || data[1] != KNXIP_VERSION) return {};
-  uint16_t svc = getU16BE(data + 2);
-  if (svc != IPSEC_SESSION_REQUEST) return {};
+  if (getU16BE(data + 2) != SESSION_REQUEST_SVC) return {};
 
-  // HPAI: must be TCP route-back (08 02 00000000 0000)
-  // We don't strictly enforce this for compatibility
-
-  // Extract client public key (bytes 14..45)
   const uint8_t* client_pub = data + 14;
 
   // Generate server ECDH key pair (X25519)
@@ -321,12 +288,10 @@ std::vector<uint8_t> IPSecure::handleSessionRequest(const uint8_t* data, size_t 
   EVP_PKEY_CTX_free(pctx);
   if (!server_key) return {};
 
-  // Extract server public key (raw 32 bytes)
   uint8_t server_pub[IPSEC_ECDH_SIZE];
   size_t pub_len = IPSEC_ECDH_SIZE;
   EVP_PKEY_get_raw_public_key(server_key, server_pub, &pub_len);
 
-  // Load client public key as EVP_PKEY
   EVP_PKEY* client_key = EVP_PKEY_new_raw_public_key(EVP_PKEY_X25519, NULL,
                                                        client_pub, IPSEC_ECDH_SIZE);
   if (!client_key) {
@@ -334,7 +299,7 @@ std::vector<uint8_t> IPSecure::handleSessionRequest(const uint8_t* data, size_t 
     return {};
   }
 
-  // ECDH key agreement → shared secret
+  // ECDH key agreement
   EVP_PKEY_CTX* dctx = EVP_PKEY_CTX_new(server_key, NULL);
   EVP_PKEY_derive_init(dctx);
   EVP_PKEY_derive_set_peer(dctx, client_key);
@@ -346,13 +311,11 @@ std::vector<uint8_t> IPSecure::handleSessionRequest(const uint8_t* data, size_t 
   EVP_PKEY_free(client_key);
   EVP_PKEY_free(server_key);
 
-  // Derive session key: SHA-256(shared_secret)[0:16]
+  // Session key = SHA-256(shared_secret)[0:16]
   uint8_t hash[32];
   SHA256(shared_secret.data(), secret_len, hash);
-  // Clear shared secret
   memset(shared_secret.data(), 0, secret_len);
 
-  // Allocate session
   uint16_t sid = allocSessionId();
   if (sid == 0) return {};
 
@@ -361,58 +324,44 @@ std::vector<uint8_t> IPSecure::handleSessionRequest(const uint8_t* data, size_t 
   memcpy(session.session_key, hash, IPSEC_KEY_SIZE);
   memset(hash, 0, 32);
   session.send_seq = 0;
-  session.recv_seq = 0;
+  session.recv_seq = UINT64_MAX; // so first frame (seq=0) is accepted
   session.user_id = 0;
   session.state = SecureSession::UNAUTHENTICATED;
 
-  // Store XOR of client and server public keys (for authenticate step)
   xorBytes(session.xor_client_server, client_pub, server_pub, IPSEC_ECDH_SIZE);
 
-  // Build IPSEC_SESSION_RESPONSE: header(6) + session_id(2) + server_pub(32) + mac(16) = 56 bytes
+  // Build SESSION_RESPONSE: header(6) + session_id(2) + server_pub(32) + mac(16) = 56
   std::vector<uint8_t> resp(56);
-  buildKNXIPHeader(resp.data(), IPSEC_SESSION_RESPONSE, 56);
+  buildKNXIPHeader(resp.data(), SESSION_RESPONSE_SVC, 56);
   putU16BE(resp.data() + 6, sid);
   memcpy(resp.data() + 8, server_pub, IPSEC_ECDH_SIZE);
 
-  // Compute MAC for device authentication
-  // B0: all zeros, Q=0
+  // Device authentication MAC
   uint8_t b0[16] = {};
-
-  // AAD = header(6) + session_id(2) + XOR(client_pub, server_pub)
-  // Total: 6 + 2 + 32 = 40 bytes
   uint8_t aad[40];
-  memcpy(aad, resp.data(), 6);       // header
-  memcpy(aad + 6, resp.data() + 6, 2); // session_id
+  memcpy(aad, resp.data(), 6);
+  memcpy(aad + 6, resp.data() + 6, 2);
   memcpy(aad + 8, session.xor_client_server, IPSEC_ECDH_SIZE);
 
   uint8_t mac[IPSEC_MAC_SIZE];
   computeMAC16(device_auth_key, b0, aad, 40, nullptr, 0, mac);
 
-  // Encrypt MAC with CTR: Ctr0 = 00..00 FF 00
   uint8_t ctr0[16] = {};
   ctr0[14] = 0xFF;
-  ctr0[15] = 0x00;
   ctrEncrypt(device_auth_key, ctr0, mac, IPSEC_MAC_SIZE);
 
   memcpy(resp.data() + 40, mac, IPSEC_MAC_SIZE);
-
   return resp;
 }
 
 // =====================================================
-// Handle IPSEC_SESSION_AUTHENTICATE
+// Handle SESSION_AUTHENTICATE
 // =====================================================
 
 bool IPSecure::handleSessionAuthenticate(uint16_t session_id,
                                          const uint8_t* data, size_t len) {
-  // IPSEC_SESSION_AUTHENTICATE inner frame: header(6) + reserved(1) + user_id(1) + mac(16) = 24 bytes
   if (len != 24) return false;
-
-  // Verify it's a IPSEC_SESSION_AUTHENTICATE
-  uint16_t svc = getU16BE(data + 2);
-  if (svc != IPSEC_SESSION_AUTHENTICATE) return false;
-
-  // Reserved byte must be 0
+  if (getU16BE(data + 2) != SESSION_AUTHENTICATE_SVC) return false;
   if (data[6] != 0x00) return false;
 
   uint8_t userId = data[7];
@@ -422,34 +371,25 @@ bool IPSecure::handleSessionAuthenticate(uint16_t session_id,
   if (!session) return false;
   if (session->state != SecureSession::UNAUTHENTICATED) return false;
 
-  // Check if we have this user's password hash
   auto it = user_pwd_hashes.find(userId);
   if (it == user_pwd_hashes.end()) return false;
   const uint8_t* user_key = it->second.data();
 
-  // Extract received MAC
   uint8_t recv_mac[IPSEC_MAC_SIZE];
   memcpy(recv_mac, data + 8, IPSEC_MAC_SIZE);
 
-  // Compute expected MAC
-  // B0: all zeros, Q=0
   uint8_t b0[16] = {};
-
-  // AAD = header(6) + reserved+userId(2) + XOR(client_pub, server_pub)
-  // Total: 6 + 2 + 32 = 40 bytes
   uint8_t aad[40];
-  memcpy(aad, data, 6);        // header (06 10 09 53 00 18)
-  aad[6] = data[6];            // reserved = 0x00
+  memcpy(aad, data, 6);
+  aad[6] = 0x00;
   aad[7] = userId;
   memcpy(aad + 8, session->xor_client_server, IPSEC_ECDH_SIZE);
 
   uint8_t expected_mac[IPSEC_MAC_SIZE];
   computeMAC16(user_key, b0, aad, 40, nullptr, 0, expected_mac);
 
-  // Encrypt expected MAC with CTR (same as client did)
   uint8_t ctr0[16] = {};
   ctr0[14] = 0xFF;
-  ctr0[15] = 0x00;
   ctrEncrypt(user_key, ctr0, expected_mac, IPSEC_MAC_SIZE);
 
   if (memcmp(recv_mac, expected_mac, IPSEC_MAC_SIZE) != 0)
@@ -457,73 +397,59 @@ bool IPSecure::handleSessionAuthenticate(uint16_t session_id,
 
   session->user_id = userId;
   session->state = SecureSession::AUTHENTICATED;
+  // Clear xor_client_server — no longer needed after authentication
+  memset(session->xor_client_server, 0, IPSEC_ECDH_SIZE);
   return true;
 }
 
 // =====================================================
-// Unwrap IPSEC_SECURE_WRAPPER
+// Unwrap SECURE_WRAPPER
 // =====================================================
 
 std::vector<uint8_t> IPSecure::unwrapSecure(const uint8_t* data, size_t len,
                                              uint16_t& session_id_out) {
-  // Minimum: header(6) + session_id(2) + seq(6) + serial(6) + tag(2) + inner_header(6) + mac(16) = 44
   if (len < 44) return {};
+  if (getU16BE(data + 2) != SECURE_WRAPPER_SVC) return {};
+  if (getU16BE(data + 4) != len) return {};
 
-  // Parse header
-  uint16_t svc = getU16BE(data + 2);
-  if (svc != IPSEC_SECURE_WRAPPER) return {};
-  uint16_t total_len = getU16BE(data + 4);
-  if (total_len != len) return {};
-
-  // Extract security info
   uint16_t sid = getU16BE(data + 6);
   session_id_out = sid;
 
   auto* session = findSession(sid);
   if (!session) return {};
 
-  // Sequence info (6 bytes at offset 8)
   uint64_t seq = getU48BE(data + 8);
 
-  // Validate sequence number (must be strictly increasing)
-  if (seq <= session->recv_seq && session->recv_seq > 0)
+  // Sequence must be strictly increasing
+  if (session->recv_seq != UINT64_MAX && seq <= session->recv_seq)
     return {};
 
-  // Encrypted portion: from offset 22 to end (payload + MAC)
   size_t encrypted_offset = KNXIP_HEADER_LEN + 2 + 6 + 6 + 2; // = 22
   size_t encrypted_len = len - encrypted_offset;
-
   if (encrypted_len < IPSEC_MAC_SIZE) return {};
   size_t inner_len = encrypted_len - IPSEC_MAC_SIZE;
 
-  // Build CTR0 for decryption: seq(6) + serial(6) + tag(2) + FF 00
+  // CTR0: seq(6) + serial(6) + tag(2) + FF 00
   uint8_t ctr0[16];
-  memcpy(ctr0, data + 8, 6);   // seq
-  memcpy(ctr0 + 6, data + 14, 6); // serial
-  memcpy(ctr0 + 12, data + 20, 2); // tag
+  memcpy(ctr0, data + 8, 6);
+  memcpy(ctr0 + 6, data + 14, 6);
+  memcpy(ctr0 + 12, data + 20, 2);
   ctr0[14] = 0xFF;
   ctr0[15] = 0x00;
 
-  // Decrypt in place (copy first)
   std::vector<uint8_t> decrypted(encrypted_len);
   memcpy(decrypted.data(), data + encrypted_offset, encrypted_len);
   ctrEncrypt(session->session_key, ctr0, decrypted.data(), encrypted_len);
 
-  // After CTR decryption:
-  // decrypted[0..inner_len-1] = plain KNXnet/IP frame
-  // decrypted[inner_len..inner_len+15] = decrypted MAC
-
   // Verify CBC-MAC
-  // B0: seq(6) + serial(6) + tag(2) + payload_len(2)
   uint8_t b0[16];
-  memcpy(b0, data + 8, 6);     // seq
-  memcpy(b0 + 6, data + 14, 6); // serial
-  memcpy(b0 + 12, data + 20, 2); // tag
+  memcpy(b0, data + 8, 6);
+  memcpy(b0 + 6, data + 14, 6);
+  memcpy(b0 + 12, data + 20, 2);
   putU16BE(b0 + 14, inner_len);
 
-  // AAD: wrapper_header(6) + session_id(2)
   uint8_t aad[8];
-  memcpy(aad, data, 6);        // wrapper header
+  memcpy(aad, data, 6);
   putU16BE(aad + 6, sid);
 
   uint8_t expected_mac[IPSEC_MAC_SIZE];
@@ -533,15 +459,12 @@ std::vector<uint8_t> IPSecure::unwrapSecure(const uint8_t* data, size_t len,
   if (memcmp(decrypted.data() + inner_len, expected_mac, IPSEC_MAC_SIZE) != 0)
     return {};
 
-  // MAC verified, update sequence
   session->recv_seq = seq;
-
-  // Return inner frame
   return std::vector<uint8_t>(decrypted.begin(), decrypted.begin() + inner_len);
 }
 
 // =====================================================
-// Wrap frame in IPSEC_SECURE_WRAPPER
+// Wrap frame in SECURE_WRAPPER
 // =====================================================
 
 std::vector<uint8_t> IPSecure::wrapSecure(uint16_t session_id,
@@ -551,42 +474,37 @@ std::vector<uint8_t> IPSecure::wrapSecure(uint16_t session_id,
 
   uint64_t seq = session->send_seq++;
 
-  // Total = header(6) + sid(2) + seq(6) + serial(6) + tag(2) + frame + mac(16)
   size_t total = KNXIP_HEADER_LEN + 2 + 6 + 6 + 2 + frame_len + IPSEC_MAC_SIZE;
-
   std::vector<uint8_t> packet(total);
-  buildKNXIPHeader(packet.data(), IPSEC_SECURE_WRAPPER, total);
+  buildKNXIPHeader(packet.data(), SECURE_WRAPPER_SVC, total);
   putU16BE(packet.data() + 6, session_id);
   putU48BE(packet.data() + 8, seq);
   memcpy(packet.data() + 14, serial_number, 6);
-  putU16BE(packet.data() + 20, 0x0000); // message tag = 0 for unicast
+  putU16BE(packet.data() + 20, 0x0000);
 
-  // Place plaintext frame and MAC placeholder
   size_t payload_offset = 22;
   memcpy(packet.data() + payload_offset, knxip_frame, frame_len);
 
-  // Compute CBC-MAC
+  // CBC-MAC
   uint8_t b0[16];
   putU48BE(b0, seq);
   memcpy(b0 + 6, serial_number, 6);
-  putU16BE(b0 + 12, 0x0000); // tag
+  putU16BE(b0 + 12, 0x0000);
   putU16BE(b0 + 14, frame_len);
 
   uint8_t aad[8];
-  memcpy(aad, packet.data(), 6); // wrapper header
+  memcpy(aad, packet.data(), 6);
   putU16BE(aad + 6, session_id);
 
   uint8_t mac[IPSEC_MAC_SIZE];
-  computeMAC16(session->session_key, b0, aad, 8,
-               knxip_frame, frame_len, mac);
-
+  computeMAC16(session->session_key, b0, aad, 8, knxip_frame, frame_len, mac);
   memcpy(packet.data() + payload_offset + frame_len, mac, IPSEC_MAC_SIZE);
 
-  // CTR encrypt payload + MAC
+  // CTR encrypt
   uint8_t ctr0[16];
   putU48BE(ctr0, seq);
   memcpy(ctr0 + 6, serial_number, 6);
-  putU16BE(ctr0 + 12, 0x0000); // tag
+  putU16BE(ctr0 + 12, 0x0000);
   ctr0[14] = 0xFF;
   ctr0[15] = 0x00;
 
@@ -597,16 +515,14 @@ std::vector<uint8_t> IPSecure::wrapSecure(uint16_t session_id,
 }
 
 // =====================================================
-// Build SESSION_STATUS wrapped in IPSEC_SECURE_WRAPPER
+// Build SESSION_STATUS wrapped in SECURE_WRAPPER
 // =====================================================
 
 std::vector<uint8_t> IPSecure::buildSessionStatus(uint16_t session_id, uint8_t status) {
-  // Inner frame: header(6) + status(1) + reserved(1) = 8 bytes
   uint8_t inner[8];
-  buildKNXIPHeader(inner, IPSEC_SESSION_STATUS, 8);
+  buildKNXIPHeader(inner, SESSION_STATUS_SVC_ID, 8);
   inner[6] = status;
   inner[7] = 0x00;
-
   return wrapSecure(session_id, inner, 8);
 }
 
@@ -621,14 +537,12 @@ bool IPSecure::loadKeyring(const std::string& path, const std::string& password)
                    std::istreambuf_iterator<char>());
   f.close();
 
-  // Hash keyring password
   const char* salt = "1.keyring.ets.knx.org";
   uint8_t pwd_hash[16];
   PKCS5_PBKDF2_HMAC(password.c_str(), password.size(),
                      (const uint8_t*)salt, strlen(salt),
                      65536, EVP_sha256(), 16, pwd_hash);
 
-  // Derive IV from Created timestamp
   std::string created;
   {
     auto pos = xml.find("Created=\"");
@@ -646,8 +560,7 @@ bool IPSecure::loadKeyring(const std::string& path, const std::string& password)
   uint8_t iv[16];
   memcpy(iv, created_hash, 16);
 
-  // Parse Interfaces for device authentication and user passwords
-  // Look for the Interface that matches our setup (Tunneling type)
+  // Parse Interfaces — only Tunneling type
   {
     size_t pos = 0;
     while ((pos = xml.find("<Interface ", pos)) != std::string::npos) {
@@ -657,10 +570,12 @@ bool IPSecure::loadKeyring(const std::string& path, const std::string& password)
       pos = tag_end + 1;
 
       std::string type = xmlAttr(tag, "Type");
+      if (type != "Tunneling" && type != "Backbone")
+        continue;
+
       std::string auth_b64 = xmlAttr(tag, "Authentication");
       std::string pwd_b64 = xmlAttr(tag, "Password");
 
-      // Device authentication code
       if (!auth_b64.empty()) {
         auto enc = b64decode(auth_b64);
         if (enc.size() >= 16) {
@@ -673,7 +588,6 @@ bool IPSecure::loadKeyring(const std::string& path, const std::string& password)
         }
       }
 
-      // User password (from keyring this is the pre-hashed value)
       if (!pwd_b64.empty()) {
         auto enc = b64decode(pwd_b64);
         if (enc.size() >= 16) {
@@ -681,7 +595,6 @@ bool IPSecure::loadKeyring(const std::string& path, const std::string& password)
           uint8_t dec[32];
           int dl = 0;
           aes_cbc_decrypt(pwd_hash, iv, enc.data(), enc.size(), dec, &dl);
-          // User ID from the Interface's individual address (UserID attribute)
           std::string uid_str = xmlAttr(tag, "UserID");
           if (!uid_str.empty()) {
             uint8_t uid = (uint8_t)std::stoi(uid_str);

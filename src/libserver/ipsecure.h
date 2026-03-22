@@ -19,14 +19,6 @@
 #include <map>
 #include <string>
 
-// KNX IP Secure service types (03_08_09)
-// Using inline constants to avoid clash with eibnetip.h enum
-static const uint16_t IPSEC_SECURE_WRAPPER       = 0x0950;
-static const uint16_t IPSEC_SESSION_REQUEST       = 0x0951;
-static const uint16_t IPSEC_SESSION_RESPONSE      = 0x0952;
-static const uint16_t IPSEC_SESSION_AUTHENTICATE  = 0x0953;
-static const uint16_t IPSEC_SESSION_STATUS        = 0x0954;
-
 // Session status codes
 #define STATUS_AUTH_SUCCESS     0x00
 #define STATUS_AUTH_FAILED      0x01
@@ -40,15 +32,18 @@ static const uint16_t IPSEC_SESSION_STATUS        = 0x0954;
 #define IPSEC_KEY_SIZE    16
 #define IPSEC_ECDH_SIZE   32
 
+// Max concurrent unauthenticated + authenticated sessions
+#define IPSEC_MAX_SESSIONS 16
+
 /** Per-session state for KNX IP Secure unicast */
 struct SecureSession {
   uint16_t session_id;
   uint8_t session_key[IPSEC_KEY_SIZE];
 
-  // ECDH key exchange data (kept for authenticate step)
+  // ECDH key exchange data (kept for authenticate step, cleared after)
   uint8_t xor_client_server[IPSEC_ECDH_SIZE]; // client_pub XOR server_pub
 
-  // Sequence counters
+  // Sequence counters (recv_seq starts at max so first frame with seq=0 is accepted)
   uint64_t send_seq;
   uint64_t recv_seq;
 
@@ -56,6 +51,11 @@ struct SecureSession {
   uint8_t user_id;  // 0 = not yet authenticated
 
   enum State { IDLE, UNAUTHENTICATED, AUTHENTICATED } state;
+
+  ~SecureSession() {
+    memset(session_key, 0, IPSEC_KEY_SIZE);
+    memset(xor_client_server, 0, IPSEC_ECDH_SIZE);
+  }
 };
 
 /** KNX IP Secure crypto and session management */
@@ -77,17 +77,13 @@ public:
   void removeSession(uint16_t session_id);
 
   // Handle SESSION_REQUEST: returns SESSION_RESPONSE bytes to send
-  // Returns empty on error
   std::vector<uint8_t> handleSessionRequest(const uint8_t* data, size_t len);
 
   // Handle SESSION_AUTHENTICATE (already unwrapped from SecureWrapper)
-  // Returns true if authentication succeeded
   bool handleSessionAuthenticate(uint16_t session_id,
                                  const uint8_t* data, size_t len);
 
   // Unwrap a SECURE_WRAPPER frame
-  // Returns the inner KNXnet/IP frame, or empty on error
-  // Updates session sequence counters
   std::vector<uint8_t> unwrapSecure(const uint8_t* data, size_t len,
                                      uint16_t& session_id_out);
 
@@ -114,11 +110,9 @@ private:
 
   uint16_t allocSessionId();
 
-  // Derive password hash via PBKDF2
   static void deriveDeviceAuthKey(const std::string& password, uint8_t key[IPSEC_KEY_SIZE]);
   static void deriveUserPwdHash(const std::string& password, uint8_t key[IPSEC_KEY_SIZE]);
 
-  // CCM operations for IP Secure (16-byte MAC, different B0/CTR format)
   static bool computeMAC16(const uint8_t key[IPSEC_KEY_SIZE],
                            const uint8_t b0[16],
                            const uint8_t* aad, size_t aad_len,
@@ -129,7 +123,6 @@ private:
                          const uint8_t ctr0[16],
                          uint8_t* data, size_t data_len);
 
-  // XOR two byte arrays of length len
   static void xorBytes(uint8_t* out, const uint8_t* a, const uint8_t* b, size_t len);
 };
 

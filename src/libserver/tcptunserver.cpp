@@ -191,6 +191,13 @@ void TcpTunConn::stop(bool err)
 {
   TRACEPRINTF (t, 8, "Stop Conn");
 
+  // Clean up secure session
+  if (secure_session_id != 0)
+    {
+      parent->ip_secure.removeSession(secure_session_id);
+      secure_session_id = 0;
+    }
+
   // Close all channels
   while (true)
     {
@@ -313,11 +320,11 @@ TcpTunConn::handlePacket(const EIBNetIPPacket &p1)
       // Handle SESSION_AUTHENTICATE
       if (inner_pkt->service == SESSION_AUTHENTICATE_SVC)
         {
-          auto* session = parent->ip_secure.findSession(secure_session_id);
           bool ok = parent->ip_secure.handleSessionAuthenticate(
             secure_session_id, inner.data(), inner.size());
           if (ok)
             {
+              auto* session = parent->ip_secure.findSession(secure_session_id);
               TRACEPRINTF(t, 2, "IP Secure: session %d authenticated (user %d)",
                           secure_session_id, session ? session->user_id : 0);
               auto status = parent->ip_secure.buildSessionStatus(
