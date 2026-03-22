@@ -726,8 +726,34 @@ TcpTunConn::handlePacket(const EIBNetIPPacket &p1)
 
   if (p1.service == SEARCH_REQUEST_EXTENDED)
     {
-      // KNX Std v3.0.4, 03_08_02 Core v01.06.02, §7.6.3 - Extended search, ignore (ETS falls back gracefully)
-      TRACEPRINTF (t, 8, "SEARCH_REQUEST_EXTENDED (ignored)");
+      // 03_08_02 Core v01.06.02, §7.6.3/§7.6.4: SEARCH_REQUEST/RESPONSE_EXTENDED
+      // Respond with the same device info as DESCRIPTION_RESPONSE.
+      // SRP filtering not implemented — return all DIBs (superset is valid per spec).
+      TRACEPRINTF (t, 8, "SEARCH_REQUEST_EXTENDED");
+
+      EIBnet_SearchResponse r2;
+      DIB_service_Entry d;
+      Router& router = static_cast<Router &>(parent->router);
+      r2.KNXmedium = M_TP1;
+      r2.devicestatus = 0;
+      r2.individual_addr = router.addr;
+      r2.installid = 0;
+      inet_pton(AF_INET, "224.0.23.12", &r2.multicastaddr);
+      strncpy((char *) r2.name, router.servername.c_str(), sizeof(r2.name) - 1);
+      // HPAI: route-back for TCP (spec: "only report UDP address", use 0.0.0.0:0)
+      memset(&r2.caddr, 0, sizeof(r2.caddr));
+      r2.caddr.sin_family = AF_INET;
+      // 03_08_02 Core v01.06.02, §7.5.4.3 Table 3
+      d.version = 2;
+      d.family = SF_CORE;
+      r2.services.push_back(d);
+      d.family = SF_DEVICE_MANAGEMENT;
+      r2.services.push_back(d);
+      d.family = SF_TUNNELLING;
+      r2.services.push_back(d);
+      EIBNetIPPacket pkt = r2.ToPacket(IPV4_TCP);
+      pkt.service = SEARCH_RESPONSE_EXTENDED;
+      send(pkt);
       return;
     }
 

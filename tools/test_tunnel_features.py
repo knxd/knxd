@@ -19,10 +19,14 @@ HEADER_SIZE = 0x06
 KNXNETIP_VERSION = 0x10
 
 # Service types
+DESCRIPTION_REQUEST = 0x0203
+DESCRIPTION_RESPONSE = 0x0204
 CONNECTION_REQUEST = 0x0205
 CONNECTION_RESPONSE = 0x0206
 DISCONNECT_REQUEST = 0x0209
 DISCONNECT_RESPONSE = 0x020A
+SEARCH_REQUEST_EXTENDED = 0x020B
+SEARCH_RESPONSE_EXTENDED = 0x020C
 TUNNEL_FEATURE_GET = 0x0422
 TUNNEL_FEATURE_RESPONSE = 0x0423
 TUNNEL_FEATURE_SET = 0x0424
@@ -97,6 +101,20 @@ def make_feature_set(channel_id, seqno, feature_id, value_bytes):
     return header + body
 
 
+def make_description_request():
+    """DESCRIPTION_REQUEST packet."""
+    body = HPAI_ROUTE_BACK
+    header = make_header(DESCRIPTION_REQUEST, HEADER_SIZE + len(body))
+    return header + body
+
+
+def make_search_request_extended():
+    """SEARCH_REQUEST_EXTENDED packet (no SRPs — request all DIBs)."""
+    body = HPAI_ROUTE_BACK
+    header = make_header(SEARCH_REQUEST_EXTENDED, HEADER_SIZE + len(body))
+    return header + body
+
+
 def recv_packet(sock, timeout=5.0):
     """Receive one KNXnet/IP packet from TCP socket."""
     sock.settimeout(timeout)
@@ -139,6 +157,80 @@ def run_tests(host, port):
     sock.connect((host, port))
     print("Connected.\n")
 
+    passed = 0
+    failed = 0
+
+    # Service family IDs (03_08_02 Core v01.06.02, §7.5.4.3 Table 3)
+    SF_CORE = 0x02
+    SF_DEVICE_MANAGEMENT = 0x03
+    SF_TUNNELLING = 0x04
+
+    # Step 0a: DESCRIPTION_REQUEST
+    print("=== DESCRIPTION_REQUEST ===")
+    sock.sendall(make_description_request())
+    service, body = recv_packet(sock)
+    if service == DESCRIPTION_RESPONSE:
+        # Device info DIB starts at offset 0, length 54, type 0x01
+        # Service families DIB follows at offset 54
+        if len(body) >= 56:
+            svc_dib_len = body[54]
+            svc_dib_type = body[55]
+            families = {}
+            if svc_dib_type == 0x02:  # SUPPORTED_SVC_FAMILIES
+                for i in range(56, 54 + svc_dib_len, 2):
+                    if i + 1 < len(body):
+                        families[body[i]] = body[i + 1]
+            v2_ok = (families.get(SF_CORE, 0) >= 2 and
+                     families.get(SF_DEVICE_MANAGEMENT, 0) >= 2 and
+                     families.get(SF_TUNNELLING, 0) >= 2)
+            family_str = ", ".join(f"0x{k:02x}=v{v}" for k, v in sorted(families.items()))
+            if v2_ok:
+                print(f"  OK: families=[{family_str}] (all v2)")
+                passed += 1
+            else:
+                print(f"  UNEXPECTED: families=[{family_str}] (expected v2)")
+                failed += 1
+        else:
+            print(f"  UNEXPECTED: response too short ({len(body)} bytes)")
+            failed += 1
+    else:
+        print(f"  ERROR: Expected DESCRIPTION_RESPONSE (0x0204), got 0x{service:04x}")
+        failed += 1
+    print()
+
+    # Step 0b: SEARCH_REQUEST_EXTENDED
+    print("=== SEARCH_REQUEST_EXTENDED ===")
+    sock.sendall(make_search_request_extended())
+    service, body = recv_packet(sock)
+    if service == SEARCH_RESPONSE_EXTENDED:
+        # HPAI (8 bytes) + Device info DIB (54) + Service families DIB
+        if len(body) >= 64:
+            svc_dib_offset = 8 + 54  # HPAI + device DIB
+            svc_dib_len = body[svc_dib_offset]
+            svc_dib_type = body[svc_dib_offset + 1]
+            families = {}
+            if svc_dib_type == 0x02:
+                for i in range(svc_dib_offset + 2, svc_dib_offset + svc_dib_len, 2):
+                    if i + 1 < len(body):
+                        families[body[i]] = body[i + 1]
+            v2_ok = (families.get(SF_CORE, 0) >= 2 and
+                     families.get(SF_DEVICE_MANAGEMENT, 0) >= 2 and
+                     families.get(SF_TUNNELLING, 0) >= 2)
+            family_str = ", ".join(f"0x{k:02x}=v{v}" for k, v in sorted(families.items()))
+            if v2_ok:
+                print(f"  OK: families=[{family_str}] (all v2)")
+                passed += 1
+            else:
+                print(f"  UNEXPECTED: families=[{family_str}] (expected v2)")
+                failed += 1
+        else:
+            print(f"  UNEXPECTED: response too short ({len(body)} bytes)")
+            failed += 1
+    else:
+        print(f"  ERROR: Expected SEARCH_RESPONSE_EXTENDED (0x020C), got 0x{service:04x}")
+        failed += 1
+    print()
+
     # Step 1: CONNECTION_REQUEST
     print("=== CONNECTION_REQUEST ===")
     sock.sendall(make_connection_request())
@@ -171,8 +263,6 @@ def run_tests(host, port):
     print()
 
     seqno = 0
-    passed = 0
-    failed = 0
 
     # Step 2: TUNNEL_FEATURE_GET for all known features
     print("=== TUNNEL_FEATURE_GET ===")
