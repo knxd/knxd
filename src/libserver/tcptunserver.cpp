@@ -682,6 +682,11 @@ TcpTunConn::handlePacket(const EIBNetIPPacket &p1)
       r2.services.push_back(d);
       d.family = SF_TUNNELLING;
       r2.services.push_back(d);
+      if (parent->ip_secure.isEnabled())
+        {
+          d.family = SF_SECURITY;
+          r2.services.push_back(d);
+        }
       send(r2.ToPacket(IPV4_TCP));
       return;
     }

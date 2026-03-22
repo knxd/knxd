@@ -183,6 +183,7 @@ private:
   bool tunnel;
   bool route;
   bool discover;
+  bool secure;
   bool single_port;
   std::string multicastaddr;
   uint16_t port;
