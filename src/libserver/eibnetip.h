@@ -61,9 +61,17 @@ enum ServiceType : uint16_t
   DEVICE_CONFIGURATION_REQUEST = 0x0310,
   DEVICE_CONFIGURATION_ACK = 0x0311,
 
-  /* Tunnelling (0x0420 .. 0x042F) */
+  /* KNX Std v3.0.4, 03_08_02 Core v01.06.02, §7.6.3 */
+  SEARCH_REQUEST_EXTENDED = 0x020B,
+  SEARCH_RESPONSE_EXTENDED = 0x020C,
+
+  /* KNX Std v3.0.4, 03_08_04 Tunnelling v01.07.01, §5.4.1 Table 9 */
   TUNNEL_REQUEST = 0x0420,
   TUNNEL_RESPONSE = 0x0421,
+  TUNNEL_FEATURE_GET = 0x0422,
+  TUNNEL_FEATURE_RESPONSE = 0x0423,
+  TUNNEL_FEATURE_SET = 0x0424,
+  TUNNEL_FEATURE_INFO = 0x0425,
 
   /* Routing (0x0530 .. 0x053F)  */
   ROUTING_INDICATION = 0x0530,
@@ -138,6 +146,42 @@ enum TunnellingLayer : uint8_t
   TUNNEL_LINKLAYER = 0x02,
   TUNNEL_RAW = 0x04,
   TUNNEL_BUSMONITOR = 0x80,
+};
+
+/** Service family IDs — 03_08_02 Core v01.06.02, §7.5.4.3 Table 3 */
+enum ServiceFamily : uint8_t
+{
+  SF_CORE = 0x02,
+  SF_DEVICE_MANAGEMENT = 0x03,
+  SF_TUNNELLING = 0x04,
+  SF_ROUTING = 0x05,
+  SF_REMOTE_LOGGING = 0x06,
+  SF_REMOTE_CONF_DIAG = 0x07,
+  SF_OBJECT_SERVER = 0x08,
+  SF_SECURITY = 0x09,
+};
+
+/** Interface Feature Identifiers — 03_08_04 Tunnelling v01.07.01, §3.6 */
+enum InterfaceFeature : uint8_t
+{
+  IF_SUPPORTED_EMI_TYPE = 0x01,          // §3.6.2
+  IF_DEVICE_DESCRIPTOR_TYPE0 = 0x02,     // §3.6.3
+  IF_BUS_CONNECTION_STATUS = 0x03,       // §3.6.4
+  IF_KNX_MANUFACTURER_CODE = 0x04,      // §3.6.5
+  IF_ACTIVE_EMI_TYPE = 0x05,            // §3.6.6
+  IF_INDIVIDUAL_ADDRESS = 0x06,          // §3.6.7
+  IF_MAX_APDU_LENGTH = 0x07,            // §3.6.8
+  IF_FEATURE_INFO_ENABLE = 0x08,         // §3.6.9
+};
+
+/** Feature return codes for TUNNEL_FEATURE_RESPONSE — 03_08_04 §3.5 */
+enum FeatureReturnCode : uint8_t
+{
+  FR_NO_ERROR = 0x00,
+  FR_ACCESS_READ_ONLY = 0x01,
+  FR_ADDRESS_VOID = 0x02,        // unknown feature
+  FR_DATA_TYPE_CONFLICT = 0x03,
+  FR_DATA_VOID = 0x04,
 };
 
 /* Timeout constants */
