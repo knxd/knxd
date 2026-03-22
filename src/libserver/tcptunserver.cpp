@@ -493,6 +493,244 @@ TcpTunConn::handlePacket(const EIBNetIPPacket &p1)
       return;
     }
 
+  if (p1.service == DESCRIPTION_REQUEST)
+    {
+      EIBnet_DescriptionRequest r1;
+      EIBnet_DescriptionResponse r2;
+      DIB_service_Entry d;
+      if (parseEIBnet_DescriptionRequest(p1, r1))
+        {
+          t->TracePacket(2, "unparseable DESCRIPTION_REQUEST", p1.data);
+          return;
+        }
+
+      TRACEPRINTF (t, 8, "DESCRIBE");
+
+      Router& router = static_cast<Router &>(parent->router);
+      r2.KNXmedium = M_TP1;
+      r2.devicestatus = 0;
+      r2.individual_addr = router.addr;
+      r2.installid = 0;
+      inet_pton(AF_INET, "224.0.23.12", &r2.multicastaddr);
+      strncpy((char *) r2.name, router.servername.c_str(), sizeof(r2.name) - 1);
+      // 03_08_02 Core v01.06.02, §7.5.4.3 Table 3
+      // version 2 = KNXnet/IP v2 with TCP support
+      d.version = 2;
+      d.family = SF_CORE;
+      r2.services.push_back(d);
+      d.family = SF_DEVICE_MANAGEMENT;
+      r2.services.push_back(d);
+      d.family = SF_TUNNELLING;
+      r2.services.push_back(d);
+      send(r2.ToPacket(IPV4_TCP));
+      return;
+    }
+
+  if (p1.service == TUNNEL_FEATURE_GET)
+    {
+      // 03_08_04 Tunnelling v01.07.01, §5.4.8: TUNNELLING_FEATURE_GET frame
+      // Body: connection header (4) + featureID (1) + reserved (1)
+      if (p1.data.size() < 6 || p1.data[0] != 4)
+        {
+          t->TracePacket(2, "unparseable TUNNEL_FEATURE_GET", p1.data);
+          return;
+        }
+
+      reset_timer();
+
+      uint8_t chanID = p1.data[1];
+      uint8_t seqno = p1.data[2];
+      // p1.data[3] is reserved
+      uint8_t featureID = p1.data[4];
+
+      auto channel = findChannel(chanID);
+      if (!channel)
+        {
+          TRACEPRINTF (t, 8, "TUNNEL_FEATURE_GET on unknown channel %d", chanID);
+          return;
+        }
+
+      TRACEPRINTF (t, 8, "TUNNEL_FEATURE_GET ch=%d feat=%d", chanID, featureID);
+
+      // Build TUNNEL_FEATURE_RESPONSE (§5.4.9)
+      // resp.data layout: connHdr[0..3] + featureID[4] + returnCode[5] + value[6..]
+      // CArray::resize() zero-initializes new elements
+      EIBNetIPPacket resp;
+      resp.service = TUNNEL_FEATURE_RESPONSE;
+      switch (featureID)
+        {
+        case IF_SUPPORTED_EMI_TYPE: // 2 bytes, bitfield (bit0=EMI1, bit1=EMI2, bit2=cEMI)
+          resp.data.resize(8);
+          resp.data[4] = featureID;
+          resp.data[5] = FR_NO_ERROR;
+          resp.data[7] = 0x04; // cEMI only
+          break;
+        case IF_DEVICE_DESCRIPTOR_TYPE0: // mask version 0701h
+          resp.data.resize(8);
+          resp.data[4] = featureID;
+          resp.data[5] = FR_NO_ERROR;
+          resp.data[6] = 0x07;
+          resp.data[7] = 0x01;
+          break;
+        case IF_BUS_CONNECTION_STATUS:
+          {
+            resp.data.resize(7);
+            resp.data[4] = featureID;
+            resp.data[5] = FR_NO_ERROR;
+            auto& router = static_cast<Router &>(parent->router);
+            resp.data[6] = router.isIdle() ? 0x00 : 0x01;
+          }
+          break;
+        case IF_KNX_MANUFACTURER_CODE:
+          resp.data.resize(8);
+          resp.data[4] = featureID;
+          resp.data[5] = FR_NO_ERROR;
+          resp.data[6] = (parent->manufacturerCode >> 8) & 0xFF;
+          resp.data[7] = parent->manufacturerCode & 0xFF;
+          break;
+        case IF_ACTIVE_EMI_TYPE:
+          resp.data.resize(7);
+          resp.data[4] = featureID;
+          resp.data[5] = FR_NO_ERROR;
+          resp.data[6] = 0x04; // cEMI
+          break;
+        case IF_INDIVIDUAL_ADDRESS:
+          {
+            resp.data.resize(8);
+            resp.data[4] = featureID;
+            resp.data[5] = FR_NO_ERROR;
+            auto *llService = dynamic_cast<TunServiceLinkLayer *>(channel->service.get());
+            eibaddr_t addr = llService ? llService->knxaddr : 0;
+            resp.data[6] = (addr >> 8) & 0xFF;
+            resp.data[7] = addr & 0xFF;
+          }
+          break;
+        case IF_MAX_APDU_LENGTH:
+          resp.data.resize(8);
+          resp.data[4] = featureID;
+          resp.data[5] = FR_NO_ERROR;
+          resp.data[6] = (parent->maxAPDULength >> 8) & 0xFF;
+          resp.data[7] = parent->maxAPDULength & 0xFF;
+          break;
+        case IF_FEATURE_INFO_ENABLE:
+          resp.data.resize(7);
+          resp.data[4] = featureID;
+          resp.data[5] = FR_NO_ERROR;
+          resp.data[6] = channel->featureInfoEnabled ? 0x01 : 0x00;
+          break;
+        default:
+          resp.data.resize(6);
+          resp.data[4] = featureID;
+          resp.data[5] = FR_ADDRESS_VOID;
+          break;
+        }
+      resp.data[0] = 4; // connection header length
+      resp.data[1] = chanID;
+      resp.data[2] = seqno;
+      resp.data[3] = 0; // reserved
+      send(resp);
+      return;
+    }
+
+  if (p1.service == TUNNEL_FEATURE_SET)
+    {
+      // 03_08_04 Tunnelling v01.07.01, §5.4.10: TUNNELLING_FEATURE_SET frame
+      // Body: connection header (4) + featureID (1) + reserved (1) + value (n)
+      if (p1.data.size() < 6 || p1.data[0] != 4)
+        {
+          t->TracePacket(2, "unparseable TUNNEL_FEATURE_SET", p1.data);
+          return;
+        }
+
+      reset_timer();
+
+      uint8_t chanID = p1.data[1];
+      uint8_t seqno = p1.data[2];
+      // p1.data[3] is reserved
+      uint8_t featureID = p1.data[4];
+
+      auto channel = findChannel(chanID);
+      if (!channel)
+        {
+          TRACEPRINTF (t, 8, "TUNNEL_FEATURE_SET on unknown channel %d", chanID);
+          return;
+        }
+
+      TRACEPRINTF (t, 8, "TUNNEL_FEATURE_SET ch=%d feat=%d", chanID, featureID);
+
+      // Build TUNNEL_FEATURE_RESPONSE (§5.4.9)
+      // resp.data layout: connHdr[0..3] + featureID[4] + returnCode[5] + value[6..]
+      EIBNetIPPacket resp;
+      resp.service = TUNNEL_FEATURE_RESPONSE;
+
+      switch (featureID)
+        {
+        case IF_SUPPORTED_EMI_TYPE:
+        case IF_DEVICE_DESCRIPTOR_TYPE0:
+        case IF_BUS_CONNECTION_STATUS:
+        case IF_KNX_MANUFACTURER_CODE:
+        case IF_ACTIVE_EMI_TYPE:
+        case IF_INDIVIDUAL_ADDRESS: // read-only (no KNX Secure)
+        case IF_MAX_APDU_LENGTH:
+          {
+            // Echo value from request, capped to 2 bytes (no feature uses more)
+            size_t valueLen = p1.data.size() - 6;
+            if (valueLen > 2)
+              valueLen = 2;
+            resp.data.resize(6 + valueLen);
+            resp.data[4] = featureID;
+            resp.data[5] = FR_ACCESS_READ_ONLY;
+            for (size_t i = 0; i < valueLen; i++)
+              resp.data[6 + i] = p1.data[6 + i];
+          }
+          break;
+        case IF_FEATURE_INFO_ENABLE: // writable
+          {
+            if (p1.data.size() < 7)
+              {
+                resp.data.resize(6);
+                resp.data[4] = featureID;
+                resp.data[5] = FR_DATA_TYPE_CONFLICT;
+                break;
+              }
+            uint8_t val = p1.data[6];
+            if (val > 0x01)
+              {
+                resp.data.resize(7);
+                resp.data[4] = featureID;
+                resp.data[5] = FR_DATA_VOID;
+                resp.data[6] = val;
+                break;
+              }
+            channel->featureInfoEnabled = (val == 0x01);
+            resp.data.resize(7);
+            resp.data[4] = featureID;
+            resp.data[5] = FR_NO_ERROR;
+            resp.data[6] = val;
+          }
+          break;
+        default: // Unknown feature — FR_ADDRESS_VOID, no value (§3.5)
+          resp.data.resize(6);
+          resp.data[4] = featureID;
+          resp.data[5] = FR_ADDRESS_VOID;
+          break;
+        }
+
+      resp.data[0] = 4; // connection header length
+      resp.data[1] = chanID;
+      resp.data[2] = seqno;
+      resp.data[3] = 0; // reserved
+      send(resp);
+      return;
+    }
+
+  if (p1.service == SEARCH_REQUEST_EXTENDED)
+    {
+      // KNX Std v3.0.4, 03_08_02 Core v01.06.02, §7.6.3 - Extended search, ignore (ETS falls back gracefully)
+      TRACEPRINTF (t, 8, "SEARCH_REQUEST_EXTENDED (ignored)");
+      return;
+    }
+
   TRACEPRINTF (t, 8, "Unexpected service type: %04x", p1.service);
 }
 
