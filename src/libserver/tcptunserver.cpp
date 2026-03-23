@@ -1082,7 +1082,27 @@ TcpTunServer::setup()
   manufacturerCode = cfg->value("manufacturer-code", 0);
   ignore_when_systemd = cfg->value("systemd-ignore", port == 3671);
 
-  // KNX IP Secure configuration
+  // KNX IP Secure configuration (03_08_09)
+  //
+  // Two ways to configure:
+  //   1. keyring + keyring-password: load .knxkeys file exported from ETS
+  //   2. user-password (+ optional device-auth): set passwords directly
+  //
+  // user-password is mandatory — this is what ETS calls "Commissioning Password".
+  //   It authenticates the client (ETS/visualization) to the server.
+  //   Set for both user 1 (management) and user 2 (tunnelling).
+  //
+  // device-auth is optional — the Device Authentication Code.
+  //   It authenticates the server to the client (prevents MITM attacks).
+  //   The client may skip verification if it doesn't know the code.
+  //   If omitted, IP Secure still works — the client just can't verify
+  //   the server's identity during the ECDH handshake.
+  //
+  // Note: ETS will initiate IP Secure when it sees the Secure Service
+  // Families DIB (0x06) in the DESCRIPTION_RESPONSE or SEARCH_RESPONSE.
+  // No KNX IP Router needs to be configured in the ETS project.
+  // UDP multicast discovery is also not required — ETS can connect
+  // directly via TCP if the address is known.
   {
     std::string keyring = cfg->value("keyring", "");
     std::string keyring_pwd = cfg->value("keyring-password", "");
@@ -1100,9 +1120,8 @@ TcpTunServer::setup()
       ip_secure.setDeviceAuthPassword(device_auth);
     if (!user_pwd.empty())
       {
-        // Set as user 1 (management) and user 2 (tunnelling)
-        ip_secure.setUserPassword(1, user_pwd);
-        ip_secure.setUserPassword(2, user_pwd);
+        ip_secure.setUserPassword(1, user_pwd); // management (ETS commissioning)
+        ip_secure.setUserPassword(2, user_pwd); // tunnelling (visualizations, etc.)
       }
     if (ip_secure.isEnabled())
       TRACEPRINTF(t, 2, "IP Secure: enabled for TCP tunnel server");
