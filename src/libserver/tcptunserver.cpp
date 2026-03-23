@@ -687,6 +687,29 @@ TcpTunConn::handlePacket(const EIBNetIPPacket &p1)
           d.family = SF_SECURITY;
           r2.services.push_back(d);
         }
+
+      // Tunnelling Info DIB (type 0x07) — lists available tunnel slots
+      // 03_08_02 Core v01.06.02, §7.5.4.8
+      {
+        Router& rtr = static_cast<Router &>(parent->router);
+        int num_slots = rtr.getClientAddrsLen() > 0 ? rtr.getClientAddrsLen() : 4;
+        eibaddr_t base_addr = rtr.getClientAddrsStart();
+        int dib_len = 4 + num_slots * 4; // header(2) + apdu_len(2) + slots*4
+        r2.optional.resize(dib_len);
+        r2.optional[0] = dib_len;       // structure length
+        r2.optional[1] = 0x07;          // description type = Tunnelling Info
+        r2.optional[2] = (parent->maxAPDULength >> 8) & 0xFF;
+        r2.optional[3] = parent->maxAPDULength & 0xFF;
+        for (int i = 0; i < num_slots; i++)
+          {
+            eibaddr_t slot_addr = base_addr + i;
+            r2.optional[4 + i*4 + 0] = (slot_addr >> 8) & 0xFF;
+            r2.optional[4 + i*4 + 1] = slot_addr & 0xFF;
+            r2.optional[4 + i*4 + 2] = 0xFF; // status: all reserved bits = 1
+            r2.optional[4 + i*4 + 3] = 0xFF; // F=1, A=1, U=1 = free/usable
+          }
+      }
+
       send(r2.ToPacket(IPV4_TCP));
       return;
     }
@@ -916,8 +939,35 @@ TcpTunConn::handlePacket(const EIBNetIPPacket &p1)
       r2.services.push_back(d);
       d.family = SF_TUNNELLING;
       r2.services.push_back(d);
+      if (parent->ip_secure.isEnabled())
+        {
+          d.family = SF_SECURITY;
+          r2.services.push_back(d);
+        }
       EIBNetIPPacket pkt = r2.ToPacket(IPV4_TCP);
       pkt.service = SEARCH_RESPONSE_EXTENDED;
+
+      // Append Tunnelling Info DIB (type 0x07)
+      {
+        int num_slots = router.getClientAddrsLen() > 0 ? router.getClientAddrsLen() : 4;
+        eibaddr_t base_addr = router.getClientAddrsStart();
+        int dib_len = 4 + num_slots * 4;
+        size_t old_size = pkt.data.size();
+        pkt.data.resize(old_size + dib_len);
+        pkt.data[old_size + 0] = dib_len;
+        pkt.data[old_size + 1] = 0x07;
+        pkt.data[old_size + 2] = (parent->maxAPDULength >> 8) & 0xFF;
+        pkt.data[old_size + 3] = parent->maxAPDULength & 0xFF;
+        for (int i = 0; i < num_slots; i++)
+          {
+            eibaddr_t sa = base_addr + i;
+            pkt.data[old_size + 4 + i*4 + 0] = (sa >> 8) & 0xFF;
+            pkt.data[old_size + 4 + i*4 + 1] = sa & 0xFF;
+            pkt.data[old_size + 4 + i*4 + 2] = 0xFF;
+            pkt.data[old_size + 4 + i*4 + 3] = 0xFF;
+          }
+      }
+
       send(pkt);
       return;
     }

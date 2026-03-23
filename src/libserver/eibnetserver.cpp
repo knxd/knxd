@@ -596,7 +596,11 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       memcpy(r2.MAC, mac_address, sizeof(r2.MAC));
       //FIXME: Hostname, indiv. address
       strncpy ((char *) r2.name, servername.c_str(), sizeof(r2.name) - 1);
-      d.version = 1;
+<<<<<<< Updated upstream
+=======
+      // version 2 = KNXnet/IP v2 with TCP support (ISO 22510)
+>>>>>>> Stashed changes
+      d.version = secure ? 2 : 1;
       d.family = SF_CORE;
       r2.services.push_back (d);
       d.family = SF_TUNNELLING;
@@ -636,17 +640,24 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       memcpy(r2.MAC, mac_address, sizeof(r2.MAC));
       //FIXME: Hostname, indiv. address
       strncpy ((char *) r2.name, servername.c_str(), sizeof(r2.name) - 1);
-      d.version = 1;
+      d.version = secure ? 2 : 1;
+<<<<<<< Updated upstream
       d.family = 2;
+=======
+      d.family = SF_CORE;
+>>>>>>> Stashed changes
       if (discover)
         r2.services.push_back (d);
-      d.family = 3;
+      d.family = SF_DEVICE_MANAGEMENT;
       r2.services.push_back (d);
-      d.family = 4;
+      d.family = SF_TUNNELLING;
       if (tunnel)
         r2.services.push_back (d);
-      d.family = 5;
+      d.family = SF_ROUTING;
       if (route)
+        r2.services.push_back (d);
+      d.family = SF_SECURITY;
+      if (secure)
         r2.services.push_back (d);
       isock->Send (r2.ToPacket (), r1.caddr);
       goto out;
