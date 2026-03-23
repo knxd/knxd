@@ -671,6 +671,7 @@ TcpTunConn::handlePacket(const EIBNetIPPacket &p1)
       r2.devicestatus = 0;
       r2.individual_addr = router.addr;
       r2.installid = 0;
+      memcpy(&r2.serial, parent->knx_serial, 6);
       inet_pton(AF_INET, "224.0.23.12", &r2.multicastaddr);
       strncpy((char *) r2.name, router.servername.c_str(), sizeof(r2.name) - 1);
       // 03_08_02 Core v01.06.02, §7.5.4.3 Table 3
@@ -946,6 +947,7 @@ TcpTunConn::handlePacket(const EIBNetIPPacket &p1)
       r2.devicestatus = 0;
       r2.individual_addr = router.addr;
       r2.installid = 0;
+      memcpy(&r2.serial, parent->knx_serial, 6);
       inet_pton(AF_INET, "224.0.23.12", &r2.multicastaddr);
       strncpy((char *) r2.name, router.servername.c_str(), sizeof(r2.name) - 1);
       // HPAI: route-back for TCP (spec: "only report UDP address", use 0.0.0.0:0)
@@ -1104,18 +1106,17 @@ TcpTunServer::setup()
   // UDP multicast discovery is also not required — ETS can connect
   // directly via TCP if the address is known.
   {
-    std::string keyring = cfg->value("keyring", "");
-    std::string keyring_pwd = cfg->value("keyring-password", "");
     std::string device_auth = cfg->value("device-auth", "");
     std::string user_pwd = cfg->value("user-password", "");
 
-    if (!keyring.empty())
-      {
-        if (ip_secure.loadKeyring(keyring, keyring_pwd))
-          TRACEPRINTF(t, 2, "IP Secure: loaded keys from keyring %s", keyring.c_str());
-        else
-          TRACEPRINTF(t, 2, "IP Secure: failed to load keyring %s", keyring.c_str());
-      }
+    // Parse serial-number (12 hex chars = 6 bytes)
+    std::string sn = cfg->value("serial-number", "");
+    if (sn.size() == 12) {
+      for (int i = 0; i < 6; i++)
+        sscanf(sn.c_str() + i*2, "%2hhx", &knx_serial[i]);
+      ip_secure.setSerialNumber(knx_serial);
+    }
+
     if (!device_auth.empty())
       ip_secure.setDeviceAuthPassword(device_auth);
     if (!user_pwd.empty())

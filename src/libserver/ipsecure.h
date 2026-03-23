@@ -69,8 +69,6 @@ public:
   void setUserPassword(uint8_t userId, const std::string& password);
   void setSerialNumber(const uint8_t sno[6]);
 
-  // Load passwords from .knxkeys keyring
-  bool loadKeyring(const std::string& path, const std::string& password);
 
   // Session management
   SecureSession* findSession(uint16_t session_id);

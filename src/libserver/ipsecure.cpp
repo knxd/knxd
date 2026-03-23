@@ -16,8 +16,6 @@
 #include <openssl/evp.h>
 #include <openssl/sha.h>
 #include <cstring>
-#include <fstream>
-#include <pugixml.hpp>
 
 // KNXnet/IP header helpers
 #define KNXIP_HEADER_LEN 6
@@ -71,88 +69,6 @@ static bool aes_cbc_encrypt(const uint8_t key[16], const uint8_t iv[16],
   return true;
 }
 
-// AES-128-CBC decrypt (no padding) — for keyring
-static bool aes_cbc_decrypt(const uint8_t key[16], const uint8_t iv[16],
-                            const uint8_t* ct, int ct_len,
-                            uint8_t* pt, int* pt_len) {
-  EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
-  if (!ctx) return false;
-  EVP_DecryptInit_ex(ctx, EVP_aes_128_cbc(), NULL, key, iv);
-  EVP_CIPHER_CTX_set_padding(ctx, 0);
-  int len = 0;
-  EVP_DecryptUpdate(ctx, pt, &len, ct, ct_len);
-  *pt_len = len;
-  int fl = 0;
-  EVP_DecryptFinal_ex(ctx, pt + len, &fl);
-  *pt_len += fl;
-  EVP_CIPHER_CTX_free(ctx);
-  return true;
-}
-
-// base64 decode
-static std::vector<uint8_t> b64decode(const std::string& encoded) {
-  std::vector<uint8_t> out(encoded.size());
-  EVP_ENCODE_CTX* ctx = EVP_ENCODE_CTX_new();
-  EVP_DecodeInit(ctx);
-  int outl = 0, outl2 = 0;
-  EVP_DecodeUpdate(ctx, out.data(), &outl,
-                   (const unsigned char*)encoded.c_str(), encoded.size());
-  EVP_DecodeFinal(ctx, out.data() + outl, &outl2);
-  EVP_ENCODE_CTX_free(ctx);
-  out.resize(outl + outl2);
-  return out;
-}
-
-// Simple XML attribute extractor — finds attr="value" in a tag string
-static std::string xmlAttr(const std::string& tag, const std::string& attr) {
-  std::string search = attr + "=\"";
-  auto pos = tag.find(search);
-  if (pos == std::string::npos) return "";
-  pos += search.size();
-  auto end = tag.find('"', pos);
-  if (end == std::string::npos) return "";
-  return tag.substr(pos, end - pos);
-}
-
-// Extract an XML tag (from '<TagName ' to '>' or '/>') at or after start_pos
-static std::string xmlFindTag(const std::string& xml, const std::string& tagName,
-                              size_t& pos) {
-  std::string search = "<" + tagName + " ";
-  pos = xml.find(search, pos);
-  if (pos == std::string::npos) return "";
-  // Find the end of this tag (either /> or >)
-  size_t end1 = xml.find("/>", pos);
-  size_t end2 = xml.find(">", pos);
-  size_t end = (end1 != std::string::npos && end1 < end2) ? end1 + 2 : end2 + 1;
-  if (end2 == std::string::npos) { pos = std::string::npos; return ""; }
-  std::string tag = xml.substr(pos, end - pos);
-  pos = end;
-  return tag;
-}
-
-// Decrypt a base64-encoded keyring value and extract the password string.
-// Keyring format: AES-CBC(key, iv, [8 random bytes][password][PKCS7 padding])
-static std::string decryptKeyringPassword(const std::string& b64,
-                                          const uint8_t key[16],
-                                          const uint8_t iv[16]) {
-  if (b64.empty()) return "";
-  auto enc = b64decode(b64);
-  if (enc.size() < 16) return "";
-  while (enc.size() % 16 != 0) enc.push_back(0);
-
-  uint8_t dec[64];
-  int dl = 0;
-  aes_cbc_decrypt(key, iv, enc.data(), enc.size(), dec, &dl);
-  if (dl <= 8) return "";
-
-  // Remove PKCS7 padding
-  int pad = dec[dl - 1];
-  if (pad > 0 && pad <= 16) dl -= pad;
-  if (dl <= 8) return "";
-
-  // Skip 8-byte random prefix
-  return std::string((char*)dec + 8, dl - 8);
-}
 
 // =====================================================
 // IPSecure implementation
@@ -567,76 +483,11 @@ std::vector<uint8_t> IPSecure::buildSessionStatus(uint16_t session_id, uint8_t s
   return wrapSecure(session_id, inner, 8);
 }
 
-// =====================================================
-// Keyring loading
-// =====================================================
-
-bool IPSecure::loadKeyring(const std::string& path, const std::string& password) {
-  pugi::xml_document doc;
-  if (!doc.load_file(path.c_str()))
-    return false;
-
-  pugi::xml_node keyring = doc.child("Keyring");
-  if (!keyring)
-    return false;
-
-  // 1. Derive keyring decryption key from password via PBKDF2
-  uint8_t pwd_hash[16];
-  PKCS5_PBKDF2_HMAC(password.c_str(), password.size(),
-                     (const uint8_t*)"1.keyring.ets.knx.org", 21,
-                     65536, EVP_sha256(), 16, pwd_hash);
-
-  // 2. Derive IV from Created timestamp
-  std::string created = keyring.attribute("Created").as_string();
-  if (created.empty()) return false;
-
-  uint8_t created_hash[32];
-  SHA256((const uint8_t*)created.c_str(), created.size(), created_hash);
-  uint8_t iv[16];
-  memcpy(iv, created_hash, 16);
-
-
-  // 3. Parse Interface elements for device auth code and user passwords
-  for (auto iface : keyring.children("Interface")) {
-    std::string type = iface.attribute("Type").as_string();
-    if (type != "Tunneling" && type != "Backbone")
-      continue;
-
-    // Device authentication code (first one wins)
-    if (!enabled) {
-      std::string auth_pwd = decryptKeyringPassword(
-          iface.attribute("Authentication").as_string(), pwd_hash, iv);
-      if (!auth_pwd.empty()) {
-        deriveDeviceAuthKey(auth_pwd, device_auth_key);
-        enabled = true;
-      }
-    }
-
-    // User password (per tunnel slot)
-    int uid = iface.attribute("UserID").as_int(0);
-    if (uid > 0) {
-      std::string user_pwd = decryptKeyringPassword(
-          iface.attribute("Password").as_string(), pwd_hash, iv);
-      if (!user_pwd.empty()) {
-        std::vector<uint8_t> hash(IPSEC_KEY_SIZE);
-        deriveUserPwdHash(user_pwd, hash.data());
-        user_pwd_hashes[(uint8_t)uid] = hash;
-      }
-    }
-  }
-
-  // 4. Parse Device elements for management password (user 1)
-  for (auto dev : keyring.child("Devices").children("Device")) {
-    if (user_pwd_hashes.find(1) != user_pwd_hashes.end())
-      break; // already have user 1
-    std::string mgmt_pwd = decryptKeyringPassword(
-        dev.attribute("ManagementPassword").as_string(), pwd_hash, iv);
-    if (!mgmt_pwd.empty()) {
-      std::vector<uint8_t> hash(IPSEC_KEY_SIZE);
-      deriveUserPwdHash(mgmt_pwd, hash.data());
-      user_pwd_hashes[1] = hash;
-    }
-  }
-
-  return enabled;
-}
+// Note: .knxkeys keyring loading was intentionally removed.
+// ETS prompts the user for the "Commissioning Password" when connecting
+// to an IP Secure device, regardless of whether the keyring is loaded.
+// The passwords in the keyring are what ETS programmed into the device,
+// but since knxd is not a real KNX device, it was never programmed by ETS.
+// The simplest and most reliable approach is to set user-password directly
+// in the knxd config, and have the user enter the same password in ETS
+// when prompted.
