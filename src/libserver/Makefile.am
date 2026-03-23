@@ -42,7 +42,10 @@ SYSTEMD_SERVER =
 endif
 
 if HAVE_EIBNETSERVER
-EIBNETIP = eibnetserver.cpp eibnetserver.h tcptunserver.cpp tcptunserver.h tunchannel.cpp tunchannel.h ipsecure.cpp ipsecure.h
+EIBNETIP = eibnetserver.cpp eibnetserver.h tcptunserver.cpp tcptunserver.h tunchannel.cpp tunchannel.h
+if HAVE_IPSECURE
+EIBNETIP += ipsecure.cpp ipsecure.h
+endif
 else
 EIBNETIP =
 endif

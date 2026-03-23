@@ -193,6 +193,19 @@ if test x$eibnetip = xtrue ; then
  AC_DEFINE(HAVE_EIBNETIP, 1 , [EIBnet/IP multicast slave enabled])
 fi
 
+AC_ARG_ENABLE(ipsecure,
+[  --enable-ipsecure		enable KNX IP Secure (requires libcrypto)],
+[case "${enableval}" in
+ yes) ipsecure=true ;;
+  no)  ipsecure=false ;;
+   *) AC_MSG_ERROR(bad value ${enableval} for --enable-ipsecure) ;;
+ esac],[ipsecure=true])
+AM_CONDITIONAL(HAVE_IPSECURE, test x$ipsecure = xtrue)
+if test x$ipsecure = xtrue ; then
+ AC_CHECK_LIB([crypto], [EVP_EncryptInit_ex],,[AC_MSG_ERROR([libcrypto (OpenSSL) not found, required for KNX IP Secure. Use --disable-ipsecure to build without it.])])
+ AC_DEFINE(HAVE_IPSECURE, 1 , [KNX IP Secure enabled])
+fi
+
 AC_ARG_ENABLE(eibnetserver,
 [  --enable-eibnetserver	enable full-featured EIBnet/IP routing],
 [case "${enableval}" in
