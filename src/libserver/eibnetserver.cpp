@@ -596,10 +596,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       memcpy(r2.MAC, mac_address, sizeof(r2.MAC));
       //FIXME: Hostname, indiv. address
       strncpy ((char *) r2.name, servername.c_str(), sizeof(r2.name) - 1);
-<<<<<<< Updated upstream
-=======
       // version 2 = KNXnet/IP v2 with TCP support (ISO 22510)
->>>>>>> Stashed changes
       d.version = secure ? 2 : 1;
       d.family = SF_CORE;
       r2.services.push_back (d);
@@ -615,7 +612,22 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       if (!GetSourceAddress (t, &r1.caddr, &r2.caddr))
         goto out;
       r2.caddr.sin_port = Port;
-      isock->Send (r2.ToPacket (), r1.caddr);
+      {
+        EIBNetIPPacket pkt = r2.ToPacket ();
+        // Append Secure Service Families DIB (type 0x06) for ETS
+        if (secure)
+          {
+            size_t off = pkt.data.size();
+            pkt.data.resize(off + 6);
+            pkt.data[off + 0] = 6;
+            pkt.data[off + 1] = 0x06; // SecureServiceFamilies
+            pkt.data[off + 2] = SF_DEVICE_MANAGEMENT;
+            pkt.data[off + 3] = 0x01;
+            pkt.data[off + 4] = SF_TUNNELLING;
+            pkt.data[off + 5] = 0x01;
+          }
+        isock->Send (pkt, r1.caddr);
+      }
       goto out;
     }
 
@@ -641,11 +653,7 @@ EIBnetServer::handle_packet (EIBNetIPPacket *p1, EIBNetIPSocket *isock)
       //FIXME: Hostname, indiv. address
       strncpy ((char *) r2.name, servername.c_str(), sizeof(r2.name) - 1);
       d.version = secure ? 2 : 1;
-<<<<<<< Updated upstream
-      d.family = 2;
-=======
       d.family = SF_CORE;
->>>>>>> Stashed changes
       if (discover)
         r2.services.push_back (d);
       d.family = SF_DEVICE_MANAGEMENT;

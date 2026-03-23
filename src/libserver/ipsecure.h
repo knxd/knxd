@@ -96,6 +96,7 @@ public:
 
   bool isEnabled() const { return enabled; }
 
+
 private:
   bool enabled;
   uint8_t serial_number[6];

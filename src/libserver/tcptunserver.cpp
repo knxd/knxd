@@ -694,10 +694,18 @@ TcpTunConn::handlePacket(const EIBNetIPPacket &p1)
         Router& rtr = static_cast<Router &>(parent->router);
         int num_slots = rtr.getClientAddrsLen() > 0 ? rtr.getClientAddrsLen() : 4;
         eibaddr_t base_addr = rtr.getClientAddrsStart();
-        int dib_len = 4 + num_slots * 4; // header(2) + apdu_len(2) + slots*4
-        r2.optional.resize(dib_len);
-        r2.optional[0] = dib_len;       // structure length
-        r2.optional[1] = 0x07;          // description type = Tunnelling Info
+        int tun_dib_len = 4 + num_slots * 4;
+
+        // Secure Service Families DIB (type 0x06) — tells ETS which services require security
+        int sec_dib_len = 0;
+        if (parent->ip_secure.isEnabled())
+          sec_dib_len = 2 + 2 + 2; // header(2) + DevMgmt(2) + Tunnelling(2)
+
+        r2.optional.resize(tun_dib_len + sec_dib_len);
+
+        // Tunnelling Info DIB
+        r2.optional[0] = tun_dib_len;
+        r2.optional[1] = 0x07;
         r2.optional[2] = (parent->maxAPDULength >> 8) & 0xFF;
         r2.optional[3] = parent->maxAPDULength & 0xFF;
         for (int i = 0; i < num_slots; i++)
@@ -705,8 +713,20 @@ TcpTunConn::handlePacket(const EIBNetIPPacket &p1)
             eibaddr_t slot_addr = base_addr + i;
             r2.optional[4 + i*4 + 0] = (slot_addr >> 8) & 0xFF;
             r2.optional[4 + i*4 + 1] = slot_addr & 0xFF;
-            r2.optional[4 + i*4 + 2] = 0xFF; // status: all reserved bits = 1
-            r2.optional[4 + i*4 + 3] = 0xFF; // F=1, A=1, U=1 = free/usable
+            r2.optional[4 + i*4 + 2] = 0xFF;
+            r2.optional[4 + i*4 + 3] = 0xFF;
+          }
+
+        // Secure Service Families DIB (type 0x06)
+        if (parent->ip_secure.isEnabled())
+          {
+            int off = tun_dib_len;
+            r2.optional[off + 0] = sec_dib_len;
+            r2.optional[off + 1] = 0x06; // SecureServiceFamilies
+            r2.optional[off + 2] = SF_DEVICE_MANAGEMENT;
+            r2.optional[off + 3] = 0x01; // version 1
+            r2.optional[off + 4] = SF_TUNNELLING;
+            r2.optional[off + 5] = 0x01; // version 1
           }
       }
 
@@ -947,14 +967,18 @@ TcpTunConn::handlePacket(const EIBNetIPPacket &p1)
       EIBNetIPPacket pkt = r2.ToPacket(IPV4_TCP);
       pkt.service = SEARCH_RESPONSE_EXTENDED;
 
-      // Append Tunnelling Info DIB (type 0x07)
+      // Append Tunnelling Info DIB (type 0x07) + Secure Service Families DIB (type 0x06)
       {
         int num_slots = router.getClientAddrsLen() > 0 ? router.getClientAddrsLen() : 4;
         eibaddr_t base_addr = router.getClientAddrsStart();
-        int dib_len = 4 + num_slots * 4;
+        int tun_dib_len = 4 + num_slots * 4;
+        int sec_dib_len = parent->ip_secure.isEnabled() ? 6 : 0; // 2+2+2
+
         size_t old_size = pkt.data.size();
-        pkt.data.resize(old_size + dib_len);
-        pkt.data[old_size + 0] = dib_len;
+        pkt.data.resize(old_size + tun_dib_len + sec_dib_len);
+
+        // Tunnelling Info DIB
+        pkt.data[old_size + 0] = tun_dib_len;
         pkt.data[old_size + 1] = 0x07;
         pkt.data[old_size + 2] = (parent->maxAPDULength >> 8) & 0xFF;
         pkt.data[old_size + 3] = parent->maxAPDULength & 0xFF;
@@ -965,6 +989,18 @@ TcpTunConn::handlePacket(const EIBNetIPPacket &p1)
             pkt.data[old_size + 4 + i*4 + 1] = sa & 0xFF;
             pkt.data[old_size + 4 + i*4 + 2] = 0xFF;
             pkt.data[old_size + 4 + i*4 + 3] = 0xFF;
+          }
+
+        // Secure Service Families DIB (type 0x06)
+        if (parent->ip_secure.isEnabled())
+          {
+            size_t off = old_size + tun_dib_len;
+            pkt.data[off + 0] = 6; // length
+            pkt.data[off + 1] = 0x06; // SecureServiceFamilies
+            pkt.data[off + 2] = SF_DEVICE_MANAGEMENT;
+            pkt.data[off + 3] = 0x01;
+            pkt.data[off + 4] = SF_TUNNELLING;
+            pkt.data[off + 5] = 0x01;
           }
       }
 
