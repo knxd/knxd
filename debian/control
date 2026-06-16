@@ -3,6 +3,7 @@ Section: net
 Priority: optional
 Maintainer: Matthias Urlichs <matthias@urlichs.de>
 Build-Depends: debhelper-compat (=13),
+  dh-sequence-installsysusers,
   autoconf, automake, libtool,
   git,
   libusb-1.0-0-dev (>= 1.0.9),
@@ -21,7 +22,7 @@ Vcs-Browser: https://github.com/knxd/knxd
 
 Package: knxd
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libusb-1.0-0 (>= 1.0.10), adduser
+Depends: ${shlibs:Depends}, ${misc:Depends}, libusb-1.0-0 (>= 1.0.10)
 Replaces: eibd, eibd-server
 Conflicts: eibd, eibd-server
 Description: daemon to access the KNX bus
