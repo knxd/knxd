@@ -115,7 +115,12 @@ L_Busmon_PDU::Decode (TracePtr tr) const
   C_ITER (i,lpdu)
   addHex (s, *i);
   s += ":";
+  // This is a raw busmonitor frame, so it is not necessarily a well-formed
+  // L_Data. CM_TP1_to_L_Data() returns nullptr for anything it cannot parse,
+  // so the result must be checked before use.
   LDataPtr l = CM_TP1_to_L_Data (lpdu, tr);
+  if (l == nullptr)
+    return s + " invalid LPDU";
   s += l->Decode (tr);
   return s;
 }
