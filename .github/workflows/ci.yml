@@ -105,10 +105,17 @@ jobs:
       with:
         fetch-depth: 0 # Full history to be able to determine version number
 
-    - name: Merge with debian branch
+    - name: Set up source tree for Debian packaging
       run: |
-        git switch -C ci origin/debian
-        git merge origin/main
+        if [ -d "debian" ]; then
+          # We are on a debian-based branch (push to debian or PR into debian).
+          git switch -C ci
+          git merge --no-edit origin/main
+        else
+          # We are on a non-debian branch (push to main or PR into main).
+          git switch -C ci origin/debian
+          git merge --no-edit "$GITHUB_SHA"
+        fi
 
     - name: Build and install
       run: sh install-debian.sh
