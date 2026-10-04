@@ -62,6 +62,11 @@ std::string L_Data_PDU::Decode (TracePtr tr) const
         FormatEIBAddr (destination_address));
   s += " hops: ";
   addHex (s, hop_count);
+  if (ext_frame_format != 0)
+    {
+      s += " hee: ";
+      addHex (s, ext_frame_format);
+    }
   TPDUPtr d = TPDU::fromPacket (address_type, destination_address, lsdu, tr);
   s += d->Decode (tr);
   return s;
