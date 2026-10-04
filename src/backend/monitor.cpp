@@ -46,7 +46,7 @@ void
 MonitorL2Filter::recv_L_Data (LDataPtr l)
 {
   if (mon_recv){
-    CArray cm_tp1_array = L_Data_to_CM_TP1(l);
+    CArray cm_tp1_array = L_Data_to_CM_TP1(l, TP1_as_received);
     LBusmonPtr mon_l = LBusmonPtr(new L_Busmon_PDU ());
     mon_l->lpdu.set (cm_tp1_array);
     Filter::recv_L_Busmonitor(std::move(mon_l));
@@ -59,7 +59,7 @@ void
 MonitorL2Filter::send_L_Data (LDataPtr l)
 {
   if (mon_send){
-    CArray cm_tp1_array = L_Data_to_CM_TP1(l);
+    CArray cm_tp1_array = L_Data_to_CM_TP1(l, TP1_as_received);
     LBusmonPtr mon_l = LBusmonPtr(new L_Busmon_PDU ());
     mon_l->lpdu.set (cm_tp1_array);
     Filter::recv_L_Busmonitor(std::move(mon_l));

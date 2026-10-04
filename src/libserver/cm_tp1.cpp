@@ -79,18 +79,25 @@ LDataPtr CM_TP1_to_L_Data (const CArray & c, TracePtr)
   return l;
 }
 
-CArray L_Data_to_CM_TP1 (const LDataPtr & p)
+CArray L_Data_to_CM_TP1 (const LDataPtr & p, TP1_Format fmt)
 {
   assert (p->lsdu.size() >= 1);
   assert (p->lsdu.size() <= 0xff);
   assert ((p->hop_count & 0xf8) == 0);
 
   uint8_t len = p->lsdu.size() - 1;
-  bool ext = (len > 0x0f) || (p->ext_frame_format != 0);
+
+  bool ext;
+  if (fmt == TP1_as_received)
+    ext = (p->frame_format == 0);
+  else
+    ext = (len > 0x0f) || (p->ext_frame_format != 0);
 
   CArray pdu;
   if (!ext)
     {
+      assert (p->ext_frame_format == 0);
+
       /* L_Data_Standard Frame */
       pdu.resize (7 + p->lsdu.size());
       pdu[0] = 0x90 | (p->repeated ? 0x00 : 0x20) | (p->priority << 2);

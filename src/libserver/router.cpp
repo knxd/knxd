@@ -1048,7 +1048,7 @@ Router::trigger_cb (ev::async &, int)
       if (vbusmonitor.size())
         {
           LBusmonPtr l2 = LBusmonPtr(new L_Busmon_PDU ());
-          l2->lpdu.set (L_Data_to_CM_TP1 (l1));
+          l2->lpdu.set (L_Data_to_CM_TP1 (l1, TP1_as_received));
 
           ITER(i,vbusmonitor)
           i->cb->send_L_Busmonitor (LBusmonPtr(new L_Busmon_PDU (*l2)));
