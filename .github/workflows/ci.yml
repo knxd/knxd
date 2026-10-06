@@ -21,7 +21,7 @@ jobs:
         sudo apt-get dist-upgrade -y
         sudo apt-get install -y --no-install-recommends libusb-1.0-0-dev libsystemd-dev libev-dev libfmt-dev libinih-dev
 
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0 # Full history to be able to determine version number
 
@@ -57,7 +57,7 @@ jobs:
       run: |
         git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0 # Full history to be able to determine version number
 
@@ -101,14 +101,21 @@ jobs:
         git config --global user.name "Your Name"
         git config --global user.email "you@example.com"
 
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
       with:
         fetch-depth: 0 # Full history to be able to determine version number
 
-    - name: Merge with debian branch
+    - name: Set up source tree for Debian packaging
       run: |
-        git switch -C ci origin/debian
-        git merge origin/main
+        if [ -d "debian" ]; then
+          # We are on a debian-based branch (push to debian or PR into debian).
+          git switch -C ci
+          git merge --no-edit origin/main
+        else
+          # We are on a non-debian branch (push to main or PR into main).
+          git switch -C ci origin/debian
+          git merge --no-edit "$GITHUB_SHA"
+        fi
 
     - name: Build and install
       run: sh install-debian.sh
