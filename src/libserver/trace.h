@@ -55,7 +55,7 @@ enum trace_level
 };
 
 constexpr unsigned int E_FATAL = LEVEL_FATAL<<28;
-constexpr unsigned int E_CRTIICAL = LEVEL_CRITICAL<<28;
+constexpr unsigned int E_CRITICAL = LEVEL_CRITICAL<<28;
 constexpr unsigned int E_ERROR = LEVEL_ERROR<<28;
 constexpr unsigned int E_WARNING = LEVEL_WARNING<<28;
 constexpr unsigned int E_NOTICE = LEVEL_NOTICE<<28;

@@ -95,7 +95,9 @@ public:
   /* destination address */
   eibaddr_t destination_address = 0;
   /** standard/extended frame format */
-  uint8_t frame_format = 0; // 0=Extended 1=Standard
+  uint8_t frame_format = 1; // 0=Extended 1=Standard
+  /** LTE-HEE extended address / subnet id, for extended frames only */
+  uint8_t ext_frame_format = 0;
   /** octet count */
   uint8_t octet_count = 0;
   /** priority */

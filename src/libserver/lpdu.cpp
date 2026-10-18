@@ -62,6 +62,11 @@ std::string L_Data_PDU::Decode (TracePtr tr) const
         FormatEIBAddr (destination_address));
   s += " hops: ";
   addHex (s, hop_count);
+  if (ext_frame_format != 0)
+    {
+      s += " hee: ";
+      addHex (s, ext_frame_format);
+    }
   TPDUPtr d = TPDU::fromPacket (address_type, destination_address, lsdu, tr);
   s += d->Decode (tr);
   return s;
@@ -115,7 +120,12 @@ L_Busmon_PDU::Decode (TracePtr tr) const
   C_ITER (i,lpdu)
   addHex (s, *i);
   s += ":";
+  // This is a raw busmonitor frame, so it is not necessarily a well-formed
+  // L_Data. CM_TP1_to_L_Data() returns nullptr for anything it cannot parse,
+  // so the result must be checked before use.
   LDataPtr l = CM_TP1_to_L_Data (lpdu, tr);
+  if (l == nullptr)
+    return s + " invalid LPDU";
   s += l->Decode (tr);
   return s;
 }
