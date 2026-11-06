@@ -82,9 +82,12 @@ public:
   bool setup();
   void start();
   void stop(bool err);
+
+private:
   void is_stopped();
   void restart();
 
+public:
   void send_L_Data (LDataPtr  l);
 };
 

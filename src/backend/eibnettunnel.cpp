@@ -441,7 +441,6 @@ EIBNetIPTunnel::read_cb (EIBNetIPPacket *p1)
       mod = 0;
       sock->recvall = 0;
       TRACEPRINTF (t, 1, "Disconnected");
-      restart();
       conntimeout.start(0.1,0);
       break;
     }
