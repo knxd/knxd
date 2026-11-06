@@ -41,14 +41,49 @@ void EIBNetIPTunnel::is_stopped()
 {
   acktimeout.stop();
   conntimeout.stop();
+  stoptimeout.stop();
   sendtrigger.stop();
+  stoptrigger.stop();
+  stopping = false;
   delete sock;
   sock = nullptr;
 }
 
 void EIBNetIPTunnel::stop(bool err)
 {
-  restart();
+  if (stopping)
+    {
+      stop_error = stop_error || err;
+      return;
+    }
+
+  if (sock && mod != 0 && channel != -1)
+    {
+      stopping = true;
+      stop_error = err;
+      acktimeout.stop();
+      conntimeout.stop();
+      sendtrigger.stop();
+      restart(true);
+      return;
+    }
+
+  is_stopped();
+  HWBusDriver::stop(err);
+}
+
+void EIBNetIPTunnel::stoptimeout_cb(ev::timer &, int)
+{
+  if (stopping)
+    stoptrigger.send();
+}
+
+void EIBNetIPTunnel::stoptrigger_cb(ev::async &, int)
+{
+  if (!stopping)
+    return;
+
+  bool err = stop_error;
   is_stopped();
   HWBusDriver::stop(err);
 }
@@ -89,11 +124,16 @@ EIBNetIPTunnel::start()
 
   acktimeout.set <EIBNetIPTunnel,&EIBNetIPTunnel::acktimeout_cb> (this);
   conntimeout.set <EIBNetIPTunnel,&EIBNetIPTunnel::conntimeout_cb> (this);
+  stoptimeout.set <EIBNetIPTunnel,&EIBNetIPTunnel::stoptimeout_cb> (this);
   sendtrigger.set <EIBNetIPTunnel,&EIBNetIPTunnel::sendtrigger_cb> (this);
+  stoptrigger.set <EIBNetIPTunnel,&EIBNetIPTunnel::stoptrigger_cb> (this);
 
   sendtrigger.start();
+  stoptrigger.start();
 
   sock = nullptr;
+  stopping = false;
+  stop_error = false;
   if (!GetHostIP (t, &caddr, dest))
     goto ex;
   caddr.sin_port = htons (port);
@@ -423,7 +463,7 @@ EIBNetIPTunnel::read_cb (EIBNetIPPacket *p1)
     case DISCONNECT_RESPONSE:
     {
       EIBnet_DisconnectResponse dresp;
-      if (mod == 0)
+      if (mod == 0 && !stopping)
         {
           TRACEPRINTF (t, 1, "Not connected");
           break;
@@ -438,10 +478,17 @@ EIBNetIPTunnel::read_cb (EIBNetIPPacket *p1)
           TRACEPRINTF (t, 1, "Not for us (dresp.chan %d != %d)", dresp.channel,channel);
           break;
         }
+      if (stopping)
+        {
+          stoptimeout.stop();
+          stoptrigger.send();
+        }
+      else
+        conntimeout.start(0.1,0);
+
       mod = 0;
       sock->recvall = 0;
       TRACEPRINTF (t, 1, "Disconnected");
-      conntimeout.start(0.1,0);
       break;
     }
     default:
@@ -517,7 +564,7 @@ void EIBNetIPTunnel::conntimeout_cb(ev::timer &, int)
 }
 
 void
-EIBNetIPTunnel::restart()
+EIBNetIPTunnel::restart(bool graceful_stop)
 {
   if (mod == 0)
     return;
@@ -533,7 +580,10 @@ EIBNetIPTunnel::restart()
     }
   sock->recvall = 0;
   mod = 0;
-  conntimeout.start(0.1,0);
+  if (graceful_stop)
+    stoptimeout.start(1, 0);
+  else
+    conntimeout.start(0.1, 0);
 }
 
 void

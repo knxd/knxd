@@ -49,13 +49,19 @@ DRIVER(EIBNetIPTunnel,ipt)
   int heartbeat_time;
   int heartbeat_limit;
   int retry = 0;
+  bool stopping = false;
+  bool stop_error = false;
 
   ev::timer acktimeout;
   void acktimeout_cb(ev::timer &w, int revents);
   ev::timer conntimeout;
   void conntimeout_cb(ev::timer &w, int revents);
+  ev::timer stoptimeout;
+  void stoptimeout_cb(ev::timer &w, int revents);
   ev::async sendtrigger;
   void sendtrigger_cb(ev::async &w, int revents);
+  ev::async stoptrigger;
+  void stoptrigger_cb(ev::async &w, int revents);
 
   bool support_busmonitor;
   bool connect_busmonitor;
@@ -85,7 +91,7 @@ public:
 
 private:
   void is_stopped();
-  void restart();
+  void restart(bool graceful_stop = false);
 
 public:
   void send_L_Data (LDataPtr  l);
