@@ -280,11 +280,6 @@ EIBNetIPTunnel::read_cb (EIBNetIPPacket *p1)
       //Confirmation
       if (treq.CEMI[0] == 0x2E)
         {
-          if (mod == 3)
-            {
-              mod = 1;
-              trigger.send();
-            }
           break;
         }
       if (treq.CEMI[0] == 0x2B)
