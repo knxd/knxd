@@ -50,12 +50,12 @@ DRIVER(EIBNetIPTunnel,ipt)
   int heartbeat_limit;
   int retry = 0;
 
-  ev::timer timeout;
-  void timeout_cb(ev::timer &w, int revents);
+  ev::timer acktimeout;
+  void acktimeout_cb(ev::timer &w, int revents);
   ev::timer conntimeout;
   void conntimeout_cb(ev::timer &w, int revents);
-  ev::async trigger;
-  void trigger_cb(ev::async &w, int revents);
+  ev::async sendtrigger;
+  void sendtrigger_cb(ev::async &w, int revents);
 
   bool support_busmonitor;
   bool connect_busmonitor;

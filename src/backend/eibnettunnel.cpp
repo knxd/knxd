@@ -39,9 +39,9 @@ EIBNetIPTunnel::~EIBNetIPTunnel ()
 
 void EIBNetIPTunnel::is_stopped()
 {
-  timeout.stop();
+  acktimeout.stop();
   conntimeout.stop();
-  trigger.stop();
+  sendtrigger.stop();
   delete sock;
   sock = nullptr;
 }
@@ -87,11 +87,11 @@ EIBNetIPTunnel::start()
 {
   TRACEPRINTF (t, 2, "Open");
 
-  timeout.set <EIBNetIPTunnel,&EIBNetIPTunnel::timeout_cb> (this);
+  acktimeout.set <EIBNetIPTunnel,&EIBNetIPTunnel::acktimeout_cb> (this);
   conntimeout.set <EIBNetIPTunnel,&EIBNetIPTunnel::conntimeout_cb> (this);
-  trigger.set <EIBNetIPTunnel,&EIBNetIPTunnel::trigger_cb> (this);
+  sendtrigger.set <EIBNetIPTunnel,&EIBNetIPTunnel::sendtrigger_cb> (this);
 
-  trigger.start();
+  sendtrigger.start();
 
   sock = nullptr;
   if (!GetHostIP (t, &caddr, dest))
@@ -215,7 +215,7 @@ EIBNetIPTunnel::read_cb (EIBNetIPPacket *p1)
         }
       channel = cresp.channel;
       mod = 1;
-      trigger.send();
+      sendtrigger.send();
       sno = 0;
       rno = 0;
       sock->recvaddr2 = daddr;
@@ -347,7 +347,7 @@ EIBNetIPTunnel::read_cb (EIBNetIPPacket *p1)
           out.clear();
           send_Next();
           mod = 1;
-          trigger.send();
+          sendtrigger.send();
           retry = 0;
         }
       else
@@ -457,10 +457,10 @@ EIBNetIPTunnel::send_L_Data (LDataPtr l)
 {
   assert(out.size() == 0);
   out = L_Data_ToCEMI (0x11, l);
-  trigger.send();
+  sendtrigger.send();
 }
 
-void EIBNetIPTunnel::trigger_cb(ev::async &, int)
+void EIBNetIPTunnel::sendtrigger_cb(ev::async &, int)
 {
   if (mod != 1 || out.size() == 0)
     return;
@@ -474,7 +474,7 @@ void EIBNetIPTunnel::trigger_cb(ev::async &, int)
   t->TracePacket (1, "SendTunnel", p.data);
   sock->Send (p, daddr);
   mod = 2;
-  timeout.start(1,0);
+  acktimeout.start(1,0);
 }
 
 void EIBNetIPTunnel::conntimeout_cb(ev::timer &, int)
@@ -538,7 +538,7 @@ EIBNetIPTunnel::restart()
 }
 
 void
-EIBNetIPTunnel::timeout_cb(ev::timer &, int)
+EIBNetIPTunnel::acktimeout_cb(ev::timer &, int)
 {
   if (mod != 2)
     return;
@@ -551,6 +551,6 @@ EIBNetIPTunnel::timeout_cb(ev::timer &, int)
   else
     TRACEPRINTF (t, 1, "Retry");
   mod = 1;
-  trigger.send();
+  sendtrigger.send();
 }
 
