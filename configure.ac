@@ -96,6 +96,14 @@ if test x$have_bsd_source_info = xyes ; then
   AC_DEFINE(HAVE_BSD_SOURCEINFO, 1,[FreeBSD compatible sourceinfo])
   have_source_info=yes
 fi
+AC_CHECK_DECL([IP_MULTICAST_ALL],
+  [AC_DEFINE([HAVE_IP_MULTICAST_ALL], [1], [Define if IP_MULTICAST_ALL is available])],
+  [],
+  [[
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+]])
 
 AC_CHECK_FUNCS(gethostbyname_r,,[AC_MSG_WARN([knxd client library not thread safe])])
 

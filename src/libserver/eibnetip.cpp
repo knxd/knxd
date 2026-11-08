@@ -205,7 +205,7 @@ EIBNetIPSocket::SetMulticast (struct ip_mreqn multicastaddr)
   if (multicast)
     return false;
 
-#ifdef IP_MULTICAST_ALL
+#ifdef HAVE_IP_MULTICAST_ALL
   // Linux quirk: Have to disable IP_MULTICAST_ALL to restrict multicast
   // reception to joined groups.
   // https://github.com/torvalds/linux/commit/f771bef98004d9d141b085d987a77d06669d4f4f
