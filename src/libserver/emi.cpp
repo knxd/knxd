@@ -24,25 +24,29 @@ L_Data_ToCEMI (uint8_t code, const LDataPtr & l1)
 {
   CArray pdu;
   assert (l1->lsdu.size() >= 1);
-  assert (l1->lsdu.size() < 0xff);
+  assert (l1->lsdu.size() <= 0xff);
   assert ((l1->hop_count & 0xf8) == 0);
+
+  uint8_t len = l1->lsdu.size() - 1;
+  bool ext = (len > 0x0f) || (l1->ext_frame_format != 0);
 
   pdu.resize (l1->lsdu.size() + 9);
   pdu[0] = code;
   pdu[1] = 0x00;
-  pdu[2] = 0x10 | (l1->priority << 2) | (l1->lsdu.size() - 1 <= 0x0f ? 0x80 : 0x00);
+  pdu[2] = 0x10 | (l1->priority << 2) | (ext ? 0x00 : 0x80);
   if (code == 0x29)
     pdu[2] |= (l1->repeated ? 0 : 0x20);
   else
     pdu[2] |= 0x20;
   pdu[3] =
     (l1->address_type == GroupAddress ? 0x80 : 0x00) |
-    ((l1->hop_count & 0x7) << 4) | 0x0;
+    ((l1->hop_count & 0x7) << 4) |
+    (l1->ext_frame_format & 0x0f);
   pdu[4] = (l1->source_address >> 8) & 0xff;
   pdu[5] = (l1->source_address) & 0xff;
   pdu[6] = (l1->destination_address >> 8) & 0xff;
   pdu[7] = (l1->destination_address) & 0xff;
-  pdu[8] = l1->lsdu.size() - 1;
+  pdu[8] = len;
   pdu.setpart (l1->lsdu.data(), 9, l1->lsdu.size());
   return pdu;
 }
@@ -78,11 +82,9 @@ CEMI_to_L_Data (const CArray & data, TracePtr tr)
   c->priority = static_cast<EIB_Priority>((data[start] >> 2) & 0x3);
   c->hop_count = (data[start + 1] >> 4) & 0x07;
   c->address_type = (data[start + 1] & 0x80) ? GroupAddress : IndividualAddress;
-  if (!(data[start] & 0x80) && (data[start + 1] & 0x0f))
-    {
-      TRACEPRINTF (tr, 7, "Length? invalid (%02x%02x)", data[start],data[start+1]);
-      return 0;
-    }
+  c->frame_format = (data[start] & 0x80) ? 1 : 0;
+  if (!c->frame_format)
+    c->ext_frame_format = data[start + 1] & 0x0f;
   return c;
 }
 

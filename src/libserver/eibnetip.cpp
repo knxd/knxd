@@ -212,6 +212,18 @@ EIBNetIPSocket::SetMulticast (struct ip_mreqn multicastaddr)
   return true;
 }
 
+bool
+EIBNetIPSocket::SetMulticastTTL (int ttl)
+{
+  if (setsockopt (fd, IPPROTO_IP, IP_MULTICAST_TTL, &ttl, sizeof (ttl)) < 0)
+    {
+      ERRORPRINTF (t, E_ERROR | 54, "cannot set multicast TTL to %d: %s", ttl, strerror(errno));
+      return false;
+    }
+  TRACEPRINTF (t, 0, "Multicast TTL set to %d", ttl);
+  return true;
+}
+
 void
 EIBNetIPSocket::Send (EIBNetIPPacket p, struct sockaddr_in addr)
 {
