@@ -212,6 +212,7 @@ private:
   int sendno = 0;
   /** state */
   int mode = 0;
+  bool stop_called = false;
   /** repeat count of the transmitting frame */
   int repcount;
   eibaddr_t dest;

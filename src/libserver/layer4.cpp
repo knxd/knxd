@@ -412,6 +412,9 @@ void T_Connection::timer_cb (ev::timer &, int)
 void
 T_Connection::stop(bool err)
 {
+  if (stop_called)
+    return;
+  stop_called = true;
   mode = 0;
   timer.stop();
   SendDisconnect ();
