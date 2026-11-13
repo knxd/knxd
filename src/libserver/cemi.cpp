@@ -168,8 +168,8 @@ void CEMIDriver::do_send_Next()
             else if (is_unconfigured)
               {
                 // USB is unconfigured - program it
-                TRACEPRINTF(t, 1, "USB interface unconfigured, setting address to %d.%d.%d",
-                  (config_addr >> 12) & 0xF, (config_addr >> 8) & 0xF, config_addr & 0xFF);
+                TRACEPRINTF(t, 1, "USB interface unconfigured, setting address to %s",
+                  FormatEIBAddr(config_addr));
                 need_write_addr = true;
                 init_step = 4;
                 do_send_Next();
@@ -184,9 +184,8 @@ void CEMIDriver::do_send_Next()
               {
                 // Mismatch - warn but don't overwrite
                 ERRORPRINTF(t, E_WARNING | 46,
-                  "USB interface has address %d.%d.%d but config specifies %d.%d.%d - individual addressing may fail",
-                  (usb_addr >> 12) & 0xF, (usb_addr >> 8) & 0xF, usb_addr & 0xFF,
-                  (config_addr >> 12) & 0xF, (config_addr >> 8) & 0xF, config_addr & 0xFF);
+                  "USB interface has address %s but config specifies %s - individual addressing may fail",
+                  FormatEIBAddr(usb_add), FormatEIBAddr(config_addr));
                 init_step = 6; // Skip to completion
                 do_send_Next();
               }

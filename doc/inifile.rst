@@ -429,6 +429,11 @@ the ``ets_router`` server's routing code (no tunnel server, no autodiscovery).
   Optional; the default is the first broadcast-capable interface on your
   system, or the interface which your default route uses.
 
+* multicast-ttl (int; ``-A multicast-ttl=N``)
+
+  IP multicast TTL. Increase this (e.g. to 16) if multicast packets
+  need to traverse IP routers. The default is unset (system default, typically 1).
+
 .. Note::
 
     You **must** use a multicast address here. Direct links to Ip
@@ -568,6 +573,11 @@ Warning: bus+device numbers may change after rebooting.
   The EMI protocol version to use (1, 2, or 3).
 
   Default: None, the protocol to be used is auto-detected.
+
+* addr (KNX physical address string)
+
+  For CEMI interfaces, write this address to the adapter (if unconfigured) /
+  verify that the adapter has this address (if configured).
 
 The following options control repetition of unacknowledged packets. They
 also apply to the "ft12" and "ft12cemi" drivers which wrap EMI1 / CEMI data

@@ -158,7 +158,6 @@ FDdriver::setup_buffers()
   TRACEPRINTF (t, 2, "Buffer Setup on fd %d", fd);
   sendbuf.init(fd);
   recvbuf.init(fd);
-  recvbuf.low_latency();
 
   recvbuf.on_read.set<FDdriver,&FDdriver::read_cb>(this);
   recvbuf.on_error.set<FDdriver,&FDdriver::error_cb>(this);

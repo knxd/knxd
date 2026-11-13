@@ -47,12 +47,11 @@ LDataPtr CM_TP1_to_L_Data (const CArray & c, TracePtr)
   else
     {
       /* extended frame */
-      if ((c[1] & 0x0f) != 0)
-        return nullptr;
       if (c.size() < 7)
         return nullptr;
       l->address_type = (c[1] & 0x80) ? GroupAddress : IndividualAddress;
       l->hop_count = (c[1] >> 4) & 0x07; // @todo this is NPDU
+      l->ext_frame_format = c[1] & 0x0f;
       l->source_address = (c[2] << 8) | (c[3]);
       l->destination_address = (c[4] << 8) | (c[5]);
       uint8_t len = c[6] + 1;
@@ -80,16 +79,25 @@ LDataPtr CM_TP1_to_L_Data (const CArray & c, TracePtr)
   return l;
 }
 
-CArray L_Data_to_CM_TP1 (const LDataPtr & p)
+CArray L_Data_to_CM_TP1 (const LDataPtr & p, TP1_Format fmt)
 {
   assert (p->lsdu.size() >= 1);
   assert (p->lsdu.size() <= 0xff);
   assert ((p->hop_count & 0xf8) == 0);
 
-  CArray pdu;
   uint8_t len = p->lsdu.size() - 1;
-  if (len <= 0x0f)
+
+  bool ext;
+  if (fmt == TP1_as_received)
+    ext = (p->frame_format == 0);
+  else
+    ext = (len > 0x0f) || (p->ext_frame_format != 0);
+
+  CArray pdu;
+  if (!ext)
     {
+      assert (p->ext_frame_format == 0);
+
       /* L_Data_Standard Frame */
       pdu.resize (7 + p->lsdu.size());
       pdu[0] = 0x90 | (p->repeated ? 0x00 : 0x20) | (p->priority << 2);
@@ -110,12 +118,13 @@ CArray L_Data_to_CM_TP1 (const LDataPtr & p)
       pdu[0] = 0x10 | (p->repeated ? 0x00 : 0x20) | (p->priority << 2);
       pdu[1] =
         (p->address_type == GroupAddress ? 0x80 : 0x00) |
-        ((p->hop_count & 0x07) << 4);
+        ((p->hop_count & 0x07) << 4) |
+        (p->ext_frame_format & 0x0f);
       pdu[2] = p->source_address >> 8;
       pdu[3] = p->source_address & 0xff;
       pdu[4] = p->destination_address >> 8;
       pdu[5] = p->destination_address & 0xff;
-      pdu[6] = (p->lsdu.size() - 1) & 0xff;
+      pdu[6] = len & 0xff;
       pdu.setpart (p->lsdu.data(), 7, 1 + (len & 0xff));
     }
 

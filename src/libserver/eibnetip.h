@@ -473,6 +473,8 @@ public:
 
   /** enables multicast */
   bool SetMulticast (struct ip_mreqn multicastaddr);
+  /** set multicast TTL (default: 1) */
+  bool SetMulticastTTL (int ttl);
   /** sends a packet */
   void Send (EIBNetIPPacket p, struct sockaddr_in addr);
   void Send (EIBNetIPPacket p)

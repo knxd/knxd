@@ -39,3 +39,4 @@ config.h: configure
 
 test: all
 	sh tools/test.sh
+	-python3 tools/tpuart_test.py

@@ -298,6 +298,8 @@ AC_DEFINE(HAVE_FMT_PRINTF, 1, [ fmt/printf.h header found ])
 
 if test -f /usr/include/libev/ev++.h ; then
 CPPFLAGS="$CPPFLAGS -I/usr/include/libev"
+elif test -f /usr/include/ev/ev++.h ; then
+CPPFLAGS="$CPPFLAGS -I/usr/include/ev"
 fi
 
 AC_CHECK_LIB([ev], [ev_run],,[AC_MSG_ERROR([libev not found])])

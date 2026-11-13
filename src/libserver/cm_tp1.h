@@ -29,8 +29,28 @@
 
 #include "lpdu.h"
 
+/**
+ * How L_Data_to_CM_TP1() chooses between the standard and the extended
+ * TP1 frame format.
+ */
+enum TP1_Format
+{
+  /**
+   * Extended only if required: either the payload does not fit the standard
+   * format's 4-bit length field, or L_Data_PDU::ext_frame_format carries an
+   * LTE-HEE address that the standard format has no room for. Keeps the common
+   * short standard frame in the cheaper encoding.
+   */
+  TP1_auto = 0,
+  /**
+   * Extended whenever the PDU says it arrived extended. Used where the frame
+   * must be reproduced as it appeared on the wire, e.g. busmonitor.
+   */
+  TP1_as_received,
+};
+
 /** convert L_Data_PDU to TP1 frame */
-CArray L_Data_to_CM_TP1 (const LDataPtr & p);
+CArray L_Data_to_CM_TP1 (const LDataPtr & p, TP1_Format fmt = TP1_auto);
 
 /** create L_Data_PDU out of a TP1 frame */
 LDataPtr CM_TP1_to_L_Data (const CArray & c, TracePtr tr);

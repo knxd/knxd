@@ -123,10 +123,6 @@ public:
     on_error.set<RecvBuf,&RecvBuf::error_cb>(this);
     on_read.set<RecvBuf,&RecvBuf::recv_cb>(this);
   };
-  void low_latency()
-  {
-    quick = true;
-  }
   virtual ~RecvBuf() = default;
 
   void start();
@@ -140,13 +136,11 @@ protected:
   /** receiving */
   uint8_t recvbuf[1024];
   size_t recvpos = 0;
-  int len = 0; // of current block
   void feed_out();
 
 private:
   ev::io io;
   void io_cb (ev::io &w, int revents);
-  bool quick = false;
 };
 
 #endif
