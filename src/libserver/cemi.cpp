@@ -185,7 +185,7 @@ void CEMIDriver::do_send_Next()
                 // Mismatch - warn but don't overwrite
                 ERRORPRINTF(t, E_WARNING | 46,
                   "USB interface has address %s but config specifies %s - individual addressing may fail",
-                  FormatEIBAddr(usb_add), FormatEIBAddr(config_addr));
+                  FormatEIBAddr(usb_addr), FormatEIBAddr(config_addr));
                 init_step = 6; // Skip to completion
                 do_send_Next();
               }
