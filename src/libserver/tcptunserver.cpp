@@ -60,7 +60,7 @@ TcpTunConn::TcpTunConn(TcpTunServerBase *parent, uint32_t connectionID, int fd)
       if (inet_ntop(localSocketAddress.sin_family, &localSocketAddress.sin_addr, addrStr, sizeof(addrStr)))
         {
           char addrPortStr[INET_ADDRSTRLEN + 6];
-          snprintf(addrPortStr, sizeof(addrPortStr), "%s:%hu", addrStr, localSocketAddress.sin_port);
+          snprintf(addrPortStr, sizeof(addrPortStr), "%s:%hu", addrStr, ntohs(localSocketAddress.sin_port));
           t->setAuxName(addrPortStr);
         }
       else
