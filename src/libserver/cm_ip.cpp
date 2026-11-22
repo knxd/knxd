@@ -58,7 +58,8 @@ bool
 EIBnettoIP (const CArray & buf, struct sockaddr_in *a,
             const struct sockaddr_in *src, bool & nat, uint8_t protocol)
 {
-  int ip, port;
+  uint32_t ip;
+  uint16_t port;
   memset (a, 0, sizeof (*a));
   if (buf[0] != 0x8 || buf[1] != protocol)
     return true;
