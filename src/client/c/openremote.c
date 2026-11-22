@@ -78,7 +78,7 @@ GetHostIP (struct sockaddr_in *sock, const char *Name)
     return 0;
 #endif
   sock->sin_family = h->h_addrtype;
-  sock->sin_addr.s_addr = (*((unsigned long *) h->h_addr_list[0]));
+  sock->sin_addr.s_addr = (*((in_addr_t *) h->h_addr_list[0]));
 #ifdef HAVE_GETHOSTBYNAME_R
   if (buf)
     free (buf);

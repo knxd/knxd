@@ -59,7 +59,7 @@ GetHostIP (TracePtr tr, struct sockaddr_in *sock, const std::string& name)
   sock->sin_len = sizeof (*sock);
 #endif
   sock->sin_family = h->h_addrtype;
-  sock->sin_addr.s_addr = (*((unsigned long *) h->h_addr_list[0]));
+  sock->sin_addr.s_addr = (*((in_addr_t *) h->h_addr_list[0]));
   return true;
 }
 
