@@ -78,6 +78,7 @@ static const char *error_levels[] =
 {
   "none",
   "fatal",
+  "critical",
   "error",
   "warning",
   "note",
