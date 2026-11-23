@@ -251,7 +251,7 @@ A "debug" section may contain these options:
 
   The minimum severity level of error messages to be printed.
 
-  Possible values are 0…6, corresponding to none fatal error warning note info debug.
+  Possible values are 0…8, corresponding to none fatal critical error warning note info debug trace.
 
   Optional; default: warning.
 
