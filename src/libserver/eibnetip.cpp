@@ -204,6 +204,20 @@ EIBNetIPSocket::SetMulticast (struct ip_mreqn multicastaddr)
 {
   if (multicast)
     return false;
+
+#ifdef HAVE_IP_MULTICAST_ALL
+  // Linux quirk: Have to disable IP_MULTICAST_ALL to restrict multicast
+  // reception to joined groups.
+  // https://github.com/torvalds/linux/commit/f771bef98004d9d141b085d987a77d06669d4f4f
+  int multicast_all = 0;
+  if (setsockopt (fd, IPPROTO_IP, IP_MULTICAST_ALL, &multicast_all,
+                  sizeof (multicast_all)) == -1)
+    {
+      ERRORPRINTF (t, E_ERROR | 55, "cannot restrict multicast reception to joined groups: %s", strerror(errno));
+      return false;
+    }
+#endif
+
   maddr = multicastaddr;
   if (setsockopt (fd, IPPROTO_IP, IP_ADD_MEMBERSHIP, &maddr, sizeof (maddr))
       == -1)
